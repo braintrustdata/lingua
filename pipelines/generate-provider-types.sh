@@ -134,6 +134,12 @@ Make sure to:
 - Convert TypeScript unions to appropriate Rust enums
 - Follow the TypeScript → Rust conversion rules in the pipeline doc
 
+IMPORTANT CONSTRAINTS:
+- Use the existing tests/typescript/package.json - do NOT create provider-specific packages
+- Do NOT change the structure of existing Rust types unless explicitly asked to
+- The Rust types should resemble EXACTLY the structure of the TypeScript types for that library
+- Maintain field order, naming conventions, and hierarchical structure as closely as possible
+
 After generating the types, also update the translator in src/translators/${PROVIDER}.rs to use the new types."
 echo "$PROMPT_CONTENT"
 echo ""

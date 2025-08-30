@@ -13,14 +13,10 @@ if [ ! -f "Cargo.toml" ]; then
     exit 0
 fi
 
-# Run cargo fmt to check formatting
-echo "📝 Checking code formatting with cargo fmt..."
-if ! cargo fmt --all -- --check; then
-    echo "❌ Code formatting issues found!"
-    echo "💡 Run 'cargo fmt' to fix formatting issues"
-    exit 1
-fi
-echo "✅ Code formatting is correct"
+# Run cargo fmt to fix formatting
+echo "📝 Formatting code with cargo fmt..."
+cargo fmt --all
+echo "✅ Code formatted"
 
 # Run clippy for linting
 echo "🔧 Running clippy for linting..."

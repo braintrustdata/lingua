@@ -8,9 +8,9 @@ All fields and nested types are preserved to ensure full API compatibility.
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Main chat completion request parameters
+/// Base chat completion request parameters (matches ChatCompletionCreateParamsBase in TypeScript)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionCreateParams {
+pub struct ChatCompletionCreateParamsBase {
     /// A list of messages comprising the conversation
     pub messages: Vec<ChatCompletionMessageParam>,
 
@@ -614,4 +614,33 @@ pub enum VerbosityLevel {
 pub enum StopSequences {
     Single(String),
     Multiple(Vec<String>),
+}
+
+/// Non-streaming chat completion request parameters
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionCreateParamsNonStreaming {
+    #[serde(flatten)]
+    pub base: ChatCompletionCreateParamsBase,
+
+    /// Whether to stream the response (false or None for non-streaming)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream: Option<bool>,
+}
+
+/// Streaming chat completion request parameters  
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionCreateParamsStreaming {
+    #[serde(flatten)]
+    pub base: ChatCompletionCreateParamsBase,
+
+    /// Whether to stream the response (always true for streaming)
+    pub stream: bool,
+}
+
+/// Union type for all chat completion request parameters
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ChatCompletionCreateParams {
+    NonStreaming(ChatCompletionCreateParamsNonStreaming),
+    Streaming(ChatCompletionCreateParamsStreaming),
 }
