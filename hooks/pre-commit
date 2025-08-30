@@ -13,10 +13,24 @@ if [ ! -f "Cargo.toml" ]; then
     exit 0
 fi
 
-# Run cargo fmt to fix formatting
+# Run clippy fixes first, then format
+echo "🔧 Running clippy fixes..."
+cargo clippy --all-targets --all-features --fix --allow-dirty
+
+if [ $? -ne 0 ]; then
+    echo "❌ cargo clippy --fix failed"
+    exit 1
+fi
+
 echo "📝 Formatting code with cargo fmt..."
 cargo fmt --all
-echo "✅ Code formatted"
+
+if [ $? -ne 0 ]; then
+    echo "❌ cargo fmt failed"
+    exit 1
+fi
+
+echo "✅ Code fixed and formatted"
 
 
 echo "🎉 All pre-commit checks passed!"

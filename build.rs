@@ -211,15 +211,23 @@ fn try_generate_specific_types(schemas: &serde_json::Value, out_dir: &str) {
         }
     }
 
+    // Check if HashMap is actually used in any of the generated types
+    let uses_hashmap = generated_types.iter().any(|code| code.contains("HashMap"));
+
+    let import_section = if uses_hashmap {
+        "use serde::{Serialize, Deserialize};\nuse std::collections::HashMap;\n"
+    } else {
+        "use serde::{Serialize, Deserialize};\n"
+    };
+
     // Combine all generated types into a single file
     let complete_code = format!(
         "// Generated OpenAI types from official OpenAPI spec\n\
         // Essential types for LLMIR OpenAI chat completion integration\n\
         \n\
-        use serde::{{Serialize, Deserialize}};\n\
-        use std::collections::HashMap;\n\
-        \n\
+        {}\n\
         {}\n",
+        import_section,
         generated_types.join("\n\n")
     );
 
@@ -468,15 +476,23 @@ fn try_generate_anthropic_specific_types(schemas: &serde_json::Value, out_dir: &
         }
     }
 
+    // Check if HashMap is actually used in any of the generated types
+    let uses_hashmap = generated_types.iter().any(|code| code.contains("HashMap"));
+
+    let import_section = if uses_hashmap {
+        "use serde::{Serialize, Deserialize};\nuse std::collections::HashMap;\n"
+    } else {
+        "use serde::{Serialize, Deserialize};\n"
+    };
+
     // Combine all generated types into a single file
     let complete_code = format!(
         "// Generated Anthropic types from unofficial OpenAPI spec\n\
         // Essential types for LLMIR Anthropic messages integration\n\
         \n\
-        use serde::{{Serialize, Deserialize}};\n\
-        use std::collections::HashMap;\n\
-        \n\
+        {}\n\
         {}\n",
+        import_section,
         generated_types.join("\n\n")
     );
 

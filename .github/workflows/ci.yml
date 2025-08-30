@@ -27,11 +27,18 @@ jobs:
         curl -s "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml" -o specs/openai/openapi.yml
         curl -s "https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json" -o specs/anthropic/openapi.json
     
-    - name: Check formatting
-      run: cargo fmt --all -- --check
+    - name: Run clippy and format
+      run: |
+        cargo clippy --all-targets --all-features --fix --allow-dirty -- -D warnings
+        cargo fmt --all
     
-    - name: Run clippy
-      run: cargo clippy --all-targets --all-features -- -D warnings
+    - name: Check for uncommitted changes
+      run: |
+        if ! git diff --quiet; then
+          echo "Code formatting or clippy fixes needed. Run 'cargo clippy --fix && cargo fmt' locally."
+          git diff
+          exit 1
+        fi
     
     - name: Build
       run: cargo build --verbose
