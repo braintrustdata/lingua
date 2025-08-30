@@ -1,14 +1,8 @@
 /*!
 Translation logic between LLMIR universal format and provider-specific formats.
-
-Each translator module handles bidirectional conversion:
-- Universal → Provider (for requests)
-- Provider → Universal (for responses)
 */
 
 pub mod openai;
-pub mod anthropic; 
-pub mod google;
 
 use crate::universal::SimpleMessage;
 
@@ -23,3 +17,6 @@ pub trait Translator<ProviderRequest, ProviderResponse> {
     /// Convert provider response back to LLMIR format
     fn from_provider_response(response: ProviderResponse) -> TranslationResult<Vec<SimpleMessage>>;
 }
+
+// Re-export convenience functions
+pub use openai::{to_openai_format, from_openai_response};

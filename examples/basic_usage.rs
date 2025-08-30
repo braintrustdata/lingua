@@ -1,11 +1,10 @@
-use llmir::universal::{Message, MessageRole, ContentBlock, ContentType};
+use llmir::universal::SimpleMessage;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create some basic messages
     let messages = vec![
-        Message::system("You are a helpful assistant."),
-        Message::user("What is 2 + 2?"),
-        Message::assistant("2 + 2 equals 4."),
+        SimpleMessage::user("What is 2 + 2?"),
+        SimpleMessage::assistant("2 + 2 equals 4."),
     ];
 
     // Print the messages

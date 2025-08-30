@@ -46,15 +46,14 @@ OpenAI │ Anthropic │ Google │ ...
 ```
 llmir/
 ├── src/
-│   ├── lib.rs                 # Core types and translators
-│   ├── providers.rs           # All provider-specific types
-│   ├── translators.rs         # Translation logic between formats
-│   └── capabilities.rs        # Capability detection system
-├── bindings/                  # Auto-generated language bindings
-│   └── typescript/            # TypeScript type definitions
+│   ├── universal/             # Universal LLMIR format definitions  
+│   ├── providers/             # Provider-specific API types
+│   ├── translators/           # Translation logic between formats
+│   ├── capabilities/          # Capability detection system
+│   └── lib.rs                 # Main library entry
+├── bindings/typescript/       # Auto-generated TypeScript types
 ├── examples/                  # Usage examples
-└── tests/                     # Integration tests
-    └── typescript/            # TypeScript compatibility tests
+└── tests/typescript/          # TypeScript compatibility tests
 ```
 
 ## Update pipeline

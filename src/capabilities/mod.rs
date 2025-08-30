@@ -1,10 +1,8 @@
 /*!
-Capability detection and management.
-
-This module handles detecting what features each provider supports,
-enabling capability-based access to features.
+Capability detection for different providers.
 */
 
 pub mod detection;
 
+// Re-export main types and functions
 pub use detection::{Capabilities, ProviderCapabilities, detect_capabilities};

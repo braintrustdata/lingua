@@ -6,17 +6,17 @@ A universal message format for large language model APIs that compiles to provid
 ## Example
 
 ```rust
-use llmir::universal::{Message, MessageRole};
+use llmir::universal::{SimpleMessage, SimpleRole};
 
 // Create messages using convenience methods
 let messages = vec![
-    Message::system("You are a helpful assistant."),
-    Message::user("Hello, world!"),
+    SimpleMessage::user("You are a helpful assistant."),
+    SimpleMessage::user("Hello, world!"),
 ];
 
 // Or create manually
-let message = Message::user("Hello, world!");
-assert_eq!(message.role, MessageRole::User);
+let message = SimpleMessage::user("Hello, world!");
+assert_eq!(message.role, SimpleRole::User);
 ```
 */
 
@@ -26,7 +26,7 @@ pub mod capabilities;
 pub mod translators;
 
 // Re-export commonly used types
-pub use universal::{Message, MessageRole, ContentBlock, ContentType, SimpleMessage, SimpleRole};
+pub use universal::{SimpleMessage, SimpleRole};
 
 #[cfg(test)]
 mod tests {
@@ -34,16 +34,15 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let message = Message {
-            role: MessageRole::User,
-            content: vec![ContentBlock {
-                content_type: ContentType::Text,
-                data: "Hello, world!".to_string(),
-                metadata: None,
-            }],
-            metadata: None,
-        };
-        
-        assert_eq!(message.role, MessageRole::User);
+        let message = SimpleMessage::user("Hello, world!");
+        assert_eq!(message.role, SimpleRole::User);
+        assert_eq!(message.content, "Hello, world!");
+    }
+
+    #[test]
+    fn test_assistant_message() {
+        let message = SimpleMessage::assistant("I'm doing well!");
+        assert_eq!(message.role, SimpleRole::Assistant);
+        assert_eq!(message.content, "I'm doing well!");
     }
 }
