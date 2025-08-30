@@ -454,7 +454,6 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
     }
 }
 
-
 fn fallback_to_placeholder_types() {
     let placeholder_content = r#"// Generated Google AI types from official protobuf files
 // Essential types for LLMIR Google AI integration
