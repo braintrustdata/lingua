@@ -1,7 +1,7 @@
 // Generated OpenAI types from official OpenAPI spec
 // Essential types for LLMIR OpenAI chat completion integration
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -93,8 +93,7 @@ pub struct CreateChatCompletionStreamResponse {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionRequestMessage {
-}
+pub struct ChatCompletionRequestMessage {}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionResponseMessage {

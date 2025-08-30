@@ -1,7 +1,7 @@
 // Generated Anthropic types from unofficial OpenAPI spec
 // Essential types for LLMIR Anthropic messages integration
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CreateMessageParams {
@@ -48,8 +48,7 @@ pub struct InputMessage {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ContentBlock {
-}
+pub struct ContentBlock {}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestTextBlock {
@@ -80,5 +79,4 @@ pub struct Tool {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ToolChoice {
-}
+pub struct ToolChoice {}
