@@ -1,6 +1,10 @@
 # Provider type generation pipeline
 
-This document outlines the process for keeping LLMIR's provider types in sync with the latest provider APIs. This pipeline generates Rust types directly from official OpenAPI specifications using automated tooling.
+This document outlines the process for keeping LLMIR's provider types in sync with the latest provider APIs. This pipeline generates Rust types directly from OpenAPI specifications using automated tooling.
+
+**Supported providers**:
+- **OpenAI**: Official OpenAPI specification (chat completions API)
+- **Anthropic**: Unofficial OpenAPI specification (messages API)
 
 ## Summary
 
@@ -21,11 +25,13 @@ OpenAPI Spec Download → Automated Type Generation → Build Integration → Va
 **Automated approach**: The pipeline script downloads the latest OpenAPI spec automatically.
 
 ```bash
-./pipelines/generate-provider-types.sh openai
+./pipelines/generate-provider-types.sh openai      # Generate OpenAI types
+./pipelines/generate-provider-types.sh anthropic   # Generate Anthropic types
 ```
 
-**OpenAI spec source**: `https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml`  
-**Local storage**: `specs/openai/openapi.yml`
+**Spec sources**:
+- **OpenAI**: `https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml` → `specs/openai/openapi.yml`
+- **Anthropic**: `https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json` → `specs/anthropic/openapi.json`
 
 **What this provides**:
 - Official API specification (always up-to-date)
@@ -38,16 +44,29 @@ OpenAPI Spec Download → Automated Type Generation → Build Integration → Va
 
 **Build integration**: Types are generated automatically during `cargo build` via `build.rs`
 
-**Generated types** (from OpenAPI spec):
+**Generated types**:
+
+**OpenAI** (from official OpenAPI spec):
 - `CreateChatCompletionRequest` - Chat completion request parameters
 - `CreateChatCompletionResponse` - Standard response format  
 - `CreateChatCompletionStreamResponse` - Streaming response format
 - `ChatCompletionRequestMessage` - Input message types
 - `ChatCompletionResponseMessage` - Output message types
 - `ChatCompletionTool` - Tool/function calling types
-- `ChatCompletionRole` - Message role types
+- `CompletionUsage` - Token usage information
 
-**Output location**: `src/providers/openai/generated.rs`
+**Anthropic** (from unofficial OpenAPI spec):
+- `CreateMessageParams` - Message creation request parameters
+- `Message` - Response message format
+- `InputMessage` - Input message structure
+- `ContentBlock` - Content block types
+- `RequestTextBlock` / `ResponseTextBlock` - Text content blocks
+- `Tool` / `ToolChoice` - Tool calling types
+- `Usage` - Token usage information
+
+**Output locations**: 
+- `src/providers/openai/generated.rs`
+- `src/providers/anthropic/generated.rs`
 
 ### 3. Build process and configuration
 

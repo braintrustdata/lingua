@@ -54,6 +54,11 @@ download_provider_spec() {
             SPEC_URL="https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
             SPEC_FILE="$PROJECT_ROOT/specs/openai/openapi.yml"
             ;;
+        "anthropic")
+            echo "Downloading Anthropic OpenAPI spec..."
+            SPEC_URL="https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json"
+            SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.json"
+            ;;
         *)
             echo "❌ Unknown provider: $PROVIDER"
             exit 1

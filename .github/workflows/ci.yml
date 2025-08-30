@@ -21,10 +21,11 @@ jobs:
       with:
         components: rustfmt, clippy
     
-    - name: Download OpenAI OpenAPI spec
+    - name: Download OpenAPI specs
       run: |
-        mkdir -p specs/openai
+        mkdir -p specs/openai specs/anthropic
         curl -s "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml" -o specs/openai/openapi.yml
+        curl -s "https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json" -o specs/anthropic/openapi.json
     
     - name: Check formatting
       run: cargo fmt --all -- --check
