@@ -1,7 +1,7 @@
 // Generated OpenAI types from official OpenAPI spec
 // Essential types for LLMIR OpenAI chat completion integration
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -62,7 +62,6 @@ pub struct CreateChatCompletionRequest {
     pub web_search_options: Option<serde_json::Value>,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CreateChatCompletionResponse {
     pub choices: Vec<serde_json::Value>,
@@ -77,7 +76,6 @@ pub struct CreateChatCompletionResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<serde_json::Value>,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CreateChatCompletionStreamResponse {
@@ -94,11 +92,8 @@ pub struct CreateChatCompletionStreamResponse {
     pub usage: Option<serde_json::Value>,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionRequestMessage {
-}
-
+pub struct ChatCompletionRequestMessage {}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionResponseMessage {
@@ -115,14 +110,12 @@ pub struct ChatCompletionResponseMessage {
     pub tool_calls: Option<serde_json::Value>,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionTool {
     pub function: serde_json::Value,
     #[serde(rename = "type")]
     pub r#type: String,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompletionUsage {
@@ -134,4 +127,3 @@ pub struct CompletionUsage {
     pub prompt_tokens_details: Option<serde_json::Value>,
     pub total_tokens: i64,
 }
-
