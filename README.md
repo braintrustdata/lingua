@@ -46,7 +46,7 @@ OpenAI │ Anthropic │ Google │ ...
 ```
 llmir/
 ├── src/
-│   ├── universal/             # Universal LLMIR format definitions  
+│   ├── universal/             # Universal LLMIR format definitions
 │   ├── providers/             # Provider-specific API types
 │   ├── translators/           # Translation logic between formats
 │   ├── capabilities/          # Capability detection system
@@ -71,6 +71,11 @@ should be automated:
 - [ ] Using an LLM to act on the test outputs and propose updates to the universal format, as needed.
 - [ ] Using an LLM to update the compatability matrix, as needed needed.
 - [ ] Testing the new capability across all providers to ensure no regressions.
+
+## Tests / interesting cases
+
+- [ ] Show token accounting across providers. Ideally we give users a way to access the provider's native usage + a unified format.
+- [ ] How does structured outputs + Anthropic work? Translate to tool, and parse the response? Does that require carrying some state across request/response? Maybe we can generate an object when performing the forward translation that can be used in the reverse translation.
 
 ## Status
 

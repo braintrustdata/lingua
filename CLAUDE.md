@@ -103,24 +103,32 @@ Each provider should have:
 
 ## Pipeline maintenance
 
-The `pipelines/` directory contains detailed instructions for:
-- Checking for provider SDK updates
-- Converting TypeScript types to Rust
-- Validating type compatibility
-- Integrating changes into the codebase
+The `pipelines/` directory contains automated tooling for:
+- Downloading latest OpenAPI specifications from providers
+- Generating Rust types automatically using typify
+- Building and validating generated code
+- Minimal type generation focused on chat completion APIs
 
-This process is currently manual but designed to be systematic and reproducible.
+Run the pipeline to update provider types:
+```bash
+./pipelines/generate-provider-types.sh openai
+```
+
+This process is fully automated and generates only essential types to minimize code size.
 
 ## Development setup
 
 **Git hooks installation**:
-After cloning the repository, install pre-commit hooks for code quality:
+After cloning the repository, install pre-commit hooks for consistent formatting:
 ```bash
 ./scripts/install-hooks.sh
 ```
 
 This installs hooks that automatically run:
-- `cargo fmt --check` - ensures consistent formatting
+- `cargo fmt` - ensures consistent formatting
+
+**Code quality checks**:
+Clippy linting is handled by GitHub Actions CI and will run on pull requests.
 - `cargo clippy` - catches common issues and enforces best practices
 
 Hooks run automatically before each commit. To bypass temporarily: `git commit --no-verify`

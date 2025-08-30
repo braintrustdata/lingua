@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Pre-commit hook for LLMIR project
-# Runs cargo fmt and clippy to ensure code quality
+# Runs cargo fmt to ensure consistent formatting
 
 set -e
 
@@ -18,18 +18,5 @@ echo "📝 Formatting code with cargo fmt..."
 cargo fmt --all
 echo "✅ Code formatted"
 
-# Run clippy for linting and auto-fix
-echo "🔧 Running clippy with auto-fix..."
-cargo clippy --fix --allow-dirty --all-targets --all-features -- -D warnings
-echo "✅ Clippy auto-fix completed"
-
-# Run clippy again to check for remaining issues
-echo "🔍 Checking for remaining clippy issues..."
-if ! cargo clippy --all-targets --all-features -- -D warnings; then
-    echo "❌ Clippy found issues that couldn't be auto-fixed!"
-    echo "💡 Please review and fix the remaining issues manually"
-    exit 1
-fi
-echo "✅ Clippy checks passed"
 
 echo "🎉 All pre-commit checks passed!"

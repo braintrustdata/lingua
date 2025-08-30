@@ -38,7 +38,7 @@ if "$HOOKS_DIR/pre-commit"; then
     echo "✅ Pre-commit hook test passed"
 else
     echo "❌ Pre-commit hook test failed"
-    echo "   You may need to run 'cargo fmt' and fix any clippy issues"
+    echo "   You may need to run 'cargo fmt' to fix formatting issues"
     exit 1
 fi
 
@@ -46,9 +46,10 @@ echo ""
 echo "🎉 Git hooks installed successfully!"
 echo ""
 echo "The following hooks are now active:"
-echo "  • pre-commit: Runs 'cargo fmt --check' and 'cargo clippy'"
+echo "  • pre-commit: Runs 'cargo fmt' for consistent formatting"
 echo ""
-echo "These hooks will run automatically before each commit to ensure code quality."
+echo "These hooks will run automatically before each commit to ensure consistent formatting."
+echo "Clippy checks are handled by GitHub Actions CI."
 echo "If a hook fails, the commit will be aborted."
 echo ""
 echo "To bypass hooks temporarily (not recommended), use: git commit --no-verify"
