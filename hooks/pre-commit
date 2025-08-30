@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Pre-commit hook for LLMIR project
-# Runs cargo fmt to ensure consistent formatting
+# Fails if code needs formatting or clippy fixes
 
 set -e
 
@@ -13,24 +13,19 @@ if [ ! -f "Cargo.toml" ]; then
     exit 0
 fi
 
-# Run clippy fixes first, then format
-echo "🔧 Running clippy fixes..."
-cargo clippy --all-targets --all-features --fix --allow-dirty
-
-if [ $? -ne 0 ]; then
-    echo "❌ cargo clippy --fix failed"
+# Check if clippy has any suggestions
+echo "🔧 Checking clippy..."
+if ! cargo clippy --all-targets --all-features -- -D warnings; then
+    echo "❌ Clippy found issues. Run 'cargo clippy --fix' to fix them."
     exit 1
 fi
 
-echo "📝 Formatting code with cargo fmt..."
-cargo fmt --all
-
-if [ $? -ne 0 ]; then
-    echo "❌ cargo fmt failed"
+# Check if code is already formatted
+echo "📝 Checking code formatting..."
+if ! cargo fmt --all -- --check; then
+    echo "❌ Code is not formatted properly."
+    echo "💡 Run 'cargo fmt' to fix formatting, then commit again."
     exit 1
 fi
 
-echo "✅ Code fixed and formatted"
-
-
-echo "🎉 All pre-commit checks passed!"
+echo "✅ All checks passed!"
