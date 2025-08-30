@@ -1,0 +1,7 @@
+/target
+/Cargo.lock
+/typescript/bindings
+*.pdb
+.DS_Store
+.vscode/
+.idea/

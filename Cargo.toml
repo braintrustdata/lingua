@@ -1,0 +1,26 @@
+[package]
+name = "llmir"
+version = "0.1.0"
+edition = "2021"
+description = "LLM Intermediate Representation - Universal message format for LLM APIs"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/llmir"
+keywords = ["llm", "ai", "openai", "anthropic", "api"]
+categories = ["api-bindings", "development-tools"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+ts-rs = { version = "7.0", features = ["serde-compat"] }
+anyhow = "1.0"
+
+[dev-dependencies]
+tokio-test = "0.4"
+
+[[example]]
+name = "basic_usage"
+path = "examples/basic_usage.rs"
+
+[lib]
+name = "llmir"
+path = "src/lib.rs"
