@@ -44,8 +44,48 @@ PROVIDER="${PROVIDER:-openai}"
 
 echo "🔄 Generating types for provider: $PROVIDER"
 
-# Step 1: Check for provider SDK updates
-echo "📦 Step 1: Checking for $PROVIDER SDK updates..."
+# Step 1: Download provider OpenAPI spec
+echo "📦 Step 1: Downloading $PROVIDER OpenAPI specification..."
+
+download_provider_spec() {
+    case "$PROVIDER" in
+        "openai")
+            echo "Downloading OpenAI OpenAPI spec..."
+            SPEC_URL="https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
+            SPEC_FILE="$PROJECT_ROOT/specs/openai/openapi.yml"
+            ;;
+        *)
+            echo "❌ Unknown provider: $PROVIDER"
+            exit 1
+            ;;
+    esac
+    
+    # Create specs directory if it doesn't exist
+    mkdir -p "$(dirname "$SPEC_FILE")"
+    
+    # Download the spec
+    if command -v curl >/dev/null 2>&1; then
+        curl -s "$SPEC_URL" -o "$SPEC_FILE"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q "$SPEC_URL" -O "$SPEC_FILE"
+    else
+        echo "❌ Neither curl nor wget is available"
+        exit 1
+    fi
+    
+    if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
+        echo "✅ Downloaded OpenAPI spec to: $SPEC_FILE"
+        echo "📊 Spec size: $(wc -l < "$SPEC_FILE") lines"
+    else
+        echo "❌ Failed to download OpenAPI spec"
+        exit 1
+    fi
+}
+
+download_provider_spec
+
+# Step 2: Check for provider SDK updates
+echo "📦 Step 2: Checking for $PROVIDER SDK updates..."
 
 PROVIDER_TEST_DIR="$PROJECT_ROOT/tests/typescript/$PROVIDER"
 if [ ! -d "$PROVIDER_TEST_DIR" ]; then
