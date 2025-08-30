@@ -37,7 +37,9 @@ fn generate_openai_types_from_openapi() {
                 "Failed to read local OpenAPI spec at {}: {}",
                 spec_file_path, e
             );
-            println!("Run './pipelines/generate-provider-types.sh openai' to download the spec first");
+            println!(
+                "Run './pipelines/generate-provider-types.sh openai' to download the spec first"
+            );
             return;
         }
     };
@@ -119,7 +121,7 @@ fn generate_anthropic_types_from_openapi() {
 
     // Use local OpenAPI spec file for Anthropic
     let spec_file_path = "specs/anthropic/openapi.json";
-    
+
     let anthropic_spec = match fs::read_to_string(spec_file_path) {
         Ok(content) => content,
         Err(e) => {
@@ -127,14 +129,16 @@ fn generate_anthropic_types_from_openapi() {
                 "Failed to read local Anthropic OpenAPI spec at {}: {}",
                 spec_file_path, e
             );
-            println!("Run './pipelines/generate-provider-types.sh anthropic' to download the spec first");
+            println!(
+                "Run './pipelines/generate-provider-types.sh anthropic' to download the spec first"
+            );
             return;
         }
     };
 
     // Parse the JSON spec (Anthropic uses JSON format)
     println!("Parsing local JSON OpenAPI spec...");
-    
+
     let schema: serde_json::Value = match serde_json::from_str(&anthropic_spec) {
         Ok(value) => value,
         Err(e) => {
@@ -150,17 +154,17 @@ fn generate_anthropic_types_from_openapi() {
 
     if let Some(schemas) = schemas {
         println!("Found Anthropic components/schemas section");
-        
+
         // Generate essential Anthropic types for messages API
         println!("Generating essential Anthropic types for messages API");
         try_generate_anthropic_specific_types(schemas, &out_dir);
-        
+
         // Save a list of all available schema names for reference
         let schema_names: Vec<String> = schemas
             .as_object()
             .map(|obj| obj.keys().cloned().collect())
             .unwrap_or_default();
-        
+
         let names_path = Path::new(&out_dir).join("anthropic_schema_names.txt");
         if let Ok(mut file) = fs::File::create(&names_path) {
             let names_list = schema_names.join("\n");
@@ -201,10 +205,7 @@ fn try_generate_specific_types(schemas: &serde_json::Value, out_dir: &str) {
                     println!("Generated Rust struct for {}", type_name);
                 }
                 Err(e) => {
-                    println!(
-                        "Failed to generate {} struct: {}",
-                        type_name, e
-                    );
+                    println!("Failed to generate {} struct: {}", type_name, e);
                 }
             }
         }
@@ -225,10 +226,7 @@ fn try_generate_specific_types(schemas: &serde_json::Value, out_dir: &str) {
     let generated_file_path = Path::new(out_dir).join("openai_generated_key_types.rs");
     if let Ok(mut file) = fs::File::create(&generated_file_path) {
         let _ = file.write_all(complete_code.as_bytes());
-        println!(
-            "Generated key OpenAI types: {:?}",
-            generated_file_path
-        );
+        println!("Generated key OpenAI types: {:?}", generated_file_path);
     }
 }
 
@@ -394,7 +392,7 @@ fn copy_generated_types_to_src() {
     use std::fs;
 
     let out_dir = std::env::var("OUT_DIR").unwrap();
-    
+
     // Copy OpenAI generated types
     let openai_generated_file_path = Path::new(&out_dir).join("openai_generated_key_types.rs");
     if openai_generated_file_path.exists() {
@@ -414,7 +412,8 @@ fn copy_generated_types_to_src() {
     }
 
     // Copy Anthropic generated types
-    let anthropic_generated_file_path = Path::new(&out_dir).join("anthropic_generated_key_types.rs");
+    let anthropic_generated_file_path =
+        Path::new(&out_dir).join("anthropic_generated_key_types.rs");
     if anthropic_generated_file_path.exists() {
         let dest_path = "src/providers/anthropic/generated.rs";
 
@@ -440,7 +439,7 @@ fn try_generate_anthropic_specific_types(schemas: &serde_json::Value, out_dir: &
     let essential_types = [
         "CreateMessageParams",
         "Message",
-        "InputMessage", 
+        "InputMessage",
         "ContentBlock",
         "RequestTextBlock",
         "ResponseTextBlock",
@@ -461,10 +460,7 @@ fn try_generate_anthropic_specific_types(schemas: &serde_json::Value, out_dir: &
                     println!("Generated Rust struct for Anthropic {}", type_name);
                 }
                 Err(e) => {
-                    println!(
-                        "Failed to generate Anthropic {} struct: {}",
-                        type_name, e
-                    );
+                    println!("Failed to generate Anthropic {} struct: {}", type_name, e);
                 }
             }
         } else {
@@ -487,9 +483,6 @@ fn try_generate_anthropic_specific_types(schemas: &serde_json::Value, out_dir: &
     let generated_file_path = Path::new(out_dir).join("anthropic_generated_key_types.rs");
     if let Ok(mut file) = fs::File::create(&generated_file_path) {
         let _ = file.write_all(complete_code.as_bytes());
-        println!(
-            "Generated key Anthropic types: {:?}",
-            generated_file_path
-        );
+        println!("Generated key Anthropic types: {:?}", generated_file_path);
     }
 }
