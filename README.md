@@ -1,6 +1,6 @@
-# LLMIR - LLM Intermediate Representation
+# Elmir - A library for creating provider-agnostic LLM inputs & outputs
 
-A universal message format for large language model APIs that compiles to provider-specific formats with zero runtime overhead.
+Elmir (LLMIR) is a library and specification for defining a universal message format for large language model APIs. It enables developers to write messages, model parameters, and tool definitions in a single format that can be translated to and from any model provider's API client-side with zero runtime overhead.
 
 ## Goals
 
@@ -24,7 +24,7 @@ A universal message format for large language model APIs that compiles to provid
 ## Architecture
 
 ```
-LLMIR Universal Format
+Elmir Universal Format
          ↓
     Capability Detection
          ↓
@@ -44,9 +44,9 @@ OpenAI │ Anthropic │ Google │ ...
 ## Project structure
 
 ```
-llmir/
+elmir/
 ├── src/
-│   ├── universal/             # Universal LLMIR format definitions
+│   ├── universal/             # Universal Elmir format definitions
 │   ├── providers/             # Provider-specific API types
 │   ├── translators/           # Translation logic between formats
 │   ├── capabilities/          # Capability detection system
@@ -61,16 +61,26 @@ llmir/
 It is crucial that this library stay up-to-date with the latest model provider APIs, and therefore the pipeline from new spec to implementation to testing should be as automated
 as possible. This repo is designed specifically for LLMs to perform every step, with an opportunity for human reviewers to test and contribute to the _taste_ of the data format.
 
-Not all providers produce openapi specs, and so we'll take advantage of the popularity of TypeScript and strength of its typesystem as a source of truth. The following actions
-should be automated:
+Each provider has _some kind_ of pipeline, runnable through `./pipelines/generate-provider-types.sh <provider>` that generates valid Rust types for its API. OpenAI and Anthropic
+both use OpenAPI, while Google uses protobuf. The pipeline works as follows:
 
-- [ ] Finding the latest version of a provider's TypeScript library.
-- [ ] Using the library to automatically test that LLMIR type for that provider is exactly equivalent to the provider's type.
-- [ ] Using an LLM to update the LLMIR type, if needed.
-- [ ] Automatically testing that within Rust, the provider's LLMIR type can be losslessly converted to-and-from the universal format.
+- Run `./generate-provider-types.sh <provider>` to download the latest spec and generate Rust types
+  - [ ] Fix Anthropic to fetch stats from https://github.com/anthropics/anthropic-sdk-typescript/blob/main/.stats.yml first
+- [ ] Automatically testing that within Rust, the provider's type can be losslessly converted to-and-from the universal format.
 - [ ] Using an LLM to act on the test outputs and propose updates to the universal format, as needed.
 - [ ] Using an LLM to update the compatability matrix, as needed needed.
 - [ ] Testing the new capability across all providers to ensure no regressions.
+
+### Automated Updates
+
+Provider types can be automatically updated using GitHub Actions:
+
+1. **Manual trigger**: Go to Actions → "Update Provider Types" → Run workflow
+2. **Choose providers**: Select `all`, or specific providers like `openai,anthropic`
+3. **Automatic PR**: If changes are detected, a PR will be created automatically
+
+The automation downloads the latest specifications, regenerates types, applies formatting, and creates a pull request for review.
+
 
 ## Tests / interesting cases
 

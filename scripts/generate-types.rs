@@ -125,38 +125,11 @@ fn generate_anthropic_types() {
 fn generate_google_types() {
     println!("📦 Generating Google types from protobuf files...");
 
-    let proto_dir = "specs/google/protos";
+    let _proto_dir = "specs/google/protos";
 
-    // Check if protobuf files exist
-    if !std::path::Path::new(proto_dir).exists() {
-        println!("❌ Google protobuf files not found at {}", proto_dir);
-        println!(
-            "Run './pipelines/generate-provider-types.sh google' to download protobuf files first"
-        );
-        return;
-    }
-
-    // Essential protobuf files for Google AI
-    // Only include the main service file - it will automatically include dependencies
-    let proto_files = ["google/ai/generativelanguage/v1/generative_service.proto"];
-
-    let proto_paths: Vec<String> = proto_files
-        .iter()
-        .map(|f| format!("{}/{}", proto_dir, f))
-        .collect();
-
-    // Check if all required proto files exist
-    for path in &proto_paths {
-        if !std::path::Path::new(path).exists() {
-            println!("❌ Required proto file not found: {}", path);
-            return;
-        }
-    }
-
-    println!("✅ Found all required protobuf files, compiling...");
-
-    // Generate protobuf types directly to src directory
-    generate_google_protobuf_types(&proto_paths, proto_dir);
+    // Use URL-based fetching instead of local files
+    println!("✅ Generating Google types by fetching from remote URLs...");
+    generate_google_protobuf_types_from_urls();
 }
 
 fn generate_openai_specific_types(schemas: &serde_json::Value) {
@@ -315,6 +288,147 @@ fn generate_anthropic_specific_types(schemas: &serde_json::Value) {
     }
 }
 
+fn generate_google_protobuf_types_from_urls() {
+    println!("🔨 Generating Google types by fetching remote protobuf files...");
+
+    // Create a temporary directory for protobuf files
+    let temp_proto_dir = std::env::temp_dir().join("llmir-google-protos");
+    let _ = std::fs::create_dir_all(&temp_proto_dir);
+
+    // Google protobuf file URLs
+    let remote_files = vec![
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/generative_service.proto",
+            "google/ai/generativelanguage/v1beta/generative_service.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/content.proto",
+            "google/ai/generativelanguage/v1beta/content.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/safety.proto", 
+            "google/ai/generativelanguage/v1beta/safety.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/citation.proto",
+            "google/ai/generativelanguage/v1beta/citation.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/tool.proto",
+            "google/ai/generativelanguage/v1beta/tool.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/retriever.proto",
+            "google/ai/generativelanguage/v1beta/retriever.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto",
+            "google/api/annotations.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto",
+            "google/api/http.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/field_behavior.proto",
+            "google/api/field_behavior.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/resource.proto",
+            "google/api/resource.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/client.proto",
+            "google/api/client.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/launch_stage.proto",
+            "google/api/launch_stage.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/type/interval.proto",
+            "google/type/interval.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/duration.proto",
+            "google/protobuf/duration.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/timestamp.proto",
+            "google/protobuf/timestamp.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/descriptor.proto",
+            "google/protobuf/descriptor.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/any.proto",
+            "google/protobuf/any.proto"
+        ),
+        (
+            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/struct.proto",
+            "google/protobuf/struct.proto"
+        ),
+    ];
+
+    // Fetch all protobuf files to temp directory
+    for (url, local_path) in &remote_files {
+        let full_local_path = temp_proto_dir.join(local_path);
+
+        // Create parent directories
+        if let Some(parent) = full_local_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+
+        println!("📥 Fetching: {}", url);
+
+        // Use std process to call curl
+        let output = std::process::Command::new("curl")
+            .arg("-s")
+            .arg("-L") // Follow redirects
+            .arg(url)
+            .output();
+
+        match output {
+            Ok(result) if result.status.success() => {
+                if let Err(e) = std::fs::write(&full_local_path, &result.stdout) {
+                    println!("❌ Failed to write {}: {}", local_path, e);
+                    fallback_to_placeholder_types();
+                    return;
+                }
+            }
+            Ok(result) => {
+                println!(
+                    "❌ Failed to fetch {}: {}",
+                    url,
+                    String::from_utf8_lossy(&result.stderr)
+                );
+                fallback_to_placeholder_types();
+                return;
+            }
+            Err(e) => {
+                println!("❌ Error running curl for {}: {}", url, e);
+                fallback_to_placeholder_types();
+                return;
+            }
+        }
+    }
+
+    println!("✅ Fetched all remote protobuf files to temp directory");
+
+    // Now compile from the temporary directory
+    let proto_files = ["google/ai/generativelanguage/v1beta/generative_service.proto"];
+    let proto_paths: Vec<String> = proto_files
+        .iter()
+        .map(|f| temp_proto_dir.join(f).to_string_lossy().to_string())
+        .collect();
+
+    generate_google_protobuf_types(&proto_paths, &temp_proto_dir.to_string_lossy());
+
+    // Clean up temp directory
+    let _ = std::fs::remove_dir_all(&temp_proto_dir);
+}
+
 fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
     println!("🔨 Compiling protobuf files with prost-build...");
 
@@ -402,7 +516,7 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         entry
             .file_name()
             .to_str()
-            .map(|name| name.contains("google.ai.generativelanguage.v1"))
+            .map(|name| name.contains("google.ai.generativelanguage.v1beta"))
             .unwrap_or(false)
     });
 

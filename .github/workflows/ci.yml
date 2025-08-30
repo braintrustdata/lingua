@@ -11,37 +11,47 @@ env:
 
 jobs:
   test:
-    name: Test
     runs-on: ubuntu-latest
+    
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
       with:
+        toolchain: stable
+        override: true
         components: rustfmt, clippy
-    
-    - name: Download OpenAPI specs
+
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Install protobuf compiler
       run: |
-        mkdir -p specs/openai specs/anthropic
-        curl -s "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml" -o specs/openai/openapi.yml
-        curl -s "https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json" -o specs/anthropic/openapi.json
-    
-    - name: Run clippy and format
-      run: |
-        cargo clippy --all-targets --all-features --fix --allow-dirty -- -D warnings
-        cargo fmt --all
-    
-    - name: Check for uncommitted changes
-      run: |
-        if ! git diff --quiet; then
-          echo "Code formatting or clippy fixes needed. Run 'cargo clippy --fix && cargo fmt' locally."
-          git diff
-          exit 1
-        fi
-    
+        sudo apt-get update
+        sudo apt-get install -y protobuf-compiler
+
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
     - name: Build
       run: cargo build --verbose
-    
+
     - name: Run tests
       run: cargo test --verbose
+
+    - name: Build examples
+      run: |
+        cargo build --example basic_usage
+        cargo build --example simple_openai

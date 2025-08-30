@@ -60,8 +60,7 @@ download_provider_spec() {
             SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.json"
             ;;
         "google")
-            echo "Downloading Google protobuf files..."
-            download_google_protos
+            echo "Google types generated directly from remote URLs (no download needed)"
             return
             ;;
         *)
@@ -94,9 +93,10 @@ download_provider_spec() {
 
 download_google_protos() {
     local PROTO_DIR="$PROJECT_ROOT/specs/google/protos"
-    mkdir -p "$PROTO_DIR/google/ai/generativelanguage/v1"
+    mkdir -p "$PROTO_DIR/google/ai/generativelanguage/v1beta"
     mkdir -p "$PROTO_DIR/google/api"
     mkdir -p "$PROTO_DIR/google/protobuf"
+    mkdir -p "$PROTO_DIR/google/type"
     
     echo "Downloading Google AI GenerativeLanguage protobuf files..."
     
@@ -104,18 +104,21 @@ download_google_protos() {
     local googleapis_url="https://raw.githubusercontent.com/googleapis/googleapis/master"
     local protobuf_url="https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src"
     
-    # Google API files
+    # Google API files - using v1beta for function calling support
     local googleapis_files=(
-        "google/ai/generativelanguage/v1/generative_service.proto"
-        "google/ai/generativelanguage/v1/content.proto"
-        "google/ai/generativelanguage/v1/safety.proto"
-        "google/ai/generativelanguage/v1/citation.proto"
+        "google/ai/generativelanguage/v1beta/generative_service.proto"
+        "google/ai/generativelanguage/v1beta/content.proto"
+        "google/ai/generativelanguage/v1beta/safety.proto"
+        "google/ai/generativelanguage/v1beta/citation.proto"
+        "google/ai/generativelanguage/v1beta/tool.proto"
+        "google/ai/generativelanguage/v1beta/retriever.proto"
         "google/api/annotations.proto"
         "google/api/http.proto"
         "google/api/field_behavior.proto"
         "google/api/resource.proto"
         "google/api/client.proto"
         "google/api/launch_stage.proto"
+        "google/type/interval.proto"
     )
     
     # Standard protobuf files
@@ -124,6 +127,7 @@ download_google_protos() {
         "google/protobuf/timestamp.proto" 
         "google/protobuf/descriptor.proto"
         "google/protobuf/any.proto"
+        "google/protobuf/struct.proto"
     )
     
     # Download googleapis files
