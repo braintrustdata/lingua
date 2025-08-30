@@ -110,8 +110,6 @@ fn generate_openai_types_from_openapi() {
     }
 }
 
-
-
 fn try_generate_specific_types(schemas: &serde_json::Value, out_dir: &str) {
     use std::fs;
     use std::io::Write;
@@ -119,7 +117,7 @@ fn try_generate_specific_types(schemas: &serde_json::Value, out_dir: &str) {
     // Focus only on essential chat completion types to minimize generated code
     let essential_types = [
         "CreateChatCompletionRequest",
-        "CreateChatCompletionResponse", 
+        "CreateChatCompletionResponse",
         "CreateChatCompletionStreamResponse",
         "ChatCompletionRequestMessage",
         "ChatCompletionResponseMessage",
