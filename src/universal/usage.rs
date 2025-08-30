@@ -3,7 +3,7 @@ use ts_rs::TS;
 
 /// Token usage information with normalized counting across providers
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct TokenUsage {
     /// Input tokens consumed (normalized across providers)
     pub input_tokens: u64,
@@ -25,7 +25,7 @@ pub struct TokenUsage {
 
 /// Cost information for the request
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct CostInfo {
     /// Total cost in USD
     pub total_cost: f64,
@@ -45,7 +45,7 @@ pub struct CostInfo {
 
 /// Complete usage information combining tokens and cost
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct Usage {
     /// Token usage breakdown
     pub tokens: TokenUsage,

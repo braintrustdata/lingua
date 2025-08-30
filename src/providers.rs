@@ -1,10 +1,14 @@
 /*!
-OpenAI API type definitions.
+Provider-specific API type definitions.
 
-This module contains types that exactly match OpenAI's API specifications.
+This module contains types that exactly match each provider's API specifications.
 */
 
 use serde::{Deserialize, Serialize};
+
+//
+// OpenAI API Types
+//
 
 /// OpenAI message role
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -56,3 +60,15 @@ pub struct OpenAIChatCompletionResponse {
     pub choices: Vec<OpenAIChoice>,
     pub usage: Option<OpenAIUsage>,
 }
+
+//
+// Anthropic API Types (TODO)
+//
+
+// TODO: Add Anthropic API types here
+
+//
+// Google Gemini API Types (TODO)
+//
+
+// TODO: Add Google Gemini API types here

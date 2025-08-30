@@ -26,7 +26,7 @@ pub mod capabilities;
 pub mod translators;
 
 // Re-export commonly used types
-pub use universal::{Message, MessageRole, ContentBlock, ContentType};
+pub use universal::{Message, MessageRole, ContentBlock, ContentType, SimpleMessage, SimpleRole};
 
 #[cfg(test)]
 mod tests {

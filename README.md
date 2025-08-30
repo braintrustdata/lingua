@@ -33,36 +33,45 @@ LLMIR Universal Format
 OpenAI │ Anthropic │ Google │ ...
 ```
 
-## Project Structure
+## Capabilities
+
+[ ... list the known capabilities ... ]
+
+## Compatability matrix
+
+[ .. for each provider, list which capabilities are supported ... ]
+
+## Project structure
 
 ```
 llmir/
 ├── src/
-│   ├── lib.rs                 # Main library entry
-│   ├── universal/             # Universal LLMIR format definitions
-│   │   ├── mod.rs
-│   │   ├── message.rs         # Core message types
-│   │   ├── tools.rs           # Tool definitions
-│   │   └── usage.rs           # Token usage reporting
-│   ├── providers/             # Provider-specific types and translators
-│   │   ├── mod.rs
-│   │   ├── openai/            # OpenAI API types and translator
-│   │   ├── anthropic/         # Anthropic API types and translator
-│   │   └── google/            # Google Gemini API types and translator
-│   ├── capabilities/          # Capability detection system
-│   │   ├── mod.rs
-│   │   └── detection.rs
-│   └── translators/           # Translation logic between formats
-│       ├── mod.rs
-│       ├── openai.rs
-│       ├── anthropic.rs
-│       └── google.rs
+│   ├── lib.rs                 # Core types and translators
+│   ├── providers.rs           # All provider-specific types
+│   ├── translators.rs         # Translation logic between formats
+│   └── capabilities.rs        # Capability detection system
+├── bindings/                  # Auto-generated language bindings
+│   └── typescript/            # TypeScript type definitions
 ├── examples/                  # Usage examples
-├── tests/                     # Integration tests
-└── tools/                     # Code generation tools
-    ├── spec_converter/        # OpenAPI/TypeScript → Rust converter
-    └── capability_gen/        # Auto-generate capability matrices
+└── tests/                     # Integration tests
+    └── typescript/            # TypeScript compatibility tests
 ```
+
+## Update pipeline
+
+It is crucial that this library stay up-to-date with the latest model provider APIs, and therefore the pipeline from new spec to implementation to testing should be as automated
+as possible. This repo is designed specifically for LLMs to perform every step, with an opportunity for human reviewers to test and contribute to the _taste_ of the data format.
+
+Not all providers produce openapi specs, and so we'll take advantage of the popularity of TypeScript and strength of its typesystem as a source of truth. The following actions
+should be automated:
+
+- [ ] Finding the latest version of a provider's TypeScript library.
+- [ ] Using the library to automatically test that LLMIR type for that provider is exactly equivalent to the provider's type.
+- [ ] Using an LLM to update the LLMIR type, if needed.
+- [ ] Automatically testing that within Rust, the provider's LLMIR type can be losslessly converted to-and-from the universal format.
+- [ ] Using an LLM to act on the test outputs and propose updates to the universal format, as needed.
+- [ ] Using an LLM to update the compatability matrix, as needed needed.
+- [ ] Testing the new capability across all providers to ensure no regressions.
 
 ## Status
 

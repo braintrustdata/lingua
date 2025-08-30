@@ -3,7 +3,7 @@ use ts_rs::TS;
 
 /// Message role in a conversation
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub enum MessageRole {
     /// System instruction that guides model behavior
     System,
@@ -17,7 +17,7 @@ pub enum MessageRole {
 
 /// Content type within a message
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub enum ContentType {
     /// Plain text content
     Text,
@@ -39,7 +39,7 @@ pub enum ContentType {
 
 /// A piece of content within a message
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct ContentBlock {
     /// Type of this content block
     pub content_type: ContentType,
@@ -53,7 +53,7 @@ pub struct ContentBlock {
 
 /// Metadata associated with a message
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct MessageMetadata {
     /// Unique identifier for this message
     #[ts(optional)]
@@ -81,7 +81,7 @@ pub struct MessageMetadata {
 
 /// A complete message in a conversation
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct Message {
     /// Role of the message sender
     pub role: MessageRole,

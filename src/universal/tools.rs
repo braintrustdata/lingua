@@ -3,7 +3,7 @@ use ts_rs::TS;
 
 /// Tool definition that can be called by the model
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct ToolDefinition {
     /// Unique identifier for this tool
     pub name: String,
@@ -22,7 +22,7 @@ pub struct ToolDefinition {
 
 /// How a tool gets executed
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub enum ToolExecutionType {
     /// Client executes the tool (traditional function calling)
     ClientManaged,
@@ -34,7 +34,7 @@ pub enum ToolExecutionType {
 
 /// A tool call made by the model
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct ToolCall {
     /// Unique ID for this tool call
     pub id: String,
@@ -49,7 +49,7 @@ pub struct ToolCall {
 
 /// Result from executing a tool
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct ToolResult {
     /// ID of the tool call this result corresponds to
     pub call_id: String,
@@ -69,7 +69,7 @@ pub struct ToolResult {
 
 /// Universal tool type that maps to provider-specific tools
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub enum Tool {
     /// Web search capability
     WebSearch,
@@ -87,7 +87,7 @@ pub enum Tool {
 
 /// Configuration for universal tools
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct ToolConfig {
     /// The universal tool type
     pub tool: Tool,

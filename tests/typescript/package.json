@@ -1,0 +1,17 @@
+{
+  "name": "llmir-typescript-tests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeScript compatibility tests for LLMIR",
+  "scripts": {
+    "test": "tsx test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.25.9",
+    "openai": "^4.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
