@@ -2,6 +2,9 @@
 OpenAI translator implementation.
 */
 
+use crate::providers::openai::request::{
+    ChatCompletionAssistantMessageParam, ChatCompletionUserMessageParam,
+};
 use crate::providers::openai::{
     ChatCompletion, ChatCompletionCreateParams, ChatCompletionMessageParam,
     MessageContentWithParts, MessageContentWithRefusal,
@@ -19,26 +22,26 @@ impl Translator<ChatCompletionCreateParams, ChatCompletion> for OpenAITranslator
         let openai_messages = messages
             .into_iter()
             .map(|msg| match msg.role {
-                SimpleRole::User => ChatCompletionMessageParam::User {
-                    content: MessageContentWithParts::Text(msg.content),
-                    name: None,
-                },
-                SimpleRole::Assistant => ChatCompletionMessageParam::Assistant {
-                    content: Some(MessageContentWithRefusal::Text(msg.content)),
-                    audio: None,
-                    function_call: None,
-                    name: None,
-                    refusal: None,
-                    tool_calls: None,
-                },
+                SimpleRole::User => {
+                    ChatCompletionMessageParam::User(ChatCompletionUserMessageParam {
+                        content: MessageContentWithParts::String(msg.content),
+                        name: None,
+                    })
+                }
+                SimpleRole::Assistant => {
+                    ChatCompletionMessageParam::Assistant(ChatCompletionAssistantMessageParam {
+                        content: Some(MessageContentWithRefusal::String(msg.content)),
+                        audio: None,
+                        function_call: None,
+                        name: None,
+                        refusal: None,
+                        tool_calls: None,
+                    })
+                }
             })
             .collect();
 
-        use crate::providers::openai::{
-            ChatCompletionCreateParamsBase, ChatCompletionCreateParamsNonStreaming,
-        };
-
-        let base_params = ChatCompletionCreateParamsBase {
+        let params = ChatCompletionCreateParams {
             model: "gpt-4o".to_string(),
             messages: openai_messages,
             audio: None,
@@ -75,14 +78,7 @@ impl Translator<ChatCompletionCreateParams, ChatCompletion> for OpenAITranslator
             web_search_options: None,
         };
 
-        let non_streaming_params = ChatCompletionCreateParamsNonStreaming {
-            base: base_params,
-            stream: None,
-        };
-
-        Ok(ChatCompletionCreateParams::NonStreaming(
-            non_streaming_params,
-        ))
+        Ok(params)
     }
 
     fn from_provider_response(response: ChatCompletion) -> TranslationResult<Vec<SimpleMessage>> {

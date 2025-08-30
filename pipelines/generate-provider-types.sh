@@ -136,7 +136,10 @@ Make sure to:
 
 IMPORTANT CONSTRAINTS:
 - Use the existing tests/typescript/package.json - do NOT create provider-specific packages
-- Do NOT change the structure of existing Rust types unless explicitly asked to
+- Do NOT change existing Rust types unless explicitly asked to - PRESERVE what already works
+- If types already exist and compile correctly, only add missing types, do NOT refactor existing ones
+- Do NOT change enum variants to simple types (e.g. keep Text enum instead of changing to String)
+- Do NOT reorganize or restructure existing working code
 - The Rust types should resemble EXACTLY the structure of the TypeScript types for that library
 - Maintain field order, naming conventions, and hierarchical structure as closely as possible
 

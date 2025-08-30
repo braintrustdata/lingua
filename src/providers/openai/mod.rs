@@ -11,14 +11,16 @@ pub mod response;
 // Re-export main request types for convenience
 pub use request::{
     ChatCompletionAudioParam, ChatCompletionContentPart, ChatCompletionCreateParams,
-    ChatCompletionCreateParamsBase, ChatCompletionCreateParamsNonStreaming,
-    ChatCompletionCreateParamsStreaming, ChatCompletionMessageParam, ChatCompletionTool,
-    ChatCompletionToolChoiceOption, FunctionDefinition, MessageContent, MessageContentWithParts,
-    MessageContentWithRefusal, ResponseFormat, ServiceTier, StopSequences,
+    ChatCompletionCreateParamsNonStreaming, ChatCompletionCreateParamsStreaming,
+    ChatCompletionMessageParam, ChatCompletionModality, ChatCompletionTool,
+    ChatCompletionToolChoiceOption, FunctionDefinition, MessageContentTextOnly,
+    MessageContentWithParts, MessageContentWithRefusal, ReasoningEffort, ResponseFormat,
+    ServiceTier, StopSequences, Verbosity,
 };
 
 // Re-export main response types for convenience
 pub use response::{
     ChatCompletion, ChatCompletionChoice, ChatCompletionChunk, ChatCompletionChunkChoice,
-    ChatCompletionMessage, CompletionUsage, FinishReason,
+    ChatCompletionDeleted, ChatCompletionMessage, ChatCompletionStoreMessage, CompletionUsage,
+    FinishReason,
 };
