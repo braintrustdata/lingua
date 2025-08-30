@@ -20,10 +20,10 @@ assert_eq!(message.role, SimpleRole::User);
 ```
 */
 
-pub mod universal;
-pub mod providers;
 pub mod capabilities;
+pub mod providers;
 pub mod translators;
+pub mod universal;
 
 // Re-export commonly used types
 pub use universal::{SimpleMessage, SimpleRole};

@@ -1,7 +1,8 @@
 /*!
 OpenAI chat completion response types.
 
-These types match the OpenAI TypeScript SDK v5.16.0 exactly.
+These types match the OpenAI TypeScript SDK exactly, extracted from the latest version.
+All fields and nested types are preserved to ensure full API compatibility.
 */
 
 use serde::{Deserialize, Serialize};
@@ -11,28 +12,28 @@ use serde::{Deserialize, Serialize};
 pub struct ChatCompletion {
     /// Unique identifier for the chat completion
     pub id: String,
-    
+
     /// List of completion choices
     pub choices: Vec<ChatCompletionChoice>,
-    
+
     /// Unix timestamp of creation
     pub created: u64,
-    
+
     /// Model used for completion
     pub model: String,
-    
+
     /// Object type (always "chat.completion")
     pub object: String,
-    
-    /// Service tier used
+
+    /// Service tier used for processing
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTier>,
-    
-    /// System fingerprint
+
+    /// Backend configuration fingerprint
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system_fingerprint: Option<String>,
-    
-    /// Token usage information
+
+    /// Token usage statistics
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<CompletionUsage>,
 }
@@ -42,19 +43,382 @@ pub struct ChatCompletion {
 pub struct ChatCompletionChoice {
     /// Reason why completion finished
     pub finish_reason: FinishReason,
-    
+
     /// Index of this choice
     pub index: u32,
-    
+
     /// Log probability information
     #[serde(skip_serializing_if = "Option::is_none")]
     pub logprobs: Option<ChoiceLogprobs>,
-    
-    /// The completion message
+
+    /// Chat completion message
     pub message: ChatCompletionMessage,
 }
 
-/// Finish reason options
+/// Log probability information for a choice
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChoiceLogprobs {
+    /// Content token log probabilities
+    pub content: Option<Vec<ChatCompletionTokenLogprob>>,
+
+    /// Refusal token log probabilities
+    pub refusal: Option<Vec<ChatCompletionTokenLogprob>>,
+}
+
+/// Token log probability information
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionTokenLogprob {
+    /// The token
+    pub token: String,
+
+    /// UTF-8 bytes representation
+    pub bytes: Option<Vec<u32>>,
+
+    /// Log probability of this token
+    pub logprob: f64,
+
+    /// Most likely alternative tokens
+    pub top_logprobs: Vec<TokenLogprob>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TokenLogprob {
+    /// The token
+    pub token: String,
+
+    /// UTF-8 bytes representation
+    pub bytes: Option<Vec<u32>>,
+
+    /// Log probability of this token
+    pub logprob: f64,
+}
+
+/// Chat completion message from the model
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionMessage {
+    /// Message content
+    pub content: Option<String>,
+
+    /// Refusal message
+    pub refusal: Option<String>,
+
+    /// Message role (always "assistant")
+    pub role: String,
+
+    /// Message annotations
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<Vec<MessageAnnotation>>,
+
+    /// Audio response data
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio: Option<ChatCompletionAudioResponse>,
+
+    /// Deprecated: use tool_calls instead
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function_call: Option<FunctionCallResponse>,
+
+    /// Tool calls made by the model
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<MessageToolCall>>,
+}
+
+/// Message annotations for web search results
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum MessageAnnotation {
+    #[serde(rename = "url_citation")]
+    UrlCitation { url_citation: UrlCitation },
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct UrlCitation {
+    /// End index of citation in message
+    pub end_index: u32,
+
+    /// Start index of citation in message
+    pub start_index: u32,
+
+    /// Title of web resource
+    pub title: String,
+
+    /// URL of web resource
+    pub url: String,
+}
+
+/// Audio response data
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionAudioResponse {
+    /// Audio response identifier
+    pub id: String,
+
+    /// Base64 encoded audio data
+    pub data: String,
+
+    /// Expiration timestamp
+    pub expires_at: u64,
+
+    /// Audio transcript
+    pub transcript: String,
+}
+
+/// Function call response (deprecated)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FunctionCallResponse {
+    /// Function arguments as JSON string
+    pub arguments: String,
+
+    /// Function name
+    pub name: String,
+}
+
+/// Tool call made by the model
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum MessageToolCall {
+    #[serde(rename = "function")]
+    Function {
+        id: String,
+        function: FunctionCallResponse,
+    },
+    #[serde(rename = "custom")]
+    Custom {
+        id: String,
+        custom: CustomToolCallResponse,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CustomToolCallResponse {
+    /// Custom tool input
+    pub input: String,
+
+    /// Custom tool name
+    pub name: String,
+}
+
+/// Streamed chat completion chunk
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionChunk {
+    /// Unique identifier (same across all chunks)
+    pub id: String,
+
+    /// List of completion choices
+    pub choices: Vec<ChatCompletionChunkChoice>,
+
+    /// Unix timestamp of creation
+    pub created: u64,
+
+    /// Model identifier
+    pub model: String,
+
+    /// Object type (always "chat.completion.chunk")
+    pub object: String,
+
+    /// Service tier used
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_tier: Option<ServiceTier>,
+
+    /// System fingerprint
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_fingerprint: Option<String>,
+
+    /// Token usage (only in final chunk if requested)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usage: Option<CompletionUsage>,
+}
+
+/// Streaming completion choice delta
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionChunkChoice {
+    /// Delta containing incremental changes
+    pub delta: ChunkDelta,
+
+    /// Finish reason (null until completion)
+    pub finish_reason: Option<FinishReason>,
+
+    /// Choice index
+    pub index: u32,
+
+    /// Log probability information
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprobs: Option<ChoiceLogprobs>,
+}
+
+/// Delta for streaming updates
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChunkDelta {
+    /// Content delta
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+
+    /// Deprecated: use tool_calls
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function_call: Option<FunctionCallDelta>,
+
+    /// Refusal delta
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<String>,
+
+    /// Role (only in first chunk)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+
+    /// Tool call deltas
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<ToolCallDelta>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FunctionCallDelta {
+    /// Function arguments delta
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<String>,
+
+    /// Function name
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ToolCallDelta {
+    /// Tool call index
+    pub index: u32,
+
+    /// Tool call ID
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+
+    /// Function delta
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<FunctionCallDelta>,
+
+    /// Tool type
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "type")]
+    pub tool_type: Option<String>,
+}
+
+/// Token usage statistics
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompletionUsage {
+    /// Number of tokens in completion
+    pub completion_tokens: u32,
+
+    /// Number of tokens in prompt
+    pub prompt_tokens: u32,
+
+    /// Total tokens used
+    pub total_tokens: u32,
+
+    /// Detailed completion token breakdown
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completion_tokens_details: Option<CompletionTokensDetails>,
+
+    /// Detailed prompt token breakdown
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_tokens_details: Option<PromptTokensDetails>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompletionTokensDetails {
+    /// Accepted prediction tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub accepted_prediction_tokens: Option<u32>,
+
+    /// Audio output tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_tokens: Option<u32>,
+
+    /// Reasoning tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_tokens: Option<u32>,
+
+    /// Rejected prediction tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rejected_prediction_tokens: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PromptTokensDetails {
+    /// Audio input tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_tokens: Option<u32>,
+
+    /// Cached tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cached_tokens: Option<u32>,
+}
+
+/// Chat completion deletion response
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionDeleted {
+    /// ID of deleted completion
+    pub id: String,
+
+    /// Whether deletion succeeded
+    pub deleted: bool,
+
+    /// Object type
+    pub object: String,
+}
+
+/// Stored chat completion message (extended version)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ChatCompletionStoreMessage {
+    /// Message identifier
+    pub id: String,
+
+    /// Message content
+    pub content: Option<String>,
+
+    /// Refusal message
+    pub refusal: Option<String>,
+
+    /// Message role
+    pub role: String,
+
+    /// Message annotations
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<Vec<MessageAnnotation>>,
+
+    /// Audio response data
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio: Option<ChatCompletionAudioResponse>,
+
+    /// Content parts array
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_parts: Option<Vec<ContentPart>>,
+
+    /// Deprecated function call
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function_call: Option<FunctionCallResponse>,
+
+    /// Tool calls
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<MessageToolCall>>,
+}
+
+/// Content part for stored messages
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum ContentPart {
+    #[serde(rename = "text")]
+    Text { text: String },
+    #[serde(rename = "image_url")]
+    ImageUrl { image_url: ImageUrlData },
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ImageUrlData {
+    /// Image URL
+    pub url: String,
+
+    /// Detail level
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
+}
+
+/// Enumeration types
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FinishReason {
@@ -65,133 +429,6 @@ pub enum FinishReason {
     FunctionCall,
 }
 
-/// Log probabilities for a choice
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChoiceLogprobs {
-    /// Content token log probabilities
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<Vec<ChatCompletionTokenLogprob>>,
-    
-    /// Refusal token log probabilities
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub refusal: Option<Vec<ChatCompletionTokenLogprob>>,
-}
-
-/// Token log probability information
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionTokenLogprob {
-    /// The token string
-    pub token: String,
-    
-    /// Token bytes
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bytes: Option<Vec<u8>>,
-    
-    /// Log probability of the token
-    pub logprob: f64,
-    
-    /// Top alternative tokens with their log probabilities
-    pub top_logprobs: Vec<TopLogprob>,
-}
-
-/// Top log probability alternative
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TopLogprob {
-    /// The alternative token
-    pub token: String,
-    
-    /// Token bytes
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bytes: Option<Vec<u8>>,
-    
-    /// Log probability of this alternative
-    pub logprob: f64,
-}
-
-/// Chat completion message in response
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionMessage {
-    /// Message content
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<String>,
-    
-    /// Refusal content
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub refusal: Option<String>,
-    
-    /// Message role (always "assistant" in responses)
-    pub role: String,
-    
-    /// Content annotations
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub annotations: Option<Vec<MessageAnnotation>>,
-    
-    /// Audio output
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio: Option<ChatCompletionAudio>,
-    
-    /// Function call (deprecated)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub function_call: Option<FunctionCall>,
-    
-    /// Tool calls made by the assistant
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_calls: Option<Vec<ChatCompletionMessageToolCall>>,
-}
-
-/// Message annotation
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum MessageAnnotation {
-    UrlCitation {
-        url_citation: UrlCitation,
-    },
-}
-
-/// URL citation annotation
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct UrlCitation {
-    pub end_index: u32,
-    pub start_index: u32,
-    pub title: String,
-    pub url: String,
-}
-
-/// Audio output in completion
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionAudio {
-    pub id: String,
-    pub expires_at: u64,
-    pub data: String, // Base64 encoded
-    pub transcript: String,
-}
-
-/// Function call (deprecated)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FunctionCall {
-    /// Function arguments as JSON string
-    pub arguments: String,
-    
-    /// Function name
-    pub name: String,
-}
-
-/// Tool call made by assistant
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ChatCompletionMessageToolCall {
-    Function {
-        id: String,
-        function: FunctionCall,
-    },
-    #[serde(rename = "custom")]
-    Custom {
-        id: String,
-        custom: serde_json::Value,
-    },
-}
-
-/// Service tier options
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ServiceTier {
@@ -200,158 +437,4 @@ pub enum ServiceTier {
     Flex,
     Scale,
     Priority,
-}
-
-/// Token usage statistics
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CompletionUsage {
-    /// Number of tokens in completion
-    pub completion_tokens: u32,
-    
-    /// Number of tokens in prompt
-    pub prompt_tokens: u32,
-    
-    /// Total tokens used
-    pub total_tokens: u32,
-    
-    /// Detailed completion token breakdown
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub completion_tokens_details: Option<CompletionTokensDetails>,
-    
-    /// Detailed prompt token breakdown
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prompt_tokens_details: Option<PromptTokensDetails>,
-}
-
-/// Detailed completion token usage
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CompletionTokensDetails {
-    /// Accepted prediction tokens (for caching)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub accepted_prediction_tokens: Option<u32>,
-    
-    /// Audio output tokens
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_tokens: Option<u32>,
-    
-    /// Reasoning tokens (for o1/o3 models)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning_tokens: Option<u32>,
-    
-    /// Rejected prediction tokens
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rejected_prediction_tokens: Option<u32>,
-}
-
-/// Detailed prompt token usage
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct PromptTokensDetails {
-    /// Audio input tokens
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_tokens: Option<u32>,
-    
-    /// Cached tokens (for context caching)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cached_tokens: Option<u32>,
-}
-
-// Streaming response types
-
-/// Chat completion chunk (streaming response)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionChunk {
-    /// Unique identifier for the completion
-    pub id: String,
-    
-    /// List of delta choices
-    pub choices: Vec<ChatCompletionChunkChoice>,
-    
-    /// Unix timestamp of creation
-    pub created: u64,
-    
-    /// Model used
-    pub model: String,
-    
-    /// Object type (always "chat.completion.chunk")
-    pub object: String,
-    
-    /// Service tier used
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_tier: Option<ServiceTier>,
-    
-    /// System fingerprint
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub system_fingerprint: Option<String>,
-    
-    /// Token usage (only in final chunk)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub usage: Option<CompletionUsage>,
-}
-
-/// Choice in streaming chunk
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionChunkChoice {
-    /// Delta (incremental changes)
-    pub delta: ChatCompletionChunkDelta,
-    
-    /// Finish reason (only in final chunk)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub finish_reason: Option<FinishReason>,
-    
-    /// Choice index
-    pub index: u32,
-    
-    /// Log probabilities for this chunk
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub logprobs: Option<ChoiceLogprobs>,
-}
-
-/// Delta changes in streaming chunk
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionChunkDelta {
-    /// Content delta
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<String>,
-    
-    /// Function call delta (deprecated)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub function_call: Option<FunctionCallDelta>,
-    
-    /// Refusal delta
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub refusal: Option<String>,
-    
-    /// Role (only in first chunk)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub role: Option<String>,
-    
-    /// Tool calls delta
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_calls: Option<Vec<ChatCompletionMessageToolCallDelta>>,
-}
-
-/// Function call delta (deprecated)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FunctionCallDelta {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arguments: Option<String>,
-    
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-}
-
-/// Tool call delta in streaming
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionMessageToolCallDelta {
-    pub index: u32,
-    
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
-    
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "type")]
-    pub tool_type: Option<String>,
-    
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub function: Option<FunctionCallDelta>,
 }

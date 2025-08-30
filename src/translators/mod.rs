@@ -13,10 +13,10 @@ pub type TranslationResult<T> = anyhow::Result<T>;
 pub trait Translator<ProviderRequest, ProviderResponse> {
     /// Convert LLMIR messages to provider request format
     fn to_provider_request(messages: Vec<SimpleMessage>) -> TranslationResult<ProviderRequest>;
-    
+
     /// Convert provider response back to LLMIR format
     fn from_provider_response(response: ProviderResponse) -> TranslationResult<Vec<SimpleMessage>>;
 }
 
 // Re-export convenience functions
-pub use openai::{to_openai_format, from_openai_response};
+pub use openai::{from_openai_response, to_openai_format};

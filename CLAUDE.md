@@ -111,6 +111,20 @@ The `pipelines/` directory contains detailed instructions for:
 
 This process is currently manual but designed to be systematic and reproducible.
 
+## Development setup
+
+**Git hooks installation**:
+After cloning the repository, install pre-commit hooks for code quality:
+```bash
+./scripts/install-hooks.sh
+```
+
+This installs hooks that automatically run:
+- `cargo fmt --check` - ensures consistent formatting
+- `cargo clippy` - catches common issues and enforces best practices
+
+Hooks run automatically before each commit. To bypass temporarily: `git commit --no-verify`
+
 ## Future enhancements
 
 - **OpenAPI specification approach**: Generate types from OpenAPI specs rather than SDKs

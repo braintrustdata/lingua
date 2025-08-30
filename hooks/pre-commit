@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Pre-commit hook for LLMIR project
+# Runs cargo fmt and clippy to ensure code quality
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if we're in a Rust project
+if [ ! -f "Cargo.toml" ]; then
+    echo "❌ No Cargo.toml found, skipping Rust checks"
+    exit 0
+fi
+
+# Run cargo fmt to check formatting
+echo "📝 Checking code formatting with cargo fmt..."
+if ! cargo fmt --all -- --check; then
+    echo "❌ Code formatting issues found!"
+    echo "💡 Run 'cargo fmt' to fix formatting issues"
+    exit 1
+fi
+echo "✅ Code formatting is correct"
+
+# Run clippy for linting
+echo "🔧 Running clippy for linting..."
+if ! cargo clippy --all-targets --all-features -- -D warnings; then
+    echo "❌ Clippy found issues that need to be fixed!"
+    echo "💡 Run 'cargo clippy --fix' to automatically fix some issues"
+    exit 1
+fi
+echo "✅ Clippy checks passed"
+
+echo "🎉 All pre-commit checks passed!"

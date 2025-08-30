@@ -2,31 +2,22 @@
 OpenAI API provider types.
 
 This module contains complete type definitions for OpenAI's chat completion API
-that match the TypeScript SDK v5.16.0 exactly.
+that match the TypeScript SDK exactly, extracted from the latest version.
 */
 
 pub mod request;
 pub mod response;
 
-// Re-export main types for convenience
+// Re-export main request types for convenience
 pub use request::{
-    ChatCompletionCreateParams,
-    ChatCompletionMessageParam,
-    MessageContent,
-    ChatCompletionContentPart,
-    ChatCompletionTool,
-    ChatCompletionToolChoiceOption,
-    ResponseFormat,
-    ServiceTier,
-    StopSequences,
+    ChatCompletionAudioParam, ChatCompletionContentPart, ChatCompletionCreateParams,
+    ChatCompletionMessageParam, ChatCompletionTool, ChatCompletionToolChoiceOption,
+    FunctionDefinition, MessageContent, MessageContentWithParts, MessageContentWithRefusal,
+    ResponseFormat, ServiceTier, StopSequences,
 };
 
+// Re-export main response types for convenience
 pub use response::{
-    ChatCompletion,
-    ChatCompletionChoice,
-    ChatCompletionMessage,
-    ChatCompletionChunk,
-    ChatCompletionChunkChoice,
-    CompletionUsage,
-    FinishReason,
+    ChatCompletion, ChatCompletionChoice, ChatCompletionChunk, ChatCompletionChunkChoice,
+    ChatCompletionMessage, CompletionUsage, FinishReason,
 };
