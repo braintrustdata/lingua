@@ -34,8 +34,10 @@ impl Translator<ChatCompletionCreateParams, ChatCompletion> for OpenAITranslator
             })
             .collect();
 
-        use crate::providers::openai::{ChatCompletionCreateParamsBase, ChatCompletionCreateParamsNonStreaming};
-        
+        use crate::providers::openai::{
+            ChatCompletionCreateParamsBase, ChatCompletionCreateParamsNonStreaming,
+        };
+
         let base_params = ChatCompletionCreateParamsBase {
             model: "gpt-4o".to_string(),
             messages: openai_messages,
@@ -78,7 +80,9 @@ impl Translator<ChatCompletionCreateParams, ChatCompletion> for OpenAITranslator
             stream: None,
         };
 
-        Ok(ChatCompletionCreateParams::NonStreaming(non_streaming_params))
+        Ok(ChatCompletionCreateParams::NonStreaming(
+            non_streaming_params,
+        ))
     }
 
     fn from_provider_response(response: ChatCompletion) -> TranslationResult<Vec<SimpleMessage>> {
