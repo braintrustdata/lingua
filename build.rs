@@ -88,12 +88,9 @@ fn generate_openai_types_from_openapi() {
             }
         }
 
-        // Try to generate Rust types for the key schemas we need
-        println!("cargo:warning=Attempting to generate Rust types for key OpenAI schemas");
+        // Generate only essential Rust types for chat completion APIs
+        println!("cargo:warning=Generating essential OpenAI types for chat completions");
         try_generate_specific_types(schemas, &out_dir);
-
-        // Also try generating with full context
-        try_generate_rust_types_with_context(&schema, &out_dir);
 
         // Also save a list of all available schema names for reference
         let schema_names: Vec<String> = schemas
@@ -113,87 +110,27 @@ fn generate_openai_types_from_openapi() {
     }
 }
 
-fn try_generate_rust_types_with_context(full_schema: &serde_json::Value, out_dir: &str) {
-    println!("cargo:warning=Generating Rust types with complete OpenAPI schema context");
 
-    // Create a complete OpenAPI schema for typify
-    let complete_schema = serde_json::json!({
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "definitions": full_schema.get("components").and_then(|c| c.get("schemas")).unwrap_or(&serde_json::Value::Null)
-    });
-
-    match generate_complete_rust_code(&complete_schema, out_dir) {
-        Ok(_) => {
-            println!("cargo:warning=Successfully generated complete OpenAI types");
-        }
-        Err(e) => {
-            println!("cargo:warning=Failed to generate complete types: {}", e);
-        }
-    }
-}
-
-fn generate_complete_rust_code(
-    schema: &serde_json::Value,
-    out_dir: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    use std::fs;
-    use std::io::Write;
-
-    // Create TypeSpace with default settings
-    let settings = typify::TypeSpaceSettings::default();
-    let mut type_space = typify::TypeSpace::new(&settings);
-
-    // Convert the complete schema to a schemars RootSchema
-    let root_schema: schemars::schema::RootSchema = serde_json::from_value(schema.clone())?;
-
-    // Add all schemas to the type space
-    type_space.add_root_schema(root_schema)?;
-
-    // Generate Rust code for all types
-    let tokens = type_space.to_stream();
-
-    // Create the complete generated types file
-    let full_code = format!(
-        "// Generated OpenAI types from official OpenAPI spec\n\
-        // This file contains all OpenAI API types automatically generated from the official specification\n\
-        \n\
-        use serde::{{Serialize, Deserialize}};\n\
-        \n\
-        {}\n",
-        tokens
-    );
-
-    // Save to a single file containing all generated types
-    let generated_file_path = Path::new(out_dir).join("openai_generated_complete.rs");
-    let mut file = fs::File::create(&generated_file_path)?;
-    file.write_all(full_code.as_bytes())?;
-
-    println!(
-        "cargo:warning=Generated complete OpenAI types: {:?}",
-        generated_file_path
-    );
-
-    Ok(())
-}
 
 fn try_generate_specific_types(schemas: &serde_json::Value, out_dir: &str) {
     use std::fs;
     use std::io::Write;
 
-    // Focus on the most important types for the LLMIR project
-    let important_types = [
+    // Focus only on essential chat completion types to minimize generated code
+    let essential_types = [
         "CreateChatCompletionRequest",
-        "CreateChatCompletionResponse",
+        "CreateChatCompletionResponse", 
         "CreateChatCompletionStreamResponse",
         "ChatCompletionRequestMessage",
         "ChatCompletionResponseMessage",
         "ChatCompletionTool",
-        "ChatCompletionRole",
+        "ChatCompletionChoice",
+        "CompletionUsage",
     ];
 
     let mut generated_types = Vec::new();
 
-    for type_name in important_types {
+    for type_name in essential_types {
         if let Some(type_schema) = schemas.get(type_name) {
             println!("cargo:warning=Processing {} schema", type_name);
 
@@ -215,7 +152,7 @@ fn try_generate_specific_types(schemas: &serde_json::Value, out_dir: &str) {
     // Combine all generated types into a single file
     let complete_code = format!(
         "// Generated OpenAI types from official OpenAPI spec\n\
-        // Key types for LLMIR OpenAI integration\n\
+        // Essential types for LLMIR OpenAI chat completion integration\n\
         \n\
         use serde::{{Serialize, Deserialize}};\n\
         use std::collections::HashMap;\n\

@@ -12,9 +12,9 @@ pub mod response;
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{
-    ChatCompletionRequestMessage, ChatCompletionResponseMessage, ChatCompletionRole,
-    ChatCompletionTool, CreateChatCompletionRequest, CreateChatCompletionResponse,
-    CreateChatCompletionStreamResponse,
+    ChatCompletionRequestMessage, ChatCompletionResponseMessage, ChatCompletionTool,
+    CompletionUsage as GeneratedCompletionUsage, CreateChatCompletionRequest,
+    CreateChatCompletionResponse, CreateChatCompletionStreamResponse,
 };
 
 // Re-export manual types for backwards compatibility (will be deprecated)

@@ -1,5 +1,5 @@
 // Generated OpenAI types from official OpenAPI spec
-// Key types for LLMIR OpenAI integration
+// Essential types for LLMIR OpenAI chat completion integration
 
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
@@ -125,6 +125,13 @@ pub struct ChatCompletionTool {
 
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ChatCompletionRole {
+pub struct CompletionUsage {
+    pub completion_tokens: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completion_tokens_details: Option<serde_json::Value>,
+    pub prompt_tokens: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_tokens_details: Option<serde_json::Value>,
+    pub total_tokens: i64,
 }
 
