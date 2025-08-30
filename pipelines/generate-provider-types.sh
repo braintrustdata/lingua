@@ -3,7 +3,7 @@
 # Provider type generation script
 # 
 # This script follows the pipeline documented in generate-provider-types.md
-# Currently supports: OpenAI (more providers to be added)
+# Currently supports: OpenAI, Anthropic, Google
 #
 # Usage: ./generate-provider-types.sh [provider] [--headless]
 # Default provider: openai
@@ -59,6 +59,11 @@ download_provider_spec() {
             SPEC_URL="https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json"
             SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.json"
             ;;
+        "google")
+            echo "Downloading Google protobuf files..."
+            download_google_protos
+            return
+            ;;
         *)
             echo "❌ Unknown provider: $PROVIDER"
             exit 1
@@ -87,14 +92,67 @@ download_provider_spec() {
     fi
 }
 
+download_google_protos() {
+    local PROTO_DIR="$PROJECT_ROOT/specs/google/protos"
+    mkdir -p "$PROTO_DIR/google/ai/generativelanguage/v1"
+    mkdir -p "$PROTO_DIR/google/api"
+    
+    echo "Downloading Google AI GenerativeLanguage protobuf files..."
+    
+    # Core protobuf files for Generative AI API
+    local base_url="https://raw.githubusercontent.com/googleapis/googleapis/master"
+    local files=(
+        "google/ai/generativelanguage/v1/generative_service.proto"
+        "google/ai/generativelanguage/v1/content.proto"
+        "google/ai/generativelanguage/v1/safety.proto"
+        "google/ai/generativelanguage/v1/citation.proto"
+        "google/api/annotations.proto"
+        "google/api/http.proto"
+        "google/api/field_behavior.proto"
+        "google/api/resource.proto"
+    )
+    
+    for file in "${files[@]}"; do
+        local file_path="$PROTO_DIR/$file"
+        local file_url="$base_url/$file"
+        
+        echo "  Downloading $file..."
+        mkdir -p "$(dirname "$file_path")"
+        
+        if command -v curl >/dev/null 2>&1; then
+            curl -s "$file_url" -o "$file_path"
+        elif command -v wget >/dev/null 2>&1; then
+            wget -q "$file_url" -O "$file_path"
+        else
+            echo "❌ Neither curl nor wget is available"
+            exit 1
+        fi
+        
+        if [ ! -f "$file_path" ] || [ ! -s "$file_path" ]; then
+            echo "❌ Failed to download $file"
+            exit 1
+        fi
+    done
+    
+    echo "✅ Downloaded Google protobuf files to: $PROTO_DIR"
+    echo "📊 Downloaded $(echo "${files[@]}" | wc -w) protobuf files"
+}
+
 download_provider_spec
 
-# Step 2: Generate types using build script  
-echo "🔨 Step 2: Generating types from OpenAPI specification..."
+# Step 2: Generate types using standalone script
+echo "🔨 Step 2: Generating types from specifications..."
 
-# Types are automatically generated during cargo build via build.rs
-# No manual intervention needed - typify generates types from OpenAPI spec
 cd "$PROJECT_ROOT"
+
+# Run the dedicated type generation script
+echo "Running type generation script for $PROVIDER..."
+cargo run --bin generate-types -- "$PROVIDER"
+
+if [ $? -ne 0 ]; then
+    echo "❌ Type generation failed"
+    exit 1
+fi
 
 # Step 3: Build and validate
 echo "🔨 Step 3: Building and validating..."

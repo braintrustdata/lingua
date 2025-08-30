@@ -11,18 +11,15 @@ categories = ["api-bindings", "development-tools"]
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", features = ["arbitrary_precision"] }
+serde_yaml = "0.9"
 ts-rs = { version = "7.0", features = ["serde-compat"] }
 anyhow = "1.0"
+prost = "0.13"
 
 [dev-dependencies]
 tokio-test = "0.4"
 
-[build-dependencies]
-typify = "0.2"
-reqwest = { version = "0.12", features = ["blocking"] }
-serde_yaml = "0.9"
-serde_json = { version = "1.0", features = ["arbitrary_precision"] }
-schemars = "0.8"
+# Build dependencies kept minimal - type generation moved to standalone scripts
 
 [[example]]
 name = "basic_usage"
@@ -31,6 +28,10 @@ path = "examples/basic_usage.rs"
 [[example]]
 name = "simple_openai"
 path = "examples/simple_openai.rs"
+
+[[bin]]
+name = "generate-types"
+path = "scripts/generate-types.rs"
 
 [lib]
 name = "llmir"
