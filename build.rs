@@ -231,21 +231,18 @@ fn try_generate_specific_types(schemas: &serde_json::Value, out_dir: &str) {
         generated_types.join("\n\n")
     );
 
-    // Format the code consistently to prevent clippy/fmt conflicts
-    let formatted_code = format_rust_code(&complete_code);
-
     let generated_file_path = Path::new(out_dir).join("openai_generated_key_types.rs");
 
     // Only write if content has changed to prevent unnecessary rebuilds
     let should_write = if let Ok(existing_content) = fs::read_to_string(&generated_file_path) {
-        existing_content != formatted_code
+        existing_content != complete_code
     } else {
         true
     };
 
     if should_write {
         if let Ok(mut file) = fs::File::create(&generated_file_path) {
-            let _ = file.write_all(formatted_code.as_bytes());
+            let _ = file.write_all(complete_code.as_bytes());
             println!("Generated key OpenAI types: {:?}", generated_file_path);
         }
     }
@@ -409,38 +406,6 @@ fn is_rust_keyword(name: &str) -> bool {
     )
 }
 
-fn format_rust_code(code: &str) -> String {
-    // Simple formatting to ensure consistency:
-    // 1. Remove extra blank lines between structs
-    // 2. Ensure single blank line between structs
-    // 3. Remove trailing whitespace
-
-    let lines: Vec<&str> = code.lines().collect();
-    let mut formatted_lines = Vec::new();
-    let mut prev_line_blank = false;
-
-    for line in lines {
-        let trimmed = line.trim_end();
-        let is_blank = trimmed.is_empty();
-
-        // Skip multiple consecutive blank lines
-        if is_blank && prev_line_blank {
-            continue;
-        }
-
-        formatted_lines.push(trimmed.to_string());
-        prev_line_blank = is_blank;
-    }
-
-    // Join with newlines and ensure file ends with single newline
-    let mut result = formatted_lines.join("\n");
-    if !result.ends_with('\n') {
-        result.push('\n');
-    }
-
-    result
-}
-
 fn copy_generated_types_to_src() {
     use std::fs;
 
@@ -464,8 +429,15 @@ fn copy_generated_types_to_src() {
                 true
             };
 
-            if should_copy && fs::write(dest_path, new_contents).is_ok() {
-                println!("Copied OpenAI generated types to: {}", dest_path);
+            if should_copy {
+                if fs::write(dest_path, &new_contents).is_ok() {
+                    println!("Copied OpenAI generated types to: {}", dest_path);
+
+                    // Format the copied file with cargo fmt
+                    let _ = std::process::Command::new("cargo")
+                        .args(["fmt", "--", dest_path])
+                        .output();
+                }
             }
         }
     }
@@ -489,8 +461,15 @@ fn copy_generated_types_to_src() {
                 true
             };
 
-            if should_copy && fs::write(dest_path, new_contents).is_ok() {
-                println!("Copied Anthropic generated types to: {}", dest_path);
+            if should_copy {
+                if fs::write(dest_path, &new_contents).is_ok() {
+                    println!("Copied Anthropic generated types to: {}", dest_path);
+
+                    // Format the copied file with cargo fmt
+                    let _ = std::process::Command::new("cargo")
+                        .args(["fmt", "--", dest_path])
+                        .output();
+                }
             }
         }
     }
@@ -553,21 +532,18 @@ fn try_generate_anthropic_specific_types(schemas: &serde_json::Value, out_dir: &
         generated_types.join("\n\n")
     );
 
-    // Format the code consistently to prevent clippy/fmt conflicts
-    let formatted_code = format_rust_code(&complete_code);
-
     let generated_file_path = Path::new(out_dir).join("anthropic_generated_key_types.rs");
 
     // Only write if content has changed to prevent unnecessary rebuilds
     let should_write = if let Ok(existing_content) = fs::read_to_string(&generated_file_path) {
-        existing_content != formatted_code
+        existing_content != complete_code
     } else {
         true
     };
 
     if should_write {
         if let Ok(mut file) = fs::File::create(&generated_file_path) {
-            let _ = file.write_all(formatted_code.as_bytes());
+            let _ = file.write_all(complete_code.as_bytes());
             println!("Generated key Anthropic types: {:?}", generated_file_path);
         }
     }
