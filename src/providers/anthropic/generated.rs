@@ -1,8 +1,7 @@
 // Generated Anthropic types from unofficial OpenAPI spec
 // Essential types for LLMIR Anthropic messages integration
 
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CreateMessageParams {
@@ -29,6 +28,7 @@ pub struct CreateMessageParams {
     pub top_p: Option<f64>,
 }
 
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Message {
     pub content: Vec<serde_json::Value>,
@@ -42,14 +42,18 @@ pub struct Message {
     pub usage: serde_json::Value,
 }
 
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InputMessage {
     pub content: serde_json::Value,
     pub role: String,
 }
 
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ContentBlock {}
+pub struct ContentBlock {
+}
+
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestTextBlock {
@@ -58,6 +62,7 @@ pub struct RequestTextBlock {
     pub r#type: String,
 }
 
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResponseTextBlock {
     pub text: String,
@@ -65,11 +70,13 @@ pub struct ResponseTextBlock {
     pub r#type: String,
 }
 
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Usage {
     pub input_tokens: i64,
     pub output_tokens: i64,
 }
+
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Tool {
@@ -79,5 +86,8 @@ pub struct Tool {
     pub name: String,
 }
 
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ToolChoice {}
+pub struct ToolChoice {
+}
+
