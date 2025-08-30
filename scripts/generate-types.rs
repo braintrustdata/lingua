@@ -137,12 +137,8 @@ fn generate_google_types() {
     }
 
     // Essential protobuf files for Google AI
-    let proto_files = [
-        "google/ai/generativelanguage/v1/generative_service.proto",
-        "google/ai/generativelanguage/v1/content.proto",
-        "google/ai/generativelanguage/v1/safety.proto",
-        "google/ai/generativelanguage/v1/citation.proto",
-    ];
+    // Only include the main service file - it will automatically include dependencies
+    let proto_files = ["google/ai/generativelanguage/v1/generative_service.proto"];
 
     let proto_paths: Vec<String> = proto_files
         .iter()
@@ -319,14 +315,153 @@ fn generate_anthropic_specific_types(schemas: &serde_json::Value) {
     }
 }
 
-fn generate_google_protobuf_types(_proto_paths: &[String], _proto_dir: &str) {
-    // For now, create a simple placeholder until we can properly debug protobuf generation
+fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
+    println!("🔨 Compiling protobuf files with prost-build...");
+
+    // Create a temporary directory for prost output
+    let temp_dir = std::env::temp_dir().join("llmir-google-types");
+    let _ = std::fs::create_dir_all(&temp_dir);
+
+    // Configure prost-build
+    let mut config = prost_build::Config::new();
+    config.out_dir(&temp_dir);
+
+    // Add include paths for Google API dependencies
+    config.include_file("mod.rs");
+    config.protoc_arg("--experimental_allow_proto3_optional");
+
+    // Configure type attributes for better Rust integration (prost already adds serde support)
+    // Don't add serde derives - prost handles this
+
+    // Set up include directories - order matters!
+    let include_dirs = vec![
+        proto_dir.to_string(), // Root directory first
+    ];
+
+    println!("📁 Include directories: {:?}", include_dirs);
+    println!("📄 Proto files: {:?}", proto_paths);
+
+    // Compile the protobuf files
+    match config.compile_protos(proto_paths, &include_dirs) {
+        Ok(()) => {
+            println!("✅ Protobuf compilation successful");
+
+            // Read the generated mod.rs file
+            let mod_file_path = temp_dir.join("mod.rs");
+            match std::fs::read_to_string(&mod_file_path) {
+                Ok(mod_content) => {
+                    println!(
+                        "📋 Generated modules: {:?}",
+                        mod_content.lines().take(10).collect::<Vec<_>>()
+                    );
+
+                    // Create a combined output file with the essential types
+                    create_google_combined_output(&temp_dir);
+                }
+                Err(e) => {
+                    println!("❌ Failed to read generated mod.rs: {}", e);
+                    fallback_to_placeholder_types();
+                }
+            }
+        }
+        Err(e) => {
+            println!("❌ Protobuf compilation failed: {}", e);
+            println!("📝 Falling back to placeholder types");
+            fallback_to_placeholder_types();
+        }
+    }
+
+    // Clean up temp directory
+    let _ = std::fs::remove_dir_all(&temp_dir);
+}
+
+fn create_google_combined_output(temp_dir: &std::path::Path) {
+    println!("🔧 Creating combined Google types output...");
+
+    // Look for generated files in the temp directory
+    let generated_files = std::fs::read_dir(temp_dir)
+        .map(|entries| {
+            entries
+                .filter_map(|entry| entry.ok())
+                .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+
+    println!("📁 Found {} generated files", generated_files.len());
+
+    // Read the main generated file
+    let mut all_content = String::new();
+    all_content.push_str("// Generated Google AI types from official protobuf files\n");
+    all_content.push_str("// Essential types for LLMIR Google AI integration\n\n");
+    all_content.push_str("use prost::Message;\n");
+    all_content.push_str("use serde::{Deserialize, Serialize};\n\n");
+
+    // Find the main generated file (should be the Google AI one)
+    let main_file = generated_files.iter().find(|entry| {
+        entry
+            .file_name()
+            .to_str()
+            .map(|name| name.contains("google.ai.generativelanguage.v1"))
+            .unwrap_or(false)
+    });
+
+    if let Some(main_file) = main_file {
+        if let Ok(content) = std::fs::read_to_string(main_file.path()) {
+            // Add the content directly - prost generates clean, ready-to-use code
+            all_content.push_str(&content);
+        }
+    } else {
+        println!("⚠️  No Google AI generative language file found, checking all files");
+        for file_entry in generated_files {
+            if let Ok(content) = std::fs::read_to_string(file_entry.path()) {
+                if content.contains("GenerateContentRequest") || content.contains("Content") {
+                    println!("📄 Adding content from: {:?}", file_entry.file_name());
+                    all_content.push_str(&content);
+                    all_content.push('\n');
+                }
+            }
+        }
+    }
+
+    // If we didn't get much content, fall back to placeholder
+    if all_content.len() < 500 {
+        println!("⚠️  Generated content too small, falling back to placeholder");
+        fallback_to_placeholder_types();
+        return;
+    }
+
+    let dest_path = "src/providers/google/generated.rs";
+
+    // Create the directory if it doesn't exist
+    if let Some(parent) = Path::new(dest_path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+
+    // Write the combined types
+    if std::fs::write(dest_path, &all_content).is_ok() {
+        println!("📝 Generated Google protobuf types to: {}", dest_path);
+
+        // Format the file with cargo fmt
+        let _ = std::process::Command::new("cargo")
+            .args(["fmt", "--", dest_path])
+            .output();
+
+        println!("✅ Google protobuf types generated and formatted");
+    } else {
+        println!("❌ Failed to write Google generated types");
+        fallback_to_placeholder_types();
+    }
+}
+
+
+fn fallback_to_placeholder_types() {
     let placeholder_content = r#"// Generated Google AI types from official protobuf files
 // Essential types for LLMIR Google AI integration
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-// Placeholder types - will be replaced with actual protobuf-generated types
+// Placeholder types - protobuf generation failed, using manual definitions
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GenerateContentRequest {
     pub contents: Vec<Content>,
@@ -356,7 +491,6 @@ pub struct Content {
 pub struct Part {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
-    // Add other part types as needed
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -383,14 +517,14 @@ pub struct GenerationConfig {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SafetySetting {
-    pub category: i32, // HarmCategory
-    pub threshold: i32, // HarmBlockThreshold
+    pub category: i32,
+    pub threshold: i32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SafetyRating {
-    pub category: i32, // HarmCategory
-    pub probability: i32, // HarmProbability
+    pub category: i32,
+    pub probability: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked: Option<bool>,
 }
@@ -406,7 +540,6 @@ pub struct FunctionDeclaration {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    // Add parameters schema as needed
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -442,7 +575,7 @@ pub type HarmBlockThreshold = i32;
             .output();
 
         println!("✅ Google placeholder types generated and formatted");
-        println!("📝 Note: Using placeholder types. Protobuf integration will be completed later.");
+        println!("📝 Note: Using placeholder types due to protobuf compilation issues.");
     } else {
         println!("❌ Failed to write Google generated types");
     }

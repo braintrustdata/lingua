@@ -96,12 +96,16 @@ download_google_protos() {
     local PROTO_DIR="$PROJECT_ROOT/specs/google/protos"
     mkdir -p "$PROTO_DIR/google/ai/generativelanguage/v1"
     mkdir -p "$PROTO_DIR/google/api"
+    mkdir -p "$PROTO_DIR/google/protobuf"
     
     echo "Downloading Google AI GenerativeLanguage protobuf files..."
     
     # Core protobuf files for Generative AI API
-    local base_url="https://raw.githubusercontent.com/googleapis/googleapis/master"
-    local files=(
+    local googleapis_url="https://raw.githubusercontent.com/googleapis/googleapis/master"
+    local protobuf_url="https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src"
+    
+    # Google API files
+    local googleapis_files=(
         "google/ai/generativelanguage/v1/generative_service.proto"
         "google/ai/generativelanguage/v1/content.proto"
         "google/ai/generativelanguage/v1/safety.proto"
@@ -110,11 +114,22 @@ download_google_protos() {
         "google/api/http.proto"
         "google/api/field_behavior.proto"
         "google/api/resource.proto"
+        "google/api/client.proto"
+        "google/api/launch_stage.proto"
     )
     
-    for file in "${files[@]}"; do
+    # Standard protobuf files
+    local protobuf_files=(
+        "google/protobuf/duration.proto"
+        "google/protobuf/timestamp.proto" 
+        "google/protobuf/descriptor.proto"
+        "google/protobuf/any.proto"
+    )
+    
+    # Download googleapis files
+    for file in "${googleapis_files[@]}"; do
         local file_path="$PROTO_DIR/$file"
-        local file_url="$base_url/$file"
+        local file_url="$googleapis_url/$file"
         
         echo "  Downloading $file..."
         mkdir -p "$(dirname "$file_path")"
@@ -134,8 +149,32 @@ download_google_protos() {
         fi
     done
     
+    # Download standard protobuf files
+    for file in "${protobuf_files[@]}"; do
+        local file_path="$PROTO_DIR/$file"
+        local file_url="$protobuf_url/$file"
+        
+        echo "  Downloading $file..."
+        mkdir -p "$(dirname "$file_path")"
+        
+        if command -v curl >/dev/null 2>&1; then
+            curl -s "$file_url" -o "$file_path"
+        elif command -v wget >/dev/null 2>&1; then
+            wget -q "$file_url" -O "$file_path"
+        else
+            echo "❌ Neither curl nor wget is available"
+            exit 1
+        fi
+        
+        if [ ! -f "$file_path" ] || [ ! -s "$file_path" ]; then
+            echo "❌ Failed to download $file"
+            exit 1
+        fi
+    done
+    
+    local total_files=$((${#googleapis_files[@]} + ${#protobuf_files[@]}))
     echo "✅ Downloaded Google protobuf files to: $PROTO_DIR"
-    echo "📊 Downloaded $(echo "${files[@]}" | wc -w) protobuf files"
+    echo "📊 Downloaded $total_files protobuf files"
 }
 
 download_provider_spec
