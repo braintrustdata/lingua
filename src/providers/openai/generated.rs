@@ -1,5 +1,7 @@
 // Generated OpenAI types using quicktype
 // Essential types for Elmir OpenAI integration
+#![allow(clippy::large_enum_variant)]
+#![allow(clippy::doc_lazy_continuation)]
 
 // Example code that deserializes and serializes the model.
 // extern crate serde;

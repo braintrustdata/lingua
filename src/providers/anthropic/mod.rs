@@ -8,6 +8,8 @@ generated from the OpenAPI specification using quicktype.
 pub mod generated;
 
 // Re-export key generated types (from quicktype-generated Anthropic API types)
+// TODO: Enable these after generation is complete
+/*
 pub use generated::{
     // Essential message types
     InputMessage,
@@ -23,3 +25,4 @@ pub use generated::{
     // Core error types with proper enum typing
     WebSearchToolResultErrorCode,
 };
+*/

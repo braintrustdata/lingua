@@ -106,12 +106,12 @@ fn generate_anthropic_types() {
         }
     };
 
-    println!("🔍 Parsing YAML OpenAPI spec...");
+    println!("🔍 Parsing JSON OpenAPI spec...");
 
-    let schema: serde_json::Value = match serde_yaml::from_str(&anthropic_spec) {
+    let schema: serde_json::Value = match serde_json::from_str(&anthropic_spec) {
         Ok(value) => value,
         Err(e) => {
-            println!("❌ Failed to parse Anthropic OpenAPI spec as YAML: {}", e);
+            println!("❌ Failed to parse Anthropic OpenAPI spec as JSON: {}", e);
             return;
         }
     };
@@ -381,7 +381,7 @@ fn generate_anthropic_specific_types(anthropic_spec: &str) {
 
     // Extract Anthropic OpenAPI spec
     let full_spec: serde_json::Value =
-        serde_yaml::from_str(anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
+        serde_json::from_str(anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
 
     // Generate types using quicktype approach
     match generate_anthropic_types_with_quicktype(
@@ -522,6 +522,7 @@ fn create_essential_anthropic_schemas(all_schemas: &serde_json::Value) -> serde_
 
     serde_json::json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "anyOf": essential_types.iter().map(|t| serde_json::json!({"$ref": format!("#/definitions/{}", t)})).collect::<Vec<_>>(),
         "definitions": resolved_schemas.as_object().unwrap()
     })
 }
@@ -604,9 +605,9 @@ fn resolve_schema_refs(
 fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String {
     let mut processed = quicktype_output.to_string();
 
-    // Add proper header
+    // Add proper header with clippy allows for generated code
     processed = format!(
-        "// Generated Anthropic types using quicktype\n// Essential types for Elmir Anthropic integration\n#![allow(non_camel_case_types)]\n\n{}",
+        "// Generated Anthropic types using quicktype\n// Essential types for Elmir Anthropic integration\n#![allow(non_camel_case_types)]\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
         processed
     );
 
@@ -627,9 +628,9 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     let mut processed = quicktype_output.to_string();
 
-    // Add proper header
+    // Add proper header with clippy allows for generated code
     processed = format!(
-        "// Generated OpenAI types using quicktype\n// Essential types for Elmir OpenAI integration\n\n{}",
+        "// Generated OpenAI types using quicktype\n// Essential types for Elmir OpenAI integration\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
         processed
     );
 
