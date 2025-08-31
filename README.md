@@ -30,7 +30,7 @@ Elmir Universal Format
          ↓
    Provider Translators
          ↓
-OpenAI │ Anthropic │ Google │ ...
+OpenAI │ Anthropic │ Google │ Bedrock │ ...
 ```
 
 ## Capabilities
@@ -87,11 +87,60 @@ The automation downloads the latest specifications, regenerates types, applies f
 - [ ] Show token accounting across providers. Ideally we give users a way to access the provider's native usage + a unified format.
 - [ ] How does structured outputs + Anthropic work? Translate to tool, and parse the response? Does that require carrying some state across request/response? Maybe we can generate an object when performing the forward translation that can be used in the reverse translation.
 
+## Feature Flags
+
+Elmir supports optional provider dependencies through feature flags to minimize build time and binary size:
+
+### Available Features
+
+- **`openai`** - OpenAI API types and translators
+- **`anthropic`** - Anthropic API types and translators  
+- **`google`** - Google Gemini API types and translators
+- **`bedrock`** - Amazon Bedrock API types and translators (pulls in AWS SDK)
+
+### Usage
+
+**Default (all providers):**
+```toml
+[dependencies]
+elmir = "0.1.0"
+```
+
+**Minimal (only OpenAI):**
+```toml
+[dependencies]
+elmir = { version = "0.1.0", default-features = false, features = ["openai"] }
+```
+
+**Without AWS dependencies:**
+```toml
+[dependencies]
+elmir = { version = "0.1.0", default-features = false, features = ["openai", "anthropic", "google"] }
+```
+
+**Only Bedrock:**
+```toml
+[dependencies]
+elmir = { version = "0.1.0", default-features = false, features = ["bedrock"] }
+```
+
+### Conditional Compilation
+
+The translators and types are only available when their respective features are enabled:
+
+```rust
+#[cfg(feature = "openai")]
+use elmir::translators::to_openai_format;
+
+#[cfg(feature = "bedrock")]
+use elmir::translators::to_bedrock_format_with_model;
+```
+
 ## Status
 
 🚧 **In Development** - Currently building the foundational types and translator architecture.
 
-- [ ] Put each AI provider behind a feature flag.
+- [x] Put each AI provider behind a feature flag.
 
 ## Contributing
 

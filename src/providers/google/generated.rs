@@ -478,7 +478,7 @@ pub struct FunctionDeclaration {
     /// The schema must describe an object where the properties are the parameters
     /// to the function. For example:
     ///
-    /// ```
+    /// ```json
     /// {
     ///    "type": "object",
     ///    "properties": {
@@ -486,8 +486,8 @@ pub struct FunctionDeclaration {
     ///      "age": { "type": "integer" }
     ///    },
     ///    "additionalProperties": false,
-    ///    "required": \["name", "age"\],
-    ///    "propertyOrdering": \["name", "age"\]
+    ///    "required": ["name", "age"],
+    ///    "propertyOrdering": ["name", "age"]
     /// }
     /// ```
     ///
@@ -674,7 +674,7 @@ pub struct Schema {
     pub nullable: bool,
     /// Optional. Possible values of the element of Type.STRING with enum format.
     /// For example we can define an Enum Direction as :
-    /// {type:STRING, format:enum, enum:\["EAST", NORTH", "SOUTH", "WEST"\]}
+    /// {type:STRING, format:enum, enum:["EAST", NORTH", "SOUTH", "WEST"]}
     #[prost(string, repeated, tag = "5")]
     pub r#enum: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Optional. Schema of the elements of Type.ARRAY.
