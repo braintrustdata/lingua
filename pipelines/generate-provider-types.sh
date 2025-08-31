@@ -55,9 +55,25 @@ download_provider_spec() {
             SPEC_FILE="$PROJECT_ROOT/specs/openai/openapi.yml"
             ;;
         "anthropic")
-            echo "Downloading Anthropic OpenAPI spec..."
-            SPEC_URL="https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json"
-            SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.json"
+            echo "Fetching official Anthropic OpenAPI spec URL from .stats.yml..."
+            STATS_URL="https://raw.githubusercontent.com/anthropics/anthropic-sdk-typescript/main/.stats.yml"
+            STATS_FILE="$PROJECT_ROOT/specs/anthropic/.stats.yml"
+            
+            # Download .stats.yml file
+            if ! curl -L -o "$STATS_FILE" "$STATS_URL"; then
+                echo "❌ Failed to download Anthropic .stats.yml"
+                exit 1
+            fi
+            
+            # Extract the official OpenAPI spec URL from .stats.yml
+            SPEC_URL=$(grep "openapi_spec_url:" "$STATS_FILE" | sed 's/openapi_spec_url: *//')
+            if [ -z "$SPEC_URL" ]; then
+                echo "❌ Failed to extract OpenAPI spec URL from .stats.yml"
+                exit 1
+            fi
+            
+            echo "Official spec URL: $SPEC_URL"
+            SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.yml"
             ;;
         "google")
             echo "Google types generated directly from remote URLs (no download needed)"

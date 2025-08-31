@@ -83,7 +83,7 @@ fn generate_openai_types() {
 fn generate_anthropic_types() {
     println!("📦 Generating Anthropic types from OpenAPI spec...");
 
-    let spec_file_path = "specs/anthropic/openapi.json";
+    let spec_file_path = "specs/anthropic/openapi.yml";
 
     let anthropic_spec = match std::fs::read_to_string(spec_file_path) {
         Ok(content) => content,
@@ -99,12 +99,12 @@ fn generate_anthropic_types() {
         }
     };
 
-    println!("🔍 Parsing JSON OpenAPI spec...");
+    println!("🔍 Parsing YAML OpenAPI spec...");
 
-    let schema: serde_json::Value = match serde_json::from_str(&anthropic_spec) {
+    let schema: serde_json::Value = match serde_yaml::from_str(&anthropic_spec) {
         Ok(value) => value,
         Err(e) => {
-            println!("❌ Failed to parse Anthropic OpenAPI spec as JSON: {}", e);
+            println!("❌ Failed to parse Anthropic OpenAPI spec as YAML: {}", e);
             return;
         }
     };
@@ -127,9 +127,9 @@ fn generate_google_types() {
 
     let _proto_dir = "specs/google/protos";
 
-    // Use URL-based fetching instead of local files
-    println!("✅ Generating Google types by fetching from remote URLs...");
-    generate_google_protobuf_types_from_urls();
+    // Use git clone approach to get complete dependency tree
+    println!("✅ Generating Google types by cloning googleapis repository...");
+    generate_google_protobuf_types_from_git();
 }
 
 fn generate_openai_specific_types(schemas: &serde_json::Value) {
@@ -289,7 +289,7 @@ fn generate_anthropic_specific_types(schemas: &serde_json::Value) {
 }
 
 fn generate_google_protobuf_types_from_urls() {
-    println!("🔨 Generating Google types by fetching remote protobuf files...");
+    println!("🔨 Generating Google types by cloning googleapis repository...");
 
     // Create a temporary directory for protobuf files
     let temp_proto_dir = std::env::temp_dir().join("llmir-google-protos");
@@ -429,6 +429,83 @@ fn generate_google_protobuf_types_from_urls() {
     let _ = std::fs::remove_dir_all(&temp_proto_dir);
 }
 
+fn generate_google_protobuf_types_from_git() {
+    println!("🔨 Cloning complete googleapis repository for proper dependencies...");
+
+    // Create a temporary directory for googleapis
+    let temp_dir = std::env::temp_dir().join("llmir-googleapis");
+    let _ = std::fs::remove_dir_all(&temp_dir); // Clean up any existing
+    let _ = std::fs::create_dir_all(&temp_dir);
+
+    println!("📥 Cloning googleapis repository (shallow)...");
+
+    // Clone the googleapis repository to temp directory
+    let clone_result = std::process::Command::new("git")
+        .args([
+            "clone",
+            "--depth",
+            "1", // Shallow clone for speed
+            "https://github.com/googleapis/googleapis.git",
+            &temp_dir.to_string_lossy(),
+        ])
+        .output();
+
+    match clone_result {
+        Ok(result) if result.status.success() => {
+            println!("✅ Successfully cloned googleapis repository");
+        }
+        Ok(result) => {
+            println!(
+                "❌ Failed to clone googleapis: {}",
+                String::from_utf8_lossy(&result.stderr)
+            );
+            let _ = std::fs::remove_dir_all(&temp_dir);
+            fallback_to_placeholder_types();
+            return;
+        }
+        Err(e) => {
+            println!("❌ Error running git clone: {}", e);
+            let _ = std::fs::remove_dir_all(&temp_dir);
+            fallback_to_placeholder_types();
+            return;
+        }
+    }
+
+    // Now compile with complete dependency tree including google.type
+    let proto_file = temp_dir.join("google/ai/generativelanguage/v1beta/generative_service.proto");
+    let interval_proto = temp_dir.join("google/type/interval.proto");
+
+    if !proto_file.exists() {
+        println!("❌ Could not find generative_service.proto in cloned repository");
+        let _ = std::fs::remove_dir_all(&temp_dir);
+        fallback_to_placeholder_types();
+        return;
+    }
+
+    if !interval_proto.exists() {
+        println!("❌ Could not find google/type/interval.proto in cloned repository");
+        let _ = std::fs::remove_dir_all(&temp_dir);
+        fallback_to_placeholder_types();
+        return;
+    }
+
+    println!("✅ Found protobuf files, compiling with complete dependencies...");
+
+    // Include both the main service proto and the interval type proto
+    let proto_paths = vec![
+        proto_file.to_string_lossy().to_string(),
+        interval_proto.to_string_lossy().to_string(),
+    ];
+    let include_dirs = vec![
+        temp_dir.to_string_lossy().to_string(), // googleapis root - this should resolve all dependencies!
+    ];
+
+    generate_google_protobuf_types(&proto_paths, &include_dirs[0]);
+
+    // Clean up temp directory
+    let _ = std::fs::remove_dir_all(&temp_dir);
+}
+
 fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
     println!("🔨 Compiling protobuf files with prost-build...");
 
@@ -552,9 +629,6 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         let _ = std::fs::create_dir_all(parent);
     }
 
-    // Post-process the content to fix known issues
-    all_content = fix_generated_content(all_content);
-
     // Write the combined types
     if std::fs::write(dest_path, &all_content).is_ok() {
         println!("📝 Generated Google protobuf types to: {}", dest_path);
@@ -569,36 +643,6 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         println!("❌ Failed to write Google generated types");
         fallback_to_placeholder_types();
     }
-}
-
-fn fix_generated_content(content: String) -> String {
-    let mut fixed_content = content;
-
-    // Fix the problematic r#type::Interval reference
-    fixed_content = fixed_content.replace(
-        "super::super::super::super::r#type::Interval",
-        "// TODO: Fix google::type::Interval import\n        // ::core::option::Option<Interval>",
-    );
-
-    // Remove unused imports that cause warnings
-    fixed_content = fixed_content.replace("use prost::Message;\n", "");
-    fixed_content = fixed_content.replace("use serde::{Deserialize, Serialize};\n", "");
-
-    // Fix empty structs that cause prost-build issues
-    if fixed_content.contains("pub struct GoogleSearch {\n        pub time_range_filter: ::core::option::Option<\n            // TODO: Fix google::type::Interval import\n        // ::core::option::Option<Interval>\n        >,") {
-        fixed_content = fixed_content.replace(
-            "pub struct GoogleSearch {\n        pub time_range_filter: ::core::option::Option<\n            // TODO: Fix google::type::Interval import\n        // ::core::option::Option<Interval>\n        >,\n    }",
-            "pub struct GoogleSearch {\n        // TODO: Add time_range_filter when google::type::Interval is available\n    }"
-        );
-    }
-
-    // Fix any other known prost field issues
-    fixed_content = fixed_content.replace(
-        "#[prost(message, tag = \"2\")]\n        pub time_range_filter: ::core::option::Option<\n            // TODO: Fix google::type::Interval import\n        // ::core::option::Option<Interval>\n        >,",
-        "// TODO: Add time_range_filter when google::type::Interval is available"
-    );
-
-    fixed_content
 }
 
 fn fallback_to_placeholder_types() {
