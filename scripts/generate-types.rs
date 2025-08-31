@@ -333,10 +333,8 @@ fn fix_openai_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
             serde_json::Value::Object(fixed_obj)
         }
         serde_json::Value::Array(arr) => {
-            let fixed_arr: Vec<serde_json::Value> = arr
-                .iter()
-                .map(|item| fix_openai_schema_refs(item))
-                .collect();
+            let fixed_arr: Vec<serde_json::Value> =
+                arr.iter().map(fix_openai_schema_refs).collect();
             serde_json::Value::Array(fixed_arr)
         }
         other => other.clone(),
@@ -373,11 +371,9 @@ fn extract_schema_refs(value: &serde_json::Value, refs: &mut std::collections::H
 
 fn extract_type_name_from_ref(ref_str: &str) -> Option<String> {
     // Extract type name from refs like "#/components/schemas/ChatCompletionRequestMessage"
-    if let Some(last_slash) = ref_str.rfind('/') {
-        Some(ref_str[last_slash + 1..].to_string())
-    } else {
-        None
-    }
+    ref_str
+        .rfind('/')
+        .map(|last_slash| ref_str[last_slash + 1..].to_string())
 }
 
 fn generate_anthropic_specific_types(anthropic_spec: &str) {
