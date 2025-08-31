@@ -3,7 +3,7 @@
 //! [dependencies]
 //! serde_json = "1.0"
 //! serde_yaml = "0.9"
-//! prost-build = "0.11"
+//! prost-build = "0.13"
 //! ```
 
 //! Standalone type generation script for Elmir providers
@@ -11,9 +11,6 @@
 //! Usage: cargo run --bin generate-types -- [provider]
 //!        ./scripts/generate-types.rs [provider]
 
-use std::collections::{HashMap, HashSet};
-use std::fs;
-use std::io::Write;
 use std::path::Path;
 
 fn main() {
@@ -23,7 +20,7 @@ fn main() {
         &args[1]
     } else {
         println!("Usage: {} [provider]", args[0]);
-        println!("Providers: openai, anthropic, google, all");
+        println!("Providers: openai, anthropic, all");
         std::process::exit(1);
     };
 
@@ -32,15 +29,13 @@ fn main() {
     match provider.as_str() {
         "openai" => generate_openai_types(),
         "anthropic" => generate_anthropic_types(),
-        "google" => generate_google_types(),
         "all" => {
             generate_openai_types();
             generate_anthropic_types();
-            generate_google_types();
         }
         _ => {
             println!("❌ Unknown provider: {}", provider);
-            println!("Available providers: openai, anthropic, google, all");
+            println!("Available providers: openai, anthropic, all");
             std::process::exit(1);
         }
     }
@@ -434,13 +429,13 @@ fn generate_google_protobuf_types_from_git() {
                 String::from_utf8_lossy(&result.stderr)
             );
             let _ = std::fs::remove_dir_all(&temp_dir);
-            fallback_to_placeholder_types();
+            let _ = std::fs::write("src/providers/google/generated.rs", "// Git clone failed");
             return;
         }
         Err(e) => {
             println!("❌ Error running git clone: {}", e);
             let _ = std::fs::remove_dir_all(&temp_dir);
-            fallback_to_placeholder_types();
+            let _ = std::fs::write("src/providers/google/generated.rs", "// Git clone error");
             return;
         }
     }
@@ -452,14 +447,20 @@ fn generate_google_protobuf_types_from_git() {
     if !proto_file.exists() {
         println!("❌ Could not find generative_service.proto in cloned repository");
         let _ = std::fs::remove_dir_all(&temp_dir);
-        fallback_to_placeholder_types();
+        let _ = std::fs::write(
+            "src/providers/google/generated.rs",
+            "// Proto file not found",
+        );
         return;
     }
 
     if !interval_proto.exists() {
         println!("❌ Could not find google/type/interval.proto in cloned repository");
         let _ = std::fs::remove_dir_all(&temp_dir);
-        fallback_to_placeholder_types();
+        let _ = std::fs::write(
+            "src/providers/google/generated.rs",
+            "// Interval proto not found",
+        );
         return;
     }
 
@@ -525,14 +526,20 @@ fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
                 }
                 Err(e) => {
                     println!("❌ Failed to read generated mod.rs: {}", e);
-                    fallback_to_placeholder_types();
+                    let _ = std::fs::write(
+                        "src/providers/google/generated.rs",
+                        "// Protobuf generation failed",
+                    );
                 }
             }
         }
         Err(e) => {
             println!("❌ Protobuf compilation failed: {}", e);
-            println!("📝 Falling back to placeholder types");
-            fallback_to_placeholder_types();
+            println!("📝 Falling back to empty types file");
+            let _ = std::fs::write(
+                "src/providers/google/generated.rs",
+                "// Protobuf generation failed",
+            );
         }
     }
 
@@ -589,10 +596,13 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         }
     }
 
-    // If we didn't get much content, fall back to placeholder
+    // If we didn't get much content, fall back to minimal file
     if all_content.len() < 500 {
-        println!("⚠️  Generated content too small, falling back to placeholder");
-        fallback_to_placeholder_types();
+        println!("⚠️  Generated content too small, falling back to minimal file");
+        let _ = std::fs::write(
+            "src/providers/google/generated.rs",
+            "// Protobuf generation incomplete",
+        );
         return;
     }
 
@@ -615,7 +625,10 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         println!("✅ Google protobuf types generated and formatted");
     } else {
         println!("❌ Failed to write Google generated types");
-        fallback_to_placeholder_types();
+        let _ = std::fs::write(
+            "src/providers/google/generated.rs",
+            "// Protobuf write failed",
+        );
     }
 }
 
@@ -676,137 +689,11 @@ fn fix_google_type_references(content: String) -> String {
     fixed
 }
 
-fn fallback_to_placeholder_types() {
-    let placeholder_content = r#"// Generated Google AI types from official protobuf files
-// Essential types for Elmir Google AI integration
-
-use serde::{Deserialize, Serialize};
-
-// Placeholder types - protobuf generation failed, using manual definitions
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GenerateContentRequest {
-    pub contents: Vec<Content>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<Tool>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub generation_config: Option<GenerationConfig>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub safety_settings: Option<Vec<SafetySetting>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GenerateContentResponse {
-    pub candidates: Vec<Candidate>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub usage_metadata: Option<UsageMetadata>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Content {
-    pub parts: Vec<Part>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub role: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Part {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub text: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Candidate {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<Content>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub finish_reason: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub safety_ratings: Option<Vec<SafetyRating>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GenerationConfig {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub temperature: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_p: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_k: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_output_tokens: Option<i32>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct SafetySetting {
-    pub category: i32,
-    pub threshold: i32,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct SafetyRating {
-    pub category: i32,
-    pub probability: i32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub blocked: Option<bool>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Tool {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub function_declarations: Option<Vec<FunctionDeclaration>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FunctionDeclaration {
-    pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct UsageMetadata {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prompt_token_count: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub candidates_token_count: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_token_count: Option<i32>,
-}
-
-// Type aliases for compatibility
-pub type SafetySettings = Vec<SafetySetting>;
-pub type HarmCategory = i32;
-pub type HarmBlockThreshold = i32;
-"#;
-
-    let dest_path = "src/providers/google/generated.rs";
-
-    // Create the directory if it doesn't exist
-    if let Some(parent) = Path::new(dest_path).parent() {
-        let _ = std::fs::create_dir_all(parent);
-    }
-
-    // Write the placeholder types
-    if std::fs::write(dest_path, placeholder_content).is_ok() {
-        println!("📝 Generated Google placeholder types to: {}", dest_path);
-
-        // Format the file with cargo fmt
-        let _ = std::process::Command::new("cargo")
-            .args(["fmt", "--", dest_path])
-            .output();
-
-        println!("✅ Google placeholder types generated and formatted");
-        println!("📝 Note: Using placeholder types due to protobuf compilation issues.");
-    } else {
-        println!("❌ Failed to write Google generated types");
-    }
-}
-
 // Create discriminated union enum from oneOf schema
 fn create_discriminated_union_enum(
     name: &str,
     _schema: &serde_json::Value,
-    one_of: &serde_json::Value,
+    _one_of: &serde_json::Value,
     discriminator: &serde_json::Value,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let mut enum_code = format!(

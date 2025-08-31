@@ -17,6 +17,9 @@ anyhow = "1.0"
 prost = "0.13"
 prost-build = "0.13"
 prost-types = "0.13"
+typify = "0.4"
+schemars = "0.8"
+schemafy = "0.6"
 
 [dev-dependencies]
 tokio-test = "0.4"

@@ -1,752 +1,1580 @@
-// Generated Anthropic types from unofficial OpenAPI spec
-// Essential types for Elmir Anthropic messages integration
-
+// Generated Anthropic types using quicktype
+// Essential types for Elmir Anthropic integration
+#![allow(non_camel_case_types)]
+//
+//
+//     let json = r#"{"answer": 42}"#;
+//     let model: generated = serde_json::from_str(&json).unwrap();
+// }
 use serde::{Deserialize, Serialize};
-
+use std::collections::HashMap;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestTextBlock {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub citations: Option<serde_json::Value>,
-    pub text: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
+#[serde(untagged)]
+pub enum Generated {
+    RequestWebSearchToolResultError(RequestWebSearchToolResultError),
+    String(String),
 }
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum InputContentBlock {
-    #[serde(rename = "document")]
-    Document(RequestDocumentBlock),
-    #[serde(rename = "image")]
-    Image(RequestImageBlock),
-    #[serde(rename = "redacted_thinking")]
-    RedactedThinking(RequestRedactedThinkingBlock),
-    #[serde(rename = "search_result")]
-    SearchResult(RequestSearchResultBlock),
-    #[serde(rename = "server_tool_use")]
-    ServerToolUse(RequestServerToolUseBlock),
-    #[serde(rename = "text")]
-    Text(RequestTextBlock),
-    #[serde(rename = "thinking")]
-    Thinking(RequestThinkingBlock),
-    #[serde(rename = "tool_result")]
-    ToolResult(RequestToolResultBlock),
-    #[serde(rename = "tool_use")]
-    ToolUse(RequestToolUseBlock),
-    #[serde(rename = "web_search_tool_result")]
-    WebSearchToolResult(RequestWebSearchToolResultBlock),
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseCharLocationCitation {
-    pub cited_text: String,
-    pub document_index: i64,
-    pub document_title: serde_json::Value,
-    pub end_char_index: i64,
-    pub file_id: serde_json::Value,
-    pub start_char_index: i64,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Base64ImageSource {
-    pub data: String,
-    pub media_type: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseTextBlock {
-    pub citations: serde_json::Value,
-    pub text: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestCharLocationCitation {
-    pub cited_text: String,
-    pub document_index: i64,
-    pub document_title: serde_json::Value,
-    pub end_char_index: i64,
-    pub start_char_index: i64,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ToolChoiceTool {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub disable_parallel_tool_use: Option<bool>,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum ContentBlock {
-    #[serde(rename = "redacted_thinking")]
-    RedactedThinking(ResponseRedactedThinkingBlock),
-    #[serde(rename = "server_tool_use")]
-    ServerToolUse(ResponseServerToolUseBlock),
-    #[serde(rename = "text")]
-    Text(ResponseTextBlock),
-    #[serde(rename = "thinking")]
-    Thinking(ResponseThinkingBlock),
-    #[serde(rename = "tool_use")]
-    ToolUse(ResponseToolUseBlock),
-    #[serde(rename = "web_search_tool_result")]
-    WebSearchToolResult(ResponseWebSearchToolResultBlock),
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseSearchResultLocationCitation {
-    pub cited_text: String,
-    pub end_block_index: i64,
-    pub search_result_index: i64,
-    pub source: String,
-    pub start_block_index: i64,
-    pub title: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct InputSchema {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub properties: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub required: Option<serde_json::Value>,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct WebSearchToolResultErrorCode {}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseWebSearchToolResultError {
-    pub error_code: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestToolResultBlock {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_error: Option<bool>,
-    pub tool_use_id: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ToolChoiceNone {
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Tool {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    pub input_schema: serde_json::Value,
-    pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "type")]
-    pub r#type: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ThinkingConfigDisabled {
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponsePageLocationCitation {
-    pub cited_text: String,
-    pub document_index: i64,
-    pub document_title: serde_json::Value,
-    pub end_page_number: i64,
-    pub file_id: serde_json::Value,
-    pub start_page_number: i64,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ToolChoiceAuto {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub disable_parallel_tool_use: Option<bool>,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CompletionRequest {
-    pub max_tokens_to_sample: i64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<serde_json::Value>,
-    pub model: serde_json::Value,
-    pub prompt: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stop_sequences: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub temperature: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_k: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_p: Option<f64>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Metadata {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Model {}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RateLimitError {
-    pub message: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct APIError {
-    pub message: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct UserLocation {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub city: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub country: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub region: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timezone: Option<serde_json::Value>,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct WebSearchTool_20250305 {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_domains: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub blocked_domains: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_uses: Option<serde_json::Value>,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_location: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TextEditor_20250728 {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_characters: Option<serde_json::Value>,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CacheControlEphemeral {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ttl: Option<String>,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestServerToolUseBlock {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    pub id: String,
-    pub input: serde_json::Value,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ContentBlockSource {
-    pub content: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestContentBlockLocationCitation {
-    pub cited_text: String,
-    pub document_index: i64,
-    pub document_title: serde_json::Value,
-    pub end_block_index: i64,
-    pub start_block_index: i64,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestSearchResultBlock {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub citations: Option<serde_json::Value>,
-    pub content: Vec<serde_json::Value>,
-    pub source: String,
-    pub title: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestRedactedThinkingBlock {
-    pub data: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TextEditor_20250124 {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct PermissionError {
-    pub message: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseThinkingBlock {
-    pub signature: String,
-    pub thinking: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseServerToolUseBlock {
-    pub id: String,
-    pub input: serde_json::Value,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseWebSearchResultBlock {
-    pub encrypted_content: String,
-    pub page_age: serde_json::Value,
-    pub title: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-    pub url: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestDocumentBlock {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub citations: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub context: Option<serde_json::Value>,
-    pub source: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub title: Option<serde_json::Value>,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseWebSearchToolResultBlock {
-    pub content: serde_json::Value,
-    pub tool_use_id: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ErrorResponse {
-    pub error: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct URLImageSource {
-    #[serde(rename = "type")]
-    pub r#type: String,
-    pub url: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CreateMessageParams {
-    pub max_tokens: i64,
-    pub messages: Vec<InputMessage>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<serde_json::Value>,
-    pub model: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_tier: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stop_sequences: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub system: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub temperature: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thinking: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_choice: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<Tool>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_k: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_p: Option<f64>,
-}
-
+/// The model will automatically decide whether to use tools.
+///
+/// The model will use any available tools.
+///
+/// The model will use the specified tool with `tool_choice.name`.
+///
+/// The model will not be allowed to use tools.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestWebSearchToolResultError {
-    pub error_code: serde_json::Value,
+    pub error_code: Option<WebSearchToolResultErrorCode>,
+    /// Object type.
+    ///
+    /// For Messages, this is always `"message"`.
     #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseWebSearchResultLocationCitation {
-    pub cited_text: String,
-    pub encrypted_index: String,
-    pub title: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
-    pub url: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Base64PDFSource {
-    pub data: String,
-    pub media_type: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestToolUseBlock {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    pub id: String,
-    pub input: serde_json::Value,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestPageLocationCitation {
-    pub cited_text: String,
-    pub document_index: i64,
-    pub document_title: serde_json::Value,
-    pub end_page_number: i64,
-    pub start_page_number: i64,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct AuthenticationError {
-    pub message: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseToolUseBlock {
-    pub id: String,
-    pub input: serde_json::Value,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CacheCreation {
-    pub ephemeral_1h_input_tokens: i64,
-    pub ephemeral_5m_input_tokens: i64,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Message {
-    pub content: Vec<ContentBlock>,
-    pub id: String,
-    pub model: serde_json::Value,
-    pub role: String,
-    pub stop_reason: serde_json::Value,
-    pub stop_sequence: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
-    pub usage: serde_json::Value,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct URLPDFSource {
-    #[serde(rename = "type")]
-    pub r#type: String,
-    pub url: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct BillingError {
-    pub message: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestImageBlock {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    pub source: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct InputMessage {
-    pub content: Vec<InputContentBlock>,
-    pub role: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestWebSearchResultLocationCitation {
-    pub cited_text: String,
-    pub encrypted_index: String,
-    pub title: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
-    pub url: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestThinkingBlock {
-    pub signature: String,
-    pub thinking: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct PlainTextSource {
-    pub data: String,
-    pub media_type: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Usage {
-    pub cache_creation: serde_json::Value,
-    pub cache_creation_input_tokens: serde_json::Value,
-    pub cache_read_input_tokens: serde_json::Value,
-    pub input_tokens: i64,
-    pub output_tokens: i64,
-    pub server_tool_use: serde_json::Value,
-    pub service_tier: serde_json::Value,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ToolChoiceAny {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    pub request_web_search_tool_result_error_type: Option<ResponseTextBlockType>,
+    /// Citations supporting the text block.
+    ///
+    /// The type of citation returned will depend on the type of document being cited. Citing a
+    /// PDF results in `page_location`, plain text results in `char_location`, and content
+    /// document results in `content_block_location`.
+    pub citations: Option<RequestWebSearchToolResultErrorCitations>,
+    pub text: Option<String>,
+    pub signature: Option<String>,
+    /// Configuration for enabling Claude's extended thinking.
+    ///
+    /// When enabled, responses include `thinking` content blocks showing Claude's thinking
+    /// process before the final answer. Requires a minimum budget of 1,024 tokens and counts
+    /// towards your `max_tokens` limit.
+    ///
+    /// See [extended
+    /// thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking) for
+    /// details.
+    pub thinking: Option<ThinkingUnion>,
+    pub data: Option<String>,
+    /// Unique object identifier.
+    ///
+    /// The format and length of IDs may change over time.
+    pub id: Option<String>,
+    pub input: Option<HashMap<String, Option<serde_json::Value>>>,
+    /// The name of the tool to use.
+    ///
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: Option<String>,
+    /// Content generated by the model.
+    ///
+    /// This is an array of content blocks, each of which has a `type` that determines its
+    /// shape.
+    ///
+    /// Example:
+    ///
+    /// ```json
+    /// [{"type": "text", "text": "Hi, I'm Claude."}]
+    /// ```
+    ///
+    /// If the request input `messages` ended with an `assistant` turn, then the response
+    /// `content` will continue directly from that last turn. You can use this to constrain the
+    /// model's output.
+    ///
+    /// For example, if the input `messages` were:
+    /// ```json
+    /// [
+    /// {"role": "user", "content": "What's the Greek name for Sun? (A) Sol (B) Helios (C)
+    /// Sun"},
+    /// {"role": "assistant", "content": "The best answer is ("}
+    /// ]
+    /// ```
+    ///
+    /// Then the response `content` might be:
+    ///
+    /// ```json
+    /// [{"type": "text", "text": "B)"}]
+    /// ```
+    pub content: Option<RequestWebSearchToolResultErrorContent>,
+    pub tool_use_id: Option<String>,
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<RequestWebSearchToolResultErrorCacheControlEphemeral>,
+    pub source: Option<RequestWebSearchToolResultErrorSource>,
+    pub context: Option<String>,
+    pub title: Option<String>,
+    pub is_error: Option<bool>,
+    /// Whether to disable parallel tool use.
+    ///
+    /// Defaults to `false`. If set to `true`, the model will output at most one tool use.
+    ///
+    /// Whether to disable parallel tool use.
+    ///
+    /// Defaults to `false`. If set to `true`, the model will output exactly one tool use.
     pub disable_parallel_tool_use: Option<bool>,
-    #[serde(rename = "type")]
-    pub r#type: String,
+    /// The maximum number of tokens to generate before stopping.
+    ///
+    /// Note that our models may stop _before_ reaching this maximum. This parameter only
+    /// specifies the absolute maximum number of tokens to generate.
+    ///
+    /// Different models have different maximum values for this parameter.  See
+    /// [models](https://docs.anthropic.com/en/docs/models-overview) for details.
+    pub max_tokens: Option<i64>,
+    /// Input messages.
+    ///
+    /// Our models are trained to operate on alternating `user` and `assistant` conversational
+    /// turns. When creating a new `Message`, you specify the prior conversational turns with the
+    /// `messages` parameter, and the model then generates the next `Message` in the
+    /// conversation. Consecutive `user` or `assistant` turns in your request will be combined
+    /// into a single turn.
+    ///
+    /// Each input message must be an object with a `role` and `content`. You can specify a
+    /// single `user`-role message, or you can include multiple `user` and `assistant` messages.
+    ///
+    /// If the final message uses the `assistant` role, the response content will continue
+    /// immediately from the content in that message. This can be used to constrain part of the
+    /// model's response.
+    ///
+    /// Example with a single `user` message:
+    ///
+    /// ```json
+    /// [{"role": "user", "content": "Hello, Claude"}]
+    /// ```
+    ///
+    /// Example with multiple conversational turns:
+    ///
+    /// ```json
+    /// [
+    /// {"role": "user", "content": "Hello there."},
+    /// {"role": "assistant", "content": "Hi, I'm Claude. How can I help you?"},
+    /// {"role": "user", "content": "Can you explain LLMs in plain English?"},
+    /// ]
+    /// ```
+    ///
+    /// Example with a partially-filled response from Claude:
+    ///
+    /// ```json
+    /// [
+    /// {"role": "user", "content": "What's the Greek name for Sun? (A) Sol (B) Helios (C)
+    /// Sun"},
+    /// {"role": "assistant", "content": "The best answer is ("},
+    /// ]
+    /// ```
+    ///
+    /// Each input message `content` may be either a single `string` or an array of content
+    /// blocks, where each block has a specific `type`. Using a `string` for `content` is
+    /// shorthand for an array of one content block of type `"text"`. The following input
+    /// messages are equivalent:
+    ///
+    /// ```json
+    /// {"role": "user", "content": "Hello, Claude"}
+    /// ```
+    ///
+    /// ```json
+    /// {"role": "user", "content": [{"type": "text", "text": "Hello, Claude"}]}
+    /// ```
+    ///
+    /// Starting with Claude 3 models, you can also send image content blocks:
+    ///
+    /// ```json
+    /// {"role": "user", "content": [
+    /// {
+    /// "type": "image",
+    /// "source": {
+    /// "type": "base64",
+    /// "media_type": "image/jpeg",
+    /// "data": "/9j/4AAQSkZJRg...",
+    /// }
+    /// },
+    /// {"type": "text", "text": "What is in this image?"}
+    /// ]}
+    /// ```
+    ///
+    /// We currently support the `base64` source type for images, and the `image/jpeg`,
+    /// `image/png`, `image/gif`, and `image/webp` media types.
+    ///
+    /// See [examples](https://docs.anthropic.com/en/api/messages-examples#vision) for more input
+    /// examples.
+    ///
+    /// Note that if you want to include a [system
+    /// prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use the top-level
+    /// `system` parameter — there is no `"system"` role for input messages in the Messages API.
+    ///
+    /// There is a limit of 100,000 messages in a single request.
+    pub messages: Option<Vec<InputMessage>>,
+    pub metadata: Option<Metadata>,
+    /// The model that will complete your prompt.\n\nSee
+    /// [models](https://docs.anthropic.com/en/docs/models-overview) for additional details and
+    /// options.
+    pub model: Option<String>,
+    /// Determines whether to use priority capacity (if available) or standard capacity for this
+    /// request.
+    ///
+    /// Anthropic offers different levels of service for your API requests. See
+    /// [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+    ///
+    /// If the request used the priority, standard, or batch tier.
+    pub service_tier: Option<ServiceTierEnum>,
+    /// Custom text sequences that will cause the model to stop generating.
+    ///
+    /// Our models will normally stop when they have naturally completed their turn, which will
+    /// result in a response `stop_reason` of `"end_turn"`.
+    ///
+    /// If you want the model to stop generating when it encounters custom strings of text, you
+    /// can use the `stop_sequences` parameter. If the model encounters one of the custom
+    /// sequences, the response `stop_reason` value will be `"stop_sequence"` and the response
+    /// `stop_sequence` value will contain the matched stop sequence.
+    pub stop_sequences: Option<Vec<String>>,
+    /// Whether to incrementally stream the response using server-sent events.
+    ///
+    /// See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for details.
+    pub stream: Option<bool>,
+    /// System prompt.
+    ///
+    /// A system prompt is a way of providing context and instructions to Claude, such as
+    /// specifying a particular goal or role. See our [guide to system
+    /// prompts](https://docs.anthropic.com/en/docs/system-prompts).
+    pub system: Option<System>,
+    /// Amount of randomness injected into the response.
+    ///
+    /// Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0` for
+    /// analytical / multiple choice, and closer to `1.0` for creative and generative tasks.
+    ///
+    /// Note that even with `temperature` of `0.0`, the results will not be fully deterministic.
+    pub temperature: Option<f64>,
+    /// How the model should use the provided tools. The model can use a specific tool, any
+    /// available tool, decide by itself, or not use tools at all.
+    pub tool_choice: Option<ToolChoice>,
+    /// Definitions of tools that the model may use.
+    ///
+    /// If you include `tools` in your API request, the model may return `tool_use` content
+    /// blocks that represent the model's use of those tools. You can then run those tools using
+    /// the tool input generated by the model and then optionally return results back to the
+    /// model using `tool_result` content blocks.
+    ///
+    /// There are two types of tools: **client tools** and **server tools**. The behavior
+    /// described below applies to client tools. For [server
+    /// tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview\#server-tools),
+    /// see their individual documentation as each has its own behavior (e.g., the [web search
+    /// tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+    ///
+    /// Each tool definition includes:
+    ///
+    /// * `name`: Name of the tool.
+    /// * `description`: Optional, but strongly-recommended description of the tool.
+    /// * `input_schema`: [JSON schema](https://json-schema.org/draft/2020-12) for the tool
+    /// `input` shape that the model will produce in `tool_use` output content blocks.
+    ///
+    /// For example, if you defined `tools` as:
+    ///
+    /// ```json
+    /// [
+    /// {
+    /// "name": "get_stock_price",
+    /// "description": "Get the current stock price for a given ticker symbol.",
+    /// "input_schema": {
+    /// "type": "object",
+    /// "properties": {
+    /// "ticker": {
+    /// "type": "string",
+    /// "description": "The stock ticker symbol, e.g. AAPL for Apple Inc."
+    /// }
+    /// },
+    /// "required": ["ticker"]
+    /// }
+    /// }
+    /// ]
+    /// ```
+    ///
+    /// And then asked the model "What's the S&P 500 at today?", the model might produce
+    /// `tool_use` content blocks in the response like this:
+    ///
+    /// ```json
+    /// [
+    /// {
+    /// "type": "tool_use",
+    /// "id": "toolu_01D7FLrfh4GYq7yT1ULFeyMV",
+    /// "name": "get_stock_price",
+    /// "input": { "ticker": "^GSPC" }
+    /// }
+    /// ]
+    /// ```
+    ///
+    /// You might then run your `get_stock_price` tool with `{"ticker": "^GSPC"}` as an input,
+    /// and return the following back to the model in a subsequent `user` message:
+    ///
+    /// ```json
+    /// [
+    /// {
+    /// "type": "tool_result",
+    /// "tool_use_id": "toolu_01D7FLrfh4GYq7yT1ULFeyMV",
+    /// "content": "259.75 USD"
+    /// }
+    /// ]
+    /// ```
+    ///
+    /// Tools can be used for workflows that include running client-side tools and functions, or
+    /// more generally whenever you want the model to produce a particular JSON structure of
+    /// output.
+    ///
+    /// See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
+    pub tools: Option<Vec<Tool>>,
+    /// Only sample from the top K options for each subsequent token.
+    ///
+    /// Used to remove "long tail" low probability responses. [Learn more technical details
+    /// here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
+    ///
+    /// Recommended for advanced use cases only. You usually only need to use `temperature`.
+    pub top_k: Option<i64>,
+    /// Use nucleus sampling.
+    ///
+    /// In nucleus sampling, we compute the cumulative distribution over all the options for each
+    /// subsequent token in decreasing probability order and cut it off once it reaches a
+    /// particular probability specified by `top_p`. You should either alter `temperature` or
+    /// `top_p`, but not both.
+    ///
+    /// Recommended for advanced use cases only. You usually only need to use `temperature`.
+    pub top_p: Option<f64>,
+    /// Conversational role of the generated message.
+    ///
+    /// This will always be `"assistant"`.
+    pub role: Option<Role>,
+    /// The reason that we stopped.
+    ///
+    /// This may be one the following values:
+    /// * `"end_turn"`: the model reached a natural stopping point
+    /// * `"max_tokens"`: we exceeded the requested `max_tokens` or the model's maximum
+    /// * `"stop_sequence"`: one of your provided custom `stop_sequences` was generated
+    /// * `"tool_use"`: the model invoked one or more tools
+    /// * `"pause_turn"`: we paused a long-running turn. You may provide the response back as-is
+    /// in a subsequent request to let the model continue.
+    /// * `"refusal"`: when streaming classifiers intervene to handle potential policy
+    /// violations
+    ///
+    /// In non-streaming mode this value is always non-null. In streaming mode, it is null in the
+    /// `message_start` event and non-null otherwise.
+    pub stop_reason: Option<StopReason>,
+    /// Which custom stop sequence was generated, if any.
+    ///
+    /// This value will be a non-null string if one of your custom stop sequences was generated.
+    pub stop_sequence: Option<String>,
+    pub usage: Option<Usage>,
+    /// Description of what this tool does.
+    ///
+    /// Tool descriptions should be as detailed as possible. The more information that the model
+    /// has about what the tool is and how to use it, the better it will perform. You can use
+    /// natural language descriptions to reinforce important aspects of the tool input JSON
+    /// schema.
+    pub description: Option<String>,
+    pub input_schema: Option<RequestWebSearchToolResultErrorInputSchema>,
+    /// Breakdown of cached tokens by TTL
+    pub cache_creation: Option<RequestWebSearchToolResultErrorCacheCreation>,
+    /// The number of input tokens used to create the cache entry.
+    pub cache_creation_input_tokens: Option<i64>,
+    /// The number of input tokens read from the cache.
+    pub cache_read_input_tokens: Option<i64>,
+    /// The number of input tokens which were used.
+    pub input_tokens: Option<i64>,
+    /// The number of output tokens which were used.
+    pub output_tokens: Option<i64>,
+    /// The number of server tool requests.
+    pub server_tool_use: Option<RequestWebSearchToolResultErrorServerToolUsage>,
+    /// An external identifier for the user who is associated with the request.
+    ///
+    /// This should be a uuid, hash value, or other opaque identifier. Anthropic may use this id
+    /// to help detect abuse. Do not include any identifying information such as name, email
+    /// address, or phone number.
+    pub user_id: Option<String>,
+    pub error: Option<Error>,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct InvalidRequestError {
-    pub message: String,
+pub struct RequestWebSearchToolResultErrorCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct OverloadedError {
-    pub message: String,
+#[serde(rename_all = "snake_case")]
+pub enum CacheControlEphemeralType {
+    Ephemeral,
+}
+/// The time-to-live for the cache control breakpoint.
+///
+/// This may be one the following values:
+/// - `5m`: 5 minutes
+/// - `1h`: 1 hour
+///
+/// Defaults to `5m`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum Ttl {
+    #[serde(rename = "1h")]
+    The1H,
+    #[serde(rename = "5m")]
+    The5M,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RequestWebSearchToolResultErrorCacheCreation {
+    /// The number of input tokens used to create the 1 hour cache entry.
+    #[serde(rename = "ephemeral_1h_input_tokens")]
+    pub ephemeral_1_h_input_tokens: i64,
+    /// The number of input tokens used to create the 5 minute cache entry.
+    #[serde(rename = "ephemeral_5m_input_tokens")]
+    pub ephemeral_5_m_input_tokens: i64,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RequestWebSearchToolResultErrorCitations {
+    PurpleLocationCitationArray(Vec<PurpleLocationCitation>),
+    PurpleRequestCitationsConfig(PurpleRequestCitationsConfig),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurpleLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub file_id: Option<String>,
+    pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct StopReason {}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseRedactedThinkingBlock {
-    pub data: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
+#[serde(rename_all = "snake_case")]
+pub enum CitationType {
+    #[serde(rename = "char_location")]
+    CharLocation,
+    #[serde(rename = "content_block_location")]
+    ContentBlockLocation,
+    #[serde(rename = "page_location")]
+    PageLocation,
+    #[serde(rename = "search_result_location")]
+    SearchResultLocation,
+    #[serde(rename = "web_search_result_location")]
+    WebSearchResultLocation,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestCitationsConfig {
-    #[serde(skip_serializing_if = "Option::is_none")]
+pub struct PurpleRequestCitationsConfig {
     pub enabled: Option<bool>,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestSearchResultLocationCitation {
-    pub cited_text: String,
-    pub end_block_index: i64,
-    pub search_result_index: i64,
-    pub source: String,
-    pub start_block_index: i64,
-    pub title: serde_json::Value,
-    #[serde(rename = "type")]
-    pub r#type: String,
+#[serde(untagged)]
+pub enum RequestWebSearchToolResultErrorContent {
+    FluffyWebSearchToolResultError(FluffyWebSearchToolResultError),
+    PurpleBlockArray(Vec<PurpleBlock>),
+    String(String),
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct NotFoundError {
+pub struct PurpleBlock {
+    pub encrypted_content: Option<String>,
+    pub page_age: Option<String>,
+    pub title: Option<String>,
+    #[serde(rename = "type")]
+    pub block_type: IndigoType,
+    pub url: Option<String>,
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<PurpleCacheControlEphemeral>,
+    /// Citations supporting the text block.
+    ///
+    /// The type of citation returned will depend on the type of document being cited. Citing a
+    /// PDF results in `page_location`, plain text results in `char_location`, and content
+    /// document results in `content_block_location`.
+    pub citations: Option<PurpleCitations>,
+    pub text: Option<String>,
+    pub source: Option<MagentaSource>,
+    pub content: Option<WebSearchToolResultBlockItemContent>,
+    pub signature: Option<String>,
+    pub thinking: Option<String>,
+    pub data: Option<String>,
+    pub id: Option<String>,
+    pub input: Option<HashMap<String, Option<serde_json::Value>>>,
+    pub name: Option<String>,
+    pub tool_use_id: Option<String>,
+    pub context: Option<String>,
+    pub is_error: Option<bool>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum IndigoType {
+    Document,
+    Image,
+    #[serde(rename = "redacted_thinking")]
+    RedactedThinking,
+    #[serde(rename = "search_result")]
+    SearchResult,
+    #[serde(rename = "server_tool_use")]
+    ServerToolUse,
+    Text,
+    Thinking,
+    #[serde(rename = "tool_result")]
+    ToolResult,
+    #[serde(rename = "tool_use")]
+    ToolUse,
+    #[serde(rename = "web_search_result")]
+    WebSearchResult,
+    #[serde(rename = "web_search_tool_result")]
+    WebSearchToolResult,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurpleCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PurpleCitations {
+    FluffyLocationCitationArray(Vec<FluffyLocationCitation>),
+    FluffyRequestCitationsConfig(FluffyRequestCitationsConfig),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffyLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+    pub file_id: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffyRequestCitationsConfig {
+    pub enabled: Option<bool>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum WebSearchToolResultBlockItemContent {
+    BlockArray(Vec<Block>),
+    PurpleWebSearchToolResultError(PurpleWebSearchToolResultError),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Block {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<FluffyCacheControlEphemeral>,
+    pub citations: Option<FluffyCitations>,
+    pub text: Option<String>,
+    #[serde(rename = "type")]
+    pub block_type: FluffyType,
+    pub encrypted_content: Option<String>,
+    pub page_age: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub source: Option<CunningSource>,
+    pub content: Option<Vec<PurpleRequestTextBlock>>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FluffyType {
+    Image,
+    #[serde(rename = "search_result")]
+    SearchResult,
+    Text,
+    #[serde(rename = "web_search_result")]
+    WebSearchResult,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffyCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum FluffyCitations {
+    PurpleRequestLocationCitationArray(Vec<PurpleRequestLocationCitation>),
+    TentacledRequestCitationsConfig(TentacledRequestCitationsConfig),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurpleRequestLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TentacledRequestCitationsConfig {
+    pub enabled: Option<bool>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurpleRequestTextBlock {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<TentacledCacheControlEphemeral>,
+    pub citations: Option<Vec<FluffyRequestLocationCitation>>,
+    pub text: String,
+    #[serde(rename = "type")]
+    pub request_text_block_type: ContentType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TentacledCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffyRequestLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ContentType {
+    Text,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum CunningSource {
+    PurpleSource(PurpleSource),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurpleSource {
+    pub data: Option<String>,
+    pub media_type: Option<PurpleMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: PurpleType,
+    pub url: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum PurpleMediaType {
+    #[serde(rename = "image/gif")]
+    ImageGif,
+    #[serde(rename = "image/jpeg")]
+    ImageJpeg,
+    #[serde(rename = "image/png")]
+    ImagePng,
+    #[serde(rename = "image/webp")]
+    ImageWebp,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PurpleType {
+    Base64,
+    Url,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurpleWebSearchToolResultError {
+    pub error_code: WebSearchToolResultErrorCode,
+    #[serde(rename = "type")]
+    pub web_search_tool_result_error_type: TentacledType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WebSearchToolResultErrorCode {
+    #[serde(rename = "invalid_tool_input")]
+    InvalidToolInput,
+    #[serde(rename = "max_uses_exceeded")]
+    MaxUsesExceeded,
+    #[serde(rename = "query_too_long")]
+    QueryTooLong,
+    #[serde(rename = "too_many_requests")]
+    TooManyRequests,
+    Unavailable,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TentacledType {
+    #[serde(rename = "web_search_tool_result_error")]
+    WebSearchToolResultError,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MagentaSource {
+    FluffySource(FluffySource),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffySource {
+    pub data: Option<String>,
+    pub media_type: Option<FluffyMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: StickyType,
+    pub url: Option<String>,
+    pub content: Option<PurpleContent>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PurpleContent {
+    PurpleContentBlockSourceContentItemArray(Vec<PurpleContentBlockSourceContentItem>),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurpleContentBlockSourceContentItem {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<StickyCacheControlEphemeral>,
+    pub citations: Option<Vec<TentacledRequestLocationCitation>>,
+    pub text: Option<String>,
+    #[serde(rename = "type")]
+    pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
+    pub source: Option<TentacledSource>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StickyCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TentacledRequestLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ContentBlockSourceContentItemType {
+    Image,
+    Text,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TentacledSource {
+    pub data: Option<String>,
+    pub media_type: Option<PurpleMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: PurpleType,
+    pub url: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum FluffyMediaType {
+    #[serde(rename = "application/pdf")]
+    ApplicationPdf,
+    #[serde(rename = "image/gif")]
+    ImageGif,
+    #[serde(rename = "image/jpeg")]
+    ImageJpeg,
+    #[serde(rename = "image/png")]
+    ImagePng,
+    #[serde(rename = "image/webp")]
+    ImageWebp,
+    #[serde(rename = "text/plain")]
+    TextPlain,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StickyType {
+    Base64,
+    Content,
+    Text,
+    Url,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffyWebSearchToolResultError {
+    pub error_code: WebSearchToolResultErrorCode,
+    #[serde(rename = "type")]
+    pub web_search_tool_result_error_type: TentacledType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Error {
     pub message: String,
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub error_type: ErrorType,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TextEditor_20250429 {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    pub name: String,
+#[serde(rename_all = "snake_case")]
+pub enum ErrorType {
+    #[serde(rename = "api_error")]
+    ApiError,
+    #[serde(rename = "authentication_error")]
+    AuthenticationError,
+    #[serde(rename = "billing_error")]
+    BillingError,
+    #[serde(rename = "invalid_request_error")]
+    InvalidRequestError,
+    #[serde(rename = "not_found_error")]
+    NotFoundError,
+    #[serde(rename = "overloaded_error")]
+    OverloadedError,
+    #[serde(rename = "permission_error")]
+    PermissionError,
+    #[serde(rename = "rate_limit_error")]
+    RateLimitError,
+    #[serde(rename = "timeout_error")]
+    TimeoutError,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RequestWebSearchToolResultErrorInputSchema {
+    pub properties: Option<HashMap<String, Option<serde_json::Value>>>,
+    pub required: Option<Vec<String>>,
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub input_schema_type: InputSchemaType,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestWebSearchResultBlock {
-    pub encrypted_content: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub page_age: Option<serde_json::Value>,
-    pub title: String,
+#[serde(rename_all = "snake_case")]
+pub enum InputSchemaType {
+    Object,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InputMessage {
+    pub content: MessageContent,
+    pub role: Role,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MessageContent {
+    RequestBlockArray(Vec<RequestBlock>),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RequestBlock {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<ContentCacheControlEphemeral>,
+    pub citations: Option<ContentCitations>,
+    pub text: Option<String>,
     #[serde(rename = "type")]
-    pub r#type: String,
-    pub url: String,
+    pub request_block_type: ContentTypeEnum,
+    pub source: Option<ContentSource>,
+    pub context: Option<String>,
+    pub title: Option<String>,
+    pub content: Option<ContentContent>,
+    pub signature: Option<String>,
+    pub thinking: Option<String>,
+    pub data: Option<String>,
+    pub id: Option<String>,
+    pub input: Option<HashMap<String, Option<serde_json::Value>>>,
+    pub name: Option<String>,
+    pub is_error: Option<bool>,
+    pub tool_use_id: Option<String>,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CompletionResponse {
-    pub completion: String,
-    pub id: String,
-    pub model: serde_json::Value,
-    pub stop_reason: serde_json::Value,
+pub struct ContentCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum ThinkingConfigParam {
-    #[serde(rename = "disabled")]
-    Disabled(ThinkingConfigDisabled),
-    #[serde(rename = "enabled")]
-    Enabled(ThinkingConfigEnabled),
+#[serde(untagged)]
+pub enum ContentCitations {
+    StickyRequestCitationsConfig(StickyRequestCitationsConfig),
+    StickyRequestLocationCitationArray(Vec<StickyRequestLocationCitation>),
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum ToolChoice {
-    #[serde(rename = "any")]
-    Any(ToolChoiceAny),
-    #[serde(rename = "auto")]
-    Auto(ToolChoiceAuto),
-    #[serde(rename = "none")]
-    None(ToolChoiceNone),
-    #[serde(rename = "tool")]
-    Tool(ToolChoiceTool),
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ThinkingConfigEnabled {
-    pub budget_tokens: i64,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GatewayTimeoutError {
-    pub message: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct BashTool_20250124 {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseContentBlockLocationCitation {
+pub struct StickyRequestLocationCitation {
     pub cited_text: String,
-    pub document_index: i64,
-    pub document_title: serde_json::Value,
-    pub end_block_index: i64,
-    pub file_id: serde_json::Value,
-    pub start_block_index: i64,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RequestWebSearchToolResultBlock {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<serde_json::Value>,
-    pub content: serde_json::Value,
-    pub tool_use_id: String,
+pub struct StickyRequestCitationsConfig {
+    pub enabled: Option<bool>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ContentContent {
+    ContentRequestWebSearchToolResultError(ContentRequestWebSearchToolResultError),
+    FluffyBlockArray(Vec<FluffyBlock>),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffyBlock {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<IndigoCacheControlEphemeral>,
+    pub citations: Option<TentacledCitations>,
+    pub text: Option<String>,
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub block_type: FluffyType,
+    pub source: Option<FriskySource>,
+    pub content: Option<Vec<FluffyRequestTextBlock>>,
+    pub title: Option<String>,
+    pub encrypted_content: Option<String>,
+    pub page_age: Option<String>,
+    pub url: Option<String>,
 }
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ServerToolUsage {
+pub struct IndigoCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum TentacledCitations {
+    IndigoRequestCitationsConfig(IndigoRequestCitationsConfig),
+    IndigoRequestLocationCitationArray(Vec<IndigoRequestLocationCitation>),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct IndigoRequestLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct IndigoRequestCitationsConfig {
+    pub enabled: Option<bool>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffyRequestTextBlock {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<IndecentCacheControlEphemeral>,
+    pub citations: Option<Vec<IndecentRequestLocationCitation>>,
+    pub text: String,
+    #[serde(rename = "type")]
+    pub request_text_block_type: ContentType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct IndecentCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct IndecentRequestLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum FriskySource {
+    StickySource(StickySource),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StickySource {
+    pub data: Option<String>,
+    pub media_type: Option<PurpleMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: PurpleType,
+    pub url: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ContentRequestWebSearchToolResultError {
+    pub error_code: WebSearchToolResultErrorCode,
+    #[serde(rename = "type")]
+    pub request_web_search_tool_result_error_type: TentacledType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ContentTypeEnum {
+    Document,
+    Image,
+    #[serde(rename = "redacted_thinking")]
+    RedactedThinking,
+    #[serde(rename = "search_result")]
+    SearchResult,
+    #[serde(rename = "server_tool_use")]
+    ServerToolUse,
+    Text,
+    Thinking,
+    #[serde(rename = "tool_result")]
+    ToolResult,
+    #[serde(rename = "tool_use")]
+    ToolUse,
+    #[serde(rename = "web_search_tool_result")]
+    WebSearchToolResult,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ContentSource {
+    IndigoSource(IndigoSource),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct IndigoSource {
+    pub data: Option<String>,
+    pub media_type: Option<FluffyMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: StickyType,
+    pub url: Option<String>,
+    pub content: Option<FluffyContent>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum FluffyContent {
+    FluffyContentBlockSourceContentItemArray(Vec<FluffyContentBlockSourceContentItem>),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FluffyContentBlockSourceContentItem {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<HilariousCacheControlEphemeral>,
+    pub citations: Option<Vec<HilariousRequestLocationCitation>>,
+    pub text: Option<String>,
+    #[serde(rename = "type")]
+    pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
+    pub source: Option<IndecentSource>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HilariousCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HilariousRequestLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct IndecentSource {
+    pub data: Option<String>,
+    pub media_type: Option<PurpleMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: PurpleType,
+    pub url: Option<String>,
+}
+/// Conversational role of the generated message.
+///
+/// This will always be `"assistant"`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Role {
+    Assistant,
+    User,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Metadata {
+    /// An external identifier for the user who is associated with the request.
+    ///
+    /// This should be a uuid, hash value, or other opaque identifier. Anthropic may use this id
+    /// to help detect abuse. Do not include any identifying information such as name, email
+    /// address, or phone number.
+    pub user_id: Option<String>,
+}
+/// Object type.
+///
+/// For Messages, this is always `"message"`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ResponseTextBlockType {
+    Any,
+    Auto,
+    Custom,
+    Document,
+    Error,
+    Image,
+    Message,
+    None,
+    #[serde(rename = "redacted_thinking")]
+    RedactedThinking,
+    #[serde(rename = "search_result")]
+    SearchResult,
+    #[serde(rename = "server_tool_use")]
+    ServerToolUse,
+    Text,
+    Thinking,
+    Tool,
+    #[serde(rename = "tool_result")]
+    ToolResult,
+    #[serde(rename = "tool_use")]
+    ToolUse,
+    #[serde(rename = "web_search_tool_result")]
+    WebSearchToolResult,
+    #[serde(rename = "web_search_tool_result_error")]
+    WebSearchToolResultError,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RequestWebSearchToolResultErrorServerToolUsage {
+    /// The number of web search tool requests.
     pub web_search_requests: i64,
+}
+/// Determines whether to use priority capacity (if available) or standard capacity for this
+/// request.
+///
+/// Anthropic offers different levels of service for your API requests. See
+/// [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ServiceTierEnum {
+    Auto,
+    Batch,
+    Priority,
+    Standard,
+    #[serde(rename = "standard_only")]
+    StandardOnly,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RequestWebSearchToolResultErrorSource {
+    HilariousSource(HilariousSource),
+    String(String),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HilariousSource {
+    pub data: Option<String>,
+    pub media_type: Option<FluffyMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: StickyType,
+    pub url: Option<String>,
+    pub content: Option<TentacledContent>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum TentacledContent {
+    String(String),
+    TentacledContentBlockSourceContentItemArray(Vec<TentacledContentBlockSourceContentItem>),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TentacledContentBlockSourceContentItem {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<AmbitiousCacheControlEphemeral>,
+    pub citations: Option<Vec<AmbitiousRequestLocationCitation>>,
+    pub text: Option<String>,
+    #[serde(rename = "type")]
+    pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
+    pub source: Option<AmbitiousSource>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AmbitiousCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AmbitiousRequestLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AmbitiousSource {
+    pub data: Option<String>,
+    pub media_type: Option<PurpleMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: PurpleType,
+    pub url: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StopReason {
+    #[serde(rename = "end_turn")]
+    EndTurn,
+    #[serde(rename = "max_tokens")]
+    MaxTokens,
+    #[serde(rename = "pause_turn")]
+    PauseTurn,
+    Refusal,
+    #[serde(rename = "stop_sequence")]
+    StopSequence,
+    #[serde(rename = "tool_use")]
+    ToolUse,
+}
+/// System prompt.
+///
+/// A system prompt is a way of providing context and instructions to Claude, such as
+/// specifying a particular goal or role. See our [guide to system
+/// prompts](https://docs.anthropic.com/en/docs/system-prompts).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum System {
+    String(String),
+    SystemElementArray(Vec<SystemElement>),
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SystemElement {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<CunningCacheControlEphemeral>,
+    pub citations: Option<Vec<CunningRequestLocationCitation>>,
+    pub text: String,
+    #[serde(rename = "type")]
+    pub request_text_block_type: ContentType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CunningCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CunningRequestLocationCitation {
+    pub cited_text: String,
+    pub document_index: Option<i64>,
+    pub document_title: Option<String>,
+    pub end_char_index: Option<i64>,
+    pub start_char_index: Option<i64>,
+    #[serde(rename = "type")]
+    pub request_location_citation_type: CitationType,
+    pub end_page_number: Option<i64>,
+    pub start_page_number: Option<i64>,
+    pub end_block_index: Option<i64>,
+    pub start_block_index: Option<i64>,
+    pub encrypted_index: Option<String>,
+    pub title: Option<String>,
+    pub url: Option<String>,
+    pub search_result_index: Option<i64>,
+    pub source: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ThinkingUnion {
+    String(String),
+    Thinking(Thinking),
+}
+/// Configuration for enabling Claude's extended thinking.
+///
+/// When enabled, responses include `thinking` content blocks showing Claude's thinking
+/// process before the final answer. Requires a minimum budget of 1,024 tokens and counts
+/// towards your `max_tokens` limit.
+///
+/// See [extended
+/// thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking) for
+/// details.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Thinking {
+    /// Determines how many tokens Claude can use for its internal reasoning process. Larger
+    /// budgets can enable more thorough analysis for complex problems, improving response
+    /// quality.
+    ///
+    /// Must be ≥1024 and less than `max_tokens`.
+    ///
+    /// See [extended
+    /// thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking) for
+    /// details.
+    pub budget_tokens: Option<i64>,
+    #[serde(rename = "type")]
+    pub thinking_type: ThinkingType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ThinkingType {
+    Disabled,
+    Enabled,
+}
+/// How the model should use the provided tools. The model can use a specific tool, any
+/// available tool, decide by itself, or not use tools at all.
+///
+/// The model will automatically decide whether to use tools.
+///
+/// The model will use any available tools.
+///
+/// The model will use the specified tool with `tool_choice.name`.
+///
+/// The model will not be allowed to use tools.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ToolChoice {
+    /// Whether to disable parallel tool use.
+    ///
+    /// Defaults to `false`. If set to `true`, the model will output at most one tool use.
+    ///
+    /// Whether to disable parallel tool use.
+    ///
+    /// Defaults to `false`. If set to `true`, the model will output exactly one tool use.
+    pub disable_parallel_tool_use: Option<bool>,
+    #[serde(rename = "type")]
+    pub tool_choice_type: ToolChoiceType,
+    /// The name of the tool to use.
+    pub name: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolChoiceType {
+    Any,
+    Auto,
+    None,
+    Tool,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Tool {
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<ToolCacheControlEphemeral>,
+    /// Description of what this tool does.
+    ///
+    /// Tool descriptions should be as detailed as possible. The more information that the model
+    /// has about what the tool is and how to use it, the better it will perform. You can use
+    /// natural language descriptions to reinforce important aspects of the tool input JSON
+    /// schema.
+    pub description: Option<String>,
+    pub input_schema: Option<ToolInputSchema>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    #[serde(rename = "type")]
+    pub tool_type: Option<ToolType>,
+    /// Maximum number of characters to display when viewing a file. If not specified, defaults
+    /// to displaying the full file.
+    pub max_characters: Option<i64>,
+    /// If provided, only these domains will be included in results. Cannot be used alongside
+    /// `blocked_domains`.
+    pub allowed_domains: Option<Vec<String>>,
+    /// If provided, these domains will never appear in results. Cannot be used alongside
+    /// `allowed_domains`.
+    pub blocked_domains: Option<Vec<String>>,
+    /// Maximum number of times the tool can be used in the API request.
+    pub max_uses: Option<i64>,
+    /// Parameters for the user's location. Used to provide more relevant search results.
+    pub user_location: Option<UserLocation>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ToolCacheControlEphemeral {
+    /// The time-to-live for the cache control breakpoint.
+    ///
+    /// This may be one the following values:
+    /// - `5m`: 5 minutes
+    /// - `1h`: 1 hour
+    ///
+    /// Defaults to `5m`.
+    pub ttl: Option<Ttl>,
+    #[serde(rename = "type")]
+    pub cache_control_ephemeral_type: CacheControlEphemeralType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ToolInputSchema {
+    pub properties: Option<HashMap<String, Option<serde_json::Value>>>,
+    pub required: Option<Vec<String>>,
+    #[serde(rename = "type")]
+    pub input_schema_type: InputSchemaType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolType {
+    #[serde(rename = "bash_20250124")]
+    Bash20250124,
+    Custom,
+    #[serde(rename = "text_editor_20250124")]
+    TextEditor20250124,
+    #[serde(rename = "text_editor_20250429")]
+    TextEditor20250429,
+    #[serde(rename = "text_editor_20250728")]
+    TextEditor20250728,
+    #[serde(rename = "web_search_20250305")]
+    WebSearch20250305,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct UserLocation {
+    /// The city of the user.
+    pub city: Option<String>,
+    /// The two letter [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of
+    /// the user.
+    pub country: Option<String>,
+    /// The region of the user.
+    pub region: Option<String>,
+    /// The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+    pub timezone: Option<String>,
+    #[serde(rename = "type")]
+    pub user_location_type: UserLocationType,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UserLocationType {
+    Approximate,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Usage {
+    /// Breakdown of cached tokens by TTL
+    pub cache_creation: Option<UsageCacheCreation>,
+    /// The number of input tokens used to create the cache entry.
+    pub cache_creation_input_tokens: Option<i64>,
+    /// The number of input tokens read from the cache.
+    pub cache_read_input_tokens: Option<i64>,
+    /// The number of input tokens which were used.
+    pub input_tokens: i64,
+    /// The number of output tokens which were used.
+    pub output_tokens: i64,
+    /// The number of server tool requests.
+    pub server_tool_use: Option<UsageServerToolUsage>,
+    /// If the request used the priority, standard, or batch tier.
+    pub service_tier: Option<ServiceTierServiceTier>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct UsageCacheCreation {
+    /// The number of input tokens used to create the 1 hour cache entry.
+    #[serde(rename = "ephemeral_1h_input_tokens")]
+    pub ephemeral_1_h_input_tokens: i64,
+    /// The number of input tokens used to create the 5 minute cache entry.
+    #[serde(rename = "ephemeral_5m_input_tokens")]
+    pub ephemeral_5_m_input_tokens: i64,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct UsageServerToolUsage {
+    /// The number of web search tool requests.
+    pub web_search_requests: i64,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ServiceTierServiceTier {
+    Batch,
+    Priority,
+    Standard,
 }

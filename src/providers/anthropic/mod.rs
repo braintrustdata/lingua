@@ -2,14 +2,24 @@
 Anthropic API provider types.
 
 This module contains type definitions for Anthropic's messages API
-automatically generated from the unofficial OpenAPI specification.
+generated from the OpenAPI specification using quicktype.
 */
 
 pub mod generated;
 
-// Re-export generated types (Anthropic API types from OpenAPI spec)
+// Re-export key generated types (from quicktype-generated Anthropic API types)
 pub use generated::{
-    ContentBlock, CreateMessageParams, ErrorResponse, InputContentBlock, InputMessage, Message,
-    Model, RequestImageBlock, RequestTextBlock, RequestToolResultBlock, RequestToolUseBlock,
-    ResponseTextBlock, ResponseToolUseBlock, StopReason, Tool, ToolChoice, Usage,
+    // Essential message types
+    InputMessage,
+
+    Metadata,
+    RequestWebSearchToolResultError,
+
+    // API configuration types
+    StopReason,
+    Tool,
+    ToolChoice,
+    Usage,
+    // Core error types with proper enum typing
+    WebSearchToolResultErrorCode,
 };
