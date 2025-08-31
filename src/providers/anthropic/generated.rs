@@ -24,23 +24,6 @@ use std::collections::HashMap;
 pub struct AnthropicSchemas {
     pub request: Option<CreateMessageParams>,
     pub response: Option<Message>,
-    pub error_code: Option<WebSearchToolResultErrorCode>,
-    pub stop_reason: Option<StopReason>,
-    pub usage: Option<Usage>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum WebSearchToolResultErrorCode {
-    #[serde(rename = "invalid_tool_input")]
-    InvalidToolInput,
-    #[serde(rename = "max_uses_exceeded")]
-    MaxUsesExceeded,
-    #[serde(rename = "query_too_long")]
-    QueryTooLong,
-    #[serde(rename = "too_many_requests")]
-    TooManyRequests,
-    Unavailable,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -495,6 +478,20 @@ pub struct RequestWebSearchToolResultError {
     pub error_code: WebSearchToolResultErrorCode,
     #[serde(rename = "type")]
     pub request_web_search_tool_result_error_type: RequestWebSearchToolResultErrorType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WebSearchToolResultErrorCode {
+    #[serde(rename = "invalid_tool_input")]
+    InvalidToolInput,
+    #[serde(rename = "max_uses_exceeded")]
+    MaxUsesExceeded,
+    #[serde(rename = "query_too_long")]
+    QueryTooLong,
+    #[serde(rename = "too_many_requests")]
+    TooManyRequests,
+    Unavailable,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

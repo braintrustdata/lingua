@@ -229,15 +229,12 @@ fn generate_openai_types_with_quicktype(
 }
 
 fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Value {
-    let essential_types = [
-        "CreateChatCompletionRequest",
-        "CreateChatCompletionResponse",
-        "CreateChatCompletionStreamResponse",
-        "ChatCompletionRequestMessage",
-        "ChatCompletionResponseMessage",
-        "ChatCompletionTool",
-        "CompletionUsage",
-    ];
+    // Simplified approach: just specify input/output types, let dependency resolution handle the rest
+    let chat_request_type = "CreateChatCompletionRequest";
+    let chat_response_type = "CreateChatCompletionResponse";
+    let chat_stream_response_type = "CreateChatCompletionStreamResponse";
+    let responses_request_type = "CreateResponse";
+    let responses_response_type = "Response";
 
     let default_map = serde_json::Map::new();
     let all_schemas = spec
@@ -249,15 +246,39 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     let mut essential_schemas = serde_json::Map::new();
     let mut processed = std::collections::HashSet::new();
 
-    // Recursively add essential types and their dependencies
-    for type_name in &essential_types {
-        add_openai_schema_with_dependencies(
-            type_name,
-            all_schemas,
-            &mut essential_schemas,
-            &mut processed,
-        );
-    }
+    // Add chat completion types with their dependencies
+    add_openai_schema_with_dependencies(
+        chat_request_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+    add_openai_schema_with_dependencies(
+        chat_response_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+    add_openai_schema_with_dependencies(
+        chat_stream_response_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+
+    // Add responses API types with their dependencies
+    add_openai_schema_with_dependencies(
+        responses_request_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+    add_openai_schema_with_dependencies(
+        responses_response_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
 
     // Fix all $ref paths to point to #/definitions/ instead of #/components/schemas/
     let mut fixed_schemas = serde_json::Map::new();
@@ -265,11 +286,29 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
         fixed_schemas.insert(name, fix_openai_schema_refs(&schema));
     }
 
-    // Create a root schema that includes all our essential types
-    // This approach works better with quicktype
+    // Create a clean root schema with separated input/output types for both APIs
     let root_schema = serde_json::json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "anyOf": essential_types.iter().map(|t| serde_json::json!({"$ref": format!("#/definitions/{}", t)})).collect::<Vec<_>>(),
+        "type": "object",
+        "oneOf": [
+            {
+                "title": "ChatCompletionTypes",
+                "type": "object",
+                "properties": {
+                    "chat_request": {"$ref": "#/definitions/CreateChatCompletionRequest"},
+                    "chat_response": {"$ref": "#/definitions/CreateChatCompletionResponse"},
+                    "chat_stream_response": {"$ref": "#/definitions/CreateChatCompletionStreamResponse"}
+                }
+            },
+            {
+                "title": "ResponsesTypes",
+                "type": "object",
+                "properties": {
+                    "responses_request": {"$ref": "#/definitions/CreateResponse"},
+                    "responses_response": {"$ref": "#/definitions/Response"}
+                }
+            }
+        ],
         "definitions": fixed_schemas
     });
 
@@ -515,17 +554,7 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
 
-    // Add core utility types
-    let core_types = [
-        "Usage",
-        "StopReason",
-        "WebSearchToolResultErrorCode",
-        "CacheCreation",
-        "ServerToolUsage",
-    ];
-    for type_name in &core_types {
-        add_dependencies_recursively(type_name, all_schemas, &mut separated_schemas);
-    }
+    // All other types will be included automatically through dependency resolution
 
     // Step 3: Now clean the main request/response schemas to remove conflicting fields
     for schema_name in &request_schemas {
@@ -562,15 +591,6 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
                     "response": {"$ref": "#/definitions/Message"}
                 }
             },
-            {
-                "title": "UtilityType",
-                "type": "object",
-                "properties": {
-                    "usage": {"$ref": "#/definitions/Usage"},
-                    "error_code": {"$ref": "#/definitions/WebSearchToolResultErrorCode"},
-                    "stop_reason": {"$ref": "#/definitions/StopReason"}
-                }
-            }
         ],
         "definitions": separated_schemas
     });
