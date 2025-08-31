@@ -415,12 +415,16 @@ fn generate_anthropic_types_with_quicktype(
 
     // Create a temporary JSON schema file for quicktype
     let temp_schema_path = std::env::temp_dir().join("anthropic_schemas.json");
-    std::fs::write(
-        &temp_schema_path,
-        serde_json::to_string_pretty(&essential_schemas)?,
-    )?;
+    let schema_json = serde_json::to_string_pretty(&essential_schemas)?;
 
-    // Use quicktype to generate types
+    // Debug: Also save to working directory to inspect
+    let debug_path = "debug_anthropic_schema.json";
+    std::fs::write(debug_path, &schema_json)?;
+    println!("🔍 Debug: Saved schema to {} for inspection", debug_path);
+
+    std::fs::write(&temp_schema_path, &schema_json)?;
+
+    // Use quicktype to generate types - specify just one main type to avoid merging
     let output = std::process::Command::new("quicktype")
         .arg("--src-lang")
         .arg("schema")
@@ -477,57 +481,404 @@ fn generate_anthropic_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_anthropic_schemas(all_schemas: &serde_json::Value) -> serde_json::Value {
-    // Key Anthropic API types for messages endpoint
-    let essential_types = [
-        "InputMessage",
-        "Message",
-        "MessageRequest",
-        "MessageResponse",
-        "ContentBlock",
-        "InputContentBlock",
-        "TextBlock",
-        "ImageBlock",
-        "ToolUseBlock",
-        "ToolResultBlock",
-        "Tool",
-        "ToolChoice",
-        "Usage",
-        "Metadata",
-        "StopReason",
-        "WebSearchToolResultError", // This should generate proper enum!
-        "RequestWebSearchToolResultError",
-    ];
+fn create_essential_anthropic_schemas(spec: &serde_json::Value) -> serde_json::Value {
+    // Automated approach: Preprocess schema to separate request/response types
+    preprocess_anthropic_schema_for_separation(spec)
+}
+
+fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde_json::Value {
+    println!("🔧 Preprocessing Anthropic schema for request/response separation...");
 
     let default_map = serde_json::Map::new();
-    let schemas = all_schemas
+    let all_schemas = spec
         .get("components")
         .and_then(|c| c.get("schemas"))
         .and_then(|s| s.as_object())
         .unwrap_or(&default_map);
 
-    let mut essential_schemas = serde_json::Map::new();
-    let mut processed = std::collections::HashSet::new();
+    // Step 1: Analyze endpoints to identify request vs response schemas
+    let (request_schemas, response_schemas) = analyze_anthropic_endpoints(spec);
 
-    // Add essential types and recursively resolve their dependencies
-    for type_name in &essential_types {
-        add_schema_with_dependencies(type_name, schemas, &mut essential_schemas, &mut processed);
-    }
-
-    // Resolve $ref references
-    let resolved_schemas = resolve_schema_refs(
-        &serde_json::Value::Object(essential_schemas.clone()),
-        schemas,
+    println!(
+        "🔍 Identified {} request schemas, {} response schemas",
+        request_schemas.len(),
+        response_schemas.len()
     );
 
-    serde_json::json!({
+    let mut separated_schemas = serde_json::Map::new();
+
+    // Step 2: First recursively add all dependencies for the original schemas
+    for schema_name in &request_schemas {
+        add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
+    }
+    for schema_name in &response_schemas {
+        add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
+    }
+
+    // Add core utility types
+    let core_types = [
+        "Usage",
+        "StopReason",
+        "WebSearchToolResultErrorCode",
+        "CacheCreation",
+        "ServerToolUsage",
+    ];
+    for type_name in &core_types {
+        add_dependencies_recursively(type_name, all_schemas, &mut separated_schemas);
+    }
+
+    // Step 3: Now clean the main request/response schemas to remove conflicting fields
+    for schema_name in &request_schemas {
+        if let Some(schema) = separated_schemas.get(schema_name) {
+            let cleaned_schema = remove_response_fields_from_schema(schema);
+            separated_schemas.insert(schema_name.clone(), cleaned_schema);
+        }
+    }
+
+    for schema_name in &response_schemas {
+        if let Some(schema) = separated_schemas.get(schema_name) {
+            let cleaned_schema = remove_request_fields_from_schema(schema);
+            separated_schemas.insert(schema_name.clone(), cleaned_schema);
+        }
+    }
+
+    // Step 5: Create root schema with separated types
+    // Use a different approach: create separate top-level object types to avoid merging
+    let root_schema = serde_json::json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "anyOf": essential_types.iter().map(|t| serde_json::json!({"$ref": format!("#/definitions/{}", t)})).collect::<Vec<_>>(),
-        "definitions": resolved_schemas.as_object().unwrap()
+        "type": "object",
+        "oneOf": [
+            {
+                "title": "RequestType",
+                "type": "object",
+                "properties": {
+                    "request": {"$ref": "#/definitions/CreateMessageParams"}
+                }
+            },
+            {
+                "title": "ResponseType",
+                "type": "object",
+                "properties": {
+                    "response": {"$ref": "#/definitions/Message"}
+                }
+            },
+            {
+                "title": "UtilityType",
+                "type": "object",
+                "properties": {
+                    "usage": {"$ref": "#/definitions/Usage"},
+                    "error_code": {"$ref": "#/definitions/WebSearchToolResultErrorCode"},
+                    "stop_reason": {"$ref": "#/definitions/StopReason"}
+                }
+            }
+        ],
+        "definitions": separated_schemas
+    });
+
+    root_schema
+}
+
+fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
+    let mut request_schemas = Vec::new();
+    let mut response_schemas = Vec::new();
+
+    // Analyze the /v1/messages endpoint
+    if let Some(paths) = spec.get("paths") {
+        if let Some(messages_path) = paths.get("/v1/messages") {
+            if let Some(post_op) = messages_path.get("post") {
+                // Extract request schema from requestBody
+                if let Some(request_body) = post_op.get("requestBody") {
+                    if let Some(content) = request_body.get("content") {
+                        if let Some(json_content) = content.get("application/json") {
+                            if let Some(schema) = json_content.get("schema") {
+                                if let Some(schema_ref) = schema.get("$ref") {
+                                    if let Some(schema_name) = extract_schema_name_from_ref(
+                                        schema_ref.as_str().unwrap_or(""),
+                                    ) {
+                                        request_schemas.push(schema_name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Extract response schemas from responses
+                if let Some(responses) = post_op.get("responses") {
+                    if let Some(success_response) = responses.get("200") {
+                        if let Some(content) = success_response.get("content") {
+                            if let Some(json_content) = content.get("application/json") {
+                                if let Some(schema) = json_content.get("schema") {
+                                    if let Some(schema_ref) = schema.get("$ref") {
+                                        if let Some(schema_name) = extract_schema_name_from_ref(
+                                            schema_ref.as_str().unwrap_or(""),
+                                        ) {
+                                            response_schemas.push(schema_name);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    println!("🔍 Found request schemas: {:?}", request_schemas);
+    println!("🔍 Found response schemas: {:?}", response_schemas);
+
+    (request_schemas, response_schemas)
+}
+
+fn extract_schema_name_from_ref(ref_str: &str) -> Option<String> {
+    // Extract schema name from "#/components/schemas/CreateMessageParams"
+    if let Some(last_slash) = ref_str.rfind('/') {
+        Some(ref_str[last_slash + 1..].to_string())
+    } else {
+        None
+    }
+}
+
+fn remove_response_fields_from_schema(schema: &serde_json::Value) -> serde_json::Value {
+    let mut cleaned_schema = schema.clone();
+
+    // Fields that should NOT be in request schemas
+    let response_only_fields = [
+        "id",
+        "created",
+        "choices",
+        "usage",
+        "system_fingerprint",
+        "content",
+        "role",
+        "stop_reason",
+        "stop_sequence",
+        "type",
+    ];
+
+    if let Some(properties) = cleaned_schema.get_mut("properties") {
+        if let Some(props_obj) = properties.as_object_mut() {
+            for field_name in &response_only_fields {
+                props_obj.remove(*field_name);
+            }
+        }
+    }
+
+    // Remove response fields from required array
+    if let Some(required) = cleaned_schema.get_mut("required") {
+        if let Some(required_array) = required.as_array_mut() {
+            required_array.retain(|item| {
+                if let Some(field_name) = item.as_str() {
+                    !response_only_fields.contains(&field_name)
+                } else {
+                    true
+                }
+            });
+        }
+    }
+
+    cleaned_schema
+}
+
+fn remove_request_fields_from_schema(schema: &serde_json::Value) -> serde_json::Value {
+    let mut cleaned_schema = schema.clone();
+
+    // Fields that should NOT be in response schemas
+    let request_only_fields = [
+        "messages",
+        "max_tokens",
+        "temperature",
+        "top_p",
+        "top_k",
+        "stream",
+        "stop_sequences",
+        "system",
+        "tools",
+        "tool_choice",
+        "frequency_penalty",
+        "presence_penalty",
+        "logit_bias",
+        "user",
+    ];
+
+    if let Some(properties) = cleaned_schema.get_mut("properties") {
+        if let Some(props_obj) = properties.as_object_mut() {
+            for field_name in &request_only_fields {
+                props_obj.remove(*field_name);
+            }
+        }
+    }
+
+    // Remove request fields from required array
+    if let Some(required) = cleaned_schema.get_mut("required") {
+        if let Some(required_array) = required.as_array_mut() {
+            required_array.retain(|item| {
+                if let Some(field_name) = item.as_str() {
+                    !request_only_fields.contains(&field_name)
+                } else {
+                    true
+                }
+            });
+        }
+    }
+
+    cleaned_schema
+}
+
+fn add_dependencies_recursively(
+    schema_name: &str,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    separated_schemas: &mut serde_json::Map<String, serde_json::Value>,
+) {
+    // Skip if already processed
+    if separated_schemas.contains_key(schema_name) {
+        return;
+    }
+
+    // Add the schema itself
+    if let Some(schema) = all_schemas.get(schema_name) {
+        let fixed_schema = fix_anthropic_schema_refs(schema);
+        separated_schemas.insert(schema_name.to_string(), fixed_schema.clone());
+
+        // Find all references in this schema and recursively add them
+        let mut refs = std::collections::HashSet::new();
+        extract_schema_refs(&fixed_schema, &mut refs);
+
+        for ref_name in refs {
+            add_dependencies_recursively(&ref_name, all_schemas, separated_schemas);
+        }
+    }
+}
+
+fn create_clean_request_schema() -> serde_json::Value {
+    // Create a clean request schema with ONLY request fields
+    serde_json::json!({
+        "type": "object",
+        "description": "Request parameters for creating a message with Claude",
+        "required": ["model", "messages", "max_tokens"],
+        "properties": {
+            "model": {
+                "type": "string",
+                "description": "The model that will complete your prompt"
+            },
+            "messages": {
+                "type": "array",
+                "description": "Input messages",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "role": {
+                            "type": "string",
+                            "enum": ["user", "assistant"]
+                        },
+                        "content": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["role", "content"]
+                }
+            },
+            "max_tokens": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "The maximum number of tokens to generate"
+            },
+            "temperature": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Amount of randomness injected into the response"
+            },
+            "top_p": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Use nucleus sampling"
+            },
+            "top_k": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only sample from the top K options for each subsequent token"
+            },
+            "stop_sequences": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "Custom text sequences that cause the model to stop generating"
+            },
+            "stream": {
+                "type": "boolean",
+                "description": "Whether to incrementally stream the response"
+            },
+            "system": {
+                "type": "string",
+                "description": "System prompt"
+            }
+        }
     })
 }
 
-fn add_schema_with_dependencies(
+fn create_clean_response_schema() -> serde_json::Value {
+    // Create a clean response schema with ONLY response fields
+    serde_json::json!({
+        "type": "object",
+        "description": "A message generated by Claude",
+        "required": ["id", "type", "role", "content", "model", "stop_reason", "usage"],
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Unique object identifier"
+            },
+            "type": {
+                "type": "string",
+                "enum": ["message"],
+                "description": "Object type"
+            },
+            "role": {
+                "type": "string",
+                "enum": ["assistant"],
+                "description": "Conversational role"
+            },
+            "content": {
+                "type": "array",
+                "description": "Content generated by the model",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": ["text"]
+                        },
+                        "text": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["type", "text"]
+                }
+            },
+            "model": {
+                "type": "string",
+                "description": "The model that handled the request"
+            },
+            "stop_reason": {
+                "$ref": "#/definitions/StopReason",
+                "description": "The reason that we stopped"
+            },
+            "stop_sequence": {
+                "type": ["string", "null"],
+                "description": "Which custom stop sequence was generated"
+            },
+            "usage": {
+                "$ref": "#/definitions/Usage",
+                "description": "Billing and rate-limit usage"
+            }
+        }
+    })
+}
+
+fn add_anthropic_schema_with_dependencies(
     type_name: &str,
     all_schemas: &serde_json::Map<String, serde_json::Value>,
     essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
@@ -547,56 +898,65 @@ fn add_schema_with_dependencies(
         extract_schema_refs(schema, &mut refs);
 
         for ref_name in refs {
-            add_schema_with_dependencies(&ref_name, all_schemas, essential_schemas, processed);
+            add_anthropic_schema_with_dependencies(
+                &ref_name,
+                all_schemas,
+                essential_schemas,
+                processed,
+            );
         }
     }
 }
 
-fn resolve_schema_refs(
-    schema: &serde_json::Value,
-    all_schemas: &serde_json::Map<String, serde_json::Value>,
-) -> serde_json::Value {
+fn fix_anthropic_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
     match schema {
         serde_json::Value::Object(obj) => {
-            let mut resolved_obj = serde_json::Map::new();
+            let mut fixed_obj = serde_json::Map::new();
 
             for (key, value) in obj {
                 if key == "$ref" {
                     if let Some(ref_str) = value.as_str() {
-                        if let Some(type_name) = extract_type_name_from_ref(ref_str) {
-                            if let Some(resolved_schema) = all_schemas.get(&type_name) {
-                                return resolve_schema_refs(resolved_schema, all_schemas);
-                            }
+                        // Fix the reference path
+                        if ref_str.starts_with("#/components/schemas/") {
+                            let new_ref =
+                                ref_str.replace("#/components/schemas/", "#/definitions/");
+                            fixed_obj.insert(key.clone(), serde_json::Value::String(new_ref));
+                        } else {
+                            fixed_obj.insert(key.clone(), value.clone());
                         }
-                    }
-                }
-
-                let resolved_value = resolve_schema_refs(value, all_schemas);
-
-                // Handle null type issue for quicktype
-                if key == "type" && resolved_value.is_null() {
-                    if obj.get("enum").is_some() {
-                        resolved_obj
-                            .insert(key.clone(), serde_json::Value::String("string".to_string()));
-                    } else if obj.get("anyOf").is_some() || obj.get("oneOf").is_some() {
-                        continue; // Skip null type for union types
                     } else {
-                        resolved_obj
-                            .insert(key.clone(), serde_json::Value::String("object".to_string()));
+                        fixed_obj.insert(key.clone(), value.clone());
                     }
                 } else {
-                    resolved_obj.insert(key.clone(), resolved_value);
+                    let fixed_value = fix_anthropic_schema_refs(value);
+
+                    // Handle null type issue for quicktype
+                    if key == "type" && fixed_value.is_null() {
+                        if obj.get("enum").is_some() {
+                            fixed_obj.insert(
+                                key.clone(),
+                                serde_json::Value::String("string".to_string()),
+                            );
+                        } else if obj.get("anyOf").is_some() || obj.get("oneOf").is_some() {
+                            continue; // Skip null type for union types
+                        } else {
+                            fixed_obj.insert(
+                                key.clone(),
+                                serde_json::Value::String("object".to_string()),
+                            );
+                        }
+                    } else {
+                        fixed_obj.insert(key.clone(), fixed_value);
+                    }
                 }
             }
 
-            serde_json::Value::Object(resolved_obj)
+            serde_json::Value::Object(fixed_obj)
         }
         serde_json::Value::Array(arr) => {
-            let resolved_arr: Vec<serde_json::Value> = arr
-                .iter()
-                .map(|item| resolve_schema_refs(item, all_schemas))
-                .collect();
-            serde_json::Value::Array(resolved_arr)
+            let fixed_arr: Vec<serde_json::Value> =
+                arr.iter().map(fix_anthropic_schema_refs).collect();
+            serde_json::Value::Array(fixed_arr)
         }
         other => other.clone(),
     }

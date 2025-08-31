@@ -7,21 +7,21 @@ generated from the OpenAPI specification using quicktype.
 
 pub mod generated;
 
-// Re-export key generated types (from quicktype-generated Anthropic API types)
-// TODO: Enable these after generation is complete
+// Re-export key generated types (automated approach with proper request/response separation)
+// Temporarily disabled while testing generation
 /*
 pub use generated::{
-    // Essential message types
+    // Request types
+    CreateMessageParams,
     InputMessage,
 
-    Metadata,
-    RequestWebSearchToolResultError,
-
-    // API configuration types
-    StopReason,
-    Tool,
-    ToolChoice,
+    // Response types
+    Message,
     Usage,
+
+    // Shared types
+    StopReason,
+
     // Core error types with proper enum typing
     WebSearchToolResultErrorCode,
 };
