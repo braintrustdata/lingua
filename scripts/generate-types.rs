@@ -20,7 +20,7 @@ fn main() {
         &args[1]
     } else {
         println!("Usage: {} [provider]", args[0]);
-        println!("Providers: openai, anthropic, all");
+        println!("Providers: openai, anthropic, google, all");
         std::process::exit(1);
     };
 
@@ -29,13 +29,15 @@ fn main() {
     match provider.as_str() {
         "openai" => generate_openai_types(),
         "anthropic" => generate_anthropic_types(),
+        "google" => generate_google_protobuf_types_from_git(),
         "all" => {
             generate_openai_types();
             generate_anthropic_types();
+            generate_google_protobuf_types_from_git();
         }
         _ => {
             println!("❌ Unknown provider: {}", provider);
-            println!("Available providers: openai, anthropic, all");
+            println!("Available providers: openai, anthropic, google, all");
             std::process::exit(1);
         }
     }
