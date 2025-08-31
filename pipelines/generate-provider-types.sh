@@ -229,21 +229,15 @@ fi
 
 # Generate TypeScript bindings
 echo "Generating TypeScript bindings..."
-cargo run --example simple_${PROVIDER} > /dev/null
+EXAMPLE_NAME="simple_${PROVIDER}"
+if [ -f "$PROJECT_ROOT/examples/${EXAMPLE_NAME}.rs" ]; then
+    cargo run --example "$EXAMPLE_NAME" > /dev/null
+else
+    echo "⚠️  Example $EXAMPLE_NAME not found, skipping TypeScript bindings generation"
+fi
 
 # Step 4: Run validation tests
 echo "🧪 Step 4: Running validation tests..."
-
-cd "$PROVIDER_TEST_DIR"
-
-# Install TypeScript if not present
-if ! command -v tsc &> /dev/null; then
-    if ! command -v pnpm &> /dev/null; then
-        npm install typescript
-    else
-        pnpm add typescript
-    fi
-fi
 
 # Check if we can create compatibility test
 if [ -f "$PROJECT_ROOT/bindings/typescript/SimpleMessage.ts" ]; then
@@ -251,10 +245,21 @@ if [ -f "$PROJECT_ROOT/bindings/typescript/SimpleMessage.ts" ]; then
     
     # Run the existing TypeScript tests
     cd "$PROJECT_ROOT/tests/typescript"
-    if ! command -v pnpm &> /dev/null; then
-        npm run test
-    else
+    
+    # Install dependencies if not present
+    if [ ! -d "node_modules" ]; then
+        echo "Installing test dependencies..."
+        if command -v pnpm &> /dev/null; then
+            pnpm install
+        else
+            npm install
+        fi
+    fi
+    
+    if command -v pnpm &> /dev/null; then
         pnpm run test
+    else
+        npm run test
     fi
     
     if [ $? -eq 0 ]; then
