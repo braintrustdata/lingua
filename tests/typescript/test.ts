@@ -2,9 +2,9 @@ import { OpenAI } from 'openai';
 import { SimpleMessage } from '../../bindings/typescript/SimpleMessage';
 import { SimpleRole } from '../../bindings/typescript/SimpleRole';
 
-// Test that our LLMIR types are compatible with OpenAI SDK types
+// Test that our Elmir types are compatible with OpenAI SDK types
 function testTypeCompatibility() {
-  // Create LLMIR messages
+  // Create Elmir messages
   const llmirMessages: SimpleMessage[] = [
     { role: "User" as SimpleRole, content: "Hello, how are you?" },
     { role: "Assistant" as SimpleRole, content: "I'm doing well!" },
@@ -23,7 +23,7 @@ function testTypeCompatibility() {
   };
 
   console.log("✅ Type compatibility test passed!");
-  console.log("LLMIR messages:", JSON.stringify(llmirMessages, null, 2));
+  console.log("Elmir messages:", JSON.stringify(llmirMessages, null, 2));
   console.log("OpenAI request:", JSON.stringify(request, null, 2));
 
   return { llmirMessages, openaiMessages, request };
@@ -56,7 +56,7 @@ function testRoundTrip() {
     }
   };
 
-  // Convert back to LLMIR format
+  // Convert back to Elmir format
   const llmirMessages: SimpleMessage[] = openaiResponse.choices.map(choice => ({
     role: choice.message.role === "assistant" ? "Assistant" as SimpleRole : "User" as SimpleRole,
     content: choice.message.content || ""
@@ -64,20 +64,20 @@ function testRoundTrip() {
 
   console.log("✅ Round-trip conversion test passed!");
   console.log("OpenAI response:", JSON.stringify(openaiResponse, null, 2));
-  console.log("LLMIR messages:", JSON.stringify(llmirMessages, null, 2));
+  console.log("Elmir messages:", JSON.stringify(llmirMessages, null, 2));
 
   return { openaiResponse, llmirMessages };
 }
 
 // Run tests
 function main() {
-  console.log("🧪 Running LLMIR <-> OpenAI TypeScript compatibility tests...\n");
+  console.log("🧪 Running Elmir <-> OpenAI TypeScript compatibility tests...\n");
   
   try {
     testTypeCompatibility();
     console.log("");
     testRoundTrip();
-    console.log("\n🎉 All tests passed! LLMIR types are compatible with OpenAI SDK.");
+    console.log("\n🎉 All tests passed! Elmir types are compatible with OpenAI SDK.");
   } catch (error) {
     console.error("❌ Test failed:", error);
     process.exit(1);

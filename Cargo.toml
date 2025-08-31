@@ -1,10 +1,10 @@
 [package]
-name = "llmir"
+name = "elmir"
 version = "0.1.0"
 edition = "2021"
-description = "LLM Intermediate Representation - Universal message format for LLM APIs"
+description = "Elmir - Universal message format for LLM APIs"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/yourusername/llmir"
+repository = "https://github.com/yourusername/elmir"
 keywords = ["llm", "ai", "openai", "anthropic", "api"]
 categories = ["api-bindings", "development-tools"]
 
@@ -36,5 +36,5 @@ name = "generate-types"
 path = "scripts/generate-types.rs"
 
 [lib]
-name = "llmir"
+name = "elmir"
 path = "src/lib.rs"

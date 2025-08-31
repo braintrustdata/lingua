@@ -1,5 +1,5 @@
-use llmir::translators::to_openai_format;
-use llmir::universal::SimpleMessage;
+use elmir::translators::to_openai_format;
+use elmir::universal::SimpleMessage;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create some simple messages

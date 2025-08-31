@@ -1,4 +1,4 @@
-use llmir::universal::SimpleMessage;
+use elmir::universal::SimpleMessage;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create some basic messages

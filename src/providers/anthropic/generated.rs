@@ -1,5 +1,5 @@
 // Generated Anthropic types from unofficial OpenAPI spec
-// Essential types for LLMIR Anthropic messages integration
+// Essential types for Elmir Anthropic messages integration
 
 use serde::{Deserialize, Serialize};
 

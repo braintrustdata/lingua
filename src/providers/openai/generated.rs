@@ -1,5 +1,5 @@
 // Generated OpenAI types from official OpenAPI spec
-// Essential types for LLMIR OpenAI chat completion integration
+// Essential types for Elmir OpenAI chat completion integration
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

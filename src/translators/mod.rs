@@ -1,5 +1,5 @@
 /*!
-Translation logic between LLMIR universal format and provider-specific formats.
+Translation logic between Elmir universal format and provider-specific formats.
 */
 
 pub mod openai;
@@ -11,10 +11,10 @@ pub type TranslationResult<T> = anyhow::Result<T>;
 
 /// Trait for bidirectional format translation
 pub trait Translator<ProviderRequest, ProviderResponse> {
-    /// Convert LLMIR messages to provider request format
+    /// Convert Elmir messages to provider request format
     fn to_provider_request(messages: Vec<SimpleMessage>) -> TranslationResult<ProviderRequest>;
 
-    /// Convert provider response back to LLMIR format
+    /// Convert provider response back to Elmir format
     fn from_provider_response(response: ProviderResponse) -> TranslationResult<Vec<SimpleMessage>>;
 }
 

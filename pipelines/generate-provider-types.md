@@ -1,6 +1,6 @@
 # Provider type generation pipeline
 
-This document outlines the process for keeping LLMIR's provider types in sync with the latest provider APIs. This pipeline generates Rust types directly from OpenAPI specifications using automated tooling.
+This document outlines the process for keeping Elmir's provider types in sync with the latest provider APIs. This pipeline generates Rust types directly from OpenAPI specifications using automated tooling.
 
 **Supported providers**:
 - **OpenAI**: Official OpenAPI specification (chat completions API)

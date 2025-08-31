@@ -1,5 +1,5 @@
 #!/usr/bin/env cargo +nightly -Zscript
-//! Standalone type generation script for LLMIR providers
+//! Standalone type generation script for Elmir providers
 //!
 //! Usage: cargo run --bin generate-types -- [provider]
 //!        ./scripts/generate-types.rs [provider]
@@ -179,7 +179,7 @@ fn generate_openai_specific_types(schemas: &serde_json::Value) {
     // Combine all generated types into a single file
     let complete_code = format!(
         "// Generated OpenAI types from official OpenAPI spec\n\
-        // Essential types for LLMIR OpenAI chat completion integration\n\
+        // Essential types for Elmir OpenAI chat completion integration\n\
         \n\
         {}\n\
         {}\n",
@@ -258,7 +258,7 @@ fn generate_anthropic_specific_types(schemas: &serde_json::Value) {
     // Combine all generated types into a single file
     let complete_code = format!(
         "// Generated Anthropic types from unofficial OpenAPI spec\n\
-        // Essential types for LLMIR Anthropic messages integration\n\
+        // Essential types for Elmir Anthropic messages integration\n\
         \n\
         {}\n\
         {}\n",
@@ -507,7 +507,7 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
     // Read the main generated file
     let mut all_content = String::new();
     all_content.push_str("// Generated Google AI types from official protobuf files\n");
-    all_content.push_str("// Essential types for LLMIR Google AI integration\n\n");
+    all_content.push_str("// Essential types for Elmir Google AI integration\n\n");
     all_content.push_str("use prost::Message;\n");
     all_content.push_str("use serde::{Deserialize, Serialize};\n\n");
 
@@ -552,6 +552,9 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         let _ = std::fs::create_dir_all(parent);
     }
 
+    // Post-process the content to fix known issues
+    all_content = fix_generated_content(all_content);
+
     // Write the combined types
     if std::fs::write(dest_path, &all_content).is_ok() {
         println!("📝 Generated Google protobuf types to: {}", dest_path);
@@ -568,9 +571,39 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
     }
 }
 
+fn fix_generated_content(content: String) -> String {
+    let mut fixed_content = content;
+
+    // Fix the problematic r#type::Interval reference
+    fixed_content = fixed_content.replace(
+        "super::super::super::super::r#type::Interval",
+        "// TODO: Fix google::type::Interval import\n        // ::core::option::Option<Interval>",
+    );
+
+    // Remove unused imports that cause warnings
+    fixed_content = fixed_content.replace("use prost::Message;\n", "");
+    fixed_content = fixed_content.replace("use serde::{Deserialize, Serialize};\n", "");
+
+    // Fix empty structs that cause prost-build issues
+    if fixed_content.contains("pub struct GoogleSearch {\n        pub time_range_filter: ::core::option::Option<\n            // TODO: Fix google::type::Interval import\n        // ::core::option::Option<Interval>\n        >,") {
+        fixed_content = fixed_content.replace(
+            "pub struct GoogleSearch {\n        pub time_range_filter: ::core::option::Option<\n            // TODO: Fix google::type::Interval import\n        // ::core::option::Option<Interval>\n        >,\n    }",
+            "pub struct GoogleSearch {\n        // TODO: Add time_range_filter when google::type::Interval is available\n    }"
+        );
+    }
+
+    // Fix any other known prost field issues
+    fixed_content = fixed_content.replace(
+        "#[prost(message, tag = \"2\")]\n        pub time_range_filter: ::core::option::Option<\n            // TODO: Fix google::type::Interval import\n        // ::core::option::Option<Interval>\n        >,",
+        "// TODO: Add time_range_filter when google::type::Interval is available"
+    );
+
+    fixed_content
+}
+
 fn fallback_to_placeholder_types() {
     let placeholder_content = r#"// Generated Google AI types from official protobuf files
-// Essential types for LLMIR Google AI integration
+// Essential types for Elmir Google AI integration
 
 use serde::{Deserialize, Serialize};
 

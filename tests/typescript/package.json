@@ -1,8 +1,8 @@
 {
-  "name": "llmir-typescript-tests",
+  "name": "elmir-typescript-tests",
   "version": "0.1.0",
   "private": true,
-  "description": "TypeScript compatibility tests for LLMIR",
+  "description": "TypeScript compatibility tests for Elmir",
   "scripts": {
     "test": "tsx test.ts",
     "typecheck": "tsc --noEmit"

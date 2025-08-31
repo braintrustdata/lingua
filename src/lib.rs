@@ -1,12 +1,12 @@
 /*!
-# LLMIR - LLM Intermediate Representation
+# Elmir - LLM Intermediate Representation
 
 A universal message format for large language model APIs that compiles to provider-specific formats with zero runtime overhead.
 
 ## Example
 
 ```rust
-use llmir::universal::{SimpleMessage, SimpleRole};
+use elmir::universal::{SimpleMessage, SimpleRole};
 
 // Create messages using convenience methods
 let messages = vec![

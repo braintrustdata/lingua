@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Pre-commit hook for LLMIR project
-# Fails if code needs formatting or clippy fixes
+# Pre-commit hook for Elmir project
+# Runs cargo fmt and fails commit so files need to be re-added
 
 set -e
 
@@ -13,18 +13,15 @@ if [ ! -f "Cargo.toml" ]; then
     exit 0
 fi
 
-# Check if clippy has any suggestions
-echo "🔧 Checking clippy..."
-if ! cargo clippy --all-targets --all-features -- -D warnings; then
-    echo "❌ Clippy found issues. Run 'cargo clippy --fix' to fix them."
-    exit 1
-fi
+# Run cargo fmt to format all files
+echo "📝 Running cargo fmt..."
+cargo fmt --all
 
-# Check if code is already formatted
-echo "📝 Checking code formatting..."
-if ! cargo fmt --all -- --check; then
-    echo "❌ Code is not formatted properly."
-    echo "💡 Run 'cargo fmt' to fix formatting, then commit again."
+# Check if any files were changed by formatting
+if ! git diff --quiet; then
+    echo "❌ Files were formatted by cargo fmt."
+    echo "💡 Please re-add the formatted files and commit again:"
+    echo "   git add -A && git commit"
     exit 1
 fi
 

@@ -1,10 +1,10 @@
-# LLMIR project guide for Claude
+# Elmir project guide for Claude
 
-This guide helps AI assistants understand and work with the LLMIR codebase effectively.
+This guide helps AI assistants understand and work with the Elmir codebase effectively.
 
 ## Project overview
 
-LLMIR (LLM Intermediate Representation) is a universal message format that compiles to provider-specific formats with zero runtime overhead. It's designed to allow seamless interoperability between different LLM providers without runtime penalties.
+Elmir (LLM Intermediate Representation) is a universal message format that compiles to provider-specific formats with zero runtime overhead. It's designed to allow seamless interoperability between different LLM providers without runtime penalties.
 
 ## Key principles
 

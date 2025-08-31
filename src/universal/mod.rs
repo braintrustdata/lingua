@@ -1,5 +1,5 @@
 /*!
-Universal LLMIR format definitions.
+Universal Elmir format definitions.
 */
 
 pub mod simple;
