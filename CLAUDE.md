@@ -88,6 +88,39 @@ Each provider should have:
 - Response types: `{provider}_response.rs` or `response.rs` in provider directory
 - Tests: `tests/typescript/{provider}/` with provider-specific validation
 
+## ⚠️ CRITICAL: Never edit generated files directly
+
+**🚨 DO NOT EDIT `generated.rs` FILES DIRECTLY 🚨**
+
+Files named `generated.rs` are automatically generated and will be overwritten:
+- `src/providers/google/generated.rs` - Generated from protobuf files
+- `src/providers/openai/generated.rs` - Generated from OpenAPI specs  
+- `src/providers/anthropic/generated.rs` - Generated from OpenAPI specs
+
+**If you need to fix issues in generated files:**
+1. ✅ **DO**: Edit the generation logic in `scripts/generate-types.rs`
+2. ✅ **DO**: Add fixes to the `fix_google_type_references()` or similar functions
+3. ✅ **DO**: Regenerate using `cargo run --bin generate-types <provider>`
+4. ❌ **DON'T**: Edit the generated files directly - your changes will be lost!
+
+**Example of proper fix approach:**
+```rust
+// In scripts/generate-types.rs, in fix_google_type_references():
+fn fix_google_type_references(content: String) -> String {
+    let mut fixed = content;
+    
+    // Fix doctest JSON examples that fail to compile
+    fixed = fixed.replace(
+        "    /// ```\n    /// {\n    ///    \"type\": \"object\",",
+        "    /// ```json\n    /// {\n    ///    \"type\": \"object\","
+    );
+    
+    fixed
+}
+```
+
+This ensures fixes are permanent and survive regeneration cycles.
+
 ## Common gotchas
 
 **TypeScript → Rust conversions**:
