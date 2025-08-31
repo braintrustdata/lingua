@@ -234,27 +234,27 @@ cargo run --example simple_${PROVIDER} > /dev/null
 # Step 4: Run validation tests
 echo "🧪 Step 4: Running validation tests..."
 
-cd "$PROVIDER_TEST_DIR"
-
-# Install TypeScript if not present
-if ! command -v tsc &> /dev/null; then
-    if ! command -v pnpm &> /dev/null; then
-        npm install typescript
-    else
-        pnpm add typescript
-    fi
-fi
-
 # Check if we can create compatibility test
 if [ -f "$PROJECT_ROOT/bindings/typescript/SimpleMessage.ts" ]; then
     echo "TypeScript bindings generated successfully"
     
     # Run the existing TypeScript tests
     cd "$PROJECT_ROOT/tests/typescript"
-    if ! command -v pnpm &> /dev/null; then
-        npm run test
-    else
+    
+    # Install dependencies if not present
+    if [ ! -d "node_modules" ]; then
+        echo "Installing test dependencies..."
+        if command -v pnpm &> /dev/null; then
+            pnpm install
+        else
+            npm install
+        fi
+    fi
+    
+    if command -v pnpm &> /dev/null; then
         pnpm run test
+    else
+        npm run test
     fi
     
     if [ $? -eq 0 ]; then
