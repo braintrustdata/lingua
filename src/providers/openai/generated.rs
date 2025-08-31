@@ -2109,10 +2109,10 @@ pub struct ComputerAction {
     /// An array of coordinates representing the path of the drag action. Coordinates will appear
     /// as an array
     /// of objects, eg
-    /// ```
+    /// ```json
     /// [
-    /// { x: 100, y: 200 },
-    /// { x: 200, y: 300 }
+    /// { "x": 100, "y": 200 },
+    /// { "x": 200, "y": 300 }
     /// ]
     /// ```
     pub path: Option<Vec<Coordinate>>,

@@ -850,6 +850,12 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         processed
     );
 
+    // Fix doctest JSON examples that fail to compile
+    processed = processed.replace(
+        "    /// ```\n    /// [\n    /// { x: 100, y: 200 },\n    /// { x: 200, y: 300 }\n    /// ]",
+        "    /// ```json\n    /// [\n    /// { \"x\": 100, \"y\": 200 },\n    /// { \"x\": 200, \"y\": 300 }\n    /// ]"
+    );
+
     // Fix any specific type mappings that quicktype might miss for OpenAI
     // (Add any OpenAI-specific replacements here as needed)
 
