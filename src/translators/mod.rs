@@ -2,6 +2,10 @@
 Translation logic between Elmir universal format and provider-specific formats.
 */
 
+#[cfg(feature = "bedrock")]
+pub mod bedrock;
+
+#[cfg(feature = "openai")]
 pub mod openai;
 
 use crate::universal::SimpleMessage;
@@ -18,5 +22,12 @@ pub trait Translator<ProviderRequest, ProviderResponse> {
     fn from_provider_response(response: ProviderResponse) -> TranslationResult<Vec<SimpleMessage>>;
 }
 
-// Re-export convenience functions
+// Re-export convenience functions based on enabled features
+#[cfg(feature = "bedrock")]
+pub use bedrock::{
+    from_bedrock_response, to_bedrock_format, to_bedrock_format_with_model,
+    to_bedrock_format_with_system,
+};
+
+#[cfg(feature = "openai")]
 pub use openai::{from_openai_response, to_openai_format};
