@@ -229,7 +229,12 @@ fi
 
 # Generate TypeScript bindings
 echo "Generating TypeScript bindings..."
-cargo run --example simple_${PROVIDER} > /dev/null
+EXAMPLE_NAME="simple_${PROVIDER}"
+if [ -f "$PROJECT_ROOT/examples/${EXAMPLE_NAME}.rs" ]; then
+    cargo run --example "$EXAMPLE_NAME" > /dev/null
+else
+    echo "⚠️  Example $EXAMPLE_NAME not found, skipping TypeScript bindings generation"
+fi
 
 # Step 4: Run validation tests
 echo "🧪 Step 4: Running validation tests..."
