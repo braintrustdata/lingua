@@ -236,7 +236,6 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
         "ChatCompletionRequestMessage",
         "ChatCompletionResponseMessage",
         "ChatCompletionTool",
-        "ChatCompletionChoice",
         "CompletionUsage",
     ];
 
@@ -248,28 +247,100 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
         .unwrap_or(&default_map);
 
     let mut essential_schemas = serde_json::Map::new();
+    let mut processed = std::collections::HashSet::new();
 
-    // Add essential types and their dependencies
+    // Recursively add essential types and their dependencies
     for type_name in &essential_types {
-        if let Some(schema) = all_schemas.get(*type_name) {
-            essential_schemas.insert(type_name.to_string(), schema.clone());
-
-            // Also add any referenced types
-            let mut refs = std::collections::HashSet::new();
-            extract_schema_refs(schema, &mut refs);
-
-            for ref_name in refs {
-                if let Some(ref_schema) = all_schemas.get(&ref_name) {
-                    essential_schemas.insert(ref_name, ref_schema.clone());
-                }
-            }
-        }
+        add_openai_schema_with_dependencies(
+            type_name,
+            all_schemas,
+            &mut essential_schemas,
+            &mut processed,
+        );
     }
 
-    serde_json::json!({
+    // Fix all $ref paths to point to #/definitions/ instead of #/components/schemas/
+    let mut fixed_schemas = serde_json::Map::new();
+    for (name, schema) in essential_schemas {
+        fixed_schemas.insert(name, fix_openai_schema_refs(&schema));
+    }
+
+    // Create a root schema that includes all our essential types
+    // This approach works better with quicktype
+    let root_schema = serde_json::json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "definitions": essential_schemas
-    })
+        "anyOf": essential_types.iter().map(|t| serde_json::json!({"$ref": format!("#/definitions/{}", t)})).collect::<Vec<_>>(),
+        "definitions": fixed_schemas
+    });
+
+    root_schema
+}
+
+fn add_openai_schema_with_dependencies(
+    type_name: &str,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
+    processed: &mut std::collections::HashSet<String>,
+) {
+    if processed.contains(type_name) {
+        return;
+    }
+
+    processed.insert(type_name.to_string());
+
+    if let Some(schema) = all_schemas.get(type_name) {
+        essential_schemas.insert(type_name.to_string(), schema.clone());
+
+        // Find and add referenced types
+        let mut refs = std::collections::HashSet::new();
+        extract_schema_refs(schema, &mut refs);
+
+        for ref_name in refs {
+            add_openai_schema_with_dependencies(
+                &ref_name,
+                all_schemas,
+                essential_schemas,
+                processed,
+            );
+        }
+    }
+}
+
+fn fix_openai_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
+    match schema {
+        serde_json::Value::Object(obj) => {
+            let mut fixed_obj = serde_json::Map::new();
+
+            for (key, value) in obj {
+                if key == "$ref" {
+                    if let Some(ref_str) = value.as_str() {
+                        // Fix the reference path
+                        if ref_str.starts_with("#/components/schemas/") {
+                            let new_ref =
+                                ref_str.replace("#/components/schemas/", "#/definitions/");
+                            fixed_obj.insert(key.clone(), serde_json::Value::String(new_ref));
+                        } else {
+                            fixed_obj.insert(key.clone(), value.clone());
+                        }
+                    } else {
+                        fixed_obj.insert(key.clone(), value.clone());
+                    }
+                } else {
+                    fixed_obj.insert(key.clone(), fix_openai_schema_refs(value));
+                }
+            }
+
+            serde_json::Value::Object(fixed_obj)
+        }
+        serde_json::Value::Array(arr) => {
+            let fixed_arr: Vec<serde_json::Value> = arr
+                .iter()
+                .map(|item| fix_openai_schema_refs(item))
+                .collect();
+            serde_json::Value::Array(fixed_arr)
+        }
+        other => other.clone(),
+    }
 }
 
 // Extract schema references helper function (used by both OpenAI and Anthropic)
