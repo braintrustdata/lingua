@@ -103,7 +103,7 @@ pub mod part {
         CodeExecutionResult(super::CodeExecutionResult),
     }
     /// Controls extra preprocessing of data.
-    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Metadata {
         /// Optional. Video metadata. The metadata should only be specified while the
         /// video data is presented in inline_data or file_data.
@@ -140,7 +140,7 @@ pub struct FileData {
     pub file_uri: ::prost::alloc::string::String,
 }
 /// Metadata describes the input video content.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct VideoMetadata {
     /// Optional. The start offset of the video.
     #[prost(message, optional, tag = "1")]
@@ -305,7 +305,7 @@ pub mod tool {
         pub time_range_filter: ::core::option::Option<TimeRangeFilter>,
     }
 
-    // Simple placeholder for TimeRangeFilter until google.type module is properly included
+    /// Simple placeholder for TimeRangeFilter until google.type module is properly included
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct TimeRangeFilter {
         #[prost(string, optional, tag = "1")]
@@ -315,17 +315,17 @@ pub mod tool {
     }
 }
 /// Tool to support URL context retrieval.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UrlContext {}
 /// Tool to retrieve public web data for grounding, powered by Google.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GoogleSearchRetrieval {
     /// Specifies the dynamic retrieval configuration for the given source.
     #[prost(message, optional, tag = "1")]
     pub dynamic_retrieval_config: ::core::option::Option<DynamicRetrievalConfig>,
 }
 /// Describes the options to customize dynamic retrieval.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DynamicRetrievalConfig {
     /// The mode of the predictor to be used in dynamic retrieval.
     #[prost(enumeration = "dynamic_retrieval_config::Mode", tag = "1")]
@@ -372,7 +372,7 @@ pub mod dynamic_retrieval_config {
 ///
 /// See also `ExecutableCode` and `CodeExecutionResult` which are only generated
 /// when using this tool.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CodeExecution {}
 /// The Tool configuration containing parameters for specifying `Tool` use
 /// in the request.
@@ -752,7 +752,7 @@ pub struct GroundingPassages {
     pub passages: ::prost::alloc::vec::Vec<GroundingPassage>,
 }
 /// Represents token counting info for a single modality.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ModalityTokenCount {
     /// The modality associated with this token count.
     #[prost(enumeration = "Modality", tag = "1")]
@@ -1196,7 +1196,7 @@ pub mod content_filter {
 /// Each SafetyFeedback will return the safety settings used by the request as
 /// well as the lowest HarmProbability that should be allowed in order to return
 /// a result.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SafetyFeedback {
     /// Safety rating evaluated from content.
     #[prost(message, optional, tag = "1")]
@@ -1212,7 +1212,7 @@ pub struct SafetyFeedback {
 /// Content is classified for safety across a number of
 /// harm categories and the probability of the harm classification is included
 /// here.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SafetyRating {
     /// Required. The category for this rating.
     #[prost(enumeration = "HarmCategory", tag = "3")]
@@ -1275,7 +1275,7 @@ pub mod safety_rating {
 ///
 /// Passing a safety setting for a category changes the allowed probability that
 /// content is blocked.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SafetySetting {
     /// Required. The category for this setting.
     #[prost(enumeration = "HarmCategory", tag = "3")]
@@ -1537,7 +1537,7 @@ pub struct SpeechConfig {
     pub language_code: ::prost::alloc::string::String,
 }
 /// Config for thinking features.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ThinkingConfig {
     /// Indicates whether to include thoughts in the response.
     /// If true, thoughts are returned only when available.
@@ -2251,7 +2251,7 @@ pub struct GroundingAttribution {
     pub content: ::core::option::Option<Content>,
 }
 /// Metadata related to retrieval in the grounding flow.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RetrievalMetadata {
     /// Optional. Score indicating how likely information from google search could
     /// help answer the prompt. The score is in the range \[0, 1\], where 0 is the
@@ -2674,7 +2674,7 @@ pub struct CountTokensResponse {
     pub cache_tokens_details: ::prost::alloc::vec::Vec<ModalityTokenCount>,
 }
 /// Configures the realtime input behavior in `BidiGenerateContent`.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RealtimeInputConfig {
     /// Optional. If not set, automatic activity detection is enabled by default.
     /// If automatic voice detection is disabled, the client must send activity
@@ -2700,7 +2700,7 @@ pub struct RealtimeInputConfig {
 /// Nested message and enum types in `RealtimeInputConfig`.
 pub mod realtime_input_config {
     /// Configures automatic detection of activity.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct AutomaticActivityDetection {
         /// Optional. If enabled (the default), detected voice and text input count
         /// as activity. If disabled, the client must send activity signals.
@@ -2895,7 +2895,7 @@ pub struct SessionResumptionConfig {
 }
 /// Enables context window compression — a mechanism for managing the model's
 /// context window so that it does not exceed a given length.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ContextWindowCompressionConfig {
     /// The number of tokens (before running a turn) required to trigger a context
     /// window compression.
@@ -2924,7 +2924,7 @@ pub mod context_window_compression_config {
     /// a USER role turn. System instructions and any
     /// `BidiGenerateContentSetup.prefix_turns` will always remain at the beginning
     /// of the result.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct SlidingWindow {
         /// The target number of tokens to keep. The default value is
         /// trigger_tokens/2.
@@ -2936,7 +2936,7 @@ pub mod context_window_compression_config {
         pub target_tokens: ::core::option::Option<i64>,
     }
     /// The context window compression mechanism used.
-    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum CompressionMechanism {
         /// A sliding-window mechanism.
         #[prost(message, tag = "2")]
@@ -2944,7 +2944,7 @@ pub mod context_window_compression_config {
     }
 }
 /// The audio transcription configuration.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AudioTranscriptionConfig {}
 /// Message to be sent in the first (and only in the first)
 /// `BidiGenerateContentClientMessage`. Contains configuration that will apply
@@ -3090,10 +3090,10 @@ pub struct BidiGenerateContentRealtimeInput {
 /// Nested message and enum types in `BidiGenerateContentRealtimeInput`.
 pub mod bidi_generate_content_realtime_input {
     /// Marks the start of user activity.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ActivityStart {}
     /// Marks the end of user activity.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ActivityEnd {}
 }
 /// Client generated response to a `ToolCall` received from the server.
@@ -3142,7 +3142,7 @@ pub mod bidi_generate_content_client_message {
     }
 }
 /// Sent in response to a `BidiGenerateContentSetup` message from the client.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct BidiGenerateContentSetupComplete {}
 /// Incremental server update generated by the model in response to client
 /// messages.
@@ -3214,7 +3214,7 @@ pub struct BidiGenerateContentToolCallCancellation {
     pub ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// A notice that the server will soon disconnect.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GoAway {
     /// The remaining time before the connection will be terminated as ABORTED.
     ///

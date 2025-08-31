@@ -288,147 +288,6 @@ fn generate_anthropic_specific_types(schemas: &serde_json::Value) {
     }
 }
 
-fn generate_google_protobuf_types_from_urls() {
-    println!("🔨 Generating Google types by cloning googleapis repository...");
-
-    // Create a temporary directory for protobuf files
-    let temp_proto_dir = std::env::temp_dir().join("llmir-google-protos");
-    let _ = std::fs::create_dir_all(&temp_proto_dir);
-
-    // Google protobuf file URLs
-    let remote_files = vec![
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/generative_service.proto",
-            "google/ai/generativelanguage/v1beta/generative_service.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/content.proto",
-            "google/ai/generativelanguage/v1beta/content.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/safety.proto", 
-            "google/ai/generativelanguage/v1beta/safety.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/citation.proto",
-            "google/ai/generativelanguage/v1beta/citation.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/tool.proto",
-            "google/ai/generativelanguage/v1beta/tool.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/ai/generativelanguage/v1beta/retriever.proto",
-            "google/ai/generativelanguage/v1beta/retriever.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto",
-            "google/api/annotations.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto",
-            "google/api/http.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/field_behavior.proto",
-            "google/api/field_behavior.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/resource.proto",
-            "google/api/resource.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/client.proto",
-            "google/api/client.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/launch_stage.proto",
-            "google/api/launch_stage.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/googleapis/googleapis/master/google/type/interval.proto",
-            "google/type/interval.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/duration.proto",
-            "google/protobuf/duration.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/timestamp.proto",
-            "google/protobuf/timestamp.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/descriptor.proto",
-            "google/protobuf/descriptor.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/any.proto",
-            "google/protobuf/any.proto"
-        ),
-        (
-            "https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/struct.proto",
-            "google/protobuf/struct.proto"
-        ),
-    ];
-
-    // Fetch all protobuf files to temp directory
-    for (url, local_path) in &remote_files {
-        let full_local_path = temp_proto_dir.join(local_path);
-
-        // Create parent directories
-        if let Some(parent) = full_local_path.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-
-        println!("📥 Fetching: {}", url);
-
-        // Use std process to call curl
-        let output = std::process::Command::new("curl")
-            .arg("-s")
-            .arg("-L") // Follow redirects
-            .arg(url)
-            .output();
-
-        match output {
-            Ok(result) if result.status.success() => {
-                if let Err(e) = std::fs::write(&full_local_path, &result.stdout) {
-                    println!("❌ Failed to write {}: {}", local_path, e);
-                    fallback_to_placeholder_types();
-                    return;
-                }
-            }
-            Ok(result) => {
-                println!(
-                    "❌ Failed to fetch {}: {}",
-                    url,
-                    String::from_utf8_lossy(&result.stderr)
-                );
-                fallback_to_placeholder_types();
-                return;
-            }
-            Err(e) => {
-                println!("❌ Error running curl for {}: {}", url, e);
-                fallback_to_placeholder_types();
-                return;
-            }
-        }
-    }
-
-    println!("✅ Fetched all remote protobuf files to temp directory");
-
-    // Now compile from the temporary directory
-    let proto_files = ["google/ai/generativelanguage/v1beta/generative_service.proto"];
-    let proto_paths: Vec<String> = proto_files
-        .iter()
-        .map(|f| temp_proto_dir.join(f).to_string_lossy().to_string())
-        .collect();
-
-    generate_google_protobuf_types(&proto_paths, &temp_proto_dir.to_string_lossy());
-
-    // Clean up temp directory
-    let _ = std::fs::remove_dir_all(&temp_proto_dir);
-}
-
 fn generate_google_protobuf_types_from_git() {
     println!("🔨 Cloning complete googleapis repository for proper dependencies...");
 
@@ -585,8 +444,6 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
     let mut all_content = String::new();
     all_content.push_str("// Generated Google AI types from official protobuf files\n");
     all_content.push_str("// Essential types for Elmir Google AI integration\n\n");
-    all_content.push_str("use prost::Message;\n");
-    all_content.push_str("use serde::{Deserialize, Serialize};\n\n");
 
     // Find the main generated file (should be the Google AI one)
     let main_file = generated_files.iter().find(|entry| {
@@ -599,8 +456,9 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
 
     if let Some(main_file) = main_file {
         if let Ok(content) = std::fs::read_to_string(main_file.path()) {
-            // Add the content directly - prost generates clean, ready-to-use code
-            all_content.push_str(&content);
+            // Fix problematic type references that prost-build generates incorrectly
+            let fixed_content = fix_google_type_references(content);
+            all_content.push_str(&fixed_content);
         }
     } else {
         println!("⚠️  No Google AI generative language file found, checking all files");
@@ -608,7 +466,8 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
             if let Ok(content) = std::fs::read_to_string(file_entry.path()) {
                 if content.contains("GenerateContentRequest") || content.contains("Content") {
                     println!("📄 Adding content from: {:?}", file_entry.file_name());
-                    all_content.push_str(&content);
+                    let fixed_content = fix_google_type_references(content);
+                    all_content.push_str(&fixed_content);
                     all_content.push('\n');
                 }
             }
@@ -643,6 +502,63 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         println!("❌ Failed to write Google generated types");
         fallback_to_placeholder_types();
     }
+}
+
+fn fix_google_type_references(content: String) -> String {
+    // Fix the problematic google.type.Interval reference that prost-build generates incorrectly
+    let mut fixed = content;
+
+    // Replace the incorrect super::super::super::super::r#type::Interval reference
+    fixed = fixed.replace(
+        "super::super::super::super::r#type::Interval",
+        "TimeRangeFilter",
+    );
+
+    let has_time_range_filter_ref =
+        fixed.contains("time_range_filter") && fixed.contains("TimeRangeFilter");
+    let has_time_range_filter_def = fixed.contains("pub struct TimeRangeFilter");
+
+    // If we have a TimeRangeFilter reference but no definition, add it to the tool module
+    if has_time_range_filter_ref && !has_time_range_filter_def {
+        // Find the GoogleSearch struct and add TimeRangeFilter definition right after it
+        if let Some(google_search_pos) = fixed.find("pub struct GoogleSearch {") {
+            // Find the end of the GoogleSearch struct
+            if let Some(struct_start) = fixed[..google_search_pos].rfind("#[derive(") {
+                let after_struct_start = &fixed[struct_start..];
+                if let Some(struct_end) = after_struct_start.find("\n    }") {
+                    let insert_pos = struct_start + struct_end + 6; // After "\n    }"
+
+                    let before = &fixed[..insert_pos];
+                    let after = &fixed[insert_pos..];
+
+                    let time_range_filter_def = r#"
+
+    /// Simple placeholder for TimeRangeFilter until google.type module is properly included
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct TimeRangeFilter {
+        #[prost(string, optional, tag = "1")]
+        pub start_time: ::core::option::Option<::prost::alloc::string::String>,
+        #[prost(string, optional, tag = "2")]
+        pub end_time: ::core::option::Option<::prost::alloc::string::String>,
+    }"#;
+
+                    fixed = format!("{}{}{}", before, time_range_filter_def, after);
+                }
+            }
+        }
+
+        // Also need to remove Copy trait from all structs that contain non-Copy fields
+        fixed = fixed.replace(
+            "#[derive(Clone, Copy, PartialEq, ::prost::Message)]",
+            "#[derive(Clone, PartialEq, ::prost::Message)]",
+        );
+        fixed = fixed.replace(
+            "#[derive(Clone, Copy, PartialEq, ::prost::Oneof)]",
+            "#[derive(Clone, PartialEq, ::prost::Oneof)]",
+        );
+    }
+
+    fixed
 }
 
 fn fallback_to_placeholder_types() {

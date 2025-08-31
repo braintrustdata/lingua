@@ -11,6 +11,8 @@ pub struct CreateMessageParams {
     pub metadata: Option<serde_json::Value>,
     pub model: serde_json::Value,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_tier: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_sequences: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
@@ -18,6 +20,8 @@ pub struct CreateMessageParams {
     pub system: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thinking: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_choice: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,6 +56,10 @@ pub struct ContentBlock {}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestTextBlock {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub citations: Option<serde_json::Value>,
     pub text: String,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -59,6 +67,7 @@ pub struct RequestTextBlock {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResponseTextBlock {
+    pub citations: serde_json::Value,
     pub text: String,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -66,16 +75,26 @@ pub struct ResponseTextBlock {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Usage {
+    pub cache_creation: serde_json::Value,
+    pub cache_creation_input_tokens: serde_json::Value,
+    pub cache_read_input_tokens: serde_json::Value,
     pub input_tokens: i64,
     pub output_tokens: i64,
+    pub server_tool_use: serde_json::Value,
+    pub service_tier: serde_json::Value,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Tool {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub input_schema: serde_json::Value,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "type")]
+    pub r#type: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
