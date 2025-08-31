@@ -1,9 +1,19 @@
 #!/usr/bin/env cargo +nightly -Zscript
+//! ```cargo
+//! [dependencies]
+//! serde_json = "1.0"
+//! serde_yaml = "0.9"
+//! prost-build = "0.11"
+//! ```
+
 //! Standalone type generation script for Elmir providers
 //!
 //! Usage: cargo run --bin generate-types -- [provider]
 //!        ./scripts/generate-types.rs [provider]
 
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::io::Write;
 use std::path::Path;
 
 fn main() {
@@ -151,12 +161,9 @@ fn generate_openai_specific_types(schemas: &serde_json::Value) {
 
     for type_name in essential_types {
         if let Some(type_schema) = schemas.get(type_name) {
-            println!("  🔨 Processing {} schema", type_name);
-
             match create_basic_rust_struct(type_name, type_schema) {
                 Ok(rust_code) => {
                     generated_types.push(rust_code);
-                    println!("  ✅ Generated Rust struct for {}", type_name);
                 }
                 Err(e) => {
                     println!("  ❌ Failed to generate {} struct: {}", type_name, e);
@@ -209,30 +216,138 @@ fn generate_openai_specific_types(schemas: &serde_json::Value) {
     }
 }
 
+// Discover all types referenced by specific API endpoints
+fn discover_types_from_endpoints(
+    spec: &serde_json::Value,
+    endpoints: &[&str],
+) -> std::collections::HashSet<String> {
+    let mut discovered_types = std::collections::HashSet::new();
+
+    if let Some(paths) = spec.get("paths") {
+        for endpoint_path in endpoints {
+            if let Some(endpoint) = paths.get(*endpoint_path) {
+                println!("🔍 Analyzing endpoint: {}", endpoint_path);
+
+                // Check all HTTP methods for this endpoint
+                for method in ["get", "post", "put", "patch", "delete"] {
+                    if let Some(operation) = endpoint.get(method) {
+                        // Extract types from request body
+                        if let Some(request_body) = operation.get("requestBody") {
+                            extract_schema_refs(request_body, &mut discovered_types);
+                        }
+
+                        // Extract types from all responses
+                        if let Some(responses) = operation.get("responses") {
+                            if let Some(responses_obj) = responses.as_object() {
+                                for (_status, response) in responses_obj {
+                                    extract_schema_refs(response, &mut discovered_types);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Now recursively discover all dependent types
+    if let Some(schemas) = spec.get("components").and_then(|c| c.get("schemas")) {
+        let mut types_to_process: Vec<String> = discovered_types.iter().cloned().collect();
+        let mut processed_types = std::collections::HashSet::new();
+
+        while let Some(type_name) = types_to_process.pop() {
+            if processed_types.contains(&type_name) {
+                continue;
+            }
+            processed_types.insert(type_name.clone());
+
+            if let Some(type_schema) = schemas.get(&type_name) {
+                extract_schema_refs(type_schema, &mut discovered_types);
+
+                // Add newly discovered types to processing queue
+                for new_type in &discovered_types {
+                    if !processed_types.contains(new_type) && !types_to_process.contains(new_type) {
+                        types_to_process.push(new_type.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    discovered_types
+}
+
+// Extract schema references ($ref) from a JSON value
+fn extract_schema_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
+    match value {
+        serde_json::Value::Object(obj) => {
+            // Check for direct $ref
+            if let Some(ref_value) = obj.get("$ref") {
+                if let Some(ref_str) = ref_value.as_str() {
+                    if let Some(type_name) = extract_type_name_from_ref(ref_str) {
+                        refs.insert(type_name);
+                    }
+                }
+            }
+
+            // Recursively check all object values
+            for (_key, val) in obj {
+                extract_schema_refs(val, refs);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            // Recursively check all array elements
+            for item in arr {
+                extract_schema_refs(item, refs);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Extract type name from a $ref string like "#/components/schemas/Message"
+fn extract_type_name_from_ref(ref_str: &str) -> Option<String> {
+    if ref_str.starts_with("#/components/schemas/") {
+        Some(
+            ref_str
+                .strip_prefix("#/components/schemas/")
+                .unwrap()
+                .to_string(),
+        )
+    } else {
+        None
+    }
+}
+
 fn generate_anthropic_specific_types(schemas: &serde_json::Value) {
-    // Focus only on essential Anthropic message types to minimize generated code
-    let essential_types = [
-        "CreateMessageParams",
-        "Message",
-        "InputMessage",
-        "ContentBlock",
-        "RequestTextBlock",
-        "ResponseTextBlock",
-        "Usage",
-        "Tool",
-        "ToolChoice",
+    // Discover types by tracing through API endpoints we care about
+    let anthropic_spec = std::fs::read_to_string("specs/anthropic/openapi.yml")
+        .expect("Failed to read Anthropic OpenAPI spec");
+
+    let full_spec: serde_json::Value =
+        serde_yaml::from_str(&anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
+
+    // Define the API endpoints we want to support
+    let target_endpoints = [
+        "/v1/messages", // Main messages API
+        "/v1/complete", // Legacy completions API (for compatibility)
     ];
+
+    // Discover all types used by these endpoints
+    let essential_types = discover_types_from_endpoints(&full_spec, &target_endpoints);
+
+    println!(
+        "📋 Discovered {} types from API endpoints",
+        essential_types.len()
+    );
 
     let mut generated_types = Vec::new();
 
-    for type_name in essential_types {
+    for type_name in &essential_types {
         if let Some(type_schema) = schemas.get(type_name) {
-            println!("  🔨 Processing Anthropic {} schema", type_name);
-
             match create_basic_rust_struct(type_name, type_schema) {
                 Ok(rust_code) => {
                     generated_types.push(rust_code);
-                    println!("  ✅ Generated Rust struct for Anthropic {}", type_name);
                 }
                 Err(e) => {
                     println!(
@@ -687,11 +802,67 @@ pub type HarmBlockThreshold = i32;
     }
 }
 
+// Create discriminated union enum from oneOf schema
+fn create_discriminated_union_enum(
+    name: &str,
+    _schema: &serde_json::Value,
+    one_of: &serde_json::Value,
+    discriminator: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let mut enum_code = format!(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\n#[serde(tag = \"{}\")]\npub enum {} {{\n",
+        discriminator.get("propertyName").and_then(|p| p.as_str()).unwrap_or("type"),
+        name
+    );
+
+    if let Some(mapping) = discriminator.get("mapping") {
+        if let Some(mapping_obj) = mapping.as_object() {
+            for (variant_name, ref_path) in mapping_obj {
+                if let Some(ref_str) = ref_path.as_str() {
+                    if let Some(type_name) = extract_type_name_from_ref(ref_str) {
+                        // Convert variant name to PascalCase for Rust enum variant
+                        let rust_variant = to_pascal_case(variant_name);
+                        enum_code.push_str(&format!(
+                            "    #[serde(rename = \"{}\")]\n    {}({}),\n",
+                            variant_name, rust_variant, type_name
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    enum_code.push_str("}\n");
+    Ok(enum_code)
+}
+
+// Convert snake_case or kebab-case to PascalCase
+fn to_pascal_case(s: &str) -> String {
+    s.split(&['_', '-'][..])
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => {
+                    first.to_uppercase().collect::<String>() + &chars.as_str().to_lowercase()
+                }
+            }
+        })
+        .collect()
+}
+
 // Helper functions from the original build.rs
 fn create_basic_rust_struct(
     name: &str,
     schema: &serde_json::Value,
 ) -> Result<String, Box<dyn std::error::Error>> {
+    // Check if this is a discriminated union (oneOf with discriminator)
+    if let Some(one_of) = schema.get("oneOf") {
+        if let Some(discriminator) = schema.get("discriminator") {
+            return create_discriminated_union_enum(name, schema, one_of, discriminator);
+        }
+    }
+
     let mut struct_code = format!(
         "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\npub struct {} {{\n",
         name
@@ -730,7 +901,10 @@ fn create_basic_rust_struct(
     if let Some(props) = properties.as_object() {
         for (field_name, field_schema) in props {
             let is_optional = !required_fields.contains(field_name);
-            let rust_type = json_schema_to_rust_type(field_schema);
+            let mut rust_type = json_schema_to_rust_type(field_schema);
+
+            // Apply smart type replacements for specific field patterns
+            rust_type = apply_smart_type_replacements(name, field_name, &rust_type);
 
             let field_type = if is_optional {
                 format!("Option<{}>", rust_type)
@@ -760,6 +934,27 @@ fn create_basic_rust_struct(
 
     struct_code.push_str("}\n");
     Ok(struct_code)
+}
+
+// Apply smart type replacements based on field patterns
+fn apply_smart_type_replacements(struct_name: &str, field_name: &str, rust_type: &str) -> String {
+    // If it's a generic serde_json::Value, try to infer a better type
+    if rust_type == "serde_json::Value" || rust_type == "Vec<serde_json::Value>" {
+        match (struct_name, field_name) {
+            // Message content should be Vec<ContentBlock>
+            ("Message", "content") => "Vec<ContentBlock>".to_string(),
+            // InputMessage content should be Vec<InputContentBlock>
+            ("InputMessage", "content") => "Vec<InputContentBlock>".to_string(),
+            // CreateMessageParams messages should be Vec<InputMessage>
+            ("CreateMessageParams", "messages") => "Vec<InputMessage>".to_string(),
+            // CreateMessageParams tools should be Vec<Tool>
+            ("CreateMessageParams", "tools") => "Vec<Tool>".to_string(),
+            // Keep other serde_json::Value as is
+            _ => rust_type.to_string(),
+        }
+    } else {
+        rust_type.to_string()
+    }
 }
 
 fn json_schema_to_rust_type(schema: &serde_json::Value) -> String {
