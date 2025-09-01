@@ -23,8 +23,6 @@ function testTypeCompatibility() {
   };
 
   console.log("✅ Type compatibility test passed!");
-  console.log("Elmir messages:", JSON.stringify(llmirMessages, null, 2));
-  console.log("OpenAI request:", JSON.stringify(request, null, 2));
 
   return { llmirMessages, openaiMessages, request };
 }
@@ -63,8 +61,6 @@ function testRoundTrip() {
   }));
 
   console.log("✅ Round-trip conversion test passed!");
-  console.log("OpenAI response:", JSON.stringify(openaiResponse, null, 2));
-  console.log("Elmir messages:", JSON.stringify(llmirMessages, null, 2));
 
   return { openaiResponse, llmirMessages };
 }

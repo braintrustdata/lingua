@@ -1,4 +1,11 @@
 #!/usr/bin/env cargo +nightly -Zscript
+//! ```cargo
+//! [dependencies]
+//! serde_json = "1.0"
+//! serde_yaml = "0.9"
+//! prost-build = "0.13"
+//! ```
+
 //! Standalone type generation script for Elmir providers
 //!
 //! Usage: cargo run --bin generate-types -- [provider]
@@ -22,11 +29,11 @@ fn main() {
     match provider.as_str() {
         "openai" => generate_openai_types(),
         "anthropic" => generate_anthropic_types(),
-        "google" => generate_google_types(),
+        "google" => generate_google_protobuf_types_from_git(),
         "all" => {
             generate_openai_types();
             generate_anthropic_types();
-            generate_google_types();
+            generate_google_protobuf_types_from_git();
         }
         _ => {
             println!("❌ Unknown provider: {}", provider);
@@ -39,7 +46,7 @@ fn main() {
 }
 
 fn generate_openai_types() {
-    println!("📦 Generating OpenAI types from OpenAPI spec...");
+    println!("📦 Generating OpenAI types from OpenAPI spec using quicktype...");
 
     let spec_file_path = "specs/openai/openapi.yml";
 
@@ -69,12 +76,12 @@ fn generate_openai_types() {
 
     let schemas = schema.get("components").and_then(|c| c.get("schemas"));
 
-    if let Some(schemas) = schemas {
-        println!("✅ Found components/schemas section");
+    if let Some(_schemas) = schemas {
+        println!("✅ Found OpenAI components/schemas section");
 
-        // Generate essential OpenAI types for chat completion APIs
+        // Generate essential OpenAI types for chat completion APIs using quicktype
         println!("🏗️  Generating essential OpenAI types for chat completions");
-        generate_openai_specific_types(schemas);
+        generate_openai_specific_types(&openai_spec);
     } else {
         println!("❌ No components/schemas section found in OpenAPI spec");
     }
@@ -99,213 +106,778 @@ fn generate_anthropic_types() {
         }
     };
 
-    println!("🔍 Parsing YAML OpenAPI spec...");
+    println!("🔍 Parsing JSON OpenAPI spec...");
 
-    let schema: serde_json::Value = match serde_yaml::from_str(&anthropic_spec) {
+    let schema: serde_json::Value = match serde_json::from_str(&anthropic_spec) {
         Ok(value) => value,
         Err(e) => {
-            println!("❌ Failed to parse Anthropic OpenAPI spec as YAML: {}", e);
+            println!("❌ Failed to parse Anthropic OpenAPI spec as JSON: {}", e);
             return;
         }
     };
 
     let schemas = schema.get("components").and_then(|c| c.get("schemas"));
 
-    if let Some(schemas) = schemas {
+    if let Some(_schemas) = schemas {
         println!("✅ Found Anthropic components/schemas section");
 
-        // Generate essential Anthropic types for messages API
+        // Generate essential Anthropic types for messages API using quicktype
         println!("🏗️  Generating essential Anthropic types for messages API");
-        generate_anthropic_specific_types(schemas);
+        generate_anthropic_specific_types(&anthropic_spec);
     } else {
         println!("❌ No components/schemas section found in Anthropic OpenAPI spec");
     }
 }
 
-fn generate_google_types() {
-    println!("📦 Generating Google types from protobuf files...");
+fn generate_openai_specific_types(openai_spec: &str) {
+    println!("🏗️  Using quicktype for OpenAI type generation...");
 
-    let _proto_dir = "specs/google/protos";
+    // Extract OpenAI OpenAPI spec
+    let full_spec: serde_json::Value =
+        serde_yaml::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
 
-    // Use git clone approach to get complete dependency tree
-    println!("✅ Generating Google types by cloning googleapis repository...");
-    generate_google_protobuf_types_from_git();
-}
-
-fn generate_openai_specific_types(schemas: &serde_json::Value) {
-    use std::fs;
-
-    // Focus only on essential chat completion types to minimize generated code
-    let essential_types = [
-        "CreateChatCompletionRequest",
-        "CreateChatCompletionResponse",
-        "CreateChatCompletionStreamResponse",
-        "ChatCompletionRequestMessage",
-        "ChatCompletionResponseMessage",
-        "ChatCompletionTool",
-        "ChatCompletionChoice",
-        "CompletionUsage",
-    ];
-
-    let mut generated_types = Vec::new();
-
-    for type_name in essential_types {
-        if let Some(type_schema) = schemas.get(type_name) {
-            println!("  🔨 Processing {} schema", type_name);
-
-            match create_basic_rust_struct(type_name, type_schema) {
-                Ok(rust_code) => {
-                    generated_types.push(rust_code);
-                    println!("  ✅ Generated Rust struct for {}", type_name);
-                }
-                Err(e) => {
-                    println!("  ❌ Failed to generate {} struct: {}", type_name, e);
-                }
-            }
-        } else {
-            println!("  ⚠️  {} schema not found", type_name);
+    // Generate types using quicktype approach
+    match generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec).unwrap()) {
+        Ok(()) => {
+            println!("✅ OpenAI types generated successfully with quicktype");
+        }
+        Err(e) => {
+            println!("❌ Quicktype generation failed for OpenAI: {}", e);
+            println!("📝 Falling back to minimal types");
+            let _ = std::fs::write(
+                "src/providers/openai/generated.rs",
+                "// Quicktype generation failed",
+            );
         }
     }
+}
 
-    // Check if HashMap is actually used in any of the generated types
-    let uses_hashmap = generated_types.iter().any(|code| code.contains("HashMap"));
+fn generate_openai_types_with_quicktype(
+    openapi_spec: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("🔍 Parsing OpenAI OpenAPI spec...");
 
-    let import_section = if uses_hashmap {
-        "use serde::{Serialize, Deserialize};\nuse std::collections::HashMap;\n"
-    } else {
-        "use serde::{Serialize, Deserialize};\n"
+    let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
+
+    // Extract essential OpenAI schemas for chat completions
+    let essential_schemas = create_essential_openai_schemas(&spec);
+
+    println!("🏗️  Generating OpenAI types with quicktype...");
+
+    // Create a temporary JSON schema file for quicktype
+    let temp_schema_path = std::env::temp_dir().join("openai_schemas.json");
+    std::fs::write(
+        &temp_schema_path,
+        serde_json::to_string_pretty(&essential_schemas)?,
+    )?;
+
+    // Use quicktype to generate types
+    let output = std::process::Command::new("quicktype")
+        .arg("--src-lang")
+        .arg("schema")
+        .arg("--lang")
+        .arg("rust")
+        .arg("--derive-debug")
+        .arg("--derive-clone")
+        .arg("--derive-partial-eq")
+        .arg("--visibility")
+        .arg("public")
+        .arg("--density")
+        .arg("dense")
+        .arg(&temp_schema_path)
+        .output();
+
+    let quicktype_output = match output {
+        Ok(output) => {
+            if output.status.success() {
+                String::from_utf8(output.stdout)?
+            } else {
+                return Err(format!(
+                    "quicktype failed: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                )
+                .into());
+            }
+        }
+        Err(e) => return Err(format!("Failed to run quicktype: {}", e).into()),
     };
 
-    // Combine all generated types into a single file
-    let complete_code = format!(
-        "// Generated OpenAI types from official OpenAPI spec\n\
-        // Essential types for Elmir OpenAI chat completion integration\n\
-        \n\
-        {}\n\
-        {}\n",
-        import_section,
-        generated_types.join("\n\n")
-    );
+    // Clean up temp file
+    let _ = std::fs::remove_file(&temp_schema_path);
+
+    // Post-process the quicktype output
+    let processed_output = post_process_quicktype_output_for_openai(&quicktype_output);
 
     let dest_path = "src/providers/openai/generated.rs";
 
-    // Create the directory if it doesn't exist
-    if let Some(parent) = Path::new(dest_path).parent() {
-        let _ = fs::create_dir_all(parent);
+    // Create directory if needed
+    if let Some(parent) = std::path::Path::new(dest_path).parent() {
+        std::fs::create_dir_all(parent)?;
     }
 
-    // Write the generated types
-    if fs::write(dest_path, &complete_code).is_ok() {
-        println!("📝 Generated OpenAI types to: {}", dest_path);
+    // Write generated types
+    std::fs::write(dest_path, &processed_output)?;
 
-        // Format the file with cargo fmt
-        let _ = std::process::Command::new("cargo")
-            .args(["fmt", "--", dest_path])
-            .output();
+    // Format with cargo fmt
+    let _ = std::process::Command::new("cargo")
+        .args(["fmt", "--", dest_path])
+        .output();
 
-        println!("✅ OpenAI types generated and formatted");
-    } else {
-        println!("❌ Failed to write OpenAI generated types");
+    println!("📝 Generated OpenAI types to: {}", dest_path);
+
+    Ok(())
+}
+
+fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Value {
+    // Simplified approach: just specify input/output types, let dependency resolution handle the rest
+    let chat_request_type = "CreateChatCompletionRequest";
+    let chat_response_type = "CreateChatCompletionResponse";
+    let chat_stream_response_type = "CreateChatCompletionStreamResponse";
+    let responses_request_type = "CreateResponse";
+    let responses_response_type = "Response";
+
+    let default_map = serde_json::Map::new();
+    let all_schemas = spec
+        .get("components")
+        .and_then(|c| c.get("schemas"))
+        .and_then(|s| s.as_object())
+        .unwrap_or(&default_map);
+
+    let mut essential_schemas = serde_json::Map::new();
+    let mut processed = std::collections::HashSet::new();
+
+    // Add chat completion types with their dependencies
+    add_openai_schema_with_dependencies(
+        chat_request_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+    add_openai_schema_with_dependencies(
+        chat_response_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+    add_openai_schema_with_dependencies(
+        chat_stream_response_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+
+    // Add responses API types with their dependencies
+    add_openai_schema_with_dependencies(
+        responses_request_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+    add_openai_schema_with_dependencies(
+        responses_response_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
+
+    // Fix all $ref paths to point to #/definitions/ instead of #/components/schemas/
+    let mut fixed_schemas = serde_json::Map::new();
+    for (name, schema) in essential_schemas {
+        fixed_schemas.insert(name, fix_openai_schema_refs(&schema));
+    }
+
+    // Create a clean root schema with separated input/output types for both APIs
+    let root_schema = serde_json::json!({
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "oneOf": [
+            {
+                "title": "ChatCompletionTypes",
+                "type": "object",
+                "properties": {
+                    "chat_request": {"$ref": "#/definitions/CreateChatCompletionRequest"},
+                    "chat_response": {"$ref": "#/definitions/CreateChatCompletionResponse"},
+                    "chat_stream_response": {"$ref": "#/definitions/CreateChatCompletionStreamResponse"}
+                }
+            },
+            {
+                "title": "ResponsesTypes",
+                "type": "object",
+                "properties": {
+                    "responses_request": {"$ref": "#/definitions/CreateResponse"},
+                    "responses_response": {"$ref": "#/definitions/Response"}
+                }
+            }
+        ],
+        "definitions": fixed_schemas
+    });
+
+    root_schema
+}
+
+fn add_openai_schema_with_dependencies(
+    type_name: &str,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
+    processed: &mut std::collections::HashSet<String>,
+) {
+    if processed.contains(type_name) {
+        return;
+    }
+
+    processed.insert(type_name.to_string());
+
+    if let Some(schema) = all_schemas.get(type_name) {
+        essential_schemas.insert(type_name.to_string(), schema.clone());
+
+        // Find and add referenced types
+        let mut refs = std::collections::HashSet::new();
+        extract_schema_refs(schema, &mut refs);
+
+        for ref_name in refs {
+            add_openai_schema_with_dependencies(
+                &ref_name,
+                all_schemas,
+                essential_schemas,
+                processed,
+            );
+        }
     }
 }
 
-fn generate_anthropic_specific_types(schemas: &serde_json::Value) {
-    // Focus only on essential Anthropic message types to minimize generated code
-    let essential_types = [
-        "CreateMessageParams",
-        "Message",
-        "InputMessage",
-        "ContentBlock",
-        "RequestTextBlock",
-        "ResponseTextBlock",
-        "Usage",
-        "Tool",
-        "ToolChoice",
-    ];
+fn fix_openai_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
+    match schema {
+        serde_json::Value::Object(obj) => {
+            let mut fixed_obj = serde_json::Map::new();
 
-    let mut generated_types = Vec::new();
-
-    for type_name in essential_types {
-        if let Some(type_schema) = schemas.get(type_name) {
-            println!("  🔨 Processing Anthropic {} schema", type_name);
-
-            match create_basic_rust_struct(type_name, type_schema) {
-                Ok(rust_code) => {
-                    generated_types.push(rust_code);
-                    println!("  ✅ Generated Rust struct for Anthropic {}", type_name);
-                }
-                Err(e) => {
-                    println!(
-                        "  ❌ Failed to generate Anthropic {} struct: {}",
-                        type_name, e
-                    );
+            for (key, value) in obj {
+                if key == "$ref" {
+                    if let Some(ref_str) = value.as_str() {
+                        // Fix the reference path
+                        if ref_str.starts_with("#/components/schemas/") {
+                            let new_ref =
+                                ref_str.replace("#/components/schemas/", "#/definitions/");
+                            fixed_obj.insert(key.clone(), serde_json::Value::String(new_ref));
+                        } else {
+                            fixed_obj.insert(key.clone(), value.clone());
+                        }
+                    } else {
+                        fixed_obj.insert(key.clone(), value.clone());
+                    }
+                } else {
+                    fixed_obj.insert(key.clone(), fix_openai_schema_refs(value));
                 }
             }
-        } else {
-            println!("  ⚠️  Anthropic {} schema not found", type_name);
+
+            serde_json::Value::Object(fixed_obj)
+        }
+        serde_json::Value::Array(arr) => {
+            let fixed_arr: Vec<serde_json::Value> =
+                arr.iter().map(fix_openai_schema_refs).collect();
+            serde_json::Value::Array(fixed_arr)
+        }
+        other => other.clone(),
+    }
+}
+
+// Extract schema references helper function (used by both OpenAI and Anthropic)
+fn extract_schema_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
+    match value {
+        serde_json::Value::Object(obj) => {
+            // Check for $ref
+            if let Some(ref_value) = obj.get("$ref") {
+                if let Some(ref_str) = ref_value.as_str() {
+                    if let Some(type_name) = extract_type_name_from_ref(ref_str) {
+                        refs.insert(type_name);
+                    }
+                }
+            }
+
+            // Recurse into all object values
+            for (_, v) in obj {
+                extract_schema_refs(v, refs);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            // Recurse into all array elements
+            for item in arr {
+                extract_schema_refs(item, refs);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn extract_type_name_from_ref(ref_str: &str) -> Option<String> {
+    // Extract type name from refs like "#/components/schemas/ChatCompletionRequestMessage"
+    ref_str
+        .rfind('/')
+        .map(|last_slash| ref_str[last_slash + 1..].to_string())
+}
+
+fn generate_anthropic_specific_types(anthropic_spec: &str) {
+    println!("🏗️  Using quicktype for Anthropic type generation...");
+
+    // Extract Anthropic OpenAPI spec
+    let full_spec: serde_json::Value =
+        serde_json::from_str(anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
+
+    // Generate types using quicktype approach
+    match generate_anthropic_types_with_quicktype(
+        &serde_json::to_string_pretty(&full_spec).unwrap(),
+    ) {
+        Ok(()) => {
+            println!("✅ Anthropic types generated successfully with quicktype");
+        }
+        Err(e) => {
+            println!("❌ Quicktype generation failed for Anthropic: {}", e);
+            println!("📝 Falling back to minimal types");
+            let _ = std::fs::write(
+                "src/providers/anthropic/generated.rs",
+                "// Quicktype generation failed",
+            );
         }
     }
+}
 
-    // Check if HashMap is actually used in any of the generated types
-    let uses_hashmap = generated_types.iter().any(|code| code.contains("HashMap"));
+fn generate_anthropic_types_with_quicktype(
+    openapi_spec: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("🔍 Parsing Anthropic OpenAPI spec...");
 
-    let import_section = if uses_hashmap {
-        "use serde::{Serialize, Deserialize};\nuse std::collections::HashMap;\n"
-    } else {
-        "use serde::{Serialize, Deserialize};\n"
+    let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
+
+    // Extract essential Anthropic schemas for messages API
+    let essential_schemas = create_essential_anthropic_schemas(&spec);
+
+    println!("🏗️  Generating Anthropic types with quicktype...");
+
+    // Create a temporary JSON schema file for quicktype
+    let temp_schema_path = std::env::temp_dir().join("anthropic_schemas.json");
+    let schema_json = serde_json::to_string_pretty(&essential_schemas)?;
+
+    std::fs::write(&temp_schema_path, &schema_json)?;
+
+    // Use quicktype to generate types - specify just one main type to avoid merging
+    let output = std::process::Command::new("quicktype")
+        .arg("--src-lang")
+        .arg("schema")
+        .arg("--lang")
+        .arg("rust")
+        .arg("--derive-debug")
+        .arg("--derive-clone")
+        .arg("--derive-partial-eq")
+        .arg("--visibility")
+        .arg("public")
+        .arg("--density")
+        .arg("dense")
+        .arg(&temp_schema_path)
+        .output();
+
+    let quicktype_output = match output {
+        Ok(output) => {
+            if output.status.success() {
+                String::from_utf8(output.stdout)?
+            } else {
+                return Err(format!(
+                    "quicktype failed: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                )
+                .into());
+            }
+        }
+        Err(e) => return Err(format!("Failed to run quicktype: {}", e).into()),
     };
 
-    // Combine all generated types into a single file
-    let complete_code = format!(
-        "// Generated Anthropic types from unofficial OpenAPI spec\n\
-        // Essential types for Elmir Anthropic messages integration\n\
-        \n\
-        {}\n\
-        {}\n",
-        import_section,
-        generated_types.join("\n\n")
-    );
+    // Clean up temp file
+    let _ = std::fs::remove_file(&temp_schema_path);
+
+    // Post-process the quicktype output
+    let processed_output = post_process_quicktype_output_for_anthropic(&quicktype_output);
 
     let dest_path = "src/providers/anthropic/generated.rs";
 
-    // Create the directory if it doesn't exist
-    if let Some(parent) = Path::new(dest_path).parent() {
-        let _ = std::fs::create_dir_all(parent);
+    // Create directory if needed
+    if let Some(parent) = std::path::Path::new(dest_path).parent() {
+        std::fs::create_dir_all(parent)?;
     }
 
-    // Write the generated types
-    if std::fs::write(dest_path, &complete_code).is_ok() {
-        println!("📝 Generated Anthropic types to: {}", dest_path);
+    // Write generated types
+    std::fs::write(dest_path, &processed_output)?;
 
-        // Format the file with cargo fmt
-        let _ = std::process::Command::new("cargo")
-            .args(["fmt", "--", dest_path])
-            .output();
+    // Format with cargo fmt
+    let _ = std::process::Command::new("cargo")
+        .args(["fmt", "--", dest_path])
+        .output();
 
-        println!("✅ Anthropic types generated and formatted");
-    } else {
-        println!("❌ Failed to write Anthropic generated types");
+    println!("📝 Generated Anthropic types to: {}", dest_path);
+
+    Ok(())
+}
+
+fn create_essential_anthropic_schemas(spec: &serde_json::Value) -> serde_json::Value {
+    // Automated approach: Preprocess schema to separate request/response types
+    preprocess_anthropic_schema_for_separation(spec)
+}
+
+fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde_json::Value {
+    println!("🔧 Preprocessing Anthropic schema for request/response separation...");
+
+    let default_map = serde_json::Map::new();
+    let all_schemas = spec
+        .get("components")
+        .and_then(|c| c.get("schemas"))
+        .and_then(|s| s.as_object())
+        .unwrap_or(&default_map);
+
+    // Step 1: Analyze endpoints to identify request vs response schemas
+    let (request_schemas, response_schemas) = analyze_anthropic_endpoints(spec);
+
+    println!(
+        "🔍 Identified {} request schemas, {} response schemas",
+        request_schemas.len(),
+        response_schemas.len()
+    );
+
+    let mut separated_schemas = serde_json::Map::new();
+
+    // Step 2: First recursively add all dependencies for the original schemas
+    for schema_name in &request_schemas {
+        add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
+    }
+    for schema_name in &response_schemas {
+        add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
+    }
+
+    // All other types will be included automatically through dependency resolution
+
+    // Step 3: Now clean the main request/response schemas to remove conflicting fields
+    for schema_name in &request_schemas {
+        if let Some(schema) = separated_schemas.get(schema_name) {
+            let cleaned_schema = remove_response_fields_from_schema(schema);
+            separated_schemas.insert(schema_name.clone(), cleaned_schema);
+        }
+    }
+
+    for schema_name in &response_schemas {
+        if let Some(schema) = separated_schemas.get(schema_name) {
+            let cleaned_schema = remove_request_fields_from_schema(schema);
+            separated_schemas.insert(schema_name.clone(), cleaned_schema);
+        }
+    }
+
+    // Step 5: Create root schema with separated types
+    // Use a different approach: create separate top-level object types to avoid merging
+    let root_schema = serde_json::json!({
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "oneOf": [
+            {
+                "title": "RequestType",
+                "type": "object",
+                "properties": {
+                    "request": {"$ref": "#/definitions/CreateMessageParams"}
+                }
+            },
+            {
+                "title": "ResponseType",
+                "type": "object",
+                "properties": {
+                    "response": {"$ref": "#/definitions/Message"}
+                }
+            },
+        ],
+        "definitions": separated_schemas
+    });
+
+    root_schema
+}
+
+fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
+    let mut request_schemas = Vec::new();
+    let mut response_schemas = Vec::new();
+
+    // Analyze the /v1/messages endpoint
+    if let Some(paths) = spec.get("paths") {
+        if let Some(messages_path) = paths.get("/v1/messages") {
+            if let Some(post_op) = messages_path.get("post") {
+                // Extract request schema from requestBody
+                if let Some(request_body) = post_op.get("requestBody") {
+                    if let Some(content) = request_body.get("content") {
+                        if let Some(json_content) = content.get("application/json") {
+                            if let Some(schema) = json_content.get("schema") {
+                                if let Some(schema_ref) = schema.get("$ref") {
+                                    if let Some(schema_name) = extract_schema_name_from_ref(
+                                        schema_ref.as_str().unwrap_or(""),
+                                    ) {
+                                        request_schemas.push(schema_name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Extract response schemas from responses
+                if let Some(responses) = post_op.get("responses") {
+                    if let Some(success_response) = responses.get("200") {
+                        if let Some(content) = success_response.get("content") {
+                            if let Some(json_content) = content.get("application/json") {
+                                if let Some(schema) = json_content.get("schema") {
+                                    if let Some(schema_ref) = schema.get("$ref") {
+                                        if let Some(schema_name) = extract_schema_name_from_ref(
+                                            schema_ref.as_str().unwrap_or(""),
+                                        ) {
+                                            response_schemas.push(schema_name);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    println!("🔍 Found request schemas: {:?}", request_schemas);
+    println!("🔍 Found response schemas: {:?}", response_schemas);
+
+    (request_schemas, response_schemas)
+}
+
+fn extract_schema_name_from_ref(ref_str: &str) -> Option<String> {
+    // Extract schema name from "#/components/schemas/CreateMessageParams"
+    ref_str
+        .rfind('/')
+        .map(|last_slash| ref_str[last_slash + 1..].to_string())
+}
+
+fn remove_response_fields_from_schema(schema: &serde_json::Value) -> serde_json::Value {
+    let mut cleaned_schema = schema.clone();
+
+    // Fields that should NOT be in request schemas
+    let response_only_fields = [
+        "id",
+        "created",
+        "choices",
+        "usage",
+        "system_fingerprint",
+        "content",
+        "role",
+        "stop_reason",
+        "stop_sequence",
+        "type",
+    ];
+
+    if let Some(properties) = cleaned_schema.get_mut("properties") {
+        if let Some(props_obj) = properties.as_object_mut() {
+            for field_name in &response_only_fields {
+                props_obj.remove(*field_name);
+            }
+        }
+    }
+
+    // Remove response fields from required array
+    if let Some(required) = cleaned_schema.get_mut("required") {
+        if let Some(required_array) = required.as_array_mut() {
+            required_array.retain(|item| {
+                if let Some(field_name) = item.as_str() {
+                    !response_only_fields.contains(&field_name)
+                } else {
+                    true
+                }
+            });
+        }
+    }
+
+    cleaned_schema
+}
+
+fn remove_request_fields_from_schema(schema: &serde_json::Value) -> serde_json::Value {
+    let mut cleaned_schema = schema.clone();
+
+    // Fields that should NOT be in response schemas
+    let request_only_fields = [
+        "messages",
+        "max_tokens",
+        "temperature",
+        "top_p",
+        "top_k",
+        "stream",
+        "stop_sequences",
+        "system",
+        "tools",
+        "tool_choice",
+        "frequency_penalty",
+        "presence_penalty",
+        "logit_bias",
+        "user",
+    ];
+
+    if let Some(properties) = cleaned_schema.get_mut("properties") {
+        if let Some(props_obj) = properties.as_object_mut() {
+            for field_name in &request_only_fields {
+                props_obj.remove(*field_name);
+            }
+        }
+    }
+
+    // Remove request fields from required array
+    if let Some(required) = cleaned_schema.get_mut("required") {
+        if let Some(required_array) = required.as_array_mut() {
+            required_array.retain(|item| {
+                if let Some(field_name) = item.as_str() {
+                    !request_only_fields.contains(&field_name)
+                } else {
+                    true
+                }
+            });
+        }
+    }
+
+    cleaned_schema
+}
+
+fn add_dependencies_recursively(
+    schema_name: &str,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    separated_schemas: &mut serde_json::Map<String, serde_json::Value>,
+) {
+    // Skip if already processed
+    if separated_schemas.contains_key(schema_name) {
+        return;
+    }
+
+    // Add the schema itself
+    if let Some(schema) = all_schemas.get(schema_name) {
+        let fixed_schema = fix_anthropic_schema_refs(schema);
+        separated_schemas.insert(schema_name.to_string(), fixed_schema.clone());
+
+        // Find all references in this schema and recursively add them
+        let mut refs = std::collections::HashSet::new();
+        extract_schema_refs(&fixed_schema, &mut refs);
+
+        for ref_name in refs {
+            add_dependencies_recursively(&ref_name, all_schemas, separated_schemas);
+        }
     }
 }
 
+fn fix_anthropic_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
+    match schema {
+        serde_json::Value::Object(obj) => {
+            let mut fixed_obj = serde_json::Map::new();
+
+            for (key, value) in obj {
+                if key == "$ref" {
+                    if let Some(ref_str) = value.as_str() {
+                        // Fix the reference path
+                        if ref_str.starts_with("#/components/schemas/") {
+                            let new_ref =
+                                ref_str.replace("#/components/schemas/", "#/definitions/");
+                            fixed_obj.insert(key.clone(), serde_json::Value::String(new_ref));
+                        } else {
+                            fixed_obj.insert(key.clone(), value.clone());
+                        }
+                    } else {
+                        fixed_obj.insert(key.clone(), value.clone());
+                    }
+                } else {
+                    let fixed_value = fix_anthropic_schema_refs(value);
+
+                    // Handle null type issue for quicktype
+                    if key == "type" && fixed_value.is_null() {
+                        if obj.get("enum").is_some() {
+                            fixed_obj.insert(
+                                key.clone(),
+                                serde_json::Value::String("string".to_string()),
+                            );
+                        } else if obj.get("anyOf").is_some() || obj.get("oneOf").is_some() {
+                            continue; // Skip null type for union types
+                        } else {
+                            fixed_obj.insert(
+                                key.clone(),
+                                serde_json::Value::String("object".to_string()),
+                            );
+                        }
+                    } else {
+                        fixed_obj.insert(key.clone(), fixed_value);
+                    }
+                }
+            }
+
+            serde_json::Value::Object(fixed_obj)
+        }
+        serde_json::Value::Array(arr) => {
+            let fixed_arr: Vec<serde_json::Value> =
+                arr.iter().map(fix_anthropic_schema_refs).collect();
+            serde_json::Value::Array(fixed_arr)
+        }
+        other => other.clone(),
+    }
+}
+
+fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String {
+    let mut processed = quicktype_output.to_string();
+
+    // Add proper header with clippy allows for generated code
+    processed = format!(
+        "// Generated Anthropic types using quicktype\n// Essential types for Elmir Anthropic integration\n#![allow(non_camel_case_types)]\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
+        processed
+    );
+
+    // Fix specific type mappings that quicktype might miss
+    processed = processed.replace("serde_json::Value", "WebSearchToolResultErrorCode");
+
+    // Ensure proper serde attributes for discriminated unions
+    if processed.contains("ContentBlock") && processed.contains("#[derive(") {
+        processed = processed.replace(
+            "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\npub enum ContentBlock",
+            "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\n#[serde(tag = \"type\")]\npub enum ContentBlock"
+        );
+    }
+
+    processed
+}
+
+fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
+    let mut processed = quicktype_output.to_string();
+
+    // Add proper header with clippy allows for generated code
+    processed = format!(
+        "// Generated OpenAI types using quicktype\n// Essential types for Elmir OpenAI integration\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
+        processed
+    );
+
+    // Fix doctest JSON examples that fail to compile
+    processed = processed.replace(
+        "    /// ```\n    /// [\n    /// { x: 100, y: 200 },\n    /// { x: 200, y: 300 }\n    /// ]",
+        "    /// ```json\n    /// [\n    /// { \"x\": 100, \"y\": 200 },\n    /// { \"x\": 200, \"y\": 300 }\n    /// ]"
+    );
+
+    // Fix any specific type mappings that quicktype might miss for OpenAI
+    // (Add any OpenAI-specific replacements here as needed)
+
+    processed
+}
+
 fn generate_google_protobuf_types_from_git() {
-    println!("🔨 Cloning complete googleapis repository for proper dependencies...");
+    let temp_dir = std::env::temp_dir().join("googleapis_clone");
 
-    // Create a temporary directory for googleapis
-    let temp_dir = std::env::temp_dir().join("llmir-googleapis");
-    let _ = std::fs::remove_dir_all(&temp_dir); // Clean up any existing
-    let _ = std::fs::create_dir_all(&temp_dir);
+    // Clean up any existing clone
+    let _ = std::fs::remove_dir_all(&temp_dir);
 
-    println!("📥 Cloning googleapis repository (shallow)...");
+    println!("📦 Cloning googleapis repository for complete protobuf definitions...");
+    println!("📁 Using temporary directory: {:?}", temp_dir);
 
-    // Clone the googleapis repository to temp directory
+    // Clone the googleapis repository
     let clone_result = std::process::Command::new("git")
         .args([
             "clone",
-            "--depth",
-            "1", // Shallow clone for speed
+            "--depth=1", // Shallow clone for faster download
             "https://github.com/googleapis/googleapis.git",
-            &temp_dir.to_string_lossy(),
+            temp_dir.to_str().unwrap(),
         ])
         .output();
 
@@ -319,13 +891,13 @@ fn generate_google_protobuf_types_from_git() {
                 String::from_utf8_lossy(&result.stderr)
             );
             let _ = std::fs::remove_dir_all(&temp_dir);
-            fallback_to_placeholder_types();
+            let _ = std::fs::write("src/providers/google/generated.rs", "// Git clone failed");
             return;
         }
         Err(e) => {
             println!("❌ Error running git clone: {}", e);
             let _ = std::fs::remove_dir_all(&temp_dir);
-            fallback_to_placeholder_types();
+            let _ = std::fs::write("src/providers/google/generated.rs", "// Git clone error");
             return;
         }
     }
@@ -337,14 +909,20 @@ fn generate_google_protobuf_types_from_git() {
     if !proto_file.exists() {
         println!("❌ Could not find generative_service.proto in cloned repository");
         let _ = std::fs::remove_dir_all(&temp_dir);
-        fallback_to_placeholder_types();
+        let _ = std::fs::write(
+            "src/providers/google/generated.rs",
+            "// Proto file not found",
+        );
         return;
     }
 
     if !interval_proto.exists() {
         println!("❌ Could not find google/type/interval.proto in cloned repository");
         let _ = std::fs::remove_dir_all(&temp_dir);
-        fallback_to_placeholder_types();
+        let _ = std::fs::write(
+            "src/providers/google/generated.rs",
+            "// Interval proto not found",
+        );
         return;
     }
 
@@ -355,11 +933,8 @@ fn generate_google_protobuf_types_from_git() {
         proto_file.to_string_lossy().to_string(),
         interval_proto.to_string_lossy().to_string(),
     ];
-    let include_dirs = [
-        temp_dir.to_string_lossy().to_string(), // googleapis root - this should resolve all dependencies!
-    ];
 
-    generate_google_protobuf_types(&proto_paths, &include_dirs[0]);
+    generate_google_protobuf_types(&proto_paths, &temp_dir.to_string_lossy());
 
     // Clean up temp directory
     let _ = std::fs::remove_dir_all(&temp_dir);
@@ -368,25 +943,17 @@ fn generate_google_protobuf_types_from_git() {
 fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
     println!("🔨 Compiling protobuf files with prost-build...");
 
-    // Create a temporary directory for prost output
-    let temp_dir = std::env::temp_dir().join("llmir-google-types");
-    let _ = std::fs::create_dir_all(&temp_dir);
+    // Create a temporary directory for generated types
+    let temp_dir = std::env::temp_dir().join("google_generated");
+    let _ = std::fs::remove_dir_all(&temp_dir);
+    std::fs::create_dir_all(&temp_dir).expect("Failed to create temp directory");
 
     // Configure prost-build
     let mut config = prost_build::Config::new();
     config.out_dir(&temp_dir);
 
-    // Add include paths for Google API dependencies
-    config.include_file("mod.rs");
-    config.protoc_arg("--experimental_allow_proto3_optional");
-
-    // Configure type attributes for better Rust integration (prost already adds serde support)
-    // Don't add serde derives - prost handles this
-
-    // Set up include directories - order matters!
-    let include_dirs = vec![
-        proto_dir.to_string(), // Root directory first
-    ];
+    // Include directories for resolving imports
+    let include_dirs = vec![proto_dir];
 
     println!("📁 Include directories: {:?}", include_dirs);
     println!("📄 Proto files: {:?}", proto_paths);
@@ -410,14 +977,20 @@ fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
                 }
                 Err(e) => {
                     println!("❌ Failed to read generated mod.rs: {}", e);
-                    fallback_to_placeholder_types();
+                    let _ = std::fs::write(
+                        "src/providers/google/generated.rs",
+                        "// Protobuf generation failed",
+                    );
                 }
             }
         }
         Err(e) => {
             println!("❌ Protobuf compilation failed: {}", e);
-            println!("📝 Falling back to placeholder types");
-            fallback_to_placeholder_types();
+            println!("📝 Falling back to empty types file");
+            let _ = std::fs::write(
+                "src/providers/google/generated.rs",
+                "// Protobuf generation failed",
+            );
         }
     }
 
@@ -478,10 +1051,13 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         }
     }
 
-    // If we didn't get much content, fall back to placeholder
+    // If we didn't get much content, fall back to minimal file
     if all_content.len() < 500 {
-        println!("⚠️  Generated content too small, falling back to placeholder");
-        fallback_to_placeholder_types();
+        println!("⚠️  Generated content too small, falling back to minimal file");
+        let _ = std::fs::write(
+            "src/providers/google/generated.rs",
+            "// Protobuf generation incomplete",
+        );
         return;
     }
 
@@ -504,7 +1080,10 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
         println!("✅ Google protobuf types generated and formatted");
     } else {
         println!("❌ Failed to write Google generated types");
-        fallback_to_placeholder_types();
+        let _ = std::fs::write(
+            "src/providers/google/generated.rs",
+            "// Protobuf write failed",
+        );
     }
 }
 
@@ -581,294 +1160,4 @@ fn fix_google_type_references(content: String) -> String {
     }
 
     fixed
-}
-
-fn fallback_to_placeholder_types() {
-    let placeholder_content = r#"// Generated Google AI types from official protobuf files
-// Essential types for Elmir Google AI integration
-
-// This file is @generated by prost-build.
-#![allow(clippy::doc_lazy_continuation)]
-#![allow(clippy::doc_overindented_list_items)]
-#![allow(clippy::large_enum_variant)]
-
-use serde::{Deserialize, Serialize};
-
-// Placeholder types - protobuf generation failed, using manual definitions
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GenerateContentRequest {
-    pub contents: Vec<Content>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<Tool>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub generation_config: Option<GenerationConfig>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub safety_settings: Option<Vec<SafetySetting>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GenerateContentResponse {
-    pub candidates: Vec<Candidate>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub usage_metadata: Option<UsageMetadata>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Content {
-    pub parts: Vec<Part>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub role: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Part {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub text: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Candidate {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<Content>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub finish_reason: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub safety_ratings: Option<Vec<SafetyRating>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GenerationConfig {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub temperature: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_p: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_k: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_output_tokens: Option<i32>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct SafetySetting {
-    pub category: i32,
-    pub threshold: i32,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct SafetyRating {
-    pub category: i32,
-    pub probability: i32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub blocked: Option<bool>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Tool {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub function_declarations: Option<Vec<FunctionDeclaration>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FunctionDeclaration {
-    pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct UsageMetadata {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prompt_token_count: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub candidates_token_count: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_token_count: Option<i32>,
-}
-
-// Type aliases for compatibility
-pub type SafetySettings = Vec<SafetySetting>;
-pub type HarmCategory = i32;
-pub type HarmBlockThreshold = i32;
-"#;
-
-    let dest_path = "src/providers/google/generated.rs";
-
-    // Create the directory if it doesn't exist
-    if let Some(parent) = Path::new(dest_path).parent() {
-        let _ = std::fs::create_dir_all(parent);
-    }
-
-    // Write the placeholder types
-    if std::fs::write(dest_path, placeholder_content).is_ok() {
-        println!("📝 Generated Google placeholder types to: {}", dest_path);
-
-        // Format the file with cargo fmt
-        let _ = std::process::Command::new("cargo")
-            .args(["fmt", "--", dest_path])
-            .output();
-
-        println!("✅ Google placeholder types generated and formatted");
-        println!("📝 Note: Using placeholder types due to protobuf compilation issues.");
-    } else {
-        println!("❌ Failed to write Google generated types");
-    }
-}
-
-// Helper functions from the original build.rs
-fn create_basic_rust_struct(
-    name: &str,
-    schema: &serde_json::Value,
-) -> Result<String, Box<dyn std::error::Error>> {
-    let mut struct_code = format!(
-        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\npub struct {} {{\n",
-        name
-    );
-
-    // Handle allOf schemas by merging properties
-    let properties = if let Some(all_of) = schema.get("allOf") {
-        let mut merged_props = serde_json::Map::new();
-        for item in all_of.as_array().unwrap_or(&vec![]) {
-            if let Some(props) = item.get("properties").and_then(|p| p.as_object()) {
-                for (key, value) in props {
-                    merged_props.insert(key.clone(), value.clone());
-                }
-            }
-        }
-        serde_json::Value::Object(merged_props)
-    } else {
-        schema
-            .get("properties")
-            .cloned()
-            .unwrap_or(serde_json::json!({}))
-    };
-
-    // Get required fields
-    let required_fields: std::collections::HashSet<String> = schema
-        .get("required")
-        .and_then(|r| r.as_array())
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|v| v.as_str())
-                .map(String::from)
-                .collect()
-        })
-        .unwrap_or_default();
-
-    if let Some(props) = properties.as_object() {
-        for (field_name, field_schema) in props {
-            let is_optional = !required_fields.contains(field_name);
-            let rust_type = json_schema_to_rust_type(field_schema);
-
-            let field_type = if is_optional {
-                format!("Option<{}>", rust_type)
-            } else {
-                rust_type
-            };
-
-            // Add serde attribute for optional fields
-            if is_optional {
-                struct_code.push_str("    #[serde(skip_serializing_if = \"Option::is_none\")]\n");
-            }
-
-            // Handle reserved keywords by escaping them and adding serde rename
-            let (rust_field_name, serde_attr) = if is_rust_keyword(field_name) {
-                (
-                    format!("r#{}", field_name),
-                    format!("    #[serde(rename = \"{}\")]\n", field_name),
-                )
-            } else {
-                (field_name.clone(), String::new())
-            };
-
-            struct_code.push_str(&serde_attr);
-            struct_code.push_str(&format!("    pub {}: {},\n", rust_field_name, field_type));
-        }
-    }
-
-    struct_code.push_str("}\n");
-    Ok(struct_code)
-}
-
-fn json_schema_to_rust_type(schema: &serde_json::Value) -> String {
-    // Basic JSON Schema to Rust type conversion
-    match schema.get("type").and_then(|t| t.as_str()) {
-        Some("string") => "String".to_string(),
-        Some("integer") => "i64".to_string(),
-        Some("number") => "f64".to_string(),
-        Some("boolean") => "bool".to_string(),
-        Some("array") => {
-            if let Some(items) = schema.get("items") {
-                format!("Vec<{}>", json_schema_to_rust_type(items))
-            } else {
-                "Vec<serde_json::Value>".to_string()
-            }
-        }
-        Some("object") => {
-            if schema.get("additionalProperties").is_some() {
-                "HashMap<String, serde_json::Value>".to_string()
-            } else {
-                "serde_json::Value".to_string()
-            }
-        }
-        _ => {
-            // Handle $ref, anyOf, oneOf, etc. - all use Value for now
-            "serde_json::Value".to_string()
-        }
-    }
-}
-
-fn is_rust_keyword(name: &str) -> bool {
-    matches!(
-        name,
-        "as" | "break"
-            | "const"
-            | "continue"
-            | "crate"
-            | "else"
-            | "enum"
-            | "extern"
-            | "false"
-            | "fn"
-            | "for"
-            | "if"
-            | "impl"
-            | "in"
-            | "let"
-            | "loop"
-            | "match"
-            | "mod"
-            | "move"
-            | "mut"
-            | "pub"
-            | "ref"
-            | "return"
-            | "self"
-            | "Self"
-            | "static"
-            | "struct"
-            | "super"
-            | "trait"
-            | "true"
-            | "type"
-            | "unsafe"
-            | "use"
-            | "where"
-            | "while"
-            | "async"
-            | "await"
-            | "dyn"
-            | "abstract"
-            | "become"
-            | "box"
-            | "do"
-            | "final"
-            | "macro"
-            | "override"
-            | "priv"
-            | "typeof"
-            | "unsized"
-            | "virtual"
-            | "yield"
-            | "try"
-    )
 }

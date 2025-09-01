@@ -12,9 +12,14 @@ pub mod response;
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{
-    ChatCompletionRequestMessage, ChatCompletionResponseMessage, ChatCompletionTool,
-    CompletionUsage as GeneratedCompletionUsage, CreateChatCompletionRequest,
-    CreateChatCompletionResponse, CreateChatCompletionStreamResponse,
+    ChatCompletionRequestMessage,
+    ChatCompletionResponseMessage,
+    CompletionUsage as GeneratedCompletionUsage,
+    // Note: CreateChatCompletionRequest, CreateChatCompletionResponse, CreateChatCompletionStreamResponse
+    // are embedded in the main OpenaiSchemas struct due to quicktype's union handling
+    // TODO: Extract these as separate type aliases
+    OpenaiSchemas as GeneratedOpenaiSchemas,
+    Tool as ChatCompletionTool,
 };
 
 // Re-export manual types for backwards compatibility (will be deprecated)
