@@ -1,0 +1,19 @@
+{
+  "name": "thinking_comparison", 
+  "description": "Compare thinking capabilities - Anthropic with thinking vs OpenAI basic",
+  "prompt": "Think step by step: What are the key differences between classical and quantum computers?",
+  "tools": [],
+  "models": {
+    "anthropic": "claude-opus-4-1-20250805",
+    "openai": "gpt-4o"
+  },
+  "max_tokens": 2000,
+  "provider_configs": {
+    "anthropic": {
+      "thinking": {
+        "type": "enabled",
+        "budget_tokens": 1024
+      }
+    }
+  }
+}

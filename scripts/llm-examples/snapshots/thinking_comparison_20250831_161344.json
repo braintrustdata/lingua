@@ -1,0 +1,124 @@
+{
+  "case": {
+    "name": "thinking_comparison",
+    "description": "Compare thinking capabilities - Anthropic with thinking vs OpenAI basic",
+    "prompt": "Think step by step: What are the key differences between classical and quantum computers?",
+    "tools": [],
+    "models": {
+      "anthropic": "claude-opus-4-1-20250805",
+      "openai": "gpt-4o"
+    },
+    "max_tokens": 2000,
+    "provider_configs": {
+      "anthropic": {
+        "thinking": {
+          "type": "enabled",
+          "budget_tokens": 1024
+        }
+      }
+    }
+  },
+  "timestamp": "2025-08-31T16:13:28.059551",
+  "results": {
+    "openai": {
+      "status_code": 200,
+      "response": {
+        "id": "resp_68b4d71837cc81948c216a6396f2f33900d019725a2bed67",
+        "object": "response",
+        "created_at": 1756682008,
+        "status": "completed",
+        "background": false,
+        "error": null,
+        "incomplete_details": null,
+        "instructions": null,
+        "max_output_tokens": 2000,
+        "max_tool_calls": null,
+        "model": "gpt-4o-2024-08-06",
+        "output": [
+          {
+            "id": "msg_68b4d718a4548194ac80f0894e3b9fd300d019725a2bed67",
+            "type": "message",
+            "status": "completed",
+            "content": [
+              {
+                "type": "output_text",
+                "annotations": [],
+                "logprobs": [],
+                "text": "Classical and quantum computers differ fundamentally in how they process information. Here\u2019s a step-by-step breakdown of their key differences:\n\n1. **Basic Unit of Information:**\n   - **Classical Computers:** Use bits as the basic unit of information, which can be either 0 or 1.\n   - **Quantum Computers:** Use qubits, which can exist in a superposition of 0 and 1 simultaneously.\n\n2. **Data Processing:**\n   - **Classical Computers:** Process data using logical operations in a sequential manner.\n   - **Quantum Computers:** Perform computations using quantum operations (quantum gates) on qubits, allowing for parallelism due to superposition.\n\n3. **Superposition:**\n   - **Classical Computers:** Cannot utilize superposition; each bit is in a definite state.\n   - **Quantum Computers:** Exploit superposition, enabling them to compute multiple possibilities at once.\n\n4. **Entanglement:**\n   - **Classical Computers:** Do not have an equivalent to entanglement.\n   - **Quantum Computers:** Utilize entanglement, where qubits become correlated in ways that the state of one qubit affects the state of another, regardless of distance.\n\n5. **Decoherence:**\n   - **Classical Computers:** Do not experience decoherence; data is stable.\n   - **Quantum Computers:** Susceptible to decoherence, where quantum states lose their coherence due to external influences, affecting reliability.\n\n6. **Error Rates and Correction:**\n   - **Classical Computers:** Have established error correction techniques with low error rates.\n   - **Quantum Computers:** Face higher error rates and require complex error correction methods, still an area of active research.\n\n7. **Applications:**\n   - **Classical Computers:** Effective for a wide range of applications, including standard computation, data processing, and general-purpose tasks.\n   - **Quantum Computers:** Best suited for specific tasks like factoring large numbers, solving complex optimization problems, and simulating quantum systems.\n\n8. **Scalability:**\n   - **Classical Computers:** Established architectures that scale well with increased computational power.\n   - **Quantum Computers:** Scalability is challenging; adding qubits increases complexity due to maintaining coherence and connectivity.\n\n9. **Algorithm Efficiency:**\n   - **Classical Computers:** Algorithms have polynomial or exponential time complexity for many complex problems.\n   - **Quantum Computers:** Some algorithms, like Shor\u2019s or Grover\u2019s, offer significant speedups for certain problems, achieving exponential or quadratic improvements respectively.\n\n10. **Current State of Technology:**\n    - **Classical Computers:** Mature technology with widespread availability and use.\n    - **Quantum Computers:** Emerging technology, still in development with prototypes and early-stage implementations.\n\nOverall, quantum computers have the potential to revolutionize certain fields by solving problems intractable for classical computers, but they are not yet ready to replace classical computers for everyday tasks."
+              }
+            ],
+            "role": "assistant"
+          }
+        ],
+        "parallel_tool_calls": true,
+        "previous_response_id": null,
+        "prompt_cache_key": null,
+        "reasoning": {
+          "effort": null,
+          "summary": null
+        },
+        "safety_identifier": null,
+        "service_tier": "default",
+        "store": true,
+        "temperature": 1.0,
+        "text": {
+          "format": {
+            "type": "text"
+          },
+          "verbosity": "medium"
+        },
+        "tool_choice": "auto",
+        "tools": [],
+        "top_logprobs": 0,
+        "top_p": 1.0,
+        "truncation": "disabled",
+        "usage": {
+          "input_tokens": 23,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 594,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 617
+        },
+        "user": null,
+        "metadata": {}
+      }
+    },
+    "anthropic": {
+      "status_code": 200,
+      "response": {
+        "id": "msg_01257zNCEw4pHT9XapZE9khf",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-opus-4-1-20250805",
+        "content": [
+          {
+            "type": "thinking",
+            "thinking": "This is a straightforward question about the differences between classical and quantum computers. I'll think through the key distinctions step by step.\n\n1. First, I should consider the fundamental unit of information\n2. Then the principles they operate on\n3. Their processing capabilities\n4. Current limitations and use cases\n5. Physical implementation differences\n\nLet me organize this clearly for the human.",
+            "signature": "EsIECkYIBxgCKkBbx+XBKWrlDXbH0zRdwmktv0Y9MwcAl8aIh8GYar4fl1fLdGa3LBxx417XUYholOUdKV4IHw+Q+FLT8737Z4ULEgwR5rM8N5O6xyhs4ZsaDBqMnI3MjFjrlhHcaiIwbmjkS0nLmZRYMUZSB+L0sImqSEB4G1XRpxPn4c6pC8lQKEN1mEAKwCo3WM0P7nE9KqkDZnQF1LeXZAHNrqmo6P8ZBd+QVbY/SIM+GL0Lnv3NjKCa5j7kufOgIlEuGh/6RNlL0FWTyIRwCoF9XfBEvC488bIlwyO7AlPTlwfhn7PcHjhgevNl5aRYhHGcEK8Y0WlkcyhTFVH/tMpIAaz+9Uto7T6H0AaPlVwFGdEJp7WfWhv7sznfa27bqmz9mbTphWy79fPp6zD69IFjqsJK5Gf79Y3jzCJveE+CEBn1gk5N2wzXzY5vekiTY1fl0FQamgPftv/avT4AKeZ8GvpgvO4Qamay61ZwltJ2ghG23CLYOQvjSt3XSFU50+r5tKgBWW0B9Mm/J8ZuJLmNYuE4Wm7ndnJqSZ9ISYgeHHpI0kZLQkSQqwUmdQev/zqnr/ZnQDGSvsY9GXe361orUFA1xsxwmpYSvb3RBoCaxNDJl3TQtoeeQJNdH4bsXcu7hJj76xT3nsW5U+Th5wmrbz8Zjz4+1SsGwc+/tDcNZ9arEZGPRDYnBcAXVv9LwIiur8d0LlKmtipgG9V59waBhT7NrBhRZzLQGvduuvOZ4ckBu4DgLWbsJ41enH9s9cMYAQ=="
+          },
+          {
+            "type": "text",
+            "text": "I'll break down the key differences between classical and quantum computers step by step:\n\n## **1. Basic Unit of Information**\n- **Classical computers**: Use bits that exist in definite states (0 or 1)\n- **Quantum computers**: Use quantum bits (qubits) that can exist in superposition - simultaneously 0 and 1 until measured\n\n## **2. Processing Method**\n- **Classical computers**: Process information sequentially or in parallel using deterministic logic gates\n- **Quantum computers**: Leverage quantum phenomena like superposition and entanglement to process multiple possibilities simultaneously\n\n## **3. Computational Power**\n- **Classical computers**: Scale linearly - doubling bits doubles the processing capacity\n- **Quantum computers**: Scale exponentially - adding one qubit doubles the computational space (2^n possible states)\n\n## **4. Problem-Solving Approach**\n- **Classical computers**: Excel at precise calculations, general-purpose tasks, and sequential operations\n- **Quantum computers**: Particularly powerful for optimization problems, cryptography, drug discovery, and simulating quantum systems\n\n## **5. Error Rates and Stability**\n- **Classical computers**: Very stable with extremely low error rates\n- **Quantum computers**: Highly sensitive to environmental interference (decoherence), requiring error correction and often extreme cooling\n\n## **6. Current Accessibility**\n- **Classical computers**: Mature technology, widely available and practical\n- **Quantum computers**: Still largely experimental, limited availability, and only practical for specific applications\n\nThe key takeaway: Quantum computers aren't simply \"faster\" classical computers - they're fundamentally different machines suited for different types of problems."
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 51,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 452,
+          "service_tier": "standard"
+        }
+      }
+    }
+  }
+}

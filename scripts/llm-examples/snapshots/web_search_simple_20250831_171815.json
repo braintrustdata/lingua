@@ -1,0 +1,309 @@
+{
+  "case": {
+    "name": "web_search_simple",
+    "description": "Simple web search query to test basic tool calling",
+    "prompt": "Search for one fact about quantum computing and tell me what you found.",
+    "tools": [
+      {
+        "type": "web_search",
+        "provider_configs": {
+          "anthropic": {
+            "type": "web_search_20250305",
+            "name": "web_search"
+          },
+          "openai": {
+            "type": "web_search_preview"
+          }
+        }
+      }
+    ],
+    "models": {
+      "anthropic": "claude-3-5-haiku-20241022",
+      "openai": "gpt-4o-mini"
+    },
+    "max_tokens": 500
+  },
+  "timestamp": "2025-08-31T17:18:03.111988",
+  "results": {
+    "openai": {
+      "status_code": 200,
+      "response": {
+        "id": "resp_68b4e63b8f008197b7f44eae0016718d0d3d029047f82281",
+        "object": "response",
+        "created_at": 1756685883,
+        "status": "completed",
+        "background": false,
+        "error": null,
+        "incomplete_details": null,
+        "instructions": null,
+        "max_output_tokens": 500,
+        "max_tool_calls": null,
+        "model": "gpt-4o-mini-2024-07-18",
+        "output": [
+          {
+            "id": "ws_68b4e63c19d481979beb8cca0ca03cda0d3d029047f82281",
+            "type": "web_search_call",
+            "status": "completed",
+            "action": {
+              "type": "search",
+              "query": "fact about quantum computing"
+            }
+          },
+          {
+            "id": "msg_68b4e63d8840819783017c690d51e3ab0d3d029047f82281",
+            "type": "message",
+            "status": "completed",
+            "content": [
+              {
+                "type": "output_text",
+                "annotations": [
+                  {
+                    "type": "url_citation",
+                    "end_index": 238,
+                    "start_index": 144,
+                    "title": "DOE Explains...Quantum Computing | Department of Energy",
+                    "url": "https://www.energy.gov/science/doe-explainsquantum-computing?utm_source=openai"
+                  }
+                ],
+                "logprobs": [],
+                "text": "Quantum computers harness the principles of quantum mechanics to perform certain calculations exponentially faster than today's supercomputers. ([energy.gov](https://www.energy.gov/science/doe-explainsquantum-computing?utm_source=openai)) "
+              }
+            ],
+            "role": "assistant"
+          }
+        ],
+        "parallel_tool_calls": true,
+        "previous_response_id": null,
+        "prompt_cache_key": null,
+        "reasoning": {
+          "effort": null,
+          "summary": null
+        },
+        "safety_identifier": null,
+        "service_tier": "default",
+        "store": true,
+        "temperature": 1.0,
+        "text": {
+          "format": {
+            "type": "text"
+          },
+          "verbosity": "medium"
+        },
+        "tool_choice": "auto",
+        "tools": [
+          {
+            "type": "web_search_preview",
+            "search_context_size": "medium",
+            "user_location": {
+              "type": "approximate",
+              "city": null,
+              "country": "US",
+              "region": null,
+              "timezone": null
+            }
+          }
+        ],
+        "top_logprobs": 0,
+        "top_p": 1.0,
+        "truncation": "disabled",
+        "usage": {
+          "input_tokens": 315,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 64,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 379
+        },
+        "user": null,
+        "metadata": {}
+      }
+    },
+    "anthropic": {
+      "status_code": 200,
+      "response": {
+        "id": "msg_01BPXcQSC9maWpqxkuTHay4q",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-3-5-haiku-20241022",
+        "content": [
+          {
+            "type": "server_tool_use",
+            "id": "srvtoolu_01RfRi2AJgcpnvjwURLy6QC2",
+            "name": "web_search",
+            "input": {
+              "query": "recent breakthrough in quantum computing"
+            }
+          },
+          {
+            "type": "web_search_tool_result",
+            "tool_use_id": "srvtoolu_01RfRi2AJgcpnvjwURLy6QC2",
+            "content": [
+              {
+                "type": "web_search_result",
+                "title": "The 5 most significant breakthroughs in quantum computing",
+                "url": "https://interestingengineering.com/science/5-breakthroughs-in-quantum-computing",
+                "encrypted_content": "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",
+                "page_age": "May 30, 2025"
+              },
+              {
+                "type": "web_search_result",
+                "title": "Northeastern professor achieves major breakthrough in the manufacture of quantum computing components",
+                "url": "https://news.northeastern.edu/2024/07/12/quantum-computing-breakthrough-manufacturing/",
+                "encrypted_content": "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",
+                "page_age": "July 15, 2024"
+              },
+              {
+                "type": "web_search_result",
+                "title": "Breakthroughs in Quantum Computing",
+                "url": "https://www.wevolver.com/article/breakthroughs-in-quantum-computing",
+                "encrypted_content": "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",
+                "page_age": null
+              },
+              {
+                "type": "web_search_result",
+                "title": "\u2018A truly remarkable breakthrough\u2019: Google\u2019s new quantum chip achieves accuracy milestone",
+                "url": "https://www.nature.com/articles/d41586-024-04028-3",
+                "encrypted_content": "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",
+                "page_age": "December 9, 2024"
+              },
+              {
+                "type": "web_search_result",
+                "title": "Google\u2019s \u2018Willow\u2019 Chip Makes a Major Breakthrough in Quantum Computing",
+                "url": "https://www.scientificamerican.com/article/google-makes-a-major-quantum-computing-breakthrough/",
+                "encrypted_content": "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",
+                "page_age": "December 9, 2024"
+              },
+              {
+                "type": "web_search_result",
+                "title": "A 56-Qubit Quantum Computer Just Did What No Supercomputer Can",
+                "url": "https://scitechdaily.com/a-56-qubit-quantum-computer-just-did-what-no-supercomputer-can/",
+                "encrypted_content": "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",
+                "page_age": "March 31, 2025"
+              },
+              {
+                "type": "web_search_result",
+                "title": "Quantum Computing News & Top Stories | The Quantum Insider",
+                "url": "https://thequantuminsider.com/",
+                "encrypted_content": "Et4JCioIBxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDN/U+zoOTmHhSNU9wRoMqIRCZkKxRKGdQ5eWIjA3a4jJCyLdSIjs1334KzinKB0OzHAUlkuFHpt2U6RUTDh/q3cj1HbfYw4RbO70fBUq4Qj7J0YCpufknKlbfEsnjmmBXE4BemktS9aXg2PB7w2YPQROBhhAjoysjpuOMaa2bW4LQEdOQBhoRBJOGnR+l5WdJrg9/rOAzsRjg8PLSP+AqZlartXf++jInZCRLJ+ayxNi2JB3rW9V3PndDb9JzD0adUAYVyqmTNxgJCVUxPiwVRilurj2ADZwv0tDpRztNOewuju5nDiarchXo02K260A5LJkeuC6VSBQx9argVTCQg31O2XvvSQXy91Xy/I6FVxk7Ue8czCApVZebYgwJe3N2j+Z/rBH+uyZT5cCnacXKy4UPy2kxPasERwJokD3EsvBEAz3085e53jqKFtc3PUtpCzBqbbrmE8N97nZHrkLF/SG4Da2VkpEVdMatU1K0Kk+I1Lf8E4AkzmIOXDgrsALiebGS2vNxCSeOvM7YRSEYv5bd/qWXQ4M7FXZyQxPikHqEAAcQOC4dmT5f6pdVWi26YO/ai29yEnT1CaVl4IAlF8zvVwI9cMOD7l+3SHCs5MnzyhRgK2CPkkusd0FxC5DBS4HHCVZE3DA1oPzHeg0mMNlJk/7D7PqDqYDYpplgYxReZ7QbDG7zJXVnLZLcfG24D7ZSLWUZqfAxFDboBV2nV3oqIsmkUWMKp4TQd2pkpx8hpnPscUWH++3x0F+vGauvml8C8RlpGCW2zU+39NnAoOOlXq5gbHYbFSYFhTGmREW3o7QWieYsZa1l6e6IqNs0pFtjnXkm4C9a7njSXY9xqyNNUw3GKYRMt4CmBou0fEgDPnRazgMA25v+kGnSKv+MxQPvKA99z5mhAelQNIeXoMoNxKyafd4htKfnveEiyCq3YUeEeNPkKF4frMbyoHcxGWoe3TQd/doYu1LTmMslmhyZaqPwwBE4mdPtG+iumpNoZSfh7gCm001JiNGIPUBiVzqdnYaSuk0M9U7vXqLcnpzzZjQZj3UTYcd8UepbPVmXgeK6AlwySXwEPj3eCTVscvte3JTK8P132a8uMdJHor5ZvRvPKRwfg07Oqjo+E0Zp2rVwiqG28wz2BjcjSTgajGKimmtsn/FyrJpahhky12MDyMoN5VvF8mjLB9SiIS8V1LH3p+JItkcMq9LSVXmQuywzolqDDfNT24xUNdV3gyRYWJZDoR4e/Gbrm0gR7varABO4AdtsD+RpnIMT+LQOrTYZh8JNwF51meOtqnffSSYkBUVFsTn7tgfYKm+7qk+VX0K7m09LIzF8MFeR8vEKK7vGzsARdjG8m4DrMhYT4bqBBQNPgbydDZxCeHzSqIlQXgIYW0lwitW5GkVd6+S5u/ENygMihuptIyN4pT/nByWwR40ax/+fOD9XSgKK9OI7l6l7YGzUKBSHFAkHRnaWLegq/XNMdRqSbCntGk7TeMewkN8m5sonaXs4hG87S4Grr161WdV2NYVTNIGDiF07JSj0x2BLUbO+yNtJG378azdsK2g9NrZJQlR5RQcbGtEQCuno0h8sURWnIAT1c5gnhgD",
+                "page_age": "1 week ago"
+              },
+              {
+                "type": "web_search_result",
+                "title": "Breakthrough promises secure quantum computing at home | University of Oxford",
+                "url": "https://www.ox.ac.uk/news/2024-04-11-breakthrough-promises-secure-quantum-computing-home-0",
+                "encrypted_content": "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",
+                "page_age": null
+              },
+              {
+                "type": "web_search_result",
+                "title": "Quantum Computing in 2024: Breakthroughs, Challenges ...",
+                "url": "https://microtime.com/quantum-computing-in-2024-breakthroughs-challenges-and-what-lies-ahead/",
+                "encrypted_content": "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",
+                "page_age": "January 9, 2025"
+              },
+              {
+                "type": "web_search_result",
+                "title": "Quantum Computers News -- ScienceDaily",
+                "url": "https://www.sciencedaily.com/news/computers_math/quantum_computers/",
+                "encrypted_content": "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",
+                "page_age": "1 week ago"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "Here's an interesting fact about quantum computing: "
+          },
+          {
+            "citations": [
+              {
+                "type": "web_search_result_location",
+                "cited_text": "\u201cWhen you pass this transition, where you can correct errors faster than they\u2019re caused, is when making bigger and bigger systems makes it better.\u201d \u00b7 ...",
+                "url": "https://www.scientificamerican.com/article/google-makes-a-major-quantum-computing-breakthrough/",
+                "title": "Google\u2019s \u2018Willow\u2019 Chip Makes a Major Breakthrough in Quantum Computing",
+                "encrypted_index": "EpMBCioIBxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDCgpKzKxtVM4oT40PBoMpmXzAkxUApHXwNSkIjAFtRd/E8MfJTBNIZBffqmDzYKjpWsi3IYOriZiyiOA/X8tM2fN2CyqxSZ59DzoqdQqF+2BevUaOJaoSQ6q1AQt8zn3de0uQGX0GAQ="
+              }
+            ],
+            "type": "text",
+            "text": "Researchers at Google created a silicon chip with 105 qubits and linked multiple physical qubits to form a logical qubit. This logical qubit lasted more than twice as long as any individual qubit it was composed of, and had only a one-in-1,000 chance of error per computation cycle"
+          },
+          {
+            "type": "text",
+            "text": ".\n\nTo provide some context, "
+          },
+          {
+            "citations": [
+              {
+                "type": "web_search_result_location",
+                "cited_text": "... Quantum computers are a little like librarians: both abhor noise. Compared with their classical counterparts, quantum computers are finicky and ne...",
+                "url": "https://www.scientificamerican.com/article/google-makes-a-major-quantum-computing-breakthrough/",
+                "title": "Google\u2019s \u2018Willow\u2019 Chip Makes a Major Breakthrough in Quantum Computing",
+                "encrypted_index": "EpMBCioIBxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDKG98UFBfh0d4aDN/BoMfdc4jZT21h3OL9OAIjBHk37b9XYCCCiLdHvgacxsqH8HUivVyQ9cby2f5z4nvWzfx6BOE97rLu6Il2LrghUqFyYprD9n7TjEbtW5xbiffXrLkFaHR3PBGAQ="
+              }
+            ],
+            "type": "text",
+            "text": "quantum computers are extremely sensitive, much like librarians who abhor noise. They need a very serene environment to perform calculations, but even the quietest space in the universe has quantum noise from the inevitable movement of electrons and other atomic effects"
+          },
+          {
+            "type": "text",
+            "text": ". "
+          },
+          {
+            "citations": [
+              {
+                "type": "web_search_result_location",
+                "cited_text": "If physicists could quell quantum errors caused by noise on a large enough quantum computer, they could perform some computations, such as exact simul...",
+                "url": "https://www.scientificamerican.com/article/google-makes-a-major-quantum-computing-breakthrough/",
+                "title": "Google\u2019s \u2018Willow\u2019 Chip Makes a Major Breakthrough in Quantum Computing",
+                "encrypted_index": "EpMBCioIBxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDBZqEganawSa/ae1zhoM7kxJAoqlUCOnlizxIjCiTX2zAwOm5U/KLU93T206M056IkP7Ah3v6to4S1IbgKcMZU+nglKC6CW64nKaK3wqFxb/HLupKCc9iowC31dzw3o6z/CO53NdGAQ="
+              }
+            ],
+            "type": "text",
+            "text": "If physicists can quell quantum errors caused by noise on a large enough quantum computer, they could perform computations like exact molecular simulations that are impossible for classical computers. Quantum error correction (QEC) is an essential technique to protect quantum information from this noise"
+          },
+          {
+            "type": "text",
+            "text": ".\n\nThis breakthrough is particularly exciting because "
+          },
+          {
+            "citations": [
+              {
+                "type": "web_search_result_location",
+                "cited_text": "That\u2019s the key thing that makes this scalable.\u201d \u00b7 What everyone seems to agree on is that recent advances in error correction are a sea change. \u201cWhat'...",
+                "url": "https://www.scientificamerican.com/article/google-makes-a-major-quantum-computing-breakthrough/",
+                "title": "Google\u2019s \u2018Willow\u2019 Chip Makes a Major Breakthrough in Quantum Computing",
+                "encrypted_index": "EpMBCioIBxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDAAO1MbKLMmGLwZtpRoMbcBSwg0OHBHHuZeXIjCyObXsvUOiCFgOo0efKmagYxkNVDh79dH0SkqsGDiDW1n3BeMbXpfteGuHIs44vU0qF1C2w//fOiJbhMAWkvpA2B1VE40IIjaHGAQ="
+              }
+            ],
+            "type": "text",
+            "text": "recent advances in error correction are considered a sea change in the field. Researchers who developed the theory of error correction decades ago are thrilled to finally see demonstrations of fault tolerance"
+          },
+          {
+            "type": "text",
+            "text": "."
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 17065,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 388,
+          "service_tier": "standard",
+          "server_tool_use": {
+            "web_search_requests": 1,
+            "web_fetch_requests": 0
+          }
+        }
+      }
+    }
+  }
+}

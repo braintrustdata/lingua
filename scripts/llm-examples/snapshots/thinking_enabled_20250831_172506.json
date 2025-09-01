@@ -1,0 +1,144 @@
+{
+  "case": {
+    "name": "thinking_enabled",
+    "description": "Test thinking/reasoning capabilities across providers",
+    "prompt": "Think step by step: What are the key differences between classical and quantum computers?",
+    "tools": [],
+    "models": {
+      "anthropic": "claude-opus-4-1-20250805",
+      "openai": "gpt-5-mini"
+    },
+    "max_tokens": 2000,
+    "provider_configs": {
+      "anthropic": {
+        "thinking": {
+          "type": "enabled",
+          "budget_tokens": 1024
+        }
+      },
+      "openai": {
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        }
+      }
+    }
+  },
+  "timestamp": "2025-08-31T17:24:47.305897",
+  "results": {
+    "anthropic": {
+      "status_code": 200,
+      "response": {
+        "id": "msg_01MvNGRCCAc5PA8Jd3H83sta",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-opus-4-1-20250805",
+        "content": [
+          {
+            "type": "thinking",
+            "thinking": "The user is asking about the differences between classical and quantum computers. I should explain this step by step, covering the fundamental differences in how they work, what principles they're based on, and their practical implications.\n\nLet me structure this to be clear and educational:\n1. Basic unit of information\n2. How they process information\n3. The underlying physics\n4. Their strengths and limitations\n5. Current applications",
+            "signature": "Et8ECkYIBxgCKkCVRkNCek9puBwGL0NF+KaJdAYdnFHppnNIDzx3g+RaKg8dr4lUVj9D1PbaGJCcCIeZogM1ygpxt3AhaYI/zb3REgwRCEOaQF38OncbvhgaDJMgQ9Hu86TMKBS3QiIwoVdbo4H9rTEIdizLBNSyoUxAKntosImTo5qHrLKkCR0w12cFh3x2oYfRI2gm7r7GKsYDRpoCjfGcZoHaoPlsQnuQnmzFNpFBwMcdRxDkoYp9gPwEpGXDMA/XIeUkmc5aM75ZPzCo8/7/3av97S7rEji2CHGvpHxU13v7GMe61qqNvdRAmxXz4r27SGV1mcrHO7QBx5dI8vXC6nDqUp8w64xToBj6Y43t4o9cZpmVZ896eKHSwgIw0M4+eK8nB7Vy1QU2JcxacMeMnjzv9RIvTwLlL5vxz5QGUvQhrw4zONUHZe4motgegjygOjEwJRgR9ns0ygD9egIsnWZy7WFSitJkUoO24uG/GpStoVL6SyUh6l2bUYmi3RiaCMDaGoTb8uPw6S5Ymwna7NmFwtij0B7Y6BEhDOb1A2nQEp+YI576qxsFxcpUkMW/EsO8PGxbdqjHW7kZBEfnkoxQpKAzzcVSwOsurRyrkRSGmJJ9ahwXs/EL90rmHs4F+S9cbxi2Jc4Wluqz8sG8zClSY3+WFDNwyPWg5eMxJyXgB0fCmybSFBSHgnkpyazBTPcEvXU3NdRTRW8zy3HqXUXmXmulOgtAdwfgEcFxz51G58si8SQ5Z9Iywps2rnxI31n7HG4wKohpTJxU3ZmwOG9dLWjNVy9qrYCoQgiVpBgB"
+          },
+          {
+            "type": "text",
+            "text": "I'll walk through the key differences between classical and quantum computers step by step:\n\n## **1. Basic Information Unit**\n- **Classical computers**: Use bits that are either 0 or 1\n- **Quantum computers**: Use quantum bits (qubits) that can be 0, 1, or both simultaneously (superposition)\n\n## **2. Information Processing**\n- **Classical computers**: Process information sequentially or in parallel using definite states\n- **Quantum computers**: Can process multiple possibilities simultaneously through quantum superposition\n\n## **3. Core Operating Principles**\n- **Classical computers**: Based on transistors and logic gates following Boolean algebra\n- **Quantum computers**: Based on quantum mechanical phenomena like:\n  - Superposition (multiple states at once)\n  - Entanglement (qubits influencing each other instantly)\n  - Quantum interference (amplifying correct answers)\n\n## **4. Problem-Solving Strengths**\n- **Classical computers**: Excel at:\n  - Sequential calculations\n  - Data storage and retrieval\n  - Most everyday computing tasks\n- **Quantum computers**: Potentially superior for:\n  - Cryptography and code-breaking\n  - Drug discovery and molecular modeling\n  - Complex optimization problems\n  - Certain machine learning tasks\n\n## **5. Current Limitations**\n- **Classical computers**: Hit physical limits with miniaturization and heat generation\n- **Quantum computers**: Face challenges with:\n  - Quantum decoherence (losing quantum properties)\n  - Need for extreme cooling (near absolute zero)\n  - High error rates\n  - Limited availability and extreme cost\n\n## **6. Practical Status**\n- **Classical computers**: Mature technology, widely available\n- **Quantum computers**: Still largely experimental, with limited commercial applications"
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 51,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "output_tokens": 491,
+          "service_tier": "standard"
+        }
+      }
+    },
+    "openai": {
+      "status_code": 200,
+      "response": {
+        "id": "resp_68b4e7cfbbe88193bac27cab420883460ed512800dfaa307",
+        "object": "response",
+        "created_at": 1756686287,
+        "status": "completed",
+        "background": false,
+        "error": null,
+        "incomplete_details": null,
+        "instructions": null,
+        "max_output_tokens": 2000,
+        "max_tool_calls": null,
+        "model": "gpt-5-mini-2025-08-07",
+        "output": [
+          {
+            "id": "rs_68b4e7d040f88193953d3173ca00ebc40ed512800dfaa307",
+            "type": "reasoning",
+            "summary": [
+              {
+                "type": "summary_text",
+                "text": "**Comparing classical and quantum computers**\n\nI see the user is seeking a detailed, step-by-step comparison between classical and quantum computers. I need to cover key differences like bits versus qubits, superposition, and entanglement, while touching on deterministic versus probabilistic outputs. I also want to explain various computation models and complexity classes, along with algorithms like Shor's and Grover's. It\u2019s essential to include strengths, limitations, and suitable tasks for quantum computers. A structured bullet list will help maintain clarity, and I\u2019ll wrap up with a summary table. I'll include simple mathematical concepts and analogies for better understanding."
+              },
+              {
+                "type": "summary_text",
+                "text": "**Detailing quantum computing features**\n\nThe user wants a clear step-by-step breakdown of the current state of quantum computing, particularly addressing the NISQ era, noise, and error correction. I should explain concepts like probabilistic measurements and how algorithms utilize amplitude amplification to enhance probabilities. I'll clarify the differences between classical and quantum gates, highlighting that quantum gates are reversible and that copying is not permitted. It's important to discuss complexity classes like BQP and the hardware challenges involved, such as decoherence and error correction. I'll create numbered steps for each key difference, keeping it concise and straightforward."
+              }
+            ]
+          },
+          {
+            "id": "msg_68b4e7d86a64819381c536bfca5abff10ed512800dfaa307",
+            "type": "message",
+            "status": "completed",
+            "content": [
+              {
+                "type": "output_text",
+                "annotations": [],
+                "logprobs": [],
+                "text": "Good \u2014 I\u2019ll walk through the major differences step by step. Each step highlights one key concept, what it means technically, and the practical implication.\n\n1) Fundamental information unit\n- Classical: bit, value 0 or 1.\n- Quantum: qubit, which can be in a superposition \u03b1|0> + \u03b2|1> (complex amplitudes \u03b1, \u03b2 with |\u03b1|^2+|\u03b2|^2=1).\n- Implication: a single qubit encodes more possibilities than a single bit, but those possibilities are not directly readable without measurement.\n\n2) Superposition vs definite states\n- Classical bits are always in one definite state.\n- Qubits can be in superpositions of 0 and 1 simultaneously.\n- Implication: quantum computers can process combinations of many classical states at once (quantum parallelism), but measurement yields a single outcome probabilistically.\n\n3) Entanglement and correlations\n- Classical correlations: statistical relationships between bits.\n- Quantum entanglement: nonclassical correlations where the joint state cannot be factored into independent states for each qubit.\n- Implication: entanglement enables tasks and protocols (teleportation, certain speedups) that have no classical analogue.\n\n4) Reversibility and allowed operations\n- Classical logic gates (AND, OR) are generally irreversible; information can be lost.\n- Quantum gates are unitary (linear and reversible). Examples: Hadamard, Pauli-X, CNOT.\n- Implication: algorithms must be implemented with reversible transformations; ancilla qubits and uncomputation are often required.\n\n5) Interference of amplitudes\n- Classical probabilities add; there is no phase to cancel.\n- Quantum amplitudes (complex numbers) can interfere constructively or destructively.\n- Implication: algorithms like Grover\u2019s or Shor\u2019s exploit interference to amplify correct answers and cancel wrong ones.\n\n6) Measurement and collapse\n- Classical measurement reads a bit without changing its value.\n- Quantum measurement projects the state to an eigenstate and yields probabilistic outcomes; it generally destroys the superposition.\n- Implication: you can\u2019t copy unknown quantum states (no-cloning) and must design algorithms so the final measurement gives a high probability of the correct result.\n\n7) No-cloning and constraints on copying\n- Classical states can be copied freely.\n- Quantum no-cloning theorem forbids creating an identical copy of an unknown quantum state.\n- Implication: different approaches required for error correction, communication, and algorithm design.\n\n8) Error, noise, and decoherence\n- Classical systems have mature error-correction and are typically robust at scale.\n- Quantum systems are highly sensitive to decoherence and gate errors; quantum error correction requires many physical qubits per logical qubit.\n- Implication: building large, reliable quantum computers is experimentally challenging and resource-intensive.\n\n9) Parallelism vs exponential state space\n- Classical parallelism requires multiple processors.\n- n qubits represent a 2^n-dimensional complex vector (state space) and can be manipulated coherently.\n- Implication: potential exponential speedups for some problems, but not a free or direct \u201creadout\u201d of all 2^n values \u2014 you must exploit interference and structure.\n\n10) Complexity and algorithmic implications\n- Classical complexity classes: P, NP, etc.\n- Quantum complexity class: BQP (problems solvable efficiently by quantum computers with bounded error).\n- Implication: some problems (integer factoring via Shor\u2019s algorithm, certain simulations) are believed to be efficiently solved by quantum computers while no efficient classical algorithms are known. But quantum computers don\u2019t efficiently solve all hard problems (e.g., NP-complete problems are not known to be in BQP).\n\n11) Typical applications and advantages\n- Classical computers: general-purpose, best for everyday computing, databases, most algorithms.\n- Quantum computers excel (theoretically/practically depending on maturity) at:\n  - Factoring and discrete-log (cryptography implications)\n  - Unstructured search speedup (Grover \u2014 quadratic)\n  - Simulating quantum systems (chemistry, materials)\n  - Certain linear-algebra subroutines and sampling tasks\n- Implication: quantum will complement, not replace, classical computing for many tasks.\n\n12) Current practical status\n- Classical technology: mature, scalable, inexpensive per operation.\n- Quantum technology: in NISQ (noisy intermediate-scale quantum) era \u2014 small-to-medium noisy devices, limited-depth algorithms, and active research into fault tolerance and scaling.\n- Implication: practical, large-scale quantum advantage is still being pursued; near-term useful applications are problem-dependent.\n\nSummary (short)\n- Classical bits vs qubits (definite vs superposed/entangled).\n- Deterministic readout vs probabilistic measurement with collapse.\n- Irreversible typical classical gates vs reversible unitary quantum gates and interference.\n- Quantum offers certain algorithmic advantages (factoring, simulation) but is experimentally challenging and doesn't automatically speed up all computations.\n\nIf you want, I can illustrate a simple example (e.g., how Hadamard creates a superposition or how Grover\u2019s algorithm uses interference) or show a side-by-side comparison table. Which would you prefer?"
+              }
+            ],
+            "role": "assistant"
+          }
+        ],
+        "parallel_tool_calls": true,
+        "previous_response_id": null,
+        "prompt_cache_key": null,
+        "reasoning": {
+          "effort": "medium",
+          "summary": "detailed"
+        },
+        "safety_identifier": null,
+        "service_tier": "default",
+        "store": true,
+        "temperature": 1.0,
+        "text": {
+          "format": {
+            "type": "text"
+          },
+          "verbosity": "medium"
+        },
+        "tool_choice": "auto",
+        "tools": [],
+        "top_logprobs": 0,
+        "top_p": 1.0,
+        "truncation": "disabled",
+        "usage": {
+          "input_tokens": 22,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 1391,
+          "output_tokens_details": {
+            "reasoning_tokens": 320
+          },
+          "total_tokens": 1413
+        },
+        "user": null,
+        "metadata": {}
+      }
+    }
+  }
+}

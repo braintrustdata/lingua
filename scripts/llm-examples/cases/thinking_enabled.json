@@ -1,0 +1,25 @@
+{
+  "name": "thinking_enabled",
+  "description": "Test thinking/reasoning capabilities across providers",
+  "prompt": "Think step by step: What are the key differences between classical and quantum computers?",
+  "tools": [],
+  "models": {
+    "anthropic": "claude-opus-4-1-20250805",
+    "openai": "gpt-5-mini"
+  },
+  "max_tokens": 2000,
+  "provider_configs": {
+    "anthropic": {
+      "thinking": {
+        "type": "enabled",
+        "budget_tokens": 1024
+      }
+    },
+    "openai": {
+      "reasoning": {
+        "effort": "medium",
+        "summary": "auto"
+      }
+    }
+  }
+}
