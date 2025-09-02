@@ -36,6 +36,10 @@ tokio-test = "0.4"
 name = "generate-types"
 path = "scripts/generate-types.rs"
 
+[[bin]]
+name = "generate-ts"
+path = "scripts/generate-ts.rs"
+
 [lib]
 name = "elmir"
 path = "src/lib.rs"

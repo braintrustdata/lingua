@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use super::citation::Citation;
 use super::provider::ProviderMessagePartConfig;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "role", rename_all = "snake_case")]
 pub enum Message {
     System {
@@ -29,7 +31,8 @@ pub enum Message {
 }
 
 // User can send: text, images, documents, audio
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum UserContentPart {
     Text {
@@ -63,7 +66,8 @@ pub enum UserContentPart {
 }
 
 // Assistant can respond with: text, images, tool calls, thinking, search results, refusals
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AssistantContentPart {
     Text {
@@ -83,6 +87,7 @@ pub enum AssistantContentPart {
     ToolUse {
         id: String,
         name: String,
+        #[ts(type = "any")]
         input: serde_json::Value,
         #[serde(skip_serializing_if = "Option::is_none")]
         provider_config: Option<ProviderMessagePartConfig>,
@@ -124,7 +129,8 @@ pub enum AssistantContentPart {
 }
 
 // Tool messages contain only tool results
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToolContentPart {
     ToolResult {
@@ -138,7 +144,8 @@ pub enum ToolContentPart {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(rename_all = "snake_case")]
 pub enum ImageDetail {
     Low,
@@ -146,7 +153,8 @@ pub enum ImageDetail {
     High,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToolResultContent {
     Text {
@@ -158,11 +166,13 @@ pub enum ToolResultContent {
         data: FileData,
     },
     Json {
+        #[ts(type = "any")]
         json: serde_json::Value,
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct SearchResultItem {
     pub title: Option<String>,
     pub url: Option<String>,
@@ -172,7 +182,8 @@ pub struct SearchResultItem {
     pub citations: Option<Vec<Citation>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct WebSearchResultItem {
     pub title: Option<String>,
     pub url: String,
@@ -183,7 +194,8 @@ pub struct WebSearchResultItem {
     pub citations: Option<Vec<Citation>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum FileData {
     Url(String),
@@ -191,7 +203,8 @@ pub enum FileData {
     FileId(String),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct Base64Data {
     pub mime_type: String,
     pub data: Vec<u8>,
