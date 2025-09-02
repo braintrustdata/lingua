@@ -200,35 +200,29 @@ pub enum ToolResultContent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct SearchResultItem {
-    #[ts(optional)]
     pub title: Option<String>,
-    #[ts(optional)]
     pub url: Option<String>,
-    #[ts(optional)]
     pub content: Option<String>,
-    #[ts(optional)]
     pub snippet: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub citations: Option<Vec<Citation>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct WebSearchResultItem {
-    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     pub url: String,
-    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub snippet: Option<String>,
-    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub display_url: Option<String>,
-    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub publish_date: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub citations: Option<Vec<Citation>>,
 }
 

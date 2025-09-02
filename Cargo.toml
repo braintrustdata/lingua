@@ -8,6 +8,9 @@ repository = "https://github.com/yourusername/elmir"
 keywords = ["llm", "ai", "openai", "anthropic", "api"]
 categories = ["api-bindings", "development-tools"]
 
+[package.metadata.ts-rs]
+optional_option_fields = true
+
 [features]
 default = ["openai", "anthropic", "google", "bedrock"]
 openai = []

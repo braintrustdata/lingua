@@ -1,43 +1,39 @@
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct ProviderMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub anthropic: Option<AnthropicMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub openai: Option<ExtraMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub google: Option<ExtraMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub bedrock: Option<ExtraMessagePartConfig>,
-    /// Other providers by name
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional, type = "Record<string, any>")]
-    pub other: Option<serde_json::Map<String, serde_json::Value>>,
+    #[ts(optional, type = "Record<string, Record<string, unknown>>")]
+    pub other: Option<BTreeMap<String, BTreeMap<String, serde_json::Value>>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct AnthropicMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub cache_control: Option<CacheControlEphemeral>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional, type = "any")]
-    pub extra: Option<serde_json::Value>,
+    #[ts(type = "Record<string, unknown>")]
+    pub extra: Option<BTreeMap<String, serde_json::Value>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct ExtraMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional, type = "any")]
+    #[ts(type = "Record<string, unknown>")]
     pub extra: Option<serde_json::Value>,
 }
 
