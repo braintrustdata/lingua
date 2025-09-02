@@ -2,4 +2,4 @@
 import type { CitationPosition } from "./CitationPosition";
 import type { CitationSource } from "./CitationSource";
 
-export interface Citation { cited_text: string | null, position: CitationPosition, source: CitationSource, }
+export type Citation = { cited_text?: string, position: CitationPosition, source: CitationSource, };

@@ -4,6 +4,7 @@ use ts_rs::TS;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct Citation {
+    #[ts(optional)]
     pub cited_text: Option<String>,
     pub position: CitationPosition,
     pub source: CitationSource,
@@ -26,10 +27,15 @@ pub enum CitationPosition {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct CitationSource {
+    #[ts(optional)]
     pub url: Option<String>,
+    #[ts(optional)]
     pub title: Option<String>,
+    #[ts(optional)]
     pub document_title: Option<String>,
+    #[ts(optional)]
     pub document_index: Option<i64>,
+    #[ts(optional)]
     pub license: Option<String>,
     pub source_type: SourceType,
 }

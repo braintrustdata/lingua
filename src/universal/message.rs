@@ -11,21 +11,25 @@ pub enum Message {
     System {
         content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     User {
         content: Vec<UserContentPart>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     Assistant {
         content: Vec<AssistantContentPart>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     Tool {
         content: Vec<ToolContentPart>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
 }
@@ -38,29 +42,37 @@ pub enum UserContentPart {
     Text {
         text: String,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         citations: Option<Vec<Citation>>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     Image {
         data: FileData,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         detail: Option<ImageDetail>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     Document {
         data: FileData,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         citations: Option<Vec<Citation>>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     Audio {
         data: FileData,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         transcript: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
 }
@@ -73,15 +85,19 @@ pub enum AssistantContentPart {
     Text {
         text: String,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         citations: Option<Vec<Citation>>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     Image {
         data: FileData,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         detail: Option<ImageDetail>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     ToolUse {
@@ -90,40 +106,48 @@ pub enum AssistantContentPart {
         #[ts(type = "any")]
         input: serde_json::Value,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     Thinking {
         content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     RedactedThinking {
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     SearchResult {
         query: String,
         results: Vec<SearchResultItem>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     WebSearchResult {
         query: String,
         results: Vec<WebSearchResultItem>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     ExecutableCode {
         language: String,
         code: String,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         output: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
     Refusal {
         refusal: String,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
 }
@@ -136,10 +160,13 @@ pub enum ToolContentPart {
     ToolResult {
         tool_use_id: String,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         content: Option<Vec<ToolResultContent>>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         is_error: Option<bool>,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
 }
@@ -160,6 +187,7 @@ pub enum ToolResultContent {
     Text {
         text: String,
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         citations: Option<Vec<Citation>>,
     },
     Image {
@@ -174,23 +202,33 @@ pub enum ToolResultContent {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct SearchResultItem {
+    #[ts(optional)]
     pub title: Option<String>,
+    #[ts(optional)]
     pub url: Option<String>,
+    #[ts(optional)]
     pub content: Option<String>,
+    #[ts(optional)]
     pub snippet: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub citations: Option<Vec<Citation>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct WebSearchResultItem {
+    #[ts(optional)]
     pub title: Option<String>,
     pub url: String,
+    #[ts(optional)]
     pub snippet: Option<String>,
+    #[ts(optional)]
     pub display_url: Option<String>,
+    #[ts(optional)]
     pub publish_date: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub citations: Option<Vec<Citation>>,
 }
 

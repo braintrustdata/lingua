@@ -2,4 +2,8 @@
 import type { AnthropicMessagePartConfig } from "./AnthropicMessagePartConfig";
 import type { ExtraMessagePartConfig } from "./ExtraMessagePartConfig";
 
-export interface ProviderMessagePartConfig { anthropic?: AnthropicMessagePartConfig, openai?: ExtraMessagePartConfig, google?: ExtraMessagePartConfig, bedrock?: ExtraMessagePartConfig, other?: Record<string, any>, }
+export type ProviderMessagePartConfig = { anthropic?: AnthropicMessagePartConfig, openai?: ExtraMessagePartConfig, google?: ExtraMessagePartConfig, bedrock?: ExtraMessagePartConfig, 
+/**
+ * Other providers by name
+ */
+other?: Record<string, any>, };

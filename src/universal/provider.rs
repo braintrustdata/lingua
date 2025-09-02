@@ -5,16 +5,20 @@ use ts_rs::TS;
 #[ts(export)]
 pub struct ProviderMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub anthropic: Option<AnthropicMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub openai: Option<ExtraMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub google: Option<ExtraMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub bedrock: Option<ExtraMessagePartConfig>,
     /// Other providers by name
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "Record<string, any>")]
+    #[ts(optional, type = "Record<string, any>")]
     pub other: Option<serde_json::Map<String, serde_json::Value>>,
 }
 
@@ -22,9 +26,10 @@ pub struct ProviderMessagePartConfig {
 #[ts(export)]
 pub struct AnthropicMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub cache_control: Option<CacheControlEphemeral>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(optional, type = "any")]
     pub extra: Option<serde_json::Value>,
 }
 
@@ -32,7 +37,7 @@ pub struct AnthropicMessagePartConfig {
 #[ts(export)]
 pub struct ExtraMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(optional, type = "any")]
     pub extra: Option<serde_json::Value>,
 }
 
@@ -43,6 +48,7 @@ pub struct ExtraMessagePartConfig {
 pub enum CacheControlEphemeral {
     Ephemeral {
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         ttl: Option<CacheTtl>,
     },
 }
