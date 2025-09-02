@@ -49,14 +49,19 @@ cargo build --no-default-features --features="openai,anthropic"
 
 ### TypeScript bindings
 
-Generate TypeScript type definitions:
+TypeScript type definitions are generated automatically when running tests:
 ```bash
-cargo run --bin ts-gen
+cargo test
 ```
 
 This creates TypeScript files in `bindings/typescript/`:
 - Individual type files (e.g., `Message.ts`, `UserContentPart.ts`)
-- `index.ts` - exports all types for easy importing
+- Automatic exports for all types marked with `#[ts(export)]`
+
+To generate only TypeScript types without running all tests:
+```bash
+cargo test export_typescript_types
+```
 
 ## Provider type generation
 

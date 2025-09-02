@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 pub struct ProviderMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub anthropic: Option<AnthropicMessagePartConfig>,
@@ -19,7 +19,7 @@ pub struct ProviderMessagePartConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 pub struct AnthropicMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
@@ -29,7 +29,7 @@ pub struct AnthropicMessagePartConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 pub struct ExtraMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "any")]
@@ -38,7 +38,7 @@ pub struct ExtraMessagePartConfig {
 
 // Cache breakpoints are only used by Anthropic models.
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum CacheControlEphemeral {
     Ephemeral {
@@ -48,7 +48,7 @@ pub enum CacheControlEphemeral {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 pub enum CacheTtl {
     #[serde(rename = "5m")]
     FiveMinutes,

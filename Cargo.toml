@@ -36,9 +36,6 @@ tokio-test = "0.4"
 name = "generate-types"
 path = "scripts/generate-types.rs"
 
-[[bin]]
-name = "ts-gen"
-path = "scripts/ts-gen.rs"
 
 
 [lib]

@@ -5,7 +5,7 @@ use super::citation::Citation;
 use super::provider::ProviderMessagePartConfig;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 #[serde(tag = "role", rename_all = "snake_case")]
 pub enum Message {
     System {
@@ -32,7 +32,7 @@ pub enum Message {
 
 // User can send: text, images, documents, audio
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum UserContentPart {
     Text {
@@ -67,7 +67,7 @@ pub enum UserContentPart {
 
 // Assistant can respond with: text, images, tool calls, thinking, search results, refusals
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AssistantContentPart {
     Text {
@@ -130,7 +130,7 @@ pub enum AssistantContentPart {
 
 // Tool messages contain only tool results
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToolContentPart {
     ToolResult {
@@ -145,7 +145,7 @@ pub enum ToolContentPart {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 #[serde(rename_all = "snake_case")]
 pub enum ImageDetail {
     Low,
@@ -154,7 +154,7 @@ pub enum ImageDetail {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToolResultContent {
     Text {
@@ -172,7 +172,7 @@ pub enum ToolResultContent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 pub struct SearchResultItem {
     pub title: Option<String>,
     pub url: Option<String>,
@@ -183,7 +183,7 @@ pub struct SearchResultItem {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 pub struct WebSearchResultItem {
     pub title: Option<String>,
     pub url: String,
@@ -195,7 +195,7 @@ pub struct WebSearchResultItem {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum FileData {
     Url(String),
@@ -204,7 +204,7 @@ pub enum FileData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+#[ts(export)]
 pub struct Base64Data {
     pub mime_type: String,
     pub data: Vec<u8>,

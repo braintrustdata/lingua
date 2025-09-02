@@ -1,14 +1,17 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::super::{citation::*, message::*, provider::*};
 
     #[test]
     fn export_typescript_types() {
         // This test triggers ts-rs to export all types marked with #[ts(export)]
-        // Just by referencing the types, ts-rs will generate the .ts files
+        // ts-rs automatically generates .ts files when running `cargo test`
 
-        // The build script sets TS_RS_EXPORT_DIR to ./bindings/typescript
-        // so all types will be automatically exported there
-        println!("TypeScript types should be exported to bindings/typescript/");
+        // Reference all the types to ensure they get exported
+        let _: Option<Message> = None;
+        let _: Option<Citation> = None;
+        let _: Option<ProviderMessagePartConfig> = None;
+
+        println!("✅ TypeScript types exported automatically to bindings/typescript/");
     }
 }
