@@ -1,16 +1,11 @@
-use std::path::Path;
-
 fn main() {
-    // Generate TypeScript types from Rust types using ts-rs
-    let out_dir = std::env::var("OUT_DIR").unwrap();
-    let ts_dir = Path::new(&out_dir).join("../../../typescript");
+    // Create TypeScript bindings directory
+    std::fs::create_dir_all("bindings/typescript").unwrap();
 
-    // Create typescript directory
-    std::fs::create_dir_all(&ts_dir).unwrap();
-
-    // Note: Provider type generation has been moved to scripts/generate-types.rs
-    // Run `cargo run --bin generate-types -- all` to generate provider types
+    // ts-rs will automatically export types marked with #[ts(export)]
+    // to the directory specified in TS_RS_EXPORT_DIR or bindings/ by default
+    std::env::set_var("TS_RS_EXPORT_DIR", "./bindings/typescript");
 
     // Only rerun if source files change
-    println!("cargo:rerun-if-changed=src/");
+    println!("cargo:rerun-if-changed=src/universal/");
 }

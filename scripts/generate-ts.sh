@@ -1,28 +1,23 @@
 #!/bin/bash
 
-# TypeScript generation script for Elmir universal message format
-# This script runs the Rust binary that generates TypeScript bindings using ts-rs
+# Streamlined TypeScript generation for Elmir universal message format
+# Uses ts-rs with minimal configuration for automatic type generation
 
 set -e
 
-echo "🚀 Generating TypeScript bindings for Elmir universal message format..."
+echo "🚀 Generating TypeScript bindings (streamlined approach)..."
 
-# Build the project first to ensure all types are compiled
-echo "📦 Building Rust project..."
-cargo build --bin generate-ts
+# Run the simple TypeScript generation
+echo "⚡ Generating types..."
+cargo run --bin simple-ts-gen
 
-# Run the TypeScript generation binary
-echo "⚡ Running TypeScript generation..."
-cargo run --bin generate-ts
-
-# Verify generated files
-echo "✅ Verifying generated files..."
+# Verify generated files  
+echo "✅ Generated files:"
 if [ -d "bindings/typescript" ]; then
-    echo "📂 Generated files in bindings/typescript/:"
     ls -1 bindings/typescript/*.ts | sed 's/.*\//  📄 /'
     echo ""
     echo "🎉 TypeScript bindings generated successfully!"
-    echo "💡 Import types with: import { Message, UserContentPart } from './bindings/typescript'"
+    echo "💡 Import: import { Message, Citation } from './bindings/typescript'"
 else
     echo "❌ Error: bindings/typescript directory not found"
     exit 1

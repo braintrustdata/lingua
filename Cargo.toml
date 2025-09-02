@@ -40,6 +40,10 @@ path = "scripts/generate-types.rs"
 name = "generate-ts"
 path = "scripts/generate-ts.rs"
 
+[[bin]]
+name = "simple-ts-gen"
+path = "scripts/simple-ts-gen.rs"
+
 [lib]
 name = "elmir"
 path = "src/lib.rs"

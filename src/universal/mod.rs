@@ -10,6 +10,7 @@ It uses a few common conventions to provide this functionality while staying pro
 pub mod citation;
 pub mod message;
 pub mod provider;
+pub mod ts_export;
 
 // #[cfg(test)]
 // mod message_test;
