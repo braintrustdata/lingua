@@ -22,7 +22,7 @@ pub enum ContentPart {
         text: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         cache_control: Option<CacheControlEphemeral>,
-        // XXX TODO
+
         #[serde(skip_serializing_if = "Option::is_none")]
         citations: Option<Vec<String>>,
 
@@ -57,39 +57,6 @@ pub enum ContentPart {
         #[serde(skip_serializing_if = "Option::is_none")]
         provider_specific: Option<serde_json::Value>,
     },
-}
-
-impl ContentPart {
-    /// Create a text content part with just the text content
-    pub fn text(text: impl Into<String>) -> Self {
-        Self::Text {
-            text: text.into(),
-            cache_control: None,
-            citations: None,
-            provider_specific: None,
-        }
-    }
-
-    /// Create an image content part with just the file data
-    pub fn image(data: FileData) -> Self {
-        Self::Image {
-            data,
-            detail: None,
-            cache_control: None,
-            provider_specific: None,
-        }
-    }
-
-    /// Create a document content part with just the file data
-    pub fn document(data: FileData) -> Self {
-        Self::Document {
-            data,
-            filename: None,
-            cache_control: None,
-            citations: None,
-            provider_specific: None,
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
