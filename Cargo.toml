@@ -37,12 +37,8 @@ name = "generate-types"
 path = "scripts/generate-types.rs"
 
 [[bin]]
-name = "generate-ts"
-path = "scripts/generate-ts.rs"
-
-[[bin]]
-name = "simple-ts-gen"
-path = "scripts/simple-ts-gen.rs"
+name = "ts-gen"
+path = "scripts/ts-gen.rs"
 
 
 [lib]

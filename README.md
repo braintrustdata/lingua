@@ -140,8 +140,6 @@ use elmir::translators::to_bedrock_format_with_model;
 
 🚧 **In Development** - Currently building the foundational types and translator architecture.
 
-- [x] Put each AI provider behind a feature flag.
-
 ## Contributing
 
 This project aims to support the entire ecosystem of LLM providers. Contributions for new providers, capability detection improvements, and format enhancements are welcome.
