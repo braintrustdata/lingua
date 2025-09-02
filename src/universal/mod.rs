@@ -7,6 +7,7 @@ It uses a few common conventions to provide this functionality while staying pro
 * Fallback to provider-specific options via a `provider_specific` field on many structs.
 */
 
+pub mod citation;
 pub mod message;
 
 #[cfg(test)]

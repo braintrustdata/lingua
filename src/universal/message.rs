@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::citation::Citation;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "role", rename_all = "snake_case")]
 pub enum Message {
@@ -24,7 +26,7 @@ pub enum ContentPart {
         cache_control: Option<CacheControlEphemeral>,
 
         #[serde(skip_serializing_if = "Option::is_none")]
-        citations: Option<Vec<String>>,
+        citations: Option<Vec<Citation>>,
 
         /// By convention, you can forward along information specific to a particular provider
         /// in this field.
@@ -50,7 +52,7 @@ pub enum ContentPart {
         #[serde(skip_serializing_if = "Option::is_none")]
         cache_control: Option<CacheControlEphemeral>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        citations: Option<bool>,
+        citations: Option<Vec<Citation>>,
 
         /// By convention, you can forward along information specific to a particular provider
         /// in this field.
