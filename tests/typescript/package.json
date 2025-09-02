@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.60.0",
     "@types/node": "^20.0.0",
     "esbuild": "^0.25.9",
     "openai": "^5.16.0",

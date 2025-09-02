@@ -1,8 +1,8 @@
 /*!
-Universal Elmir format definitions.
+Universal format definitions.
 */
 
-pub mod simple;
+pub mod message;
 
-// Re-export main types
-pub use simple::{SimpleMessage, SimpleRole};
+#[cfg(test)]
+mod message_test;

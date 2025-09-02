@@ -32,16 +32,6 @@ aws-sdk-bedrockruntime = { version = "1.105.0", optional = true }
 [dev-dependencies]
 tokio-test = "0.4"
 
-# Build dependencies kept minimal - type generation moved to standalone scripts
-
-[[example]]
-name = "basic_usage"
-path = "examples/basic_usage.rs"
-
-[[example]]
-name = "simple_openai"
-path = "examples/simple_openai.rs"
-
 [[bin]]
 name = "generate-types"
 path = "scripts/generate-types.rs"
