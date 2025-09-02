@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use super::super::{citation::*, message::*, provider::*};
+    use crate::universal::*;
 
     #[test]
     fn export_typescript_types() {
@@ -8,9 +8,11 @@ mod tests {
         // ts-rs automatically generates .ts files when running `cargo test`
 
         // Reference all the types to ensure they get exported
-        let _: Option<Message> = None;
-        let _: Option<Citation> = None;
-        let _: Option<ProviderMessagePartConfig> = None;
+        let _: Option<LanguageModelV2Message> = None;
+        let _: Option<LanguageModelV2Content> = None;
+        let _: Option<LanguageModelV2SourceType> = None;
+        let _: Option<SharedV2ProviderOptions> = None;
+        let _: Option<SharedV2ProviderMetadata> = None;
 
         println!("✅ TypeScript types exported automatically to bindings/typescript/");
     }

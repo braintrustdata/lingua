@@ -1,27 +1,169 @@
 use super::message::*;
+use serde_json::json;
 
 #[test]
-fn test_basic_message() {
-    let message_list = vec![
-        Message::System {
-            content: Content::Text("You are a helpful assistant.".to_string()),
+fn test_exact_ai_sdk_format() {
+    let messages: LanguageModelV2Prompt = vec![
+        LanguageModelV2Message::System {
+            content: "You are a helpful assistant.".to_string(),
+            provider_options: None,
         },
-        Message::User {
-            content: Content::ContentList(vec![ContentPart::Text {
-                text: "Show me a picture of a cat.".to_string(),
-                cache_control: None,
-                citations: None,
-            }]),
+        LanguageModelV2Message::User {
+            content: vec![LanguageModelV2Content::Text {
+                text: "What's 2+2?".to_string(),
+                provider_metadata: None,
+            }],
+            provider_options: None,
         },
-        Message::Assistant {
-            content: Content::ContentList(vec![ContentPart::Image {
-                url: "https://example.com/cat.png".to_string(),
-                detail: None,
-                cache_control: None,
-            }]),
+        LanguageModelV2Message::Assistant {
+            content: vec![LanguageModelV2Content::Text {
+                text: "2+2 equals 4.".to_string(),
+                provider_metadata: None,
+            }],
+            provider_options: None,
         },
     ];
 
-    let serialized = serde_json::to_string_pretty(&message_list).unwrap();
+    let serialized = serde_json::to_string_pretty(&messages).unwrap();
+    eprintln!("Basic conversation format:");
+    eprintln!("{}", serialized);
+
+    // Verify it matches expected AI SDK format
+    let expected_structure = json!([
+        {
+            "role": "system",
+            "content": "You are a helpful assistant."
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "What's 2+2?"
+                }
+            ]
+        },
+        {
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "2+2 equals 4."
+                }
+            ]
+        }
+    ]);
+
+    let parsed: serde_json::Value = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(parsed, expected_structure);
+}
+
+#[test]
+fn test_multimodal_with_reasoning() {
+    let messages: LanguageModelV2Prompt = vec![
+        LanguageModelV2Message::User {
+            content: vec![
+                LanguageModelV2Content::Text {
+                    text: "Analyze this image".to_string(),
+                    provider_metadata: None,
+                },
+                LanguageModelV2Content::File {
+                    data: "data:image/jpeg;base64,/9j/4AAQSkZJRg...".to_string(),
+                    mime_type: "image/jpeg".to_string(),
+                    provider_metadata: None,
+                },
+            ],
+            provider_options: None,
+        },
+        LanguageModelV2Message::Assistant {
+            content: vec![
+                LanguageModelV2Content::Reasoning {
+                    text: "Let me analyze this image step by step...".to_string(),
+                    provider_metadata: None,
+                },
+                LanguageModelV2Content::Text {
+                    text: "I can see a cat in the image.".to_string(),
+                    provider_metadata: None,
+                },
+                LanguageModelV2Content::Source {
+                    source_type: LanguageModelV2SourceType::Document,
+                    id: "source-1".to_string(),
+                    title: Some("Cat Identification Guide".to_string()),
+                    url: Some("https://example.com/cats".to_string()),
+                    filename: None,
+                    media_type: None,
+                    provider_metadata: None,
+                },
+            ],
+            provider_options: None,
+        },
+    ];
+
+    let serialized = serde_json::to_string_pretty(&messages).unwrap();
+    eprintln!("Multimodal with reasoning:");
+    eprintln!("{}", serialized);
+}
+
+#[test]
+fn test_tool_calling_flow() {
+    let messages: LanguageModelV2Prompt = vec![
+        LanguageModelV2Message::User {
+            content: vec![LanguageModelV2Content::Text {
+                text: "What's the weather in SF?".to_string(),
+                provider_metadata: None,
+            }],
+            provider_options: None,
+        },
+        LanguageModelV2Message::Assistant {
+            content: vec![LanguageModelV2Content::ToolCall {
+                id: "call_abc123".to_string(),
+                name: "get_weather".to_string(),
+                args: json!({"location": "San Francisco"}),
+                provider_metadata: None,
+            }],
+            provider_options: None,
+        },
+        LanguageModelV2Message::Tool {
+            content: vec![LanguageModelV2Content::ToolResult {
+                tool_call_id: "call_abc123".to_string(),
+                result: json!({"temperature": "72°F", "condition": "sunny"}),
+                is_error: Some(false),
+                provider_metadata: None,
+            }],
+            provider_options: None,
+        },
+        LanguageModelV2Message::Assistant {
+            content: vec![LanguageModelV2Content::Text {
+                text: "The weather in San Francisco is currently 72°F and sunny.".to_string(),
+                provider_metadata: None,
+            }],
+            provider_options: None,
+        },
+    ];
+
+    let serialized = serde_json::to_string_pretty(&messages).unwrap();
+    eprintln!("Tool calling flow:");
+    eprintln!("{}", serialized);
+}
+
+#[test]
+fn test_provider_metadata() {
+    let mut metadata = serde_json::Map::new();
+    metadata.insert("openai".to_string(), json!({"model": "gpt-4"}));
+    metadata.insert(
+        "anthropic".to_string(),
+        json!({"cache_control": {"type": "ephemeral"}}),
+    );
+
+    let message = LanguageModelV2Message::Assistant {
+        content: vec![LanguageModelV2Content::Text {
+            text: "Response with metadata".to_string(),
+            provider_metadata: Some(SharedV2ProviderMetadata { metadata }),
+        }],
+        provider_options: None,
+    };
+
+    let serialized = serde_json::to_string_pretty(&message).unwrap();
+    eprintln!("Provider metadata:");
     eprintln!("{}", serialized);
 }

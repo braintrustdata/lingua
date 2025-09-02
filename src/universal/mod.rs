@@ -1,16 +1,18 @@
 /*!
-Universal format definitions. This module is designed to be an ergonomic and durable way to create LLM
-messages and specify parameters in a way that is compatible with multiple LLM providers.
+Universal format definitions - exact port of Vercel AI SDK's LanguageModelV2 structure.
 
-It uses a few common conventions to provide this functionality while staying provider-agnostic:
-* A curated set of common options that are compiled to various providers' specific formats
-* Fallback to provider-specific options via a `provider_specific` field on many structs.
+This module provides a 1:1 Rust implementation of the AI SDK message format with:
+* LanguageModelV2Message - Role-based messaging (system, user, assistant, tool)
+* LanguageModelV2Content - Multi-modal content support (text, files, sources, reasoning, tool calls)
+* Exact JSON serialization compatibility with the AI SDK
+* Provider metadata and options support
 */
 
-pub mod citation;
 pub mod message;
-pub mod provider;
 pub mod ts_export;
 
-// #[cfg(test)]
-// mod message_test;
+#[cfg(test)]
+mod message_test;
+
+// Re-export main types for convenience
+pub use message::*;
