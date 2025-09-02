@@ -20,11 +20,9 @@ fn main() {
 
     ProviderMessagePartConfig::export_to("bindings/typescript/ProviderMessagePartConfig.ts")
         .unwrap();
-    AnthropicConfig::export_to("bindings/typescript/AnthropicConfig.ts").unwrap();
-    OpenAIConfig::export_to("bindings/typescript/OpenAIConfig.ts").unwrap();
-    GoogleConfig::export_to("bindings/typescript/GoogleConfig.ts").unwrap();
-    BedrockConfig::export_to("bindings/typescript/BedrockConfig.ts").unwrap();
-    ReasoningEffort::export_to("bindings/typescript/ReasoningEffort.ts").unwrap();
+    AnthropicMessagePartConfig::export_to("bindings/typescript/AnthropicMessagePartConfig.ts")
+        .unwrap();
+    ExtraMessagePartConfig::export_to("bindings/typescript/ExtraMessagePartConfig.ts").unwrap();
     CacheControlEphemeral::export_to("bindings/typescript/CacheControlEphemeral.ts").unwrap();
     CacheTtl::export_to("bindings/typescript/CacheTtl.ts").unwrap();
 
@@ -47,11 +45,8 @@ export * from './UserContentPart';
 export * from './AssistantContentPart';
 export * from './ToolContentPart';
 export * from './ProviderMessagePartConfig';
-export * from './AnthropicConfig';
-export * from './OpenAIConfig';
-export * from './GoogleConfig';
-export * from './BedrockConfig';
-export * from './ReasoningEffort';
+export * from './AnthropicMessagePartConfig';
+export * from './ExtraMessagePartConfig';
 export * from './CacheControlEphemeral';
 export * from './CacheTtl';
 export * from './ImageDetail';

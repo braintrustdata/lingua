@@ -5,13 +5,13 @@ use ts_rs::TS;
 #[ts(export, export_to = "bindings/typescript/")]
 pub struct ProviderMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub anthropic: Option<AnthropicConfig>,
+    pub anthropic: Option<AnthropicMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub openai: Option<OpenAIConfig>,
+    pub openai: Option<ExtraMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub google: Option<GoogleConfig>,
+    pub google: Option<ExtraMessagePartConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bedrock: Option<BedrockConfig>,
+    pub bedrock: Option<ExtraMessagePartConfig>,
     /// Other providers by name
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "Record<string, any>")]
@@ -20,7 +20,7 @@ pub struct ProviderMessagePartConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "bindings/typescript/")]
-pub struct AnthropicConfig {
+pub struct AnthropicMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,47 +30,10 @@ pub struct AnthropicConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "bindings/typescript/")]
-pub struct OpenAIConfig {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning_effort: Option<ReasoningEffort>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_voice: Option<String>,
+pub struct ExtraMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "any")]
     pub extra: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
-pub struct GoogleConfig {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cached_content: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
-    pub safety_settings: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
-    pub extra: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
-pub struct BedrockConfig {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
-    pub guardrails: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
-    pub extra: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
-#[serde(rename_all = "snake_case")]
-pub enum ReasoningEffort {
-    Low,
-    Medium,
-    High,
 }
 
 // Cache breakpoints are only used by Anthropic models.
