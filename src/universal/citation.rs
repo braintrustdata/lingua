@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct Citation {
     pub cited_text: Option<String>,
     pub position: CitationPosition,
@@ -10,7 +10,7 @@ pub struct Citation {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CitationPosition {
     /// Character-based positioning (most common)
@@ -24,7 +24,7 @@ pub enum CitationPosition {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct CitationSource {
     pub url: Option<String>,
     pub title: Option<String>,
@@ -35,7 +35,7 @@ pub struct CitationSource {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(rename_all = "snake_case")]
 pub enum SourceType {
     Web,

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct ProviderMessagePartConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub anthropic: Option<AnthropicConfig>,
@@ -19,7 +19,7 @@ pub struct ProviderMessagePartConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct AnthropicConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
@@ -29,7 +29,7 @@ pub struct AnthropicConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct OpenAIConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning_effort: Option<ReasoningEffort>,
@@ -41,7 +41,7 @@ pub struct OpenAIConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct GoogleConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cached_content: Option<String>,
@@ -54,7 +54,7 @@ pub struct GoogleConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "any")]
@@ -65,7 +65,7 @@ pub struct BedrockConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 #[serde(rename_all = "snake_case")]
 pub enum ReasoningEffort {
     Low,
@@ -74,15 +74,18 @@ pub enum ReasoningEffort {
 }
 
 // Cache breakpoints are only used by Anthropic models.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
-#[ts(export)]
-#[serde(rename_all = "snake_case")]
-pub struct CacheControlEphemeral {
-    pub ttl: Option<CacheTtl>,
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/typescript/")]
+#[serde(rename_all = "snake_case", tag = "type")]
+pub enum CacheControlEphemeral {
+    Ephemeral {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        ttl: Option<CacheTtl>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "bindings/typescript/")]
 pub enum CacheTtl {
     #[serde(rename = "5m")]
     FiveMinutes,

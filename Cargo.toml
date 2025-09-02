@@ -44,6 +44,7 @@ path = "scripts/generate-ts.rs"
 name = "simple-ts-gen"
 path = "scripts/simple-ts-gen.rs"
 
+
 [lib]
 name = "elmir"
 path = "src/lib.rs"

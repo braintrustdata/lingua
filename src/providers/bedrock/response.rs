@@ -10,7 +10,7 @@ use ts_rs::TS;
 
 /// Main Converse API response
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct ConverseResponse {
     /// The model's response output
     pub output: BedrockConverseOutput,
@@ -36,7 +36,7 @@ pub struct ConverseResponse {
 
 /// Converse output containing the generated message
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockConverseOutput {
     /// The generated message
     pub message: BedrockOutputMessage,
@@ -44,7 +44,7 @@ pub struct BedrockConverseOutput {
 
 /// Output message from the model
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockOutputMessage {
     /// Role of the message (always assistant for responses)
     pub role: String,
@@ -55,7 +55,7 @@ pub struct BedrockOutputMessage {
 
 /// Output content block types
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum BedrockOutputContentBlock {
     #[serde(rename = "text")]
@@ -67,7 +67,7 @@ pub enum BedrockOutputContentBlock {
 
 /// Tool use in output
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockOutputToolUse {
     /// Unique identifier for the tool use
     pub tool_use_id: String,
@@ -82,7 +82,7 @@ pub struct BedrockOutputToolUse {
 
 /// Reason why generation stopped
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(rename_all = "snake_case")]
 pub enum BedrockStopReason {
     /// Model reached a natural stopping point
@@ -99,7 +99,7 @@ pub enum BedrockStopReason {
 
 /// Token usage statistics
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockTokenUsage {
     /// Number of input tokens
     pub input_tokens: i32,
@@ -113,7 +113,7 @@ pub struct BedrockTokenUsage {
 
 /// Performance metrics for the request
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockConverseMetrics {
     /// Latency in milliseconds
     pub latency_ms: i64,
@@ -121,7 +121,7 @@ pub struct BedrockConverseMetrics {
 
 /// Streaming Converse API response event
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum ConverseStreamResponse {
     /// Start of a message
@@ -179,7 +179,7 @@ pub enum ConverseStreamResponse {
 
 /// Content block start event details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum BedrockContentBlockStart {
     #[serde(rename = "toolUse")]
@@ -188,7 +188,7 @@ pub enum BedrockContentBlockStart {
 
 /// Content block delta with incremental content
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum BedrockContentBlockDelta {
     #[serde(rename = "text")]
@@ -200,7 +200,7 @@ pub enum BedrockContentBlockDelta {
 
 /// Trace information for debugging and monitoring
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockConverseTrace {
     /// Unique identifier for the trace
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -213,7 +213,7 @@ pub struct BedrockConverseTrace {
 
 /// Guardrail trace information
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockGuardrailTrace {
     /// Action taken by the guardrail
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -230,7 +230,7 @@ pub struct BedrockGuardrailTrace {
 
 /// Individual guardrail assessment
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockGuardrailAssessment {
     /// Content policy assessment
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -251,7 +251,7 @@ pub struct BedrockGuardrailAssessment {
 
 /// Content policy assessment details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockContentPolicyAssessment {
     /// Filters that were triggered
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -260,7 +260,7 @@ pub struct BedrockContentPolicyAssessment {
 
 /// Content filter details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockContentFilter {
     /// Filter type
     #[serde(rename = "type")]
@@ -275,7 +275,7 @@ pub struct BedrockContentFilter {
 
 /// Sensitive information policy assessment
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockSensitiveInformationPolicyAssessment {
     /// PII entities detected
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -288,7 +288,7 @@ pub struct BedrockSensitiveInformationPolicyAssessment {
 
 /// PII entity details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockPIIEntity {
     /// Entity type
     #[serde(rename = "type")]
@@ -304,7 +304,7 @@ pub struct BedrockPIIEntity {
 
 /// Regex match details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockRegexMatch {
     /// Regex name
     pub name: String,
@@ -319,7 +319,7 @@ pub struct BedrockRegexMatch {
 
 /// Topic policy assessment
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockTopicPolicyAssessment {
     /// Topics that were identified
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -328,7 +328,7 @@ pub struct BedrockTopicPolicyAssessment {
 
 /// Topic details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockTopic {
     /// Topic name
     pub name: String,
@@ -343,7 +343,7 @@ pub struct BedrockTopic {
 
 /// Word policy assessment
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockWordPolicyAssessment {
     /// Custom words that were detected
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -356,7 +356,7 @@ pub struct BedrockWordPolicyAssessment {
 
 /// Custom word details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockCustomWord {
     /// Match text
     #[serde(rename = "match")]
@@ -368,7 +368,7 @@ pub struct BedrockCustomWord {
 
 /// Managed word list details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockManagedWordList {
     /// Match text
     #[serde(rename = "match")]

@@ -11,7 +11,7 @@ use ts_rs::TS;
 
 /// Main Converse API request parameters
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct ConverseRequest {
     /// Model identifier for the foundation model
     pub model_id: String,
@@ -51,7 +51,7 @@ pub struct ConverseRequest {
 
 /// Streaming Converse API request parameters
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct ConverseStreamRequest {
     /// Model identifier for the foundation model
     pub model_id: String,
@@ -91,7 +91,7 @@ pub struct ConverseStreamRequest {
 
 /// Message in a conversation
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockMessage {
     /// Role of the message sender
     pub role: BedrockConversationRole,
@@ -102,7 +102,7 @@ pub struct BedrockMessage {
 
 /// Role in a conversation
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(rename_all = "lowercase")]
 pub enum BedrockConversationRole {
     User,
@@ -111,7 +111,7 @@ pub enum BedrockConversationRole {
 
 /// Content block types
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum BedrockContentBlock {
     #[serde(rename = "text")]
@@ -129,7 +129,7 @@ pub enum BedrockContentBlock {
 
 /// Image content block
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockImageBlock {
     /// Image format
     pub format: BedrockImageFormat,
@@ -140,7 +140,7 @@ pub struct BedrockImageBlock {
 
 /// Image format
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(rename_all = "lowercase")]
 pub enum BedrockImageFormat {
     Png,
@@ -151,7 +151,7 @@ pub enum BedrockImageFormat {
 
 /// Image source
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockImageSource {
     /// Base64 encoded image bytes
     pub bytes: String,
@@ -159,7 +159,7 @@ pub struct BedrockImageSource {
 
 /// Tool use content block
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolUseBlock {
     /// Unique identifier for the tool use
     pub tool_use_id: String,
@@ -174,7 +174,7 @@ pub struct BedrockToolUseBlock {
 
 /// Tool result content block
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolResultBlock {
     /// Tool use ID this result corresponds to
     pub tool_use_id: String,
@@ -189,7 +189,7 @@ pub struct BedrockToolResultBlock {
 
 /// Tool result content
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum BedrockToolResultContent {
     #[serde(rename = "text")]
@@ -207,7 +207,7 @@ pub enum BedrockToolResultContent {
 
 /// Tool result status
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(rename_all = "lowercase")]
 pub enum BedrockToolResultStatus {
     Success,
@@ -216,7 +216,7 @@ pub enum BedrockToolResultStatus {
 
 /// System content block
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockSystemContentBlock {
     /// Text content of the system message
     pub text: String,
@@ -224,7 +224,7 @@ pub struct BedrockSystemContentBlock {
 
 /// Inference configuration
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockInferenceConfiguration {
     /// Maximum number of tokens to generate
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -245,7 +245,7 @@ pub struct BedrockInferenceConfiguration {
 
 /// Tool configuration
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolConfiguration {
     /// Available tools
     pub tools: Vec<BedrockTool>,
@@ -257,7 +257,7 @@ pub struct BedrockToolConfiguration {
 
 /// Tool definition
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockTool {
     /// Tool specification
     pub tool_spec: BedrockToolSpec,
@@ -265,7 +265,7 @@ pub struct BedrockTool {
 
 /// Tool specification
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolSpec {
     /// Tool name
     pub name: String,
@@ -280,7 +280,7 @@ pub struct BedrockToolSpec {
 
 /// Tool input schema
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolInputSchema {
     /// JSON schema for tool input
     #[ts(type = "any")]
@@ -289,7 +289,7 @@ pub struct BedrockToolInputSchema {
 
 /// Tool choice strategy
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum BedrockToolChoice {
     #[serde(rename = "auto")]
@@ -304,7 +304,7 @@ pub enum BedrockToolChoice {
 
 /// Guardrail configuration
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockGuardrailConfiguration {
     /// Guardrail identifier
     pub guardrail_identifier: String,
@@ -319,7 +319,7 @@ pub struct BedrockGuardrailConfiguration {
 
 /// Guardrail trace setting
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 #[serde(rename_all = "lowercase")]
 pub enum BedrockGuardrailTrace {
     Enabled,
@@ -328,7 +328,7 @@ pub enum BedrockGuardrailTrace {
 
 /// Values for prompt template variables
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct PromptVariableValues {
     /// Text value for the variable
     pub text: String,

@@ -7,7 +7,7 @@ use ts_rs::TS;
 
 /// Capabilities supported by a provider
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct Capabilities {
     /// Web search capability
     pub web_search: bool,
@@ -29,7 +29,7 @@ pub struct Capabilities {
 
 /// Provider-specific capabilities information
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "bindings/typescript/")]
+// #[ts(export, export_to = "bindings/typescript/")]
 pub struct ProviderCapabilities {
     /// Provider name
     pub provider: String,
