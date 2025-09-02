@@ -14,5 +14,17 @@ const message: Message = {
         },
       },
     },
+    {
+      type: "file",
+      data: {
+        bytes: new ArrayBuffer(8),
+      },
+      mime_type: "text/plain",
+      provider_config: {
+        openai: {
+          detail: "low",
+        },
+      },
+    },
   ],
 };

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use super::citation::Citation;
-use super::provider::ProviderMessagePartConfig;
+use super::provider::{ProviderFileMessagePartConfig, ProviderMessagePartConfig};
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -48,32 +48,12 @@ pub enum UserContentPart {
         #[ts(optional)]
         provider_config: Option<ProviderMessagePartConfig>,
     },
-    Image {
+    File {
         data: FileData,
+        mime_type: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        detail: Option<ImageDetail>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ts(optional)]
-        provider_config: Option<ProviderMessagePartConfig>,
-    },
-    Document {
-        data: FileData,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ts(optional)]
-        citations: Option<Vec<Citation>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ts(optional)]
-        provider_config: Option<ProviderMessagePartConfig>,
-    },
-    Audio {
-        data: FileData,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ts(optional)]
-        transcript: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ts(optional)]
-        provider_config: Option<ProviderMessagePartConfig>,
+        provider_config: Option<ProviderFileMessagePartConfig>,
     },
 }
 
@@ -228,16 +208,16 @@ pub struct WebSearchResultItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(untagged, rename_all = "snake_case")]
 pub enum FileData {
-    Url(String),
-    Base64(Base64Data),
-    FileId(String),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-pub struct Base64Data {
-    pub mime_type: String,
-    pub data: Vec<u8>,
+    Url {
+        url: String,
+    },
+    Data {
+        #[ts(type = "ArrayBuffer")]
+        bytes: Vec<u8>,
+    },
+    FileId {
+        file_id: String,
+    },
 }
