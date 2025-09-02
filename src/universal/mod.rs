@@ -9,6 +9,7 @@ It uses a few common conventions to provide this functionality while staying pro
 
 pub mod citation;
 pub mod message;
+pub mod provider;
 
 #[cfg(test)]
 mod message_test;
