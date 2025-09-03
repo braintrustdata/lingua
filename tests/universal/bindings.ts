@@ -1,4 +1,7 @@
 import { Message } from "../../bindings/typescript/Message";
+import { generateText } from "ai";
+
+const aiSDK = LanguageModelV2Message;
 
 const message: Message = {
   role: "user",

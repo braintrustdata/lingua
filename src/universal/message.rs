@@ -13,28 +13,28 @@ pub enum LanguageModelV2Message {
         content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerOptions")]
+        #[ts(rename = "providerOptions")]
         provider_options: Option<SharedV2ProviderOptions>,
     },
     User {
         content: Vec<LanguageModelV2Content>,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerOptions")]
+        #[ts(rename = "providerOptions")]
         provider_options: Option<SharedV2ProviderOptions>,
     },
     Assistant {
         content: Vec<LanguageModelV2Content>,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerOptions")]
+        #[ts(rename = "providerOptions")]
         provider_options: Option<SharedV2ProviderOptions>,
     },
     Tool {
         content: Vec<LanguageModelV2Content>,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerOptions")]
+        #[ts(rename = "providerOptions")]
         provider_options: Option<SharedV2ProviderOptions>,
     },
 }
@@ -48,28 +48,28 @@ pub enum LanguageModelV2Content {
         text: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerMetadata")]
+        #[ts(rename = "providerMetadata")]
         provider_metadata: Option<SharedV2ProviderMetadata>,
     },
     Reasoning {
         text: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerMetadata")]
+        #[ts(rename = "providerMetadata")]
         provider_metadata: Option<SharedV2ProviderMetadata>,
     },
     File {
         #[ts(type = "string")] // data URL in TypeScript
         data: String,
-        #[serde(rename = "mimeType")]
+        #[ts(rename = "mimeType")]
         mime_type: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerMetadata")]
+        #[ts(rename = "providerMetadata")]
         provider_metadata: Option<SharedV2ProviderMetadata>,
     },
     Source {
-        #[serde(rename = "sourceType")]
+        #[ts(rename = "sourceType")]
         source_type: LanguageModelV2SourceType,
         id: String,
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,13 +81,13 @@ pub enum LanguageModelV2Content {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
         filename: Option<String>,
-        #[serde(rename = "mediaType")]
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
+        #[ts(rename = "mediaType")]
         media_type: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerMetadata")]
+        #[ts(rename = "providerMetadata")]
         provider_metadata: Option<SharedV2ProviderMetadata>,
     },
     #[serde(rename = "tool-call")]
@@ -98,22 +98,22 @@ pub enum LanguageModelV2Content {
         args: serde_json::Value,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerMetadata")]
+        #[ts(rename = "providerMetadata")]
         provider_metadata: Option<SharedV2ProviderMetadata>,
     },
     #[serde(rename = "tool-result")]
     ToolResult {
-        #[serde(rename = "toolCallId")]
+        #[ts(rename = "toolCallId")]
         tool_call_id: String,
         #[ts(type = "any")]
         result: serde_json::Value,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "isError")]
+        #[ts(rename = "isError")]
         is_error: Option<bool>,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
-        #[serde(rename = "providerMetadata")]
+        #[ts(rename = "providerMetadata")]
         provider_metadata: Option<SharedV2ProviderMetadata>,
     },
 }
