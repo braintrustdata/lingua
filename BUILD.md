@@ -1,6 +1,6 @@
 # Build guide
 
-This document describes how to build Elmir and generate language bindings.
+This document describes how to build LLMIR and generate language bindings.
 
 ## Prerequisites
 

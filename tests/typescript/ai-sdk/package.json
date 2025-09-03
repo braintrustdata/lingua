@@ -1,7 +1,7 @@
 {
-  "name": "@elmir/ai-sdk-compatibility-tests",
+  "name": "@llmir/ai-sdk-compatibility-tests",
   "version": "0.1.0",
-  "description": "TypeScript compatibility tests for Elmir ↔ AI SDK",
+  "description": "TypeScript compatibility tests for LLMIR ↔ AI SDK",
   "private": true,
   "scripts": {
     "test": "tsx compatibility-test.ts",
@@ -10,12 +10,12 @@
     "test-with-bindings": "npm run generate-bindings && npm run type-check && npm run test"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
     "tsx": "^4.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.0.0"
   },
   "dependencies": {
-    "ai": "^4.0.0",
-    "@ai-sdk/openai": "^1.0.0"
+    "@ai-sdk/openai": "^1.0.0",
+    "ai": "^5.0.0-beta.34"
   }
 }

@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "../../..",
     "baseUrl": ".",
     "paths": {
       "@elmir/types": ["../../../bindings/typescript"]

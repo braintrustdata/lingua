@@ -1,6 +1,6 @@
-# Elmir - A library for creating provider-agnostic LLM inputs & outputs
+# LLMIR - A library for creating provider-agnostic LLM inputs & outputs
 
-Elmir is a library and specification for defining a universal message format for large language model APIs. It enables developers to write messages, model parameters, and tool definitions in a single format that can be translated to and from any model provider's API client-side with zero runtime overhead.
+LLMIR is a library and specification for defining a universal message format for large language model APIs. It enables developers to write messages, model parameters, and tool definitions in a single format that can be translated to and from any model provider's API client-side with zero runtime overhead.
 
 ## Goals
 
@@ -24,7 +24,7 @@ Elmir is a library and specification for defining a universal message format for
 ## Architecture
 
 ```
-Elmir Universal Format
+LLMIR Universal Format
          ↓
     Capability Detection
          ↓
@@ -44,9 +44,9 @@ OpenAI │ Anthropic │ Google │ Bedrock │ ...
 ## Project structure
 
 ```
-elmir/
+llmir/
 ├── src/
-│   ├── universal/             # Universal Elmir format definitions
+│   ├── universal/             # Universal LLMIR format definitions
 │   ├── providers/             # Provider-specific API types
 │   ├── translators/           # Translation logic between formats
 │   ├── capabilities/          # Capability detection system
@@ -89,7 +89,7 @@ The automation downloads the latest specifications, regenerates types, applies f
 
 ## Feature Flags
 
-Elmir supports optional provider dependencies through feature flags to minimize build time and binary size:
+LLMIR supports optional provider dependencies through feature flags to minimize build time and binary size:
 
 ### Available Features
 
@@ -103,25 +103,25 @@ Elmir supports optional provider dependencies through feature flags to minimize 
 **Default (all providers):**
 ```toml
 [dependencies]
-elmir = "0.1.0"
+llmir = "0.1.0"
 ```
 
 **Minimal (only OpenAI):**
 ```toml
 [dependencies]
-elmir = { version = "0.1.0", default-features = false, features = ["openai"] }
+llmir = { version = "0.1.0", default-features = false, features = ["openai"] }
 ```
 
 **Without AWS dependencies:**
 ```toml
 [dependencies]
-elmir = { version = "0.1.0", default-features = false, features = ["openai", "anthropic", "google"] }
+llmir = { version = "0.1.0", default-features = false, features = ["openai", "anthropic", "google"] }
 ```
 
 **Only Bedrock:**
 ```toml
 [dependencies]
-elmir = { version = "0.1.0", default-features = false, features = ["bedrock"] }
+llmir = { version = "0.1.0", default-features = false, features = ["bedrock"] }
 ```
 
 ### Conditional Compilation
@@ -130,10 +130,10 @@ The translators and types are only available when their respective features are 
 
 ```rust
 #[cfg(feature = "openai")]
-use elmir::translators::to_openai_format;
+use llmir::translators::to_openai_format;
 
 #[cfg(feature = "bedrock")]
-use elmir::translators::to_bedrock_format_with_model;
+use llmir::translators::to_bedrock_format_with_model;
 ```
 
 ## Status

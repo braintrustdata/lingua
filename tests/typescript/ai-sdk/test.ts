@@ -1,4 +1,4 @@
-import { ModelMessage } from "ai";
+import type { ModelMessage } from "ai";
 import { LanguageModelV2Message } from "../../../bindings/typescript/LanguageModelV2Message";
 
 const message: LanguageModelV2Message = {

@@ -27,14 +27,14 @@ fn test_ai_sdk_json_compatibility() {
     // Create messages using our Rust types
     let messages = vec![
         LanguageModelV2Message::User {
-            content: vec![LanguageModelV2UserContent::Text {
+            content: UserContentValue::Array(vec![LanguageModelV2UserContent::Text {
                 text: "Hello AI SDK!".to_string(),
                 provider_metadata: None,
-            }],
+            }]),
             provider_options: None,
         },
         LanguageModelV2Message::Assistant {
-            content: vec![
+            content: AssistantContentValue::Array(vec![
                 LanguageModelV2AssistantContent::Reasoning {
                     text: "Let me think...".to_string(),
                     provider_metadata: None,
@@ -43,7 +43,7 @@ fn test_ai_sdk_json_compatibility() {
                     text: "Hello! How can I help you?".to_string(),
                     provider_metadata: None,
                 },
-            ],
+            ]),
             provider_options: None,
         },
     ];
@@ -90,23 +90,23 @@ fn test_role_specific_content_restrictions() {
 
     // ✅ Valid: User with text and file
     let _valid_user = LanguageModelV2Message::User {
-        content: vec![
+        content: UserContentValue::Array(vec![
             LanguageModelV2UserContent::Text {
                 text: "Analyze this".to_string(),
                 provider_metadata: None,
             },
             LanguageModelV2UserContent::File {
-                data: "data:image/png;base64,...".to_string(),
-                mime_type: "image/png".to_string(),
+                data: json!("data:image/png;base64,..."),
+                media_type: "image/png".to_string(),
                 provider_metadata: None,
             },
-        ],
+        ]),
         provider_options: None,
     };
 
     // ✅ Valid: Assistant with all content types
     let _valid_assistant = LanguageModelV2Message::Assistant {
-        content: vec![
+        content: AssistantContentValue::Array(vec![
             LanguageModelV2AssistantContent::Reasoning {
                 text: "Thinking...".to_string(),
                 provider_metadata: None,
@@ -115,22 +115,13 @@ fn test_role_specific_content_restrictions() {
                 text: "I see a cat".to_string(),
                 provider_metadata: None,
             },
-            LanguageModelV2AssistantContent::Source {
-                source_type: LanguageModelV2SourceType::Document,
-                id: "doc-1".to_string(),
-                url: None,
-                title: Some("Guide".to_string()),
-                filename: None,
-                media_type: None,
-                provider_metadata: None,
-            },
             LanguageModelV2AssistantContent::ToolCall {
-                id: "call_123".to_string(),
-                name: "search".to_string(),
-                args: json!({"query": "cats"}),
+                tool_call_id: "call_123".to_string(),
+                tool_name: "search".to_string(),
+                input: json!({"query": "cats"}),
                 provider_metadata: None,
             },
-        ],
+        ]),
         provider_options: None,
     };
 
@@ -138,7 +129,8 @@ fn test_role_specific_content_restrictions() {
     let _valid_tool = LanguageModelV2Message::Tool {
         content: vec![LanguageModelV2ToolContent::ToolResult {
             tool_call_id: "call_123".to_string(),
-            result: json!({"found": 5}),
+            tool_name: "search".to_string(),
+            output: json!({"found": 5}),
             is_error: Some(false),
             provider_metadata: None,
         }],
@@ -179,10 +171,10 @@ fn test_provider_options_flexibility() {
     provider_options.insert("openai".to_string(), json!(openai_options));
 
     let message = LanguageModelV2Message::User {
-        content: vec![LanguageModelV2UserContent::Text {
+        content: UserContentValue::Array(vec![LanguageModelV2UserContent::Text {
             text: "Test with options".to_string(),
             provider_metadata: None,
-        }],
+        }]),
         provider_options: Some(SharedV2ProviderOptions {
             options: provider_options.into_iter().collect(),
         }),
