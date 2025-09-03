@@ -10,6 +10,9 @@ mod tests {
         // Reference all the types to ensure they get exported
         let _: Option<LanguageModelV2Message> = None;
         let _: Option<LanguageModelV2Content> = None;
+        let _: Option<LanguageModelV2UserContent> = None;
+        let _: Option<LanguageModelV2AssistantContent> = None;
+        let _: Option<LanguageModelV2ToolContent> = None;
         let _: Option<LanguageModelV2SourceType> = None;
         let _: Option<SharedV2ProviderOptions> = None;
         let _: Option<SharedV2ProviderMetadata> = None;
