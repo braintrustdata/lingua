@@ -61,14 +61,10 @@ pub enum ModelMessage {
     },
 }
 
-/// Tool result content part of a message
+/// Reusable tool result content part for tagged unions
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
-pub struct ToolResultPart {
-    #[serde(rename = "type")]
-    #[serde(default = "tool_result_type")]
-    #[ts(type = "'tool-result'")]
-    pub r#type: String,
+pub struct ToolResultContentPart {
     #[serde(rename = "toolCallId")]
     #[ts(rename = "toolCallId")]
     pub tool_call_id: String,
@@ -82,10 +78,6 @@ pub struct ToolResultPart {
     #[ts(optional)]
     #[ts(rename = "providerOptions")]
     pub provider_options: Option<ProviderOptions>,
-}
-
-fn tool_result_type() -> String {
-    "tool-result".to_string()
 }
 
 /// Reusable text content part for tagged unions
@@ -211,8 +203,17 @@ pub enum AssistantContentPart {
     },
 }
 
-/// Tool content - only tool results allowed
-pub type ToolContent = Vec<ToolResultPart>;
+/// Tool content parts - only tool results allowed
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(tag = "type")]
+pub enum ToolContentPart {
+    #[serde(rename = "tool-result")]
+    ToolResult(ToolResultContentPart),
+}
+
+/// Tool content - array of tool content parts
+pub type ToolContent = Vec<ToolContentPart>;
 
 /// Source type enum
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

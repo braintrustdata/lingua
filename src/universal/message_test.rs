@@ -117,13 +117,12 @@ fn test_tool_calling_flow() {
             provider_options: None,
         },
         ModelMessage::Tool {
-            content: vec![ToolResultPart {
-                r#type: "tool-result".to_string(),
+            content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
                 tool_call_id: "call_abc123".to_string(),
                 tool_name: "get_weather".to_string(),
                 output: json!({"temperature": "72°F", "condition": "sunny"}),
                 provider_options: None,
-            }],
+            })],
             provider_options: None,
         },
         ModelMessage::Assistant {

@@ -13,6 +13,8 @@ fn test_typescript_bindings_generation() {
     // by referencing all our exported types
 
     let _message: Option<ModelMessage> = None;
+    let _tool_content_part: Option<ToolContentPart> = None;
+    let _tool_result_content_part: Option<ToolResultContentPart> = None;
     println!("✅ TypeScript bindings generated for all types");
 }
 
@@ -123,13 +125,12 @@ fn test_role_specific_content_restrictions() {
 
     // ✅ Valid: Tool with only tool results
     let _valid_tool = ModelMessage::Tool {
-        content: vec![ToolResultPart {
-            r#type: "tool-result".to_string(),
+        content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
             tool_call_id: "call_123".to_string(),
             tool_name: "search".to_string(),
             output: json!({"found": 5}),
             provider_options: None,
-        }],
+        })],
         provider_options: None,
     };
 
