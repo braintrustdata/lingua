@@ -1,11 +1,12 @@
 /*!
-Universal format definitions - exact port of Vercel AI SDK's LanguageModelV2 structure.
+Universal format definitions - ModelMessage format from Vercel AI SDK.
 
-This module provides a 1:1 Rust implementation of the AI SDK message format with:
-* LanguageModelV2Message - Role-based messaging (system, user, assistant, tool)
-* LanguageModelV2Content - Multi-modal content support (text, files, sources, reasoning, tool calls)
+This module provides a 1:1 Rust implementation of the AI SDK ModelMessage format with:
+* ModelMessage - Role-based messaging (system, user, assistant, tool)
+* Content parts - Multi-modal content support (text, images, files, reasoning, tool calls)
 * Exact JSON serialization compatibility with the AI SDK
-* Provider metadata and options support
+* Provider options support
+* Backward compatibility with LanguageModelV2 format
 */
 
 pub mod message;

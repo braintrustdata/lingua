@@ -12,12 +12,17 @@ fn test_typescript_bindings_generation() {
     // This test forces ts-rs to generate TypeScript bindings
     // by referencing all our exported types
 
-    let _message: Option<LanguageModelV2Message> = None;
-    let _user_content: Option<LanguageModelV2UserContent> = None;
-    let _assistant_content: Option<LanguageModelV2AssistantContent> = None;
-    let _tool_content: Option<LanguageModelV2ToolContent> = None;
-    let _provider_options: Option<SharedV2ProviderOptions> = None;
-    let _provider_metadata: Option<SharedV2ProviderMetadata> = None;
+    let _message: Option<ModelMessage> = None;
+    let _user_content: Option<UserContentPart> = None;
+    let _assistant_content: Option<AssistantContentPart> = None;
+    let _text_part: Option<TextPart> = None;
+    let _image_part: Option<ImagePart> = None;
+    let _file_part: Option<FilePart> = None;
+    let _reasoning_part: Option<ReasoningPart> = None;
+    let _tool_call_part: Option<ToolCallPart> = None;
+    let _tool_result_part: Option<ToolResultPart> = None;
+    let _provider_options: Option<ProviderOptions> = None;
+    let _provider_metadata: Option<ProviderMetadata> = None;
 
     println!("✅ TypeScript bindings generated for all types");
 }
@@ -26,23 +31,26 @@ fn test_typescript_bindings_generation() {
 fn test_ai_sdk_json_compatibility() {
     // Create messages using our Rust types
     let messages = vec![
-        LanguageModelV2Message::User {
-            content: UserContentValue::Array(vec![LanguageModelV2UserContent::Text {
+        ModelMessage::User {
+            content: UserContent::Array(vec![UserContentPart::Text(TextPart {
+                r#type: "text".to_string(),
                 text: "Hello AI SDK!".to_string(),
-                provider_metadata: None,
-            }]),
+                provider_options: None,
+            })]),
             provider_options: None,
         },
-        LanguageModelV2Message::Assistant {
-            content: AssistantContentValue::Array(vec![
-                LanguageModelV2AssistantContent::Reasoning {
+        ModelMessage::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning(ReasoningPart {
+                    r#type: "reasoning".to_string(),
                     text: "Let me think...".to_string(),
-                    provider_metadata: None,
-                },
-                LanguageModelV2AssistantContent::Text {
+                    provider_options: None,
+                }),
+                AssistantContentPart::Text(TextPart {
+                    r#type: "text".to_string(),
                     text: "Hello! How can I help you?".to_string(),
-                    provider_metadata: None,
-                },
+                    provider_options: None,
+                }),
             ]),
             provider_options: None,
         },
@@ -89,50 +97,57 @@ fn test_role_specific_content_restrictions() {
     // Test that our types enforce role-specific content at the Rust level
 
     // ✅ Valid: User with text and file
-    let _valid_user = LanguageModelV2Message::User {
-        content: UserContentValue::Array(vec![
-            LanguageModelV2UserContent::Text {
+    let _valid_user = ModelMessage::User {
+        content: UserContent::Array(vec![
+            UserContentPart::Text(TextPart {
+                r#type: "text".to_string(),
                 text: "Analyze this".to_string(),
-                provider_metadata: None,
-            },
-            LanguageModelV2UserContent::File {
+                provider_options: None,
+            }),
+            UserContentPart::File(FilePart {
+                r#type: "file".to_string(),
                 data: json!("data:image/png;base64,..."),
+                filename: None,
                 media_type: "image/png".to_string(),
-                provider_metadata: None,
-            },
+                provider_options: None,
+            }),
         ]),
         provider_options: None,
     };
 
     // ✅ Valid: Assistant with all content types
-    let _valid_assistant = LanguageModelV2Message::Assistant {
-        content: AssistantContentValue::Array(vec![
-            LanguageModelV2AssistantContent::Reasoning {
+    let _valid_assistant = ModelMessage::Assistant {
+        content: AssistantContent::Array(vec![
+            AssistantContentPart::Reasoning(ReasoningPart {
+                r#type: "reasoning".to_string(),
                 text: "Thinking...".to_string(),
-                provider_metadata: None,
-            },
-            LanguageModelV2AssistantContent::Text {
+                provider_options: None,
+            }),
+            AssistantContentPart::Text(TextPart {
+                r#type: "text".to_string(),
                 text: "I see a cat".to_string(),
-                provider_metadata: None,
-            },
-            LanguageModelV2AssistantContent::ToolCall {
+                provider_options: None,
+            }),
+            AssistantContentPart::ToolCall(ToolCallPart {
+                r#type: "tool-call".to_string(),
                 tool_call_id: "call_123".to_string(),
                 tool_name: "search".to_string(),
                 input: json!({"query": "cats"}),
-                provider_metadata: None,
-            },
+                provider_options: None,
+                provider_executed: None,
+            }),
         ]),
         provider_options: None,
     };
 
     // ✅ Valid: Tool with only tool results
-    let _valid_tool = LanguageModelV2Message::Tool {
-        content: vec![LanguageModelV2ToolContent::ToolResult {
+    let _valid_tool = ModelMessage::Tool {
+        content: vec![ToolResultPart {
+            r#type: "tool-result".to_string(),
             tool_call_id: "call_123".to_string(),
             tool_name: "search".to_string(),
             output: json!({"found": 5}),
-            is_error: Some(false),
-            provider_metadata: None,
+            provider_options: None,
         }],
         provider_options: None,
     };
@@ -170,12 +185,13 @@ fn test_provider_options_flexibility() {
     provider_options.insert("anthropic".to_string(), json!(anthropic_options));
     provider_options.insert("openai".to_string(), json!(openai_options));
 
-    let message = LanguageModelV2Message::User {
-        content: UserContentValue::Array(vec![LanguageModelV2UserContent::Text {
+    let message = ModelMessage::User {
+        content: UserContent::Array(vec![UserContentPart::Text(TextPart {
+            r#type: "text".to_string(),
             text: "Test with options".to_string(),
-            provider_metadata: None,
-        }]),
-        provider_options: Some(SharedV2ProviderOptions {
+            provider_options: None,
+        })]),
+        provider_options: Some(ProviderOptions {
             options: provider_options.into_iter().collect(),
         }),
     };

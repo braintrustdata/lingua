@@ -3,23 +3,25 @@ use serde_json::json;
 
 #[test]
 fn test_exact_ai_sdk_format() {
-    let messages: LanguageModelV2Prompt = vec![
-        LanguageModelV2Message::System {
+    let messages: ModelPrompt = vec![
+        ModelMessage::System {
             content: "You are a helpful assistant.".to_string(),
             provider_options: None,
         },
-        LanguageModelV2Message::User {
-            content: UserContentValue::Array(vec![LanguageModelV2UserContent::Text {
+        ModelMessage::User {
+            content: UserContent::Array(vec![UserContentPart::Text(TextPart {
+                r#type: "text".to_string(),
                 text: "What's 2+2?".to_string(),
-                provider_metadata: None,
-            }]),
+                provider_options: None,
+            })]),
             provider_options: None,
         },
-        LanguageModelV2Message::Assistant {
-            content: AssistantContentValue::Array(vec![LanguageModelV2AssistantContent::Text {
+        ModelMessage::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::Text(TextPart {
+                r#type: "text".to_string(),
                 text: "2+2 equals 4.".to_string(),
-                provider_metadata: None,
-            }]),
+                provider_options: None,
+            })]),
             provider_options: None,
         },
     ];
@@ -60,31 +62,36 @@ fn test_exact_ai_sdk_format() {
 
 #[test]
 fn test_multimodal_with_reasoning() {
-    let messages: LanguageModelV2Prompt = vec![
-        LanguageModelV2Message::User {
-            content: UserContentValue::Array(vec![
-                LanguageModelV2UserContent::Text {
+    let messages: ModelPrompt = vec![
+        ModelMessage::User {
+            content: UserContent::Array(vec![
+                UserContentPart::Text(TextPart {
+                    r#type: "text".to_string(),
                     text: "Analyze this image".to_string(),
-                    provider_metadata: None,
-                },
-                LanguageModelV2UserContent::File {
+                    provider_options: None,
+                }),
+                UserContentPart::File(FilePart {
+                    r#type: "file".to_string(),
                     data: json!("data:image/jpeg;base64,/9j/4AAQSkZJRg..."),
+                    filename: None,
                     media_type: "image/jpeg".to_string(),
-                    provider_metadata: None,
-                },
+                    provider_options: None,
+                }),
             ]),
             provider_options: None,
         },
-        LanguageModelV2Message::Assistant {
-            content: AssistantContentValue::Array(vec![
-                LanguageModelV2AssistantContent::Reasoning {
+        ModelMessage::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning(ReasoningPart {
+                    r#type: "reasoning".to_string(),
                     text: "Let me analyze this image step by step...".to_string(),
-                    provider_metadata: None,
-                },
-                LanguageModelV2AssistantContent::Text {
+                    provider_options: None,
+                }),
+                AssistantContentPart::Text(TextPart {
+                    r#type: "text".to_string(),
                     text: "I can see a cat in the image.".to_string(),
-                    provider_metadata: None,
-                },
+                    provider_options: None,
+                }),
             ]),
             provider_options: None,
         },
@@ -97,40 +104,42 @@ fn test_multimodal_with_reasoning() {
 
 #[test]
 fn test_tool_calling_flow() {
-    let messages: LanguageModelV2Prompt = vec![
-        LanguageModelV2Message::User {
-            content: UserContentValue::Array(vec![LanguageModelV2UserContent::Text {
+    let messages: ModelPrompt = vec![
+        ModelMessage::User {
+            content: UserContent::Array(vec![UserContentPart::Text(TextPart {
+                r#type: "text".to_string(),
                 text: "What's the weather in SF?".to_string(),
-                provider_metadata: None,
-            }]),
+                provider_options: None,
+            })]),
             provider_options: None,
         },
-        LanguageModelV2Message::Assistant {
-            content: AssistantContentValue::Array(vec![
-                LanguageModelV2AssistantContent::ToolCall {
-                    tool_call_id: "call_abc123".to_string(),
-                    tool_name: "get_weather".to_string(),
-                    input: json!({"location": "San Francisco"}),
-                    provider_metadata: None,
-                },
-            ]),
+        ModelMessage::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall(ToolCallPart {
+                r#type: "tool-call".to_string(),
+                tool_call_id: "call_abc123".to_string(),
+                tool_name: "get_weather".to_string(),
+                input: json!({"location": "San Francisco"}),
+                provider_options: None,
+                provider_executed: None,
+            })]),
             provider_options: None,
         },
-        LanguageModelV2Message::Tool {
-            content: vec![LanguageModelV2ToolContent::ToolResult {
+        ModelMessage::Tool {
+            content: vec![ToolResultPart {
+                r#type: "tool-result".to_string(),
                 tool_call_id: "call_abc123".to_string(),
                 tool_name: "get_weather".to_string(),
                 output: json!({"temperature": "72°F", "condition": "sunny"}),
-                is_error: Some(false),
-                provider_metadata: None,
+                provider_options: None,
             }],
             provider_options: None,
         },
-        LanguageModelV2Message::Assistant {
-            content: AssistantContentValue::Array(vec![LanguageModelV2AssistantContent::Text {
+        ModelMessage::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::Text(TextPart {
+                r#type: "text".to_string(),
                 text: "The weather in San Francisco is currently 72°F and sunny.".to_string(),
-                provider_metadata: None,
-            }]),
+                provider_options: None,
+            })]),
             provider_options: None,
         },
     ];
@@ -149,11 +158,12 @@ fn test_provider_metadata() {
         json!({"cache_control": {"type": "ephemeral"}}),
     );
 
-    let message = LanguageModelV2Message::Assistant {
-        content: AssistantContentValue::Array(vec![LanguageModelV2AssistantContent::Text {
+    let message = ModelMessage::Assistant {
+        content: AssistantContent::Array(vec![AssistantContentPart::Text(TextPart {
+            r#type: "text".to_string(),
             text: "Response with metadata".to_string(),
-            provider_metadata: Some(SharedV2ProviderMetadata { metadata }),
-        }]),
+            provider_options: Some(ProviderOptions { options: metadata }),
+        })]),
         provider_options: None,
     };
 
