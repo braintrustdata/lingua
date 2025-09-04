@@ -2,6 +2,6 @@
 import type { ProviderOptions } from "./ProviderOptions";
 
 /**
- * Text content part of a message
+ * Reusable text content part for tagged unions
  */
-export type TextPart = { type: 'text', text: string, providerOptions?: ProviderOptions, };
+export type TextContentPart = { text: string, providerOptions?: ProviderOptions, };

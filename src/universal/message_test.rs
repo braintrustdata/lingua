@@ -9,16 +9,14 @@ fn test_exact_ai_sdk_format() {
             provider_options: None,
         },
         ModelMessage::User {
-            content: UserContent::Array(vec![UserContentPart::Text(TextPart {
-                r#type: "text".to_string(),
+            content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                 text: "What's 2+2?".to_string(),
                 provider_options: None,
             })]),
             provider_options: None,
         },
         ModelMessage::Assistant {
-            content: AssistantContent::Array(vec![AssistantContentPart::Text(TextPart {
-                r#type: "text".to_string(),
+            content: AssistantContent::Array(vec![AssistantContentPart::Text(TextContentPart {
                 text: "2+2 equals 4.".to_string(),
                 provider_options: None,
             })]),
@@ -65,30 +63,26 @@ fn test_multimodal_with_reasoning() {
     let messages: ModelPrompt = vec![
         ModelMessage::User {
             content: UserContent::Array(vec![
-                UserContentPart::Text(TextPart {
-                    r#type: "text".to_string(),
+                UserContentPart::Text(TextContentPart {
                     text: "Analyze this image".to_string(),
                     provider_options: None,
                 }),
-                UserContentPart::File(FilePart {
-                    r#type: "file".to_string(),
+                UserContentPart::File {
                     data: json!("data:image/jpeg;base64,/9j/4AAQSkZJRg..."),
                     filename: None,
                     media_type: "image/jpeg".to_string(),
                     provider_options: None,
-                }),
+                },
             ]),
             provider_options: None,
         },
         ModelMessage::Assistant {
             content: AssistantContent::Array(vec![
-                AssistantContentPart::Reasoning(ReasoningPart {
-                    r#type: "reasoning".to_string(),
+                AssistantContentPart::Reasoning {
                     text: "Let me analyze this image step by step...".to_string(),
                     provider_options: None,
-                }),
-                AssistantContentPart::Text(TextPart {
-                    r#type: "text".to_string(),
+                },
+                AssistantContentPart::Text(TextContentPart {
                     text: "I can see a cat in the image.".to_string(),
                     provider_options: None,
                 }),
@@ -106,22 +100,20 @@ fn test_multimodal_with_reasoning() {
 fn test_tool_calling_flow() {
     let messages: ModelPrompt = vec![
         ModelMessage::User {
-            content: UserContent::Array(vec![UserContentPart::Text(TextPart {
-                r#type: "text".to_string(),
+            content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                 text: "What's the weather in SF?".to_string(),
                 provider_options: None,
             })]),
             provider_options: None,
         },
         ModelMessage::Assistant {
-            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall(ToolCallPart {
-                r#type: "tool-call".to_string(),
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
                 tool_call_id: "call_abc123".to_string(),
                 tool_name: "get_weather".to_string(),
                 input: json!({"location": "San Francisco"}),
                 provider_options: None,
                 provider_executed: None,
-            })]),
+            }]),
             provider_options: None,
         },
         ModelMessage::Tool {
@@ -135,8 +127,7 @@ fn test_tool_calling_flow() {
             provider_options: None,
         },
         ModelMessage::Assistant {
-            content: AssistantContent::Array(vec![AssistantContentPart::Text(TextPart {
-                r#type: "text".to_string(),
+            content: AssistantContent::Array(vec![AssistantContentPart::Text(TextContentPart {
                 text: "The weather in San Francisco is currently 72°F and sunny.".to_string(),
                 provider_options: None,
             })]),
@@ -159,8 +150,7 @@ fn test_provider_metadata() {
     );
 
     let message = ModelMessage::Assistant {
-        content: AssistantContent::Array(vec![AssistantContentPart::Text(TextPart {
-            r#type: "text".to_string(),
+        content: AssistantContent::Array(vec![AssistantContentPart::Text(TextContentPart {
             text: "Response with metadata".to_string(),
             provider_options: Some(ProviderOptions { options: metadata }),
         })]),

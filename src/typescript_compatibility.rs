@@ -13,17 +13,6 @@ fn test_typescript_bindings_generation() {
     // by referencing all our exported types
 
     let _message: Option<ModelMessage> = None;
-    let _user_content: Option<UserContentPart> = None;
-    let _assistant_content: Option<AssistantContentPart> = None;
-    let _text_part: Option<TextPart> = None;
-    let _image_part: Option<ImagePart> = None;
-    let _file_part: Option<FilePart> = None;
-    let _reasoning_part: Option<ReasoningPart> = None;
-    let _tool_call_part: Option<ToolCallPart> = None;
-    let _tool_result_part: Option<ToolResultPart> = None;
-    let _provider_options: Option<ProviderOptions> = None;
-    let _provider_metadata: Option<ProviderMetadata> = None;
-
     println!("✅ TypeScript bindings generated for all types");
 }
 
@@ -32,8 +21,7 @@ fn test_ai_sdk_json_compatibility() {
     // Create messages using our Rust types
     let messages = vec![
         ModelMessage::User {
-            content: UserContent::Array(vec![UserContentPart::Text(TextPart {
-                r#type: "text".to_string(),
+            content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                 text: "Hello AI SDK!".to_string(),
                 provider_options: None,
             })]),
@@ -41,13 +29,11 @@ fn test_ai_sdk_json_compatibility() {
         },
         ModelMessage::Assistant {
             content: AssistantContent::Array(vec![
-                AssistantContentPart::Reasoning(ReasoningPart {
-                    r#type: "reasoning".to_string(),
+                AssistantContentPart::Reasoning {
                     text: "Let me think...".to_string(),
                     provider_options: None,
-                }),
-                AssistantContentPart::Text(TextPart {
-                    r#type: "text".to_string(),
+                },
+                AssistantContentPart::Text(TextContentPart {
                     text: "Hello! How can I help you?".to_string(),
                     provider_options: None,
                 }),
@@ -99,18 +85,16 @@ fn test_role_specific_content_restrictions() {
     // ✅ Valid: User with text and file
     let _valid_user = ModelMessage::User {
         content: UserContent::Array(vec![
-            UserContentPart::Text(TextPart {
-                r#type: "text".to_string(),
+            UserContentPart::Text(TextContentPart {
                 text: "Analyze this".to_string(),
                 provider_options: None,
             }),
-            UserContentPart::File(FilePart {
-                r#type: "file".to_string(),
+            UserContentPart::File {
                 data: json!("data:image/png;base64,..."),
                 filename: None,
                 media_type: "image/png".to_string(),
                 provider_options: None,
-            }),
+            },
         ]),
         provider_options: None,
     };
@@ -118,24 +102,21 @@ fn test_role_specific_content_restrictions() {
     // ✅ Valid: Assistant with all content types
     let _valid_assistant = ModelMessage::Assistant {
         content: AssistantContent::Array(vec![
-            AssistantContentPart::Reasoning(ReasoningPart {
-                r#type: "reasoning".to_string(),
+            AssistantContentPart::Reasoning {
                 text: "Thinking...".to_string(),
                 provider_options: None,
-            }),
-            AssistantContentPart::Text(TextPart {
-                r#type: "text".to_string(),
+            },
+            AssistantContentPart::Text(TextContentPart {
                 text: "I see a cat".to_string(),
                 provider_options: None,
             }),
-            AssistantContentPart::ToolCall(ToolCallPart {
-                r#type: "tool-call".to_string(),
+            AssistantContentPart::ToolCall {
                 tool_call_id: "call_123".to_string(),
                 tool_name: "search".to_string(),
                 input: json!({"query": "cats"}),
                 provider_options: None,
                 provider_executed: None,
-            }),
+            },
         ]),
         provider_options: None,
     };
@@ -186,8 +167,7 @@ fn test_provider_options_flexibility() {
     provider_options.insert("openai".to_string(), json!(openai_options));
 
     let message = ModelMessage::User {
-        content: UserContent::Array(vec![UserContentPart::Text(TextPart {
-            r#type: "text".to_string(),
+        content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
             text: "Test with options".to_string(),
             provider_options: None,
         })]),

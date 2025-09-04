@@ -61,131 +61,6 @@ pub enum ModelMessage {
     },
 }
 
-/// Text content part of a message
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-pub struct TextPart {
-    #[serde(rename = "type")]
-    #[serde(default = "text_type")]
-    #[ts(type = "'text'")]
-    pub r#type: String,
-    pub text: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "providerOptions")]
-    #[ts(optional)]
-    #[ts(rename = "providerOptions")]
-    pub provider_options: Option<ProviderOptions>,
-}
-
-fn text_type() -> String {
-    "text".to_string()
-}
-
-/// Image content part of a message
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-pub struct ImagePart {
-    #[serde(rename = "type")]
-    #[serde(default = "image_type")]
-    #[ts(type = "'image'")]
-    pub r#type: String,
-    #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
-    pub image: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "mediaType")]
-    #[ts(optional)]
-    #[ts(rename = "mediaType")]
-    pub media_type: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "providerOptions")]
-    #[ts(optional)]
-    #[ts(rename = "providerOptions")]
-    pub provider_options: Option<ProviderOptions>,
-}
-
-fn image_type() -> String {
-    "image".to_string()
-}
-
-/// File content part of a message
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-pub struct FilePart {
-    #[serde(rename = "type")]
-    #[serde(default = "file_type")]
-    #[ts(type = "'file'")]
-    pub r#type: String,
-    #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
-    pub data: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
-    pub filename: Option<String>,
-    #[serde(rename = "mediaType")]
-    #[ts(rename = "mediaType")]
-    pub media_type: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "providerOptions")]
-    #[ts(optional)]
-    #[ts(rename = "providerOptions")]
-    pub provider_options: Option<ProviderOptions>,
-}
-
-fn file_type() -> String {
-    "file".to_string()
-}
-
-/// Reasoning content part of a message
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-pub struct ReasoningPart {
-    #[serde(rename = "type")]
-    #[serde(default = "reasoning_type")]
-    #[ts(type = "'reasoning'")]
-    pub r#type: String,
-    pub text: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "providerOptions")]
-    #[ts(optional)]
-    #[ts(rename = "providerOptions")]
-    pub provider_options: Option<ProviderOptions>,
-}
-
-fn reasoning_type() -> String {
-    "reasoning".to_string()
-}
-
-/// Tool call content part of a message
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-pub struct ToolCallPart {
-    #[serde(rename = "type")]
-    #[serde(default = "tool_call_type")]
-    #[ts(type = "'tool-call'")]
-    pub r#type: String,
-    #[serde(rename = "toolCallId")]
-    #[ts(rename = "toolCallId")]
-    pub tool_call_id: String,
-    #[serde(rename = "toolName")]
-    #[ts(rename = "toolName")]
-    pub tool_name: String,
-    #[ts(type = "any")]
-    pub input: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "providerOptions")]
-    #[ts(optional)]
-    #[ts(rename = "providerOptions")]
-    pub provider_options: Option<ProviderOptions>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "providerExecuted")]
-    #[ts(optional)]
-    #[ts(rename = "providerExecuted")]
-    pub provider_executed: Option<bool>,
-}
-
-fn tool_call_type() -> String {
-    "tool-call".to_string()
-}
-
 /// Tool result content part of a message
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -213,26 +88,127 @@ fn tool_result_type() -> String {
     "tool-result".to_string()
 }
 
+/// Reusable text content part for tagged unions
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct TextContentPart {
+    pub text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "providerOptions")]
+    #[ts(optional)]
+    #[ts(rename = "providerOptions")]
+    pub provider_options: Option<ProviderOptions>,
+}
+
 /// User content parts - text, image, and file parts allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
-#[serde(untagged)]
+#[serde(tag = "type")]
 pub enum UserContentPart {
-    Text(TextPart),
-    Image(ImagePart),
-    File(FilePart),
+    #[serde(rename = "text")]
+    Text(TextContentPart),
+    #[serde(rename = "image")]
+    Image {
+        #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
+        image: serde_json::Value,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "mediaType")]
+        #[ts(optional)]
+        #[ts(rename = "mediaType")]
+        media_type: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "providerOptions")]
+        #[ts(optional)]
+        #[ts(rename = "providerOptions")]
+        provider_options: Option<ProviderOptions>,
+    },
+    #[serde(rename = "file")]
+    File {
+        #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
+        data: serde_json::Value,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
+        filename: Option<String>,
+        #[serde(rename = "mediaType")]
+        #[ts(rename = "mediaType")]
+        media_type: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "providerOptions")]
+        #[ts(optional)]
+        #[ts(rename = "providerOptions")]
+        provider_options: Option<ProviderOptions>,
+    },
 }
 
 /// Assistant content parts - text, file, reasoning, tool calls, and tool results allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
-#[serde(untagged)]
+#[serde(tag = "type")]
 pub enum AssistantContentPart {
-    Text(TextPart),
-    File(FilePart),
-    Reasoning(ReasoningPart),
-    ToolCall(ToolCallPart),
-    ToolResult(ToolResultPart),
+    #[serde(rename = "text")]
+    Text(TextContentPart),
+    #[serde(rename = "file")]
+    File {
+        #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
+        data: serde_json::Value,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
+        filename: Option<String>,
+        #[serde(rename = "mediaType")]
+        #[ts(rename = "mediaType")]
+        media_type: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "providerOptions")]
+        #[ts(optional)]
+        #[ts(rename = "providerOptions")]
+        provider_options: Option<ProviderOptions>,
+    },
+    #[serde(rename = "reasoning")]
+    Reasoning {
+        text: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "providerOptions")]
+        #[ts(optional)]
+        #[ts(rename = "providerOptions")]
+        provider_options: Option<ProviderOptions>,
+    },
+    #[serde(rename = "tool-call")]
+    ToolCall {
+        #[serde(rename = "toolCallId")]
+        #[ts(rename = "toolCallId")]
+        tool_call_id: String,
+        #[serde(rename = "toolName")]
+        #[ts(rename = "toolName")]
+        tool_name: String,
+        #[ts(type = "any")]
+        input: serde_json::Value,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "providerOptions")]
+        #[ts(optional)]
+        #[ts(rename = "providerOptions")]
+        provider_options: Option<ProviderOptions>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "providerExecuted")]
+        #[ts(optional)]
+        #[ts(rename = "providerExecuted")]
+        provider_executed: Option<bool>,
+    },
+    #[serde(rename = "tool-result")]
+    ToolResult {
+        #[serde(rename = "toolCallId")]
+        #[ts(rename = "toolCallId")]
+        tool_call_id: String,
+        #[serde(rename = "toolName")]
+        #[ts(rename = "toolName")]
+        tool_name: String,
+        #[ts(type = "any")]
+        output: serde_json::Value,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "providerOptions")]
+        #[ts(optional)]
+        #[ts(rename = "providerOptions")]
+        provider_options: Option<ProviderOptions>,
+    },
 }
 
 /// Tool content - only tool results allowed

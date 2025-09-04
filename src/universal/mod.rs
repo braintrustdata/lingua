@@ -9,7 +9,6 @@ This module provides a 1:1 Rust implementation of the AI SDK ModelMessage format
 */
 
 pub mod message;
-pub mod ts_export;
 
 #[cfg(test)]
 mod message_test;
