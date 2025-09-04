@@ -6,7 +6,6 @@ This module provides a 1:1 Rust implementation of the AI SDK ModelMessage format
 * Content parts - Multi-modal content support (text, images, files, reasoning, tool calls)
 * Exact JSON serialization compatibility with the AI SDK
 * Provider options support
-* Backward compatibility with LanguageModelV2 format
 */
 
 pub mod message;

@@ -7,7 +7,7 @@ mod tests {
         // This test triggers ts-rs to export all types marked with #[ts(export)]
         // ts-rs automatically generates .ts files when running `cargo test`
 
-        // Reference all the NEW types to ensure they get exported
+        // Reference all the types to ensure they get exported
         let _: Option<ModelMessage> = None;
         let _: Option<ModelPrompt> = None;
         let _: Option<UserContent> = None;
@@ -23,16 +23,6 @@ mod tests {
         let _: Option<SourceType> = None;
         let _: Option<ProviderOptions> = None;
         let _: Option<ProviderMetadata> = None;
-
-        // Legacy types for backward compatibility
-        let _: Option<LanguageModelV2Message> = None;
-        let _: Option<LanguageModelV2Content> = None;
-        let _: Option<LanguageModelV2UserContent> = None;
-        let _: Option<LanguageModelV2AssistantContent> = None;
-        let _: Option<LanguageModelV2ToolContent> = None;
-        let _: Option<LanguageModelV2SourceType> = None;
-        let _: Option<SharedV2ProviderOptions> = None;
-        let _: Option<SharedV2ProviderMetadata> = None;
 
         println!("✅ TypeScript types exported automatically to bindings/typescript/");
     }
