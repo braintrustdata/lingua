@@ -1,0 +1,10 @@
+{
+  "model": "claude-3-5-sonnet-20241022",
+  "max_tokens": 150,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the capital of France? Please explain your reasoning."
+    }
+  ]
+}

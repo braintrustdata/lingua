@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// Universal message prompt - collection of model messages
-pub type ModelPrompt = Vec<ModelMessage>;
+pub type Thread = Vec<ModelMessage>;
 
 /// User content that can be either string or array (matching AI SDK ModelMessage)
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -24,71 +24,32 @@ pub enum AssistantContent {
 
 /// Universal ModelMessage from AI SDK - user-facing format
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, rename_all = "camelCase")]
 #[serde(tag = "role", rename_all = "lowercase")]
 pub enum ModelMessage {
-    System {
-        content: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(rename = "providerOptions")]
-        #[ts(optional)]
-        #[ts(rename = "providerOptions")]
-        provider_options: Option<ProviderOptions>,
-    },
-    User {
-        content: UserContent,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(rename = "providerOptions")]
-        #[ts(optional)]
-        #[ts(rename = "providerOptions")]
-        provider_options: Option<ProviderOptions>,
-    },
-    Assistant {
-        content: AssistantContent,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(rename = "providerOptions")]
-        #[ts(optional)]
-        #[ts(rename = "providerOptions")]
-        provider_options: Option<ProviderOptions>,
-    },
-    Tool {
-        content: ToolContent,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(rename = "providerOptions")]
-        #[ts(optional)]
-        #[ts(rename = "providerOptions")]
-        provider_options: Option<ProviderOptions>,
-    },
+    System { content: String },
+    User { content: UserContent },
+    Assistant { content: AssistantContent },
+    Tool { content: ToolContent },
 }
 
 /// Reusable tool result content part for tagged unions
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, rename_all = "camelCase", optional_fields)]
 pub struct ToolResultContentPart {
-    #[serde(rename = "toolCallId")]
-    #[ts(rename = "toolCallId")]
     pub tool_call_id: String,
-    #[serde(rename = "toolName")]
-    #[ts(rename = "toolName")]
     pub tool_name: String,
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub output: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "providerOptions")]
-    #[ts(optional)]
-    #[ts(rename = "providerOptions")]
     pub provider_options: Option<ProviderOptions>,
 }
 
 /// Reusable text content part for tagged unions
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, rename_all = "camelCase", optional_fields)]
 pub struct TextContentPart {
     pub text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "providerOptions")]
-    #[ts(optional)]
-    #[ts(rename = "providerOptions")]
     pub provider_options: Option<ProviderOptions>,
 }
 

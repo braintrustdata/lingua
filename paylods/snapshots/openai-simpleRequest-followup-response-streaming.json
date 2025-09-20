@@ -1,0 +1,38 @@
+[
+  {
+    "id": "chatcmpl-CI0cXNiZdPwrPbrrm8MJqqSx4yq60",
+    "object": "chat.completion.chunk",
+    "created": 1758408325,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "role": "assistant",
+          "content": "",
+          "refusal": null
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "n2"
+  },
+  {
+    "id": "chatcmpl-CI0cXNiZdPwrPbrrm8MJqqSx4yq60",
+    "object": "chat.completion.chunk",
+    "created": 1758408325,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "length"
+      }
+    ],
+    "obfuscation": "qrWOuDCTExhi"
+  }
+]

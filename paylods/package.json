@@ -1,0 +1,21 @@
+{
+  "name": "@braintrust/payload-capture",
+  "version": "0.1.0",
+  "description": "Scripts to capture OpenAI and Anthropic API payloads with TypeScript type safety",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "capture": "tsx scripts/capture.ts",
+    "capture-openai": "tsx scripts/capture-openai.ts",
+    "capture-openai-responses": "tsx scripts/capture-openai-responses.ts",
+    "capture-anthropic": "tsx scripts/capture-anthropic.ts"
+  },
+  "dependencies": {
+    "openai": "^4.68.4",
+    "@anthropic-ai/sdk": "^0.29.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
