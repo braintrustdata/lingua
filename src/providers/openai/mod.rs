@@ -9,6 +9,9 @@ OpenAI OpenAPI specification.
 pub mod convert;
 pub mod generated;
 
+#[cfg(test)]
+pub mod test_discovery;
+
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{
     ChatCompletionRequestMessage,
