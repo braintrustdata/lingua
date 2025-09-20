@@ -71,6 +71,50 @@ both use OpenAPI, while Google uses protobuf. The pipeline works as follows:
 - [ ] Using an LLM to update the compatability matrix, as needed needed.
 - [ ] Testing the new capability across all providers to ensure no regressions.
 
+## Testing Strategy
+
+LLMIR employs a comprehensive testing strategy to ensure accurate and lossless conversion between provider-specific formats and the universal format.
+
+### Roundtrip Testing
+
+The core testing approach uses **roundtrip conversion tests** to verify that data can be converted from provider format → universal format → provider format without loss:
+
+```
+Provider Payload → Universal ModelMessage → Provider Payload
+     (input)            (conversion)          (output)
+```
+
+**Key test scenarios:**
+
+1. **Request Roundtrips**:
+   - `openai_request → universal → openai_request` (should be identical)
+   - `anthropic_request → universal → anthropic_request` (should be identical)
+
+2. **Response Roundtrips**:
+   - `openai_response → universal → openai_response` (should be identical)
+   - `anthropic_response → universal → anthropic_response` (should be identical)
+
+3. **Cross-Provider Compatibility**:
+   - `openai_request → universal → anthropic_request` (should be equivalent)
+   - `anthropic_response → universal → openai_response` (should be equivalent)
+
+### Payload-Based Testing
+
+Tests use **real API payloads** captured from actual provider interactions:
+
+- **Payload Snapshots**: Located in `paylods/snapshots/` directory with real request/response examples
+- **Comprehensive Coverage**: Tests cover simple messages, tool calls, streaming responses, multi-modal content
+- **Version Tracking**: Payloads are version-controlled to detect breaking changes in provider APIs
+
+### Testing Levels
+
+1. **Unit Tests**: Individual conversion functions with synthetic data
+2. **Integration Tests**: Full roundtrip tests using real payload snapshots
+3. **Compatibility Tests**: Cross-provider conversion validation
+4. **Regression Tests**: Ensure updates don't break existing functionality
+
+This strategy ensures LLMIR maintains 100% fidelity when converting between provider formats while providing confidence that the universal format can represent any provider-specific capability.
+
 ### Automated Updates
 
 Provider types can be automatically updated using GitHub Actions:
