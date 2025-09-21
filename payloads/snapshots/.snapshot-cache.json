@@ -39,7 +39,7 @@
   },
   "openai-chat-completions:complexReasoningRequest": {
     "payloadHash": "e24b2d2201535de4d9db6b5ff0e2d05088d0e61ac035330ccb1643aecdf9876a",
-    "capturedAt": "2025-09-21T23:36:37.785Z",
+    "capturedAt": "2025-09-21T23:46:50.323Z",
     "provider": "openai-chat-completions",
     "name": "complexReasoningRequest",
     "files": [
@@ -100,7 +100,7 @@
   },
   "openai-responses:complexReasoningRequest": {
     "payloadHash": "0cbf1812fcdc8e6a75a36dd7255742a5cd1b469aa05f2ac531fb721168e8a07b",
-    "capturedAt": "2025-09-21T23:37:26.325Z",
+    "capturedAt": "2025-09-21T23:47:31.392Z",
     "provider": "openai-responses",
     "name": "complexReasoningRequest",
     "files": [
@@ -128,7 +128,7 @@
   },
   "anthropic:complexReasoningRequest": {
     "payloadHash": "510ea1f280fc53ea5d2a3a1f81dd1e098066a153c8629d2790ea1fa34483319b",
-    "capturedAt": "2025-09-21T23:36:50.480Z",
+    "capturedAt": "2025-09-21T23:47:02.349Z",
     "provider": "anthropic",
     "name": "complexReasoningRequest",
     "files": [
