@@ -62,6 +62,7 @@ impl TryConvert<Vec<InputItem>> for Vec<Message> {
                                 },
                                 message_content,
                             ]),
+                            id: None,
                         });
 
                         // Skip the next item since we consumed it
@@ -76,6 +77,7 @@ impl TryConvert<Vec<InputItem>> for Vec<Message> {
                         text: extract_reasoning_summary(&input)?,
                         provider_options: None,
                     }]),
+                    id: None,
                 });
                 i += 1;
             } else {
@@ -120,6 +122,7 @@ fn convert_single_input_item(input: InputItem) -> Result<Message, ConvertError> 
             let assistant_content = convert_to_assistant_content(content)?;
             Ok(Message::Assistant {
                 content: assistant_content,
+                id: None,
             })
         }
         InputItemRole::Developer => {
@@ -251,7 +254,7 @@ impl TryFrom<Message> for ChatCompletionRequestMessage {
                     tool_call_id: None,
                 })
             }
-            Message::Assistant { content } => {
+            Message::Assistant { content, .. } => {
                 let openai_content = convert_assistant_content_to_openai(content)?;
                 Ok(ChatCompletionRequestMessage {
                     role: ChatCompletionRequestMessageRole::Assistant,
@@ -365,7 +368,7 @@ impl TryConvert<Message> for InputItem {
                 };
                 Ok(create_basic_input_item(InputItemRole::User, content_string))
             }
-            Message::Assistant { content } => {
+            Message::Assistant { content, .. } => {
                 let content_string = match content {
                     AssistantContent::String(text) => text,
                     AssistantContent::Array(_) => {
