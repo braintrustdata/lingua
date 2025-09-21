@@ -50,11 +50,7 @@ mod tests {
 
         // Log conversion steps
         debug!("📄 Original: {} InputItems", messages.len());
-        for (i, msg) in messages.iter().enumerate() {
-            let json = serde_json::to_string_pretty(msg)
-                .unwrap_or_else(|e| format!("Failed to serialize: {}", e));
-            debug!("[{}]\n{}", i, json);
-        }
+        debug!("\n{}", serde_json::to_string_pretty(&messages).unwrap());
 
         debug!("🔄 Converting to universal format...");
 
@@ -62,22 +58,17 @@ mod tests {
             .map_err(|e| format!("Failed to convert to universal format: {}", e))?;
 
         debug!("✓ Universal: {} Messages", universal_request.len());
-        for (i, msg) in universal_request.iter().enumerate() {
-            let json = serde_json::to_string_pretty(msg).unwrap_or_else(|_| format!("{:?}", msg));
-            debug!("[{}]\n{}", i, json);
-        }
+        debug!(
+            "\n{}",
+            serde_json::to_string_pretty(&universal_request).unwrap()
+        );
 
         debug!("↩️  Converting back to InputItems...");
 
         let roundtripped: Vec<InputItem> = Vec::<InputItem>::try_convert(universal_request.clone())
             .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
 
-        debug!("✓ Roundtripped: {} InputItems", roundtripped.len());
-        for (i, msg) in roundtripped.iter().enumerate() {
-            let json = serde_json::to_string_pretty(msg)
-                .unwrap_or_else(|e| format!("Failed to serialize: {}", e));
-            debug!("[{}]\n{}", i, json);
-        }
+        debug!("\n{}", serde_json::to_string_pretty(&roundtripped).unwrap());
 
         let diff = diff_serializable(&messages, &roundtripped, "items");
         if !diff.starts_with("✅") {

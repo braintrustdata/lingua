@@ -7,10 +7,19 @@ pub type Thread = Vec<Message>;
 #[ts(export, rename_all = "camelCase")]
 #[serde(tag = "role", rename_all = "lowercase")]
 pub enum Message {
-    System { content: String },
-    User { content: UserContent },
-    Assistant { content: AssistantContent },
-    Tool { content: ToolContent },
+    System {
+        content: String,
+    },
+    User {
+        content: UserContent,
+    },
+    Assistant {
+        content: AssistantContent,
+        id: Option<String>,
+    },
+    Tool {
+        content: ToolContent,
+    },
 }
 
 /// User content that can be either string or array (matching AI SDK Message)
