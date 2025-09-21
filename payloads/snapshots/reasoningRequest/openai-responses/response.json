@@ -1,5 +1,5 @@
 {
-  "id": "resp_68d020e5a1a881969c34ef5c75f700d00ca98de00b7528d5",
+  "id": "resp_68d020e5e8ec81969b8554005eeee8c80789aec0286606c0",
   "object": "response",
   "created_at": 1758470373,
   "status": "incomplete",
@@ -12,12 +12,12 @@
     "reason": "max_output_tokens"
   },
   "instructions": null,
-  "max_output_tokens": 150,
+  "max_output_tokens": 300,
   "max_tool_calls": null,
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68d020e6355881968c86698382eb6ac40ca98de00b7528d5",
+      "id": "rs_68d020e668b08196b45ae62b618475210789aec0286606c0",
       "type": "reasoning",
       "summary": []
     }
@@ -26,8 +26,8 @@
   "previous_response_id": null,
   "prompt_cache_key": null,
   "reasoning": {
-    "effort": "medium",
-    "summary": "detailed"
+    "effort": "high",
+    "summary": null
   },
   "safety_identifier": null,
   "service_tier": "default",
@@ -45,15 +45,15 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 18,
+    "input_tokens": 38,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 128,
+    "output_tokens": 256,
     "output_tokens_details": {
-      "reasoning_tokens": 128
+      "reasoning_tokens": 256
     },
-    "total_tokens": 146
+    "total_tokens": 294
   },
   "user": null,
   "metadata": {},

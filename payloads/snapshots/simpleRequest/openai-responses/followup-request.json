@@ -9,13 +9,11 @@
       "role": "user",
       "content": "What is the capital of France? Please explain your reasoning."
     },
-    [
-      {
-        "id": "rs_68cf41b501548190a7f76db8cc457dd00a8a7099e7b6637c",
-        "type": "reasoning",
-        "summary": []
-      }
-    ],
+    {
+      "id": "rs_68d020e6355881968c86698382eb6ac40ca98de00b7528d5",
+      "type": "reasoning",
+      "summary": []
+    },
     {
       "role": "user",
       "content": "What should I do next?"

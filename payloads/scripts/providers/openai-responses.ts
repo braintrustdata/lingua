@@ -88,7 +88,7 @@ export async function executeOpenAIResponses(
         ...payload,
         input: [
           ...payload.input,
-          assistantOutput,
+          ...(Array.isArray(assistantOutput) ? assistantOutput : [assistantOutput]),
           { role: "user", content: "What should I do next?" },
         ],
       };

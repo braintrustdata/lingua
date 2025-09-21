@@ -1,3 +1,3 @@
 {
-  "error": "Error: 400 Invalid type for 'input[1]': expected an input item, but got an array instead."
+  "error": "Error: 400 Item 'rs_68d020e6355881968c86698382eb6ac40ca98de00b7528d5' of type 'reasoning' was provided without its required following item."
 }

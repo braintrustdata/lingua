@@ -15,7 +15,7 @@
   },
   "openai-responses:simpleRequest": {
     "payloadHash": "c8cc06e72e4d2e225e5ff70c5f0188b624d537efc44c7194a32db1443da240ea",
-    "capturedAt": "2025-09-21T00:07:22.407Z",
+    "capturedAt": "2025-09-21T15:59:39.990Z",
     "provider": "openai-responses",
     "name": "simpleRequest",
     "files": [
@@ -52,6 +52,19 @@
       "reasoningRequest/openai/followup-request.json",
       "reasoningRequest/openai/followup-response.json",
       "reasoningRequest/openai/followup-response-streaming.json"
+    ]
+  },
+  "openai-responses:reasoningRequest": {
+    "payloadHash": "013beb03fd81b2a01ba16ed628c6ed3c62535832710f97cc86568883443247c5",
+    "capturedAt": "2025-09-21T15:59:36.685Z",
+    "provider": "openai-responses",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/openai-responses/request.json",
+      "reasoningRequest/openai-responses/response.json",
+      "reasoningRequest/openai-responses/response-streaming.json",
+      "reasoningRequest/openai-responses/followup-request.json",
+      "reasoningRequest/openai-responses/error.json"
     ]
   }
 }

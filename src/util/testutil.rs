@@ -3,29 +3,6 @@ use serde_json::Value;
 use std::fs;
 use std::path::Path;
 
-#[cfg(feature = "openai")]
-use crate::providers::openai::generated::{
-    CreateChatCompletionRequestClass, CreateChatCompletionResponse,
-    CreateChatCompletionStreamResponse, CreateResponseClass, TheResponseObject,
-};
-
-#[cfg(feature = "anthropic")]
-use crate::providers::anthropic::generated::{CreateMessageParams, Message};
-
-// Type aliases for different provider test cases
-#[cfg(feature = "openai")]
-pub type OpenAIChatCompletionTestCase = TestCase<
-    CreateChatCompletionRequestClass,
-    CreateChatCompletionResponse,
-    CreateChatCompletionStreamResponse,
->;
-
-#[cfg(feature = "openai")]
-pub type OpenAIResponsesTestCase = TestCase<CreateResponseClass, TheResponseObject, Value>;
-
-#[cfg(feature = "anthropic")]
-pub type AnthropicTestCase = TestCase<CreateMessageParams, Message, Value>;
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Provider {
     OpenAIResponses,
@@ -192,39 +169,7 @@ where
     })
 }
 
-// Provider-specific discovery functions
-#[cfg(feature = "openai")]
-pub fn discover_openai_chat_completion_test_cases(
-    test_name_filter: Option<&str>,
-) -> Result<Vec<OpenAIChatCompletionTestCase>, TestDiscoveryError> {
-    discover_test_cases_typed::<
-        CreateChatCompletionRequestClass,
-        CreateChatCompletionResponse,
-        CreateChatCompletionStreamResponse,
-    >(Provider::OpenAIChatCompletions, test_name_filter)
-}
-
-#[cfg(feature = "openai")]
-pub fn discover_openai_responses_test_cases(
-    test_name_filter: Option<&str>,
-) -> Result<Vec<OpenAIResponsesTestCase>, TestDiscoveryError> {
-    discover_test_cases_typed::<CreateResponseClass, TheResponseObject, Value>(
-        Provider::OpenAIResponses,
-        test_name_filter,
-    )
-}
-
-#[cfg(feature = "anthropic")]
-pub fn discover_anthropic_test_cases(
-    test_name_filter: Option<&str>,
-) -> Result<Vec<AnthropicTestCase>, TestDiscoveryError> {
-    discover_test_cases_typed::<CreateMessageParams, Message, Value>(
-        Provider::Anthropic,
-        test_name_filter,
-    )
-}
-
-fn discover_test_cases_typed<Req, Resp, StreamResp>(
+pub fn discover_test_cases_typed<Req, Resp, StreamResp>(
     provider: Provider,
     test_name_filter: Option<&str>,
 ) -> Result<Vec<TestCase<Req, Resp, StreamResp>>, TestDiscoveryError>
@@ -341,42 +286,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "openai")]
-    fn test_discover_openai_responses_cases_typed() {
-        match discover_openai_responses_test_cases(None) {
-            Ok(cases) => {
-                println!("Found {} OpenAI Responses test cases (typed):", cases.len());
-                for case in &cases {
-                    println!("  - {} (turn: {:?})", case.name, case.turn);
-                    println!("    Request: {}", case.request.is_some());
-                    println!(
-                        "    Streaming Response: {}",
-                        case.streaming_response.is_some()
-                    );
-                    println!(
-                        "    Non-Streaming Response: {}",
-                        case.non_streaming_response.is_some()
-                    );
-                    println!("    Error: {}", case.error.is_some());
-                }
-
-                // Basic validation
-                for case in &cases {
-                    assert_eq!(case.provider, Provider::OpenAIResponses);
-                    assert!(!case.name.is_empty());
-                }
-            }
-            Err(e) => {
-                println!(
-                    "Note: Could not discover typed test cases (expected in some environments): {}",
-                    e
-                );
-                // This is OK in test environments where snapshots might not exist
-            }
-        }
-    }
-
-    #[test]
     fn test_discover_openai_responses_cases_untyped() {
         match discover_test_cases(Provider::OpenAIResponses, None) {
             Ok(cases) => {
@@ -410,44 +319,6 @@ mod tests {
                     e
                 );
                 // This is OK in test environments where snapshots might not exist
-            }
-        }
-    }
-
-    #[test]
-    #[cfg(feature = "openai")]
-    fn test_discover_openai_chat_completions_cases_typed() {
-        match discover_openai_chat_completion_test_cases(None) {
-            Ok(cases) => {
-                println!(
-                    "Found {} OpenAI Chat Completions test cases (typed):",
-                    cases.len()
-                );
-                for case in &cases {
-                    println!("  - {} (turn: {:?})", case.name, case.turn);
-                    println!("    Request: {}", case.request.is_some());
-                    println!(
-                        "    Streaming Response: {}",
-                        case.streaming_response.is_some()
-                    );
-                    println!(
-                        "    Non-Streaming Response: {}",
-                        case.non_streaming_response.is_some()
-                    );
-                    println!("    Error: {}", case.error.is_some());
-                }
-
-                // Basic validation
-                for case in &cases {
-                    assert_eq!(case.provider, Provider::OpenAIChatCompletions);
-                    assert!(!case.name.is_empty());
-                }
-            }
-            Err(e) => {
-                println!(
-                    "Note: Could not discover typed chat completions test cases: {}",
-                    e
-                );
             }
         }
     }

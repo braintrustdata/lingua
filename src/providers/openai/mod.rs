@@ -10,7 +10,7 @@ pub mod convert;
 pub mod generated;
 
 #[cfg(test)]
-pub mod test_discovery;
+pub mod test_openai;
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{
