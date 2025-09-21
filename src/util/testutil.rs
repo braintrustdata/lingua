@@ -299,7 +299,7 @@ mod tests {
                 );
                 for case in &cases {
                     println!("  - {} (turn: {:?})", case.name, case.turn);
-                    println!("    Request: {}", case.request.is_some());
+                    println!("    Request: present");
                     println!(
                         "    Streaming Response: {}",
                         case.streaming_response.is_some()
@@ -358,7 +358,7 @@ mod tests {
                     for case in &cases {
                         println!("  ✓ {} (turn: {:?})", case.name, case.turn);
                         let files = vec![
-                            ("request", case.request.is_some()),
+                            ("request", true),
                             ("streaming_response", case.streaming_response.is_some()),
                             (
                                 "non_streaming_response",

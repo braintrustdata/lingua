@@ -1,15 +1,15 @@
 {
-  "id": "msg_01PBzJ9n7ka2K7u8Ah8zjUPZ",
+  "id": "msg_01CzUCEqgK3GbWo5XFtzdnCw",
   "type": "message",
   "role": "assistant",
   "model": "claude-3-5-sonnet-20241022",
   "content": [
     {
       "type": "text",
-      "text": "The capital of France is Paris. This has been true since 508 CE when the Franks made Paris their capital. Paris has remained France's capital through various forms of government (monarchy, republic, empire) for over 1500 years.\n\nThere's no ambiguity or controversy about this fact. Paris is France's:\n- Political capital (seat of government)\n- Economic capital (largest city and business center)\n- Cultural capital (major center for art, fashion, cuisine)\n- Most populous city (over 2 million in city proper, 12 million in metro area)\n\nThe French government, including the President's residence (Élysée Palace) and National Assembly, is locate"
+      "text": "The capital of France is Paris. This is a well-established historical and political fact. Paris has been France's capital since 987 CE, when Hugh Capet made it the seat of his dynasty. Today, Paris serves as France's:\n\n1. Political center (housing the national government)\n2. Administrative center\n3. Economic hub\n4. Cultural heart\n\nThe city's status as capital is officially established in the French Constitution, making it the undisputed capital of France."
     }
   ],
-  "stop_reason": "max_tokens",
+  "stop_reason": "end_turn",
   "stop_sequence": null,
   "usage": {
     "input_tokens": 19,
@@ -19,7 +19,7 @@
       "ephemeral_5m_input_tokens": 0,
       "ephemeral_1h_input_tokens": 0
     },
-    "output_tokens": 150,
+    "output_tokens": 105,
     "service_tier": "standard"
   }
 }

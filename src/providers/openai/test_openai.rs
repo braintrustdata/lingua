@@ -16,7 +16,10 @@ pub fn discover_openai_responses_test_cases(
 #[cfg(test)]
 mod tests {
     use crate::{
-        providers::openai::generated::{InputItem, Instructions},
+        providers::openai::{
+            convert::diff_input_items,
+            generated::{InputItem, Instructions},
+        },
         universal::ModelMessage,
     };
 
@@ -29,8 +32,8 @@ mod tests {
                 for case in &cases {
                     println!("  - {} (turn: {:?})", case.name, case.turn);
 
-                    let messages = match case.request.input {
-                        Some(Instructions::InputItemArray(msgs)) => msgs,
+                    let messages = match &case.request.input {
+                        Some(Instructions::InputItemArray(msgs)) => msgs.clone(),
                         o => {
                             panic!("Invalid missing or non-array input messages: {:?}", o);
                         }
@@ -49,6 +52,11 @@ mod tests {
                         .map(|m| m.clone().try_into())
                         .collect::<Result<Vec<_>, _>>()
                         .unwrap();
+
+                    // Compare original and roundtripped
+                    let diff = diff_input_items(&messages, &roundtripped);
+                    println!("    🔄 Roundtrip test:");
+                    println!("{}", diff);
 
                     if let Some(_response) = &case.non_streaming_response {
                         println!("    Non-Streaming Response (TheResponseObject): valid");

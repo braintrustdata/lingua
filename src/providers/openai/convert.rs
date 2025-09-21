@@ -1,6 +1,6 @@
 use super::generated::{
     ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
-    ChatCompletionRequestMessageRole, InputItem, InputItemContent, InputItemRole,
+    ChatCompletionRequestMessageRole, InputItem, InputItemContent, InputItemRole, InputItemType,
 };
 use crate::universal::{AssistantContent, ModelMessage, UserContent};
 use std::fmt;
@@ -205,6 +205,186 @@ fn convert_assistant_content_to_openai(
                 "Complex assistant content (not yet implemented)".to_string(),
             ))
         }
+    }
+}
+
+/// Create a basic InputItem with default values
+fn create_basic_input_item(role: InputItemRole, content: String) -> InputItem {
+    InputItem {
+        role: Some(role),
+        content: Some(InputItemContent::String(content)),
+        input_item_type: Some(InputItemType::Message),
+        status: None,
+        id: None,
+        queries: None,
+        results: None,
+        action: None,
+        call_id: None,
+        pending_safety_checks: None,
+        acknowledged_safety_checks: None,
+        output: None,
+        arguments: None,
+        name: None,
+        encrypted_content: None,
+        summary: None,
+        result: None,
+        code: None,
+        container_id: None,
+        server_label: None,
+        tools: None,
+        approval_request_id: None,
+        approve: None,
+        reason: None,
+        request_id: None,
+        input: None,
+        error: None,
+        outputs: None,
+    }
+}
+
+/// Convert universal ModelMessage to OpenAI InputItem (for Responses API)
+impl TryFrom<ModelMessage> for InputItem {
+    type Error = ConvertError;
+
+    fn try_from(message: ModelMessage) -> Result<Self, Self::Error> {
+        match message {
+            ModelMessage::System { content } => {
+                Ok(create_basic_input_item(InputItemRole::System, content))
+            }
+            ModelMessage::User { content } => {
+                let content_string = match content {
+                    UserContent::String(text) => text,
+                    UserContent::Array(_) => {
+                        "Complex user content (not yet implemented)".to_string()
+                    }
+                };
+                Ok(create_basic_input_item(InputItemRole::User, content_string))
+            }
+            ModelMessage::Assistant { content } => {
+                let content_string = match content {
+                    AssistantContent::String(text) => text,
+                    AssistantContent::Array(_) => {
+                        "Complex assistant content (not yet implemented)".to_string()
+                    }
+                };
+                Ok(create_basic_input_item(
+                    InputItemRole::Assistant,
+                    content_string,
+                ))
+            }
+            ModelMessage::Tool { content: _ } => {
+                // Basic implementation - convert tool to user for now
+                Ok(create_basic_input_item(
+                    InputItemRole::User,
+                    "Tool content (not yet implemented)".to_string(),
+                ))
+            }
+        }
+    }
+}
+
+/// Compare two InputItem vectors and return a pretty diff
+pub fn diff_input_items(original: &[InputItem], roundtripped: &[InputItem]) -> String {
+    use std::fmt::Write;
+
+    let mut diff = String::new();
+
+    if original.len() != roundtripped.len() {
+        writeln!(diff, "📊 LENGTH MISMATCH:").unwrap();
+        writeln!(diff, "  Original: {} items", original.len()).unwrap();
+        writeln!(diff, "  Roundtripped: {} items", roundtripped.len()).unwrap();
+        writeln!(diff).unwrap();
+    }
+
+    let max_len = original.len().max(roundtripped.len());
+
+    for i in 0..max_len {
+        let orig = original.get(i);
+        let round = roundtripped.get(i);
+
+        match (orig, round) {
+            (Some(o), Some(r)) => {
+                if !items_match(o, r) {
+                    writeln!(diff, "🔍 ITEM {} DIFFERENCES:", i).unwrap();
+
+                    // Compare roles
+                    if o.role != r.role {
+                        writeln!(diff, "  Role:").unwrap();
+                        writeln!(diff, "    ❌ Original:     {:?}", o.role).unwrap();
+                        writeln!(diff, "    ✅ Roundtripped: {:?}", r.role).unwrap();
+                    }
+
+                    // Compare content
+                    if o.content != r.content {
+                        writeln!(diff, "  Content:").unwrap();
+                        writeln!(
+                            diff,
+                            "    ❌ Original:     {:?}",
+                            format_content(&o.content)
+                        )
+                        .unwrap();
+                        writeln!(
+                            diff,
+                            "    ✅ Roundtripped: {:?}",
+                            format_content(&r.content)
+                        )
+                        .unwrap();
+                    }
+
+                    // Compare content type
+                    if o.input_item_type != r.input_item_type {
+                        writeln!(diff, "  Content Type:").unwrap();
+                        writeln!(diff, "    ❌ Original:     {:?}", o.input_item_type).unwrap();
+                        writeln!(diff, "    ✅ Roundtripped: {:?}", r.input_item_type).unwrap();
+                    }
+
+                    writeln!(diff).unwrap();
+                }
+            }
+            (Some(o), None) => {
+                writeln!(diff, "❌ MISSING ITEM {} in roundtripped:", i).unwrap();
+                writeln!(
+                    diff,
+                    "  Original: {:?} - {:?}",
+                    o.role,
+                    format_content(&o.content)
+                )
+                .unwrap();
+                writeln!(diff).unwrap();
+            }
+            (None, Some(r)) => {
+                writeln!(diff, "➕ EXTRA ITEM {} in roundtripped:", i).unwrap();
+                writeln!(
+                    diff,
+                    "  Roundtripped: {:?} - {:?}",
+                    r.role,
+                    format_content(&r.content)
+                )
+                .unwrap();
+                writeln!(diff).unwrap();
+            }
+            (None, None) => unreachable!(),
+        }
+    }
+
+    if diff.is_empty() {
+        "✅ All items match perfectly!".to_string()
+    } else {
+        format!("🚨 ROUNDTRIP DIFFERENCES DETECTED:\n\n{}", diff)
+    }
+}
+
+fn items_match(a: &InputItem, b: &InputItem) -> bool {
+    a.role == b.role && a.content == b.content && a.input_item_type == b.input_item_type
+}
+
+fn format_content(content: &Option<InputItemContent>) -> String {
+    match content {
+        Some(InputItemContent::String(s)) => {
+            format!("String(\"{}\")", s.chars().take(50).collect::<String>())
+        }
+        Some(InputItemContent::InputContentArray(_)) => "Array([...])".to_string(),
+        None => "None".to_string(),
     }
 }
 

@@ -1,7 +1,7 @@
 {
   "openai:simpleRequest": {
     "payloadHash": "76f789b23079491edef5322283b0f46d890ef453fe51b5d7347d13708b483ed9",
-    "capturedAt": "2025-09-21T00:07:19.098Z",
+    "capturedAt": "2025-09-21T16:22:06.122Z",
     "provider": "openai",
     "name": "simpleRequest",
     "files": [
@@ -15,7 +15,7 @@
   },
   "openai-responses:simpleRequest": {
     "payloadHash": "c8cc06e72e4d2e225e5ff70c5f0188b624d537efc44c7194a32db1443da240ea",
-    "capturedAt": "2025-09-21T15:59:39.990Z",
+    "capturedAt": "2025-09-21T16:22:07.415Z",
     "provider": "openai-responses",
     "name": "simpleRequest",
     "files": [
@@ -28,7 +28,7 @@
   },
   "anthropic:simpleRequest": {
     "payloadHash": "603eac37916bb8aa7a7e196c0d6dcbaf7e86ef41f1962fcbb38626f90f34c186",
-    "capturedAt": "2025-09-21T00:07:22.267Z",
+    "capturedAt": "2025-09-21T16:22:08.658Z",
     "provider": "anthropic",
     "name": "simpleRequest",
     "files": [
@@ -38,33 +38,6 @@
       "simpleRequest/anthropic/followup-request.json",
       "simpleRequest/anthropic/followup-response.json",
       "simpleRequest/anthropic/followup-response-streaming.json"
-    ]
-  },
-  "openai:reasoningRequest": {
-    "payloadHash": "2f2fa03760744c2b37aa0da5410c2fbd6e868c315d1fbed36f5931a861d7cd03",
-    "capturedAt": "2025-09-21T00:07:04.425Z",
-    "provider": "openai",
-    "name": "reasoningRequest",
-    "files": [
-      "reasoningRequest/openai/request.json",
-      "reasoningRequest/openai/response.json",
-      "reasoningRequest/openai/response-streaming.json",
-      "reasoningRequest/openai/followup-request.json",
-      "reasoningRequest/openai/followup-response.json",
-      "reasoningRequest/openai/followup-response-streaming.json"
-    ]
-  },
-  "openai-responses:reasoningRequest": {
-    "payloadHash": "013beb03fd81b2a01ba16ed628c6ed3c62535832710f97cc86568883443247c5",
-    "capturedAt": "2025-09-21T15:59:36.685Z",
-    "provider": "openai-responses",
-    "name": "reasoningRequest",
-    "files": [
-      "reasoningRequest/openai-responses/request.json",
-      "reasoningRequest/openai-responses/response.json",
-      "reasoningRequest/openai-responses/response-streaming.json",
-      "reasoningRequest/openai-responses/followup-request.json",
-      "reasoningRequest/openai-responses/error.json"
     ]
   }
 }
