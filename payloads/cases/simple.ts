@@ -13,34 +13,33 @@ export const simpleCases: TestCaseCollection = {
       messages: [
         {
           role: "user",
-          content:
-            "What is the capital of France? Please explain your reasoning.",
+          content: "What is the capital of France?",
         },
       ],
-      max_tokens: 20_000,
+      max_tokens: 256,
+      reasoning_effort: "low",
     },
 
     "openai-responses": {
       model: OPENAI_RESPONSES_MODEL,
-      reasoning: { effort: "low", summary: "auto" },
+      reasoning: { effort: "minimal" },
+      text: { verbosity: "low" },
       input: [
         {
           role: "user",
-          content:
-            "What is the capital of France? Please explain your reasoning.",
+          content: "What is the capital of France?",
         },
       ],
-      max_output_tokens: 20_000,
+      max_output_tokens: 256,
     },
 
     anthropic: {
       model: ANTHROPIC_MODEL,
-      max_tokens: 20_000,
+      max_tokens: 256,
       messages: [
         {
           role: "user",
-          content:
-            "What is the capital of France? Please explain your reasoning.",
+          content: "What is the capital of France?",
         },
       ],
     },
@@ -132,4 +131,3 @@ export const simpleCases: TestCaseCollection = {
     },
   },
 };
-

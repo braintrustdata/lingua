@@ -1,14 +1,16 @@
 {
   "model": "gpt-5-nano",
   "reasoning": {
-    "effort": "low",
-    "summary": "auto"
+    "effort": "minimal"
+  },
+  "text": {
+    "verbosity": "low"
   },
   "input": [
     {
       "role": "user",
-      "content": "What is the capital of France? Please explain your reasoning."
+      "content": "What is the capital of France?"
     }
   ],
-  "max_output_tokens": 20000
+  "max_output_tokens": 256
 }

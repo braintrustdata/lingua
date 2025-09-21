@@ -1,7 +1,7 @@
 {
-  "id": "resp_68d030e33a6c819490e228614096d9f705c2f6981caa6680",
+  "id": "resp_68d03206d2f481978cfa87a2a3b5f93c0244fca2e867c47f",
   "object": "response",
-  "created_at": 1758474467,
+  "created_at": 1758474758,
   "status": "completed",
   "background": false,
   "billing": {
@@ -10,22 +10,17 @@
   "error": null,
   "incomplete_details": null,
   "instructions": null,
-  "max_output_tokens": 20000,
+  "max_output_tokens": 256,
   "max_tool_calls": null,
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68d030e3b8ec819488b6f73a202956ad05c2f6981caa6680",
+      "id": "rs_68d03207849c81978ee6006571fae97a0244fca2e867c47f",
       "type": "reasoning",
-      "summary": [
-        {
-          "type": "summary_text",
-          "text": "**Responding to ambiguity**\n\nThe user's question, \"What should I do next?\" is ambiguous. I'll ask some clarifying questions about their context and goals to narrow it down. I can provide options like creating a decision-making framework or a structured plan to prioritize their tasks. If they want help with a specific area, such as career or projects, I can offer tailored support. Since they previously asked for an explanation of my reasoning, I'll be concise and provide a quick framework with example scenarios."
-        }
-      ]
+      "summary": []
     },
     {
-      "id": "msg_68d030e602d081949e941c6e7471862e05c2f6981caa6680",
+      "id": "msg_68d032078e6c819795d020a53ce7a7730244fca2e867c47f",
       "type": "message",
       "status": "completed",
       "content": [
@@ -33,7 +28,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "I’m not sure what you’re aiming to do. Could you clarify your goal? In the meantime, here are a few quick options you can choose from or adapt:\n\n- If you want to make a decision: define the goal, list options, weigh pros/cons, consider risks, and pick the best option. I can help you create a simple decision matrix.\n- If you’re starting a project: outline the scope, set milestones, identify needed resources, and create a timeline. I can draft a basic project plan.\n- If you need to learn something new: set a specific learning goal, break it into small lessons, pick reliable resources, and schedule practice or exercises.\n- If you’re stuck on a task: I can help you break it into actionable steps, identify blockers, and propose a workaround.\n- If you want to improve productivity: adopt a daily plan, use a prioritization method (e.g., Eisenhower matrix), and set time blocks.\n\nTell me your goal or the area you’re focused on (e.g., career, study, a hobby, a specific task), and I’ll give you a concrete, step-by-step next plan."
+          "text": "Could you tell me what you’re trying to accomplish or the context? For example, are you looking for study tips, planning a trip to France, or solving a problem?"
         }
       ],
       "role": "assistant"
@@ -43,8 +38,8 @@
   "previous_response_id": null,
   "prompt_cache_key": null,
   "reasoning": {
-    "effort": "low",
-    "summary": "detailed"
+    "effort": "minimal",
+    "summary": null
   },
   "safety_identifier": null,
   "service_tier": "default",
@@ -54,7 +49,7 @@
     "format": {
       "type": "text"
     },
-    "verbosity": "medium"
+    "verbosity": "low"
   },
   "tool_choice": "auto",
   "tools": [],
@@ -62,17 +57,17 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 130,
+    "input_tokens": 31,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 305,
+    "output_tokens": 41,
     "output_tokens_details": {
-      "reasoning_tokens": 64
+      "reasoning_tokens": 0
     },
-    "total_tokens": 435
+    "total_tokens": 72
   },
   "user": null,
   "metadata": {},
-  "output_text": "I’m not sure what you’re aiming to do. Could you clarify your goal? In the meantime, here are a few quick options you can choose from or adapt:\n\n- If you want to make a decision: define the goal, list options, weigh pros/cons, consider risks, and pick the best option. I can help you create a simple decision matrix.\n- If you’re starting a project: outline the scope, set milestones, identify needed resources, and create a timeline. I can draft a basic project plan.\n- If you need to learn something new: set a specific learning goal, break it into small lessons, pick reliable resources, and schedule practice or exercises.\n- If you’re stuck on a task: I can help you break it into actionable steps, identify blockers, and propose a workaround.\n- If you want to improve productivity: adopt a daily plan, use a prioritization method (e.g., Eisenhower matrix), and set time blocks.\n\nTell me your goal or the area you’re focused on (e.g., career, study, a hobby, a specific task), and I’ll give you a concrete, step-by-step next plan."
+  "output_text": "Could you tell me what you’re trying to accomplish or the context? For example, are you looking for study tips, planning a trip to France, or solving a problem?"
 }

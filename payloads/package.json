@@ -8,8 +8,8 @@
     "capture-old": "tsx scripts/capture.ts"
   },
   "dependencies": {
-    "openai": "^4.68.4",
-    "@anthropic-ai/sdk": "^0.29.0"
+    "openai": "^5.22.0",
+    "@anthropic-ai/sdk": "^0.63.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",

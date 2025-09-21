@@ -1,26 +1,23 @@
 {
   "model": "gpt-5-nano",
   "reasoning": {
-    "effort": "low",
-    "summary": "auto"
+    "effort": "minimal"
+  },
+  "text": {
+    "verbosity": "low"
   },
   "input": [
     {
       "role": "user",
-      "content": "What is the capital of France? Please explain your reasoning."
+      "content": "What is the capital of France?"
     },
     {
-      "id": "rs_68d030e0a5ec819490f382a360558dad05c2f6981caa6680",
+      "id": "rs_68d032063c548197800cad1613454db30244fca2e867c47f",
       "type": "reasoning",
-      "summary": [
-        {
-          "type": "summary_text",
-          "text": "**Providing reasoning about Paris**\n\nI’m ready to answer that the capital of France is Paris. The user wants some reasoning, so I’ll explain that Paris has been the capital historically since the 10th century. I can mention it as the seat of government and the presidential residence. I’ll make sure to present this clearly and concisely without revealing any internal instructions. Finally, I’ll prepare to give the user this straightforward response."
-        }
-      ]
+      "summary": []
     },
     {
-      "id": "msg_68d030e254908194bedcaa4dbe08b40a05c2f6981caa6680",
+      "id": "msg_68d032066a2c819798875f7ded31111a0244fca2e867c47f",
       "type": "message",
       "status": "completed",
       "content": [
@@ -28,7 +25,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "The capital of France is Paris.\n\nReasoning:\n- Paris has been the political and administrative center of modern France for centuries. It houses the national government, the presidential residence, and national institutions.\n- Since the 10th century, Paris has served as the capital and main hub for political, economic, and cultural activity in France.\n- When people refer to the “capital” in current contexts (government, foreign affairs, official events), Paris is understood to be the capital."
+          "text": "Paris."
         }
       ],
       "role": "assistant"
@@ -38,5 +35,5 @@
       "content": "What should I do next?"
     }
   ],
-  "max_output_tokens": 20000
+  "max_output_tokens": 256
 }

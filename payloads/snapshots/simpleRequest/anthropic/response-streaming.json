@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_014v4RLSvavKKLip6DtJtGET",
+      "id": "msg_01X58CiZotsjs6EmkakjTUpj",
       "type": "message",
       "role": "assistant",
       "model": "claude-sonnet-4-20250514",
@@ -10,14 +10,14 @@
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 19,
+        "input_tokens": 14,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 8,
+        "output_tokens": 1,
         "service_tier": "standard"
       }
     }
@@ -35,7 +35,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "The capital of France is Paris."
+      "text": "The"
     }
   },
   {
@@ -43,103 +43,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\nMy reasoning is straightforward: this is a"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " well-established geographical fact."
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " Paris has been the capital and largest city of France for"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " centuries, serving as the country"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "'s political, economic, and cultural center. It houses"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " the French government institutions, including"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " the Élysée Palace (presidential"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " residence), the National Assembly, and the Senate"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ". This is basic geographical knowledge that is"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " universally recognized and doesn't require complex reasoning"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " - it's simply a fact"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "ual piece of information about"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " France's administrative structure."
+      "text": " capital of France is Paris."
     }
   },
   {
@@ -153,10 +57,10 @@
       "stop_sequence": null
     },
     "usage": {
-      "input_tokens": 19,
+      "input_tokens": 14,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 110
+      "output_tokens": 10
     }
   },
   {
