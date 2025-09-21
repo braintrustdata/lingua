@@ -17,7 +17,7 @@ pub fn discover_openai_responses_test_cases(
 mod tests {
     use crate::{
         providers::openai::generated::{InputItem, Instructions},
-        universal::ModelMessage,
+        universal::{convert::TryConvert, Message},
         util::testutil::diff_serializable,
     };
     use log::{debug, info};
@@ -58,14 +58,10 @@ mod tests {
 
         debug!("🔄 Converting to universal format...");
 
-        let universal_request: Vec<ModelMessage> = messages
-            .clone()
-            .into_iter()
-            .map(|m| m.try_into())
-            .collect::<Result<Vec<_>, _>>()
+        let universal_request: Vec<Message> = Vec::<Message>::try_convert(messages.clone())
             .map_err(|e| format!("Failed to convert to universal format: {}", e))?;
 
-        debug!("✓ Universal: {} ModelMessages", universal_request.len());
+        debug!("✓ Universal: {} Messages", universal_request.len());
         for (i, msg) in universal_request.iter().enumerate() {
             let json = serde_json::to_string_pretty(msg).unwrap_or_else(|_| format!("{:?}", msg));
             debug!("[{}]\n{}", i, json);
@@ -73,10 +69,7 @@ mod tests {
 
         debug!("↩️  Converting back to InputItems...");
 
-        let roundtripped: Vec<InputItem> = universal_request
-            .iter()
-            .map(|m| m.clone().try_into())
-            .collect::<Result<Vec<_>, _>>()
+        let roundtripped: Vec<InputItem> = Vec::<InputItem>::try_convert(universal_request.clone())
             .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
 
         debug!("✓ Roundtripped: {} InputItems", roundtripped.len());

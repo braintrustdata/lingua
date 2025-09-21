@@ -1,10 +1,19 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-/// Universal message prompt - collection of model messages
-pub type Thread = Vec<ModelMessage>;
+pub type Thread = Vec<Message>;
 
-/// User content that can be either string or array (matching AI SDK ModelMessage)
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "camelCase")]
+#[serde(tag = "role", rename_all = "lowercase")]
+pub enum Message {
+    System { content: String },
+    User { content: UserContent },
+    Assistant { content: AssistantContent },
+    Tool { content: ToolContent },
+}
+
+/// User content that can be either string or array (matching AI SDK Message)
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(untagged)]
@@ -13,24 +22,13 @@ pub enum UserContent {
     Array(Vec<UserContentPart>),
 }
 
-/// Assistant content that can be either string or array (matching AI SDK ModelMessage)
+/// Assistant content that can be either string or array (matching AI SDK Message)
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(untagged)]
 pub enum AssistantContent {
     String(String),
     Array(Vec<AssistantContentPart>),
-}
-
-/// Universal ModelMessage from AI SDK - user-facing format
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase")]
-#[serde(tag = "role", rename_all = "lowercase")]
-pub enum ModelMessage {
-    System { content: String },
-    User { content: UserContent },
-    Assistant { content: AssistantContent },
-    Tool { content: ToolContent },
 }
 
 /// Reusable tool result content part for tagged unions
@@ -188,7 +186,7 @@ pub enum SourceType {
     Document,
 }
 
-/// Provider options - matching AI SDK ModelMessage format
+/// Provider options - matching AI SDK Message format
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[ts(type = "Record<string, any>")]
@@ -319,7 +317,7 @@ pub struct ToolErrorContentPart {
 }
 
 /// Content part for response messages - matches AI SDK's ContentPart exactly
-/// This is the output equivalent of ModelMessage content parts
+/// This is the output equivalent of Message content parts
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(tag = "type")]
@@ -434,8 +432,8 @@ pub enum ResponseContentPart {
     },
 }
 
-/// Response message - the output equivalent of ModelMessage with rich metadata
-/// This includes all the sources, reasoning, etc. that get stripped when converting to ModelMessage
+/// Response message - the output equivalent of Message with rich metadata
+/// This includes all the sources, reasoning, etc. that get stripped when converting to Message
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ResponseMessage {

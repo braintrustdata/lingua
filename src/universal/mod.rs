@@ -8,6 +8,7 @@ This module provides a 1:1 Rust implementation of the AI SDK ModelMessage format
 * Provider options support
 */
 
+pub mod convert;
 pub mod message;
 
 // Re-export main types for convenience

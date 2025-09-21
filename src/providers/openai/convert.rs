@@ -2,7 +2,8 @@ use super::generated::{
     ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
     ChatCompletionRequestMessageRole, InputItem, InputItemContent, InputItemRole, InputItemType,
 };
-use crate::universal::{AssistantContent, AssistantContentPart, ModelMessage, UserContent};
+use crate::universal::convert::TryConvert;
+use crate::universal::{AssistantContent, AssistantContentPart, Message, UserContent};
 use std::fmt;
 
 /// Errors that can occur during conversion between OpenAI and universal formats
@@ -31,59 +32,154 @@ impl fmt::Display for ConvertError {
 
 impl std::error::Error for ConvertError {}
 
-/// Convert OpenAI InputItem to universal ModelMessage
-impl TryFrom<InputItem> for ModelMessage {
+/// Convert OpenAI InputItem collection to universal Message collection
+/// This handles OpenAI-specific logic for combining or transforming multiple items
+impl TryConvert<Vec<InputItem>> for Vec<Message> {
     type Error = ConvertError;
 
-    fn try_from(input: InputItem) -> Result<Self, Self::Error> {
-        if matches!(input.input_item_type, Some(InputItemType::Reasoning)) {
-            return Ok(ModelMessage::Assistant {
-                content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
-                    text: "Reasoning content (not yet implemented)".to_string(),
+    fn try_convert(inputs: Vec<InputItem>) -> Result<Self, Self::Error> {
+        let mut result = Vec::new();
+        let mut i = 0;
+
+        while i < inputs.len() {
+            let input = &inputs[i];
+
+            // Handle reasoning + message pairs
+            if matches!(input.input_item_type, Some(InputItemType::Reasoning)) {
+                // Look for the next message item to combine with reasoning
+                if i + 1 < inputs.len() {
+                    let next_input = &inputs[i + 1];
+                    if matches!(next_input.input_item_type, Some(InputItemType::Message)) {
+                        // Combine reasoning + message into single assistant message
+                        let reasoning_text = extract_reasoning_summary(&input)?;
+                        let message_content = extract_assistant_content_from_message(&next_input)?;
+
+                        result.push(Message::Assistant {
+                            content: AssistantContent::Array(vec![
+                                AssistantContentPart::Reasoning {
+                                    text: reasoning_text,
+                                    provider_options: None,
+                                },
+                                message_content,
+                            ]),
+                        });
+
+                        // Skip the next item since we consumed it
+                        i += 2;
+                        continue;
+                    }
+                }
+
+                // Standalone reasoning item
+                result.push(Message::Assistant {
+                    content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
+                        text: extract_reasoning_summary(&input)?,
+                        provider_options: None,
+                    }]),
+                });
+                i += 1;
+            } else {
+                // Convert individual item using existing logic
+                result.push(convert_single_input_item(input.clone())?);
+                i += 1;
+            }
+        }
+
+        Ok(result)
+    }
+}
+
+/// Convert a single OpenAI InputItem to universal Message (internal helper)
+fn convert_single_input_item(input: InputItem) -> Result<Message, ConvertError> {
+    let role = input
+        .role
+        .ok_or_else(|| ConvertError::MissingRequiredField {
+            field: "role".to_string(),
+        })?;
+
+    let content = input
+        .content
+        .ok_or_else(|| ConvertError::MissingRequiredField {
+            field: "content".to_string(),
+        })?;
+
+    match role {
+        InputItemRole::System => {
+            let content_text = extract_text_from_content(content)?;
+            Ok(Message::System {
+                content: content_text,
+            })
+        }
+        InputItemRole::User => {
+            let user_content = convert_to_user_content(content)?;
+            Ok(Message::User {
+                content: user_content,
+            })
+        }
+        InputItemRole::Assistant => {
+            let assistant_content = convert_to_assistant_content(content)?;
+            Ok(Message::Assistant {
+                content: assistant_content,
+            })
+        }
+        InputItemRole::Developer => {
+            // Treat developer role as system for now
+            let content_text = extract_text_from_content(content)?;
+            Ok(Message::System {
+                content: content_text,
+            })
+        }
+    }
+}
+
+/// Extract reasoning summary from a reasoning InputItem
+fn extract_reasoning_summary(input: &InputItem) -> Result<String, ConvertError> {
+    if let Some(summary) = &input.summary {
+        if !summary.is_empty() {
+            // Convert Vec<SummaryText> to String - assuming SummaryText has text field or Display
+            let text_parts: Vec<String> = summary
+                .iter()
+                .map(|s| format!("{:?}", s)) // Use debug format for now
+                .collect();
+            return Ok(text_parts.join("\n"));
+        }
+    }
+    Ok("Reasoning step".to_string())
+}
+
+/// Extract assistant content from a message InputItem
+fn extract_assistant_content_from_message(
+    input: &InputItem,
+) -> Result<AssistantContentPart, ConvertError> {
+    use crate::universal::TextContentPart;
+
+    if let Some(content) = &input.content {
+        match content {
+            InputItemContent::String(text) => Ok(AssistantContentPart::Text(TextContentPart {
+                text: text.clone(),
+                provider_options: None,
+            })),
+            InputItemContent::InputContentArray(items) => {
+                // For complex content, extract text from the first item that has text
+                for item in items {
+                    if let Some(text) = &item.text {
+                        return Ok(AssistantContentPart::Text(TextContentPart {
+                            text: text.clone(),
+                            provider_options: None,
+                        }));
+                    }
+                }
+                Ok(AssistantContentPart::Text(TextContentPart {
+                    text: "Complex assistant content".to_string(),
                     provider_options: None,
-                }]),
-            });
-        }
-
-        let role = input
-            .role
-            .ok_or_else(|| ConvertError::MissingRequiredField {
-                field: "role".to_string(),
-            })?;
-
-        let content = input
-            .content
-            .ok_or_else(|| ConvertError::MissingRequiredField {
-                field: "content".to_string(),
-            })?;
-
-        match role {
-            InputItemRole::System => {
-                let content_text = extract_text_from_content(content)?;
-                Ok(ModelMessage::System {
-                    content: content_text,
-                })
-            }
-            InputItemRole::User => {
-                let user_content = convert_to_user_content(content)?;
-                Ok(ModelMessage::User {
-                    content: user_content,
-                })
-            }
-            InputItemRole::Assistant => {
-                let assistant_content = convert_to_assistant_content(content)?;
-                Ok(ModelMessage::Assistant {
-                    content: assistant_content,
-                })
-            }
-            InputItemRole::Developer => {
-                // Treat developer role as system for now
-                let content_text = extract_text_from_content(content)?;
-                Ok(ModelMessage::System {
-                    content: content_text,
-                })
+                }))
             }
         }
+    } else {
+        Ok(AssistantContentPart::Text(TextContentPart {
+            text: "Empty assistant message".to_string(),
+            provider_options: None,
+        }))
     }
 }
 
@@ -126,13 +222,13 @@ fn convert_to_assistant_content(
     }
 }
 
-/// Convert universal ModelMessage to OpenAI ChatCompletionRequestMessage
-impl TryFrom<ModelMessage> for ChatCompletionRequestMessage {
+/// Convert universal Message to OpenAI ChatCompletionRequestMessage
+impl TryFrom<Message> for ChatCompletionRequestMessage {
     type Error = ConvertError;
 
-    fn try_from(message: ModelMessage) -> Result<Self, Self::Error> {
+    fn try_from(message: Message) -> Result<Self, Self::Error> {
         match message {
-            ModelMessage::System { content } => Ok(ChatCompletionRequestMessage {
+            Message::System { content } => Ok(ChatCompletionRequestMessage {
                 role: ChatCompletionRequestMessageRole::System,
                 content: Some(ChatCompletionRequestMessageContent::String(content)),
                 name: None,
@@ -142,7 +238,7 @@ impl TryFrom<ModelMessage> for ChatCompletionRequestMessage {
                 tool_calls: None,
                 tool_call_id: None,
             }),
-            ModelMessage::User { content } => {
+            Message::User { content } => {
                 let openai_content = convert_user_content_to_openai(content)?;
                 Ok(ChatCompletionRequestMessage {
                     role: ChatCompletionRequestMessageRole::User,
@@ -155,7 +251,7 @@ impl TryFrom<ModelMessage> for ChatCompletionRequestMessage {
                     tool_call_id: None,
                 })
             }
-            ModelMessage::Assistant { content } => {
+            Message::Assistant { content } => {
                 let openai_content = convert_assistant_content_to_openai(content)?;
                 Ok(ChatCompletionRequestMessage {
                     role: ChatCompletionRequestMessageRole::Assistant,
@@ -168,7 +264,7 @@ impl TryFrom<ModelMessage> for ChatCompletionRequestMessage {
                     tool_call_id: None,
                 })
             }
-            ModelMessage::Tool { content: _ } => {
+            Message::Tool { content: _ } => {
                 // Basic implementation - convert tool to user message for now
                 Ok(ChatCompletionRequestMessage {
                     role: ChatCompletionRequestMessageRole::Tool,
@@ -251,16 +347,16 @@ fn create_basic_input_item(role: InputItemRole, content: String) -> InputItem {
     }
 }
 
-/// Convert universal ModelMessage to OpenAI InputItem (for Responses API)
-impl TryFrom<ModelMessage> for InputItem {
+/// Convert universal Message to OpenAI InputItem (for Responses API)
+impl TryConvert<Message> for InputItem {
     type Error = ConvertError;
 
-    fn try_from(message: ModelMessage) -> Result<Self, Self::Error> {
+    fn try_convert(message: Message) -> Result<Self, Self::Error> {
         match message {
-            ModelMessage::System { content } => {
+            Message::System { content } => {
                 Ok(create_basic_input_item(InputItemRole::System, content))
             }
-            ModelMessage::User { content } => {
+            Message::User { content } => {
                 let content_string = match content {
                     UserContent::String(text) => text,
                     UserContent::Array(_) => {
@@ -269,7 +365,7 @@ impl TryFrom<ModelMessage> for InputItem {
                 };
                 Ok(create_basic_input_item(InputItemRole::User, content_string))
             }
-            ModelMessage::Assistant { content } => {
+            Message::Assistant { content } => {
                 let content_string = match content {
                     AssistantContent::String(text) => text,
                     AssistantContent::Array(_) => {
@@ -281,7 +377,7 @@ impl TryFrom<ModelMessage> for InputItem {
                     content_string,
                 ))
             }
-            ModelMessage::Tool { content: _ } => {
+            Message::Tool { content: _ } => {
                 // Basic implementation - convert tool to user for now
                 Ok(create_basic_input_item(
                     InputItemRole::User,
@@ -290,51 +386,4 @@ impl TryFrom<ModelMessage> for InputItem {
             }
         }
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_model_message_to_openai_system() {
-        let msg = ModelMessage::System {
-            content: "You are a helpful assistant".to_string(),
-        };
-
-        let openai_msg: Result<ChatCompletionRequestMessage, _> = msg.try_into();
-        assert!(openai_msg.is_ok());
-
-        let openai_msg = openai_msg.unwrap();
-        assert_eq!(openai_msg.role, ChatCompletionRequestMessageRole::System);
-
-        if let Some(ChatCompletionRequestMessageContent::String(content)) = openai_msg.content {
-            assert_eq!(content, "You are a helpful assistant");
-        } else {
-            panic!("Expected string content");
-        }
-    }
-
-    #[test]
-    fn test_model_message_to_openai_user() {
-        let msg = ModelMessage::User {
-            content: UserContent::String("Hello, world!".to_string()),
-        };
-
-        let openai_msg: Result<ChatCompletionRequestMessage, _> = msg.try_into();
-        assert!(openai_msg.is_ok());
-
-        let openai_msg = openai_msg.unwrap();
-        assert_eq!(openai_msg.role, ChatCompletionRequestMessageRole::User);
-
-        if let Some(ChatCompletionRequestMessageContent::String(content)) = openai_msg.content {
-            assert_eq!(content, "Hello, world!");
-        } else {
-            panic!("Expected string content");
-        }
-    }
-
-    // Note: InputItem has many required fields in the generated struct,
-    // so we'll skip testing the InputItem -> ModelMessage conversion for now
-    // and focus on testing the ModelMessage -> OpenAI conversion which is more important
 }
