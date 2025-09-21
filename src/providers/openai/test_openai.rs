@@ -48,16 +48,15 @@ mod tests {
             }
         };
 
-        // Log original input with verbose details
-        debug!("📄 Original InputItems ({} items):", messages.len());
+        // Log conversion steps
+        debug!("📄 Original: {} InputItems", messages.len());
         for (i, msg) in messages.iter().enumerate() {
-            debug!(
-                "  [{}] {}",
-                i,
-                serde_json::to_string_pretty(msg)
-                    .unwrap_or_else(|e| format!("Failed to serialize: {}", e))
-            );
+            let json = serde_json::to_string_pretty(msg)
+                .unwrap_or_else(|e| format!("Failed to serialize: {}", e));
+            debug!("[{}]\n{}", i, json);
         }
+
+        debug!("🔄 Converting to universal format...");
 
         let universal_request: Vec<ModelMessage> = messages
             .clone()
@@ -66,14 +65,13 @@ mod tests {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| format!("Failed to convert to universal format: {}", e))?;
 
-        // Log universal format
-        debug!(
-            "🔄 Converted to Universal ModelMessages ({} items):",
-            universal_request.len()
-        );
+        debug!("✓ Universal: {} ModelMessages", universal_request.len());
         for (i, msg) in universal_request.iter().enumerate() {
-            debug!("  [{}] {:?}", i, msg);
+            let json = serde_json::to_string_pretty(msg).unwrap_or_else(|_| format!("{:?}", msg));
+            debug!("[{}]\n{}", i, json);
         }
+
+        debug!("↩️  Converting back to InputItems...");
 
         let roundtripped: Vec<InputItem> = universal_request
             .iter()
@@ -81,18 +79,11 @@ mod tests {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
 
-        // Log roundtripped result
-        debug!(
-            "↩️  Roundtripped back to InputItems ({} items):",
-            roundtripped.len()
-        );
+        debug!("✓ Roundtripped: {} InputItems", roundtripped.len());
         for (i, msg) in roundtripped.iter().enumerate() {
-            debug!(
-                "  [{}] {}",
-                i,
-                serde_json::to_string_pretty(msg)
-                    .unwrap_or_else(|e| format!("Failed to serialize: {}", e))
-            );
+            let json = serde_json::to_string_pretty(msg)
+                .unwrap_or_else(|e| format!("Failed to serialize: {}", e));
+            debug!("[{}]\n{}", i, json);
         }
 
         let diff = diff_serializable(&messages, &roundtripped, "items");
