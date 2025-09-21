@@ -1,30 +1,30 @@
 {
-  "id": "chatcmpl-CIHGRO25UmWBLlrSl63vihrzIgC4a",
+  "id": "chatcmpl-CIHRSpAv8cCFbXAAFFM9wvpnSdrYL",
   "object": "chat.completion",
-  "created": 1758472303,
+  "created": 1758472986,
   "model": "gpt-5-nano-2025-08-07",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "",
+        "content": "Paris is the capital of France. It has been the political and administrative center for centuries, hosting the presidency (Élysée Palace), the national assembly, ministries, and most major institutions. This longstanding status, along with international recognition, makes Paris the capital.",
         "refusal": null,
         "annotations": []
       },
-      "finish_reason": "length"
+      "finish_reason": "stop"
     }
   ],
   "usage": {
     "prompt_tokens": 18,
-    "completion_tokens": 150,
-    "total_tokens": 168,
+    "completion_tokens": 253,
+    "total_tokens": 271,
     "prompt_tokens_details": {
       "cached_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 150,
+      "reasoning_tokens": 192,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

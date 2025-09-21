@@ -1,0 +1,42 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "low",
+    "summary": "auto"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What is the capital of France? Please explain your reasoning."
+    },
+    {
+      "id": "rs_68d02b1ac56881909bb48fb48c945272070603144f92810b",
+      "type": "reasoning",
+      "summary": [
+        {
+          "type": "summary_text",
+          "text": "**Explaining France's capital**\n\nI need to respond that the capital of France is Paris. To clarify my reasoning, I'll keep it concise, touching on geography and history. Paris is the widely recognized capital and serves as the seat of the government and prefecture of Île-de-France. Plus, it's interesting to note that Paris has been the capital since the 10th century, which shows its long-standing importance. I’ll round it off neatly!"
+        }
+      ]
+    },
+    {
+      "id": "msg_68d02b1d0f0c8190a256cacddb2afeff070603144f92810b",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The capital of France is Paris.\n\nReasoning:\n- Paris is the political and administrative seat of the French government and the center of national institutions.\n- It has been the capital since the 10th century and remains the official capital through modern times.\n- It is the most prominent city in France in terms of administration, culture, and history."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_output_tokens": 200000
+}

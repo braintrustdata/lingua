@@ -1,0 +1,78 @@
+{
+  "id": "resp_68d02b1d8c7081909872d2e9f34d9c4b070603144f92810b",
+  "object": "response",
+  "created_at": 1758472989,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 200000,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_68d02b1e1ae481909ca7edd362bb9186070603144f92810b",
+      "type": "reasoning",
+      "summary": [
+        {
+          "type": "summary_text",
+          "text": "**Proposing next steps**\n\nI see the user’s question is vague, so my approach is to ask clarifying questions and offer options. First, I can help define their goal and suggest actions based on their context. For instance, if they're studying geography or feeling stuck, I could ask what they're trying to achieve. I could mention potential directions like planning a trip to Paris or learning about France. I'll also suggest a simple framework for decision-making, providing a quick template. Let's get started on that!"
+        }
+      ]
+    },
+    {
+      "id": "msg_68d02b20d19881908a6ee62f21e90cdb070603144f92810b",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I’m not sure what you’re aiming for. Could you tell me your goal? For example, are you trying to:\n\n- Learn something (e.g., more about France, Paris, or geography)?\n- Decide on a next action in a project or study plan?\n- Make a plan for a trip toParis or France?\n- Solve a specific problem or task?\n\nIf you want a quick framework for deciding your next step, here’s a simple approach:\n1) Define your goal in one sentence.\n2) List 3–5 concrete options to reach it.\n3) Evaluate pros/cons and required effort for each option.\n4) Pick one to start, then set a 1–2 day micro-goal and a 1-week goal.\n5) Review and adjust.\n\nIf you share a bit more about your context, I can propose a tailored plan and next actions."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "low",
+    "summary": "detailed"
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 103,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 312,
+    "output_tokens_details": {
+      "reasoning_tokens": 128
+    },
+    "total_tokens": 415
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I’m not sure what you’re aiming for. Could you tell me your goal? For example, are you trying to:\n\n- Learn something (e.g., more about France, Paris, or geography)?\n- Decide on a next action in a project or study plan?\n- Make a plan for a trip toParis or France?\n- Solve a specific problem or task?\n\nIf you want a quick framework for deciding your next step, here’s a simple approach:\n1) Define your goal in one sentence.\n2) List 3–5 concrete options to reach it.\n3) Evaluate pros/cons and required effort for each option.\n4) Pick one to start, then set a 1–2 day micro-goal and a 1-week goal.\n5) Review and adjust.\n\nIf you share a bit more about your context, I can propose a tailored plan and next actions."
+}

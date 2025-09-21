@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01LTU1U3jGyyrUM6EQbqNqX8",
+      "id": "msg_01FqivQdtqg2ZjBPzEabVF8b",
       "type": "message",
       "role": "assistant",
       "model": "claude-3-5-sonnet-20241022",
@@ -51,7 +51,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ". "
+      "text": ". This has been the case since "
     }
   },
   {
@@ -59,7 +59,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\nThis is a well"
+      "text": "987 CE when Hugh Capet"
     }
   },
   {
@@ -67,7 +67,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "-established historical"
+      "text": ", the first King of"
     }
   },
   {
@@ -75,7 +75,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " an"
+      "text": " France from the House of Capet,"
     }
   },
   {
@@ -83,7 +83,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d political"
+      "text": " made Paris the seat of his"
     }
   },
   {
@@ -91,7 +91,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " fact. Paris has been"
+      "text": " royal power.\n\nParis serves"
     }
   },
   {
@@ -99,7 +99,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " France"
+      "text": " as France's:"
     }
   },
   {
@@ -107,7 +107,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "'s capital since"
+      "text": "\n- Political capital (hosting the presidency"
     }
   },
   {
@@ -115,7 +115,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " "
+      "text": ", national assembly, and government minist"
     }
   },
   {
@@ -123,7 +123,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "987 CE"
+      "text": "ries)\n- Economic capital (largest"
     }
   },
   {
@@ -131,7 +131,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", when Hugh C"
+      "text": " business center in France)"
     }
   },
   {
@@ -139,7 +139,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "apet made"
+      "text": "\n- Cultural capital (home"
     }
   },
   {
@@ -147,7 +147,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " it the capital of his"
+      "text": " to renowned museums like the Louvre an"
     }
   },
   {
@@ -155,7 +155,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " kingdom. Today"
+      "text": "d cultural institutions)\n- Population"
     }
   },
   {
@@ -163,7 +163,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", Paris"
+      "text": " center (largest city in France with over 2"
     }
   },
   {
@@ -171,7 +171,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " serves as:"
+      "text": " million residents in the city proper)\n\nParis"
     }
   },
   {
@@ -179,7 +179,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\n1. The political"
+      "text": " became and remained the capital due to its"
     }
   },
   {
@@ -187,7 +187,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " center of France -"
+      "text": ":\n- Central location in"
     }
   },
   {
@@ -195,7 +195,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " housing"
+      "text": " northern France\n- Position on the Seine River ("
     }
   },
   {
@@ -203,271 +203,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " the national"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " government,"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " presidency"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ", and parliament"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "\n2. The economic hub"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " -"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " home to major"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " businesses"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " an"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d financial institutions\n3."
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " The administrative"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " capital"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " - location"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " of major"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " government minist"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "ries"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "\n4. The cultural heart"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " of"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " France - containing"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " iconic"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " landmarks like the E"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "iffel Tower an"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d Louvre"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "\n\nThis"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " is"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " not a"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " matter of interpretation"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " -"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " Paris is officially"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " an"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d legally"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " recognized as France"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "'s capital city"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "."
+      "text": "important for trade)"
     }
   },
   {
@@ -477,14 +213,14 @@
   {
     "type": "message_delta",
     "delta": {
-      "stop_reason": "end_turn",
+      "stop_reason": "max_tokens",
       "stop_sequence": null
     },
     "usage": {
       "input_tokens": 19,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 143
+      "output_tokens": 150
     }
   },
   {

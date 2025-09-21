@@ -7,7 +7,7 @@
     },
     {
       "role": "assistant",
-      "content": "",
+      "content": "Paris is the capital of France. It has been the political and administrative center for centuries, hosting the presidency (Élysée Palace), the national assembly, ministries, and most major institutions. This longstanding status, along with international recognition, makes Paris the capital.",
       "refusal": null,
       "annotations": []
     },
@@ -16,5 +16,6 @@
       "content": "What should I do next?"
     }
   ],
-  "max_completion_tokens": 150
+  "max_completion_tokens": 20000,
+  "reasoning_effort": "low"
 }

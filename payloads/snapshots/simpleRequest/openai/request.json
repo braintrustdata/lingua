@@ -6,5 +6,6 @@
       "content": "What is the capital of France? Please explain your reasoning."
     }
   ],
-  "max_completion_tokens": 150
+  "max_completion_tokens": 20000,
+  "reasoning_effort": "low"
 }

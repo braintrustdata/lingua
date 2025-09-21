@@ -16,7 +16,8 @@ export const openaiPayloads = {
           "What is the capital of France? Please explain your reasoning.",
       },
     ],
-    max_completion_tokens: 150,
+    max_completion_tokens: 20_000,
+    reasoning_effort: "low",
   } satisfies OpenAI.ChatCompletionCreateParams,
 
   reasoningRequest: {
@@ -164,7 +165,8 @@ export async function captureSinglePayload(
 
     // Follow-up variables
     let followUpResponse: OpenAI.Chat.Completions.ChatCompletion | null = null;
-    let followUpStreamMessages: Array<OpenAI.Chat.Completions.ChatCompletionChunk> | null = null;
+    let followUpStreamMessages: Array<OpenAI.Chat.Completions.ChatCompletionChunk> | null =
+      null;
 
     if (stream !== true) {
       // Make non-streaming call if stream is false or undefined
@@ -342,7 +344,9 @@ export async function captureSinglePayload(
       generatedFiles.push(`openai-${name}-followup-request.json`);
 
       if (followUpResponse) {
-        generatedFiles.push(`openai-${name}-followup-response-non-streaming.json`);
+        generatedFiles.push(
+          `openai-${name}-followup-response-non-streaming.json`,
+        );
       }
       if (followUpStreamMessages) {
         generatedFiles.push(`openai-${name}-followup-response-streaming.json`);
@@ -368,4 +372,3 @@ export async function captureSinglePayload(
     );
   }
 }
-

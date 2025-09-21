@@ -12,7 +12,7 @@ export const openaiResponsesPayloads: Record<
   // Original examples adapted for Responses API
   simpleRequest: {
     model: "gpt-5-nano",
-    reasoning: { effort: "medium", summary: "auto" },
+    reasoning: { effort: "low", summary: "auto" },
     input: [
       {
         role: "user" as const,
@@ -20,7 +20,7 @@ export const openaiResponsesPayloads: Record<
           "What is the capital of France? Please explain your reasoning.",
       },
     ],
-    max_output_tokens: 150,
+    max_output_tokens: 20_000,
   },
 
   reasoningRequest: {
@@ -152,7 +152,11 @@ type ResponseCreateParameters = Parameters<
   typeof OpenAI.prototype.responses.create
 >[0];
 
-function createTestCaseDirectory(baseOutputDir: string, testCase: string, format: string): string {
+function createTestCaseDirectory(
+  baseOutputDir: string,
+  testCase: string,
+  format: string,
+): string {
   const testCaseDir = join(baseOutputDir, testCase, format);
   mkdirSync(testCaseDir, { recursive: true });
   return testCaseDir;
@@ -167,12 +171,16 @@ export async function captureSingleResponsesPayload(
 ) {
   console.log(`Starting Responses API capture for: ${name}`);
 
-  const testCaseDir = createTestCaseDirectory(outputDir, name, 'openai-responses');
+  const testCaseDir = createTestCaseDirectory(
+    outputDir,
+    name,
+    "openai-responses",
+  );
 
   try {
     // 1. Save original request payload
     writeFileSync(
-      join(testCaseDir, 'request.json'),
+      join(testCaseDir, "request.json"),
       JSON.stringify(payload, null, 2),
     );
 
@@ -215,13 +223,13 @@ export async function captureSingleResponsesPayload(
     // Save responses
     if (response) {
       writeFileSync(
-        join(testCaseDir, 'response.json'),
+        join(testCaseDir, "response.json"),
         JSON.stringify(response, null, 2),
       );
     }
     if (streamResponse) {
       writeFileSync(
-        join(testCaseDir, 'response-streaming.json'),
+        join(testCaseDir, "response-streaming.json"),
         JSON.stringify(streamResponse, null, 2),
       );
     }
@@ -295,7 +303,7 @@ export async function captureSingleResponsesPayload(
 
       // Save follow-up request
       writeFileSync(
-        join(testCaseDir, 'followup-request.json'),
+        join(testCaseDir, "followup-request.json"),
         JSON.stringify(followUpPayload, null, 2),
       );
       followUpRequestCreated = true;
@@ -328,13 +336,13 @@ export async function captureSingleResponsesPayload(
       // Save follow-up responses
       if (followUpResponse) {
         writeFileSync(
-          join(testCaseDir, 'followup-response.json'),
+          join(testCaseDir, "followup-response.json"),
           JSON.stringify(followUpResponse, null, 2),
         );
       }
       if (followUpStreamResponse) {
         writeFileSync(
-          join(testCaseDir, 'followup-response-streaming.json'),
+          join(testCaseDir, "followup-response-streaming.json"),
           JSON.stringify(followUpStreamResponse, null, 2),
         );
       }
@@ -361,7 +369,9 @@ export async function captureSingleResponsesPayload(
       generatedFiles.push(`openai-responses-${name}-followup-response.json`);
     }
     if (followUpStreamResponse) {
-      generatedFiles.push(`openai-responses-${name}-followup-response-streaming.json`);
+      generatedFiles.push(
+        `openai-responses-${name}-followup-response-streaming.json`,
+      );
     }
 
     updateCache(outputDir, "openai-responses", name, payload, generatedFiles);
@@ -371,19 +381,22 @@ export async function captureSingleResponsesPayload(
     console.error(`✗ Failed to capture ${name}:`, error);
 
     // Ensure directory exists for error case
-    const errorTestCaseDir = createTestCaseDirectory(outputDir, name, 'openai-responses');
+    const errorTestCaseDir = createTestCaseDirectory(
+      outputDir,
+      name,
+      "openai-responses",
+    );
 
     // Save the request even if the API call failed
     writeFileSync(
-      join(errorTestCaseDir, 'request.json'),
+      join(errorTestCaseDir, "request.json"),
       JSON.stringify(payload, null, 2),
     );
 
     // Save error details
     writeFileSync(
-      join(errorTestCaseDir, 'error.json'),
+      join(errorTestCaseDir, "error.json"),
       JSON.stringify({ error: String(error) }, null, 2),
     );
   }
 }
-

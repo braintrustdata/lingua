@@ -1,7 +1,7 @@
 {
   "openai:simpleRequest": {
-    "payloadHash": "76f789b23079491edef5322283b0f46d890ef453fe51b5d7347d13708b483ed9",
-    "capturedAt": "2025-09-21T16:31:46.696Z",
+    "payloadHash": "34cd12bbc7715045c21300e223e228159c962afd9b7e626d865a89505c97b28f",
+    "capturedAt": "2025-09-21T16:43:10.319Z",
     "provider": "openai",
     "name": "simpleRequest",
     "files": [
@@ -13,9 +13,23 @@
       "simpleRequest/openai/followup-response-streaming.json"
     ]
   },
+  "openai-responses:simpleRequest": {
+    "payloadHash": "14c012bc727c886b02c1a443472274304dfaea8e41546b91aaa6b577fb62ee6c",
+    "capturedAt": "2025-09-21T16:43:13.901Z",
+    "provider": "openai-responses",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/openai-responses/request.json",
+      "simpleRequest/openai-responses/response.json",
+      "simpleRequest/openai-responses/response-streaming.json",
+      "simpleRequest/openai-responses/followup-request.json",
+      "simpleRequest/openai-responses/followup-response.json",
+      "simpleRequest/openai-responses/followup-response-streaming.json"
+    ]
+  },
   "anthropic:simpleRequest": {
     "payloadHash": "603eac37916bb8aa7a7e196c0d6dcbaf7e86ef41f1962fcbb38626f90f34c186",
-    "capturedAt": "2025-09-21T16:31:48.906Z",
+    "capturedAt": "2025-09-21T16:43:16.697Z",
     "provider": "anthropic",
     "name": "simpleRequest",
     "files": [
@@ -25,17 +39,6 @@
       "simpleRequest/anthropic/followup-request.json",
       "simpleRequest/anthropic/followup-response.json",
       "simpleRequest/anthropic/followup-response-streaming.json"
-    ]
-  },
-  "openai-responses:simpleRequest": {
-    "payloadHash": "c8cc06e72e4d2e225e5ff70c5f0188b624d537efc44c7194a32db1443da240ea",
-    "capturedAt": "2025-09-21T16:31:49.005Z",
-    "provider": "openai-responses",
-    "name": "simpleRequest",
-    "files": [
-      "simpleRequest/openai-responses/request.json",
-      "simpleRequest/openai-responses/response.json",
-      "simpleRequest/openai-responses/response-streaming.json"
     ]
   }
 }

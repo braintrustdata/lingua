@@ -8,10 +8,12 @@ export const openaiCases = {
     messages: [
       {
         role: "user" as const,
-        content: "What is the capital of France? Please explain your reasoning.",
+        content:
+          "What is the capital of France? Please explain your reasoning.",
       },
     ],
-    max_completion_tokens: 150,
+    max_completion_tokens: 20_000,
+    reasoning_effort: "low",
   } satisfies OpenAI.ChatCompletionCreateParams,
 
   reasoningRequest: {
@@ -19,7 +21,8 @@ export const openaiCases = {
     messages: [
       {
         role: "user" as const,
-        content: "Calculate the average speed if someone travels 120 miles in 2 hours.",
+        content:
+          "Calculate the average speed if someone travels 120 miles in 2 hours.",
       },
     ],
   } satisfies OpenAI.ChatCompletionCreateParams,
@@ -57,7 +60,7 @@ export const openaiCases = {
 export async function executeOpenAI(
   caseName: string,
   payload: OpenAI.ChatCompletionCreateParams,
-  stream?: boolean
+  stream?: boolean,
 ): Promise<CaptureResult> {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const result: CaptureResult = { request: payload };
@@ -69,10 +72,12 @@ export async function executeOpenAI(
     // Add non-streaming call if requested
     if (stream !== true) {
       promises.push(
-        client.chat.completions.create({
-          ...payload,
-          stream: false,
-        }).then(response => ({ type: 'response', data: response }))
+        client.chat.completions
+          .create({
+            ...payload,
+            stream: false,
+          })
+          .then((response) => ({ type: "response", data: response })),
       );
     }
 
@@ -89,8 +94,8 @@ export async function executeOpenAI(
           for await (const chunk of streamResponse) {
             streamChunks.push(chunk);
           }
-          return { type: 'streamingResponse', data: streamChunks };
-        })()
+          return { type: "streamingResponse", data: streamChunks };
+        })(),
       );
     }
 
@@ -99,15 +104,19 @@ export async function executeOpenAI(
 
     // Process results
     for (const result_ of initialResults) {
-      if (result_.type === 'response') {
+      if (result_.type === "response") {
         result.response = result_.data;
-      } else if (result_.type === 'streamingResponse') {
+      } else if (result_.type === "streamingResponse") {
         result.streamingResponse = result_.data;
       }
     }
 
     // Create follow-up conversation if we have a non-streaming response
-    if (result.response && "choices" in result.response && result.response.choices?.[0]?.message) {
+    if (
+      result.response &&
+      "choices" in result.response &&
+      result.response.choices?.[0]?.message
+    ) {
       const assistantMessage = result.response.choices[0].message;
 
       const followUpPayload: OpenAI.ChatCompletionCreateParams = {
@@ -126,10 +135,12 @@ export async function executeOpenAI(
 
       if (stream !== true) {
         followupPromises.push(
-          client.chat.completions.create({
-            ...followUpPayload,
-            stream: false,
-          }).then(response => ({ type: 'followupResponse', data: response }))
+          client.chat.completions
+            .create({
+              ...followUpPayload,
+              stream: false,
+            })
+            .then((response) => ({ type: "followupResponse", data: response })),
         );
       }
 
@@ -137,16 +148,21 @@ export async function executeOpenAI(
         followupPromises.push(
           (async () => {
             const followupStreamChunks: unknown[] = [];
-            const followupStreamResponse = await client.chat.completions.create({
-              ...followUpPayload,
-              stream: true,
-            });
+            const followupStreamResponse = await client.chat.completions.create(
+              {
+                ...followUpPayload,
+                stream: true,
+              },
+            );
 
             for await (const chunk of followupStreamResponse) {
               followupStreamChunks.push(chunk);
             }
-            return { type: 'followupStreamingResponse', data: followupStreamChunks };
-          })()
+            return {
+              type: "followupStreamingResponse",
+              data: followupStreamChunks,
+            };
+          })(),
         );
       }
 
@@ -155,9 +171,9 @@ export async function executeOpenAI(
         const followupResults = await Promise.all(followupPromises);
 
         for (const result_ of followupResults) {
-          if (result_.type === 'followupResponse') {
+          if (result_.type === "followupResponse") {
             result.followupResponse = result_.data;
-          } else if (result_.type === 'followupStreamingResponse') {
+          } else if (result_.type === "followupStreamingResponse") {
             result.followupStreamingResponse = result_.data;
           }
         }
@@ -175,3 +191,4 @@ export const openaiExecutor: ProviderExecutor = {
   cases: openaiCases,
   execute: executeOpenAI,
 };
+
