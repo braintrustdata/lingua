@@ -226,6 +226,8 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
             AssistantContentPart::Text(text_part) => openai::InputContent {
                 input_content_type: openai::InputItemContentListType::OutputText,
                 text: Some(text_part.text),
+                annotations: Some(vec![]), // Add empty annotations array
+                logprobs: Some(vec![]),    // Add empty logprobs array
                 ..Default::default()
             },
             _ => return Err(ConvertError::UnsupportedInputType),
@@ -332,10 +334,19 @@ impl TryFromLLM<Message> for openai::InputItem {
                             })
                             .collect();
 
-                        if !reasoning_parts.is_empty() && reasoning_parts.len() == parts.len() {
+                        // Check if this is reasoning-only (either has reasoning parts or is empty array from empty reasoning)
+                        let is_reasoning_only = if parts.is_empty() {
+                            // Empty array likely came from empty reasoning summary
+                            true
+                        } else {
+                            // Check if all parts are reasoning parts
+                            !reasoning_parts.is_empty() && reasoning_parts.len() == parts.len()
+                        };
+
+                        if is_reasoning_only {
                             // Pure reasoning message - convert to reasoning InputItem
                             let reasoning_item = openai::InputItem {
-                                role: Some(openai::InputItemRole::Assistant),
+                                role: None,
                                 content: None,
                                 input_item_type: Some(openai::InputItemType::Reasoning),
                                 id: id.clone(),
@@ -351,22 +362,15 @@ impl TryFromLLM<Message> for openai::InputItem {
                             };
                             Ok(reasoning_item)
                         } else {
-                            // Mixed content - convert to regular assistant message
-                            // For now, extract text from first text part
-                            let text = parts
-                                .iter()
-                                .find_map(|part| match part {
-                                    AssistantContentPart::Text(text_part) => {
-                                        Some(text_part.text.clone())
-                                    }
-                                    _ => None,
-                                })
-                                .unwrap_or_else(|| "Complex assistant content".to_string());
-
+                            // Mixed content or regular message - use proper conversion
                             Ok(openai::InputItem {
                                 role: Some(openai::InputItemRole::Assistant),
-                                content: Some(openai::InputItemContent::String(text)),
+                                content: Some(TryFromLLM::try_from(AssistantContent::Array(
+                                    parts,
+                                ))?),
+                                input_item_type: Some(openai::InputItemType::Message),
                                 id: id,
+                                status: Some(openai::FunctionCallItemStatus::Completed), // Add status field
                                 ..Default::default()
                             })
                         }
