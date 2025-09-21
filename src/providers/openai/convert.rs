@@ -2,7 +2,7 @@ use super::generated::{
     ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
     ChatCompletionRequestMessageRole, InputItem, InputItemContent, InputItemRole, InputItemType,
 };
-use crate::universal::convert::TryConvert;
+use crate::universal::convert::TryFromLLM;
 use crate::universal::{AssistantContent, AssistantContentPart, Message, UserContent};
 use std::fmt;
 
@@ -34,36 +34,86 @@ impl std::error::Error for ConvertError {}
 
 /// Convert OpenAI InputItem collection to universal Message collection
 /// This handles OpenAI-specific logic for combining or transforming multiple items
-impl TryConvert<Vec<InputItem>> for Vec<Message> {
+impl TryFromLLM<Vec<InputItem>> for Vec<Message> {
     type Error = ConvertError;
 
-    fn try_convert(inputs: Vec<InputItem>) -> Result<Self, Self::Error> {
+    fn try_from(inputs: Vec<InputItem>) -> Result<Self, Self::Error> {
         let mut result = Vec::new();
-        let mut i = 0;
+        for mut input in inputs {
+            match input.input_item_type {
+                Some(InputItemType::Reasoning) => {
+                    let mut summaries = vec![];
+                    let mut first = true;
+                    for summary in input.summary.unwrap_or_default() {
+                        summaries.push(AssistantContentPart::Reasoning {
+                            text: summary.text,
+                            // OpenAI returns encrypted content on the message level, but may
+                            // return multiple summary parts. To keep it simple, we just match this
+                            // convention by putting the encrypted content on the first part.
+                            encrypted_content: if first {
+                                first = false;
+                                input.encrypted_content.take()
+                            } else {
+                                None
+                            },
+                        });
+                    }
+                    result.push(Message::Assistant {
+                        content: AssistantContent::Array(summaries),
+                        id: input.id,
+                    });
+                }
+                _ => {
+                    let role = input
+                        .role
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: "role".to_string(),
+                        })?;
 
-        while i < inputs.len() {
-            let input = &inputs[i];
+                    let content =
+                        input
+                            .content
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "content".to_string(),
+                            })?;
 
+                    result.push(match role {
+                        InputItemRole::System => {
+                            let content_text = extract_text_from_content(content)?;
+                            Message::System {
+                                content: content_text,
+                            }
+                        }
+                        InputItemRole::User => {
+                            let user_content = convert_to_user_content(content)?;
+                            Message::User {
+                                content: user_content,
+                            }
+                        }
+                        InputItemRole::Assistant => {
+                            let assistant_content = convert_to_assistant_content(content)?;
+                            Message::Assistant {
+                                content: assistant_content,
+                                id: None,
+                            }
+                        }
+                        InputItemRole::Developer => {
+                            // Treat developer role as system for now
+                            let content_text = extract_text_from_content(content)?;
+                            Message::System {
+                                content: content_text,
+                            }
+                        }
+                    });
+                }
+            };
+            /*
             // Handle reasoning + message pairs
             if matches!(input.input_item_type, Some(InputItemType::Reasoning)) {
                 // Look for the next message item to combine with reasoning
                 if i + 1 < inputs.len() {
                     let next_input = &inputs[i + 1];
                     if matches!(next_input.input_item_type, Some(InputItemType::Message)) {
-                        // Combine reasoning + message into single assistant message
-                        let reasoning_text = extract_reasoning_summary(&input)?;
-                        let message_content = extract_assistant_content_from_message(&next_input)?;
-
-                        result.push(Message::Assistant {
-                            content: AssistantContent::Array(vec![
-                                AssistantContentPart::Reasoning {
-                                    text: reasoning_text,
-                                    provider_options: None,
-                                },
-                                message_content,
-                            ]),
-                            id: None,
-                        });
 
                         // Skip the next item since we consumed it
                         i += 2;
@@ -84,7 +134,8 @@ impl TryConvert<Vec<InputItem>> for Vec<Message> {
                 // Convert individual item using existing logic
                 result.push(convert_single_input_item(input.clone())?);
                 i += 1;
-            }
+
+            */
         }
 
         Ok(result)
@@ -133,21 +184,6 @@ fn convert_single_input_item(input: InputItem) -> Result<Message, ConvertError> 
             })
         }
     }
-}
-
-/// Extract reasoning summary from a reasoning InputItem
-fn extract_reasoning_summary(input: &InputItem) -> Result<String, ConvertError> {
-    if let Some(summary) = &input.summary {
-        if !summary.is_empty() {
-            // Convert Vec<SummaryText> to String - assuming SummaryText has text field or Display
-            let text_parts: Vec<String> = summary
-                .iter()
-                .map(|s| format!("{:?}", s)) // Use debug format for now
-                .collect();
-            return Ok(text_parts.join("\n"));
-        }
-    }
-    Ok("Reasoning step".to_string())
 }
 
 /// Extract assistant content from a message InputItem
@@ -351,10 +387,10 @@ fn create_basic_input_item(role: InputItemRole, content: String) -> InputItem {
 }
 
 /// Convert universal Message to OpenAI InputItem (for Responses API)
-impl TryConvert<Message> for InputItem {
+impl TryFromLLM<Message> for InputItem {
     type Error = ConvertError;
 
-    fn try_convert(message: Message) -> Result<Self, Self::Error> {
+    fn try_from(message: Message) -> Result<Self, Self::Error> {
         match message {
             Message::System { content } => {
                 Ok(create_basic_input_item(InputItemRole::System, content))

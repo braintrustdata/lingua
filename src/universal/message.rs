@@ -106,8 +106,10 @@ pub enum AssistantContentPart {
     },
     Reasoning {
         text: String,
+        /// Providers will occasionally return encrypted content for reasoning parts which can
+        /// be useful when you send a follow up message.
         #[ts(optional)]
-        provider_options: Option<ProviderOptions>,
+        encrypted_content: Option<String>,
     },
     ToolCall {
         tool_call_id: String,
@@ -139,9 +141,6 @@ pub enum ToolContentPart {
 
 /// Tool content - array of tool content parts
 pub type ToolContent = Vec<ToolContentPart>;
-
-/// Collection of response messages with rich output metadata
-pub type ResponseMessages = Vec<ResponseMessage>;
 
 /// Source type enum - matches AI SDK Source sourceType
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -241,81 +240,4 @@ pub struct ToolErrorContentPart {
     pub tool_name: String,
     pub error: String,
     pub provider_metadata: Option<ProviderMetadata>,
-}
-
-/// Content part for response messages - matches AI SDK's ContentPart exactly
-/// This is the output equivalent of Message content parts
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase")]
-#[serde(tag = "type")]
-pub enum ResponseContentPart {
-    Text {
-        text: String,
-        #[ts(optional)]
-        provider_metadata: Option<ProviderMetadata>,
-    },
-    Reasoning {
-        text: String,
-        #[ts(optional)]
-        provider_metadata: Option<ProviderMetadata>,
-    },
-    Source {
-        source_type: SourceType,
-        id: String,
-        // URL source fields
-        #[ts(optional)]
-        url: Option<String>,
-        #[ts(optional)]
-        title: Option<String>,
-        // Document source fields
-        #[ts(optional)]
-        media_type: Option<String>,
-        #[ts(optional)]
-        filename: Option<String>,
-        #[ts(optional)]
-        provider_metadata: Option<ProviderMetadata>,
-    },
-    File {
-        #[ts(type = "any")] // GeneratedFile type from AI SDK
-        file: serde_json::Value,
-        #[ts(optional)]
-        provider_metadata: Option<ProviderMetadata>,
-    },
-    ToolCall {
-        tool_call_id: String,
-        tool_name: String,
-        #[ts(type = "any")]
-        input: serde_json::Value,
-        #[ts(optional)]
-        provider_executed: Option<bool>,
-        #[ts(optional)]
-        provider_metadata: Option<ProviderMetadata>,
-    },
-    ToolResult {
-        tool_call_id: String,
-        tool_name: String,
-        #[ts(type = "any")]
-        output: serde_json::Value,
-        #[ts(optional)]
-        provider_metadata: Option<ProviderMetadata>,
-    },
-    ToolError {
-        tool_call_id: String,
-        tool_name: String,
-        error: String,
-        #[ts(optional)]
-        provider_metadata: Option<ProviderMetadata>,
-    },
-}
-
-/// Response message - the output equivalent of Message with rich metadata
-/// This includes all the sources, reasoning, etc. that get stripped when converting to Message
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
-pub struct ResponseMessage {
-    pub role: String,
-    pub content: Vec<ResponseContentPart>,
-    pub provider_options: Option<ProviderOptions>,
 }
