@@ -2,22 +2,22 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01Fpt82YTFB7avu7FJW8X9H1",
+      "id": "msg_01TZ4QfL4AxDS9uhkce2hsu9",
       "type": "message",
       "role": "assistant",
-      "model": "claude-3-5-haiku-20241022",
+      "model": "claude-sonnet-4-20250514",
       "content": [],
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 144,
+        "input_tokens": 131,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 1,
+        "output_tokens": 2,
         "service_tier": "standard"
       }
     }
@@ -35,7 +35,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "I"
+      "text": "I don"
     }
   },
   {
@@ -43,7 +43,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " can"
+      "text": "'t have enough context to give you specific advice"
     }
   },
   {
@@ -51,7 +51,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "'t"
+      "text": " about what you should do next. Your next"
     }
   },
   {
@@ -59,7 +59,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " determine"
+      "text": " step depends entirely on your current situation,"
     }
   },
   {
@@ -67,7 +67,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " what"
+      "text": " goals, and priorities"
     }
   },
   {
@@ -75,7 +75,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you"
+      "text": ".\n\nTo help you figure"
     }
   },
   {
@@ -83,7 +83,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " should do next without"
+      "text": " this out, you might consider:\n\n1. **What"
     }
   },
   {
@@ -91,7 +91,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " more context about your current"
+      "text": " you were doing before** - Were"
     }
   },
   {
@@ -99,7 +99,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " situation or"
+      "text": " you in the middle of a task, project"
     }
   },
   {
@@ -107,7 +107,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " goals. Could you provide"
+      "text": ", or decision?\n2. **Your"
     }
   },
   {
@@ -115,7 +115,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " more"
+      "text": " immediate needs** - Are you hungry, tired, or have"
     }
   },
   {
@@ -123,7 +123,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " information"
+      "text": " urgent responsibilities?\n3. **Your goals"
     }
   },
   {
@@ -131,7 +131,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " about what"
+      "text": "** - What are you trying to accomplish today"
     }
   },
   {
@@ -139,7 +139,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you're working"
+      "text": ", this week, or in general"
     }
   },
   {
@@ -147,7 +147,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " on or"
+      "text": "?\n4. **Time"
     }
   },
   {
@@ -155,7 +155,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " what"
+      "text": " and energy** - How much time do you have"
     }
   },
   {
@@ -163,7 +163,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you're"
+      "text": " and how are you feeling?\n\nIf"
     }
   },
   {
@@ -171,7 +171,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " trying to accomplish"
+      "text": " you'd like more specific guidance, feel free to share more details about your situation"
     }
   },
   {
@@ -179,7 +179,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "?"
+      "text": " - whether it's about work, personal decisions"
     }
   },
   {
@@ -187,7 +187,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Once"
+      "text": ", learning something new, or anything else you"
     }
   },
   {
@@ -195,7 +195,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " I"
+      "text": "'re dealing with. I'"
     }
   },
   {
@@ -203,7 +203,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " understan"
+      "text": "d be happy to help once I understand more about your context"
     }
   },
   {
@@ -211,71 +211,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d your"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " context better, I can"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " offer"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " more"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " specific"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " an"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d helpful"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " advice"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "."
+      "text": "!"
     }
   },
   {
@@ -289,10 +225,10 @@
       "stop_sequence": null
     },
     "usage": {
-      "input_tokens": 144,
+      "input_tokens": 131,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 57
+      "output_tokens": 191
     }
   },
   {

@@ -10,17 +10,17 @@
       "content": "What is the capital of France? Please explain your reasoning."
     },
     {
-      "id": "rs_68d02c377f808190a2032482e38a100905c7cbf91c2829d7",
+      "id": "rs_68d030e0a5ec819490f382a360558dad05c2f6981caa6680",
       "type": "reasoning",
       "summary": [
         {
           "type": "summary_text",
-          "text": "**Explaining the capital of France**\n\nAlright, I need to answer that the capital of France is Paris. They want to know the reasoning behind it. Paris has been historically recognized as the capital since the 10th century, serving as the seat of government and the main administrative center. Officially, the City of Paris is designated as the capital because of its role in government and international diplomacy. I’ll provide a clear and concise explanation without any need for images."
+          "text": "**Providing reasoning about Paris**\n\nI’m ready to answer that the capital of France is Paris. The user wants some reasoning, so I’ll explain that Paris has been the capital historically since the 10th century. I can mention it as the seat of government and the presidential residence. I’ll make sure to present this clearly and concisely without revealing any internal instructions. Finally, I’ll prepare to give the user this straightforward response."
         }
       ]
     },
     {
-      "id": "msg_68d02c39f9c881909e4fadd46c56766205c7cbf91c2829d7",
+      "id": "msg_68d030e254908194bedcaa4dbe08b40a05c2f6981caa6680",
       "type": "message",
       "status": "completed",
       "content": [
@@ -28,7 +28,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "The capital of France is Paris.\n\nReasoning:\n- Paris is the official seat of the French government and the location of the presidency, parliament, ministries, and many major institutions.\n- It has served as France’s political and administrative center for centuries, making it the longstanding capital.\n- The designation is widely recognized and codified in French law and governance."
+          "text": "The capital of France is Paris.\n\nReasoning:\n- Paris has been the political and administrative center of modern France for centuries. It houses the national government, the presidential residence, and national institutions.\n- Since the 10th century, Paris has served as the capital and main hub for political, economic, and cultural activity in France.\n- When people refer to the “capital” in current contexts (government, foreign affairs, official events), Paris is understood to be the capital."
         }
       ],
       "role": "assistant"
@@ -38,5 +38,5 @@
       "content": "What should I do next?"
     }
   ],
-  "max_output_tokens": 200000
+  "max_output_tokens": 20000
 }

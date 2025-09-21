@@ -2,10 +2,10 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01YF8PSNQK2vFSP6TkJSGqPn",
+      "id": "msg_014v4RLSvavKKLip6DtJtGET",
       "type": "message",
       "role": "assistant",
-      "model": "claude-3-5-haiku-20241022",
+      "model": "claude-sonnet-4-20250514",
       "content": [],
       "stop_reason": null,
       "stop_sequence": null,
@@ -17,7 +17,7 @@
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 5,
+        "output_tokens": 8,
         "service_tier": "standard"
       }
     }
@@ -35,7 +35,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "The capital of France is"
+      "text": "The capital of France is Paris."
     }
   },
   {
@@ -43,7 +43,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Paris."
+      "text": "\n\nMy reasoning is straightforward: this is a"
     }
   },
   {
@@ -51,7 +51,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " I"
+      "text": " well-established geographical fact."
     }
   },
   {
@@ -59,7 +59,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " know"
+      "text": " Paris has been the capital and largest city of France for"
     }
   },
   {
@@ -67,7 +67,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " this because:"
+      "text": " centuries, serving as the country"
     }
   },
   {
@@ -75,7 +75,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\n1. Paris"
+      "text": "'s political, economic, and cultural center. It houses"
     }
   },
   {
@@ -83,7 +83,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " is widely"
+      "text": " the French government institutions, including"
     }
   },
   {
@@ -91,7 +91,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " recognized as the official"
+      "text": " the Élysée Palace (presidential"
     }
   },
   {
@@ -99,7 +99,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " capital city"
+      "text": " residence), the National Assembly, and the Senate"
     }
   },
   {
@@ -107,7 +107,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " of France"
+      "text": ". This is basic geographical knowledge that is"
     }
   },
   {
@@ -115,7 +115,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n2. It is"
+      "text": " universally recognized and doesn't require complex reasoning"
     }
   },
   {
@@ -123,7 +123,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " the largest city"
+      "text": " - it's simply a fact"
     }
   },
   {
@@ -131,7 +131,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " in France"
+      "text": "ual piece of information about"
     }
   },
   {
@@ -139,167 +139,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n3. It serves"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " as the country"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "'s political, cultural"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ", and economic center"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "\n4. It"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " has been"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " the"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " capital of France for centuries"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ","
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " dating"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " back to the Middle"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " Ages\n5. This"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " is a"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " well-established geographical"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " an"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d historical"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " fact that"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " is"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " univers"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "ally acknowledge"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d"
+      "text": " France's administrative structure."
     }
   },
   {
@@ -316,7 +156,7 @@
       "input_tokens": 19,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 92
+      "output_tokens": 110
     }
   },
   {

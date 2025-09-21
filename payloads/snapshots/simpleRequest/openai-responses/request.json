@@ -10,5 +10,5 @@
       "content": "What is the capital of France? Please explain your reasoning."
     }
   ],
-  "max_output_tokens": 200000
+  "max_output_tokens": 20000
 }

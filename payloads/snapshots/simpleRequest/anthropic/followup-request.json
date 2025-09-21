@@ -1,6 +1,6 @@
 {
-  "model": "claude-3-5-haiku-20241022",
-  "max_tokens": 150,
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 20000,
   "messages": [
     {
       "role": "user",
@@ -11,7 +11,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The capital of France is Paris. \n\nReasoning:\n1. Paris has been the capital of France for centuries, dating back to the Middle Ages\n2. It is the largest city in France and serves as the country's political, economic, and cultural center\n3. The French national government, including the President's residence (Élysée Palace) and the National Assembly, are located in Paris\n4. It has been the official capital since 1789, following the French Revolution\n5. Paris is internationally recognized as France's capital city"
+          "text": "The capital of France is Paris.\n\nMy reasoning is straightforward: This is a basic geographical fact. Paris has been the capital and largest city of France for centuries, serving as the country's political, economic, and cultural center. It houses the French government institutions, including the Élysée Palace (presidential residence), the National Assembly, and the Senate. This is well-established, factual information that doesn't require complex analysis - it's simply a matter of geographical and political knowledge."
         }
       ]
     },

@@ -1,15 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { CaptureResult, ProviderExecutor } from "../types";
-import { unifiedTestCases, getAllCaseNames } from "../unified-cases";
+import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 
 // Anthropic cases - extracted from unified cases
 export const anthropicCases: Record<string, Anthropic.Messages.MessageCreateParams> = {};
 
 // Populate cases from unified structure
-getAllCaseNames().forEach(caseName => {
-  const caseData = unifiedTestCases[caseName as keyof typeof unifiedTestCases];
-  if (caseData["anthropic"]) {
-    anthropicCases[caseName] = caseData["anthropic"];
+getCaseNames(allTestCases).forEach((caseName) => {
+  const caseData = getCaseForProvider(allTestCases, caseName, "anthropic");
+  if (caseData) {
+    anthropicCases[caseName] = caseData;
   }
 });
 

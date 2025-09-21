@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { CaptureResult, ProviderExecutor } from "../types";
-import { unifiedTestCases, getAllCaseNames } from "../unified-cases";
+import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 
 // OpenAI Chat Completions cases - extracted from unified cases
 export const openaiCases: Record<
@@ -9,10 +9,10 @@ export const openaiCases: Record<
 > = {};
 
 // Populate cases from unified structure
-getAllCaseNames().forEach((caseName) => {
-  const caseData = unifiedTestCases[caseName as keyof typeof unifiedTestCases];
-  if (caseData["openai-chat-completions"]) {
-    openaiCases[caseName] = caseData["openai-chat-completions"];
+getCaseNames(allTestCases).forEach((caseName) => {
+  const caseData = getCaseForProvider(allTestCases, caseName, "openai-chat-completions");
+  if (caseData) {
+    openaiCases[caseName] = caseData;
   }
 });
 

@@ -1,15 +1,15 @@
 import OpenAI from "openai";
 import { CaptureResult, ProviderExecutor } from "../types";
-import { unifiedTestCases, getAllCaseNames } from "../unified-cases";
+import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 
 // OpenAI Responses API cases - extracted from unified cases
 export const openaiResponsesCases: Record<string, OpenAI.Responses.ResponseCreateParams> = {};
 
 // Populate cases from unified structure
-getAllCaseNames().forEach(caseName => {
-  const caseData = unifiedTestCases[caseName as keyof typeof unifiedTestCases];
-  if (caseData["openai-responses"]) {
-    openaiResponsesCases[caseName] = caseData["openai-responses"];
+getCaseNames(allTestCases).forEach((caseName) => {
+  const caseData = getCaseForProvider(allTestCases, caseName, "openai-responses");
+  if (caseData) {
+    openaiResponsesCases[caseName] = caseData;
   }
 });
 

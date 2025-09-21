@@ -1,7 +1,7 @@
 {
   "anthropic:simpleRequest": {
-    "payloadHash": "6cb961740a131a0846af68bb92c1ce91da6380a557a5424e4c881f8fbcdc55e6",
-    "capturedAt": "2025-09-21T16:47:55.893Z",
+    "payloadHash": "5570a6462afb46f95d0ffef2fab938ec11b183ce85903617e0ed2c986e81ffb4",
+    "capturedAt": "2025-09-21T17:07:54.061Z",
     "provider": "anthropic",
     "name": "simpleRequest",
     "files": [
@@ -14,22 +14,18 @@
     ]
   },
   "openai-chat-completions:simpleRequest": {
-    "payloadHash": "74b5cb1f44e0ad93a19c21fac281e09f3595d6a9434cfed56aadd09693c03904",
-    "capturedAt": "2025-09-21T16:47:56.410Z",
+    "payloadHash": "debce63661e21750cadf21da632cc4418631fa1b31deaa304a91be993a9f3604",
+    "capturedAt": "2025-09-21T17:07:43.425Z",
     "provider": "openai-chat-completions",
     "name": "simpleRequest",
     "files": [
       "simpleRequest/openai-chat-completions/request.json",
-      "simpleRequest/openai-chat-completions/response.json",
-      "simpleRequest/openai-chat-completions/response-streaming.json",
-      "simpleRequest/openai-chat-completions/followup-request.json",
-      "simpleRequest/openai-chat-completions/followup-response.json",
-      "simpleRequest/openai-chat-completions/followup-response-streaming.json"
+      "simpleRequest/openai-chat-completions/error.json"
     ]
   },
   "openai-responses:simpleRequest": {
-    "payloadHash": "14c012bc727c886b02c1a443472274304dfaea8e41546b91aaa6b577fb62ee6c",
-    "capturedAt": "2025-09-21T16:48:00.226Z",
+    "payloadHash": "4e134959c0de2bea1606b9c6c7b3de6b0e7e0f4c6dbbbfe17656bd82bf30735e",
+    "capturedAt": "2025-09-21T17:07:54.751Z",
     "provider": "openai-responses",
     "name": "simpleRequest",
     "files": [
