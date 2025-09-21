@@ -58,6 +58,17 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             },
                         });
                     }
+
+                    if summaries.is_empty() {
+                        // Handle case where there are no summary parts (empty reasoning). This way
+                        // we stil get the encrypted content and make it clear that there was a
+                        // reasoning step.
+                        summaries.push(AssistantContentPart::Reasoning {
+                            text: "".to_string(),
+                            encrypted_content: input.encrypted_content.take(),
+                        });
+                    }
+
                     result.push(Message::Assistant {
                         content: AssistantContent::Array(summaries),
                         id: input.id,
@@ -315,31 +326,39 @@ impl TryFromLLM<Message> for openai::InputItem {
                         ..Default::default()
                     }),
                     AssistantContent::Array(parts) => {
-                        // Check if this is a reasoning-only message
-                        let reasoning_parts: Vec<_> = parts
-                            .iter()
-                            .filter_map(|part| match part {
+                        let mut has_reasoning = false;
+                        let mut encrypted_content = None;
+                        let mut reasoning_parts: Vec<openai::SummaryText> = vec![];
+                        let mut normal_parts: Vec<openai::InputContent> = vec![];
+
+                        for part in parts {
+                            match part {
                                 AssistantContentPart::Reasoning {
                                     text,
-                                    encrypted_content: _,
-                                } => Some(openai::SummaryText {
-                                    text: text.clone(),
-                                    summary_text_type: openai::SummaryType::SummaryText,
-                                }),
-                                _ => None,
-                            })
-                            .collect();
+                                    encrypted_content: ec,
+                                } => {
+                                    has_reasoning = true;
+                                    encrypted_content = ec;
+                                    if text.len() > 0 {
+                                        reasoning_parts.push(openai::SummaryText {
+                                            text,
+                                            summary_text_type: openai::SummaryType::SummaryText,
+                                        });
+                                    }
+                                }
+                                _ => {
+                                    normal_parts.push(TryFromLLM::try_from(part)?);
+                                }
+                            }
+                        }
 
-                        // Check if this is reasoning-only (either has reasoning parts or is empty array from empty reasoning)
-                        let is_reasoning_only = if parts.is_empty() {
-                            // Empty array likely came from empty reasoning summary
-                            true
-                        } else {
-                            // Check if all parts are reasoning parts
-                            !reasoning_parts.is_empty() && reasoning_parts.len() == parts.len()
-                        };
+                        if has_reasoning {
+                            if normal_parts.len() > 0 {
+                                return Err(ConvertError::ContentConversionFailed {
+                                    reason: "Mixed reasoning and normal content parts are not supported in OpenAI format".to_string(),
+                                });
+                            }
 
-                        if is_reasoning_only {
                             // Pure reasoning message - convert to reasoning InputItem
                             let reasoning_item = openai::InputItem {
                                 role: None,
@@ -348,12 +367,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 id: id.clone(),
                                 summary: Some(reasoning_parts),
                                 // Extract encrypted_content from first reasoning part
-                                encrypted_content: parts.first().and_then(|part| match part {
-                                    AssistantContentPart::Reasoning {
-                                        encrypted_content, ..
-                                    } => encrypted_content.clone(),
-                                    _ => None,
-                                }),
+                                encrypted_content,
                                 ..Default::default()
                             };
                             Ok(reasoning_item)
@@ -361,9 +375,9 @@ impl TryFromLLM<Message> for openai::InputItem {
                             // Mixed content or regular message - use proper conversion
                             Ok(openai::InputItem {
                                 role: Some(openai::InputItemRole::Assistant),
-                                content: Some(TryFromLLM::try_from(AssistantContent::Array(
-                                    parts,
-                                ))?),
+                                content: Some(openai::InputItemContent::InputContentArray(
+                                    normal_parts,
+                                )),
                                 input_item_type: Some(openai::InputItemType::Message),
                                 id,
                                 status: Some(openai::FunctionCallItemStatus::Completed), // Add status field
