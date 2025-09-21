@@ -838,6 +838,9 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
         );
     }
 
+    // Add serde skip_serializing_if for Optional fields
+    processed = add_serde_skip_if_none(&processed);
+
     processed
 }
 
@@ -856,10 +859,53 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "    /// ```json\n    /// [\n    /// { \"x\": 100, \"y\": 200 },\n    /// { \"x\": 200, \"y\": 300 }\n    /// ]"
     );
 
+    // Add serde skip_serializing_if for Optional fields
+    processed = add_serde_skip_if_none(&processed);
+
     // Fix any specific type mappings that quicktype might miss for OpenAI
     // (Add any OpenAI-specific replacements here as needed)
 
     processed
+}
+
+/// Add #[serde(skip_serializing_if = "Option::is_none")] to all Option<T> fields
+fn add_serde_skip_if_none(content: &str) -> String {
+    let processed = content.to_string();
+
+    // Use regex-like approach to find Option<T> fields and add serde attributes
+    let lines: Vec<&str> = processed.lines().collect();
+    let mut result_lines = Vec::new();
+
+    for i in 0..lines.len() {
+        let line = lines[i];
+        result_lines.push(line.to_string());
+
+        // Check if this line contains a pub field with Option<T> (but not nested Options)
+        if line.trim_start().starts_with("pub ") && line.ends_with(",") {
+            // More precise matching: field type must START with Option<
+            let field_parts: Vec<&str> = line.trim().split_whitespace().collect();
+            if field_parts.len() >= 3 {
+                let field_type = field_parts[2].trim_end_matches(',');
+                if field_type.starts_with("Option<") {
+                    // Check if the next line already has a serde attribute
+                    let next_line = lines.get(i + 1).map(|l| l.trim()).unwrap_or("");
+                    if !next_line.starts_with("#[serde(") && !line.contains("#[serde(") {
+                        // Get the indentation level from the current line
+                        let indent = line.len() - line.trim_start().len();
+                        let serde_attr = format!(
+                            "{}#[serde(skip_serializing_if = \"Option::is_none\")]",
+                            " ".repeat(indent)
+                        );
+
+                        // Insert the serde attribute before the field
+                        result_lines.insert(result_lines.len() - 1, serde_attr);
+                    }
+                }
+            }
+        }
+    }
+
+    result_lines.join("\n")
 }
 
 fn generate_google_protobuf_types_from_git() {

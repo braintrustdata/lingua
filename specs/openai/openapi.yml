@@ -46057,8 +46057,8 @@ components:
         type:
           type: string
           enum:
-            - mcp_tool_call
-          description: The type of the item. Always `mcp_tool_call`.
+            - mcp_call
+          description: The type of the item. Always `mcp_call`.
           x-stainless-const: true
         id:
           type: string
@@ -60397,6 +60397,15 @@ x-oaiMeta:
           path: <auto>
         - type: object
           key: RealtimeServerEventInputAudioBufferTimeoutTriggered
+          path: <auto>
+        - type: object
+          key: RealtimeServerEventOutputAudioBufferStarted
+          path: <auto>
+        - type: object
+          key: RealtimeServerEventOutputAudioBufferStopped
+          path: <auto>
+        - type: object
+          key: RealtimeServerEventOutputAudioBufferCleared
           path: <auto>
         - type: object
           key: RealtimeServerEventResponseCreated
