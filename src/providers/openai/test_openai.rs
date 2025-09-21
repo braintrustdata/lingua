@@ -15,6 +15,11 @@ pub fn discover_openai_responses_test_cases(
 
 #[cfg(test)]
 mod tests {
+    use crate::{
+        providers::openai::generated::{InputItem, Instructions},
+        universal::ModelMessage,
+    };
+
     use super::*;
 
     #[test]
@@ -24,13 +29,26 @@ mod tests {
                 for case in &cases {
                     println!("  - {} (turn: {:?})", case.name, case.turn);
 
-                    // Test that we have typed data
-                    if let Some(_request) = &case.request {
-                        println!("    Request (CreateResponseClass): valid");
-                        // We could test specific fields here
-                    } else {
-                        println!("    Request: None");
-                    }
+                    let messages = match case.request.input {
+                        Some(Instructions::InputItemArray(msgs)) => msgs,
+                        o => {
+                            panic!("Invalid missing or non-array input messages: {:?}", o);
+                        }
+                    };
+
+                    // Translate to universal format
+                    let universal_request: Vec<ModelMessage> = messages
+                        .clone()
+                        .into_iter()
+                        .map(|m| m.try_into())
+                        .collect::<Result<Vec<_>, _>>()
+                        .unwrap();
+
+                    let roundtripped: Vec<InputItem> = universal_request
+                        .iter()
+                        .map(|m| m.clone().try_into())
+                        .collect::<Result<Vec<_>, _>>()
+                        .unwrap();
 
                     if let Some(_response) = &case.non_streaming_response {
                         println!("    Non-Streaming Response (TheResponseObject): valid");

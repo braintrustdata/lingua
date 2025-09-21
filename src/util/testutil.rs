@@ -25,7 +25,7 @@ pub struct TestCase<Req, Resp, StreamResp> {
     pub name: String,
     pub provider: Provider,
     pub turn: TurnType,
-    pub request: Option<Req>,
+    pub request: Req,
     pub streaming_response: Option<StreamResp>,
     pub non_streaming_response: Option<Resp>,
     pub error: Option<Value>,
@@ -111,9 +111,17 @@ where
     let error_path = provider_dir.join(format!("{}error.json", prefix));
 
     let request = if request_path.exists() {
-        Some(load_json_file::<Req>(&request_path)?)
+        load_json_file::<Req>(&request_path)?
     } else {
-        None
+        return Err(TestDiscoveryError {
+            message: format!(
+                "Request file not found for test case '{}' provider '{}' turn '{}'",
+                test_case_name,
+                provider.directory_name(),
+                turn.display_name()
+            ),
+            path: Some(provider_dir.to_string_lossy().to_string()),
+        });
     };
 
     let streaming_response = if streaming_response_path.exists() {
@@ -135,11 +143,7 @@ where
     };
 
     // A test case is valid if it has at least a request or any response
-    if request.is_none()
-        && streaming_response.is_none()
-        && non_streaming_response.is_none()
-        && error.is_none()
-    {
+    if streaming_response.is_none() && non_streaming_response.is_none() && error.is_none() {
         return Err(TestDiscoveryError {
             message: format!(
                 "No valid files found for test case '{}' provider '{}' turn '{}'",
