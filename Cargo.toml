@@ -36,6 +36,8 @@ aws-sdk-bedrockruntime = { version = "1.105.0", optional = true }
 [dev-dependencies]
 tokio-test = "0.4"
 paste = "1.0"
+log = "0.4"
+env_logger = "0.11"
 
 [[bin]]
 name = "generate-types"
