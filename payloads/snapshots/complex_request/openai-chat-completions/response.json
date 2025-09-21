@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-CIHcC1K6Y4JVWe0G0JR7azEcw4YDe",
+  "object": "chat.completion",
+  "created": 1758473652,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The capital of France is Paris. This is widely known and documented in various sources including geography textbooks, encyclopedias, and official government information. Paris has historically been the political, cultural, and economic center of France and is recognized globally as a major city. \n\nThe designation of Paris as the capital can be traced back to its long history as a significant settlement, dating back to the Roman era when it was known as Lutetia. Over the centuries, it has developed into a symbol of French art, fashion, and history, hosting important national institutions such as the French government and the presidential residence. \n\nIn conclusion, the answer is supported by historical context and current geopolitical facts.",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 19,
+    "completion_tokens": 137,
+    "total_tokens": 156,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_560af6e559"
+}

@@ -1,0 +1,73 @@
+{
+  "id": "resp_68d03205cb088197bf2a65c760ea6a410244fca2e867c47f",
+  "object": "response",
+  "created_at": 1758474757,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 256,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_68d032063c548197800cad1613454db30244fca2e867c47f",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d032066a2c819798875f7ded31111a0244fca2e867c47f",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Paris."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "low"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 13,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 8,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 21
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Paris."
+}

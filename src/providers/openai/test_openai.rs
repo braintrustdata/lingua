@@ -69,102 +69,51 @@ mod tests {
         Ok(())
     }
 
-    // Individual test cases for granular filtering
-    #[test]
-    fn test_roundtrip_simple_request_first_turn() {
-        if let Err(e) = run_single_roundtrip_test("simple_request") {
-            // Filter to just the first turn case
-            let cases = discover_openai_responses_test_cases(Some("simple_request")).unwrap();
-            let first_turn_case = cases.iter().find(|c| c.name.contains("first_turn"));
-            if let Some(case) = first_turn_case {
-                panic!("First turn test failed for {}: {}", case.name, e);
-            } else {
-                panic!("No first turn case found: {}", e);
+    pub fn run_single_test_case(full_case_name: &str) -> Result<(), String> {
+        let cases = discover_openai_responses_test_cases(None)
+            .map_err(|e| format!("Failed to discover test cases: {}", e))?;
+
+        let case = cases
+            .iter()
+            .find(|c| c.name == full_case_name)
+            .ok_or_else(|| format!("Test case '{}' not found", full_case_name))?;
+
+        println!("🧪 Testing roundtrip conversion for: {}", case.name);
+
+        let messages = match &case.request.input {
+            Some(Instructions::InputItemArray(msgs)) => msgs.clone(),
+            o => {
+                return Err(format!(
+                    "Invalid missing or non-array input messages: {:?}",
+                    o
+                ));
             }
+        };
+
+        let universal_request: Vec<ModelMessage> = messages
+            .clone()
+            .into_iter()
+            .map(|m| m.try_into())
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("Failed to convert to universal format: {}", e))?;
+
+        let roundtripped: Vec<InputItem> = universal_request
+            .iter()
+            .map(|m| m.clone().try_into())
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
+
+        let diff = diff_serializable(&messages, &roundtripped, "items");
+        if !diff.starts_with("✅") {
+            return Err(format!("Roundtrip conversion failed:\n{}", diff));
         }
+
+        println!("✅ {} - roundtrip conversion passed", case.name);
+        Ok(())
     }
 
-    #[test]
-    fn test_roundtrip_simple_request_followup_turn() {
-        if let Err(e) = run_single_roundtrip_test("simple_request") {
-            let cases = discover_openai_responses_test_cases(Some("simple_request")).unwrap();
-            let followup_case = cases.iter().find(|c| c.name.contains("followup_turn"));
-            if let Some(case) = followup_case {
-                panic!("Followup turn test failed for {}: {}", case.name, e);
-            } else {
-                panic!("No followup turn case found: {}", e);
-            }
-        }
-    }
-
-    // Dynamic test generation for any discovered test cases
+    // Include auto-generated test cases from build script
     mod generated {
-        use super::*;
-
-        #[test]
-        fn test_enumerate_all_roundtrip_scenarios() {
-            let cases = match discover_openai_responses_test_cases(None) {
-                Ok(cases) => cases,
-                Err(e) => {
-                    println!("Note: Could not discover test cases: {}", e);
-                    return;
-                }
-            };
-
-            println!("📋 Available test scenarios:");
-            for case in &cases {
-                println!("  - {} ({})", case.name, case.turn.display_name());
-            }
-
-            println!("\n💡 To run individual scenarios:");
-            let unique_bases: std::collections::HashSet<_> = cases
-                .iter()
-                .map(|c| {
-                    // Extract base name (everything before provider and turn info)
-                    let parts: Vec<_> = c.name.split('_').collect();
-                    if parts.len() >= 3 {
-                        parts[0] // First part is the test case base name
-                    } else {
-                        &c.name
-                    }
-                })
-                .collect();
-
-            for base in unique_bases {
-                println!("  cargo test test_roundtrip_{}_", base);
-            }
-
-            // Also run them all individually and report which ones fail
-            let mut failed_cases = Vec::new();
-
-            for case in cases {
-                let base_name = {
-                    let parts: Vec<_> = case.name.split('_').collect();
-                    if parts.len() >= 3 {
-                        parts[0] // First part is the test case base name
-                    } else {
-                        &case.name
-                    }
-                };
-                match run_single_roundtrip_test(base_name) {
-                    Ok(()) => {
-                        println!("✅ {} passed", case.name);
-                    }
-                    Err(e) => {
-                        println!("❌ {} failed", case.name);
-                        failed_cases.push((case.name, e));
-                    }
-                }
-            }
-
-            if !failed_cases.is_empty() {
-                let failure_summary = failed_cases
-                    .iter()
-                    .map(|(name, err)| format!("\n{}: {}", name, err))
-                    .collect::<String>();
-
-                panic!("Individual roundtrip tests failed:{}", failure_summary);
-            }
-        }
+        include!(concat!(env!("OUT_DIR"), "/generated_tests.rs"));
     }
 }
