@@ -1,0 +1,73 @@
+{
+  "id": "resp_68d08aa8f22c81938f75f5c4007272f80d5f33c5b3a2db70",
+  "object": "response",
+  "created_at": 1758497449,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 256,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_68d08aa9ef9c8193bc087b15891f18f90d5f33c5b3a2db70",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d08aaa071881938b38d568c89c336c0d5f33c5b3a2db70",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Could you share what you’re trying to accomplish? For example, are you looking for study tips, planning a trip to France, or something else? If you want a quick suggestion: if you’re learning French, practice 15 minutes a day with short sentences; if planning a trip, I can help with a 3-day itinerary."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "low"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 30,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 74,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 104
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Could you share what you’re trying to accomplish? For example, are you looking for study tips, planning a trip to France, or something else? If you want a quick suggestion: if you’re learning French, practice 15 minutes a day with short sentences; if planning a trip, I can help with a 3-day itinerary."
+}

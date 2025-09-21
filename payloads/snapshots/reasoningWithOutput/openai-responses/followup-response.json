@@ -1,0 +1,73 @@
+{
+  "id": "resp_68d08aaa8b4081968a0ec2179e8e27ff03307922e8356e59",
+  "object": "response",
+  "created_at": 1758497450,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 2000,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_68d08aabc94881968288355c30b7a2a303307922e8356e59",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d08aac51288196bc24d5c38c3841a103307922e8356e59",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here are a few quick options—pick one and I’ll help you with more details:\n\n- Learn why the sky colors change: I can explain Rayleigh scattering, sunset colors, and cloud effects.\n- Do a simple outdoors activity: go outside at daybreak or sunset to observe color changes, take photos, or sketch what you see.\n- Weather/game plan: check today’s forecast and best times for sky-watching or photography.\n- If you’re bored or looking for ideas: I can suggest quick indoor or outdoor activities, easy crafts, or mini projects.\n- Want to talk about something else related to the sky (stars, clouds, rainbows, airplanes)? Tell me what you’re curious about."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "low",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 75,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 276,
+    "output_tokens_details": {
+      "reasoning_tokens": 128
+    },
+    "total_tokens": 351
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here are a few quick options—pick one and I’ll help you with more details:\n\n- Learn why the sky colors change: I can explain Rayleigh scattering, sunset colors, and cloud effects.\n- Do a simple outdoors activity: go outside at daybreak or sunset to observe color changes, take photos, or sketch what you see.\n- Weather/game plan: check today’s forecast and best times for sky-watching or photography.\n- If you’re bored or looking for ideas: I can suggest quick indoor or outdoor activities, easy crafts, or mini projects.\n- Want to talk about something else related to the sky (stars, clouds, rainbows, airplanes)? Tell me what you’re curious about."
+}

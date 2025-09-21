@@ -5,4 +5,4 @@ import type { TextContentPart } from "./TextContentPart";
 /**
  * User content parts - text, image, and file parts allowed
  */
-export type UserContentPart = { "type": "text" } & TextContentPart | { "type": "image", image: string | Uint8Array | ArrayBuffer | Buffer | URL, mediaType?: string, providerOptions?: ProviderOptions, } | { "type": "file", data: string | Uint8Array | ArrayBuffer | Buffer | URL, filename?: string, mediaType: string, providerOptions?: ProviderOptions, };
+export type UserContentPart = { "type": "text" } & TextContentPart | { "type": "image", image: string | Uint8Array | ArrayBuffer | Buffer | URL, media_type?: string, provider_options?: ProviderOptions, } | { "type": "file", data: string | Uint8Array | ArrayBuffer | Buffer | URL, filename?: string, media_type: string, provider_options?: ProviderOptions, };

@@ -1,0 +1,16 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "text": {
+    "verbosity": "low"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What is the capital of France?"
+    }
+  ],
+  "max_output_tokens": 256
+}

@@ -1,0 +1,23 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I need to find the new total budget after each department receives different percentage increases.\n\nFirst, let me determine the number of employees in each department:\n- Engineering: 60% of 100 = 60 employees\n- Sales: 25% of 100 = 25 employees\n- Administration: 100 - 60 - 25 = 15 employees\n\nSince each department's budget is proportional to their headcount, I can find the original budget allocation:\n- Engineering: (60/100) × $1M = $600,000\n- Sales: (25/100) × $1M = $250,000\n- Administration: (15/100) × $1M = $150,000\n\nNow I'll calculate each department's new budget after their respective increases:\n- Engineering: $600,000 × 1.10 = $660,000\n- Sales: $250,000 × 1.15 = $287,500\n- Administration: $150,000 × 1.05 = $157,500\n\nThe new total budget is:\n$660,000 + $287,500 + $157,500 = $1,105,000\n\nTherefore, the new total budget is $1,105,000 or $1.105M."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

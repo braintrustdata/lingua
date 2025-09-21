@@ -1,0 +1,10 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?"
+    }
+  ]
+}

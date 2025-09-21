@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "low"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    }
+  ],
+  "max_output_tokens": 2000
+}

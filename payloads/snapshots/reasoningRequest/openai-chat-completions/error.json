@@ -1,0 +1,3 @@
+{
+  "error": "Error: 400 Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead."
+}

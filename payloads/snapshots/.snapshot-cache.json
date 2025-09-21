@@ -1,7 +1,7 @@
 {
   "anthropic:simpleRequest": {
     "payloadHash": "85a934902399e922ad12374292a28d5161cfa822859c6ee99a0b7e4ae50a0d3b",
-    "capturedAt": "2025-09-21T17:11:15.024Z",
+    "capturedAt": "2025-09-21T23:30:53.850Z",
     "provider": "anthropic",
     "name": "simpleRequest",
     "files": [
@@ -15,7 +15,7 @@
   },
   "openai-chat-completions:simpleRequest": {
     "payloadHash": "aef52c96baf3ca3776b0f7e23afc97caf2dc2c10396cb0e26c5dcc8048ecbd00",
-    "capturedAt": "2025-09-21T17:11:09.787Z",
+    "capturedAt": "2025-09-21T23:30:47.494Z",
     "provider": "openai-chat-completions",
     "name": "simpleRequest",
     "files": [
@@ -25,7 +25,7 @@
   },
   "openai-responses:simpleRequest": {
     "payloadHash": "36570e4897f34571fbce0331f44c566d8c6eb12eba17a47d71f602ab6183b721",
-    "capturedAt": "2025-09-21T17:12:40.265Z",
+    "capturedAt": "2025-09-21T23:30:51.892Z",
     "provider": "openai-responses",
     "name": "simpleRequest",
     "files": [
@@ -35,6 +35,120 @@
       "simpleRequest/openai-responses/followup-request.json",
       "simpleRequest/openai-responses/followup-response.json",
       "simpleRequest/openai-responses/followup-response-streaming.json"
+    ]
+  },
+  "openai-chat-completions:complexReasoningRequest": {
+    "payloadHash": "1e7e864254e4045c499140eefcb1a75453efa196322b1346448a7d56f5b0d548",
+    "capturedAt": "2025-09-21T23:30:47.491Z",
+    "provider": "openai-chat-completions",
+    "name": "complexReasoningRequest",
+    "files": [
+      "complexReasoningRequest/openai-chat-completions/request.json",
+      "complexReasoningRequest/openai-chat-completions/error.json"
+    ]
+  },
+  "openai-chat-completions:toolCallRequest": {
+    "payloadHash": "79b5a091003714bd9ec543107d676035544055b652017b933659fb0a041fd6c7",
+    "capturedAt": "2025-09-21T23:30:47.493Z",
+    "provider": "openai-chat-completions",
+    "name": "toolCallRequest",
+    "files": [
+      "toolCallRequest/openai-chat-completions/request.json",
+      "toolCallRequest/openai-chat-completions/error.json"
+    ]
+  },
+  "openai-chat-completions:reasoningRequest": {
+    "payloadHash": "05875310bea3ad20a7f9c03623c8768efeb577f59b9eb30e23d72acae857b8b3",
+    "capturedAt": "2025-09-21T23:30:47.496Z",
+    "provider": "openai-chat-completions",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/openai-chat-completions/request.json",
+      "reasoningRequest/openai-chat-completions/error.json"
+    ]
+  },
+  "anthropic:multimodalRequest": {
+    "payloadHash": "122341cb53c186960cf0235c30b96566812618390ac312874002fdeae2d80e23",
+    "capturedAt": "2025-09-21T23:30:47.555Z",
+    "provider": "anthropic",
+    "name": "multimodalRequest",
+    "files": [
+      "multimodalRequest/anthropic/request.json",
+      "multimodalRequest/anthropic/error.json"
+    ]
+  },
+  "openai-chat-completions:multimodalRequest": {
+    "payloadHash": "e11d5a7aa1ce34490b8438520856442e106f61362ca929b4eb0807167e0430d8",
+    "capturedAt": "2025-09-21T23:30:47.754Z",
+    "provider": "openai-chat-completions",
+    "name": "multimodalRequest",
+    "files": [
+      "multimodalRequest/openai-chat-completions/request.json",
+      "multimodalRequest/openai-chat-completions/error.json"
+    ]
+  },
+  "openai-responses:reasoningRequest": {
+    "payloadHash": "013beb03fd81b2a01ba16ed628c6ed3c62535832710f97cc86568883443247c5",
+    "capturedAt": "2025-09-21T23:30:49.399Z",
+    "provider": "openai-responses",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/openai-responses/request.json",
+      "reasoningRequest/openai-responses/response.json",
+      "reasoningRequest/openai-responses/response-streaming.json"
+    ]
+  },
+  "openai-responses:complexReasoningRequest": {
+    "payloadHash": "50da712eda8d60502f13da9d9e8e04a6961248afa6ee392b84c9fde34a76d16f",
+    "capturedAt": "2025-09-21T23:30:51.841Z",
+    "provider": "openai-responses",
+    "name": "complexReasoningRequest",
+    "files": [
+      "complexReasoningRequest/openai-responses/request.json",
+      "complexReasoningRequest/openai-responses/response.json",
+      "complexReasoningRequest/openai-responses/response-streaming.json"
+    ]
+  },
+  "openai-responses:reasoningWithOutput": {
+    "payloadHash": "2f19cf58640fac23278dad184f4b8769f90a15b2327148a32c0e35cb91dfec30",
+    "capturedAt": "2025-09-21T23:30:53.401Z",
+    "provider": "openai-responses",
+    "name": "reasoningWithOutput",
+    "files": [
+      "reasoningWithOutput/openai-responses/request.json",
+      "reasoningWithOutput/openai-responses/response.json",
+      "reasoningWithOutput/openai-responses/response-streaming.json",
+      "reasoningWithOutput/openai-responses/followup-request.json",
+      "reasoningWithOutput/openai-responses/followup-response.json",
+      "reasoningWithOutput/openai-responses/followup-response-streaming.json"
+    ]
+  },
+  "anthropic:complexReasoningRequest": {
+    "payloadHash": "66965d311b6a49a15f6a797b107f686b53e6991699f3c056c409455552b5be29",
+    "capturedAt": "2025-09-21T23:30:55.732Z",
+    "provider": "anthropic",
+    "name": "complexReasoningRequest",
+    "files": [
+      "complexReasoningRequest/anthropic/request.json",
+      "complexReasoningRequest/anthropic/response.json",
+      "complexReasoningRequest/anthropic/response-streaming.json",
+      "complexReasoningRequest/anthropic/followup-request.json",
+      "complexReasoningRequest/anthropic/followup-response.json",
+      "complexReasoningRequest/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "anthropic:reasoningRequest": {
+    "payloadHash": "01cc0a1fe4ce17d41cd6c6be8a087be0bc32d3f7a7fc7c5fe179b2a37d41fbe0",
+    "capturedAt": "2025-09-21T23:30:59.117Z",
+    "provider": "anthropic",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/anthropic/request.json",
+      "reasoningRequest/anthropic/response.json",
+      "reasoningRequest/anthropic/response-streaming.json",
+      "reasoningRequest/anthropic/followup-request.json",
+      "reasoningRequest/anthropic/followup-response.json",
+      "reasoningRequest/anthropic/followup-response-streaming.json"
     ]
   }
 }

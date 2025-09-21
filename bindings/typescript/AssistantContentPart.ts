@@ -5,4 +5,9 @@ import type { TextContentPart } from "./TextContentPart";
 /**
  * Assistant content parts - text, file, reasoning, tool calls, and tool results allowed
  */
-export type AssistantContentPart = { "type": "text" } & TextContentPart | { "type": "file", data: string | Uint8Array | ArrayBuffer | Buffer | URL, filename?: string, mediaType: string, providerOptions?: ProviderOptions, } | { "type": "reasoning", text: string, providerOptions?: ProviderOptions, } | { "type": "tool-call", toolCallId: string, toolName: string, input: any, providerOptions?: ProviderOptions, providerExecuted?: boolean, } | { "type": "tool-result", toolCallId: string, toolName: string, output: any, providerOptions?: ProviderOptions, };
+export type AssistantContentPart = { "type": "text" } & TextContentPart | { "type": "file", data: string | Uint8Array | ArrayBuffer | Buffer | URL, filename?: string, media_type: string, provider_options?: ProviderOptions, } | { "type": "reasoning", text: string, 
+/**
+ * Providers will occasionally return encrypted content for reasoning parts which can
+ * be useful when you send a follow up message.
+ */
+encrypted_content?: string, } | { "type": "toolCall", tool_call_id: string, tool_name: string, input: any, provider_options?: ProviderOptions, provider_executed?: boolean, } | { "type": "toolResult", tool_call_id: string, tool_name: string, output: any, provider_options?: ProviderOptions, };
