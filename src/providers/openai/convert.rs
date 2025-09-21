@@ -157,10 +157,8 @@ impl TryFromLLM<UserContent> for openai::InputItemContent {
         Ok(match content {
             UserContent::String(text) => openai::InputItemContent::String(text),
             UserContent::Array(parts) => {
-                let input_parts: Result<Vec<_>, _> = parts
-                    .into_iter()
-                    .map(|part| TryFromLLM::try_from(part))
-                    .collect();
+                let input_parts: Result<Vec<_>, _> =
+                    parts.into_iter().map(TryFromLLM::try_from).collect();
                 openai::InputItemContent::InputContentArray(input_parts?)
             }
         })
@@ -208,10 +206,8 @@ impl TryFromLLM<AssistantContent> for openai::InputItemContent {
         Ok(match content {
             AssistantContent::String(text) => openai::InputItemContent::String(text),
             AssistantContent::Array(parts) => {
-                let input_parts: Result<Vec<_>, _> = parts
-                    .into_iter()
-                    .map(|part| TryFromLLM::try_from(part))
-                    .collect();
+                let input_parts: Result<Vec<_>, _> =
+                    parts.into_iter().map(TryFromLLM::try_from).collect();
                 openai::InputItemContent::InputContentArray(input_parts?)
             }
         })
@@ -315,7 +311,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                     AssistantContent::String(text) => Ok(openai::InputItem {
                         role: Some(openai::InputItemRole::Assistant),
                         content: Some(openai::InputItemContent::String(text)),
-                        id: id,
+                        id,
                         ..Default::default()
                     }),
                     AssistantContent::Array(parts) => {
@@ -369,7 +365,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     parts,
                                 ))?),
                                 input_item_type: Some(openai::InputItemType::Message),
-                                id: id,
+                                id,
                                 status: Some(openai::FunctionCallItemStatus::Completed), // Add status field
                                 ..Default::default()
                             })

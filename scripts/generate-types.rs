@@ -883,7 +883,7 @@ fn add_serde_skip_if_none(content: &str) -> String {
         // Check if this line contains a pub field with Option<T> (but not nested Options)
         if line.trim_start().starts_with("pub ") && line.ends_with(",") {
             // More precise matching: field type must START with Option<
-            let field_parts: Vec<&str> = line.trim().split_whitespace().collect();
+            let field_parts: Vec<&str> = line.split_whitespace().collect();
             if field_parts.len() >= 3 {
                 let field_type = field_parts[2].trim_end_matches(',');
                 if field_type.starts_with("Option<") {
