@@ -16,11 +16,9 @@ pub fn discover_openai_responses_test_cases(
 #[cfg(test)]
 mod tests {
     use crate::{
-        providers::openai::{
-            convert::diff_input_items,
-            generated::{InputItem, Instructions},
-        },
+        providers::openai::generated::{InputItem, Instructions},
         universal::ModelMessage,
+        util::testutil::diff_serializable,
     };
 
     use super::*;
@@ -54,7 +52,7 @@ mod tests {
                         .unwrap();
 
                     // Compare original and roundtripped
-                    let diff = diff_input_items(&messages, &roundtripped);
+                    let diff = diff_serializable(&messages, &roundtripped, "items");
                     println!("    🔄 Roundtrip test:");
                     println!("{}", diff);
 
