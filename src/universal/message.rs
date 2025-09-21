@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use ts_rs::TS;
 
 pub type Thread = Vec<Message>;
@@ -64,26 +65,23 @@ pub struct TextContentPart {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
 #[serde(tag = "type")]
+#[skip_serializing_none]
 pub enum UserContentPart {
     Text(TextContentPart),
     Image {
         #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
         image: serde_json::Value,
-        #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
         media_type: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
     File {
         #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
         data: serde_json::Value,
-        #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
         filename: Option<String>,
         media_type: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
@@ -208,59 +206,50 @@ pub enum SourceContentPart {
 
 /// Generated file content part - matching AI SDK GeneratedFile
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, rename_all = "camelCase", optional_fields)]
 pub struct GeneratedFileContentPart {
     #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
     pub file: serde_json::Value,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub provider_metadata: Option<ProviderMetadata>,
 }
 
 /// Tool call content part for response messages
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase")]
+#[ts(export, rename_all = "camelCase", optional_fields)]
 pub struct ToolCallContentPart {
     pub tool_call_id: String,
     pub tool_name: String,
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub input: serde_json::Value,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub provider_executed: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
     pub provider_metadata: Option<ProviderMetadata>,
 }
 
 /// Tool result content part for response messages
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, rename_all = "camelCase")]
 pub struct ToolResultResponsePart {
-    #[ts(rename = "toolCallId")]
     pub tool_call_id: String,
-    #[ts(rename = "toolName")]
     pub tool_name: String,
     #[ts(type = "any")]
     pub output: serde_json::Value,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
-    #[ts(rename = "providerMetadata")]
     pub provider_metadata: Option<ProviderMetadata>,
 }
 
 /// Tool error content part for response messages
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, rename_all = "camelCase")]
 pub struct ToolErrorContentPart {
-    #[ts(rename = "toolCallId")]
     pub tool_call_id: String,
-    #[ts(rename = "toolName")]
     pub tool_name: String,
     pub error: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
-    #[ts(rename = "providerMetadata")]
     pub provider_metadata: Option<ProviderMetadata>,
 }
 

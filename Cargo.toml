@@ -32,6 +32,7 @@ typify = "0.4"
 schemars = "0.8"
 schemafy = "0.6"
 aws-sdk-bedrockruntime = { version = "1.105.0", optional = true }
+serde_with = "3.14.1"
 
 [dev-dependencies]
 tokio-test = "0.4"
