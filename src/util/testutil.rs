@@ -269,7 +269,7 @@ pub fn discover_test_cases(
     discover_test_cases_typed::<Value, Value, Value>(provider, test_name_filter)
 }
 
-/// Generic differ that compares any two serializable types by converting to JSON
+/// Generic differ that compares any two serializable types using a professional JSON diff library
 pub fn diff_serializable<T, U>(original: &[T], roundtripped: &[U], item_name: &str) -> String
 where
     T: serde::Serialize,
@@ -288,17 +288,32 @@ where
         .map(|item| serde_json::to_value(item).expect("Failed to serialize roundtripped item"))
         .collect();
 
-    let mut diff = String::new();
+    let mut diff_output = String::new();
 
+    // Check for length differences first
     if orig_values.len() != round_values.len() {
-        writeln!(diff, "📊 LENGTH MISMATCH:").unwrap();
-        writeln!(diff, "  Original: {} {}", orig_values.len(), item_name).unwrap();
-        writeln!(diff, "  Roundtripped: {} {}", round_values.len(), item_name).unwrap();
-        writeln!(diff).unwrap();
+        writeln!(diff_output, "📊 LENGTH MISMATCH:").unwrap();
+        writeln!(
+            diff_output,
+            "  Original: {} {}",
+            orig_values.len(),
+            item_name
+        )
+        .unwrap();
+        writeln!(
+            diff_output,
+            "  Roundtripped: {} {}",
+            round_values.len(),
+            item_name
+        )
+        .unwrap();
+        writeln!(diff_output).unwrap();
     }
 
     let max_len = orig_values.len().max(round_values.len());
+    let mut has_differences = orig_values.len() != round_values.len();
 
+    // Compare each item using the professional JSON diff library
     for i in 0..max_len {
         let orig = orig_values.get(i);
         let round = round_values.get(i);
@@ -306,122 +321,66 @@ where
         match (orig, round) {
             (Some(o), Some(r)) => {
                 if o != r {
-                    writeln!(diff, "🔍 {} {} DIFFERENCES:", item_name.to_uppercase(), i).unwrap();
-                    write_json_diff(&mut diff, o, r).unwrap();
-                    writeln!(diff).unwrap();
+                    has_differences = true;
+                    writeln!(
+                        diff_output,
+                        "🔍 {} {} DIFFERENCES:",
+                        item_name.to_uppercase(),
+                        i
+                    )
+                    .unwrap();
+
+                    // Use assert-json-diff for beautiful diff output
+                    let diff_result = assert_json_diff::assert_json_matches_no_panic(
+                        o,
+                        r,
+                        assert_json_diff::Config::new(assert_json_diff::CompareMode::Strict),
+                    );
+
+                    match diff_result {
+                        Err(diff_error) => {
+                            writeln!(diff_output, "{}", diff_error).unwrap();
+                        }
+                        Ok(_) => {
+                            // This shouldn't happen since we already checked o != r
+                            writeln!(diff_output, "  Values are identical (unexpected)").unwrap();
+                        }
+                    }
+                    writeln!(diff_output).unwrap();
                 }
             }
             (Some(o), None) => {
+                has_differences = true;
                 writeln!(
-                    diff,
+                    diff_output,
                     "❌ MISSING {} {} in roundtripped:",
                     item_name.to_uppercase(),
                     i
                 )
                 .unwrap();
-                writeln!(
-                    diff,
-                    "  Original: {}",
-                    serde_json::to_string_pretty(o).unwrap()
-                )
-                .unwrap();
-                writeln!(diff).unwrap();
+                writeln!(diff_output, "{}", serde_json::to_string_pretty(o).unwrap()).unwrap();
+                writeln!(diff_output).unwrap();
             }
             (None, Some(r)) => {
+                has_differences = true;
                 writeln!(
-                    diff,
+                    diff_output,
                     "➕ EXTRA {} {} in roundtripped:",
                     item_name.to_uppercase(),
                     i
                 )
                 .unwrap();
-                writeln!(
-                    diff,
-                    "  Roundtripped: {}",
-                    serde_json::to_string_pretty(r).unwrap()
-                )
-                .unwrap();
-                writeln!(diff).unwrap();
+                writeln!(diff_output, "{}", serde_json::to_string_pretty(r).unwrap()).unwrap();
+                writeln!(diff_output).unwrap();
             }
             (None, None) => unreachable!(),
         }
     }
 
-    if diff.is_empty() {
+    if !has_differences {
         format!("✅ All {} match perfectly!", item_name)
     } else {
-        format!("🚨 ROUNDTRIP DIFFERENCES DETECTED:\n\n{}", diff)
-    }
-}
-
-/// Write differences between two JSON values
-fn write_json_diff(
-    diff: &mut String,
-    original: &Value,
-    roundtripped: &Value,
-) -> Result<(), std::fmt::Error> {
-    use std::fmt::Write;
-
-    match (original, roundtripped) {
-        // Both objects - compare field by field
-        (Value::Object(orig_map), Value::Object(round_map)) => {
-            let mut all_keys: std::collections::BTreeSet<_> = orig_map.keys().collect();
-            all_keys.extend(round_map.keys());
-
-            for key in all_keys {
-                let orig_val = orig_map.get(key);
-                let round_val = round_map.get(key);
-
-                match (orig_val, round_val) {
-                    (Some(o), Some(r)) if o != r => {
-                        writeln!(diff, "  {}:", key)?;
-                        writeln!(diff, "    ❌ Original:     {}", format_json_value(o))?;
-                        writeln!(diff, "    ✅ Roundtripped: {}", format_json_value(r))?;
-                    }
-                    (Some(o), None) => {
-                        writeln!(diff, "  {} (missing in roundtripped):", key)?;
-                        writeln!(diff, "    ❌ Original:     {}", format_json_value(o))?;
-                    }
-                    (None, Some(r)) => {
-                        writeln!(diff, "  {} (extra in roundtripped):", key)?;
-                        writeln!(diff, "    ✅ Roundtripped: {}", format_json_value(r))?;
-                    }
-                    _ => {} // Values match, skip
-                }
-            }
-        }
-        // Different types or primitive values
-        _ => {
-            writeln!(diff, "  Full value difference:")?;
-            writeln!(diff, "    ❌ Original:     {}", format_json_value(original))?;
-            writeln!(
-                diff,
-                "    ✅ Roundtripped: {}",
-                format_json_value(roundtripped)
-            )?;
-        }
-    }
-
-    Ok(())
-}
-
-/// Format a JSON value for display, truncating long strings
-fn format_json_value(value: &Value) -> String {
-    match value {
-        Value::String(s) => {
-            if s.len() > 50 {
-                format!("\"{}...\"", s.chars().take(47).collect::<String>())
-            } else {
-                format!("\"{}\"", s)
-            }
-        }
-        Value::Array(arr) => {
-            format!("Array[{}]", arr.len())
-        }
-        Value::Object(obj) => {
-            format!("Object{{{}keys}}", obj.len())
-        }
-        _ => value.to_string(),
+        format!("🚨 ROUNDTRIP DIFFERENCES DETECTED:\n\n{}", diff_output)
     }
 }
 

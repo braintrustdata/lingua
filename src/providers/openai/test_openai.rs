@@ -27,9 +27,13 @@ mod tests {
     fn test_discover_openai_responses_test_cases() {
         match discover_openai_responses_test_cases(None) {
             Ok(cases) => {
-                for case in &cases {
-                    println!("  - {} (turn: {:?})", case.name, case.turn);
+                println!("🧪 Running OpenAI Responses test discovery...");
+                println!("Found {} test cases", cases.len());
 
+                let mut roundtrip_passed = 0;
+                let mut roundtrip_failed = 0;
+
+                for case in &cases {
                     let messages = match &case.request.input {
                         Some(Instructions::InputItemArray(msgs)) => msgs.clone(),
                         o => {
@@ -53,26 +57,26 @@ mod tests {
 
                     // Compare original and roundtripped
                     let diff = diff_serializable(&messages, &roundtripped, "items");
-                    println!("    🔄 Roundtrip test:");
-                    println!("{}", diff);
+                    let roundtrip_success = diff.starts_with("✅");
 
-                    if let Some(_response) = &case.non_streaming_response {
-                        println!("    Non-Streaming Response (TheResponseObject): valid");
-                        // We could test specific fields here
+                    if roundtrip_success {
+                        roundtrip_passed += 1;
+                        println!("  ✅ {} - roundtrip conversion", case.name);
                     } else {
-                        println!("    Non-Streaming Response: None");
+                        roundtrip_failed += 1;
+                        println!("  ❌ {} - roundtrip conversion failed", case.name);
+                        println!("{}", diff);
                     }
 
-                    if let Some(_stream_resp) = &case.streaming_response {
-                        println!("    Streaming Response (Value): valid");
-                    } else {
-                        println!("    Streaming Response: None");
-                    }
+                    // Validate response data presence
+                    let has_non_streaming = case.non_streaming_response.is_some();
+                    let has_streaming = case.streaming_response.is_some();
+                    let has_error = case.error.is_some();
 
-                    if let Some(_error) = &case.error {
-                        println!("    Error: present");
+                    if has_non_streaming || has_streaming || has_error {
+                        println!("  ✅ {} - response data valid", case.name);
                     } else {
-                        println!("    Error: None");
+                        println!("  ⚠️  {} - no response data found", case.name);
                     }
                 }
 
@@ -82,7 +86,23 @@ mod tests {
                     assert!(!case.name.is_empty());
                 }
 
-                println!("✓ OpenAI Responses test discovery completed successfully");
+                println!("\n📊 Test Summary:");
+                println!(
+                    "  Roundtrip conversions: {} passed, {} failed",
+                    roundtrip_passed, roundtrip_failed
+                );
+                println!("  Total test cases validated: {}", cases.len());
+
+                if roundtrip_failed == 0 {
+                    println!("✅ All tests passed");
+                } else {
+                    println!("❌ {} tests failed", roundtrip_failed);
+                    panic!(
+                        "Roundtrip conversion tests failed: {} out of {} test cases",
+                        roundtrip_failed,
+                        cases.len()
+                    );
+                }
             }
             Err(e) => {
                 println!(
