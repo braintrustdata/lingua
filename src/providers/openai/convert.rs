@@ -1,7 +1,8 @@
-use super::{self as openai};
+use crate::providers::openai::generated as openai;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart, UserContent,
+    UserContentPart,
 };
 use std::fmt;
 
@@ -147,6 +148,91 @@ impl TryFromLLM<openai::InputItemContent> for AssistantContent {
     }
 }
 
+// Add reverse conversions for the reciprocal pattern
+
+impl TryFromLLM<UserContent> for openai::InputItemContent {
+    type Error = ConvertError;
+
+    fn try_from(content: UserContent) -> Result<Self, Self::Error> {
+        Ok(match content {
+            UserContent::String(text) => openai::InputItemContent::String(text),
+            UserContent::Array(parts) => {
+                let input_parts: Result<Vec<_>, _> = parts
+                    .into_iter()
+                    .map(|part| TryFromLLM::try_from(part))
+                    .collect();
+                openai::InputItemContent::InputContentArray(input_parts?)
+            }
+        })
+    }
+}
+
+impl TryFromLLM<UserContentPart> for openai::InputContent {
+    type Error = ConvertError;
+
+    fn try_from(part: UserContentPart) -> Result<Self, Self::Error> {
+        Ok(match part {
+            UserContentPart::Text(text_part) => openai::InputContent {
+                input_content_type: openai::InputItemContentListType::InputText,
+                text: Some(text_part.text),
+                ..Default::default()
+            },
+            _ => return Err(ConvertError::UnsupportedInputType),
+        })
+    }
+}
+
+impl Default for openai::InputContent {
+    fn default() -> Self {
+        Self {
+            text: None,
+            input_content_type: openai::InputItemContentListType::InputText,
+            detail: None,
+            file_id: None,
+            image_url: None,
+            file_data: None,
+            file_url: None,
+            filename: None,
+            input_audio: None,
+            annotations: None,
+            logprobs: None,
+            refusal: None,
+        }
+    }
+}
+
+impl TryFromLLM<AssistantContent> for openai::InputItemContent {
+    type Error = ConvertError;
+
+    fn try_from(content: AssistantContent) -> Result<Self, Self::Error> {
+        Ok(match content {
+            AssistantContent::String(text) => openai::InputItemContent::String(text),
+            AssistantContent::Array(parts) => {
+                let input_parts: Result<Vec<_>, _> = parts
+                    .into_iter()
+                    .map(|part| TryFromLLM::try_from(part))
+                    .collect();
+                openai::InputItemContent::InputContentArray(input_parts?)
+            }
+        })
+    }
+}
+
+impl TryFromLLM<AssistantContentPart> for openai::InputContent {
+    type Error = ConvertError;
+
+    fn try_from(part: AssistantContentPart) -> Result<Self, Self::Error> {
+        Ok(match part {
+            AssistantContentPart::Text(text_part) => openai::InputContent {
+                input_content_type: openai::InputItemContentListType::OutputText,
+                text: Some(text_part.text),
+                ..Default::default()
+            },
+            _ => return Err(ConvertError::UnsupportedInputType),
+        })
+    }
+}
+
 impl TryFromLLM<openai::InputContent> for AssistantContentPart {
     type Error = ConvertError;
 
@@ -170,37 +256,39 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
     }
 }
 
-/// Create a basic InputItem with default values
-fn create_basic_input_item(role: openai::InputItemRole, content: String) -> openai::InputItem {
-    openai::InputItem {
-        role: Some(role),
-        content: Some(openai::InputItemContent::String(content)),
-        input_item_type: None,
-        status: None,
-        id: None,
-        queries: None,
-        results: None,
-        action: None,
-        call_id: None,
-        pending_safety_checks: None,
-        acknowledged_safety_checks: None,
-        output: None,
-        arguments: None,
-        name: None,
-        encrypted_content: None,
-        summary: None,
-        result: None,
-        code: None,
-        container_id: None,
-        server_label: None,
-        tools: None,
-        approval_request_id: None,
-        approve: None,
-        reason: None,
-        request_id: None,
-        input: None,
-        error: None,
-        outputs: None,
+/// Default implementation for InputItem
+impl Default for openai::InputItem {
+    fn default() -> Self {
+        Self {
+            role: None,
+            content: None,
+            input_item_type: None,
+            status: None,
+            id: None,
+            queries: None,
+            results: None,
+            action: None,
+            call_id: None,
+            pending_safety_checks: None,
+            acknowledged_safety_checks: None,
+            output: None,
+            arguments: None,
+            name: None,
+            encrypted_content: None,
+            summary: None,
+            result: None,
+            code: None,
+            container_id: None,
+            server_label: None,
+            tools: None,
+            approval_request_id: None,
+            approve: None,
+            reason: None,
+            request_id: None,
+            input: None,
+            error: None,
+            outputs: None,
+        }
     }
 }
 
@@ -210,40 +298,113 @@ impl TryFromLLM<Message> for openai::InputItem {
 
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         match message {
-            Message::System { content } => Ok(create_basic_input_item(
-                openai::InputItemRole::System,
-                content,
-            )),
-            Message::User { content } => {
-                let content_string = match content {
-                    UserContent::String(text) => text,
-                    UserContent::Array(_) => {
-                        "Complex user content (not yet implemented)".to_string()
+            Message::System { content } => Ok(openai::InputItem {
+                role: Some(openai::InputItemRole::System),
+                content: Some(TryFromLLM::try_from(content)?),
+                ..Default::default()
+            }),
+            Message::User { content } => Ok(openai::InputItem {
+                role: Some(openai::InputItemRole::User),
+                content: Some(TryFromLLM::try_from(content)?),
+                ..Default::default()
+            }),
+            Message::Assistant { content, id } => {
+                match content {
+                    AssistantContent::String(text) => Ok(openai::InputItem {
+                        role: Some(openai::InputItemRole::Assistant),
+                        content: Some(openai::InputItemContent::String(text)),
+                        id: id,
+                        ..Default::default()
+                    }),
+                    AssistantContent::Array(parts) => {
+                        // Check if this is a reasoning-only message
+                        let reasoning_parts: Vec<_> = parts
+                            .iter()
+                            .filter_map(|part| match part {
+                                AssistantContentPart::Reasoning {
+                                    text,
+                                    encrypted_content: _,
+                                } => Some(openai::SummaryText {
+                                    text: text.clone(),
+                                    summary_text_type: openai::SummaryType::SummaryText,
+                                }),
+                                _ => None,
+                            })
+                            .collect();
+
+                        if !reasoning_parts.is_empty() && reasoning_parts.len() == parts.len() {
+                            // Pure reasoning message - convert to reasoning InputItem
+                            let reasoning_item = openai::InputItem {
+                                role: Some(openai::InputItemRole::Assistant),
+                                content: None,
+                                input_item_type: Some(openai::InputItemType::Reasoning),
+                                id: id.clone(),
+                                summary: Some(reasoning_parts),
+                                // Extract encrypted_content from first reasoning part
+                                encrypted_content: parts.first().and_then(|part| match part {
+                                    AssistantContentPart::Reasoning {
+                                        encrypted_content, ..
+                                    } => encrypted_content.clone(),
+                                    _ => None,
+                                }),
+                                ..Default::default()
+                            };
+                            Ok(reasoning_item)
+                        } else {
+                            // Mixed content - convert to regular assistant message
+                            // For now, extract text from first text part
+                            let text = parts
+                                .iter()
+                                .find_map(|part| match part {
+                                    AssistantContentPart::Text(text_part) => {
+                                        Some(text_part.text.clone())
+                                    }
+                                    _ => None,
+                                })
+                                .unwrap_or_else(|| "Complex assistant content".to_string());
+
+                            Ok(openai::InputItem {
+                                role: Some(openai::InputItemRole::Assistant),
+                                content: Some(openai::InputItemContent::String(text)),
+                                id: id,
+                                ..Default::default()
+                            })
+                        }
                     }
-                };
-                Ok(create_basic_input_item(
-                    openai::InputItemRole::User,
-                    content_string,
-                ))
+                }
             }
-            Message::Assistant { content, .. } => {
-                let content_string = match content {
-                    AssistantContent::String(text) => text,
-                    AssistantContent::Array(_) => {
-                        "Complex assistant content (not yet implemented)".to_string()
+            Message::Tool { content } => {
+                // Convert tool results to appropriate InputItems
+                let mut result_items = Vec::new();
+
+                for tool_part in content {
+                    match tool_part {
+                        ToolContentPart::ToolResult(tool_result) => {
+                            // Create a tool result InputItem
+                            result_items.push(openai::InputItem {
+                                role: Some(openai::InputItemRole::User), // Tools appear as user messages in OpenAI
+                                content: Some(openai::InputItemContent::String(format!(
+                                    "Tool result: {}",
+                                    serde_json::to_string(&tool_result.output).unwrap_or_default()
+                                ))),
+                                input_item_type: Some(openai::InputItemType::CustomToolCallOutput),
+                                call_id: Some(serde_json::Value::String(
+                                    tool_result.tool_call_id.clone(),
+                                )),
+                                name: Some(tool_result.tool_name.clone()),
+                                output: None, // output field is for Refusal type, not tool output
+                                ..Default::default()
+                            });
+                        }
                     }
-                };
-                Ok(create_basic_input_item(
-                    openai::InputItemRole::Assistant,
-                    content_string,
-                ))
-            }
-            Message::Tool { content: _ } => {
-                // Basic implementation - convert tool to user for now
-                Ok(create_basic_input_item(
-                    openai::InputItemRole::User,
-                    "Tool content (not yet implemented)".to_string(),
-                ))
+                }
+
+                // For now, return the first tool result or a placeholder
+                result_items.into_iter().next().ok_or_else(|| {
+                    ConvertError::ContentConversionFailed {
+                        reason: "Empty tool content".to_string(),
+                    }
+                })
             }
         }
     }
