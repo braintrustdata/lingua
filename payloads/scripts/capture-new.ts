@@ -170,10 +170,12 @@ async function main() {
     return;
   }
 
-  console.log(`Running ${casesToRun.length} cases...`);
+  console.log(`Running ${casesToRun.length} cases in parallel...`);
 
-  for (const case_ of casesToRun) {
-    console.log(`\nExecuting ${case_.provider}/${case_.caseName}...`);
+  // Execute all cases in parallel across providers
+  const casePromises = casesToRun.map(async (case_) => {
+    const startTime = Date.now();
+    console.log(`🚀 Starting ${case_.provider}/${case_.caseName}...`);
 
     try {
       const result = await case_.executor.execute(case_.caseName, case_.payload, options.stream);
@@ -184,9 +186,37 @@ async function main() {
       const relativeFiles = savedFiles.map(f => f.replace(outputDir + "/", ""));
       updateCache(outputDir, case_.provider, case_.caseName, case_.payload, relativeFiles);
 
-      console.log(`✓ Completed ${case_.provider}/${case_.caseName} - saved ${savedFiles.length} files`);
+      const duration = Date.now() - startTime;
+      console.log(`✓ Completed ${case_.provider}/${case_.caseName} in ${duration}ms - saved ${savedFiles.length} files`);
+
+      return { case_, success: true, duration, filesCount: savedFiles.length };
     } catch (error) {
-      console.error(`✗ Failed ${case_.provider}/${case_.caseName}:`, error);
+      const duration = Date.now() - startTime;
+      console.error(`✗ Failed ${case_.provider}/${case_.caseName} in ${duration}ms:`, error);
+
+      return { case_, success: false, duration, error: String(error) };
+    }
+  });
+
+  // Wait for all cases to complete
+  const results = await Promise.all(casePromises);
+
+  // Print summary
+  const successful = results.filter(r => r.success);
+  const failed = results.filter(r => !r.success);
+  const totalDuration = Math.max(...results.map(r => r.duration));
+  const totalFiles = successful.reduce((sum, r) => sum + (r.filesCount || 0), 0);
+
+  console.log(`\n📊 Execution Summary:`);
+  console.log(`  ✅ Successful: ${successful.length}/${results.length}`);
+  console.log(`  ❌ Failed: ${failed.length}/${results.length}`);
+  console.log(`  ⏱️  Total time: ${totalDuration}ms (parallelized)`);
+  console.log(`  📁 Total files saved: ${totalFiles}`);
+
+  if (failed.length > 0) {
+    console.log(`\n❌ Failed cases:`);
+    for (const failure of failed) {
+      console.log(`  - ${failure.case_.provider}/${failure.case_.caseName}: ${failure.error}`);
     }
   }
 

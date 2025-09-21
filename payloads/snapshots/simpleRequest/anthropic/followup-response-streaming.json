@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01X9dVq6RvbxT1Vc3fGESh2b",
+      "id": "msg_01WcnX3MQf5rxkeQfkzBsX2D",
       "type": "message",
       "role": "assistant",
       "model": "claude-3-5-sonnet-20241022",
@@ -10,7 +10,7 @@
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 177,
+        "input_tokens": 181,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
@@ -43,7 +43,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " need more context to provide a"
+      "text": " notice"
     }
   },
   {
@@ -51,7 +51,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " helpful answer. What"
+      "text": " this"
     }
   },
   {
@@ -59,7 +59,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " situation or task"
+      "text": " is"
     }
   },
   {
@@ -67,7 +67,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " are you currently"
+      "text": " a"
     }
   },
   {
@@ -75,7 +75,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " dealing with? Without"
+      "text": " very"
     }
   },
   {
@@ -83,7 +83,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " knowing what"
+      "text": " open"
     }
   },
   {
@@ -91,7 +91,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you're working"
+      "text": "-ended question without context"
     }
   },
   {
@@ -99,7 +99,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " on or trying"
+      "text": ". To"
     }
   },
   {
@@ -107,7 +107,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " to accomplish, I can"
+      "text": " help"
     }
   },
   {
@@ -115,7 +115,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " only give"
+      "text": " you better"
     }
   },
   {
@@ -123,7 +123,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " very general suggestions"
+      "text": ", I nee"
     }
   },
   {
@@ -131,7 +131,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "."
+      "text": "d to"
     }
   },
   {
@@ -139,7 +139,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Could you please provide more details"
+      "text": " know:"
     }
   },
   {
@@ -147,7 +147,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " about:\n\n1."
+      "text": "\n\n1. What situation"
     }
   },
   {
@@ -155,7 +155,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " What you're currently doing"
+      "text": " or task are you dealing"
     }
   },
   {
@@ -163,7 +163,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n2. What your"
+      "text": " with?\n2."
     }
   },
   {
@@ -171,7 +171,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " goals are"
+      "text": " What have"
     }
   },
   {
@@ -179,7 +179,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n3. What options"
+      "text": " you already done?"
     }
   },
   {
@@ -187,7 +187,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you"
+      "text": "\n3. What are"
     }
   },
   {
@@ -195,7 +195,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "'re considering\n4."
+      "text": " your goals?"
     }
   },
   {
@@ -203,7 +203,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Any"
+      "text": "\n\nOnce you provide more context"
     }
   },
   {
@@ -211,7 +211,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " constraints or dea"
+      "text": ","
     }
   },
   {
@@ -219,7 +219,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "dlines you're working with"
+      "text": " I can give"
     }
   },
   {
@@ -227,7 +227,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\nOnce you provide"
+      "text": " you more specific an"
     }
   },
   {
@@ -235,31 +235,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " more context"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ", I can"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " give"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " you more specific and useful"
+      "text": "d useful"
     }
   },
   {
@@ -283,7 +259,71 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " to take next."
+      "text": " to take next. Woul"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d you please"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " share"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " some"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " details"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " about what"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you're working on or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " thinking"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " about?"
     }
   },
   {
@@ -297,10 +337,10 @@
       "stop_sequence": null
     },
     "usage": {
-      "input_tokens": 177,
+      "input_tokens": 181,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 109
+      "output_tokens": 94
     }
   },
   {
