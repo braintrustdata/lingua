@@ -13,7 +13,7 @@
     },
     {
       "role": "user",
-      "content": "what next?"
+      "content": "What should I do next?"
     }
   ],
   "max_completion_tokens": 150

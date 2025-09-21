@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { writeFileSync } from "fs";
+import { writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { updateCache } from "./cache-utils";
 
@@ -152,6 +152,12 @@ type ResponseCreateParameters = Parameters<
   typeof OpenAI.prototype.responses.create
 >[0];
 
+function createTestCaseDirectory(baseOutputDir: string, testCase: string, format: string): string {
+  const testCaseDir = join(baseOutputDir, testCase, format);
+  mkdirSync(testCaseDir, { recursive: true });
+  return testCaseDir;
+}
+
 export async function captureSingleResponsesPayload(
   client: OpenAI,
   name: string,
@@ -161,10 +167,12 @@ export async function captureSingleResponsesPayload(
 ) {
   console.log(`Starting Responses API capture for: ${name}`);
 
+  const testCaseDir = createTestCaseDirectory(outputDir, name, 'openai-responses');
+
   try {
     // 1. Save original request payload
     writeFileSync(
-      join(outputDir, `openai-responses-${name}-request.json`),
+      join(testCaseDir, 'request.json'),
       JSON.stringify(payload, null, 2),
     );
 
@@ -207,13 +215,13 @@ export async function captureSingleResponsesPayload(
     // Save responses
     if (response) {
       writeFileSync(
-        join(outputDir, `openai-responses-${name}-response.json`),
+        join(testCaseDir, 'response.json'),
         JSON.stringify(response, null, 2),
       );
     }
     if (streamResponse) {
       writeFileSync(
-        join(outputDir, `openai-responses-${name}-response-streaming.json`),
+        join(testCaseDir, 'response-streaming.json'),
         JSON.stringify(streamResponse, null, 2),
       );
     }
@@ -287,7 +295,7 @@ export async function captureSingleResponsesPayload(
 
       // Save follow-up request
       writeFileSync(
-        join(outputDir, `openai-responses-${name}-followup-request.json`),
+        join(testCaseDir, 'followup-request.json'),
         JSON.stringify(followUpPayload, null, 2),
       );
       followUpRequestCreated = true;
@@ -320,16 +328,13 @@ export async function captureSingleResponsesPayload(
       // Save follow-up responses
       if (followUpResponse) {
         writeFileSync(
-          join(outputDir, `openai-responses-${name}-followup-response.json`),
+          join(testCaseDir, 'followup-response.json'),
           JSON.stringify(followUpResponse, null, 2),
         );
       }
       if (followUpStreamResponse) {
         writeFileSync(
-          join(
-            outputDir,
-            `openai-responses-${name}-followup-response-streaming.json`,
-          ),
+          join(testCaseDir, 'followup-response-streaming.json'),
           JSON.stringify(followUpStreamResponse, null, 2),
         );
       }
@@ -365,15 +370,18 @@ export async function captureSingleResponsesPayload(
   } catch (error) {
     console.error(`✗ Failed to capture ${name}:`, error);
 
+    // Ensure directory exists for error case
+    const errorTestCaseDir = createTestCaseDirectory(outputDir, name, 'openai-responses');
+
     // Save the request even if the API call failed
     writeFileSync(
-      join(outputDir, `openai-responses-${name}-request.json`),
+      join(errorTestCaseDir, 'request.json'),
       JSON.stringify(payload, null, 2),
     );
 
     // Save error details
     writeFileSync(
-      join(outputDir, `openai-responses-${name}-error.json`),
+      join(errorTestCaseDir, 'error.json'),
       JSON.stringify({ error: String(error) }, null, 2),
     );
   }

@@ -1,38 +1,43 @@
 {
-  "openai-chat:simpleRequest": {
+  "openai:simpleRequest": {
     "payloadHash": "76f789b23079491edef5322283b0f46d890ef453fe51b5d7347d13708b483ed9",
-    "capturedAt": "2025-09-20T22:45:26.314Z",
-    "provider": "openai-chat",
+    "capturedAt": "2025-09-21T00:04:53.594Z",
+    "provider": "openai",
     "name": "simpleRequest",
     "files": [
-      "openai-simpleRequest-request.json",
-      "openai-simpleRequest-response-non-streaming.json",
-      "openai-simpleRequest-response-streaming.json",
-      "openai-simpleRequest-followup-request.json",
-      "openai-simpleRequest-followup-response-non-streaming.json",
-      "openai-simpleRequest-followup-response-streaming.json"
-    ]
-  },
-  "anthropic:simpleRequest": {
-    "payloadHash": "603eac37916bb8aa7a7e196c0d6dcbaf7e86ef41f1962fcbb38626f90f34c186",
-    "capturedAt": "2025-09-20T22:45:29.942Z",
-    "provider": "anthropic",
-    "name": "simpleRequest",
-    "files": [
-      "anthropic-simpleRequest-request.json",
-      "anthropic-simpleRequest-response.json",
-      "anthropic-simpleRequest-response-streaming.json"
+      "simpleRequest/openai/request.json",
+      "simpleRequest/openai/response.json",
+      "simpleRequest/openai/response-streaming.json",
+      "simpleRequest/openai/followup-request.json",
+      "simpleRequest/openai/followup-response.json",
+      "simpleRequest/openai/followup-response-streaming.json"
     ]
   },
   "openai-responses:simpleRequest": {
     "payloadHash": "c8cc06e72e4d2e225e5ff70c5f0188b624d537efc44c7194a32db1443da240ea",
-    "capturedAt": "2025-09-20T22:45:34.512Z",
+    "capturedAt": "2025-09-21T00:05:04.602Z",
     "provider": "openai-responses",
     "name": "simpleRequest",
     "files": [
-      "openai-responses-simpleRequest-request.json",
-      "openai-responses-simpleRequest-response.json",
-      "openai-responses-simpleRequest-response-streaming.json"
+      "simpleRequest/openai-responses/request.json",
+      "simpleRequest/openai-responses/response.json",
+      "simpleRequest/openai-responses/response-streaming.json",
+      "simpleRequest/openai-responses/followup-request.json",
+      "simpleRequest/openai-responses/error.json"
+    ]
+  },
+  "anthropic:simpleRequest": {
+    "payloadHash": "603eac37916bb8aa7a7e196c0d6dcbaf7e86ef41f1962fcbb38626f90f34c186",
+    "capturedAt": "2025-09-21T00:05:16.615Z",
+    "provider": "anthropic",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/anthropic/request.json",
+      "simpleRequest/anthropic/response.json",
+      "simpleRequest/anthropic/response-streaming.json",
+      "simpleRequest/anthropic/followup-request.json",
+      "simpleRequest/anthropic/followup-response.json",
+      "simpleRequest/anthropic/followup-response-streaming.json"
     ]
   }
 }

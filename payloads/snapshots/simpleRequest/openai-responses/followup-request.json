@@ -1,0 +1,25 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+    "summary": "auto"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What is the capital of France? Please explain your reasoning."
+    },
+    [
+      {
+        "id": "rs_68cf412664908194a7b25410a4b65515018cf486dc96b51a",
+        "type": "reasoning",
+        "summary": []
+      }
+    ],
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_output_tokens": 150
+}

@@ -1,7 +1,7 @@
 {
-  "id": "resp_68cf2e83c14881969ce7e09517e6f3030488198d25befe12",
+  "id": "resp_68cf4125c23081949cc5c939585fc1b1018cf486dc96b51a",
   "object": "response",
-  "created_at": 1758408323,
+  "created_at": 1758413093,
   "status": "incomplete",
   "background": false,
   "billing": {
@@ -17,14 +17,9 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68cf2e8472a08196bce92e6cf6945b880488198d25befe12",
+      "id": "rs_68cf412664908194a7b25410a4b65515018cf486dc96b51a",
       "type": "reasoning",
-      "summary": [
-        {
-          "type": "summary_text",
-          "text": "**Explaining capital of France**\n\nThe user asked about the capital of France, which is Paris. For my reasoning, I note that Paris has been the capital since the 10th century, specifically under Hugh Capet around 987. Historically, it's accepted as the official seat of government and the largest city, housing key national institutions. So, in summary, I’ll explain that Paris is significant not just for its history but for its ongoing role in the French government."
-        }
-      ]
+      "summary": []
     }
   ],
   "parallel_tool_calls": true,

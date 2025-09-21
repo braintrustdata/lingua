@@ -4,10 +4,8 @@
   "description": "Scripts to capture OpenAI and Anthropic API payloads with TypeScript type safety",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "capture": "tsx scripts/capture.ts",
-    "capture-openai": "tsx scripts/capture-openai.ts",
-    "capture-openai-responses": "tsx scripts/capture-openai-responses.ts",
-    "capture-anthropic": "tsx scripts/capture-anthropic.ts"
+    "capture": "tsx scripts/capture-new.ts",
+    "capture-old": "tsx scripts/capture.ts"
   },
   "dependencies": {
     "openai": "^4.68.4",
