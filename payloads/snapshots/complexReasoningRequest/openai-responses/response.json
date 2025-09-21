@@ -1,25 +1,37 @@
 {
-  "id": "resp_68d08aa775cc8190be3f24d675c881c0079b8661b33b3aba",
+  "id": "resp_68d08c05cac88193852f733ad89977160d10d00f13a432a0",
   "object": "response",
-  "created_at": 1758497447,
-  "status": "incomplete",
+  "created_at": 1758497797,
+  "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
   "error": null,
-  "incomplete_details": {
-    "reason": "max_output_tokens"
-  },
+  "incomplete_details": null,
   "instructions": null,
-  "max_output_tokens": 1000,
+  "max_output_tokens": 20000,
   "max_tool_calls": null,
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68d08aa7e0b481909d11a6b51389459b079b8661b33b3aba",
+      "id": "rs_68d08c0638408193a9fba649a6c229150d10d00f13a432a0",
       "type": "reasoning",
       "summary": []
+    },
+    {
+      "id": "msg_68d08c114cd48193ba0c6257c6dc12a20d10d00f13a432a0",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "New total budget: $1,105,000\n\nReason:\n- Headcount proportions: Engineering 60%, Sales 25%, Admin 15%.\n- Initial budgets (of $1,000,000): Eng $600,000, Sales $250,000, Admin $150,000.\n- After increases: Eng $600k × 1.10 = $660,000; Sales $250k × 1.15 = $287,500; Admin $150k × 1.05 = $157,500.\n- Total = 660,000 + 287,500 + 157,500 = $1,105,000."
+        }
+      ],
+      "role": "assistant"
     }
   ],
   "parallel_tool_calls": true,
@@ -49,13 +61,13 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 960,
+    "output_tokens": 2444,
     "output_tokens_details": {
-      "reasoning_tokens": 960
+      "reasoning_tokens": 2304
     },
-    "total_tokens": 1040
+    "total_tokens": 2524
   },
   "user": null,
   "metadata": {},
-  "output_text": ""
+  "output_text": "New total budget: $1,105,000\n\nReason:\n- Headcount proportions: Engineering 60%, Sales 25%, Admin 15%.\n- Initial budgets (of $1,000,000): Eng $600,000, Sales $250,000, Admin $150,000.\n- After increases: Eng $600k × 1.10 = $660,000; Sales $250k × 1.15 = $287,500; Admin $150k × 1.05 = $157,500.\n- Total = 660,000 + 287,500 + 157,500 = $1,105,000."
 }

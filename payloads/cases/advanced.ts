@@ -1,5 +1,9 @@
 import { TestCaseCollection } from "./types";
-import { OPENAI_CHAT_COMPLETIONS_MODEL, OPENAI_RESPONSES_MODEL, ANTHROPIC_MODEL } from "./models";
+import {
+  OPENAI_CHAT_COMPLETIONS_MODEL,
+  OPENAI_RESPONSES_MODEL,
+  ANTHROPIC_MODEL,
+} from "./models";
 
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
@@ -58,10 +62,11 @@ export const advancedCases: TestCaseCollection = {
       input: [
         {
           role: "user",
-          content: "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
+          content:
+            "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
         },
       ],
-      max_output_tokens: 1000,
+      max_output_tokens: 20_000,
     },
 
     "openai-chat-completions": {
@@ -69,21 +74,24 @@ export const advancedCases: TestCaseCollection = {
       messages: [
         {
           role: "user",
-          content: "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
+          content:
+            "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
         },
       ],
-      max_tokens: 1000,
+      max_tokens: 20_000,
     },
 
     anthropic: {
       model: ANTHROPIC_MODEL,
-      max_tokens: 1000,
+      max_tokens: 20_000,
       messages: [
         {
           role: "user",
-          content: "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
+          content:
+            "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
         },
       ],
     },
   },
 };
+

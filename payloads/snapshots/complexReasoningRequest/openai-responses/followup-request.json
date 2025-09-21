@@ -1,0 +1,36 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?"
+    },
+    {
+      "id": "rs_68d08c0638408193a9fba649a6c229150d10d00f13a432a0",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d08c114cd48193ba0c6257c6dc12a20d10d00f13a432a0",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "New total budget: $1,105,000\n\nReason:\n- Headcount proportions: Engineering 60%, Sales 25%, Admin 15%.\n- Initial budgets (of $1,000,000): Eng $600,000, Sales $250,000, Admin $150,000.\n- After increases: Eng $600k × 1.10 = $660,000; Sales $250k × 1.15 = $287,500; Admin $150k × 1.05 = $157,500.\n- Total = 660,000 + 287,500 + 157,500 = $1,105,000."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_output_tokens": 20000
+}

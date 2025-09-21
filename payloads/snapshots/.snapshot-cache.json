@@ -38,8 +38,8 @@
     ]
   },
   "openai-chat-completions:complexReasoningRequest": {
-    "payloadHash": "1e7e864254e4045c499140eefcb1a75453efa196322b1346448a7d56f5b0d548",
-    "capturedAt": "2025-09-21T23:30:47.491Z",
+    "payloadHash": "e24b2d2201535de4d9db6b5ff0e2d05088d0e61ac035330ccb1643aecdf9876a",
+    "capturedAt": "2025-09-21T23:36:37.785Z",
     "provider": "openai-chat-completions",
     "name": "complexReasoningRequest",
     "files": [
@@ -99,14 +99,17 @@
     ]
   },
   "openai-responses:complexReasoningRequest": {
-    "payloadHash": "50da712eda8d60502f13da9d9e8e04a6961248afa6ee392b84c9fde34a76d16f",
-    "capturedAt": "2025-09-21T23:30:51.841Z",
+    "payloadHash": "0cbf1812fcdc8e6a75a36dd7255742a5cd1b469aa05f2ac531fb721168e8a07b",
+    "capturedAt": "2025-09-21T23:37:26.325Z",
     "provider": "openai-responses",
     "name": "complexReasoningRequest",
     "files": [
       "complexReasoningRequest/openai-responses/request.json",
       "complexReasoningRequest/openai-responses/response.json",
-      "complexReasoningRequest/openai-responses/response-streaming.json"
+      "complexReasoningRequest/openai-responses/response-streaming.json",
+      "complexReasoningRequest/openai-responses/followup-request.json",
+      "complexReasoningRequest/openai-responses/followup-response.json",
+      "complexReasoningRequest/openai-responses/followup-response-streaming.json"
     ]
   },
   "openai-responses:reasoningWithOutput": {
@@ -124,8 +127,8 @@
     ]
   },
   "anthropic:complexReasoningRequest": {
-    "payloadHash": "66965d311b6a49a15f6a797b107f686b53e6991699f3c056c409455552b5be29",
-    "capturedAt": "2025-09-21T23:30:55.732Z",
+    "payloadHash": "510ea1f280fc53ea5d2a3a1f81dd1e098066a153c8629d2790ea1fa34483319b",
+    "capturedAt": "2025-09-21T23:36:50.480Z",
     "provider": "anthropic",
     "name": "complexReasoningRequest",
     "files": [
