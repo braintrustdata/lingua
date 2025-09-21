@@ -2,7 +2,7 @@ use super::generated::{
     ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
     ChatCompletionRequestMessageRole, InputItem, InputItemContent, InputItemRole, InputItemType,
 };
-use crate::universal::{AssistantContent, ModelMessage, UserContent};
+use crate::universal::{AssistantContent, AssistantContentPart, ModelMessage, UserContent};
 use std::fmt;
 
 /// Errors that can occur during conversion between OpenAI and universal formats
@@ -36,10 +36,12 @@ impl TryFrom<InputItem> for ModelMessage {
     type Error = ConvertError;
 
     fn try_from(input: InputItem) -> Result<Self, Self::Error> {
-        // Skip reasoning items - they are internal API artifacts without roles
         if matches!(input.input_item_type, Some(InputItemType::Reasoning)) {
-            return Err(ConvertError::ContentConversionFailed {
-                reason: "Reasoning items are internal API artifacts and should not be converted to ModelMessage".to_string(),
+            return Ok(ModelMessage::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
+                    text: "Reasoning content (not yet implemented)".to_string(),
+                    provider_options: None,
+                }]),
             });
         }
 
