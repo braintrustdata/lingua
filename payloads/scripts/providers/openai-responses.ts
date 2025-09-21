@@ -1,49 +1,17 @@
 import OpenAI from "openai";
 import { CaptureResult, ProviderExecutor } from "../types";
+import { unifiedTestCases, getAllCaseNames } from "../unified-cases";
 
-// OpenAI Responses API cases
-export const openaiResponsesCases: Record<
-  string,
-  OpenAI.Responses.ResponseCreateParams
-> = {
-  simpleRequest: {
-    model: "gpt-5-nano",
-    reasoning: { effort: "low", summary: "auto" },
-    input: [
-      {
-        role: "user" as const,
-        content:
-          "What is the capital of France? Please explain your reasoning.",
-      },
-    ],
-    max_output_tokens: 20_0000,
-  },
+// OpenAI Responses API cases - extracted from unified cases
+export const openaiResponsesCases: Record<string, OpenAI.Responses.ResponseCreateParams> = {};
 
-  reasoningRequest: {
-    model: "gpt-5-nano",
-    reasoning: { effort: "high" as const },
-    input: [
-      {
-        role: "user" as const,
-        content:
-          "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
-      },
-    ],
-    max_output_tokens: 300,
-  },
-
-  reasoningWithOutput: {
-    model: "gpt-5-nano",
-    reasoning: { effort: "low" as const },
-    input: [
-      {
-        role: "user" as const,
-        content: "What color is the sky?",
-      },
-    ],
-    max_output_tokens: 2000,
-  },
-};
+// Populate cases from unified structure
+getAllCaseNames().forEach(caseName => {
+  const caseData = unifiedTestCases[caseName as keyof typeof unifiedTestCases];
+  if (caseData["openai-responses"]) {
+    openaiResponsesCases[caseName] = caseData["openai-responses"];
+  }
+});
 
 export async function executeOpenAIResponses(
   caseName: string,

@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-CIHW3bxAgC2uLsNLj4X8gKZ9Q3FRE",
+  "object": "chat.completion",
+  "created": 1758473271,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The capital of France is Paris. This designation is based on several factors: \n\n1. **Historical Significance**: Paris has been the political and cultural center of France for centuries. It became the capital in the 12th century and has remained so ever since.\n\n2. **Political Function**: As the capital, Paris is the seat of the French government, hosting the President's official residence (the Élysée Palace) and the French Parliament.\n\n3. **Cultural Importance**: Paris is renowned for its art, architecture, and historical heritage. Landmarks such as the Eiffel Tower, the Louvre Museum, and Notre-Dame Cathedral have made it a global center for culture and tourism.\n\n4. **Economic Hub**: Paris is also",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 19,
+    "completion_tokens": 150,
+    "total_tokens": 169,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_51db84afab"
+}

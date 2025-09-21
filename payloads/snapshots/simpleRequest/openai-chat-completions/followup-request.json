@@ -1,0 +1,20 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the capital of France? Please explain your reasoning."
+    },
+    {
+      "role": "assistant",
+      "content": "The capital of France is Paris. This designation is based on several factors: \n\n1. **Historical Significance**: Paris has been the political and cultural center of France for centuries. It became the capital in the 12th century and has remained so ever since.\n\n2. **Political Function**: As the capital, Paris is the seat of the French government, hosting the President's official residence (the Élysée Palace) and the French Parliament.\n\n3. **Cultural Importance**: Paris is renowned for its art, architecture, and historical heritage. Landmarks such as the Eiffel Tower, the Louvre Museum, and Notre-Dame Cathedral have made it a global center for culture and tourism.\n\n4. **Economic Hub**: Paris is also",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_tokens": 150
+}

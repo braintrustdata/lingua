@@ -3,9 +3,9 @@
     "type": "response.created",
     "sequence_number": 0,
     "response": {
-      "id": "resp_68d02b19fa2481969e4d047f50abdf510a773811abae94f7",
+      "id": "resp_68d02c3716f48190b9c6a197aeb0a2a00f74c0059c696a6c",
       "object": "response",
-      "created_at": 1758472986,
+      "created_at": 1758473271,
       "status": "in_progress",
       "background": false,
       "error": null,
@@ -46,9 +46,9 @@
     "type": "response.in_progress",
     "sequence_number": 1,
     "response": {
-      "id": "resp_68d02b19fa2481969e4d047f50abdf510a773811abae94f7",
+      "id": "resp_68d02c3716f48190b9c6a197aeb0a2a00f74c0059c696a6c",
       "object": "response",
-      "created_at": 1758472986,
+      "created_at": 1758473271,
       "status": "in_progress",
       "background": false,
       "error": null,
@@ -90,863 +90,27 @@
     "sequence_number": 2,
     "output_index": 0,
     "item": {
-      "id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
+      "id": "rs_68d02c3772a48190b761acd5ce6988280f74c0059c696a6c",
       "type": "reasoning",
       "summary": []
     }
   },
   {
-    "type": "response.reasoning_summary_part.added",
-    "sequence_number": 3,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "part": {
-      "type": "summary_text",
-      "text": ""
-    }
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 4,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": "**Providing",
-    "obfuscation": "Cg5Of"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 5,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " reasoning",
-    "obfuscation": "qVvSK6"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 6,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " for",
-    "obfuscation": "e3LQJwOa6Shm"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 7,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " Paris",
-    "obfuscation": "tF4B4dWCIe"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 8,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " as",
-    "obfuscation": "Kzblch8oImCwX"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 9,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " capital",
-    "obfuscation": "52FDFG7f"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 10,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": "**\n\nThe",
-    "obfuscation": "iKjx8Hfps"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 11,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " capital",
-    "obfuscation": "5NDqR4jM"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 12,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " of",
-    "obfuscation": "dSRNwYwNe0W0N"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 13,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " France",
-    "obfuscation": "SsS0N9SsB"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 14,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " is",
-    "obfuscation": "5J48kcTf0Ntdl"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 15,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " Paris",
-    "obfuscation": "DewhzOcGDn"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 16,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ".",
-    "obfuscation": "Dx8Gm8QyIg7nF1j"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 17,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " I",
-    "obfuscation": "GHQBl6LpUQNyQJ"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 18,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " can",
-    "obfuscation": "7R2rR2eFrbis"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 19,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " give",
-    "obfuscation": "WvpCRK28pMp"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 20,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " a",
-    "obfuscation": "Y6ggDToSndoCzn"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 21,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " concise",
-    "obfuscation": "i1FfuqSu"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 22,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " explanation",
-    "obfuscation": "s9lm"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 23,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ":",
-    "obfuscation": "lJGAkxTy0NzPdor"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 24,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " it's",
-    "obfuscation": "p7pjQ8AR3Ph"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 25,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " been",
-    "obfuscation": "wHBRdaozUBU"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 26,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " the",
-    "obfuscation": "TeEUwAgcfoiB"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 27,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " seat",
-    "obfuscation": "4dS7As4We91"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 28,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " of",
-    "obfuscation": "mPsvXu5q12KEZ"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 29,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " government",
-    "obfuscation": "qCWMe"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 30,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " historically",
-    "obfuscation": "Tnh"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 31,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ".",
-    "obfuscation": "UV0FyT5cM2db0z8"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 32,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " So",
-    "obfuscation": "qpLQ0uFxWwTze"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 33,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ",",
-    "obfuscation": "EVHhdkJi8dYuVj2"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 34,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " Paris",
-    "obfuscation": "cJQjcxqVE1"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 35,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " is",
-    "obfuscation": "qDi7QWM3JhJCc"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 36,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " not",
-    "obfuscation": "mgxeg5srii3S"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 37,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " just",
-    "obfuscation": "j2x6uCGUwTB"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 38,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " the",
-    "obfuscation": "4dA3Np6hS6Na"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 39,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " political",
-    "obfuscation": "mXrudY"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 40,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " capital",
-    "obfuscation": "9yR9914c"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 41,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ",",
-    "obfuscation": "aOBnMV2rTGhbNLV"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 42,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " but",
-    "obfuscation": "nLVHpmZuGQl9"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 43,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " also",
-    "obfuscation": "fJvTJxSQWpP"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 44,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " the",
-    "obfuscation": "jPGXd8oKZRc1"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 45,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " largest",
-    "obfuscation": "smGcHdA5"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 46,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " city",
-    "obfuscation": "ZqOllCKURX0"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 47,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ".",
-    "obfuscation": "k3vWhVTJVLT4XWh"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 48,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " This",
-    "obfuscation": "VLxBJrYqA6C"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 49,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " designation",
-    "obfuscation": "4jeW"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 50,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " hasn't",
-    "obfuscation": "usmf9q9jh"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 51,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " changed",
-    "obfuscation": "Z9e39QM4"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 52,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " since",
-    "obfuscation": "40ks6qjE8y"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 53,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " the",
-    "obfuscation": "KTlulx98K31X"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 54,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " 17",
-    "obfuscation": "SgrYBAVMTOMyj"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 55,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": "th",
-    "obfuscation": "QSKhKyQRvnSExa"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 56,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " century",
-    "obfuscation": "yspGfqPF"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 57,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ",",
-    "obfuscation": "L5H2xzX7oiqLi5m"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 58,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " with",
-    "obfuscation": "ghdR4svxByi"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 59,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " the",
-    "obfuscation": "Jnbl7IvzAXwD"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 60,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " President",
-    "obfuscation": "KDUz6z"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 61,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": "'s",
-    "obfuscation": "Cg0xwxB6MWXA7y"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 62,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " residence",
-    "obfuscation": "aRXu2i"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 63,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " at",
-    "obfuscation": "ZY2zOCVWcYp6k"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 64,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " the",
-    "obfuscation": "bkoGw14edjGG"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 65,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " Ely",
-    "obfuscation": "x2QEQNeHY060"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 66,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": "see",
-    "obfuscation": "76UOw7AvYsXxY"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 67,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " Palace",
-    "obfuscation": "aUxlCjqfj"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 68,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " and",
-    "obfuscation": "cJSy7ysPmHWh"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 69,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " Parliament",
-    "obfuscation": "m9FsS"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 70,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " located",
-    "obfuscation": "1I2k8kJU"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 71,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " there",
-    "obfuscation": "sLGhVDM1AD"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 72,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " as",
-    "obfuscation": "ovJG4pr4vEnzf"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 73,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " well",
-    "obfuscation": "pPYOUx9cHsT"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 74,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ".",
-    "obfuscation": "jPrxUGsGfFKScDt"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 75,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " Paris",
-    "obfuscation": "38PuIL6xsU"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 76,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " serves",
-    "obfuscation": "6cqmaCZo5"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 77,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " as",
-    "obfuscation": "fU2BGup6xgqBw"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 78,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " France",
-    "obfuscation": "qUwMSBdpO"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 79,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": "'s",
-    "obfuscation": "mUuasfhFmTtZff"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 80,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " administrative",
-    "obfuscation": "s"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 81,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " hub",
-    "obfuscation": "CtJPHjBCq8Vb"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 82,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": ".",
-    "obfuscation": "6PffKwtxXHGAiEK"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 83,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " I",
-    "obfuscation": "VzlVbmNE9AJcm5"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 84,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " can",
-    "obfuscation": "C9Q6hsoWARUw"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 85,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " offer",
-    "obfuscation": "SDdJZ4jMEY"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 86,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " sources",
-    "obfuscation": "BVpgTQAT"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 87,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " or",
-    "obfuscation": "eo06Z4DJsvCO2"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 88,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " more",
-    "obfuscation": "IjhoSRCwUPA"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 89,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " details",
-    "obfuscation": "Qv2gy3bI"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 90,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " if",
-    "obfuscation": "WAJhVoNpBLko2"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 91,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": " needed",
-    "obfuscation": "AwLh4K7dw"
-  },
-  {
-    "type": "response.reasoning_summary_text.delta",
-    "sequence_number": 92,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "delta": "!",
-    "obfuscation": "5y7LaIgwSaAEsXR"
-  },
-  {
-    "type": "response.reasoning_summary_text.done",
-    "sequence_number": 93,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "text": "**Providing reasoning for Paris as capital**\n\nThe capital of France is Paris. I can give a concise explanation: it's been the seat of government historically. So, Paris is not just the political capital, but also the largest city. This designation hasn't changed since the 17th century, with the President's residence at the Elysee Palace and Parliament located there as well. Paris serves as France's administrative hub. I can offer sources or more details if needed!"
-  },
-  {
-    "type": "response.reasoning_summary_part.done",
-    "sequence_number": 94,
-    "item_id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
-    "output_index": 0,
-    "summary_index": 0,
-    "part": {
-      "type": "summary_text",
-      "text": "**Providing reasoning for Paris as capital**\n\nThe capital of France is Paris. I can give a concise explanation: it's been the seat of government historically. So, Paris is not just the political capital, but also the largest city. This designation hasn't changed since the 17th century, with the President's residence at the Elysee Palace and Parliament located there as well. Paris serves as France's administrative hub. I can offer sources or more details if needed!"
-    }
-  },
-  {
     "type": "response.output_item.done",
-    "sequence_number": 95,
+    "sequence_number": 3,
     "output_index": 0,
     "item": {
-      "id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
+      "id": "rs_68d02c3772a48190b761acd5ce6988280f74c0059c696a6c",
       "type": "reasoning",
-      "summary": [
-        {
-          "type": "summary_text",
-          "text": "**Providing reasoning for Paris as capital**\n\nThe capital of France is Paris. I can give a concise explanation: it's been the seat of government historically. So, Paris is not just the political capital, but also the largest city. This designation hasn't changed since the 17th century, with the President's residence at the Elysee Palace and Parliament located there as well. Paris serves as France's administrative hub. I can offer sources or more details if needed!"
-        }
-      ]
+      "summary": []
     }
   },
   {
     "type": "response.output_item.added",
-    "sequence_number": 96,
+    "sequence_number": 4,
     "output_index": 1,
     "item": {
-      "id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+      "id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
       "type": "message",
       "status": "in_progress",
       "content": [],
@@ -955,8 +119,8 @@
   },
   {
     "type": "response.content_part.added",
-    "sequence_number": 97,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 5,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "part": {
@@ -968,792 +132,462 @@
   },
   {
     "type": "response.output_text.delta",
-    "sequence_number": 98,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 6,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "delta": "Paris",
     "logprobs": [],
-    "obfuscation": "NPcu1c9JbNE"
+    "obfuscation": "BVWYbYmIk81"
   },
   {
     "type": "response.output_text.delta",
-    "sequence_number": 99,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ".\n\n",
-    "logprobs": [],
-    "obfuscation": "hDAcXj1fvndxa"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 100,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "Reason",
-    "logprobs": [],
-    "obfuscation": "TZlm2UDRcQ"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 101,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "ing",
-    "logprobs": [],
-    "obfuscation": "Pf3XvC6nfMPDa"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 102,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ":\n",
-    "logprobs": [],
-    "obfuscation": "xmvU4dOR2BkQ9w"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 103,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "-",
-    "logprobs": [],
-    "obfuscation": "lCYWkQDdIhLhbNu"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 104,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " Paris",
-    "logprobs": [],
-    "obfuscation": "Iu0bOx6ilx"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 105,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " has",
-    "logprobs": [],
-    "obfuscation": "KspfbosrPZkh"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 106,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " been",
-    "logprobs": [],
-    "obfuscation": "NuBAWwiAcDM"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 107,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " the",
-    "logprobs": [],
-    "obfuscation": "oU9jmKXWp7DA"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 108,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " capital",
-    "logprobs": [],
-    "obfuscation": "a6XdnX1L"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 109,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " of",
-    "logprobs": [],
-    "obfuscation": "CpZd05hCZu7Gc"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 110,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " France",
-    "logprobs": [],
-    "obfuscation": "Lsf2kbjX7"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 111,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " since",
-    "logprobs": [],
-    "obfuscation": "1tQYFU4a7q"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 112,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " the",
-    "logprobs": [],
-    "obfuscation": "3sl5eycpZyRa"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 113,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " ",
-    "logprobs": [],
-    "obfuscation": "HTQ4gyFd4yU355W"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 114,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "10",
-    "logprobs": [],
-    "obfuscation": "9AW6j0IQ4iXgci"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 115,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "th",
-    "logprobs": [],
-    "obfuscation": "PN4LoAr5FNAuzS"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 116,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " century",
-    "logprobs": [],
-    "obfuscation": "AQUZ827X"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 117,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " and",
-    "logprobs": [],
-    "obfuscation": "E3tY2rAvQlOV"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 118,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " has",
-    "logprobs": [],
-    "obfuscation": "JyNloUq3VS9p"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 119,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " remained",
-    "logprobs": [],
-    "obfuscation": "rVUfTM6"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 120,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " the",
-    "logprobs": [],
-    "obfuscation": "6kxMZnp1NkcO"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 121,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " political",
-    "logprobs": [],
-    "obfuscation": "22unMC"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 122,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " and",
-    "logprobs": [],
-    "obfuscation": "Ryil4pYPNIEr"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 123,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " administrative",
-    "logprobs": [],
-    "obfuscation": "8"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 124,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " center",
-    "logprobs": [],
-    "obfuscation": "SeqS6wrZp"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 125,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " of",
-    "logprobs": [],
-    "obfuscation": "7zvhy2RWJ7Vmu"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 126,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " the",
-    "logprobs": [],
-    "obfuscation": "jsXvoFvh4TxK"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 127,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " country",
-    "logprobs": [],
-    "obfuscation": "lDvsmesx"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 128,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ".\n",
-    "logprobs": [],
-    "obfuscation": "KozcVUc5GoKHYx"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 129,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "-",
-    "logprobs": [],
-    "obfuscation": "LuhU6rxPgD2lEFD"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 130,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " It",
-    "logprobs": [],
-    "obfuscation": "wpk19L58A9aZU"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 131,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " houses",
-    "logprobs": [],
-    "obfuscation": "3M7V9fV1G"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 132,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " key",
-    "logprobs": [],
-    "obfuscation": "jCGV5pKAamsS"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 133,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " institutions",
-    "logprobs": [],
-    "obfuscation": "OPZ"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 134,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " (",
-    "logprobs": [],
-    "obfuscation": "oBNXPsqny2Otkc"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 135,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "the",
-    "logprobs": [],
-    "obfuscation": "WfLXXaWp6VCnl"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 136,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " Presidency",
-    "logprobs": [],
-    "obfuscation": "1OfVI"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 137,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ",",
-    "logprobs": [],
-    "obfuscation": "bzCebQyYF3DUGmR"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 138,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " Parliament",
-    "logprobs": [],
-    "obfuscation": "itwbx"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 139,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ",",
-    "logprobs": [],
-    "obfuscation": "Dmy946qBS5djP6j"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 140,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " ministries",
-    "logprobs": [],
-    "obfuscation": "IxXsK"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 141,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ")",
-    "logprobs": [],
-    "obfuscation": "xgTyNL2lrfvD6Gn"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 142,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " and",
-    "logprobs": [],
-    "obfuscation": "hYg1AVg1blPg"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 143,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 7,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "delta": " is",
     "logprobs": [],
-    "obfuscation": "JkQ6KQfq5UDdp"
+    "obfuscation": "xyQD2dqY0JMoh"
   },
   {
     "type": "response.output_text.delta",
-    "sequence_number": 144,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 8,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "delta": " the",
     "logprobs": [],
-    "obfuscation": "z3MAPz8UNFz0"
+    "obfuscation": "d2VQ7OTRu188"
   },
   {
     "type": "response.output_text.delta",
-    "sequence_number": 145,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " seat",
-    "logprobs": [],
-    "obfuscation": "2dXGxZg5GuR"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 146,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " of",
-    "logprobs": [],
-    "obfuscation": "S9NXxqgJJaQk4"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 147,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " government",
-    "logprobs": [],
-    "obfuscation": "MaZd3"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 148,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ",",
-    "logprobs": [],
-    "obfuscation": "Z5w3P3qKc8JlowX"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 149,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " making",
-    "logprobs": [],
-    "obfuscation": "cfySpZcEG"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 150,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " it",
-    "logprobs": [],
-    "obfuscation": "Wt2ZVc1GaaCi9"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 151,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " the",
-    "logprobs": [],
-    "obfuscation": "5WtOLf24Xv4A"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 152,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " official",
-    "logprobs": [],
-    "obfuscation": "WiupYS1"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 153,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 9,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "delta": " capital",
     "logprobs": [],
-    "obfuscation": "sMvVEwsk"
+    "obfuscation": "UNHSGGFj"
   },
   {
     "type": "response.output_text.delta",
-    "sequence_number": 154,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ".\n",
-    "logprobs": [],
-    "obfuscation": "Bj2fAT1dKIATNs"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 155,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "-",
-    "logprobs": [],
-    "obfuscation": "CwrFfQHup54qofE"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 156,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " It",
-    "logprobs": [],
-    "obfuscation": "o4qrJlgCX5xs7"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 157,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " is",
-    "logprobs": [],
-    "obfuscation": "Sr5ZOycqk5kbG"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 158,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " also",
-    "logprobs": [],
-    "obfuscation": "fjKsjStIqrP"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 159,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " the",
-    "logprobs": [],
-    "obfuscation": "67DP6KpaUXGT"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 160,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " largest",
-    "logprobs": [],
-    "obfuscation": "GgD05cNx"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 161,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " city",
-    "logprobs": [],
-    "obfuscation": "I2jgs4x0IvH"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 162,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " and",
-    "logprobs": [],
-    "obfuscation": "ReSkcPJAsGze"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 163,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " the",
-    "logprobs": [],
-    "obfuscation": "oVGWUuHtGrgU"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 164,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " historical",
-    "logprobs": [],
-    "obfuscation": "aQrCr"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 165,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ",",
-    "logprobs": [],
-    "obfuscation": "62PfM9Ui2wvMyr3"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 166,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " cultural",
-    "logprobs": [],
-    "obfuscation": "NBRrUGC"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 167,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": ",",
-    "logprobs": [],
-    "obfuscation": "DTw2r0OmAk9Se2u"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 168,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " and",
-    "logprobs": [],
-    "obfuscation": "QtrI6Av7VWTG"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 169,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " economic",
-    "logprobs": [],
-    "obfuscation": "4iGssR8"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 170,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": " core",
-    "logprobs": [],
-    "obfuscation": "gYOFtotnbP8"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 171,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 10,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "delta": " of",
     "logprobs": [],
-    "obfuscation": "Ph4qLfBsqq6AM"
+    "obfuscation": "Fm44wT1hqJhSY"
   },
   {
     "type": "response.output_text.delta",
-    "sequence_number": 172,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 11,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "delta": " France",
     "logprobs": [],
-    "obfuscation": "xCohbghhg"
+    "obfuscation": "8tmSZlWqE"
   },
   {
     "type": "response.output_text.delta",
-    "sequence_number": 173,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 12,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "delta": ".",
     "logprobs": [],
-    "obfuscation": "afODjrYD0jQCgfZ"
+    "obfuscation": "tNkkoyXhUWR6WXk"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " It",
+    "logprobs": [],
+    "obfuscation": "EusL0JUxLq2Al"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " has",
+    "logprobs": [],
+    "obfuscation": "VZramQWKHX21"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " been",
+    "logprobs": [],
+    "obfuscation": "tDX3eKtoT92"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": [],
+    "obfuscation": "fBAuKhVyjI82"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " seat",
+    "logprobs": [],
+    "obfuscation": "2H6vx0TGrxw"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " of",
+    "logprobs": [],
+    "obfuscation": "CxRe2YO52nNhO"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": [],
+    "obfuscation": "6cTuEk8MXpTH"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " French",
+    "logprobs": [],
+    "obfuscation": "BPJIs9dj4"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " government",
+    "logprobs": [],
+    "obfuscation": "LxVVJ"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": [],
+    "obfuscation": "Xwx4k9YwSk7s"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": [],
+    "obfuscation": "yT9qrUgjTFbE"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " country",
+    "logprobs": [],
+    "obfuscation": "O7Ym8pbZ"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": "’s",
+    "logprobs": [],
+    "obfuscation": "0sJLPr3bPmMszU"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " political",
+    "logprobs": [],
+    "obfuscation": "UzwwsM"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": [],
+    "obfuscation": "x7wfvxR13akK"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " cultural",
+    "logprobs": [],
+    "obfuscation": "YgFRai5"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " center",
+    "logprobs": [],
+    "obfuscation": "llqgSAtsO"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " for",
+    "logprobs": [],
+    "obfuscation": "pnrGqka0DfE3"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " centuries",
+    "logprobs": [],
+    "obfuscation": "GG0VA6"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": ",",
+    "logprobs": [],
+    "obfuscation": "bkbHS2ZVXDznGkx"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": [],
+    "obfuscation": "g7JBIRpARvdm"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " it",
+    "logprobs": [],
+    "obfuscation": "wZHIF9OVLTrVH"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": "’s",
+    "logprobs": [],
+    "obfuscation": "EhnFN4Kyj5vYca"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": [],
+    "obfuscation": "W7pVrLY9VHaz"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " city",
+    "logprobs": [],
+    "obfuscation": "Jy4ytSmJs8l"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " where",
+    "logprobs": [],
+    "obfuscation": "b6Be2hLYn9"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": [],
+    "obfuscation": "gdyOfjv3EzZw"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " national",
+    "logprobs": [],
+    "obfuscation": "VkxFEsz"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " government",
+    "logprobs": [],
+    "obfuscation": "2L4hu"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": [],
+    "obfuscation": "anJNbrPkyqB9"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " most",
+    "logprobs": [],
+    "obfuscation": "g8Pov8B9uPn"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " major",
+    "logprobs": [],
+    "obfuscation": "qnBCv5zbkC"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " institutions",
+    "logprobs": [],
+    "obfuscation": "4KS"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " are",
+    "logprobs": [],
+    "obfuscation": "SSCL8aPEgEvc"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " located",
+    "logprobs": [],
+    "obfuscation": "79dxmffI"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": ".",
+    "logprobs": [],
+    "obfuscation": "T83eLfRMvycCnad"
   },
   {
     "type": "response.output_text.done",
-    "sequence_number": 174,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 49,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
-    "text": "Paris.\n\nReasoning:\n- Paris has been the capital of France since the 10th century and has remained the political and administrative center of the country.\n- It houses key institutions (the Presidency, Parliament, ministries) and is the seat of government, making it the official capital.\n- It is also the largest city and the historical, cultural, and economic core of France.",
+    "text": "Paris is the capital of France. It has been the seat of the French government and the country’s political and cultural center for centuries, and it’s the city where the national government and most major institutions are located.",
     "logprobs": []
   },
   {
     "type": "response.content_part.done",
-    "sequence_number": 175,
-    "item_id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+    "sequence_number": 50,
+    "item_id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
     "output_index": 1,
     "content_index": 0,
     "part": {
       "type": "output_text",
       "annotations": [],
       "logprobs": [],
-      "text": "Paris.\n\nReasoning:\n- Paris has been the capital of France since the 10th century and has remained the political and administrative center of the country.\n- It houses key institutions (the Presidency, Parliament, ministries) and is the seat of government, making it the official capital.\n- It is also the largest city and the historical, cultural, and economic core of France."
+      "text": "Paris is the capital of France. It has been the seat of the French government and the country’s political and cultural center for centuries, and it’s the city where the national government and most major institutions are located."
     }
   },
   {
     "type": "response.output_item.done",
-    "sequence_number": 176,
+    "sequence_number": 51,
     "output_index": 1,
     "item": {
-      "id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+      "id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
       "type": "message",
       "status": "completed",
       "content": [
@@ -1761,7 +595,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Paris.\n\nReasoning:\n- Paris has been the capital of France since the 10th century and has remained the political and administrative center of the country.\n- It houses key institutions (the Presidency, Parliament, ministries) and is the seat of government, making it the official capital.\n- It is also the largest city and the historical, cultural, and economic core of France."
+          "text": "Paris is the capital of France. It has been the seat of the French government and the country’s political and cultural center for centuries, and it’s the city where the national government and most major institutions are located."
         }
       ],
       "role": "assistant"
@@ -1769,11 +603,11 @@
   },
   {
     "type": "response.completed",
-    "sequence_number": 177,
+    "sequence_number": 52,
     "response": {
-      "id": "resp_68d02b19fa2481969e4d047f50abdf510a773811abae94f7",
+      "id": "resp_68d02c3716f48190b9c6a197aeb0a2a00f74c0059c696a6c",
       "object": "response",
-      "created_at": 1758472986,
+      "created_at": 1758473271,
       "status": "completed",
       "background": false,
       "error": null,
@@ -1784,17 +618,12 @@
       "model": "gpt-5-nano-2025-08-07",
       "output": [
         {
-          "id": "rs_68d02b1a6b788196a26c37aeb15ba9fa0a773811abae94f7",
+          "id": "rs_68d02c3772a48190b761acd5ce6988280f74c0059c696a6c",
           "type": "reasoning",
-          "summary": [
-            {
-              "type": "summary_text",
-              "text": "**Providing reasoning for Paris as capital**\n\nThe capital of France is Paris. I can give a concise explanation: it's been the seat of government historically. So, Paris is not just the political capital, but also the largest city. This designation hasn't changed since the 17th century, with the President's residence at the Elysee Palace and Parliament located there as well. Paris serves as France's administrative hub. I can offer sources or more details if needed!"
-            }
-          ]
+          "summary": []
         },
         {
-          "id": "msg_68d02b1cee1c8196a0747c9ab1187f540a773811abae94f7",
+          "id": "msg_68d02c3869488190b744109f2975eb670f74c0059c696a6c",
           "type": "message",
           "status": "completed",
           "content": [
@@ -1802,7 +631,7 @@
               "type": "output_text",
               "annotations": [],
               "logprobs": [],
-              "text": "Paris.\n\nReasoning:\n- Paris has been the capital of France since the 10th century and has remained the political and administrative center of the country.\n- It houses key institutions (the Presidency, Parliament, ministries) and is the seat of government, making it the official capital.\n- It is also the largest city and the historical, cultural, and economic core of France."
+              "text": "Paris is the capital of France. It has been the seat of the French government and the country’s political and cultural center for centuries, and it’s the city where the national government and most major institutions are located."
             }
           ],
           "role": "assistant"
@@ -1835,11 +664,11 @@
         "input_tokens_details": {
           "cached_tokens": 0
         },
-        "output_tokens": 146,
+        "output_tokens": 177,
         "output_tokens_details": {
-          "reasoning_tokens": 64
+          "reasoning_tokens": 128
         },
-        "total_tokens": 164
+        "total_tokens": 195
       },
       "user": null,
       "metadata": {}

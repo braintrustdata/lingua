@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-CIHW6YuFnkccQtrZtFmZ9IQHFFOot",
+  "object": "chat.completion",
+  "created": 1758473274,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "What you should do next depends on your current context and goals. Here are a few options based on different scenarios:\n\n1. **Learning**: If you're eager to learn more about Paris or France, consider reading a book, watching a documentary, or exploring online resources about French history, culture, or language.\n\n2. **Travel**: If you're thinking about visiting Paris, start planning your trip by researching flights, accommodations, and attractions you'd like to see.\n\n3. **Culinary**: If you enjoy cooking or food, you might try preparing a French dish or baking a classic French pastry at home.\n\n4. **Exploration**: If you're feeling adventurous, consider exploring a local French restaurant or café to experience the cuisine without traveling.\n\n",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 183,
+    "completion_tokens": 150,
+    "total_tokens": 333,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_560af6e559"
+}

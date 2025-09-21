@@ -11,8 +11,9 @@ import { openaiResponsesExecutor } from "./providers/openai-responses";
 import { anthropicExecutor } from "./providers/anthropic";
 import { ProviderExecutor } from "./types";
 
+// Update provider names to be more descriptive
 const allProviders: ProviderExecutor[] = [
-  openaiExecutor,
+  { ...openaiExecutor, name: "openai-chat-completions" },
   openaiResponsesExecutor,
   anthropicExecutor,
 ];

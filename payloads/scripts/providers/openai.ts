@@ -1,65 +1,24 @@
 import OpenAI from "openai";
 import { CaptureResult, ProviderExecutor } from "../types";
+import { unifiedTestCases, getAllCaseNames } from "../unified-cases";
 
-// OpenAI Chat Completion cases
-export const openaiCases = {
-  simpleRequest: {
-    model: "gpt-5-nano",
-    messages: [
-      {
-        role: "user" as const,
-        content:
-          "What is the capital of France? Please explain your reasoning.",
-      },
-    ],
-    max_completion_tokens: 20_000,
-    reasoning_effort: "low",
-  } satisfies OpenAI.ChatCompletionCreateParams,
+// OpenAI Chat Completions cases - extracted from unified cases
+export const openaiCases: Record<
+  string,
+  OpenAI.Chat.Completions.ChatCompletionCreateParams
+> = {};
 
-  reasoningRequest: {
-    model: "gpt-5-nano",
-    messages: [
-      {
-        role: "user" as const,
-        content:
-          "Calculate the average speed if someone travels 120 miles in 2 hours.",
-      },
-    ],
-  } satisfies OpenAI.ChatCompletionCreateParams,
-
-  toolCallRequest: {
-    model: "gpt-5-nano",
-    messages: [
-      {
-        role: "user" as const,
-        content: "What's the weather like in San Francisco?",
-      },
-    ],
-    tools: [
-      {
-        type: "function" as const,
-        function: {
-          name: "get_weather",
-          description: "Get the current weather for a location",
-          parameters: {
-            type: "object",
-            properties: {
-              location: {
-                type: "string",
-                description: "The city and state, e.g. San Francisco, CA",
-              },
-            },
-            required: ["location"],
-          },
-        },
-      },
-    ],
-  } satisfies OpenAI.ChatCompletionCreateParams,
-};
+// Populate cases from unified structure
+getAllCaseNames().forEach((caseName) => {
+  const caseData = unifiedTestCases[caseName as keyof typeof unifiedTestCases];
+  if (caseData["openai-chat-completions"]) {
+    openaiCases[caseName] = caseData["openai-chat-completions"];
+  }
+});
 
 export async function executeOpenAI(
   caseName: string,
-  payload: OpenAI.ChatCompletionCreateParams,
+  payload: OpenAI.Chat.Completions.ChatCompletionCreateParams,
   stream?: boolean,
 ): Promise<CaptureResult> {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -119,14 +78,15 @@ export async function executeOpenAI(
     ) {
       const assistantMessage = result.response.choices[0].message;
 
-      const followUpPayload: OpenAI.ChatCompletionCreateParams = {
-        ...payload,
-        messages: [
-          ...payload.messages,
-          assistantMessage,
-          { role: "user", content: "What should I do next?" },
-        ],
-      };
+      const followUpPayload: OpenAI.Chat.Completions.ChatCompletionCreateParams =
+        {
+          ...payload,
+          messages: [
+            ...payload.messages,
+            assistantMessage,
+            { role: "user", content: "What should I do next?" },
+          ],
+        };
 
       result.followupRequest = followUpPayload;
 
@@ -191,4 +151,3 @@ export const openaiExecutor: ProviderExecutor = {
   cases: openaiCases,
   execute: executeOpenAI,
 };
-

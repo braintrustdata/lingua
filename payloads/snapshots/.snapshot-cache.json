@@ -1,35 +1,7 @@
 {
-  "openai:simpleRequest": {
-    "payloadHash": "34cd12bbc7715045c21300e223e228159c962afd9b7e626d865a89505c97b28f",
-    "capturedAt": "2025-09-21T16:43:10.319Z",
-    "provider": "openai",
-    "name": "simpleRequest",
-    "files": [
-      "simpleRequest/openai/request.json",
-      "simpleRequest/openai/response.json",
-      "simpleRequest/openai/response-streaming.json",
-      "simpleRequest/openai/followup-request.json",
-      "simpleRequest/openai/followup-response.json",
-      "simpleRequest/openai/followup-response-streaming.json"
-    ]
-  },
-  "openai-responses:simpleRequest": {
-    "payloadHash": "14c012bc727c886b02c1a443472274304dfaea8e41546b91aaa6b577fb62ee6c",
-    "capturedAt": "2025-09-21T16:43:13.901Z",
-    "provider": "openai-responses",
-    "name": "simpleRequest",
-    "files": [
-      "simpleRequest/openai-responses/request.json",
-      "simpleRequest/openai-responses/response.json",
-      "simpleRequest/openai-responses/response-streaming.json",
-      "simpleRequest/openai-responses/followup-request.json",
-      "simpleRequest/openai-responses/followup-response.json",
-      "simpleRequest/openai-responses/followup-response-streaming.json"
-    ]
-  },
   "anthropic:simpleRequest": {
-    "payloadHash": "603eac37916bb8aa7a7e196c0d6dcbaf7e86ef41f1962fcbb38626f90f34c186",
-    "capturedAt": "2025-09-21T16:43:16.697Z",
+    "payloadHash": "6cb961740a131a0846af68bb92c1ce91da6380a557a5424e4c881f8fbcdc55e6",
+    "capturedAt": "2025-09-21T16:47:55.893Z",
     "provider": "anthropic",
     "name": "simpleRequest",
     "files": [
@@ -39,6 +11,34 @@
       "simpleRequest/anthropic/followup-request.json",
       "simpleRequest/anthropic/followup-response.json",
       "simpleRequest/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "openai-chat-completions:simpleRequest": {
+    "payloadHash": "74b5cb1f44e0ad93a19c21fac281e09f3595d6a9434cfed56aadd09693c03904",
+    "capturedAt": "2025-09-21T16:47:56.410Z",
+    "provider": "openai-chat-completions",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/openai-chat-completions/request.json",
+      "simpleRequest/openai-chat-completions/response.json",
+      "simpleRequest/openai-chat-completions/response-streaming.json",
+      "simpleRequest/openai-chat-completions/followup-request.json",
+      "simpleRequest/openai-chat-completions/followup-response.json",
+      "simpleRequest/openai-chat-completions/followup-response-streaming.json"
+    ]
+  },
+  "openai-responses:simpleRequest": {
+    "payloadHash": "14c012bc727c886b02c1a443472274304dfaea8e41546b91aaa6b577fb62ee6c",
+    "capturedAt": "2025-09-21T16:48:00.226Z",
+    "provider": "openai-responses",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/openai-responses/request.json",
+      "simpleRequest/openai-responses/response.json",
+      "simpleRequest/openai-responses/response-streaming.json",
+      "simpleRequest/openai-responses/followup-request.json",
+      "simpleRequest/openai-responses/followup-response.json",
+      "simpleRequest/openai-responses/followup-response-streaming.json"
     ]
   }
 }

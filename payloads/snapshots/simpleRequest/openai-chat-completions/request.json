@@ -1,11 +1,10 @@
 {
-  "model": "gpt-5-nano",
+  "model": "gpt-4o-mini",
   "messages": [
     {
       "role": "user",
       "content": "What is the capital of France? Please explain your reasoning."
     }
   ],
-  "max_completion_tokens": 20000,
-  "reasoning_effort": "low"
+  "max_tokens": 150
 }

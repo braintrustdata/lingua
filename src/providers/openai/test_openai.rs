@@ -43,14 +43,9 @@ mod tests {
                     let universal_request: Vec<ModelMessage> = messages
                         .clone()
                         .into_iter()
-                        .filter_map(|m| match m.try_into() {
-                            Ok(model_msg) => Some(model_msg),
-                            Err(e) => {
-                                println!("    ⏭️  Skipping unconvertible item: {}", e);
-                                None
-                            }
-                        })
-                        .collect();
+                        .map(|m| m.try_into())
+                        .collect::<Result<Vec<_>, _>>()
+                        .expect("Failed to convert to universal format");
 
                     let roundtripped: Vec<InputItem> = universal_request
                         .iter()

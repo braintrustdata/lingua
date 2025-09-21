@@ -1,34 +1,21 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { CaptureResult, ProviderExecutor } from "../types";
+import { unifiedTestCases, getAllCaseNames } from "../unified-cases";
 
-// Anthropic cases
-export const anthropicCases: Record<string, Anthropic.MessageCreateParams> = {
-  simpleRequest: {
-    model: "claude-3-5-sonnet-20241022",
-    max_tokens: 150,
-    messages: [
-      {
-        role: "user",
-        content: "What is the capital of France? Please explain your reasoning.",
-      },
-    ],
-  },
+// Anthropic cases - extracted from unified cases
+export const anthropicCases: Record<string, Anthropic.Messages.MessageCreateParams> = {};
 
-  reasoningRequest: {
-    model: "claude-3-5-sonnet-20241022",
-    max_tokens: 300,
-    messages: [
-      {
-        role: "user",
-        content: "Calculate the average speed if someone travels 120 miles in 2 hours.",
-      },
-    ],
-  },
-};
+// Populate cases from unified structure
+getAllCaseNames().forEach(caseName => {
+  const caseData = unifiedTestCases[caseName as keyof typeof unifiedTestCases];
+  if (caseData["anthropic"]) {
+    anthropicCases[caseName] = caseData["anthropic"];
+  }
+});
 
 export async function executeAnthropic(
   caseName: string,
-  payload: Anthropic.MessageCreateParams,
+  payload: Anthropic.Messages.MessageCreateParams,
   stream?: boolean
 ): Promise<CaptureResult> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

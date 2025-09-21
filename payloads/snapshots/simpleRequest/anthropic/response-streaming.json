@@ -2,10 +2,10 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01FqivQdtqg2ZjBPzEabVF8b",
+      "id": "msg_01YF8PSNQK2vFSP6TkJSGqPn",
       "type": "message",
       "role": "assistant",
-      "model": "claude-3-5-sonnet-20241022",
+      "model": "claude-3-5-haiku-20241022",
       "content": [],
       "stop_reason": null,
       "stop_sequence": null,
@@ -17,7 +17,7 @@
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 1,
+        "output_tokens": 5,
         "service_tier": "standard"
       }
     }
@@ -35,7 +35,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "Paris"
+      "text": "The capital of France is"
     }
   },
   {
@@ -43,7 +43,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " is the capital of France"
+      "text": " Paris."
     }
   },
   {
@@ -51,7 +51,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ". This has been the case since "
+      "text": " I"
     }
   },
   {
@@ -59,7 +59,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "987 CE when Hugh Capet"
+      "text": " know"
     }
   },
   {
@@ -67,7 +67,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", the first King of"
+      "text": " this because:"
     }
   },
   {
@@ -75,7 +75,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " France from the House of Capet,"
+      "text": "\n\n1. Paris"
     }
   },
   {
@@ -83,7 +83,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " made Paris the seat of his"
+      "text": " is widely"
     }
   },
   {
@@ -91,7 +91,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " royal power.\n\nParis serves"
+      "text": " recognized as the official"
     }
   },
   {
@@ -99,7 +99,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " as France's:"
+      "text": " capital city"
     }
   },
   {
@@ -107,7 +107,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n- Political capital (hosting the presidency"
+      "text": " of France"
     }
   },
   {
@@ -115,7 +115,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", national assembly, and government minist"
+      "text": "\n2. It is"
     }
   },
   {
@@ -123,7 +123,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "ries)\n- Economic capital (largest"
+      "text": " the largest city"
     }
   },
   {
@@ -131,7 +131,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " business center in France)"
+      "text": " in France"
     }
   },
   {
@@ -139,7 +139,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n- Cultural capital (home"
+      "text": "\n3. It serves"
     }
   },
   {
@@ -147,7 +147,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " to renowned museums like the Louvre an"
+      "text": " as the country"
     }
   },
   {
@@ -155,7 +155,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d cultural institutions)\n- Population"
+      "text": "'s political, cultural"
     }
   },
   {
@@ -163,7 +163,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " center (largest city in France with over 2"
+      "text": ", and economic center"
     }
   },
   {
@@ -171,7 +171,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " million residents in the city proper)\n\nParis"
+      "text": "\n4. It"
     }
   },
   {
@@ -179,7 +179,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " became and remained the capital due to its"
+      "text": " has been"
     }
   },
   {
@@ -187,7 +187,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ":\n- Central location in"
+      "text": " the"
     }
   },
   {
@@ -195,7 +195,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " northern France\n- Position on the Seine River ("
+      "text": " capital of France for centuries"
     }
   },
   {
@@ -203,7 +203,103 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "important for trade)"
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " dating"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " back to the Middle"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Ages\n5. This"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " is a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " well-established geographical"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d historical"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " fact that"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " is"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " univers"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "ally acknowledge"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d"
     }
   },
   {
@@ -213,14 +309,14 @@
   {
     "type": "message_delta",
     "delta": {
-      "stop_reason": "max_tokens",
+      "stop_reason": "end_turn",
       "stop_sequence": null
     },
     "usage": {
       "input_tokens": 19,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 150
+      "output_tokens": 92
     }
   },
   {
