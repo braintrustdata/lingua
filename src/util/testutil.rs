@@ -1,6 +1,30 @@
+use serde::Deserialize;
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
+
+#[cfg(feature = "openai")]
+use crate::providers::openai::generated::{
+    CreateChatCompletionRequestClass, CreateChatCompletionResponse,
+    CreateChatCompletionStreamResponse, CreateResponseClass, TheResponseObject,
+};
+
+#[cfg(feature = "anthropic")]
+use crate::providers::anthropic::generated::{CreateMessageParams, Message};
+
+// Type aliases for different provider test cases
+#[cfg(feature = "openai")]
+pub type OpenAIChatCompletionTestCase = TestCase<
+    CreateChatCompletionRequestClass,
+    CreateChatCompletionResponse,
+    CreateChatCompletionStreamResponse,
+>;
+
+#[cfg(feature = "openai")]
+pub type OpenAIResponsesTestCase = TestCase<CreateResponseClass, TheResponseObject, Value>;
+
+#[cfg(feature = "anthropic")]
+pub type AnthropicTestCase = TestCase<CreateMessageParams, Message, Value>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Provider {
@@ -20,13 +44,13 @@ impl Provider {
 }
 
 #[derive(Debug, Clone)]
-pub struct TestCase {
+pub struct TestCase<Req, Resp, StreamResp> {
     pub name: String,
     pub provider: Provider,
     pub turn: TurnType,
-    pub request: Option<Value>,
-    pub streaming_response: Option<Value>,
-    pub non_streaming_response: Option<Value>,
+    pub request: Option<Req>,
+    pub streaming_response: Option<StreamResp>,
+    pub non_streaming_response: Option<Resp>,
     pub error: Option<Value>,
 }
 
@@ -69,10 +93,10 @@ impl std::fmt::Display for TestDiscoveryError {
 
 impl std::error::Error for TestDiscoveryError {}
 
-fn load_json_file(file_path: &Path) -> Result<Value, TestDiscoveryError> {
+fn load_json_file<T: for<'de> Deserialize<'de>>(file_path: &Path) -> Result<T, TestDiscoveryError> {
     match fs::read_to_string(file_path) {
         Ok(content) => serde_json::from_str(&content).map_err(|e| TestDiscoveryError {
-            message: format!("Failed to parse JSON: {}", e),
+            message: format!("Failed to parse JSON as target type: {}", e),
             path: Some(file_path.to_string_lossy().to_string()),
         }),
         Err(e) => Err(TestDiscoveryError {
@@ -82,12 +106,21 @@ fn load_json_file(file_path: &Path) -> Result<Value, TestDiscoveryError> {
     }
 }
 
-fn discover_test_case_for_turn(
+fn load_json_file_as_value(file_path: &Path) -> Result<Value, TestDiscoveryError> {
+    load_json_file(file_path)
+}
+
+fn discover_test_case_for_turn<Req, Resp, StreamResp>(
     snapshots_dir: &Path,
     test_case_name: &str,
     provider: &Provider,
     turn: TurnType,
-) -> Result<TestCase, TestDiscoveryError> {
+) -> Result<TestCase<Req, Resp, StreamResp>, TestDiscoveryError>
+where
+    Req: for<'de> Deserialize<'de>,
+    Resp: for<'de> Deserialize<'de>,
+    StreamResp: for<'de> Deserialize<'de>,
+{
     let provider_dir = snapshots_dir
         .join(test_case_name)
         .join(provider.directory_name());
@@ -101,25 +134,25 @@ fn discover_test_case_for_turn(
     let error_path = provider_dir.join(format!("{}error.json", prefix));
 
     let request = if request_path.exists() {
-        Some(load_json_file(&request_path)?)
+        Some(load_json_file::<Req>(&request_path)?)
     } else {
         None
     };
 
     let streaming_response = if streaming_response_path.exists() {
-        Some(load_json_file(&streaming_response_path)?)
+        Some(load_json_file::<StreamResp>(&streaming_response_path)?)
     } else {
         None
     };
 
     let non_streaming_response = if non_streaming_response_path.exists() {
-        Some(load_json_file(&non_streaming_response_path)?)
+        Some(load_json_file::<Resp>(&non_streaming_response_path)?)
     } else {
         None
     };
 
     let error = if error_path.exists() {
-        Some(load_json_file(&error_path)?)
+        Some(load_json_file_as_value(&error_path)?)
     } else {
         None
     };
@@ -159,10 +192,47 @@ fn discover_test_case_for_turn(
     })
 }
 
-pub fn discover_test_cases(
+// Provider-specific discovery functions
+#[cfg(feature = "openai")]
+pub fn discover_openai_chat_completion_test_cases(
+    test_name_filter: Option<&str>,
+) -> Result<Vec<OpenAIChatCompletionTestCase>, TestDiscoveryError> {
+    discover_test_cases_typed::<
+        CreateChatCompletionRequestClass,
+        CreateChatCompletionResponse,
+        CreateChatCompletionStreamResponse,
+    >(Provider::OpenAIChatCompletions, test_name_filter)
+}
+
+#[cfg(feature = "openai")]
+pub fn discover_openai_responses_test_cases(
+    test_name_filter: Option<&str>,
+) -> Result<Vec<OpenAIResponsesTestCase>, TestDiscoveryError> {
+    discover_test_cases_typed::<CreateResponseClass, TheResponseObject, Value>(
+        Provider::OpenAIResponses,
+        test_name_filter,
+    )
+}
+
+#[cfg(feature = "anthropic")]
+pub fn discover_anthropic_test_cases(
+    test_name_filter: Option<&str>,
+) -> Result<Vec<AnthropicTestCase>, TestDiscoveryError> {
+    discover_test_cases_typed::<CreateMessageParams, Message, Value>(
+        Provider::Anthropic,
+        test_name_filter,
+    )
+}
+
+fn discover_test_cases_typed<Req, Resp, StreamResp>(
     provider: Provider,
     test_name_filter: Option<&str>,
-) -> Result<Vec<TestCase>, TestDiscoveryError> {
+) -> Result<Vec<TestCase<Req, Resp, StreamResp>>, TestDiscoveryError>
+where
+    Req: for<'de> Deserialize<'de>,
+    Resp: for<'de> Deserialize<'de>,
+    StreamResp: for<'de> Deserialize<'de>,
+{
     let snapshots_dir = Path::new("payloads/snapshots");
 
     if !snapshots_dir.exists() {
@@ -211,7 +281,7 @@ pub fn discover_test_cases(
 
         // Try to discover both first turn and followup turn cases
         // First turn (required files: request.json, response.json, response-streaming.json)
-        match discover_test_case_for_turn(
+        match discover_test_case_for_turn::<Req, Resp, StreamResp>(
             snapshots_dir,
             test_case_name,
             &provider,
@@ -225,19 +295,33 @@ pub fn discover_test_cases(
         }
 
         // Followup turn (optional files: followup-request.json, followup-response.json, followup-response-streaming.json)
-        if let Ok(followup_case) = discover_test_case_for_turn(
+        match discover_test_case_for_turn::<Req, Resp, StreamResp>(
             snapshots_dir,
             test_case_name,
             &provider,
             TurnType::FollowupTurn,
         ) {
-            test_cases.push(followup_case);
+            Ok(case) => test_cases.push(case),
+            Err(e) => {
+                eprintln!(
+                    "Note: Followup turn not found or invalid for test case '{}' provider '{}' ({:?})",
+                    test_case_name,
+                    provider.directory_name(), e
+                );
+            }
         }
-        // If followup turn fails, that's OK - not all test cases have followup turns
     }
 
     test_cases.sort_by(|a, b| a.name.cmp(&b.name));
     Ok(test_cases)
+}
+
+// Backward compatibility function that returns untyped test cases
+pub fn discover_test_cases(
+    provider: Provider,
+    test_name_filter: Option<&str>,
+) -> Result<Vec<TestCase<Value, Value, Value>>, TestDiscoveryError> {
+    discover_test_cases_typed::<Value, Value, Value>(provider, test_name_filter)
 }
 
 #[cfg(test)]
@@ -261,10 +345,49 @@ mod tests {
     }
 
     #[test]
-    fn test_discover_openai_responses_cases() {
+    #[cfg(feature = "openai")]
+    fn test_discover_openai_responses_cases_typed() {
+        match discover_openai_responses_test_cases(None) {
+            Ok(cases) => {
+                println!("Found {} OpenAI Responses test cases (typed):", cases.len());
+                for case in &cases {
+                    println!("  - {} (turn: {:?})", case.name, case.turn);
+                    println!("    Request: {}", case.request.is_some());
+                    println!(
+                        "    Streaming Response: {}",
+                        case.streaming_response.is_some()
+                    );
+                    println!(
+                        "    Non-Streaming Response: {}",
+                        case.non_streaming_response.is_some()
+                    );
+                    println!("    Error: {}", case.error.is_some());
+                }
+
+                // Basic validation
+                for case in &cases {
+                    assert_eq!(case.provider, Provider::OpenAIResponses);
+                    assert!(!case.name.is_empty());
+                }
+            }
+            Err(e) => {
+                println!(
+                    "Note: Could not discover typed test cases (expected in some environments): {}",
+                    e
+                );
+                // This is OK in test environments where snapshots might not exist
+            }
+        }
+    }
+
+    #[test]
+    fn test_discover_openai_responses_cases_untyped() {
         match discover_test_cases(Provider::OpenAIResponses, None) {
             Ok(cases) => {
-                println!("Found {} OpenAI Responses test cases:", cases.len());
+                println!(
+                    "Found {} OpenAI Responses test cases (untyped):",
+                    cases.len()
+                );
                 for case in &cases {
                     println!("  - {} (turn: {:?})", case.name, case.turn);
                     println!("    Request: {}", case.request.is_some());
@@ -291,6 +414,44 @@ mod tests {
                     e
                 );
                 // This is OK in test environments where snapshots might not exist
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_discover_openai_chat_completions_cases_typed() {
+        match discover_openai_chat_completion_test_cases(None) {
+            Ok(cases) => {
+                println!(
+                    "Found {} OpenAI Chat Completions test cases (typed):",
+                    cases.len()
+                );
+                for case in &cases {
+                    println!("  - {} (turn: {:?})", case.name, case.turn);
+                    println!("    Request: {}", case.request.is_some());
+                    println!(
+                        "    Streaming Response: {}",
+                        case.streaming_response.is_some()
+                    );
+                    println!(
+                        "    Non-Streaming Response: {}",
+                        case.non_streaming_response.is_some()
+                    );
+                    println!("    Error: {}", case.error.is_some());
+                }
+
+                // Basic validation
+                for case in &cases {
+                    assert_eq!(case.provider, Provider::OpenAIChatCompletions);
+                    assert!(!case.name.is_empty());
+                }
+            }
+            Err(e) => {
+                println!(
+                    "Note: Could not discover typed chat completions test cases: {}",
+                    e
+                );
             }
         }
     }
