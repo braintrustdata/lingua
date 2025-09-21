@@ -9,7 +9,7 @@ pub type Thread = Vec<Message>;
 #[serde(tag = "role", rename_all = "lowercase")]
 pub enum Message {
     System {
-        content: String,
+        content: UserContent,
     },
     User {
         content: UserContent,
@@ -23,43 +23,12 @@ pub enum Message {
     },
 }
 
-/// User content that can be either string or array (matching AI SDK Message)
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(untagged)]
 pub enum UserContent {
     String(String),
     Array(Vec<UserContentPart>),
-}
-
-/// Assistant content that can be either string or array (matching AI SDK Message)
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-#[serde(untagged)]
-pub enum AssistantContent {
-    String(String),
-    Array(Vec<AssistantContentPart>),
-}
-
-/// Reusable tool result content part for tagged unions
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
-pub struct ToolResultContentPart {
-    pub tool_call_id: String,
-    pub tool_name: String,
-    #[ts(type = "any")]
-    pub output: serde_json::Value,
-    pub provider_options: Option<ProviderOptions>,
-}
-
-/// Reusable text content part for tagged unions
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
-pub struct TextContentPart {
-    pub text: String,
-    pub provider_options: Option<ProviderOptions>,
 }
 
 /// User content parts - text, image, and file parts allowed
@@ -86,6 +55,14 @@ pub enum UserContentPart {
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(untagged)]
+pub enum AssistantContent {
+    String(String),
+    Array(Vec<AssistantContentPart>),
 }
 
 /// Assistant content parts - text, file, reasoning, tool calls, and tool results allowed
@@ -131,6 +108,30 @@ pub enum AssistantContentPart {
     },
 }
 
+/// Tool content - array of tool content parts
+pub type ToolContent = Vec<ToolContentPart>;
+
+/// Reusable tool result content part for tagged unions
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "camelCase", optional_fields)]
+pub struct ToolResultContentPart {
+    pub tool_call_id: String,
+    pub tool_name: String,
+    #[ts(type = "any")]
+    pub output: serde_json::Value,
+    pub provider_options: Option<ProviderOptions>,
+}
+
+/// Reusable text content part for tagged unions
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "camelCase", optional_fields)]
+pub struct TextContentPart {
+    pub text: String,
+    pub provider_options: Option<ProviderOptions>,
+}
+
 /// Tool content parts - only tool results allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -138,9 +139,6 @@ pub enum AssistantContentPart {
 pub enum ToolContentPart {
     ToolResult(ToolResultContentPart),
 }
-
-/// Tool content - array of tool content parts
-pub type ToolContent = Vec<ToolContentPart>;
 
 /// Source type enum - matches AI SDK Source sourceType
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

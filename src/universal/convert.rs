@@ -5,18 +5,15 @@ pub trait TryFromLLM<T>: Sized {
     fn try_from(value: T) -> Result<Self, Self::Error>;
 }
 
-// Blanket implementation for Vec<T> -> Vec<U> conversions where U: TryConvert<T>
+// Blanket implementation for Vec<T> -> Vec<U> conversions where U: TryFromLLM<T>
 impl<T, U> TryFromLLM<Vec<T>> for Vec<U>
 where
-    U: TryFrom<T>,
+    U: TryFromLLM<T>,
 {
     type Error = U::Error;
 
     fn try_from(values: Vec<T>) -> Result<Self, Self::Error> {
-        values
-            .into_iter()
-            .map(|item| U::try_convert(item))
-            .collect()
+        values.into_iter().map(|item| U::try_from(item)).collect()
     }
 }
 
@@ -29,7 +26,7 @@ pub trait TryIntoLLM<T>: Sized {
 
 impl<T, U> TryIntoLLM<Vec<U>> for Vec<T>
 where
-    U: TryFrom<T>,
+    U: TryFromLLM<T>,
 {
     type Error = U::Error;
 
