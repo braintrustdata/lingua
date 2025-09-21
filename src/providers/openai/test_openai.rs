@@ -72,9 +72,9 @@ mod tests {
     // Individual test cases for granular filtering
     #[test]
     fn test_roundtrip_simple_request_first_turn() {
-        if let Err(e) = run_single_roundtrip_test("simpleRequest") {
+        if let Err(e) = run_single_roundtrip_test("simple_request") {
             // Filter to just the first turn case
-            let cases = discover_openai_responses_test_cases(Some("simpleRequest")).unwrap();
+            let cases = discover_openai_responses_test_cases(Some("simple_request")).unwrap();
             let first_turn_case = cases.iter().find(|c| c.name.contains("first_turn"));
             if let Some(case) = first_turn_case {
                 panic!("First turn test failed for {}: {}", case.name, e);
@@ -86,8 +86,8 @@ mod tests {
 
     #[test]
     fn test_roundtrip_simple_request_followup_turn() {
-        if let Err(e) = run_single_roundtrip_test("simpleRequest") {
-            let cases = discover_openai_responses_test_cases(Some("simpleRequest")).unwrap();
+        if let Err(e) = run_single_roundtrip_test("simple_request") {
+            let cases = discover_openai_responses_test_cases(Some("simple_request")).unwrap();
             let followup_case = cases.iter().find(|c| c.name.contains("followup_turn"));
             if let Some(case) = followup_case {
                 panic!("Followup turn test failed for {}: {}", case.name, e);
@@ -119,7 +119,15 @@ mod tests {
             println!("\n💡 To run individual scenarios:");
             let unique_bases: std::collections::HashSet<_> = cases
                 .iter()
-                .map(|c| c.name.split('_').next().unwrap_or(&c.name))
+                .map(|c| {
+                    // Extract base name (everything before provider and turn info)
+                    let parts: Vec<_> = c.name.split('_').collect();
+                    if parts.len() >= 3 {
+                        parts[0] // First part is the test case base name
+                    } else {
+                        &c.name
+                    }
+                })
                 .collect();
 
             for base in unique_bases {
@@ -130,7 +138,14 @@ mod tests {
             let mut failed_cases = Vec::new();
 
             for case in cases {
-                let base_name = case.name.split('_').next().unwrap_or(&case.name);
+                let base_name = {
+                    let parts: Vec<_> = case.name.split('_').collect();
+                    if parts.len() >= 3 {
+                        parts[0] // First part is the test case base name
+                    } else {
+                        &case.name
+                    }
+                };
                 match run_single_roundtrip_test(base_name) {
                     Ok(()) => {
                         println!("✅ {} passed", case.name);
