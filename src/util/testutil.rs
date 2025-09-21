@@ -330,26 +330,28 @@ where
                     )
                     .unwrap();
 
-                    // Create inline git-style diff output
+                    // Create full JSON output with highlighted differences
                     let original_json = serde_json::to_string_pretty(o).unwrap();
                     let roundtripped_json = serde_json::to_string_pretty(r).unwrap();
 
                     let original_lines: Vec<&str> = original_json.lines().collect();
                     let roundtripped_lines: Vec<&str> = roundtripped_json.lines().collect();
 
-                    // Find differing lines and show only those with context
+                    writeln!(diff_output, "📄 Full comparison:").unwrap();
+                    writeln!(diff_output).unwrap();
+
+                    // Show the full JSON with differences highlighted
                     let max_len = original_lines.len().max(roundtripped_lines.len());
-                    let mut has_diff_output = false;
 
                     for i in 0..max_len {
                         let orig_line = original_lines.get(i).unwrap_or(&"");
                         let round_line = roundtripped_lines.get(i).unwrap_or(&"");
 
-                        if orig_line != round_line {
-                            if !has_diff_output {
-                                has_diff_output = true;
-                            }
-
+                        if orig_line == round_line {
+                            // Lines are the same - show in default color
+                            writeln!(diff_output, " {}", orig_line).unwrap();
+                        } else {
+                            // Lines differ - show both with red/green highlighting
                             if !orig_line.is_empty() {
                                 writeln!(diff_output, "\x1b[31m-{}\x1b[0m", orig_line).unwrap();
                             }

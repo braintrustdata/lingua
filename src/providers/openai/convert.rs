@@ -222,7 +222,7 @@ fn create_basic_input_item(role: InputItemRole, content: String) -> InputItem {
     InputItem {
         role: Some(role),
         content: Some(InputItemContent::String(content)),
-        input_item_type: Some(InputItemType::Message),
+        input_item_type: None,
         status: None,
         id: None,
         queries: None,
