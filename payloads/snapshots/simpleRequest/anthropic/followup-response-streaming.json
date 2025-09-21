@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01GBKMnCJ13PQot6Gf7SdvUF",
+      "id": "msg_01WiNj8s9akofh8cMsZ8bRHH",
       "type": "message",
       "role": "assistant",
       "model": "claude-3-5-sonnet-20241022",
@@ -10,7 +10,7 @@
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 133,
+        "input_tokens": 151,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
@@ -35,23 +35,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "I"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " notice"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " this"
+      "text": "Your"
     }
   },
   {
@@ -67,7 +51,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " is"
+      "text": " is very"
     }
   },
   {
@@ -75,7 +59,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " quite"
+      "text": " open"
     }
   },
   {
@@ -83,7 +67,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " open-ended, an"
+      "text": "-ended, an"
     }
   },
   {
@@ -91,7 +75,23 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d I don't have context"
+      "text": "d I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " don"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "'t have any context"
     }
   },
   {
@@ -107,7 +107,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " current situation or goals."
+      "text": " current situation."
     }
   },
   {
@@ -115,7 +115,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " To"
+      "text": " To help"
     }
   },
   {
@@ -123,7 +123,15 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " help you better"
+      "text": " you figure"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " out what to do next"
     }
   },
   {
@@ -147,55 +155,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\n1. What's"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " your current situation or context"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "?\n2. What"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " are you"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " trying to achieve?"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "\n3. Are"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " there any specific areas"
+      "text": "\n\n1. What are"
     }
   },
   {
@@ -211,7 +171,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "'re looking"
+      "text": " trying"
     }
   },
   {
@@ -219,7 +179,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " for"
+      "text": " to accomplish?"
     }
   },
   {
@@ -227,7 +187,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " guidance"
+      "text": "\n2. What is"
     }
   },
   {
@@ -235,7 +195,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " in ("
+      "text": " your current situation?"
     }
   },
   {
@@ -243,7 +203,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "e.g., career"
+      "text": "\n3. What options"
     }
   },
   {
@@ -251,7 +211,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", education"
+      "text": " are"
     }
   },
   {
@@ -259,7 +219,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", personal life"
+      "text": " you"
     }
   },
   {
@@ -267,7 +227,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ")?"
+      "text": " considering?\n4."
     }
   },
   {
@@ -275,7 +235,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\nIf"
+      "text": " What constraints"
     }
   },
   {
@@ -283,7 +243,31 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you can provide more details"
+      "text": " or limitations are you working"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " with?\n\nIf"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you provide"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " more details"
     }
   },
   {
@@ -315,7 +299,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you more relevant"
+      "text": " you more specific an"
     }
   },
   {
@@ -323,7 +307,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " and specific"
+      "text": "d helpful advice about"
     }
   },
   {
@@ -331,7 +315,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " advice for"
+      "text": " what steps"
     }
   },
   {
@@ -339,7 +323,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " your situation"
+      "text": " might"
     }
   },
   {
@@ -347,7 +331,23 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "."
+      "text": " make"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " sense for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you to take next."
     }
   },
   {
@@ -361,10 +361,10 @@
       "stop_sequence": null
     },
     "usage": {
-      "input_tokens": 133,
+      "input_tokens": 151,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 105
+      "output_tokens": 107
     }
   },
   {

@@ -144,7 +144,9 @@ async function main() {
   }
 
   console.log(`\nStarting capture of ${allCases.length} cases...`);
-  console.log(`Providers: ${[...new Set(allCases.map(c => c.provider))].join(", ")}`);
+  console.log(
+    `Providers: ${[...new Set(allCases.map((c) => c.provider))].join(", ")}`,
+  );
 
   const outputDir = join(__dirname, "..", "snapshots");
   mkdirSync(outputDir, { recursive: true });
@@ -154,7 +156,15 @@ async function main() {
   const skippedCases: CaseToRun[] = [];
 
   for (const case_ of allCases) {
-    if (!options.force && !needsRegeneration(outputDir, case_.provider, case_.caseName, case_.payload)) {
+    if (
+      !options.force &&
+      !needsRegeneration(
+        outputDir,
+        case_.provider,
+        case_.caseName,
+        case_.payload,
+      )
+    ) {
       skippedCases.push(case_);
     } else {
       casesToRun.push(case_);
@@ -162,7 +172,9 @@ async function main() {
   }
 
   if (skippedCases.length > 0) {
-    console.log(`Skipping ${skippedCases.length} already captured cases (use --force to re-capture)`);
+    console.log(
+      `Skipping ${skippedCases.length} already captured cases (use --force to re-capture)`,
+    );
   }
 
   if (casesToRun.length === 0) {
@@ -178,21 +190,43 @@ async function main() {
     console.log(`🚀 Starting ${case_.provider}/${case_.caseName}...`);
 
     try {
-      const result = await case_.executor.execute(case_.caseName, case_.payload, options.stream);
+      const result = await case_.executor.execute(
+        case_.caseName,
+        case_.payload,
+        options.stream,
+      );
 
-      const savedFiles = saveAllFiles(outputDir, case_.caseName, case_.provider, result);
+      const savedFiles = saveAllFiles(
+        outputDir,
+        case_.caseName,
+        case_.provider,
+        result,
+      );
 
       // Update cache with the files that were actually saved
-      const relativeFiles = savedFiles.map(f => f.replace(outputDir + "/", ""));
-      updateCache(outputDir, case_.provider, case_.caseName, case_.payload, relativeFiles);
+      const relativeFiles = savedFiles.map((f) =>
+        f.replace(outputDir + "/", ""),
+      );
+      updateCache(
+        outputDir,
+        case_.provider,
+        case_.caseName,
+        case_.payload,
+        relativeFiles,
+      );
 
       const duration = Date.now() - startTime;
-      console.log(`✓ Completed ${case_.provider}/${case_.caseName} in ${duration}ms - saved ${savedFiles.length} files`);
+      console.log(
+        `✓ Completed ${case_.provider}/${case_.caseName} in ${duration}ms - saved ${savedFiles.length} files`,
+      );
 
       return { case_, success: true, duration, filesCount: savedFiles.length };
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error(`✗ Failed ${case_.provider}/${case_.caseName} in ${duration}ms:`, error);
+      console.error(
+        `✗ Failed ${case_.provider}/${case_.caseName} in ${duration}ms:`,
+        error,
+      );
 
       return { case_, success: false, duration, error: String(error) };
     }
@@ -202,21 +236,28 @@ async function main() {
   const results = await Promise.all(casePromises);
 
   // Print summary
-  const successful = results.filter(r => r.success);
-  const failed = results.filter(r => !r.success);
-  const totalDuration = Math.max(...results.map(r => r.duration));
-  const totalFiles = successful.reduce((sum, r) => sum + (r.filesCount || 0), 0);
+  const successful = results.filter((r) => r.success);
+  const failed = results.filter((r) => !r.success);
+  const totalDuration = Math.max(...results.map((r) => r.duration));
+  const totalFiles = successful.reduce(
+    (sum, r) => sum + (r.filesCount || 0),
+    0,
+  );
 
   console.log(`\n📊 Execution Summary:`);
   console.log(`  ✅ Successful: ${successful.length}/${results.length}`);
-  console.log(`  ❌ Failed: ${failed.length}/${results.length}`);
+  if (failed.length > 0) {
+    console.log(`  ❌ Failed: ${failed.length}/${results.length}`);
+  }
   console.log(`  ⏱️  Total time: ${totalDuration}ms (parallelized)`);
   console.log(`  📁 Total files saved: ${totalFiles}`);
 
   if (failed.length > 0) {
     console.log(`\n❌ Failed cases:`);
     for (const failure of failed) {
-      console.log(`  - ${failure.case_.provider}/${failure.case_.caseName}: ${failure.error}`);
+      console.log(
+        `  - ${failure.case_.provider}/${failure.case_.caseName}: ${failure.error}`,
+      );
     }
   }
 
@@ -226,3 +267,4 @@ async function main() {
 if (require.main === module) {
   main().catch(console.error);
 }
+

@@ -26,6 +26,18 @@ export const openaiResponsesCases: Record<string, OpenAI.Responses.ResponseCreat
     ],
     max_output_tokens: 300,
   },
+
+  reasoningWithOutput: {
+    model: "gpt-5-nano",
+    reasoning: { effort: "low" as const },
+    input: [
+      {
+        role: "user" as const,
+        content: "What color is the sky?",
+      },
+    ],
+    max_output_tokens: 2000,
+  },
 };
 
 export async function executeOpenAIResponses(
@@ -80,9 +92,21 @@ export async function executeOpenAIResponses(
       }
     }
 
-    // Create follow-up conversation if we have a non-streaming response
+    // Create follow-up conversation if we have a non-streaming response with valid output
     if (result.response && "output" in result.response) {
       const assistantOutput = result.response.output;
+
+      // Check if we have valid content for followup (not just reasoning without text)
+      const hasValidContent = Array.isArray(assistantOutput)
+        ? assistantOutput.some(item => item.type !== 'reasoning' || result.response.output_text)
+        : assistantOutput.type !== 'reasoning' || result.response.output_text;
+
+      if (!hasValidContent) {
+        console.log(`⚠️ Skipping followup for ${caseName} - response contains only reasoning without text output`);
+        return result;
+      }
+
+      console.log(`📝 Creating followup request for ${caseName}...`);
 
       const followUpPayload: OpenAI.Responses.ResponseCreateParams = {
         ...payload,
@@ -103,38 +127,54 @@ export async function executeOpenAIResponses(
           client.responses.create({
             ...followUpPayload,
             stream: false,
-          }).then(response => ({ type: 'followupResponse', data: response }))
+          })
+          .then(response => ({ type: 'followupResponse', data: response }))
+          .catch(error => {
+            console.error(`❌ Followup non-streaming request failed for ${caseName}:`, error);
+            return { type: 'followupResponse', data: null, error: String(error) };
+          })
         );
       }
 
       if (stream !== false) {
         followupPromises.push(
           (async () => {
-            const followupStreamChunks: unknown[] = [];
-            const followupStreamResponse = await client.responses.create({
-              ...followUpPayload,
-              stream: true,
-            });
+            try {
+              const followupStreamChunks: unknown[] = [];
+              const followupStreamResponse = await client.responses.create({
+                ...followUpPayload,
+                stream: true,
+              });
 
-            for await (const chunk of followupStreamResponse) {
-              followupStreamChunks.push(chunk);
+              for await (const chunk of followupStreamResponse) {
+                followupStreamChunks.push(chunk);
+              }
+              return { type: 'followupStreamingResponse', data: followupStreamChunks };
+            } catch (error) {
+              console.error(`❌ Followup streaming request failed for ${caseName}:`, error);
+              return { type: 'followupStreamingResponse', data: null, error: String(error) };
             }
-            return { type: 'followupStreamingResponse', data: followupStreamChunks };
           })()
         );
       }
 
       // Execute follow-up calls in parallel
       if (followupPromises.length > 0) {
+        console.log(`🚀 Executing ${followupPromises.length} followup requests for ${caseName}...`);
         const followupResults = await Promise.all(followupPromises);
 
         for (const result_ of followupResults) {
           if (result_.type === 'followupResponse') {
+            console.log(`✅ Got followup response for ${caseName}`);
             result.followupResponse = result_.data;
           } else if (result_.type === 'followupStreamingResponse') {
+            console.log(`✅ Got followup streaming response for ${caseName}`);
             result.followupStreamingResponse = result_.data;
           }
         }
+        console.log(`📦 Followup execution completed for ${caseName}`);
+      } else {
+        console.log(`⚠️ No followup promises to execute for ${caseName}`);
       }
     }
   } catch (error) {

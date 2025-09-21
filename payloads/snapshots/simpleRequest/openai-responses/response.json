@@ -1,7 +1,7 @@
 {
-  "id": "resp_68d0262a899c8195a93c5bea508fa29a05a3147023b7a16c",
+  "id": "resp_68d0286f5ec881968bac6e1a9dbd98de0c6a2675a83d6e2e",
   "object": "response",
-  "created_at": 1758471722,
+  "created_at": 1758472303,
   "status": "incomplete",
   "background": false,
   "billing": {
@@ -17,9 +17,14 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68d0262b31f48195ab9e15ad4f7c808705a3147023b7a16c",
+      "id": "rs_68d0286fdf0481969b8fe9d13c1bde2f0c6a2675a83d6e2e",
       "type": "reasoning",
-      "summary": []
+      "summary": [
+        {
+          "type": "summary_text",
+          "text": "**Answering capital of France**\n\nI need to answer the question about the capital of France. The answer is Paris, and I want to explain my reasoning clearly. Paris has been the capital since the 10th century, specifically from around 987 AD when Hugh Capet declared it as such. The capital is where the government's national seat is located, and in France, that means the President and Parliament are in Paris, which is also the prefecture of Île-de-France."
+        }
+      ]
     }
   ],
   "parallel_tool_calls": true,

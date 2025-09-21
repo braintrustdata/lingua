@@ -36,6 +36,13 @@ impl TryFrom<InputItem> for ModelMessage {
     type Error = ConvertError;
 
     fn try_from(input: InputItem) -> Result<Self, Self::Error> {
+        // Skip reasoning items - they are internal API artifacts without roles
+        if matches!(input.input_item_type, Some(InputItemType::Reasoning)) {
+            return Err(ConvertError::ContentConversionFailed {
+                reason: "Reasoning items are internal API artifacts and should not be converted to ModelMessage".to_string(),
+            });
+        }
+
         let role = input
             .role
             .ok_or_else(|| ConvertError::MissingRequiredField {

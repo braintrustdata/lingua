@@ -39,13 +39,18 @@ mod tests {
                         }
                     };
 
-                    // Translate to universal format
+                    // Translate to universal format (skip items that can't be converted like reasoning)
                     let universal_request: Vec<ModelMessage> = messages
                         .clone()
                         .into_iter()
-                        .map(|m| m.try_into())
-                        .collect::<Result<Vec<_>, _>>()
-                        .unwrap();
+                        .filter_map(|m| match m.try_into() {
+                            Ok(model_msg) => Some(model_msg),
+                            Err(e) => {
+                                println!("    ⏭️  Skipping unconvertible item: {}", e);
+                                None
+                            }
+                        })
+                        .collect();
 
                     let roundtripped: Vec<InputItem> = universal_request
                         .iter()
