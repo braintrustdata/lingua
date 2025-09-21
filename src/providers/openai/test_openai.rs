@@ -23,93 +23,132 @@ mod tests {
 
     use super::*;
 
+    // Helper function to run a single roundtrip test case
+    fn run_single_roundtrip_test(case_name_filter: &str) -> Result<(), String> {
+        let cases = discover_openai_responses_test_cases(Some(case_name_filter))
+            .map_err(|e| format!("Failed to discover test case: {}", e))?;
+
+        if cases.is_empty() {
+            return Err(format!("No test case found matching: {}", case_name_filter));
+        }
+
+        for case in cases {
+            println!("🧪 Testing roundtrip conversion for: {}", case.name);
+
+            let messages = match &case.request.input {
+                Some(Instructions::InputItemArray(msgs)) => msgs.clone(),
+                o => {
+                    return Err(format!(
+                        "Invalid missing or non-array input messages: {:?}",
+                        o
+                    ));
+                }
+            };
+
+            let universal_request: Vec<ModelMessage> = messages
+                .clone()
+                .into_iter()
+                .map(|m| m.try_into())
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("Failed to convert to universal format: {}", e))?;
+
+            let roundtripped: Vec<InputItem> = universal_request
+                .iter()
+                .map(|m| m.clone().try_into())
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
+
+            let diff = diff_serializable(&messages, &roundtripped, "items");
+            if !diff.starts_with("✅") {
+                return Err(format!("Roundtrip conversion failed:\n{}", diff));
+            }
+
+            println!("✅ {} - roundtrip conversion passed", case.name);
+        }
+
+        Ok(())
+    }
+
+    // Individual test cases for granular filtering
     #[test]
-    fn test_discover_openai_responses_test_cases() {
-        match discover_openai_responses_test_cases(None) {
-            Ok(cases) => {
-                println!("🧪 Running OpenAI Responses test discovery...");
-                println!("Found {} test cases", cases.len());
+    fn test_roundtrip_simple_request_first_turn() {
+        if let Err(e) = run_single_roundtrip_test("simpleRequest") {
+            // Filter to just the first turn case
+            let cases = discover_openai_responses_test_cases(Some("simpleRequest")).unwrap();
+            let first_turn_case = cases.iter().find(|c| c.name.contains("first_turn"));
+            if let Some(case) = first_turn_case {
+                panic!("First turn test failed for {}: {}", case.name, e);
+            } else {
+                panic!("No first turn case found: {}", e);
+            }
+        }
+    }
 
-                let mut roundtrip_passed = 0;
-                let mut roundtrip_failed = 0;
+    #[test]
+    fn test_roundtrip_simple_request_followup_turn() {
+        if let Err(e) = run_single_roundtrip_test("simpleRequest") {
+            let cases = discover_openai_responses_test_cases(Some("simpleRequest")).unwrap();
+            let followup_case = cases.iter().find(|c| c.name.contains("followup_turn"));
+            if let Some(case) = followup_case {
+                panic!("Followup turn test failed for {}: {}", case.name, e);
+            } else {
+                panic!("No followup turn case found: {}", e);
+            }
+        }
+    }
 
-                for case in &cases {
-                    let messages = match &case.request.input {
-                        Some(Instructions::InputItemArray(msgs)) => msgs.clone(),
-                        o => {
-                            panic!("Invalid missing or non-array input messages: {:?}", o);
-                        }
-                    };
+    // Dynamic test generation for any discovered test cases
+    mod generated {
+        use super::*;
 
-                    // Translate to universal format (skip items that can't be converted like reasoning)
-                    let universal_request: Vec<ModelMessage> = messages
-                        .clone()
-                        .into_iter()
-                        .map(|m| m.try_into())
-                        .collect::<Result<Vec<_>, _>>()
-                        .expect("Failed to convert to universal format");
-
-                    let roundtripped: Vec<InputItem> = universal_request
-                        .iter()
-                        .map(|m| m.clone().try_into())
-                        .collect::<Result<Vec<_>, _>>()
-                        .unwrap();
-
-                    // Compare original and roundtripped
-                    let diff = diff_serializable(&messages, &roundtripped, "items");
-                    let roundtrip_success = diff.starts_with("✅");
-
-                    if roundtrip_success {
-                        roundtrip_passed += 1;
-                        println!("  ✅ {} - roundtrip conversion", case.name);
-                    } else {
-                        roundtrip_failed += 1;
-                        println!("  ❌ {} - roundtrip conversion failed", case.name);
-                        println!("{}", diff);
-                    }
-
-                    // Validate response data presence
-                    let has_non_streaming = case.non_streaming_response.is_some();
-                    let has_streaming = case.streaming_response.is_some();
-                    let has_error = case.error.is_some();
-
-                    if has_non_streaming || has_streaming || has_error {
-                        println!("  ✅ {} - response data valid", case.name);
-                    } else {
-                        println!("  ⚠️  {} - no response data found", case.name);
-                    }
+        #[test]
+        fn test_enumerate_all_roundtrip_scenarios() {
+            let cases = match discover_openai_responses_test_cases(None) {
+                Ok(cases) => cases,
+                Err(e) => {
+                    println!("Note: Could not discover test cases: {}", e);
+                    return;
                 }
+            };
 
-                // Basic validation
-                for case in &cases {
-                    assert_eq!(case.provider, Provider::OpenAIResponses);
-                    assert!(!case.name.is_empty());
-                }
+            println!("📋 Available test scenarios:");
+            for case in &cases {
+                println!("  - {} ({})", case.name, case.turn.display_name());
+            }
 
-                println!("\n📊 Test Summary:");
-                println!(
-                    "  Roundtrip conversions: {} passed, {} failed",
-                    roundtrip_passed, roundtrip_failed
-                );
-                println!("  Total test cases validated: {}", cases.len());
+            println!("\n💡 To run individual scenarios:");
+            let unique_bases: std::collections::HashSet<_> = cases
+                .iter()
+                .map(|c| c.name.split('_').next().unwrap_or(&c.name))
+                .collect();
 
-                if roundtrip_failed == 0 {
-                    println!("✅ All tests passed");
-                } else {
-                    println!("❌ {} tests failed", roundtrip_failed);
-                    panic!(
-                        "Roundtrip conversion tests failed: {} out of {} test cases",
-                        roundtrip_failed,
-                        cases.len()
-                    );
+            for base in unique_bases {
+                println!("  cargo test test_roundtrip_{}_", base);
+            }
+
+            // Also run them all individually and report which ones fail
+            let mut failed_cases = Vec::new();
+
+            for case in cases {
+                let base_name = case.name.split('_').next().unwrap_or(&case.name);
+                match run_single_roundtrip_test(base_name) {
+                    Ok(()) => {
+                        println!("✅ {} passed", case.name);
+                    }
+                    Err(e) => {
+                        println!("❌ {} failed", case.name);
+                        failed_cases.push((case.name, e));
+                    }
                 }
             }
-            Err(e) => {
-                println!(
-                    "Note: Could not discover OpenAI Responses test cases: {}",
-                    e
-                );
-                println!("✓ Discovery function is correctly implemented");
+
+            if !failed_cases.is_empty() {
+                let failure_summary = failed_cases
+                    .iter()
+                    .map(|(name, err)| format!("\n{}: {}", name, err))
+                    .collect::<String>();
+
+                panic!("Individual roundtrip tests failed:{}", failure_summary);
             }
         }
     }

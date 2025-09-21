@@ -330,20 +330,32 @@ where
                     )
                     .unwrap();
 
-                    // Use assert-json-diff for beautiful diff output
-                    let diff_result = assert_json_diff::assert_json_matches_no_panic(
-                        o,
-                        r,
-                        assert_json_diff::Config::new(assert_json_diff::CompareMode::Strict),
-                    );
+                    // Create inline git-style diff output
+                    let original_json = serde_json::to_string_pretty(o).unwrap();
+                    let roundtripped_json = serde_json::to_string_pretty(r).unwrap();
 
-                    match diff_result {
-                        Err(diff_error) => {
-                            writeln!(diff_output, "{}", diff_error).unwrap();
-                        }
-                        Ok(_) => {
-                            // This shouldn't happen since we already checked o != r
-                            writeln!(diff_output, "  Values are identical (unexpected)").unwrap();
+                    let original_lines: Vec<&str> = original_json.lines().collect();
+                    let roundtripped_lines: Vec<&str> = roundtripped_json.lines().collect();
+
+                    // Find differing lines and show only those with context
+                    let max_len = original_lines.len().max(roundtripped_lines.len());
+                    let mut has_diff_output = false;
+
+                    for i in 0..max_len {
+                        let orig_line = original_lines.get(i).unwrap_or(&"");
+                        let round_line = roundtripped_lines.get(i).unwrap_or(&"");
+
+                        if orig_line != round_line {
+                            if !has_diff_output {
+                                has_diff_output = true;
+                            }
+
+                            if !orig_line.is_empty() {
+                                writeln!(diff_output, "\x1b[31m-{}\x1b[0m", orig_line).unwrap();
+                            }
+                            if !round_line.is_empty() {
+                                writeln!(diff_output, "\x1b[32m+{}\x1b[0m", round_line).unwrap();
+                            }
                         }
                     }
                     writeln!(diff_output).unwrap();
@@ -353,24 +365,30 @@ where
                 has_differences = true;
                 writeln!(
                     diff_output,
-                    "❌ MISSING {} {} in roundtripped:",
+                    "\x1b[31m❌ MISSING {} {} in roundtripped:\x1b[0m",
                     item_name.to_uppercase(),
                     i
                 )
                 .unwrap();
-                writeln!(diff_output, "{}", serde_json::to_string_pretty(o).unwrap()).unwrap();
+                let json = serde_json::to_string_pretty(o).unwrap();
+                for line in json.lines() {
+                    writeln!(diff_output, "\x1b[31m  {}\x1b[0m", line).unwrap();
+                }
                 writeln!(diff_output).unwrap();
             }
             (None, Some(r)) => {
                 has_differences = true;
                 writeln!(
                     diff_output,
-                    "➕ EXTRA {} {} in roundtripped:",
+                    "\x1b[32m➕ EXTRA {} {} in roundtripped:\x1b[0m",
                     item_name.to_uppercase(),
                     i
                 )
                 .unwrap();
-                writeln!(diff_output, "{}", serde_json::to_string_pretty(r).unwrap()).unwrap();
+                let json = serde_json::to_string_pretty(r).unwrap();
+                for line in json.lines() {
+                    writeln!(diff_output, "\x1b[32m  {}\x1b[0m", line).unwrap();
+                }
                 writeln!(diff_output).unwrap();
             }
             (None, None) => unreachable!(),
