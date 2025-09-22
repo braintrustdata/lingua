@@ -184,6 +184,8 @@ use llmir::translators::to_bedrock_format_with_model;
 
 🚧 **In Development** - Currently building the foundational types and translator architecture.
 
+- [ ] Support parsing streaming responses and combining streaming messages into a single response.
+
 ## Contributing
 
 This project aims to support the entire ecosystem of LLM providers. Contributions for new providers, capability detection improvements, and format enhancements are welcome.

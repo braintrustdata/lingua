@@ -77,7 +77,73 @@ mod tests {
             return Err(format!("Roundtrip conversion failed:\n{}", diff));
         }
 
-        println!("✅ {} - roundtrip conversion passed", case.name);
+        println!("✅ {} - request roundtrip conversion passed", case.name);
+
+        // Test response conversion if available
+        if let Some(response) = &case.non_streaming_response {
+            info!("🧪 Testing response conversion for: {}", case.name);
+
+            // Response messages are in the output field, not input
+            let response_messages = &response.output;
+
+            debug!(
+                "📄 Response Original: {} OutputItems",
+                response_messages.len()
+            );
+            debug!(
+                "\n{}",
+                serde_json::to_string_pretty(&response_messages).unwrap()
+            );
+
+            // Convert OutputItem to InputItem by serializing/deserializing
+            // This works because they have the same structure
+            let response_as_input: Vec<InputItem> = response_messages
+                .iter()
+                .map(|output_item| {
+                    let json = serde_json::to_value(output_item).unwrap();
+                    serde_json::from_value(json).unwrap()
+                })
+                .collect();
+
+            debug!("🔄 Converting response to universal format...");
+
+            let universal_response: Vec<Message> =
+                <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(response_as_input.clone())
+                    .map_err(|e| format!("Failed to convert response to universal format: {}", e))?;
+
+            debug!(
+                "✓ Universal Response: {} Messages",
+                universal_response.len()
+            );
+            debug!(
+                "\n{}",
+                serde_json::to_string_pretty(&universal_response).unwrap()
+            );
+
+            debug!("↩️  Converting response back to InputItems...");
+
+            let roundtripped_response: Vec<InputItem> =
+                <Vec<InputItem> as TryFromLLM<Vec<Message>>>::try_from(universal_response.clone())
+                    .map_err(|e| format!("Failed to roundtrip response conversion: {}", e))?;
+
+            debug!(
+                "\n{}",
+                serde_json::to_string_pretty(&roundtripped_response).unwrap()
+            );
+
+            let response_diff =
+                diff_serializable(&response_as_input, &roundtripped_response, "response items");
+            if !response_diff.starts_with("✅") {
+                return Err(format!(
+                    "Response roundtrip conversion failed:\n{}",
+                    response_diff
+                ));
+            }
+
+            println!("✅ {} - response roundtrip conversion passed", case.name);
+        }
+
+        println!("✅ {} - all conversions passed", case.name);
         Ok(())
     }
 
