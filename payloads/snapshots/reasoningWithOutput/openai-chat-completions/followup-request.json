@@ -7,7 +7,9 @@
     },
     {
       "role": "assistant",
-      "content": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
+      "content": "Mostly blue during a clear day. That blue comes from sunlight scattering in the atmosphere. It changes with time and conditions:\n\n- Sunrise/sunset: red, orange, pink\n- Cloudy/overcast: gray\n- Night: dark blue to black\n- Sometimes other colors appear (greenish, yellowish) due to pollution, dust, or auroras\n\nIf you tell me your time and place, I can give a more exact description for right now.",
+      "refusal": null,
+      "annotations": []
     },
     {
       "role": "user",

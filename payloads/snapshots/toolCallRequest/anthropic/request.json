@@ -19,7 +19,9 @@
             "description": "The city and state, e.g. San Francisco, CA"
           }
         },
-        "required": ["location"]
+        "required": [
+          "location"
+        ]
       }
     }
   ],

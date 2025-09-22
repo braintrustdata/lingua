@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_018sHnYBpBrvNyxgvHvuM2qj",
+      "id": "msg_01W9iKfgHoSAk9yex7vmVSpT",
       "type": "message",
       "role": "assistant",
       "model": "claude-sonnet-4-20250514",
@@ -10,8 +10,15 @@
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 12,
-        "output_tokens": 1
+        "input_tokens": 13,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 3,
+        "service_tier": "standard"
       }
     }
   },
@@ -28,7 +35,79 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
+      "text": "The sky appears"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " blue during a clear day. This blue"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " color is caused by a phenomenon calle"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d Rayleigh scattering, where molecules in Earth"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "'s atmosphere scatter blue light from the sun more than other"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " colors.\n\nOf course, the sky"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " can appear different colors depending on conditions - it might"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " look gray during cloudy weather, or display"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " beautiful oranges, reds, and purples"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " during sunrise or sunset."
     }
   },
   {
@@ -42,7 +121,10 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 179
+      "input_tokens": 13,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 86
     }
   },
   {

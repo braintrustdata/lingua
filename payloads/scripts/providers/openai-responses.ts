@@ -17,9 +17,9 @@ export async function executeOpenAIResponses(
   caseName: string,
   payload: OpenAI.Responses.ResponseCreateParams,
   stream?: boolean,
-): Promise<CaptureResult> {
+): Promise<CaptureResult<OpenAI.Responses.ResponseCreateParams, OpenAI.Responses.Response, unknown>> {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const result: CaptureResult = { request: payload };
+  const result: CaptureResult<OpenAI.Responses.ResponseCreateParams, OpenAI.Responses.Response, unknown> = { request: payload };
 
   try {
     // Create promises for parallel execution
@@ -68,15 +68,16 @@ export async function executeOpenAIResponses(
     }
 
     // Create follow-up conversation if we have a non-streaming response with valid output
-    if (result.response && "output" in result.response) {
-      const assistantOutput = result.response.output;
+    if (result.response && typeof result.response === 'object' && result.response !== null && "output" in result.response) {
+      const assistantOutput = (result.response as OpenAI.Responses.Response).output;
 
       // Check if we have valid content for followup (not just reasoning without text)
+      const response = result.response as OpenAI.Responses.Response;
       const hasValidContent = Array.isArray(assistantOutput)
         ? assistantOutput.some(
-            (item) => item.type !== "reasoning" || result.response.output_text,
+            (item) => (item as any).type !== "reasoning" || response.output_text,
           )
-        : assistantOutput.type !== "reasoning" || result.response.output_text;
+        : (assistantOutput as any).type !== "reasoning" || response.output_text;
 
       if (!hasValidContent) {
         console.log(
@@ -87,15 +88,48 @@ export async function executeOpenAIResponses(
 
       console.log(`📝 Creating followup request for ${caseName}...`);
 
+      // Build follow-up input, handling tool calls
+      const followUpInput: any[] = [
+        ...(Array.isArray(payload.input) ? payload.input : [payload.input]),
+        ...(Array.isArray(assistantOutput)
+          ? assistantOutput
+          : [assistantOutput]),
+      ];
+
+      // Check if the assistant output contains tool calls and add tool responses
+      const assistantMessages = Array.isArray(assistantOutput) ? assistantOutput : [assistantOutput];
+      let hasToolCalls = false;
+
+      for (const message of assistantMessages) {
+        if ((message as any).type === "message" && (message as any).content) {
+          const contentItems = Array.isArray((message as any).content) ? (message as any).content : [(message as any).content];
+          for (const contentItem of contentItems) {
+            if ((contentItem as any).type === "tool_call" && (contentItem as any).id) {
+              hasToolCalls = true;
+              // Add tool call output for OpenAI Responses API format
+              followUpInput.push({
+                role: "user",
+                content: [
+                  {
+                    type: "custom_tool_call_output",
+                    tool_call_id: (contentItem as any).id,
+                    output: "71 degrees",
+                  },
+                ],
+              });
+            }
+          }
+        }
+      }
+
+      // If no tool calls were found, add the generic follow-up message
+      if (!hasToolCalls) {
+        followUpInput.push({ role: "user", content: "What should I do next?" });
+      }
+
       const followUpPayload: OpenAI.Responses.ResponseCreateParams = {
         ...payload,
-        input: [
-          ...payload.input,
-          ...(Array.isArray(assistantOutput)
-            ? assistantOutput
-            : [assistantOutput]),
-          { role: "user", content: "What should I do next?" },
-        ],
+        input: followUpInput,
       };
 
       result.followupRequest = followUpPayload;
@@ -185,7 +219,7 @@ export async function executeOpenAIResponses(
   return result;
 }
 
-export const openaiResponsesExecutor: ProviderExecutor = {
+export const openaiResponsesExecutor: ProviderExecutor<OpenAI.Responses.ResponseCreateParams, OpenAI.Responses.Response, unknown> = {
   name: "openai-responses",
   cases: openaiResponsesCases,
   execute: executeOpenAIResponses,

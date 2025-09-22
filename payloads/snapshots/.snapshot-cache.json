@@ -191,5 +191,58 @@
       "multimodalRequest/openai-responses/response.json",
       "multimodalRequest/openai-responses/response-streaming.json"
     ]
+  },
+  "anthropic:toolCallRequest": {
+    "payloadHash": "26237bba5981cfae3d29b42e95dd25918999c15e6e18064a703a42c750bb5107",
+    "capturedAt": "2025-09-22T14:50:19.884Z",
+    "provider": "anthropic",
+    "name": "toolCallRequest",
+    "files": [
+      "toolCallRequest/anthropic/request.json",
+      "toolCallRequest/anthropic/response.json",
+      "toolCallRequest/anthropic/response-streaming.json",
+      "toolCallRequest/anthropic/followup-request.json",
+      "toolCallRequest/anthropic/error.json"
+    ]
+  },
+  "openai-responses:toolCallRequest": {
+    "payloadHash": "5742d5f28d4733db0adf74a1ac5d80521b76972eb8102bcf0e7023b48d1f30fa",
+    "capturedAt": "2025-09-22T14:50:19.997Z",
+    "provider": "openai-responses",
+    "name": "toolCallRequest",
+    "files": [
+      "toolCallRequest/openai-responses/request.json",
+      "toolCallRequest/openai-responses/response.json",
+      "toolCallRequest/openai-responses/response-streaming.json",
+      "toolCallRequest/openai-responses/followup-request.json"
+    ]
+  },
+  "anthropic:reasoningWithOutput": {
+    "payloadHash": "62a001764878a19163a7f00c462e8ddd7c04ce1f7c19c479d363042e1ce546af",
+    "capturedAt": "2025-09-22T14:50:23.440Z",
+    "provider": "anthropic",
+    "name": "reasoningWithOutput",
+    "files": [
+      "reasoningWithOutput/anthropic/request.json",
+      "reasoningWithOutput/anthropic/response.json",
+      "reasoningWithOutput/anthropic/response-streaming.json",
+      "reasoningWithOutput/anthropic/followup-request.json",
+      "reasoningWithOutput/anthropic/followup-response.json",
+      "reasoningWithOutput/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "openai-chat-completions:reasoningWithOutput": {
+    "payloadHash": "3c4591a92e283e120f2f7b3bf67fbc7290972b2982e85744619911064f3d050a",
+    "capturedAt": "2025-09-22T14:50:28.449Z",
+    "provider": "openai-chat-completions",
+    "name": "reasoningWithOutput",
+    "files": [
+      "reasoningWithOutput/openai-chat-completions/request.json",
+      "reasoningWithOutput/openai-chat-completions/response.json",
+      "reasoningWithOutput/openai-chat-completions/response-streaming.json",
+      "reasoningWithOutput/openai-chat-completions/followup-request.json",
+      "reasoningWithOutput/openai-chat-completions/followup-response.json",
+      "reasoningWithOutput/openai-chat-completions/followup-response-streaming.json"
+    ]
   }
 }

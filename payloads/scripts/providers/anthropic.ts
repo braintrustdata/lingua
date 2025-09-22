@@ -17,9 +17,9 @@ export async function executeAnthropic(
   caseName: string,
   payload: Anthropic.Messages.MessageCreateParams,
   stream?: boolean
-): Promise<CaptureResult> {
+): Promise<CaptureResult<Anthropic.Messages.MessageCreateParams, Anthropic.Messages.Message, unknown>> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const result: CaptureResult = { request: payload };
+  const result: CaptureResult<Anthropic.Messages.MessageCreateParams, Anthropic.Messages.Message, unknown> = { request: payload };
 
   try {
     // Create promises for parallel execution
@@ -66,7 +66,7 @@ export async function executeAnthropic(
     }
 
     // Create follow-up conversation if we have a non-streaming response
-    if (result.response && "content" in result.response && Array.isArray(result.response.content)) {
+    if (result.response && typeof result.response === 'object' && result.response !== null && "content" in result.response && Array.isArray((result.response as any).content)) {
       const assistantMessage: Anthropic.MessageParam = {
         role: "assistant",
         content: result.response.content,
@@ -132,7 +132,7 @@ export async function executeAnthropic(
   return result;
 }
 
-export const anthropicExecutor: ProviderExecutor = {
+export const anthropicExecutor: ProviderExecutor<Anthropic.Messages.MessageCreateParams, Anthropic.Messages.Message, unknown> = {
   name: "anthropic",
   cases: anthropicCases,
   execute: executeAnthropic,
