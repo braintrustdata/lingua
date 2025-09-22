@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01UEffMKWspk8Kyq5LSY619t",
+      "id": "msg_01QihFFuVpmdWvXoGw2jrSs3",
       "type": "message",
       "role": "assistant",
       "model": "claude-sonnet-4-20250514",
@@ -43,7 +43,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " don't have any information about your"
+      "text": " don't have information"
     }
   },
   {
@@ -51,7 +51,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " current situation, goals, or what you're trying to accomplish"
+      "text": " about your current situation, goals"
     }
   },
   {
@@ -59,7 +59,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", so I can't suggest a"
+      "text": ", or what you're working"
     }
   },
   {
@@ -67,7 +67,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " specific next step."
+      "text": " on, so I can't make"
     }
   },
   {
@@ -75,7 +75,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " \n\nTo help"
+      "text": " a specific recommendation about what you"
     }
   },
   {
@@ -83,7 +83,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you better, could you share"
+      "text": " should do next.\n\nTo"
     }
   },
   {
@@ -91,7 +91,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " some context? For"
+      "text": " help you better"
     }
   },
   {
@@ -99,7 +99,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " example:\n- Are you working"
+      "text": ", it would be useful"
     }
   },
   {
@@ -107,7 +107,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " on a particular project or"
+      "text": " to know:\n- What you"
     }
   },
   {
@@ -115,7 +115,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " task?\n- Do"
+      "text": "'re currently doing or what context"
     }
   },
   {
@@ -123,7 +123,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " you have"
+      "text": " this question relates"
     }
   },
   {
@@ -131,7 +131,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " any goals you're trying to achieve?\n-"
+      "text": " to\n- What"
     }
   },
   {
@@ -139,7 +139,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Are you looking for something"
+      "text": " your goals or"
     }
   },
   {
@@ -147,7 +147,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " to do in your"
+      "text": " priorities are right now\n- Whether"
     }
   },
   {
@@ -155,7 +155,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " free time?\n- Is"
+      "text": " you're looking"
     }
   },
   {
@@ -163,7 +163,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " this related to work"
+      "text": " for suggestions for"
     }
   },
   {
@@ -171,7 +171,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", study, or personal matters"
+      "text": " a particular area"
     }
   },
   {
@@ -179,7 +179,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "?\n\nWith a"
+      "text": " (work"
     }
   },
   {
@@ -187,7 +187,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " bit more information, I'd be happy"
+      "text": ", personal projects"
     }
   },
   {
@@ -195,7 +195,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " to offer some relevant"
+      "text": ", learning, etc.)\n\nCoul"
     }
   },
   {
@@ -203,7 +203,23 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " suggestions!"
+      "text": "d you provide a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " bit more context about what kin"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d of guidance you're looking for?"
     }
   },
   {
@@ -220,7 +236,7 @@
       "input_tokens": 33,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 120
+      "output_tokens": 114
     }
   },
   {

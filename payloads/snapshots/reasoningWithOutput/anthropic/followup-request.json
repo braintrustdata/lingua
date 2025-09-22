@@ -1,0 +1,23 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 20000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

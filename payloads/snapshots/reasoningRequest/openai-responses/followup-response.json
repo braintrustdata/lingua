@@ -1,0 +1,73 @@
+{
+  "id": "resp_68d0ea6db0d0819692456090280a32ba0adc22e2826a9c16",
+  "object": "response",
+  "created_at": 1758521965,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_68d0ea6e53dc8196a287cf0238d1d1b40adc22e2826a9c16",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d0ea85dc148196bde5733c1bebca630adc22e2826a9c16",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Nice work on that problem. Here are a few good next steps you can choose from:\n\n- Practice more (with solutions): I can give you a couple of quick problems and walk you through the steps.\n  - Example 1: A car goes 45 mph for 2 hours, then 60 mph for 1.5 hours. What’s the average speed?\n  - Example 2: A train runs 70 mph for 2 hours, then 40 mph for 1.5 hours. What’s the average speed?\n\n- Review the concept: The average speed over multiple legs is the total distance divided by total time. It’s a weighted average, weighted by time (not a simple arithmetic mean of the speeds).\n\n- General formula and tips: For speeds v_i and times t_i,\n  - v_avg = (∑ v_i t_i) / (∑ t_i)\n  - Distances: ∑ (v_i t_i)\n  - Distinguish: don’t average speeds unless the times at each speed are equal.\n\nWould you like me to give you the two practice problems with full solutions, or would you prefer a quick recap and a couple more problems?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 198,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 3449,
+    "output_tokens_details": {
+      "reasoning_tokens": 3200
+    },
+    "total_tokens": 3647
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Nice work on that problem. Here are a few good next steps you can choose from:\n\n- Practice more (with solutions): I can give you a couple of quick problems and walk you through the steps.\n  - Example 1: A car goes 45 mph for 2 hours, then 60 mph for 1.5 hours. What’s the average speed?\n  - Example 2: A train runs 70 mph for 2 hours, then 40 mph for 1.5 hours. What’s the average speed?\n\n- Review the concept: The average speed over multiple legs is the total distance divided by total time. It’s a weighted average, weighted by time (not a simple arithmetic mean of the speeds).\n\n- General formula and tips: For speeds v_i and times t_i,\n  - v_avg = (∑ v_i t_i) / (∑ t_i)\n  - Distances: ∑ (v_i t_i)\n  - Distinguish: don’t average speeds unless the times at each speed are equal.\n\nWould you like me to give you the two practice problems with full solutions, or would you prefer a quick recap and a couple more problems?"
+}

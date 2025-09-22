@@ -7,7 +7,7 @@
     },
     {
       "role": "assistant",
-      "content": "Paris",
+      "content": "Paris is the capital of France.",
       "refusal": null,
       "annotations": []
     },
@@ -16,6 +16,5 @@
       "content": "What should I do next?"
     }
   ],
-  "max_completion_tokens": 256,
   "reasoning_effort": "low"
 }

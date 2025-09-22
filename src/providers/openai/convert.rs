@@ -854,12 +854,8 @@ impl TryFromLLM<Message> for openai::ChatCompletionRequestMessage {
                 // Extract the tool result content
                 let tool_result = content
                     .iter()
-                    .find_map(|part| {
-                        if let ToolContentPart::ToolResult(result) = part {
-                            Some(result)
-                        } else {
-                            None
-                        }
+                    .find_map(|part| match part {
+                        ToolContentPart::ToolResult(result) => Some(result),
                     })
                     .ok_or_else(|| ConvertError::MissingRequiredField {
                         field: "tool_result".to_string(),
@@ -1005,37 +1001,6 @@ fn extract_content_and_tool_calls(
     };
 
     Ok((text_content, tool_calls_option))
-}
-
-/// Convert AssistantContent to ChatCompletionRequestMessageContent
-fn convert_assistant_content_to_chat_completion_content(
-    content: AssistantContent,
-) -> Result<openai::ChatCompletionRequestMessageContent, ConvertError> {
-    match content {
-        AssistantContent::String(text) => {
-            Ok(openai::ChatCompletionRequestMessageContent::String(text))
-        }
-        AssistantContent::Array(parts) => {
-            let chat_parts: Result<Vec<_>, _> = parts
-                .into_iter()
-                .map(|part| match part {
-                    AssistantContentPart::Text(text_part) => {
-                        Ok(openai::ChatCompletionRequestMessageContentPart {
-                            text: Some(text_part.text),
-                            chat_completion_request_message_content_part_type:
-                                openai::PurpleType::Text,
-                            image_url: None,
-                            input_audio: None,
-                            file: None,
-                            refusal: None,
-                        })
-                    }
-                    _ => Err(ConvertError::UnsupportedInputType),
-                })
-                .collect();
-            Ok(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(chat_parts?))
-        }
-    }
 }
 
 /// Convert ChatCompletionResponseMessage to universal Message

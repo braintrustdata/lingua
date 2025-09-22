@@ -1,0 +1,25 @@
+{
+  "id": "msg_028sHnYBpBrvNyxgvHvuM3rk",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-4-20250514",
+  "content": [
+    {
+      "type": "text",
+      "text": "Based on the weather information, it's currently 71 degrees in San Francisco. That's quite pleasant! San Francisco typically has mild temperatures year-round due to its Mediterranean climate and proximity to the ocean. 71°F is a comfortable temperature - perfect for walking around the city, whether you're exploring neighborhoods like the Mission, visiting Golden Gate Park, or taking a stroll along the waterfront."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 245,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 96,
+    "service_tier": "standard"
+  }
+}

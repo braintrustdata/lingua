@@ -9,12 +9,12 @@
       "content": "What color is the sky?"
     },
     {
-      "id": "rs_68d08aa888748196afa32eff866101ba03307922e8356e59",
+      "id": "rs_68d0ea6706c081959175f70d5cdb9b4300a25bd584461810",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "msg_68d08aa8ec8c81969f0c8a5749fe20c003307922e8356e59",
+      "id": "msg_68d0ea67adac81959ba8df5df91ff01400a25bd584461810",
       "type": "message",
       "status": "completed",
       "content": [
@@ -22,7 +22,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Usually blue during the daytime because of Rayleigh scattering of sunlight in Earth's atmosphere. It can appear gray on cloudy days, and orange/pink/red at sunrise or sunset. At night it looks black (or dark blue) with stars."
+          "text": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
         }
       ],
       "role": "assistant"
@@ -31,6 +31,5 @@
       "role": "user",
       "content": "What should I do next?"
     }
-  ],
-  "max_output_tokens": 2000
+  ]
 }

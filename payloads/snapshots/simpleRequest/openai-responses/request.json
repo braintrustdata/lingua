@@ -11,6 +11,5 @@
       "role": "user",
       "content": "What is the capital of France?"
     }
-  ],
-  "max_output_tokens": 256
+  ]
 }

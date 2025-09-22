@@ -1,7 +1,7 @@
 {
-  "id": "resp_68d08aa777c88193bae684ec752ed1980d5f33c5b3a2db70",
+  "id": "resp_68d0ea662e30819790ce38249f663d70067a31a5ec6e55c5",
   "object": "response",
-  "created_at": 1758497447,
+  "created_at": 1758521958,
   "status": "completed",
   "background": false,
   "billing": {
@@ -10,17 +10,17 @@
   "error": null,
   "incomplete_details": null,
   "instructions": null,
-  "max_output_tokens": 256,
+  "max_output_tokens": null,
   "max_tool_calls": null,
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68d08aa7d5e481939dc4d24ceb65cb0b0d5f33c5b3a2db70",
+      "id": "rs_68d0ea66b7dc81979ee818ad50c9a236067a31a5ec6e55c5",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "msg_68d08aa7fec881938c5ec352ea0743970d5f33c5b3a2db70",
+      "id": "msg_68d0ea66cd8481979891bbe14859626c067a31a5ec6e55c5",
       "type": "message",
       "status": "completed",
       "content": [
@@ -28,7 +28,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Paris"
+          "text": "Paris."
         }
       ],
       "role": "assistant"
@@ -61,13 +61,13 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 7,
+    "output_tokens": 8,
     "output_tokens_details": {
       "reasoning_tokens": 0
     },
-    "total_tokens": 20
+    "total_tokens": 21
   },
   "user": null,
   "metadata": {},
-  "output_text": "Paris"
+  "output_text": "Paris."
 }
