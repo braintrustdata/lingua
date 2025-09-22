@@ -2,11 +2,13 @@ import OpenAI from "openai";
 import { CaptureResult, ProviderExecutor } from "../types";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 
+// Define specific types for OpenAI
+type OpenAIRequest = OpenAI.Chat.Completions.ChatCompletionCreateParams;
+type OpenAIResponse = OpenAI.Chat.Completions.ChatCompletion;
+type OpenAIStreamChunk = OpenAI.Chat.Completions.ChatCompletionChunk;
+
 // OpenAI Chat Completions cases - extracted from unified cases
-export const openaiCases: Record<
-  string,
-  OpenAI.Chat.Completions.ChatCompletionCreateParams
-> = {};
+export const openaiCases: Record<string, OpenAIRequest> = {};
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
@@ -22,11 +24,11 @@ getCaseNames(allTestCases).forEach((caseName) => {
 
 export async function executeOpenAI(
   caseName: string,
-  payload: OpenAI.Chat.Completions.ChatCompletionCreateParams,
+  payload: OpenAIRequest,
   stream?: boolean,
-): Promise<CaptureResult> {
+): Promise<CaptureResult<OpenAIRequest, OpenAIResponse, OpenAIStreamChunk>> {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const result: CaptureResult = { request: payload };
+  const result: CaptureResult<OpenAIRequest, OpenAIResponse, OpenAIStreamChunk> = { request: payload };
 
   try {
     // Create promises for parallel execution
@@ -171,7 +173,7 @@ export async function executeOpenAI(
   return result;
 }
 
-export const openaiExecutor: ProviderExecutor = {
+export const openaiExecutor: ProviderExecutor<OpenAIRequest, OpenAIResponse, OpenAIStreamChunk> = {
   name: "openai",
   cases: openaiCases,
   execute: executeOpenAI,

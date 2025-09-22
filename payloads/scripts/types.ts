@@ -1,22 +1,22 @@
 // Standardized types for payload capture across all providers
 
-export interface CaptureResult {
-  request: unknown;
-  response?: unknown;
-  streamingResponse?: unknown[];
-  followupRequest?: unknown;
-  followupResponse?: unknown;
-  followupStreamingResponse?: unknown[];
+export interface CaptureResult<TRequest = unknown, TResponse = unknown, TStreamChunk = unknown> {
+  request: TRequest;
+  response?: TResponse;
+  streamingResponse?: TStreamChunk[];
+  followupRequest?: TRequest;
+  followupResponse?: TResponse;
+  followupStreamingResponse?: TStreamChunk[];
   error?: string;
 }
 
-export interface ProviderCase {
+export interface ProviderCase<TPayload = unknown> {
   name: string;
-  payload: unknown;
+  payload: TPayload;
 }
 
-export interface ProviderExecutor {
+export interface ProviderExecutor<TRequest = unknown, TResponse = unknown, TStreamChunk = unknown> {
   name: string;
-  cases: Record<string, unknown>;
-  execute: (caseName: string, payload: unknown, stream?: boolean) => Promise<CaptureResult>;
+  cases: Record<string, TRequest>;
+  execute: (caseName: string, payload: TRequest, stream?: boolean) => Promise<CaptureResult<TRequest, TResponse, TStreamChunk>>;
 }
