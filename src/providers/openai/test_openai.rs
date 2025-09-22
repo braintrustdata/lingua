@@ -1,6 +1,4 @@
-use crate::providers::openai::generated::{
-    CreateResponseClass, InputItem, OutputItem, TheResponseObject,
-};
+use crate::providers::openai::generated::{CreateResponseClass, OutputItem, TheResponseObject};
 use crate::util::testutil::{discover_test_cases_typed, Provider, TestCase};
 use serde_json::Value;
 

@@ -341,7 +341,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 } => {
                                     has_reasoning = true;
                                     encrypted_content = ec;
-                                    if text.len() > 0 {
+                                    if !text.is_empty() {
                                         reasoning_parts.push(openai::SummaryText {
                                             text,
                                             summary_text_type: openai::SummaryType::SummaryText,
@@ -355,7 +355,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                         }
 
                         if has_reasoning {
-                            if normal_parts.len() > 0 {
+                            if !normal_parts.is_empty() {
                                 return Err(ConvertError::ContentConversionFailed {
                                     reason: "Mixed reasoning and normal content parts are not supported in OpenAI format".to_string(),
                                 });
@@ -451,16 +451,17 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
                 // Single content item - check if we can convert to string
                 if output_content[0].output_message_content_type == openai::ContentType::OutputText
                 {
-                    if let Some(text) = output_content.into_iter().next().unwrap().text {
-                        Some(openai::InputItemContent::String(text))
-                    } else {
-                        None
-                    }
+                    output_content
+                        .into_iter()
+                        .next()
+                        .unwrap()
+                        .text
+                        .map(openai::InputItemContent::String)
                 } else {
                     // Convert to InputContent array
                     let input_contents: Result<Vec<_>, _> = output_content
                         .into_iter()
-                        .map(|oc| convert_output_message_content_to_input_content(oc))
+                        .map(convert_output_message_content_to_input_content)
                         .collect();
                     Some(openai::InputItemContent::InputContentArray(input_contents?))
                 }
@@ -468,7 +469,7 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
                 // Multiple content items - convert to array
                 let input_contents: Result<Vec<_>, _> = output_content
                     .into_iter()
-                    .map(|oc| convert_output_message_content_to_input_content(oc))
+                    .map(convert_output_message_content_to_input_content)
                     .collect();
                 Some(openai::InputItemContent::InputContentArray(input_contents?))
             }
