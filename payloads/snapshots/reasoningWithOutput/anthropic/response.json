@@ -1,0 +1,25 @@
+{
+  "id": "msg_018sHnYBpBrvNyxgvHvuM2qj",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-4-20250514",
+  "content": [
+    {
+      "type": "text",
+      "text": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 179,
+    "service_tier": "standard"
+  }
+}

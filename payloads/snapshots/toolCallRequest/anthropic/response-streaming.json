@@ -1,0 +1,53 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "id": "msg_018sHnYBpBrvNyxgvHvuM2qj",
+      "type": "message",
+      "role": "assistant",
+      "model": "claude-sonnet-4-20250514",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 148,
+        "output_tokens": 1
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "tool_use",
+      "id": "toolu_018sHnYBpBrvNyxgvHvuM2qa",
+      "name": "get_weather",
+      "input": {}
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "{\"location\": \"San Francisco, CA\"}"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "tool_use",
+      "stop_sequence": null
+    },
+    "usage": {
+      "output_tokens": 154
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

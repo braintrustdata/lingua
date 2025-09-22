@@ -1,0 +1,64 @@
+[
+  {
+    "id": "chatcmpl-CJUkXTQWkO8SlPMGYp8HL2BEt2vm8",
+    "object": "chat.completion.chunk",
+    "created": 1758521400,
+    "model": "gpt-5-nano-2025-08-07",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "role": "assistant",
+          "content": ""
+        },
+        "finish_reason": null
+      }
+    ]
+  },
+  {
+    "id": "chatcmpl-CJUkXTQWkO8SlPMGYp8HL2BEt2vm8",
+    "object": "chat.completion.chunk",
+    "created": 1758521400,
+    "model": "gpt-5-nano-2025-08-07",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "I'd be happy to help you with your next step! However, I need a bit more context to give you the best guidance. Could you let me know:\n\n- Are you working on more science questions like the one we just answered?\n- Do you have other homework or study topics you need help with?\n- Are you looking for more information about atmospheric phenomena?\n- Or is there something completely different you'd like assistance with?\n\nJust let me know what you're working on or what you'd like to tackle next, and I'll help guide you through it!"
+        },
+        "finish_reason": null
+      }
+    ]
+  },
+  {
+    "id": "chatcmpl-CJUkXTQWkO8SlPMGYp8HL2BEt2vm8",
+    "object": "chat.completion.chunk",
+    "created": 1758521400,
+    "model": "gpt-5-nano-2025-08-07",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 95,
+      "completion_tokens": 142,
+      "total_tokens": 237,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 85,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]

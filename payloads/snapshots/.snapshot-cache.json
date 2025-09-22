@@ -1,7 +1,7 @@
 {
   "anthropic:simpleRequest": {
-    "payloadHash": "85a934902399e922ad12374292a28d5161cfa822859c6ee99a0b7e4ae50a0d3b",
-    "capturedAt": "2025-09-21T23:30:53.850Z",
+    "payloadHash": "2e4a5cbeb104bf5dc40693ae57729c7205156ee1e9c69b6d536774095bc79c62",
+    "capturedAt": "2025-09-22T06:19:23.058Z",
     "provider": "anthropic",
     "name": "simpleRequest",
     "files": [
@@ -14,8 +14,8 @@
     ]
   },
   "openai-chat-completions:simpleRequest": {
-    "payloadHash": "173a87225631b9f6e26d87dde57eff74ad6dd5a77506a6e81b18b1adb7fc4b64",
-    "capturedAt": "2025-09-22T05:21:48.863Z",
+    "payloadHash": "5721a0e65a580a5f49f02a2c98040e909d3598e0cfc11a5d460b1d898b32c1ce",
+    "capturedAt": "2025-09-22T06:19:21.503Z",
     "provider": "openai-chat-completions",
     "name": "simpleRequest",
     "files": [
@@ -28,8 +28,8 @@
     ]
   },
   "openai-responses:simpleRequest": {
-    "payloadHash": "36570e4897f34571fbce0331f44c566d8c6eb12eba17a47d71f602ab6183b721",
-    "capturedAt": "2025-09-21T23:30:51.892Z",
+    "payloadHash": "5b1d089c0a824dfb9bb0670f6cfbcb817ce6252908c20ceb18cb914b97d87377",
+    "capturedAt": "2025-09-22T06:19:21.999Z",
     "provider": "openai-responses",
     "name": "simpleRequest",
     "files": [
@@ -70,8 +70,8 @@
     ]
   },
   "openai-chat-completions:reasoningRequest": {
-    "payloadHash": "3e7204aa0d6f258d48e09ee5107f9c590567fcd6892aa96fca063980f679041b",
-    "capturedAt": "2025-09-22T05:21:49.089Z",
+    "payloadHash": "bbdbceb19e9c59845c4144aaa501e8e40781dab582d684fa4e6c77120744f374",
+    "capturedAt": "2025-09-22T06:19:31.932Z",
     "provider": "openai-chat-completions",
     "name": "reasoningRequest",
     "files": [
@@ -112,14 +112,17 @@
     ]
   },
   "openai-responses:reasoningRequest": {
-    "payloadHash": "013beb03fd81b2a01ba16ed628c6ed3c62535832710f97cc86568883443247c5",
-    "capturedAt": "2025-09-21T23:30:49.399Z",
+    "payloadHash": "3d9bf2ca6eb2e97141c96eadeb8424a66d44f6ce13f5eb1ae05a5903a6cd6680",
+    "capturedAt": "2025-09-22T06:19:53.596Z",
     "provider": "openai-responses",
     "name": "reasoningRequest",
     "files": [
       "reasoningRequest/openai-responses/request.json",
       "reasoningRequest/openai-responses/response.json",
-      "reasoningRequest/openai-responses/response-streaming.json"
+      "reasoningRequest/openai-responses/response-streaming.json",
+      "reasoningRequest/openai-responses/followup-request.json",
+      "reasoningRequest/openai-responses/followup-response.json",
+      "reasoningRequest/openai-responses/followup-response-streaming.json"
     ]
   },
   "openai-responses:complexReasoningRequest": {
@@ -137,8 +140,8 @@
     ]
   },
   "openai-responses:reasoningWithOutput": {
-    "payloadHash": "2f19cf58640fac23278dad184f4b8769f90a15b2327148a32c0e35cb91dfec30",
-    "capturedAt": "2025-09-21T23:30:53.401Z",
+    "payloadHash": "990d926000271a1be1e1d698eb9344eb5215479aa9946d6a36e4277b99066aee",
+    "capturedAt": "2025-09-22T06:19:23.168Z",
     "provider": "openai-responses",
     "name": "reasoningWithOutput",
     "files": [
@@ -165,8 +168,8 @@
     ]
   },
   "anthropic:reasoningRequest": {
-    "payloadHash": "01cc0a1fe4ce17d41cd6c6be8a087be0bc32d3f7a7fc7c5fe179b2a37d41fbe0",
-    "capturedAt": "2025-09-21T23:30:59.117Z",
+    "payloadHash": "3d94806e14a82e448c111f702d13ce33bb0104a79c2553ec2b640fc6f3b0a19b",
+    "capturedAt": "2025-09-22T06:19:28.253Z",
     "provider": "anthropic",
     "name": "reasoningRequest",
     "files": [

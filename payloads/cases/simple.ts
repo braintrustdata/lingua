@@ -16,7 +16,6 @@ export const simpleCases: TestCaseCollection = {
           content: "What is the capital of France?",
         },
       ],
-      max_completion_tokens: 256,
       reasoning_effort: "low",
     },
 
@@ -30,12 +29,11 @@ export const simpleCases: TestCaseCollection = {
           content: "What is the capital of France?",
         },
       ],
-      max_output_tokens: 256,
     },
 
     anthropic: {
       model: ANTHROPIC_MODEL,
-      max_tokens: 256,
+      max_tokens: 20_000,
       messages: [
         {
           role: "user",
@@ -55,7 +53,6 @@ export const simpleCases: TestCaseCollection = {
             "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
-      max_completion_tokens: 300,
     },
 
     "openai-responses": {
@@ -68,11 +65,10 @@ export const simpleCases: TestCaseCollection = {
             "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
-      max_output_tokens: 300,
     },
     anthropic: {
       model: ANTHROPIC_MODEL,
-      max_tokens: 300,
+      max_tokens: 20_000,
       messages: [
         {
           role: "user",
@@ -93,7 +89,6 @@ export const simpleCases: TestCaseCollection = {
           content: "What color is the sky?",
         },
       ],
-      max_output_tokens: 2000,
     },
   },
 

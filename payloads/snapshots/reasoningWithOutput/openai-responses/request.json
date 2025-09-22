@@ -8,6 +8,5 @@
       "role": "user",
       "content": "What color is the sky?"
     }
-  ],
-  "max_output_tokens": 2000
+  ]
 }

@@ -1,0 +1,64 @@
+[
+  {
+    "id": "chatcmpl-CITjWSPVjN7RkOLFXo7GL1ADs1ul7",
+    "object": "chat.completion.chunk",
+    "created": 1758520234,
+    "model": "gpt-5-nano-2025-08-07",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "role": "assistant",
+          "content": ""
+        },
+        "finish_reason": null
+      }
+    ]
+  },
+  {
+    "id": "chatcmpl-CITjWSPVjN7RkOLFXo7GL1ADs1ul7",
+    "object": "chat.completion.chunk",
+    "created": 1758520234,
+    "model": "gpt-5-nano-2025-08-07",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
+        },
+        "finish_reason": null
+      }
+    ]
+  },
+  {
+    "id": "chatcmpl-CITjWSPVjN7RkOLFXo7GL1ADs1ul7",
+    "object": "chat.completion.chunk",
+    "created": 1758520234,
+    "model": "gpt-5-nano-2025-08-07",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 12,
+      "completion_tokens": 179,
+      "total_tokens": 191,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 128,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]
