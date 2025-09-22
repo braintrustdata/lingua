@@ -70,7 +70,6 @@ export const simpleCases: TestCaseCollection = {
       ],
       max_output_tokens: 300,
     },
-
     anthropic: {
       model: ANTHROPIC_MODEL,
       max_tokens: 300,

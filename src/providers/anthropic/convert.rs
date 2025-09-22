@@ -29,6 +29,36 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         ));
                                     }
                                 }
+                                generated::InputContentBlockType::Image => {
+                                    if let Some(source) = block.source {
+                                        // Convert Anthropic image source to universal format
+                                        match source {
+                                            generated::InputContentBlockSource::PurpleSource(
+                                                purple_source,
+                                            ) => {
+                                                if let Some(data) = purple_source.data {
+                                                    let media_type = purple_source.media_type.map(|mt| match mt {
+                                                        generated::FluffyMediaType::ImageJpeg => "image/jpeg".to_string(),
+                                                        generated::FluffyMediaType::ImagePng => "image/png".to_string(),
+                                                        generated::FluffyMediaType::ImageGif => "image/gif".to_string(),
+                                                        generated::FluffyMediaType::ImageWebp => "image/webp".to_string(),
+                                                        generated::FluffyMediaType::ApplicationPdf => "application/pdf".to_string(),
+                                                        generated::FluffyMediaType::TextPlain => "text/plain".to_string(),
+                                                    });
+                                                    content_parts.push(UserContentPart::Image {
+                                                        image: serde_json::Value::String(data),
+                                                        media_type,
+                                                        provider_options: None,
+                                                    });
+                                                }
+                                            }
+                                            _ => {
+                                                // Skip other source types for now
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
                                 _ => {
                                     // Skip other types for now (tool_use, tool_result, etc.)
                                     continue;
@@ -39,7 +69,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                         if content_parts.is_empty() {
                             UserContent::String(String::new())
                         } else if content_parts.len() == 1 {
-                            // Single text part can be simplified to string
+                            // Single text part can be simplified to string, but keep arrays for multimodal
                             match &content_parts[0] {
                                 UserContentPart::Text(text_part) => {
                                     UserContent::String(text_part.text.clone())
@@ -47,6 +77,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                 _ => UserContent::Array(content_parts),
                             }
                         } else {
+                            // Multiple parts or multimodal content must remain as array
                             UserContent::Array(content_parts)
                         }
                     }
@@ -146,7 +177,73 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         tool_use_id: None,
                                     })
                                 }
-                                _ => None, // Skip non-text parts for now
+                                UserContentPart::Image {
+                                    image, media_type, ..
+                                } => {
+                                    // Convert universal image back to Anthropic format
+                                    let data = match image {
+                                        serde_json::Value::String(s) => Some(s),
+                                        _ => None,
+                                    };
+
+                                    if let Some(image_data) = data {
+                                        let anthropic_media_type =
+                                            media_type.as_ref().and_then(|mt| match mt.as_str() {
+                                                "image/jpeg" => {
+                                                    Some(generated::FluffyMediaType::ImageJpeg)
+                                                }
+                                                "image/png" => {
+                                                    Some(generated::FluffyMediaType::ImagePng)
+                                                }
+                                                "image/gif" => {
+                                                    Some(generated::FluffyMediaType::ImageGif)
+                                                }
+                                                "image/webp" => {
+                                                    Some(generated::FluffyMediaType::ImageWebp)
+                                                }
+                                                "application/pdf" => {
+                                                    Some(generated::FluffyMediaType::ApplicationPdf)
+                                                }
+                                                "text/plain" => {
+                                                    Some(generated::FluffyMediaType::TextPlain)
+                                                }
+                                                _ => None,
+                                            });
+
+                                        Some(generated::InputContentBlock {
+                                            cache_control: None,
+                                            citations: None,
+                                            text: None,
+                                            input_content_block_type:
+                                                generated::InputContentBlockType::Image,
+                                            source: Some(
+                                                generated::InputContentBlockSource::PurpleSource(
+                                                    generated::PurpleSource {
+                                                        data: Some(image_data),
+                                                        media_type: anthropic_media_type,
+                                                        source_type: generated::FluffyType::Base64,
+                                                        url: None,
+                                                        content: None,
+                                                    },
+                                                ),
+                                            ),
+                                            context: None,
+                                            title: None,
+                                            content: None,
+                                            signature: None,
+                                            thinking: None,
+                                            data: None,
+                                            id: None,
+                                            input: None,
+                                            name: None,
+                                            is_error: None,
+                                            tool_use_id: None,
+                                        })
+                                    } else {
+                                        None
+                                    }
+                                }
+                                _ => None, // Skip other parts for now
                             })
                             .collect();
                         generated::MessageContent::InputContentBlockArray(blocks)
