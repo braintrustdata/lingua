@@ -53,7 +53,7 @@ where
     debug!("\n{}", serde_json::to_string_pretty(&roundtripped).unwrap());
 
     // Compare original and roundtripped messages
-    let diff = diff_serializable(&messages, &roundtripped, "messages");
+    let diff = diff_serializable(messages, &roundtripped, "messages");
     if !diff.starts_with("✅") {
         return Err(format!("Roundtrip conversion failed:\n{}", diff));
     }
