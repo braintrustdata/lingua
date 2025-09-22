@@ -355,18 +355,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 ..
                             } => {
                                 // Convert JSON value back to HashMap - this is a workaround for type issues
-                                let input_map = if let Ok(map) =
-                                    serde_json::from_value::<
-                                        std::collections::HashMap<
-                                            String,
-                                            Option<generated::WebSearchToolResultErrorCode>,
-                                        >,
-                                    >(input.clone())
-                                {
-                                    Some(map)
-                                } else {
-                                    None
-                                };
+                                let input_map = serde_json::from_value::<
+                                    std::collections::HashMap<
+                                        String,
+                                        Option<generated::WebSearchToolResultErrorCode>,
+                                    >,
+                                >(input.clone())
+                                .ok();
 
                                 Some(generated::InputContentBlock {
                                     cache_control: None,
@@ -532,18 +527,14 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     ..
                                 } => {
                                     // Convert JSON value to HashMap for response generation
-                                    let input_map = if let Ok(map) =
+                                    let input_map =
                                         serde_json::from_value::<
                                             std::collections::HashMap<
                                                 String,
                                                 Option<generated::WebSearchToolResultErrorCode>,
                                             >,
                                         >(input.clone())
-                                    {
-                                        Some(map)
-                                    } else {
-                                        None
-                                    };
+                                        .ok();
 
                                     content_blocks.push(generated::ContentBlock {
                                         citations: None,

@@ -861,9 +861,11 @@ impl TryFromLLM<Message> for openai::ChatCompletionRequestMessage {
                 // Extract the tool result content
                 let tool_result = content
                     .iter()
-                    .find_map(|part| match part {
-                        ToolContentPart::ToolResult(result) => Some(result),
+                    .map(|part| {
+                        let ToolContentPart::ToolResult(result) = part;
+                        result
                     })
+                    .next()
                     .ok_or_else(|| ConvertError::MissingRequiredField {
                         field: "tool_result".to_string(),
                     })?;
