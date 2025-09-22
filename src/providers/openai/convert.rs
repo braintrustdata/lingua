@@ -101,6 +101,10 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             id: input.id,
                             content: TryFromLLM::try_from(content)?,
                         },
+                        // TODO: Tool role support - not yet implemented in generated types
+                        _ => {
+                            return Err(ConvertError::UnsupportedInputType);
+                        }
                     });
                 }
             };
@@ -139,6 +143,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                     provider_options: None,
                 })
             }
+            // TODO: ToolCall and ToolResult content types - not yet implemented in generated types
             openai::InputItemContentListType::InputImage => {
                 // Extract image URL from the InputContent
                 let image_url =
@@ -312,6 +317,10 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                 logprobs: Some(vec![]),    // Add empty logprobs array
                 ..Default::default()
             },
+            // TODO: ToolCall support - not yet implemented in generated types
+            AssistantContentPart::ToolCall { .. } => {
+                return Err(ConvertError::UnsupportedInputType);
+            }
             _ => return Err(ConvertError::UnsupportedInputType),
         })
     }
@@ -333,6 +342,7 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
                     provider_options: None,
                 })
             }
+            // TODO: ToolCall content type support - not yet implemented in generated types
             _ => {
                 return Err(ConvertError::UnsupportedInputType);
             }
@@ -591,6 +601,7 @@ fn convert_output_message_content_to_input_content(
             refusal: output_content.refusal,
             ..Default::default()
         }),
+        // TODO: Handle other content types like tool calls when they're properly supported
         _ => {
             // For other content types, try to preserve as much information as possible
             Ok(openai::InputContent {
