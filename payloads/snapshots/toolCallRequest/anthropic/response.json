@@ -1,12 +1,16 @@
 {
-  "id": "msg_018sHnYBpBrvNyxgvHvuM2qj",
+  "id": "msg_016LdymTtCsvwT7Wy2FZf5Uo",
   "type": "message",
   "role": "assistant",
   "model": "claude-sonnet-4-20250514",
   "content": [
     {
+      "type": "text",
+      "text": "I'll check the current weather in San Francisco for you."
+    },
+    {
       "type": "tool_use",
-      "id": "toolu_018sHnYBpBrvNyxgvHvuM2qa",
+      "id": "toolu_01GSV9T88CtfBWh3acKJ1Nmo",
       "name": "get_weather",
       "input": {
         "location": "San Francisco, CA"
@@ -16,14 +20,14 @@
   "stop_reason": "tool_use",
   "stop_sequence": null,
   "usage": {
-    "input_tokens": 148,
+    "input_tokens": 402,
     "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
     "cache_creation": {
       "ephemeral_5m_input_tokens": 0,
       "ephemeral_1h_input_tokens": 0
     },
-    "output_tokens": 154,
+    "output_tokens": 69,
     "service_tier": "standard"
   }
 }

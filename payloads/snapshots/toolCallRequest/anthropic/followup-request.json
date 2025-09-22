@@ -10,8 +10,12 @@
       "role": "assistant",
       "content": [
         {
+          "type": "text",
+          "text": "I'll check the current weather in San Francisco for you."
+        },
+        {
           "type": "tool_use",
-          "id": "toolu_018sHnYBpBrvNyxgvHvuM2qa",
+          "id": "toolu_01GSV9T88CtfBWh3acKJ1Nmo",
           "name": "get_weather",
           "input": {
             "location": "San Francisco, CA"
@@ -21,13 +25,7 @@
     },
     {
       "role": "user",
-      "content": [
-        {
-          "type": "tool_result",
-          "tool_use_id": "toolu_018sHnYBpBrvNyxgvHvuM2qa",
-          "content": "71 degrees"
-        }
-      ]
+      "content": "What should I do next?"
     }
   ],
   "tools": [
@@ -42,7 +40,9 @@
             "description": "The city and state, e.g. San Francisco, CA"
           }
         },
-        "required": ["location"]
+        "required": [
+          "location"
+        ]
       }
     }
   ],

@@ -12,7 +12,7 @@ import { anthropicExecutor } from "./providers/anthropic";
 import { ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
-const allProviders: ProviderExecutor[] = [
+const allProviders: ProviderExecutor<any, any, any>[] = [
   { ...openaiExecutor, name: "openai-chat-completions" },
   openaiResponsesExecutor,
   anthropicExecutor,

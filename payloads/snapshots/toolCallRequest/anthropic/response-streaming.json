@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_018sHnYBpBrvNyxgvHvuM2qj",
+      "id": "msg_01XNGQoD1yWyQjkJidgBSZZW",
       "type": "message",
       "role": "assistant",
       "model": "claude-sonnet-4-20250514",
@@ -10,8 +10,15 @@
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 148,
-        "output_tokens": 1
+        "input_tokens": 402,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 5,
+        "service_tier": "standard"
       }
     }
   },
@@ -19,23 +26,91 @@
     "type": "content_block_start",
     "index": 0,
     "content_block": {
-      "type": "tool_use",
-      "id": "toolu_018sHnYBpBrvNyxgvHvuM2qa",
-      "name": "get_weather",
-      "input": {}
+      "type": "text",
+      "text": ""
     }
   },
   {
     "type": "content_block_delta",
     "index": 0,
     "delta": {
-      "type": "input_json_delta",
-      "partial_json": "{\"location\": \"San Francisco, CA\"}"
+      "type": "text_delta",
+      "text": "I'll check the current"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " weather in San Francisco for you."
     }
   },
   {
     "type": "content_block_stop",
     "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "tool_use",
+      "id": "toolu_018AQx9zBUFo1h9n3cfNXPre",
+      "name": "get_weather",
+      "input": {}
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "{\"lo"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "cation\": "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "\"San "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "Francisco,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": " CA\"}"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
   },
   {
     "type": "message_delta",
@@ -44,7 +119,10 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 154
+      "input_tokens": 402,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 69
     }
   },
   {

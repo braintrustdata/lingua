@@ -6,51 +6,41 @@
       "content": "What's the weather like in San Francisco?"
     },
     {
-      "role": "assistant",
-      "content": [
-        {
-          "type": "tool_call",
-          "id": "call_O3y8f4GpIll2ytLO0prqZTya",
-          "tool_call": {
-            "type": "function",
-            "function": {
-              "name": "get_weather",
-              "arguments": "{\"location\":\"San Francisco, CA\"}"
-            }
-          }
-        }
-      ]
+      "id": "rs_68d16229878481909e2ba0019c0df11706877c284b9f5d56",
+      "type": "reasoning",
+      "summary": []
     },
     {
-      "role": "tool",
-      "content": [
-        {
-          "type": "tool_result",
-          "tool_call_id": "call_O3y8f4GpIll2ytLO0prqZTya",
-          "content": "71 degrees"
-        }
-      ]
+      "id": "fc_68d1622b3f50819082f1ff3ca312fbb206877c284b9f5d56",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"San Francisco, CA\"}",
+      "call_id": "call_MVkO3ChzfJs2RjX4lu8XyNRy",
+      "name": "get_weather"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
     }
   ],
   "tools": [
     {
       "type": "function",
-      "function": {
-        "name": "get_weather",
-        "description": "Get the current weather for a location",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": {
-              "type": "string",
-              "description": "The city and state, e.g. San Francisco, CA"
-            }
-          },
-          "required": [
-            "location"
-          ]
-        }
-      }
+      "name": "get_weather",
+      "description": "Get the current weather for a location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false
     }
   ],
   "tool_choice": "auto"

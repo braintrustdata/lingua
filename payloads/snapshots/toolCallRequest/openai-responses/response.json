@@ -1,7 +1,7 @@
 {
-  "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+  "id": "resp_68d16228dcfc819092174e7c931134ba06877c284b9f5d56",
   "object": "response",
-  "created_at": 1758521958,
+  "created_at": 1758552617,
   "status": "completed",
   "background": false,
   "billing": {
@@ -15,70 +15,72 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "msg_68d0ea67adac81959ba8df5df91ff01400a25bd584461810",
-      "type": "message",
+      "id": "rs_68d16229878481909e2ba0019c0df11706877c284b9f5d56",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_68d1622b3f50819082f1ff3ca312fbb206877c284b9f5d56",
+      "type": "function_call",
       "status": "completed",
-      "content": [
-        {
-          "type": "tool_call",
-          "id": "call_O3y8f4GpIll2ytLO0prqZTya",
-          "tool_call": {
-            "type": "function",
-            "function": {
-              "name": "get_weather",
-              "arguments": "{\"location\":\"San Francisco, CA\"}"
-            }
-          }
-        }
-      ],
-      "role": "assistant"
+      "arguments": "{\"location\":\"San Francisco, CA\"}",
+      "call_id": "call_MVkO3ChzfJs2RjX4lu8XyNRy",
+      "name": "get_weather"
     }
   ],
   "parallel_tool_calls": true,
   "previous_response_id": null,
   "prompt_cache_key": null,
-  "reasoning": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
   "safety_identifier": null,
   "service_tier": "default",
   "store": true,
   "temperature": 1,
-  "text": null,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
   "tool_choice": "auto",
   "tools": [
     {
       "type": "function",
-      "function": {
-        "name": "get_weather",
-        "description": "Get the current weather for a location",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": {
-              "type": "string",
-              "description": "The city and state, e.g. San Francisco, CA"
-            }
-          },
-          "required": [
-            "location"
-          ]
-        }
-      }
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false
     }
   ],
   "top_logprobs": 0,
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 148,
+    "input_tokens": 66,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 154,
+    "output_tokens": 279,
     "output_tokens_details": {
-      "reasoning_tokens": 0
+      "reasoning_tokens": 256
     },
-    "total_tokens": 302
+    "total_tokens": 345
   },
   "user": null,
-  "metadata": {}
+  "metadata": {},
+  "output_text": ""
 }

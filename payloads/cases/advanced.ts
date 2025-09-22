@@ -216,20 +216,19 @@ export const advancedCases: TestCaseCollection = {
       tools: [
         {
           type: "function",
-          function: {
-            name: "get_weather",
-            description: "Get the current weather for a location",
-            parameters: {
-              type: "object",
-              properties: {
-                location: {
-                  type: "string",
-                  description: "The city and state, e.g. San Francisco, CA"
-                }
-              },
-              required: ["location"]
-            }
-          }
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          parameters: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA"
+              }
+            },
+            required: ["location"]
+          },
+          strict: false
         }
       ],
       tool_choice: "auto"

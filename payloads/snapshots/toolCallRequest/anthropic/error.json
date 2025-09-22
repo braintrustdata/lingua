@@ -1,0 +1,3 @@
+{
+  "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.2: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_01GSV9T88CtfBWh3acKJ1Nmo. Each `tool_use` block must have a corresponding `tool_result` block in the next message.\"},\"request_id\":\"req_011CTPdFU7oNBmmwNrJzUFKT\"}"
+}
