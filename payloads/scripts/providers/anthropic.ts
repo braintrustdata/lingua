@@ -72,13 +72,44 @@ export async function executeAnthropic(
         content: result.response.content,
       };
 
+      // Build follow-up messages, handling tool calls
+      const followUpMessages: Anthropic.MessageParam[] = [
+        ...payload.messages,
+        assistantMessage,
+      ];
+
+      // Check if the assistant message contains tool_use blocks
+      const assistantContent = Array.isArray(assistantMessage.content)
+        ? assistantMessage.content
+        : [assistantMessage.content];
+
+      let hasToolCalls = false;
+      for (const contentBlock of assistantContent) {
+        if (typeof contentBlock === 'object' && contentBlock !== null &&
+            'type' in contentBlock && contentBlock.type === 'tool_use') {
+          hasToolCalls = true;
+          // Add tool result for each tool call
+          followUpMessages.push({
+            role: "user",
+            content: [
+              {
+                type: "tool_result",
+                tool_use_id: (contentBlock as any).id,
+                content: "71 degrees",
+              },
+            ],
+          });
+        }
+      }
+
+      // If no tool calls were found, add the generic follow-up message
+      if (!hasToolCalls) {
+        followUpMessages.push({ role: "user", content: "What should I do next?" });
+      }
+
       const followUpPayload: Anthropic.MessageCreateParams = {
         ...payload,
-        messages: [
-          ...payload.messages,
-          assistantMessage,
-          { role: "user", content: "What should I do next?" },
-        ],
+        messages: followUpMessages,
       };
 
       result.followupRequest = followUpPayload;
