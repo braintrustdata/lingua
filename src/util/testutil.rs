@@ -14,7 +14,7 @@ impl Provider {
     pub fn directory_name(&self) -> &'static str {
         match self {
             Provider::OpenAIResponses => "openai-responses",
-            Provider::OpenAIChatCompletions => "openai",
+            Provider::OpenAIChatCompletions => "openai-chat-completions",
             Provider::Anthropic => "anthropic",
         }
     }
@@ -414,7 +414,10 @@ mod tests {
             Provider::OpenAIResponses.directory_name(),
             "openai-responses"
         );
-        assert_eq!(Provider::OpenAIChatCompletions.directory_name(), "openai");
+        assert_eq!(
+            Provider::OpenAIChatCompletions.directory_name(),
+            "openai-chat-completions"
+        );
         assert_eq!(Provider::Anthropic.directory_name(), "anthropic");
     }
 

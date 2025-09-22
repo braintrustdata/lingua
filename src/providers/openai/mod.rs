@@ -12,6 +12,9 @@ pub mod generated;
 #[cfg(test)]
 pub mod test_openai;
 
+#[cfg(test)]
+pub mod test_chat_completions;
+
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{
     ChatCompletionRequestMessage,

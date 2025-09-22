@@ -529,3 +529,330 @@ fn convert_output_message_content_to_input_content(
         }
     }
 }
+
+// ============================================================================
+// Chat Completion Conversions
+// ============================================================================
+
+/// Convert ChatCompletionRequestMessage to universal Message
+impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
+    type Error = ConvertError;
+
+    fn try_from(msg: openai::ChatCompletionRequestMessage) -> Result<Self, Self::Error> {
+        match msg.role {
+            openai::ChatCompletionRequestMessageRole::System => {
+                let content = match msg.content {
+                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
+                        UserContent::String(text)
+                    }
+                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
+                        let user_parts: Result<Vec<_>, _> = parts
+                            .into_iter()
+                            .map(TryFromLLM::try_from)
+                            .collect();
+                        UserContent::Array(user_parts?)
+                    }
+                    None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
+                };
+                Ok(Message::System { content })
+            }
+            openai::ChatCompletionRequestMessageRole::User => {
+                let content = match msg.content {
+                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
+                        UserContent::String(text)
+                    }
+                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
+                        let user_parts: Result<Vec<_>, _> = parts
+                            .into_iter()
+                            .map(TryFromLLM::try_from)
+                            .collect();
+                        UserContent::Array(user_parts?)
+                    }
+                    None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
+                };
+                Ok(Message::User { content })
+            }
+            openai::ChatCompletionRequestMessageRole::Assistant => {
+                let content = match msg.content {
+                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
+                        AssistantContent::String(text)
+                    }
+                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
+                        let assistant_parts: Result<Vec<_>, _> = parts
+                            .into_iter()
+                            .map(|part| {
+                                // Convert ChatCompletionRequestMessageContentPart to AssistantContentPart
+                                match part.chat_completion_request_message_content_part_type {
+                                    openai::PurpleType::Text => {
+                                        if let Some(text) = part.text {
+                                            Ok(AssistantContentPart::Text(TextContentPart {
+                                                text,
+                                                provider_options: None,
+                                            }))
+                                        } else {
+                                            Err(ConvertError::MissingRequiredField { field: "text".to_string() })
+                                        }
+                                    }
+                                    _ => Err(ConvertError::UnsupportedInputType),
+                                }
+                            })
+                            .collect();
+                        AssistantContent::Array(assistant_parts?)
+                    }
+                    None => AssistantContent::String(String::new()), // Handle empty assistant messages
+                };
+                Ok(Message::Assistant { content, id: None })
+            }
+            openai::ChatCompletionRequestMessageRole::Developer => {
+                // Treat developer messages as system messages in universal format
+                let content = match msg.content {
+                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
+                        UserContent::String(text)
+                    }
+                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
+                        let user_parts: Result<Vec<_>, _> = parts
+                            .into_iter()
+                            .map(TryFromLLM::try_from)
+                            .collect();
+                        UserContent::Array(user_parts?)
+                    }
+                    None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
+                };
+                Ok(Message::System { content })
+            }
+            _ => Err(ConvertError::InvalidRole {
+                role: format!("{:?}", msg.role),
+            }),
+        }
+    }
+}
+
+/// Convert ChatCompletionRequestMessageContentPart to UserContentPart
+impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContentPart {
+    type Error = ConvertError;
+
+    fn try_from(
+        part: openai::ChatCompletionRequestMessageContentPart,
+    ) -> Result<Self, Self::Error> {
+        match part.chat_completion_request_message_content_part_type {
+            openai::PurpleType::Text => {
+                if let Some(text) = part.text {
+                    Ok(UserContentPart::Text(TextContentPart {
+                        text,
+                        provider_options: None,
+                    }))
+                } else {
+                    Err(ConvertError::MissingRequiredField {
+                        field: "text".to_string(),
+                    })
+                }
+            }
+            openai::PurpleType::ImageUrl => {
+                if let Some(image_url) = part.image_url {
+                    // Convert ImageUrl to UserContentPart::Image
+                    Ok(UserContentPart::Image {
+                        image: serde_json::to_value(&image_url.url).unwrap_or_default(),
+                        media_type: Some("image/url".to_string()),
+                        provider_options: None,
+                    })
+                } else {
+                    Err(ConvertError::MissingRequiredField {
+                        field: "image_url".to_string(),
+                    })
+                }
+            }
+            _ => Err(ConvertError::UnsupportedInputType),
+        }
+    }
+}
+
+/// Convert universal Message to ChatCompletionRequestMessage
+impl TryFromLLM<Message> for openai::ChatCompletionRequestMessage {
+    type Error = ConvertError;
+
+    fn try_from(msg: Message) -> Result<Self, Self::Error> {
+        match msg {
+            Message::System { content } => Ok(openai::ChatCompletionRequestMessage {
+                role: openai::ChatCompletionRequestMessageRole::System,
+                content: Some(convert_user_content_to_chat_completion_content(content)?),
+                name: None,
+                tool_calls: None,
+                tool_call_id: None,
+                audio: None,
+                function_call: None,
+                refusal: None,
+            }),
+            Message::User { content } => Ok(openai::ChatCompletionRequestMessage {
+                role: openai::ChatCompletionRequestMessageRole::User,
+                content: Some(convert_user_content_to_chat_completion_content(content)?),
+                name: None,
+                tool_calls: None,
+                tool_call_id: None,
+                audio: None,
+                function_call: None,
+                refusal: None,
+            }),
+            Message::Assistant { content, id: _ } => Ok(openai::ChatCompletionRequestMessage {
+                role: openai::ChatCompletionRequestMessageRole::Assistant,
+                content: Some(convert_assistant_content_to_chat_completion_content(
+                    content,
+                )?),
+                name: None,
+                tool_calls: None,
+                tool_call_id: None,
+                audio: None,
+                function_call: None,
+                refusal: None,
+            }),
+            Message::Tool { content: _ } => {
+                // Tool messages are handled differently in chat completions
+                Err(ConvertError::UnsupportedInputType)
+            }
+        }
+    }
+}
+
+/// Convert UserContent to ChatCompletionRequestMessageContent
+fn convert_user_content_to_chat_completion_content(
+    content: UserContent,
+) -> Result<openai::ChatCompletionRequestMessageContent, ConvertError> {
+    match content {
+        UserContent::String(text) => Ok(openai::ChatCompletionRequestMessageContent::String(text)),
+        UserContent::Array(parts) => {
+            let chat_parts: Result<Vec<_>, _> = parts
+                .into_iter()
+                .map(convert_user_content_part_to_chat_completion_part)
+                .collect();
+            Ok(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(chat_parts?))
+        }
+    }
+}
+
+/// Convert UserContentPart to ChatCompletionRequestMessageContentPart
+fn convert_user_content_part_to_chat_completion_part(
+    part: UserContentPart,
+) -> Result<openai::ChatCompletionRequestMessageContentPart, ConvertError> {
+    match part {
+        UserContentPart::Text(text_part) => Ok(openai::ChatCompletionRequestMessageContentPart {
+            text: Some(text_part.text),
+            chat_completion_request_message_content_part_type: openai::PurpleType::Text,
+            image_url: None,
+            input_audio: None,
+            file: None,
+            refusal: None,
+        }),
+        UserContentPart::Image {
+            image,
+            media_type: _,
+            provider_options: _,
+        } => {
+            // Convert image to ImageUrl format
+            let url = match image {
+                serde_json::Value::String(url) => url,
+                _ => return Err(ConvertError::UnsupportedInputType),
+            };
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: None,
+                chat_completion_request_message_content_part_type: openai::PurpleType::ImageUrl,
+                image_url: Some(openai::ImageUrl { url, detail: None }),
+                input_audio: None,
+                file: None,
+                refusal: None,
+            })
+        }
+        _ => Err(ConvertError::UnsupportedInputType),
+    }
+}
+
+/// Convert AssistantContent to ChatCompletionRequestMessageContent
+fn convert_assistant_content_to_chat_completion_content(
+    content: AssistantContent,
+) -> Result<openai::ChatCompletionRequestMessageContent, ConvertError> {
+    match content {
+        AssistantContent::String(text) => {
+            Ok(openai::ChatCompletionRequestMessageContent::String(text))
+        }
+        AssistantContent::Array(parts) => {
+            let chat_parts: Result<Vec<_>, _> = parts
+                .into_iter()
+                .map(|part| match part {
+                    AssistantContentPart::Text(text_part) => {
+                        Ok(openai::ChatCompletionRequestMessageContentPart {
+                            text: Some(text_part.text),
+                            chat_completion_request_message_content_part_type:
+                                openai::PurpleType::Text,
+                            image_url: None,
+                            input_audio: None,
+                            file: None,
+                            refusal: None,
+                        })
+                    }
+                    _ => Err(ConvertError::UnsupportedInputType),
+                })
+                .collect();
+            Ok(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(chat_parts?))
+        }
+    }
+}
+
+/// Convert ChatCompletionResponseMessage to universal Message
+impl TryFromLLM<&openai::ChatCompletionResponseMessage> for Message {
+    type Error = ConvertError;
+
+    fn try_from(msg: &openai::ChatCompletionResponseMessage) -> Result<Self, Self::Error> {
+        match msg.role {
+            openai::MessageRole::Assistant => {
+                let content = if let Some(text) = &msg.content {
+                    AssistantContent::String(text.clone())
+                } else {
+                    AssistantContent::String(String::new())
+                };
+                Ok(Message::Assistant { content, id: None })
+            }
+        }
+    }
+}
+
+/// Convert universal Message to ChatCompletionResponseMessage
+impl TryFromLLM<&Message> for openai::ChatCompletionResponseMessage {
+    type Error = ConvertError;
+
+    fn try_from(msg: &Message) -> Result<Self, Self::Error> {
+        match msg {
+            Message::Assistant { content, id: _ } => {
+                let content_text = match content {
+                    AssistantContent::String(text) => Some(text.clone()),
+                    AssistantContent::Array(parts) => {
+                        // Extract text from parts and concatenate
+                        let texts: Vec<String> = parts
+                            .iter()
+                            .filter_map(|part| match part {
+                                AssistantContentPart::Text(text_part) => {
+                                    Some(text_part.text.clone())
+                                }
+                                _ => None,
+                            })
+                            .collect();
+                        if texts.is_empty() {
+                            None
+                        } else {
+                            Some(texts.join(""))
+                        }
+                    }
+                };
+                Ok(openai::ChatCompletionResponseMessage {
+                    role: openai::MessageRole::Assistant,
+                    content: content_text,
+                    annotations: Some(vec![]), // Hardcode empty annotations for consistency
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    tool_calls: None,
+                })
+            }
+            _ => Err(ConvertError::InvalidRole {
+                role: format!("{:?}", msg),
+            }),
+        }
+    }
+}
