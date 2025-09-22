@@ -2614,6 +2614,7 @@ pub enum InputItemType {
     #[serde(rename = "mcp_list_tools")]
     McpListTools,
     Message,
+    #[serde(rename = "reasoning")]
     Reasoning,
     #[serde(rename = "web_search_call")]
     WebSearchCall,
@@ -4237,6 +4238,7 @@ pub enum OutputItemType {
     #[serde(rename = "mcp_list_tools")]
     McpListTools,
     Message,
+    #[serde(rename = "reasoning")]
     Reasoning,
     #[serde(rename = "web_search_call")]
     WebSearchCall,

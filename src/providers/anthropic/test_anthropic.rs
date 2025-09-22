@@ -25,6 +25,12 @@ mod tests {
         let cases = discover_anthropic_test_cases(None)
             .map_err(|e| format!("Failed to discover test cases: {}", e))?;
 
+        // Debug: Print all discovered test case names
+        eprintln!("DEBUG: Discovered {} test cases:", cases.len());
+        for case in &cases {
+            eprintln!("  - {}", case.name);
+        }
+
         let case = cases
             .iter()
             .find(|c| c.name == full_case_name)
@@ -57,6 +63,32 @@ mod tests {
                     .map_err(|e| format!("Failed to roundtrip response conversion: {}", e))
             },
         )
+    }
+
+    #[test]
+    fn debug_anthropic_deserialize() {
+        use serde_json;
+        use std::fs;
+
+        // Try to deserialize request.json
+        let request_content =
+            fs::read_to_string("payloads/snapshots/toolCallRequest/anthropic/request.json")
+                .unwrap();
+        let request: Result<CreateMessageParams, _> = serde_json::from_str(&request_content);
+        eprintln!("Request deserialization: {:?}", request.is_ok());
+        if let Err(e) = &request {
+            eprintln!("Request error: {}", e);
+        }
+
+        // Try to deserialize response.json
+        let response_content =
+            fs::read_to_string("payloads/snapshots/toolCallRequest/anthropic/response.json")
+                .unwrap();
+        let response: Result<AnthropicMessage, _> = serde_json::from_str(&response_content);
+        eprintln!("Response deserialization: {:?}", response.is_ok());
+        if let Err(e) = &response {
+            eprintln!("Response error: {}", e);
+        }
     }
 
     // Include auto-generated test cases from build script
