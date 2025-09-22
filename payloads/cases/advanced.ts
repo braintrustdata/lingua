@@ -176,6 +176,35 @@ export const advancedCases: TestCaseCollection = {
       ],
       tool_choice: "auto"
     },
+    "anthropic": {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 20000,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?"
+        }
+      ],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA"
+              }
+            },
+            required: ["location"]
+          }
+        }
+      ],
+      tool_choice: {
+        type: "auto"
+      }
+    },
     "openai-responses": {
       model: OPENAI_RESPONSES_MODEL,
       input: [
@@ -204,35 +233,6 @@ export const advancedCases: TestCaseCollection = {
         }
       ],
       tool_choice: "auto"
-    },
-    anthropic: {
-      model: ANTHROPIC_MODEL,
-      max_tokens: 20000,
-      messages: [
-        {
-          role: "user",
-          content: "What's the weather like in San Francisco?"
-        }
-      ],
-      tools: [
-        {
-          name: "get_weather",
-          description: "Get the current weather for a location",
-          input_schema: {
-            type: "object",
-            properties: {
-              location: {
-                type: "string",
-                description: "The city and state, e.g. San Francisco, CA"
-              }
-            },
-            required: ["location"]
-          }
-        }
-      ],
-      tool_choice: {
-        type: "auto"
-      }
     },
   },
 };

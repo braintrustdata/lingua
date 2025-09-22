@@ -1,0 +1,43 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "What do you see in this image?"
+        },
+        {
+          "type": "input_image",
+          "detail": "auto",
+          "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+        }
+      ]
+    },
+    {
+      "id": "msg_68d0e02d864c8193adf028455b2e789906a9b00521bf41b5",
+      "type": "message",
+      "status": "completed",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I can see a beautiful landscape image showing rolling hills with green grass and a clear blue sky. The image appears to be taken during daytime with good lighting conditions. The foreground shows textured grass, and the background features gentle hills under a partly cloudy sky."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "max_output_tokens": 300
+}

@@ -59,8 +59,13 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         }
                                     }
                                 }
+                                generated::InputContentBlockType::ToolResult => {
+                                    // TODO: Handle tool results - these should become separate Message::Tool entries
+                                    // For now, skip to avoid type errors
+                                    continue;
+                                }
                                 _ => {
-                                    // Skip other types for now (tool_use, tool_result, etc.)
+                                    // Skip other types for now
                                     continue;
                                 }
                             }
@@ -116,8 +121,28 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         });
                                     }
                                 }
+                                generated::InputContentBlockType::ToolUse => {
+                                    if let (Some(id), Some(name)) = (&block.id, &block.name) {
+                                        // The input field type is wrong in generated code, use serde_json for now
+                                        let input = if let Some(input_map) = &block.input {
+                                            // Convert HashMap to JSON value
+                                            serde_json::to_value(input_map)
+                                                .unwrap_or(serde_json::Value::Null)
+                                        } else {
+                                            serde_json::Value::Null
+                                        };
+
+                                        content_parts.push(AssistantContentPart::ToolCall {
+                                            tool_call_id: id.clone(),
+                                            tool_name: name.clone(),
+                                            input,
+                                            provider_options: None,
+                                            provider_executed: None,
+                                        });
+                                    }
+                                }
                                 _ => {
-                                    // Skip other types for now (tool_use, tool_result, etc.)
+                                    // Skip other types for now
                                     continue;
                                 }
                             }
@@ -243,6 +268,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         None
                                     }
                                 }
+                                // TODO: Handle tool results - they should come from Message::Tool, not UserContentPart
                                 _ => None, // Skip other parts for now
                             })
                             .collect();
@@ -322,6 +348,46 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     tool_use_id: None,
                                 })
                             }
+                            AssistantContentPart::ToolCall {
+                                tool_call_id,
+                                tool_name,
+                                input,
+                                ..
+                            } => {
+                                // Convert JSON value back to HashMap - this is a workaround for type issues
+                                let input_map = if let Ok(map) =
+                                    serde_json::from_value::<
+                                        std::collections::HashMap<
+                                            String,
+                                            Option<generated::WebSearchToolResultErrorCode>,
+                                        >,
+                                    >(input.clone())
+                                {
+                                    Some(map)
+                                } else {
+                                    None
+                                };
+
+                                Some(generated::InputContentBlock {
+                                    cache_control: None,
+                                    citations: None,
+                                    text: None,
+                                    input_content_block_type:
+                                        generated::InputContentBlockType::ToolUse,
+                                    source: None,
+                                    context: None,
+                                    title: None,
+                                    content: None,
+                                    signature: None,
+                                    thinking: None,
+                                    data: None,
+                                    id: Some(tool_call_id.clone()),
+                                    input: input_map,
+                                    name: Some(tool_name.clone()),
+                                    is_error: None,
+                                    tool_use_id: None,
+                                })
+                            }
                             _ => None, // Skip other types for now
                         })
                         .collect(),
@@ -362,8 +428,26 @@ impl TryFromLLM<&Vec<generated::ContentBlock>> for Vec<Message> {
                         });
                     }
                 }
+                generated::ContentBlockType::ToolUse => {
+                    if let (Some(id), Some(name)) = (&block.id, &block.name) {
+                        // Convert HashMap to JSON value for response processing too
+                        let input = if let Some(input_map) = &block.input {
+                            serde_json::to_value(input_map).unwrap_or(serde_json::Value::Null)
+                        } else {
+                            serde_json::Value::Null
+                        };
+
+                        content_parts.push(AssistantContentPart::ToolCall {
+                            tool_call_id: id.clone(),
+                            tool_name: name.clone(),
+                            input,
+                            provider_options: None,
+                            provider_executed: None,
+                        });
+                    }
+                }
                 _ => {
-                    // Skip other types for now (tool_use, tool_result, etc.)
+                    // Skip other types for now
                     continue;
                 }
             }
@@ -437,6 +521,40 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        content: None,
+                                        tool_use_id: None,
+                                    });
+                                }
+                                AssistantContentPart::ToolCall {
+                                    tool_call_id,
+                                    tool_name,
+                                    input,
+                                    ..
+                                } => {
+                                    // Convert JSON value to HashMap for response generation
+                                    let input_map = if let Ok(map) =
+                                        serde_json::from_value::<
+                                            std::collections::HashMap<
+                                                String,
+                                                Option<generated::WebSearchToolResultErrorCode>,
+                                            >,
+                                        >(input.clone())
+                                    {
+                                        Some(map)
+                                    } else {
+                                        None
+                                    };
+
+                                    content_blocks.push(generated::ContentBlock {
+                                        citations: None,
+                                        text: None,
+                                        content_block_type: generated::ContentBlockType::ToolUse,
+                                        signature: None,
+                                        thinking: None,
+                                        data: None,
+                                        id: Some(tool_call_id.clone()),
+                                        input: input_map,
+                                        name: Some(tool_name.clone()),
                                         content: None,
                                         tool_use_id: None,
                                     });
