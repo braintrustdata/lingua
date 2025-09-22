@@ -1,8 +1,8 @@
 use crate::providers::openai::generated as openai;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart, UserContent,
-    UserContentPart,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart,
+    ToolResultContentPart, UserContent, UserContentPart,
 };
 use std::fmt;
 
@@ -139,8 +139,60 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                     provider_options: None,
                 })
             }
-            _ => {
+            openai::InputItemContentListType::InputImage => {
+                // Extract image URL from the InputContent
+                let image_url =
+                    value
+                        .image_url
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: "image_url".to_string(),
+                        })?;
+
+                // Preserve detail in provider_options
+                let provider_options = if let Some(detail) = &value.detail {
+                    let mut options = serde_json::Map::new();
+                    options.insert(
+                        "detail".to_string(),
+                        serde_json::to_value(detail).unwrap_or(serde_json::Value::Null),
+                    );
+                    Some(crate::universal::message::ProviderOptions { options })
+                } else {
+                    None
+                };
+
+                UserContentPart::Image {
+                    image: serde_json::Value::String(image_url),
+                    media_type: Some("image/jpeg".to_string()), // Default to JPEG, could be improved
+                    provider_options,
+                }
+            }
+            openai::InputItemContentListType::InputAudio => {
+                // Handle audio input if needed in the future
                 return Err(ConvertError::UnsupportedInputType);
+            }
+            openai::InputItemContentListType::InputFile => {
+                // Handle file input if needed in the future
+                return Err(ConvertError::UnsupportedInputType);
+            }
+            openai::InputItemContentListType::ReasoningText => {
+                // Handle reasoning text - treat as regular text for now
+                UserContentPart::Text(TextContentPart {
+                    text: value
+                        .text
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: "text".to_string(),
+                        })?,
+                    provider_options: None,
+                })
+            }
+            openai::InputItemContentListType::Refusal => {
+                // Handle refusal - treat as regular text for now
+                UserContentPart::Text(TextContentPart {
+                    text: value
+                        .text
+                        .unwrap_or_else(|| "Content was refused".to_string()),
+                    provider_options: None,
+                })
             }
         })
     }
@@ -186,6 +238,29 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                 text: Some(text_part.text),
                 ..Default::default()
             },
+            UserContentPart::Image {
+                image,
+                provider_options,
+                ..
+            } => {
+                let image_url = match image {
+                    serde_json::Value::String(url) => url,
+                    _ => return Err(ConvertError::UnsupportedInputType),
+                };
+
+                // Extract detail from provider_options if present
+                let detail = provider_options
+                    .as_ref()
+                    .and_then(|opts| opts.options.get("detail"))
+                    .and_then(|detail_val| serde_json::from_value(detail_val.clone()).ok());
+
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputImage,
+                    image_url: Some(image_url),
+                    detail,
+                    ..Default::default()
+                }
+            }
             _ => return Err(ConvertError::UnsupportedInputType),
         })
     }
@@ -573,9 +648,17 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                 Ok(Message::User { content })
             }
             openai::ChatCompletionRequestMessageRole::Assistant => {
-                let content = match msg.content {
+                let mut content_parts: Vec<AssistantContentPart> = Vec::new();
+
+                // Add text content if present
+                match msg.content {
                     Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
-                        AssistantContent::String(text)
+                        if !text.is_empty() {
+                            content_parts.push(AssistantContentPart::Text(TextContentPart {
+                                text,
+                                provider_options: None,
+                            }));
+                        }
                     }
                     Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
                         let assistant_parts: Result<Vec<_>, _> = parts
@@ -597,10 +680,43 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                                 }
                             })
                             .collect();
-                        AssistantContent::Array(assistant_parts?)
+                        content_parts.extend(assistant_parts?);
                     }
-                    None => AssistantContent::String(String::new()), // Handle empty assistant messages
+                    None => {} // Handle empty assistant messages
+                }
+
+                // Add tool calls if present
+                if let Some(tool_calls) = msg.tool_calls {
+                    for tool_call in tool_calls {
+                        if let Some(function) = tool_call.function {
+                            let input = serde_json::from_str(&function.arguments)
+                                .unwrap_or(serde_json::Value::Null);
+
+                            content_parts.push(AssistantContentPart::ToolCall {
+                                tool_call_id: tool_call.id,
+                                tool_name: function.name,
+                                input,
+                                provider_options: None,
+                                provider_executed: None,
+                            });
+                        }
+                    }
+                }
+
+                let content = if content_parts.is_empty() {
+                    AssistantContent::String(String::new())
+                } else if content_parts.len() == 1 {
+                    // If there's only one text part, use string format
+                    match &content_parts[0] {
+                        AssistantContentPart::Text(text_part) => {
+                            AssistantContent::String(text_part.text.clone())
+                        }
+                        _ => AssistantContent::Array(content_parts),
+                    }
+                } else {
+                    AssistantContent::Array(content_parts)
                 };
+
                 Ok(Message::Assistant { content, id: None })
             }
             openai::ChatCompletionRequestMessageRole::Developer => {
@@ -619,6 +735,34 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                     None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
                 };
                 Ok(Message::System { content })
+            }
+            openai::ChatCompletionRequestMessageRole::Tool => {
+                // Tool messages should extract tool_call_id and content
+                let content_text = match msg.content {
+                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => text,
+                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(_)) => {
+                        return Err(ConvertError::UnsupportedInputType); // Tool messages typically have string content
+                    }
+                    None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
+                };
+
+                let tool_call_id =
+                    msg.tool_call_id
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: "tool_call_id".to_string(),
+                        })?;
+
+                // Convert to universal Tool message format
+                let tool_result = ToolResultContentPart {
+                    tool_call_id: tool_call_id.clone(),
+                    tool_name: String::new(), // OpenAI doesn't provide tool name in tool messages
+                    output: serde_json::Value::String(content_text),
+                    provider_options: None,
+                };
+
+                Ok(Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(tool_result)],
+                })
             }
             _ => Err(ConvertError::InvalidRole {
                 role: format!("{:?}", msg.role),
@@ -692,21 +836,53 @@ impl TryFromLLM<Message> for openai::ChatCompletionRequestMessage {
                 function_call: None,
                 refusal: None,
             }),
-            Message::Assistant { content, id: _ } => Ok(openai::ChatCompletionRequestMessage {
-                role: openai::ChatCompletionRequestMessageRole::Assistant,
-                content: Some(convert_assistant_content_to_chat_completion_content(
-                    content,
-                )?),
-                name: None,
-                tool_calls: None,
-                tool_call_id: None,
-                audio: None,
-                function_call: None,
-                refusal: None,
-            }),
-            Message::Tool { content: _ } => {
-                // Tool messages are handled differently in chat completions
-                Err(ConvertError::UnsupportedInputType)
+            Message::Assistant { content, id: _ } => {
+                let (text_content, tool_calls) = extract_content_and_tool_calls(content)?;
+
+                Ok(openai::ChatCompletionRequestMessage {
+                    role: openai::ChatCompletionRequestMessageRole::Assistant,
+                    content: text_content,
+                    name: None,
+                    tool_calls,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                })
+            }
+            Message::Tool { content } => {
+                // Extract the tool result content
+                let tool_result = content
+                    .iter()
+                    .find_map(|part| {
+                        if let ToolContentPart::ToolResult(result) = part {
+                            Some(result)
+                        } else {
+                            None
+                        }
+                    })
+                    .ok_or_else(|| ConvertError::MissingRequiredField {
+                        field: "tool_result".to_string(),
+                    })?;
+
+                // Convert output to string for OpenAI
+                let content_string = match &tool_result.output {
+                    serde_json::Value::String(s) => s.clone(),
+                    other => serde_json::to_string(other).unwrap_or_default(),
+                };
+
+                Ok(openai::ChatCompletionRequestMessage {
+                    role: openai::ChatCompletionRequestMessageRole::Tool,
+                    content: Some(openai::ChatCompletionRequestMessageContent::String(
+                        content_string,
+                    )),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: Some(tool_result.tool_call_id.clone()),
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                })
             }
         }
     }
@@ -764,6 +940,73 @@ fn convert_user_content_part_to_chat_completion_part(
     }
 }
 
+/// Extract text content and tool calls from AssistantContent
+fn extract_content_and_tool_calls(
+    content: AssistantContent,
+) -> Result<
+    (
+        Option<openai::ChatCompletionRequestMessageContent>,
+        Option<Vec<openai::ToolCall>>,
+    ),
+    ConvertError,
+> {
+    let mut text_parts = Vec::new();
+    let mut tool_calls = Vec::new();
+
+    match content {
+        AssistantContent::String(text) => {
+            return Ok((
+                Some(openai::ChatCompletionRequestMessageContent::String(text)),
+                None,
+            ));
+        }
+        AssistantContent::Array(parts) => {
+            for part in parts {
+                match part {
+                    AssistantContentPart::Text(text_part) => {
+                        text_parts.push(text_part.text);
+                    }
+                    AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name,
+                        input,
+                        ..
+                    } => {
+                        tool_calls.push(openai::ToolCall {
+                            id: tool_call_id,
+                            tool_call_type: openai::ToolType::Function,
+                            function: Some(openai::PurpleFunction {
+                                name: tool_name,
+                                arguments: serde_json::to_string(&input).unwrap_or_default(),
+                            }),
+                            custom: None,
+                        });
+                    }
+                    _ => {
+                        // Handle other content types if needed
+                    }
+                }
+            }
+        }
+    }
+
+    let text_content = if text_parts.is_empty() && !tool_calls.is_empty() {
+        None // When we have tool calls but no text, omit content entirely
+    } else {
+        Some(openai::ChatCompletionRequestMessageContent::String(
+            text_parts.join(""),
+        ))
+    };
+
+    let tool_calls_option = if tool_calls.is_empty() {
+        None
+    } else {
+        Some(tool_calls)
+    };
+
+    Ok((text_content, tool_calls_option))
+}
+
 /// Convert AssistantContent to ChatCompletionRequestMessageContent
 fn convert_assistant_content_to_chat_completion_content(
     content: AssistantContent,
@@ -802,11 +1045,51 @@ impl TryFromLLM<&openai::ChatCompletionResponseMessage> for Message {
     fn try_from(msg: &openai::ChatCompletionResponseMessage) -> Result<Self, Self::Error> {
         match msg.role {
             openai::MessageRole::Assistant => {
-                let content = if let Some(text) = &msg.content {
-                    AssistantContent::String(text.clone())
-                } else {
+                let mut content_parts: Vec<AssistantContentPart> = Vec::new();
+
+                // Add text content if present
+                if let Some(text) = &msg.content {
+                    if !text.is_empty() {
+                        content_parts.push(AssistantContentPart::Text(TextContentPart {
+                            text: text.clone(),
+                            provider_options: None,
+                        }));
+                    }
+                }
+
+                // Add tool calls if present
+                if let Some(tool_calls) = &msg.tool_calls {
+                    for tool_call in tool_calls {
+                        if let Some(function) = &tool_call.function {
+                            // Parse the arguments JSON back to serde_json::Value
+                            let input = serde_json::from_str(&function.arguments)
+                                .unwrap_or(serde_json::Value::Null);
+
+                            content_parts.push(AssistantContentPart::ToolCall {
+                                tool_call_id: tool_call.id.clone(),
+                                tool_name: function.name.clone(),
+                                input,
+                                provider_options: None,
+                                provider_executed: None,
+                            });
+                        }
+                    }
+                }
+
+                let content = if content_parts.is_empty() {
                     AssistantContent::String(String::new())
+                } else if content_parts.len() == 1 {
+                    // If there's only one text part, use string format
+                    match &content_parts[0] {
+                        AssistantContentPart::Text(text_part) => {
+                            AssistantContent::String(text_part.text.clone())
+                        }
+                        _ => AssistantContent::Array(content_parts),
+                    }
+                } else {
+                    AssistantContent::Array(content_parts)
                 };
+
                 Ok(Message::Assistant { content, id: None })
             }
         }
@@ -820,8 +1103,8 @@ impl TryFromLLM<&Message> for openai::ChatCompletionResponseMessage {
     fn try_from(msg: &Message) -> Result<Self, Self::Error> {
         match msg {
             Message::Assistant { content, id: _ } => {
-                let content_text = match content {
-                    AssistantContent::String(text) => Some(text.clone()),
+                let (content_text, tool_calls) = match content {
+                    AssistantContent::String(text) => (Some(text.clone()), None),
                     AssistantContent::Array(parts) => {
                         // Extract text from parts and concatenate
                         let texts: Vec<String> = parts
@@ -833,13 +1116,45 @@ impl TryFromLLM<&Message> for openai::ChatCompletionResponseMessage {
                                 _ => None,
                             })
                             .collect();
-                        if texts.is_empty() {
+
+                        // Extract tool calls from parts
+                        let tool_calls: Vec<openai::ToolCall> = parts
+                            .iter()
+                            .filter_map(|part| match part {
+                                AssistantContentPart::ToolCall {
+                                    tool_call_id,
+                                    tool_name,
+                                    input,
+                                    ..
+                                } => Some(openai::ToolCall {
+                                    id: tool_call_id.clone(),
+                                    tool_call_type: openai::ToolType::Function,
+                                    function: Some(openai::PurpleFunction {
+                                        name: tool_name.clone(),
+                                        arguments: serde_json::to_string(input).unwrap_or_default(),
+                                    }),
+                                    custom: None,
+                                }),
+                                _ => None,
+                            })
+                            .collect();
+
+                        let content_text = if texts.is_empty() {
                             None
                         } else {
                             Some(texts.join(""))
-                        }
+                        };
+
+                        let tool_calls_option = if tool_calls.is_empty() {
+                            None
+                        } else {
+                            Some(tool_calls)
+                        };
+
+                        (content_text, tool_calls_option)
                     }
                 };
+
                 Ok(openai::ChatCompletionResponseMessage {
                     role: openai::MessageRole::Assistant,
                     content: content_text,
@@ -847,7 +1162,7 @@ impl TryFromLLM<&Message> for openai::ChatCompletionResponseMessage {
                     audio: None,
                     function_call: None,
                     refusal: None,
-                    tool_calls: None,
+                    tool_calls,
                 })
             }
             _ => Err(ConvertError::InvalidRole {
