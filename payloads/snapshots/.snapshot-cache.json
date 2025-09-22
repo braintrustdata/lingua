@@ -194,7 +194,7 @@
   },
   "anthropic:toolCallRequest": {
     "payloadHash": "26237bba5981cfae3d29b42e95dd25918999c15e6e18064a703a42c750bb5107",
-    "capturedAt": "2025-09-22T14:50:19.884Z",
+    "capturedAt": "2025-09-22T15:16:35.702Z",
     "provider": "anthropic",
     "name": "toolCallRequest",
     "files": [
@@ -202,7 +202,8 @@
       "toolCallRequest/anthropic/response.json",
       "toolCallRequest/anthropic/response-streaming.json",
       "toolCallRequest/anthropic/followup-request.json",
-      "toolCallRequest/anthropic/error.json"
+      "toolCallRequest/anthropic/followup-response.json",
+      "toolCallRequest/anthropic/followup-response-streaming.json"
     ]
   },
   "openai-responses:toolCallRequest": {

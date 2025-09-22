@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_028sHnYBpBrvNyxgvHvuM3rk",
+      "id": "msg_013SDk7bfHSCnPwG49RCqDbA",
       "type": "message",
       "role": "assistant",
       "model": "claude-sonnet-4-20250514",
@@ -10,8 +10,15 @@
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 245,
-        "output_tokens": 1
+        "input_tokens": 486,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2,
+        "service_tier": "standard"
       }
     }
   },
@@ -28,7 +35,31 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "Based on the weather information, it's currently 71 degrees in San Francisco. That's quite pleasant! San Francisco typically has mild temperatures year-round due to its Mediterranean climate and proximity to the ocean. 71°F is a comfortable temperature - perfect for walking around the city, whether you're exploring neighborhoods like the Mission, visiting Golden Gate Park, or taking a stroll along the waterfront."
+      "text": "The current"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " weather in San Francisco, CA is 71 degrees"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Fahrenheit. That's quite pleasant weather"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "!"
     }
   },
   {
@@ -42,7 +73,10 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 96
+      "input_tokens": 486,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 26
     }
   },
   {

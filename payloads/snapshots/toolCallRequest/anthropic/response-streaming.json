@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01XNGQoD1yWyQjkJidgBSZZW",
+      "id": "msg_016mpEfUFatfxCHEZzQhkGqH",
       "type": "message",
       "role": "assistant",
       "model": "claude-sonnet-4-20250514",
@@ -17,7 +17,7 @@
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 5,
+        "output_tokens": 8,
         "service_tier": "standard"
       }
     }
@@ -35,7 +35,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "I'll check the current"
+      "text": "I'll check the current weather in San"
     }
   },
   {
@@ -43,7 +43,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " weather in San Francisco for you."
+      "text": " Francisco for you."
     }
   },
   {
@@ -55,7 +55,7 @@
     "index": 1,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_018AQx9zBUFo1h9n3cfNXPre",
+      "id": "toolu_01Keh2kzAt9grPY7G4PhWf8S",
       "name": "get_weather",
       "input": {}
     }
@@ -73,7 +73,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"lo"
+      "partial_json": "{\"locati"
     }
   },
   {
@@ -81,7 +81,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "cation\": "
+      "partial_json": "on\": \""
     }
   },
   {
@@ -89,7 +89,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "\"San "
+      "partial_json": "San Franci"
     }
   },
   {
@@ -97,7 +97,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "Francisco,"
+      "partial_json": "sco, "
     }
   },
   {
@@ -105,7 +105,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": " CA\"}"
+      "partial_json": "CA\"}"
     }
   },
   {
