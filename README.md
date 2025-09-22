@@ -1,4 +1,4 @@
-# LLMIR - A library for creating provider-agnostic LLM inputs & outputs
+# LLMIR - A low-level library for translating between LLM formats
 
 LLMIR is a library and specification for defining a universal message format for large language model APIs. It enables developers to write messages, model parameters, and tool definitions in a single format that can be translated to and from any model provider's API client-side with zero runtime overhead.
 
