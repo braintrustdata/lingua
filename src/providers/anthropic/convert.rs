@@ -4,8 +4,6 @@ use crate::universal::{
     UserContent, UserContentPart,
 };
 
-// Vec conversion is handled by the blanket implementation in universal/convert.rs
-
 impl TryFromLLM<generated::InputMessage> for Message {
     type Error = String;
 
@@ -60,9 +58,30 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     }
                                 }
                                 generated::InputContentBlockType::ToolResult => {
-                                    // TODO: Handle tool results - these should become separate Message::Tool entries
-                                    // For now, skip to avoid type errors
-                                    continue;
+                                    if let Some(tool_use_id) = &block.tool_use_id {
+                                        let text = if let Some(content) = &block.content {
+                                            match content {
+                                                generated::Content::String(s) => format!(
+                                                    "Tool result for {}: {}",
+                                                    tool_use_id, s
+                                                ),
+                                                _ => format!(
+                                                    "Tool result for {}: [no content]",
+                                                    tool_use_id
+                                                ),
+                                            }
+                                        } else {
+                                            format!("Tool result for {}: [no content]", tool_use_id)
+                                        };
+
+                                        // Convert tool results to text content parts for now
+                                        content_parts.push(UserContentPart::Text(
+                                            TextContentPart {
+                                                text,
+                                                provider_options: None,
+                                            },
+                                        ));
+                                    }
                                 }
                                 _ => {
                                     // Skip other types for now
@@ -176,12 +195,101 @@ impl TryFromLLM<Message> for generated::InputMessage {
         match msg {
             Message::User { content } => {
                 let anthropic_content = match content {
-                    UserContent::String(text) => generated::MessageContent::String(text),
+                    UserContent::String(text) => {
+                        // Check if this is a converted tool result
+                        if text.contains("Tool result for") {
+                            if let Some(colon_pos) = text.find(": ") {
+                                let tool_use_id_part = &text[16..colon_pos]; // Skip "Tool result for "
+                                let content_part = &text[colon_pos + 2..];
+
+                                // Convert to structured tool result
+                                generated::MessageContent::InputContentBlockArray(vec![
+                                    generated::InputContentBlock {
+                                        cache_control: None,
+                                        citations: None,
+                                        text: None,
+                                        input_content_block_type:
+                                            generated::InputContentBlockType::ToolResult,
+                                        source: None,
+                                        context: None,
+                                        title: None,
+                                        content: Some(generated::Content::String(
+                                            content_part.to_string(),
+                                        )),
+                                        signature: None,
+                                        thinking: None,
+                                        data: None,
+                                        id: None,
+                                        input: None,
+                                        name: None,
+                                        is_error: None,
+                                        tool_use_id: Some(tool_use_id_part.to_string()),
+                                    },
+                                ])
+                            } else {
+                                generated::MessageContent::String(text)
+                            }
+                        } else {
+                            generated::MessageContent::String(text)
+                        }
+                    }
                     UserContent::Array(parts) => {
                         let blocks = parts
                             .into_iter()
                             .filter_map(|part| match part {
+                                UserContentPart::Text(text_part)
+                                    if text_part.text.contains("Tool result for") =>
+                                {
+                                    // Check if this is a converted tool result - handle before regular text
+                                    if let Some(colon_pos) = text_part.text.find(": ") {
+                                        let tool_use_id_part = &text_part.text[16..colon_pos]; // Skip "Tool result for "
+                                        let content_part = &text_part.text[colon_pos + 2..];
+
+                                        Some(generated::InputContentBlock {
+                                            cache_control: None,
+                                            citations: None,
+                                            text: None,
+                                            input_content_block_type:
+                                                generated::InputContentBlockType::ToolResult,
+                                            source: None,
+                                            context: None,
+                                            title: None,
+                                            content: Some(generated::Content::String(
+                                                content_part.to_string(),
+                                            )),
+                                            signature: None,
+                                            thinking: None,
+                                            data: None,
+                                            id: None,
+                                            input: None,
+                                            name: None,
+                                            is_error: None,
+                                            tool_use_id: Some(tool_use_id_part.to_string()),
+                                        })
+                                    } else {
+                                        Some(generated::InputContentBlock {
+                                            cache_control: None,
+                                            citations: None,
+                                            text: Some(text_part.text.clone()),
+                                            input_content_block_type:
+                                                generated::InputContentBlockType::Text,
+                                            source: None,
+                                            context: None,
+                                            title: None,
+                                            content: None,
+                                            signature: None,
+                                            thinking: None,
+                                            data: None,
+                                            id: None,
+                                            input: None,
+                                            name: None,
+                                            is_error: None,
+                                            tool_use_id: None,
+                                        })
+                                    }
+                                }
                                 UserContentPart::Text(text_part) => {
+                                    // Regular text content
                                     Some(generated::InputContentBlock {
                                         cache_control: None,
                                         citations: None,
@@ -268,7 +376,6 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         None
                                     }
                                 }
-                                // TODO: Handle tool results - they should come from Message::Tool, not UserContentPart
                                 _ => None, // Skip other parts for now
                             })
                             .collect();

@@ -880,6 +880,12 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\n#[serde(rename_all = \"snake_case\")]\npub enum OutputItemType {"
     );
 
+    // Make output_item_type field optional to handle cases where original data doesn't have it
+    processed = processed.replace(
+        "pub output_item_type: OutputItemType,",
+        "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
+    );
+
     processed
 }
 
