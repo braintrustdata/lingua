@@ -356,10 +356,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             } => {
                                 // Convert JSON value back to HashMap - this is a workaround for type issues
                                 let input_map = serde_json::from_value::<
-                                    std::collections::HashMap<
-                                        String,
-                                        Option<generated::WebSearchToolResultErrorCode>,
-                                    >,
+                                    std::collections::HashMap<String, Option<serde_json::Value>>,
                                 >(input.clone())
                                 .ok();
 
@@ -531,7 +528,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         serde_json::from_value::<
                                             std::collections::HashMap<
                                                 String,
-                                                Option<generated::WebSearchToolResultErrorCode>,
+                                                Option<serde_json::Value>,
                                             >,
                                         >(input.clone())
                                         .ok();

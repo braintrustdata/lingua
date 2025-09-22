@@ -92,16 +92,27 @@ Each provider should have:
 
 **🚨 DO NOT EDIT `generated.rs` FILES DIRECTLY 🚨**
 
+**⚠️ ABSOLUTELY FORBIDDEN - CHANGES WILL BE LOST ⚠️**
+
 Files named `generated.rs` are automatically generated and will be overwritten:
 - `src/providers/google/generated.rs` - Generated from protobuf files
-- `src/providers/openai/generated.rs` - Generated from OpenAPI specs  
+- `src/providers/openai/generated.rs` - Generated from OpenAPI specs
 - `src/providers/anthropic/generated.rs` - Generated from OpenAPI specs
+
+**ANY MANUAL CHANGES TO THESE FILES WILL BE PERMANENTLY LOST ON NEXT REGENERATION**
 
 **If you need to fix issues in generated files:**
 1. ✅ **DO**: Edit the generation logic in `scripts/generate-types.rs`
 2. ✅ **DO**: Add fixes to the `fix_google_type_references()` or similar functions
 3. ✅ **DO**: Regenerate using `cargo run --bin generate-types <provider>`
 4. ❌ **DON'T**: Edit the generated files directly - your changes will be lost!
+
+**⚠️ NEVER MANUALLY EDIT:**
+- Any struct, enum, or type definitions in `generated.rs` files
+- Field types, names, or annotations in generated types
+- Serde attributes or derives in generated code
+
+**Claude Code AI Assistant: You must NEVER directly edit generated.rs files. Always use the generation pipeline and post-processing functions.**
 
 **Example of proper fix approach:**
 ```rust

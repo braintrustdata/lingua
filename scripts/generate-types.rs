@@ -827,8 +827,12 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
         processed
     );
 
-    // Fix specific type mappings that quicktype might miss
-    processed = processed.replace("serde_json::Value", "WebSearchToolResultErrorCode");
+    // Fix specific type mappings that quicktype might miss - be very specific to avoid over-replacement
+    // Only replace serde_json::Value in error_code fields, not in general input/properties fields
+    processed = processed.replace(
+        "pub error_code: serde_json::Value",
+        "pub error_code: WebSearchToolResultErrorCode",
+    );
 
     // Ensure proper serde attributes for discriminated unions
     if processed.contains("ContentBlock") && processed.contains("#[derive(") {
