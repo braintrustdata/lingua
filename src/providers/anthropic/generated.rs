@@ -22,7 +22,9 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AnthropicSchemas {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub request: Option<CreateMessageParams>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub response: Option<Message>,
 }
 
@@ -119,6 +121,7 @@ pub struct CreateMessageParams {
     /// There is a limit of 100,000 messages in a single request.
     pub messages: Vec<InputMessage>,
     /// An object describing metadata about the request.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Metadata>,
     pub model: String,
     /// Determines whether to use priority capacity (if available) or standard capacity for this
@@ -126,6 +129,7 @@ pub struct CreateMessageParams {
     ///
     /// Anthropic offers different levels of service for your API requests. See
     /// [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierEnum>,
     /// Custom text sequences that will cause the model to stop generating.
     ///
@@ -136,16 +140,19 @@ pub struct CreateMessageParams {
     /// can use the `stop_sequences` parameter. If the model encounters one of the custom
     /// sequences, the response `stop_reason` value will be `"stop_sequence"` and the response
     /// `stop_sequence` value will contain the matched stop sequence.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_sequences: Option<Vec<String>>,
     /// Whether to incrementally stream the response using server-sent events.
     ///
     /// See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for details.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     /// System prompt.
     ///
     /// A system prompt is a way of providing context and instructions to Claude, such as
     /// specifying a particular goal or role. See our [guide to system
     /// prompts](https://docs.anthropic.com/en/docs/system-prompts).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<System>,
     /// Amount of randomness injected into the response.
     ///
@@ -153,8 +160,11 @@ pub struct CreateMessageParams {
     /// analytical / multiple choice, and closer to `1.0` for creative and generative tasks.
     ///
     /// Note that even with `temperature` of `0.0`, the results will not be fully deterministic.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<Thinking>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_choice: Option<ToolChoice>,
     /// Definitions of tools that the model may use.
     ///
@@ -229,6 +239,7 @@ pub struct CreateMessageParams {
     /// output.
     ///
     /// See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
     /// Only sample from the top K options for each subsequent token.
     ///
@@ -236,6 +247,7 @@ pub struct CreateMessageParams {
     /// here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
     ///
     /// Recommended for advanced use cases only. You usually only need to use `temperature`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub top_k: Option<i64>,
     /// Use nucleus sampling.
     ///
@@ -245,6 +257,7 @@ pub struct CreateMessageParams {
     /// `top_p`, but not both.
     ///
     /// Recommended for advanced use cases only. You usually only need to use `temperature`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f64>,
 }
 
@@ -280,22 +293,36 @@ pub enum MessageContent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InputContentBlock {
     /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Citations>,
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub input_content_block_type: InputContentBlockType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<InputContentBlockSource>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Content>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    pub input: Option<HashMap<String, Option<WebSearchToolResultErrorCode>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<HashMap<String, Option<serde_json::Value>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_error: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_use_id: Option<String>,
 }
 
@@ -344,20 +371,32 @@ pub enum Citations {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestLocationCitation {
     pub cited_text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub document_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub document_title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_char_index: Option<i64>,
     pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
     pub request_location_citation_type: CitationType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_page_number: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_page_number: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_block_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_block_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_index: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub search_result_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
 }
 
@@ -378,6 +417,7 @@ pub enum CitationType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestCitationsConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
 }
 
@@ -397,16 +437,24 @@ pub enum Content {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Citations>,
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub block_type: WebSearchToolResultBlockItemType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<WebSearchToolResultBlockItemSource>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Vec<RequestTextBlock>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub page_age: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 }
 
@@ -425,7 +473,9 @@ pub enum WebSearchToolResultBlockItemType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestTextBlock {
     /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Vec<RequestLocationCitation>>,
     pub text: String,
     #[serde(rename = "type")]
@@ -447,10 +497,12 @@ pub enum WebSearchToolResultBlockItemSource {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SourceSource {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     pub media_type: Option<PurpleMediaType>,
     #[serde(rename = "type")]
     pub source_type: PurpleType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 }
 
@@ -531,11 +583,14 @@ pub enum InputContentBlockSource {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PurpleSource {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     pub media_type: Option<FluffyMediaType>,
     #[serde(rename = "type")]
     pub source_type: FluffyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<SourceContent>,
 }
 
@@ -552,11 +607,14 @@ pub enum SourceContent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ContentBlockSourceContentItem {
     /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Vec<RequestLocationCitation>>,
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<SourceSource>,
 }
 
@@ -607,6 +665,7 @@ pub struct Metadata {
     /// This should be a uuid, hash value, or other opaque identifier. Anthropic may use this id
     /// to help detect abuse. Do not include any identifying information such as name, email
     /// address, or phone number.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user_id: Option<String>,
 }
 
@@ -690,6 +749,7 @@ pub struct ToolChoice {
     #[serde(rename = "type")]
     pub tool_choice_type: ToolChoiceType,
     /// The name of the tool to use.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 }
 
@@ -705,6 +765,7 @@ pub enum ToolChoiceType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Tool {
     /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
     /// Description of what this tool does.
     ///
@@ -712,30 +773,38 @@ pub struct Tool {
     /// has about what the tool is and how to use it, the better it will perform. You can use
     /// natural language descriptions to reinforce important aspects of the tool input JSON
     /// schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
     ///
     /// This defines the shape of the `input` that your tool accepts and that the model will
     /// produce.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub input_schema: Option<InputSchema>,
     /// Name of the tool.
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
     #[serde(rename = "type")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_type: Option<ToolType>,
     /// Maximum number of characters to display when viewing a file. If not specified, defaults
     /// to displaying the full file.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_characters: Option<i64>,
     /// If provided, only these domains will be included in results. Cannot be used alongside
     /// `blocked_domains`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_domains: Option<Vec<String>>,
     /// If provided, these domains will never appear in results. Cannot be used alongside
     /// `allowed_domains`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_domains: Option<Vec<String>>,
     /// Maximum number of times the tool can be used in the API request.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_uses: Option<i64>,
     /// Parameters for the user's location. Used to provide more relevant search results.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user_location: Option<UserLocation>,
 }
 
@@ -745,7 +814,8 @@ pub struct Tool {
 /// produce.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InputSchema {
-    pub properties: Option<HashMap<String, Option<WebSearchToolResultErrorCode>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<HashMap<String, Option<serde_json::Value>>>,
     pub required: Option<Vec<String>>,
     #[serde(rename = "type")]
     pub input_schema_type: InputSchemaType,
@@ -776,11 +846,14 @@ pub enum ToolType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserLocation {
     /// The city of the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub city: Option<String>,
     /// The two letter [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of
     /// the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub country: Option<String>,
     /// The region of the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub region: Option<String>,
     /// The [IANA timezone](https://nodatime.org/TimeZones) of the user.
     pub timezone: Option<String>,
@@ -849,10 +922,12 @@ pub struct Message {
     ///
     /// In non-streaming mode this value is always non-null. In streaming mode, it is null in the
     /// `message_start` event and non-null otherwise.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_reason: Option<StopReason>,
     /// Which custom stop sequence was generated, if any.
     ///
     /// This value will be a non-null string if one of your custom stop sequences was generated.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_sequence: Option<String>,
     /// Object type.
     ///
@@ -884,38 +959,60 @@ pub struct ContentBlock {
     /// The type of citation returned will depend on the type of document being cited. Citing a
     /// PDF results in `page_location`, plain text results in `char_location`, and content
     /// document results in `content_block_location`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Vec<ResponseLocationCitation>>,
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub content_block_type: ContentBlockType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    pub input: Option<HashMap<String, Option<WebSearchToolResultErrorCode>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<HashMap<String, Option<serde_json::Value>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<ContentBlockContent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_use_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResponseLocationCitation {
     pub cited_text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub document_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub document_title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_char_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub file_id: Option<String>,
     pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
     pub response_location_citation_type: CitationType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_page_number: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_page_number: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_block_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_block_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_index: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub search_result_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
 }
 
@@ -929,6 +1026,7 @@ pub enum ContentBlockContent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResponseWebSearchResultBlock {
     pub encrypted_content: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub page_age: Option<String>,
     pub title: String,
     #[serde(rename = "type")]
@@ -1017,18 +1115,23 @@ pub enum StopReason {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Usage {
     /// Breakdown of cached tokens by TTL
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_creation: Option<CacheCreation>,
     /// The number of input tokens used to create the cache entry.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_creation_input_tokens: Option<i64>,
     /// The number of input tokens read from the cache.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_read_input_tokens: Option<i64>,
     /// The number of input tokens which were used.
     pub input_tokens: i64,
     /// The number of output tokens which were used.
     pub output_tokens: i64,
     /// The number of server tool requests.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub server_tool_use: Option<ServerToolUsage>,
     /// If the request used the priority, standard, or batch tier.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierServiceTier>,
 }
 
