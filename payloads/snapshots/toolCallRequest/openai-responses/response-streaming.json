@@ -1,0 +1,93 @@
+[
+  {
+    "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+    "object": "response.delta",
+    "created_at": 1758521958,
+    "delta": {
+      "type": "response.start",
+      "response": {
+        "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+        "object": "response",
+        "created_at": 1758521958,
+        "status": "in_progress",
+        "model": "gpt-5-nano-2025-08-07"
+      }
+    }
+  },
+  {
+    "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+    "object": "response.delta",
+    "created_at": 1758521958,
+    "delta": {
+      "type": "output_item.start",
+      "index": 0,
+      "output_item": {
+        "id": "msg_68d0ea67adac81959ba8df5df91ff01400a25bd584461810",
+        "type": "message",
+        "status": "in_progress",
+        "role": "assistant",
+        "content": []
+      }
+    }
+  },
+  {
+    "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+    "object": "response.delta",
+    "created_at": 1758521958,
+    "delta": {
+      "type": "content_part.start",
+      "index": 0,
+      "content_part": {
+        "type": "tool_call",
+        "id": "call_O3y8f4GpIll2ytLO0prqZTya",
+        "tool_call": {
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": ""
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+    "object": "response.delta",
+    "created_at": 1758521958,
+    "delta": {
+      "type": "content_part.delta",
+      "index": 0,
+      "tool_call": {
+        "function": {
+          "arguments": "{\"location\":\"San Francisco, CA\"}"
+        }
+      }
+    }
+  },
+  {
+    "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+    "object": "response.delta",
+    "created_at": 1758521958,
+    "delta": {
+      "type": "content_part.stop",
+      "index": 0
+    }
+  },
+  {
+    "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+    "object": "response.delta",
+    "created_at": 1758521958,
+    "delta": {
+      "type": "output_item.stop",
+      "index": 0
+    }
+  },
+  {
+    "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+    "object": "response.delta",
+    "created_at": 1758521958,
+    "delta": {
+      "type": "response.stop"
+    }
+  }
+]

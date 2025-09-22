@@ -1,0 +1,82 @@
+[
+  {
+    "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+    "object": "response.delta",
+    "created_at": 1758522058,
+    "delta": {
+      "type": "response.start",
+      "response": {
+        "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+        "object": "response",
+        "created_at": 1758522058,
+        "status": "in_progress",
+        "model": "gpt-5-nano-2025-08-07"
+      }
+    }
+  },
+  {
+    "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+    "object": "response.delta",
+    "created_at": 1758522058,
+    "delta": {
+      "type": "output_item.start",
+      "index": 0,
+      "output_item": {
+        "id": "msg_68d0ea67bdac81959ba8df5df91ff01400a25bd584461811",
+        "type": "message",
+        "status": "in_progress",
+        "role": "assistant",
+        "content": []
+      }
+    }
+  },
+  {
+    "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+    "object": "response.delta",
+    "created_at": 1758522058,
+    "delta": {
+      "type": "content_part.start",
+      "index": 0,
+      "content_part": {
+        "type": "output_text",
+        "text": ""
+      }
+    }
+  },
+  {
+    "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+    "object": "response.delta",
+    "created_at": 1758522058,
+    "delta": {
+      "type": "content_part.delta",
+      "index": 0,
+      "text": "Based on the weather information, it's currently 71 degrees in San Francisco. That's quite pleasant! San Francisco typically has mild temperatures year-round due to its Mediterranean climate and proximity to the ocean. 71°F is a comfortable temperature - perfect for walking around the city, whether you're exploring neighborhoods like the Mission, visiting Golden Gate Park, or taking a stroll along the waterfront."
+    }
+  },
+  {
+    "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+    "object": "response.delta",
+    "created_at": 1758522058,
+    "delta": {
+      "type": "content_part.stop",
+      "index": 0
+    }
+  },
+  {
+    "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+    "object": "response.delta",
+    "created_at": 1758522058,
+    "delta": {
+      "type": "output_item.stop",
+      "index": 0
+    }
+  },
+  {
+    "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+    "object": "response.delta",
+    "created_at": 1758522058,
+    "delta": {
+      "type": "response.stop"
+    }
+  }
+]

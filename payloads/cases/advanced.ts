@@ -113,4 +113,126 @@ export const advancedCases: TestCaseCollection = {
       ],
     },
   },
+
+  reasoningWithOutput: {
+    "openai-responses": {
+      model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "low" },
+      input: [
+        {
+          role: "user",
+          content: "What color is the sky?"
+        }
+      ],
+    },
+    "openai-chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What color is the sky?"
+        }
+      ],
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 20000,
+      messages: [
+        {
+          role: "user",
+          content: "What color is the sky?"
+        }
+      ],
+    },
+  },
+
+  toolCallRequest: {
+    "openai-chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?"
+        }
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get the current weather for a location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA"
+                }
+              },
+              required: ["location"]
+            }
+          }
+        }
+      ],
+      tool_choice: "auto"
+    },
+    "openai-responses": {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?"
+        }
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get the current weather for a location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA"
+                }
+              },
+              required: ["location"]
+            }
+          }
+        }
+      ],
+      tool_choice: "auto"
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 20000,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?"
+        }
+      ],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA"
+              }
+            },
+            required: ["location"]
+          }
+        }
+      ],
+      tool_choice: {
+        type: "auto"
+      }
+    },
+  },
 };
