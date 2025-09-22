@@ -1,0 +1,65 @@
+{
+  "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+  "object": "response",
+  "created_at": 1758519400,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "msg_68d0e02d864c8193adf028455b2e789906a9b00521bf41b6",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Based on your interest in the landscape image, here are some suggestions for what you could do next:\n\n1. **Photography practice** - Try taking similar landscape photos in your area\n2. **Learn about composition** - Study the rule of thirds and other photography techniques\n3. **Explore nature** - Visit local parks or hiking trails to find scenic views\n4. **Image editing** - Learn how to enhance landscape photos using editing software\n5. **Share or discuss** - Share the image with friends or photography communities\n\nWhat interests you most about this type of imagery?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b5",
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 445,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 158,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 603
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Based on your interest in the landscape image, here are some suggestions for what you could do next:\n\n1. **Photography practice** - Try taking similar landscape photos in your area\n2. **Learn about composition** - Study the rule of thirds and other photography techniques\n3. **Explore nature** - Visit local parks or hiking trails to find scenic views\n4. **Image editing** - Learn how to enhance landscape photos using editing software\n5. **Share or discuss** - Share the image with friends or photography communities\n\nWhat interests you most about this type of imagery?"
+}
