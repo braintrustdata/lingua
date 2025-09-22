@@ -1,40 +1,30 @@
 {
-  "id": "chatcmpl-CITV6bc70FZ444K1cmtStZId5oMlT",
+  "id": "chatcmpl-CITQP2g0HKoAnXOnzodh6JyQ6UyN9",
   "object": "chat.completion",
-  "created": 1758519340,
+  "created": 1758519049,
   "model": "gpt-5-nano-2025-08-07",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": null,
-        "tool_calls": [
-          {
-            "id": "call_oCjDaR0mev6NWsoOPgbMHJfs",
-            "type": "function",
-            "function": {
-              "name": "get_weather",
-              "arguments": "{\"location\":\"San Francisco, CA\"}"
-            }
-          }
-        ],
+        "content": "",
         "refusal": null,
         "annotations": []
       },
-      "finish_reason": "tool_calls"
+      "finish_reason": "length"
     }
   ],
   "usage": {
-    "prompt_tokens": 148,
-    "completion_tokens": 154,
-    "total_tokens": 302,
+    "prompt_tokens": 321,
+    "completion_tokens": 300,
+    "total_tokens": 621,
     "prompt_tokens_details": {
       "cached_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 128,
+      "reasoning_tokens": 300,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

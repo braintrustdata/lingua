@@ -57,7 +57,7 @@
   },
   "openai-chat-completions:toolCallRequest": {
     "payloadHash": "813dcc83d1322cae3043cff7dd3850fb7981cb5ef831a6b65903cae3fa7794b1",
-    "capturedAt": "2025-09-22T05:25:51.989Z",
+    "capturedAt": "2025-09-22T05:35:42.358Z",
     "provider": "openai-chat-completions",
     "name": "toolCallRequest",
     "files": [
@@ -83,23 +83,31 @@
     ]
   },
   "anthropic:multimodalRequest": {
-    "payloadHash": "122341cb53c186960cf0235c30b96566812618390ac312874002fdeae2d80e23",
-    "capturedAt": "2025-09-22T05:25:50.011Z",
+    "payloadHash": "b8de77ad6065ca808e5681b3e58706b99f7aa1220101fa551496159a937f9630",
+    "capturedAt": "2025-09-22T05:32:43.717Z",
     "provider": "anthropic",
     "name": "multimodalRequest",
     "files": [
       "multimodalRequest/anthropic/request.json",
-      "multimodalRequest/anthropic/error.json"
+      "multimodalRequest/anthropic/response.json",
+      "multimodalRequest/anthropic/response-streaming.json",
+      "multimodalRequest/anthropic/followup-request.json",
+      "multimodalRequest/anthropic/followup-response.json",
+      "multimodalRequest/anthropic/followup-response-streaming.json"
     ]
   },
   "openai-chat-completions:multimodalRequest": {
-    "payloadHash": "942334d0aeabf72ef207da3fca39ebdc5d82c579629f20ca32dd759823f73509",
-    "capturedAt": "2025-09-22T05:25:50.365Z",
+    "payloadHash": "101d2290e0a0644cef71bcb7869a6e26839894a4b323952b0528dfe3b35dbdf4",
+    "capturedAt": "2025-09-22T05:30:53.524Z",
     "provider": "openai-chat-completions",
     "name": "multimodalRequest",
     "files": [
       "multimodalRequest/openai-chat-completions/request.json",
-      "multimodalRequest/openai-chat-completions/error.json"
+      "multimodalRequest/openai-chat-completions/response.json",
+      "multimodalRequest/openai-chat-completions/response-streaming.json",
+      "multimodalRequest/openai-chat-completions/followup-request.json",
+      "multimodalRequest/openai-chat-completions/followup-response.json",
+      "multimodalRequest/openai-chat-completions/followup-response-streaming.json"
     ]
   },
   "openai-responses:reasoningRequest": {
@@ -167,6 +175,17 @@
       "reasoningRequest/anthropic/followup-request.json",
       "reasoningRequest/anthropic/followup-response.json",
       "reasoningRequest/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "openai-responses:multimodalRequest": {
+    "payloadHash": "cf21e8138cb36794c5f69f5d8048556176299d6e8170fb2126cd0950e75c2125",
+    "capturedAt": "2025-09-22T05:35:43.037Z",
+    "provider": "openai-responses",
+    "name": "multimodalRequest",
+    "files": [
+      "multimodalRequest/openai-responses/request.json",
+      "multimodalRequest/openai-responses/response.json",
+      "multimodalRequest/openai-responses/response-streaming.json"
     ]
   }
 }
