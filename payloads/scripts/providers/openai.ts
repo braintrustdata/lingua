@@ -10,7 +10,11 @@ export const openaiCases: Record<
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
-  const caseData = getCaseForProvider(allTestCases, caseName, "openai-chat-completions");
+  const caseData = getCaseForProvider(
+    allTestCases,
+    caseName,
+    "openai-chat-completions",
+  );
   if (caseData) {
     openaiCases[caseName] = caseData;
   }
@@ -76,16 +80,37 @@ export async function executeOpenAI(
       "choices" in result.response &&
       result.response.choices?.[0]?.message
     ) {
-      const assistantMessage = result.response.choices[0].message;
+      const assistantMessage = result.response.choices[0]
+        .message as OpenAI.Chat.Completions.ChatCompletionMessage;
+
+      // Build follow-up messages, handling tool calls
+      const followUpMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] =
+        [...payload.messages, assistantMessage];
+
+      // If the assistant message contains tool calls, add dummy tool responses
+      if (
+        assistantMessage.tool_calls &&
+        assistantMessage.tool_calls.length > 0
+      ) {
+        for (const toolCall of assistantMessage.tool_calls) {
+          followUpMessages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: "71 degrees",
+          });
+        }
+      } else {
+        // Always add the user follow-up message
+        followUpMessages.push({
+          role: "user",
+          content: "What should I do next?",
+        });
+      }
 
       const followUpPayload: OpenAI.Chat.Completions.ChatCompletionCreateParams =
         {
           ...payload,
-          messages: [
-            ...payload.messages,
-            assistantMessage,
-            { role: "user", content: "What should I do next?" },
-          ],
+          messages: followUpMessages,
         };
 
       result.followupRequest = followUpPayload;

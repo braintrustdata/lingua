@@ -57,7 +57,7 @@
   },
   "openai-chat-completions:toolCallRequest": {
     "payloadHash": "5ff8e7c24a577b425761672d2b524b34be00ad35963a310a08a754242b6b3a5b",
-    "capturedAt": "2025-09-22T05:41:20.932Z",
+    "capturedAt": "2025-09-22T05:50:39.547Z",
     "provider": "openai-chat-completions",
     "name": "toolCallRequest",
     "files": [
@@ -65,7 +65,8 @@
       "toolCallRequest/openai-chat-completions/response.json",
       "toolCallRequest/openai-chat-completions/response-streaming.json",
       "toolCallRequest/openai-chat-completions/followup-request.json",
-      "toolCallRequest/openai-chat-completions/error.json"
+      "toolCallRequest/openai-chat-completions/followup-response.json",
+      "toolCallRequest/openai-chat-completions/followup-response-streaming.json"
     ]
   },
   "openai-chat-completions:reasoningRequest": {

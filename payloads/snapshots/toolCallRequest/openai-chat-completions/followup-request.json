@@ -10,7 +10,7 @@
       "content": null,
       "tool_calls": [
         {
-          "id": "call_17tGSZkZyZzOiUNjn6HPa3Bz",
+          "id": "call_O3y8f4GpIll2ytLO0prqZTya",
           "type": "function",
           "function": {
             "name": "get_weather",
@@ -22,8 +22,9 @@
       "annotations": []
     },
     {
-      "role": "user",
-      "content": "What should I do next?"
+      "role": "tool",
+      "tool_call_id": "call_O3y8f4GpIll2ytLO0prqZTya",
+      "content": "71 degrees"
     }
   ],
   "tools": [
