@@ -12,7 +12,7 @@ categories = ["api-bindings", "development-tools"]
 optional_option_fields = true
 
 [features]
-default = ["openai", "anthropic", "google", "bedrock"]
+default = ["openai", "anthropic", "google"]
 openai = []
 anthropic = []
 google = []

@@ -126,7 +126,6 @@ export const simpleCases: TestCaseCollection = {
         },
       ],
       tool_choice: "auto",
-      max_completion_tokens: 200,
     },
   },
 };

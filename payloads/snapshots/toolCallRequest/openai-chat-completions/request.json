@@ -27,6 +27,5 @@
       }
     }
   ],
-  "tool_choice": "auto",
-  "max_completion_tokens": 200
+  "tool_choice": "auto"
 }

@@ -10,7 +10,7 @@
       "content": null,
       "tool_calls": [
         {
-          "id": "call_oCjDaR0mev6NWsoOPgbMHJfs",
+          "id": "call_17tGSZkZyZzOiUNjn6HPa3Bz",
           "type": "function",
           "function": {
             "name": "get_weather",
@@ -47,6 +47,5 @@
       }
     }
   ],
-  "tool_choice": "auto",
-  "max_completion_tokens": 200
+  "tool_choice": "auto"
 }
