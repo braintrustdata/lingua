@@ -323,6 +323,8 @@ impl TryFromLLM<Message> for openai::InputItem {
                         role: Some(openai::InputItemRole::Assistant),
                         content: Some(openai::InputItemContent::String(text)),
                         id,
+                        input_item_type: Some(openai::InputItemType::Message),
+                        status: Some(openai::FunctionCallItemStatus::Completed),
                         ..Default::default()
                     }),
                     AssistantContent::Array(parts) => {
@@ -420,6 +422,109 @@ impl TryFromLLM<Message> for openai::InputItem {
                     }
                 })
             }
+        }
+    }
+}
+
+/// Convert OutputItem to InputItem for unified processing
+/// OutputItem is used in responses while InputItem is used in requests,
+/// but they have very similar structure for message content
+impl TryFromLLM<openai::OutputItem> for openai::InputItem {
+    type Error = ConvertError;
+
+    fn try_from(output_item: openai::OutputItem) -> Result<Self, Self::Error> {
+        // Convert OutputItem to InputItem by mapping the fields
+        // The main differences are in content type and some field names
+
+        let input_item_type = match output_item.output_item_type {
+            openai::OutputItemType::Message => Some(openai::InputItemType::Message),
+            openai::OutputItemType::Reasoning => Some(openai::InputItemType::Reasoning),
+            // For other types, we might need to map them or handle specially
+            _ => None, // Will be handled based on content
+        };
+
+        // Convert content from Vec<OutputMessageContent> to InputItemContent
+        let content = if let Some(output_content) = output_item.content {
+            if output_content.is_empty() {
+                None
+            } else if output_content.len() == 1 {
+                // Single content item - check if we can convert to string
+                if output_content[0].output_message_content_type == openai::ContentType::OutputText
+                {
+                    if let Some(text) = output_content.into_iter().next().unwrap().text {
+                        Some(openai::InputItemContent::String(text))
+                    } else {
+                        None
+                    }
+                } else {
+                    // Convert to InputContent array
+                    let input_contents: Result<Vec<_>, _> = output_content
+                        .into_iter()
+                        .map(|oc| convert_output_message_content_to_input_content(oc))
+                        .collect();
+                    Some(openai::InputItemContent::InputContentArray(input_contents?))
+                }
+            } else {
+                // Multiple content items - convert to array
+                let input_contents: Result<Vec<_>, _> = output_content
+                    .into_iter()
+                    .map(|oc| convert_output_message_content_to_input_content(oc))
+                    .collect();
+                Some(openai::InputItemContent::InputContentArray(input_contents?))
+            }
+        } else {
+            None
+        };
+
+        // Convert role from MessageRole to InputItemRole
+        let role = output_item.role.map(|mr| match mr {
+            openai::MessageRole::Assistant => openai::InputItemRole::Assistant,
+            // MessageRole only has Assistant variant for outputs
+        });
+
+        // Convert status
+        let status = output_item.status;
+
+        // Handle reasoning summary conversion - OutputItem has summary field
+        let summary = output_item.summary;
+
+        Ok(openai::InputItem {
+            role,
+            content,
+            input_item_type,
+            status,
+            id: output_item.id,
+            summary,
+            // Set other fields to None/default - many OutputItem fields don't have InputItem equivalents
+            queries: output_item.queries,
+            ..Default::default()
+        })
+    }
+}
+
+/// Helper function to convert OutputMessageContent to InputContent
+fn convert_output_message_content_to_input_content(
+    output_content: openai::OutputMessageContent,
+) -> Result<openai::InputContent, ConvertError> {
+    match output_content.output_message_content_type {
+        openai::ContentType::OutputText => Ok(openai::InputContent {
+            input_content_type: openai::InputItemContentListType::OutputText,
+            text: output_content.text,
+            annotations: output_content.annotations,
+            logprobs: output_content.logprobs,
+            refusal: output_content.refusal,
+            ..Default::default()
+        }),
+        _ => {
+            // For other content types, try to preserve as much information as possible
+            Ok(openai::InputContent {
+                input_content_type: openai::InputItemContentListType::OutputText, // Default fallback
+                text: output_content.text,
+                annotations: output_content.annotations,
+                logprobs: output_content.logprobs,
+                refusal: output_content.refusal,
+                ..Default::default()
+            })
         }
     }
 }

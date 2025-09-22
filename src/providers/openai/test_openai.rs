@@ -1,4 +1,6 @@
-use crate::providers::openai::generated::{CreateResponseClass, TheResponseObject};
+use crate::providers::openai::generated::{
+    CreateResponseClass, InputItem, OutputItem, TheResponseObject,
+};
 use crate::util::testutil::{discover_test_cases_typed, Provider, TestCase};
 use serde_json::Value;
 
@@ -95,13 +97,11 @@ mod tests {
                 serde_json::to_string_pretty(&response_messages).unwrap()
             );
 
-            // Convert OutputItem to InputItem by serializing/deserializing
-            // This works because they have the same structure
+            // Convert OutputItem to InputItem using proper conversion
             let response_as_input: Vec<InputItem> = response_messages
                 .iter()
                 .map(|output_item| {
-                    let json = serde_json::to_value(output_item).unwrap();
-                    serde_json::from_value(json).unwrap()
+                    <InputItem as TryFromLLM<OutputItem>>::try_from(output_item.clone()).unwrap()
                 })
                 .collect();
 
