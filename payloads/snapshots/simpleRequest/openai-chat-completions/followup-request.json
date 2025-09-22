@@ -4,6 +4,16 @@
     {
       "role": "user",
       "content": "What is the capital of France?"
+    },
+    {
+      "role": "assistant",
+      "content": "Paris",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
     }
   ],
   "max_completion_tokens": 256,

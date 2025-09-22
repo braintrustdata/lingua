@@ -27,7 +27,7 @@ export const advancedCases: TestCaseCollection = {
           ],
         },
       ],
-      max_tokens: 300,
+      max_completion_tokens: 300,
     },
 
     anthropic: {
@@ -78,7 +78,7 @@ export const advancedCases: TestCaseCollection = {
             "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
         },
       ],
-      max_tokens: 20_000,
+      max_completion_tokens: 20_000,
     },
 
     anthropic: {
@@ -94,4 +94,3 @@ export const advancedCases: TestCaseCollection = {
     },
   },
 };
-

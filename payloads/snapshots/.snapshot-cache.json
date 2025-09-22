@@ -14,13 +14,17 @@
     ]
   },
   "openai-chat-completions:simpleRequest": {
-    "payloadHash": "aef52c96baf3ca3776b0f7e23afc97caf2dc2c10396cb0e26c5dcc8048ecbd00",
-    "capturedAt": "2025-09-21T23:30:47.494Z",
+    "payloadHash": "173a87225631b9f6e26d87dde57eff74ad6dd5a77506a6e81b18b1adb7fc4b64",
+    "capturedAt": "2025-09-22T05:21:48.863Z",
     "provider": "openai-chat-completions",
     "name": "simpleRequest",
     "files": [
       "simpleRequest/openai-chat-completions/request.json",
-      "simpleRequest/openai-chat-completions/error.json"
+      "simpleRequest/openai-chat-completions/response.json",
+      "simpleRequest/openai-chat-completions/response-streaming.json",
+      "simpleRequest/openai-chat-completions/followup-request.json",
+      "simpleRequest/openai-chat-completions/followup-response.json",
+      "simpleRequest/openai-chat-completions/followup-response-streaming.json"
     ]
   },
   "openai-responses:simpleRequest": {
@@ -38,38 +42,49 @@
     ]
   },
   "openai-chat-completions:complexReasoningRequest": {
-    "payloadHash": "375d36d3076cfd2cb6f1eb78070f4348862288b69f1164d9b96455f5237c12f5",
-    "capturedAt": "2025-09-22T00:10:04.103Z",
+    "payloadHash": "3807630d6283fa1c0aa84ae646b940a7a683c13719585ec8596952a58159f4f9",
+    "capturedAt": "2025-09-22T05:26:27.251Z",
     "provider": "openai-chat-completions",
     "name": "complexReasoningRequest",
     "files": [
       "complexReasoningRequest/openai-chat-completions/request.json",
-      "complexReasoningRequest/openai-chat-completions/error.json"
+      "complexReasoningRequest/openai-chat-completions/response.json",
+      "complexReasoningRequest/openai-chat-completions/response-streaming.json",
+      "complexReasoningRequest/openai-chat-completions/followup-request.json",
+      "complexReasoningRequest/openai-chat-completions/followup-response.json",
+      "complexReasoningRequest/openai-chat-completions/followup-response-streaming.json"
     ]
   },
   "openai-chat-completions:toolCallRequest": {
-    "payloadHash": "79b5a091003714bd9ec543107d676035544055b652017b933659fb0a041fd6c7",
-    "capturedAt": "2025-09-21T23:30:47.493Z",
+    "payloadHash": "813dcc83d1322cae3043cff7dd3850fb7981cb5ef831a6b65903cae3fa7794b1",
+    "capturedAt": "2025-09-22T05:25:51.989Z",
     "provider": "openai-chat-completions",
     "name": "toolCallRequest",
     "files": [
       "toolCallRequest/openai-chat-completions/request.json",
+      "toolCallRequest/openai-chat-completions/response.json",
+      "toolCallRequest/openai-chat-completions/response-streaming.json",
+      "toolCallRequest/openai-chat-completions/followup-request.json",
       "toolCallRequest/openai-chat-completions/error.json"
     ]
   },
   "openai-chat-completions:reasoningRequest": {
-    "payloadHash": "05875310bea3ad20a7f9c03623c8768efeb577f59b9eb30e23d72acae857b8b3",
-    "capturedAt": "2025-09-21T23:30:47.496Z",
+    "payloadHash": "3e7204aa0d6f258d48e09ee5107f9c590567fcd6892aa96fca063980f679041b",
+    "capturedAt": "2025-09-22T05:21:49.089Z",
     "provider": "openai-chat-completions",
     "name": "reasoningRequest",
     "files": [
       "reasoningRequest/openai-chat-completions/request.json",
-      "reasoningRequest/openai-chat-completions/error.json"
+      "reasoningRequest/openai-chat-completions/response.json",
+      "reasoningRequest/openai-chat-completions/response-streaming.json",
+      "reasoningRequest/openai-chat-completions/followup-request.json",
+      "reasoningRequest/openai-chat-completions/followup-response.json",
+      "reasoningRequest/openai-chat-completions/followup-response-streaming.json"
     ]
   },
   "anthropic:multimodalRequest": {
     "payloadHash": "122341cb53c186960cf0235c30b96566812618390ac312874002fdeae2d80e23",
-    "capturedAt": "2025-09-21T23:30:47.555Z",
+    "capturedAt": "2025-09-22T05:25:50.011Z",
     "provider": "anthropic",
     "name": "multimodalRequest",
     "files": [
@@ -78,8 +93,8 @@
     ]
   },
   "openai-chat-completions:multimodalRequest": {
-    "payloadHash": "e11d5a7aa1ce34490b8438520856442e106f61362ca929b4eb0807167e0430d8",
-    "capturedAt": "2025-09-21T23:30:47.754Z",
+    "payloadHash": "942334d0aeabf72ef207da3fca39ebdc5d82c579629f20ca32dd759823f73509",
+    "capturedAt": "2025-09-22T05:25:50.365Z",
     "provider": "openai-chat-completions",
     "name": "multimodalRequest",
     "files": [

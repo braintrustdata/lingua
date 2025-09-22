@@ -16,7 +16,7 @@ export const simpleCases: TestCaseCollection = {
           content: "What is the capital of France?",
         },
       ],
-      max_tokens: 256,
+      max_completion_tokens: 256,
       reasoning_effort: "low",
     },
 
@@ -55,7 +55,7 @@ export const simpleCases: TestCaseCollection = {
             "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
-      max_tokens: 300,
+      max_completion_tokens: 300,
     },
 
     "openai-responses": {
@@ -126,7 +126,7 @@ export const simpleCases: TestCaseCollection = {
         },
       ],
       tool_choice: "auto",
-      max_tokens: 200,
+      max_completion_tokens: 200,
     },
   },
 };
