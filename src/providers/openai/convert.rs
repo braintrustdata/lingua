@@ -101,10 +101,6 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             id: input.id,
                             content: TryFromLLM::try_from(content)?,
                         },
-                        // TODO: Tool role support - not yet implemented in generated types
-                        _ => {
-                            return Err(ConvertError::UnsupportedInputType);
-                        }
                     });
                 }
             };
