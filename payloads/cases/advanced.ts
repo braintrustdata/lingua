@@ -58,12 +58,12 @@ export const advancedCases: TestCaseCollection = {
   complexReasoningRequest: {
     "openai-responses": {
       model: OPENAI_RESPONSES_MODEL,
-      reasoning: { effort: "high" },
+      reasoning: { effort: "high", summary: "detailed" },
       input: [
         {
           role: "user",
           content:
-            "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
+            "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
         },
       ],
       max_output_tokens: 20_000,
@@ -75,7 +75,7 @@ export const advancedCases: TestCaseCollection = {
         {
           role: "user",
           content:
-            "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
+            "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
         },
       ],
       max_tokens: 20_000,
@@ -88,7 +88,7 @@ export const advancedCases: TestCaseCollection = {
         {
           role: "user",
           content:
-            "A company has 100 employees. 60% work in engineering, 25% in sales, and the rest in administration. If engineering gets a 10% budget increase, sales gets 15%, and admin gets 5%, and the total budget was originally $1M, what's the new total budget if each department's budget is proportional to their headcount?",
+            "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
         },
       ],
     },
