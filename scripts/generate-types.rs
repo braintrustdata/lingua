@@ -865,6 +865,12 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // Fix any specific type mappings that quicktype might miss for OpenAI
     // (Add any OpenAI-specific replacements here as needed)
 
+    // Fix the Reasoning enum variant to have proper serde rename for lowercase "reasoning"
+    processed = processed.replace(
+        "    Reasoning,",
+        "    #[serde(rename = \"reasoning\")]\n    Reasoning,",
+    );
+
     processed
 }
 

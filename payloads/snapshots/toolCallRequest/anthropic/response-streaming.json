@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_016mpEfUFatfxCHEZzQhkGqH",
+      "id": "msg_01369ory39rAvHcwVoNJGSzm",
       "type": "message",
       "role": "assistant",
       "model": "claude-sonnet-4-20250514",
@@ -55,7 +55,7 @@
     "index": 1,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_01Keh2kzAt9grPY7G4PhWf8S",
+      "id": "toolu_01MAbkU5jGektYdD7AgWMkso",
       "name": "get_weather",
       "input": {}
     }
@@ -73,7 +73,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"locati"
+      "partial_json": "{\"locatio"
     }
   },
   {
@@ -81,7 +81,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "on\": \""
+      "partial_json": "n\""
     }
   },
   {
@@ -89,7 +89,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "San Franci"
+      "partial_json": ": "
     }
   },
   {
@@ -97,7 +97,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "sco, "
+      "partial_json": "\"San Francis"
     }
   },
   {
@@ -105,7 +105,7 @@
     "index": 1,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "CA\"}"
+      "partial_json": "co, CA\"}"
     }
   },
   {
