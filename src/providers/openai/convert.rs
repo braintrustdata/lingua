@@ -357,7 +357,7 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                 ..Default::default()
             },
             AssistantContentPart::ToolCall {
-                tool_call_id,
+                tool_call_id: _,
                 tool_name,
                 input,
                 ..
@@ -379,7 +379,7 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
             }
             AssistantContentPart::Reasoning {
                 text,
-                encrypted_content,
+                encrypted_content: _,
             } => {
                 // Convert reasoning back to reasoning text content
                 openai::InputContent {
@@ -556,7 +556,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                             }
 
                             // Pure tool call message - convert to function call InputItem
-                            let (tool_call_id, name, arguments, call_id) = tool_call_info.unwrap();
+                            let (_tool_call_id, name, arguments, call_id) = tool_call_info.unwrap();
                             let function_call_item = openai::InputItem {
                                 role: None, // Function calls don't have roles in original format
                                 content: None,

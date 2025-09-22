@@ -251,8 +251,8 @@ where
             TurnType::FollowupTurn,
         ) {
             Ok(case) => test_cases.push(case),
-            Err(e) => {
-                eprintln!("Note: Followup turn not found or invalid for test case '{}' provider '{}' ({:?})", test_case_name, provider.directory_name(), e);
+            Err(_e) => {
+                // Note: Followup turn not found or invalid for test case
             }
         }
     }
