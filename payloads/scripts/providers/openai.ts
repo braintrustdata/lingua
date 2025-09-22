@@ -2,15 +2,21 @@ import OpenAI from "openai";
 import { CaptureResult, ProviderExecutor } from "../types";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 
+// Define specific types for OpenAI
+type OpenAIRequest = OpenAI.Chat.Completions.ChatCompletionCreateParams;
+type OpenAIResponse = OpenAI.Chat.Completions.ChatCompletion;
+type OpenAIStreamChunk = OpenAI.Chat.Completions.ChatCompletionChunk;
+
 // OpenAI Chat Completions cases - extracted from unified cases
-export const openaiCases: Record<
-  string,
-  OpenAI.Chat.Completions.ChatCompletionCreateParams
-> = {};
+export const openaiCases: Record<string, OpenAIRequest> = {};
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
-  const caseData = getCaseForProvider(allTestCases, caseName, "openai-chat-completions");
+  const caseData = getCaseForProvider(
+    allTestCases,
+    caseName,
+    "openai-chat-completions",
+  );
   if (caseData) {
     openaiCases[caseName] = caseData;
   }
@@ -18,11 +24,11 @@ getCaseNames(allTestCases).forEach((caseName) => {
 
 export async function executeOpenAI(
   caseName: string,
-  payload: OpenAI.Chat.Completions.ChatCompletionCreateParams,
+  payload: OpenAIRequest,
   stream?: boolean,
-): Promise<CaptureResult> {
+): Promise<CaptureResult<OpenAIRequest, OpenAIResponse, OpenAIStreamChunk>> {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const result: CaptureResult = { request: payload };
+  const result: CaptureResult<OpenAIRequest, OpenAIResponse, OpenAIStreamChunk> = { request: payload };
 
   try {
     // Create promises for parallel execution
@@ -76,16 +82,37 @@ export async function executeOpenAI(
       "choices" in result.response &&
       result.response.choices?.[0]?.message
     ) {
-      const assistantMessage = result.response.choices[0].message;
+      const assistantMessage = result.response.choices[0]
+        .message as OpenAI.Chat.Completions.ChatCompletionMessage;
+
+      // Build follow-up messages, handling tool calls
+      const followUpMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] =
+        [...payload.messages, assistantMessage];
+
+      // If the assistant message contains tool calls, add dummy tool responses
+      if (
+        assistantMessage.tool_calls &&
+        assistantMessage.tool_calls.length > 0
+      ) {
+        for (const toolCall of assistantMessage.tool_calls) {
+          followUpMessages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: "71 degrees",
+          });
+        }
+      } else {
+        // Always add the user follow-up message
+        followUpMessages.push({
+          role: "user",
+          content: "What should I do next?",
+        });
+      }
 
       const followUpPayload: OpenAI.Chat.Completions.ChatCompletionCreateParams =
         {
           ...payload,
-          messages: [
-            ...payload.messages,
-            assistantMessage,
-            { role: "user", content: "What should I do next?" },
-          ],
+          messages: followUpMessages,
         };
 
       result.followupRequest = followUpPayload;
@@ -146,7 +173,7 @@ export async function executeOpenAI(
   return result;
 }
 
-export const openaiExecutor: ProviderExecutor = {
+export const openaiExecutor: ProviderExecutor<OpenAIRequest, OpenAIResponse, OpenAIStreamChunk> = {
   name: "openai",
   cases: openaiCases,
   execute: executeOpenAI,

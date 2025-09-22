@@ -5,7 +5,11 @@ This module contains type definitions for Anthropic's messages API
 generated from the OpenAPI specification using quicktype.
 */
 
+pub mod convert;
 pub mod generated;
+
+#[cfg(test)]
+pub mod test_anthropic;
 
 // Re-export key generated types (automated approach with proper request/response separation)
 // Temporarily disabled while testing generation

@@ -15,6 +15,16 @@
           }
         }
       ]
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
     }
   ],
   "max_completion_tokens": 300

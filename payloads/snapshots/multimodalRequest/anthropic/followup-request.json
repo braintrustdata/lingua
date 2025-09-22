@@ -18,6 +18,19 @@
           }
         }
       ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "This is Bulbasaur, the Grass/Poison-type Pokémon! It's the #001 Pokémon in the National Pokédex and one of the original starter Pokémon from the Kanto region. Bulbasaur has a distinctive blue-green body with darker green spots, red eyes, and a large green bulb on its back. It's known for being a gentle, loyal Pokémon that can use the bulb on its back to absorb sunlight and convert it into energy for various grass-type attacks."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
     }
   ]
 }

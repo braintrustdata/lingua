@@ -1,4 +1,8 @@
-use crate::providers::openai::generated::{CreateResponseClass, OutputItem, TheResponseObject};
+use crate::providers::openai::generated::{
+    CreateResponseClass, InputItem, Instructions, OutputItem, TheResponseObject,
+};
+use crate::universal::{convert::TryFromLLM, Message};
+use crate::util::test_runner::run_roundtrip_test;
 use crate::util::testutil::{discover_test_cases_typed, Provider, TestCase};
 use serde_json::Value;
 
@@ -15,19 +19,9 @@ pub fn discover_openai_responses_test_cases(
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        providers::openai::generated::{InputItem, Instructions},
-        universal::{convert::TryFromLLM, Message},
-        util::testutil::diff_serializable,
-    };
-    use log::{debug, info};
-
     use super::*;
 
     pub fn run_single_test_case(full_case_name: &str) -> Result<(), String> {
-        // Initialize env_logger if not already done
-        let _ = env_logger::try_init();
-
         let cases = discover_openai_responses_test_cases(None)
             .map_err(|e| format!("Failed to discover test cases: {}", e))?;
 
@@ -36,113 +30,52 @@ mod tests {
             .find(|c| c.name == full_case_name)
             .ok_or_else(|| format!("Test case '{}' not found", full_case_name))?;
 
-        info!("🧪 Testing roundtrip conversion for: {}", case.name);
-
-        let messages = match &case.request.input {
-            Some(Instructions::InputItemArray(msgs)) => msgs.clone(),
-            o => {
-                return Err(format!(
+        run_roundtrip_test(
+            case,
+            // Extract messages from request (OpenAI Responses API has complex input structure)
+            |request: &CreateResponseClass| match &request.input {
+                Some(Instructions::InputItemArray(msgs)) => Ok(msgs),
+                o => Err(format!(
                     "Invalid missing or non-array input messages: {:?}",
                     o
-                ));
-            }
-        };
-
-        // Log conversion steps
-        debug!("📄 Original: {} InputItems", messages.len());
-        debug!("\n{}", serde_json::to_string_pretty(&messages).unwrap());
-
-        debug!("🔄 Converting to universal format...");
-
-        let universal_request: Vec<Message> =
-            <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(messages.clone())
-                .map_err(|e| format!("Failed to convert to universal format: {}", e))?;
-
-        debug!("✓ Universal: {} Messages", universal_request.len());
-        debug!(
-            "\n{}",
-            serde_json::to_string_pretty(&universal_request).unwrap()
-        );
-
-        debug!("↩️  Converting back to InputItems...");
-
-        let roundtripped: Vec<InputItem> =
-            <Vec<InputItem> as TryFromLLM<Vec<Message>>>::try_from(universal_request.clone())
-                .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
-
-        debug!("\n{}", serde_json::to_string_pretty(&roundtripped).unwrap());
-
-        let diff = diff_serializable(&messages, &roundtripped, "items");
-        if !diff.starts_with("✅") {
-            return Err(format!("Roundtrip conversion failed:\n{}", diff));
-        }
-
-        println!("✅ {} - request roundtrip conversion passed", case.name);
-
-        // Test response conversion if available
-        if let Some(response) = &case.non_streaming_response {
-            info!("🧪 Testing response conversion for: {}", case.name);
-
-            // Response messages are in the output field, not input
-            let response_messages = &response.output;
-
-            debug!(
-                "📄 Response Original: {} OutputItems",
-                response_messages.len()
-            );
-            debug!(
-                "\n{}",
-                serde_json::to_string_pretty(&response_messages).unwrap()
-            );
-
-            // Convert OutputItem to InputItem using proper conversion
-            let response_as_input: Vec<InputItem> = response_messages
-                .iter()
-                .map(|output_item| {
-                    <InputItem as TryFromLLM<OutputItem>>::try_from(output_item.clone()).unwrap()
-                })
-                .collect();
-
-            debug!("🔄 Converting response to universal format...");
-
-            let universal_response: Vec<Message> =
-                <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(response_as_input.clone())
-                    .map_err(|e| format!("Failed to convert response to universal format: {}", e))?;
-
-            debug!(
-                "✓ Universal Response: {} Messages",
-                universal_response.len()
-            );
-            debug!(
-                "\n{}",
-                serde_json::to_string_pretty(&universal_response).unwrap()
-            );
-
-            debug!("↩️  Converting response back to InputItems...");
-
-            let roundtripped_response: Vec<InputItem> =
-                <Vec<InputItem> as TryFromLLM<Vec<Message>>>::try_from(universal_response.clone())
-                    .map_err(|e| format!("Failed to roundtrip response conversion: {}", e))?;
-
-            debug!(
-                "\n{}",
-                serde_json::to_string_pretty(&roundtripped_response).unwrap()
-            );
-
-            let response_diff =
-                diff_serializable(&response_as_input, &roundtripped_response, "response items");
-            if !response_diff.starts_with("✅") {
-                return Err(format!(
-                    "Response roundtrip conversion failed:\n{}",
-                    response_diff
-                ));
-            }
-
-            println!("✅ {} - response roundtrip conversion passed", case.name);
-        }
-
-        println!("✅ {} - all conversions passed", case.name);
-        Ok(())
+                )),
+            },
+            // Convert to universal
+            |messages: &Vec<InputItem>| {
+                <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(messages.clone())
+                    .map_err(|e| format!("Failed to convert to universal format: {}", e))
+            },
+            // Convert from universal
+            |messages: Vec<Message>| {
+                <Vec<InputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
+                    .map_err(|e| format!("Failed to roundtrip conversion: {}", e))
+            },
+            // Extract response content (output messages from OpenAI Responses API converted to InputItems)
+            |response: &TheResponseObject| -> Result<Vec<InputItem>, String> {
+                // Convert OutputItems to InputItems for comparison (this is the supported direction)
+                let input_items_from_output: Vec<InputItem> = response
+                    .output
+                    .iter()
+                    .map(|output_item| {
+                        <InputItem as TryFromLLM<OutputItem>>::try_from(output_item.clone())
+                    })
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| format!("Failed to convert OutputItem to InputItem: {}", e))?;
+                Ok(input_items_from_output)
+            },
+            // Convert response to universal (InputItems are already converted from OutputItems)
+            |input_messages: &Vec<InputItem>| {
+                // Convert InputItems to universal format
+                <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(input_messages.clone())
+                    .map_err(|e| format!("Failed to convert InputItems to universal format: {}", e))
+            },
+            // Convert universal to response (via InputItem conversion - note: we compare InputItems, not OutputItems)
+            |messages: Vec<Message>| {
+                // Convert universal messages back to InputItems (this is what we can compare)
+                <Vec<InputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
+                    .map_err(|e| format!("Failed to roundtrip conversion from universal: {}", e))
+            },
+        )
     }
 
     // Include auto-generated test cases from build script

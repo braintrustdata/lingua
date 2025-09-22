@@ -4,6 +4,27 @@
     {
       "role": "user",
       "content": "What's the weather like in San Francisco?"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_O3y8f4GpIll2ytLO0prqZTya",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\":\"San Francisco, CA\"}"
+          }
+        }
+      ],
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_O3y8f4GpIll2ytLO0prqZTya",
+      "content": "71 degrees"
     }
   ],
   "tools": [
