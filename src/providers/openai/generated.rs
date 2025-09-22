@@ -4052,7 +4052,8 @@ pub struct OutputItem {
     ///
     /// The type of the custom tool call. Always `custom_tool_call`.
     #[serde(rename = "type")]
-    pub output_item_type: OutputItemType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_item_type: Option<OutputItemType>,
     /// The queries used to search for files.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub queries: Option<Vec<String>>,

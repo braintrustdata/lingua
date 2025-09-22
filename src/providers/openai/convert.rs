@@ -487,7 +487,8 @@ impl TryFromLLM<Message> for openai::InputItem {
                         let mut encrypted_content = None;
                         let mut reasoning_parts: Vec<openai::SummaryText> = vec![];
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
-                        let mut tool_call_info: Option<(String, String, String, String)> = None; // (id, name, arguments, call_id)
+                        let mut tool_call_info: Option<(String, String, String, Option<String>)> =
+                            None; // (id, name, arguments, call_id)
 
                         for part in parts {
                             match part {
@@ -519,8 +520,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                         .as_ref()
                                         .and_then(|opts| opts.options.get("call_id"))
                                         .and_then(|val| val.as_str())
-                                        .unwrap_or(&tool_call_id) // Fallback to tool_call_id
-                                        .to_string();
+                                        .map(|s| s.to_string());
                                     tool_call_info =
                                         Some((tool_call_id, tool_name, arguments, call_id));
                                 }
@@ -558,11 +558,11 @@ impl TryFromLLM<Message> for openai::InputItem {
                             // Pure tool call message - convert to function call InputItem
                             let (_tool_call_id, name, arguments, call_id) = tool_call_info.unwrap();
                             let function_call_item = openai::InputItem {
-                                role: None, // Function calls don't have roles in original format
+                                role: Some(openai::InputItemRole::Assistant), // Function calls have assistant role
                                 content: None,
                                 input_item_type: Some(openai::InputItemType::FunctionCall),
                                 id: id.clone(),
-                                call_id: Some(serde_json::Value::String(call_id)),
+                                call_id: call_id.map(serde_json::Value::String),
                                 name: Some(name),
                                 arguments: Some(arguments),
                                 status: Some(openai::FunctionCallItemStatus::Completed),
@@ -633,35 +633,18 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
         // The main differences are in content type and some field names
 
         let input_item_type = match output_item.output_item_type {
-            openai::OutputItemType::Message => Some(openai::InputItemType::Message),
-            openai::OutputItemType::Reasoning => Some(openai::InputItemType::Reasoning),
+            Some(openai::OutputItemType::Message) => Some(openai::InputItemType::Message),
+            Some(openai::OutputItemType::Reasoning) => Some(openai::InputItemType::Reasoning),
+            Some(openai::OutputItemType::FunctionCall) => Some(openai::InputItemType::FunctionCall),
+            Some(openai::OutputItemType::CustomToolCall) => {
+                Some(openai::InputItemType::CustomToolCall)
+            }
             // For other types, we might need to map them or handle specially
             _ => None, // Will be handled based on content
         };
 
         // Convert content from Vec<OutputMessageContent> to InputItemContent
-        // Handle function calls and other special output types
-        let content = if matches!(
-            output_item.output_item_type,
-            openai::OutputItemType::FunctionCall
-                | openai::OutputItemType::CustomToolCall
-                | openai::OutputItemType::CodeInterpreterCall
-                | openai::OutputItemType::FileSearchCall
-                | openai::OutputItemType::ComputerCall
-        ) {
-            // For function calls, create synthetic content from the function call details
-            if let (Some(name), Some(arguments)) = (&output_item.name, &output_item.arguments) {
-                // Create a synthetic tool call content
-                let tool_call_content =
-                    format!("Function call: {} with arguments {}", name, arguments);
-                Some(openai::InputItemContent::String(tool_call_content))
-            } else {
-                // Fallback content for function calls without name/arguments
-                Some(openai::InputItemContent::String(
-                    "Function call".to_string(),
-                ))
-            }
-        } else if let Some(output_content) = output_item.content {
+        let content = if let Some(output_content) = output_item.content {
             if output_content.is_empty() {
                 None
             } else if output_content.len() == 1 {
@@ -704,15 +687,15 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             .or_else(|| {
                 // Only infer role for function calls - reasoning and other items preserve None
                 match output_item.output_item_type {
-                    openai::OutputItemType::FunctionCall
-                    | openai::OutputItemType::CustomToolCall
-                    | openai::OutputItemType::CodeInterpreterCall
-                    | openai::OutputItemType::FileSearchCall
-                    | openai::OutputItemType::ComputerCall => {
+                    Some(openai::OutputItemType::FunctionCall)
+                    | Some(openai::OutputItemType::CustomToolCall)
+                    | Some(openai::OutputItemType::CodeInterpreterCall)
+                    | Some(openai::OutputItemType::FileSearchCall)
+                    | Some(openai::OutputItemType::ComputerCall) => {
                         Some(openai::InputItemRole::Assistant)
                     }
-                    openai::OutputItemType::Message => Some(openai::InputItemRole::Assistant),
-                    _ => None, // Don't infer role for reasoning and other types
+                    Some(openai::OutputItemType::Message) => Some(openai::InputItemRole::Assistant),
+                    _ => None, // Don't infer role for reasoning and other types, or when no type
                 }
             });
 
@@ -729,6 +712,9 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             status,
             id: output_item.id,
             summary,
+            // Preserve structured function call fields
+            arguments: output_item.arguments,
+            name: output_item.name,
             // Set other fields to None/default - many OutputItem fields don't have InputItem equivalents
             queries: output_item.queries,
             ..Default::default()
@@ -755,7 +741,7 @@ impl TryFromLLM<Message> for openai::OutputItem {
                                 logprobs: Some(vec![]),
                                 refusal: None,
                             }]),
-                            output_item_type: openai::OutputItemType::Message,
+                            output_item_type: None, // Don't add type field if original didn't have it
                             id,
                             status: Some(openai::FunctionCallItemStatus::Completed),
                             ..openai::OutputItem::default()
@@ -782,7 +768,7 @@ impl TryFromLLM<Message> for openai::OutputItem {
                                 return Ok(openai::OutputItem {
                                     role: None, // Reasoning items don't have roles
                                     content: None,
-                                    output_item_type: openai::OutputItemType::Reasoning,
+                                    output_item_type: Some(openai::OutputItemType::Reasoning),
                                     id,
                                     summary: Some(summary_parts),
                                     ..openai::OutputItem::default()
@@ -822,7 +808,7 @@ impl TryFromLLM<Message> for openai::OutputItem {
                                 logprobs: Some(vec![]),
                                 refusal: None,
                             }]),
-                            output_item_type: openai::OutputItemType::Message,
+                            output_item_type: None, // Don't add type field if original didn't have it
                             id,
                             status: Some(openai::FunctionCallItemStatus::Completed),
                             ..openai::OutputItem::default()
@@ -846,7 +832,7 @@ impl Default for openai::OutputItem {
             id: None,
             role: None,
             status: None,
-            output_item_type: openai::OutputItemType::Message,
+            output_item_type: None, // Don't add type field if original didn't have it
             queries: None,
             results: None,
             arguments: None,
