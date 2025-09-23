@@ -1952,7 +1952,7 @@ pub struct InputItem {
     ///
     /// An identifier used to map this custom tool call to a tool call output.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub call_id: Option<serde_json::Value>,
+    pub call_id: Option<String>,
     /// The pending safety checks for the computer call.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pending_safety_checks: Option<Vec<ComputerToolCallSafetyCheck>>,
@@ -3208,7 +3208,7 @@ pub struct Tool {
     pub display_width: Option<i64>,
     /// The type of computer environment to control.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub environment: Option<ComputerEnvironment1>,
+    pub environment: Option<ComputerEnvironment>,
     /// High level guidance for the amount of context window space to use for the search. One of
     /// `low`, `medium`, or `high`. `medium` is the default.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3392,7 +3392,7 @@ pub enum CodeInterpreterContainerAutoType {
 /// The type of computer environment to control.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ComputerEnvironment1 {
+pub enum ComputerEnvironment {
     Browser,
     Linux,
     Mac,

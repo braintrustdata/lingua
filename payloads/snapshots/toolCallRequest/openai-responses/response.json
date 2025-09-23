@@ -1,7 +1,7 @@
 {
-  "id": "resp_68d23e62b328819681c1cba1e41806eb02880300555bcee0",
+  "id": "resp_68d2b7b2e36081958d798bb0eb7d0322040a34dc63ccaefe",
   "object": "response",
-  "created_at": 1758608994,
+  "created_at": 1758640051,
   "status": "completed",
   "background": false,
   "billing": {
@@ -15,16 +15,16 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68d23e6355248196bf02ddd1ec21d00f02880300555bcee0",
+      "id": "rs_68d2b7b385ec8195ae9e1a02c7dff288040a34dc63ccaefe",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "fc_68d23e64ca348196805a51cd2b376bb002880300555bcee0",
+      "id": "fc_68d2b7b5e54c8195b7bab37820124f43040a34dc63ccaefe",
       "type": "function_call",
       "status": "completed",
       "arguments": "{\"location\":\"San Francisco, CA\"}",
-      "call_id": "call_XUy0zSVtXAbx06c9audot4R3",
+      "call_id": "call_SQGf5tOPoyJeUNxHsbAItlo9",
       "name": "get_weather"
     }
   ],

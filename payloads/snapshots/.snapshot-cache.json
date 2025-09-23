@@ -208,7 +208,7 @@
   },
   "openai-responses:toolCallRequest": {
     "payloadHash": "5742d5f28d4733db0adf74a1ac5d80521b76972eb8102bcf0e7023b48d1f30fa",
-    "capturedAt": "2025-09-23T06:29:59.720Z",
+    "capturedAt": "2025-09-23T15:07:39.370Z",
     "provider": "openai-responses",
     "name": "toolCallRequest",
     "files": [
