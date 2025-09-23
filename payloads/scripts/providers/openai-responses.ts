@@ -5,8 +5,6 @@ import {
   ResponseInputItem,
   ResponseStreamEvent,
 } from "openai/resources/responses/responses";
-import { ResponseStream } from "openai/lib/responses/ResponseStream";
-import { Stream } from "openai/core/streaming";
 
 // OpenAI Responses API cases - extracted from unified cases
 export const openaiResponsesCases: Record<
@@ -150,7 +148,7 @@ export async function executeOpenAIResponses(
           hasToolCalls = true;
           // Add tool call output for OpenAI Responses API format
           followUpInput.push({
-            type: "custom_tool_call_output",
+            type: "function_call_output",
             call_id: message.call_id,
             output: "71 degrees",
           });

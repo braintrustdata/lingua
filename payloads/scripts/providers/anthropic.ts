@@ -16,6 +16,16 @@ getCaseNames(allTestCases).forEach((caseName) => {
   }
 });
 
+type ParallelAnthropicResult =
+  | {
+      type: "response";
+      data: Anthropic.Messages.Message;
+    }
+  | {
+      type: "streamingResponse";
+      data: Array<Anthropic.Messages.MessageStreamEvent>;
+    };
+
 export async function executeAnthropic(
   caseName: string,
   payload: Anthropic.Messages.MessageCreateParams,
@@ -36,7 +46,7 @@ export async function executeAnthropic(
 
   try {
     // Create promises for parallel execution
-    const promises: Promise<any>[] = [];
+    const promises: Promise<ParallelAnthropicResult>[] = [];
 
     // Add non-streaming call if requested
     if (stream !== true) {
@@ -54,7 +64,7 @@ export async function executeAnthropic(
     if (stream !== false) {
       promises.push(
         (async () => {
-          const streamChunks: unknown[] = [];
+          const streamChunks: Array<Anthropic.Messages.MessageStreamEvent> = [];
           const streamResponse = await client.messages.create({
             ...payload,
             stream: true,
@@ -86,7 +96,7 @@ export async function executeAnthropic(
       typeof result.response === "object" &&
       result.response !== null &&
       "content" in result.response &&
-      Array.isArray((result.response as any).content)
+      Array.isArray(result.response.content)
     ) {
       const assistantMessage: Anthropic.MessageParam = {
         role: "assistant",
@@ -110,7 +120,9 @@ export async function executeAnthropic(
           typeof contentBlock === "object" &&
           contentBlock !== null &&
           "type" in contentBlock &&
-          contentBlock.type === "tool_use"
+          contentBlock.type === "tool_use" &&
+          "id" in contentBlock &&
+          typeof contentBlock.id === "string"
         ) {
           hasToolCalls = true;
           // Add tool result for each tool call
@@ -119,7 +131,7 @@ export async function executeAnthropic(
             content: [
               {
                 type: "tool_result",
-                tool_use_id: (contentBlock as any).id,
+                tool_use_id: contentBlock.id,
                 content: "71 degrees",
               },
             ],
@@ -143,7 +155,17 @@ export async function executeAnthropic(
       result.followupRequest = followUpPayload;
 
       // Create follow-up promises for parallel execution
-      const followupPromises: Promise<any>[] = [];
+      type FollowupAnthropicResult =
+        | {
+            type: "followupResponse";
+            data: Anthropic.Messages.Message;
+          }
+        | {
+            type: "followupStreamingResponse";
+            data: Array<Anthropic.Messages.MessageStreamEvent>;
+          };
+
+      const followupPromises: Promise<FollowupAnthropicResult>[] = [];
 
       if (stream !== true) {
         followupPromises.push(
@@ -159,7 +181,8 @@ export async function executeAnthropic(
       if (stream !== false) {
         followupPromises.push(
           (async () => {
-            const followupStreamChunks: unknown[] = [];
+            const followupStreamChunks: Array<Anthropic.Messages.MessageStreamEvent> =
+              [];
             const followupStreamResponse = await client.messages.create({
               ...followUpPayload,
               stream: true,

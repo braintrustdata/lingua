@@ -77,16 +77,26 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                 Some(openai::InputItemType::FunctionCall)
                 | Some(openai::InputItemType::CustomToolCall) => {
                     // Function calls are converted to tool calls in assistant messages
-                    let tool_call_id = input
-                        .id
-                        .clone()
-                        .unwrap_or_else(|| "function_call".to_string());
-                    let tool_name = input.name.unwrap_or("unknown_function".to_string());
+                    let tool_call_id =
+                        input
+                            .call_id
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call call_id".to_string(),
+                            })?;
+                    let tool_name =
+                        input
+                            .name
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call name".to_string(),
+                            })?;
                     let arguments_str = input.arguments.unwrap_or("{}".to_string());
 
                     // Parse arguments JSON
-                    let input_args =
-                        serde_json::from_str(&arguments_str).unwrap_or(serde_json::Value::Null);
+                    let input_args = serde_json::from_str(&arguments_str).map_err(|e| {
+                        ConvertError::ContentConversionFailed {
+                            reason: format!("Failed to parse function call arguments JSON: {}", e),
+                        }
+                    })?;
 
                     // Preserve OpenAI-specific call_id in provider_options
                     let provider_options = if let Some(call_id_val) = input.call_id {
@@ -362,6 +372,7 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                 input,
                 ..
             } => {
+                panic!("This is bad");
                 // Convert tool call to synthetic content - this is a workaround since
                 // InputContent doesn't have proper tool call support yet
                 let tool_call_text = format!(

@@ -22,6 +22,16 @@ getCaseNames(allTestCases).forEach((caseName) => {
   }
 });
 
+type ParallelOpenAIResult =
+  | {
+      type: "response";
+      data: OpenAIResponse;
+    }
+  | {
+      type: "streamingResponse";
+      data: Array<OpenAIStreamChunk>;
+    };
+
 export async function executeOpenAI(
   caseName: string,
   payload: OpenAIRequest,
@@ -36,7 +46,7 @@ export async function executeOpenAI(
 
   try {
     // Create promises for parallel execution
-    const promises: Promise<any>[] = [];
+    const promises: Promise<ParallelOpenAIResult>[] = [];
 
     // Add non-streaming call if requested
     if (stream !== true) {
@@ -54,7 +64,7 @@ export async function executeOpenAI(
     if (stream !== false) {
       promises.push(
         (async () => {
-          const streamChunks: unknown[] = [];
+          const streamChunks: Array<OpenAIStreamChunk> = [];
           const streamResponse = await client.chat.completions.create({
             ...payload,
             stream: true,
@@ -86,8 +96,7 @@ export async function executeOpenAI(
       "choices" in result.response &&
       result.response.choices?.[0]?.message
     ) {
-      const assistantMessage = result.response.choices[0]
-        .message as OpenAI.Chat.Completions.ChatCompletionMessage;
+      const assistantMessage = result.response.choices[0].message;
 
       // Build follow-up messages, handling tool calls
       const followUpMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] =
@@ -122,7 +131,17 @@ export async function executeOpenAI(
       result.followupRequest = followUpPayload;
 
       // Create follow-up promises for parallel execution
-      const followupPromises: Promise<any>[] = [];
+      type FollowupOpenAIResult =
+        | {
+            type: "followupResponse";
+            data: OpenAIResponse;
+          }
+        | {
+            type: "followupStreamingResponse";
+            data: Array<OpenAIStreamChunk>;
+          };
+
+      const followupPromises: Promise<FollowupOpenAIResult>[] = [];
 
       if (stream !== true) {
         followupPromises.push(
@@ -138,7 +157,7 @@ export async function executeOpenAI(
       if (stream !== false) {
         followupPromises.push(
           (async () => {
-            const followupStreamChunks: unknown[] = [];
+            const followupStreamChunks: Array<OpenAIStreamChunk> = [];
             const followupStreamResponse = await client.chat.completions.create(
               {
                 ...followUpPayload,

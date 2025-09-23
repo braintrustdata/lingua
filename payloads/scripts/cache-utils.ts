@@ -33,6 +33,7 @@ export function loadCache(outputDir: string): SnapshotCache {
 
   try {
     const cacheContent = readFileSync(cacheFilePath, "utf-8");
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Safe JSON parsing with known structure
     return JSON.parse(cacheContent) as SnapshotCache;
   } catch (error) {
     console.warn(`Warning: Failed to load cache file: ${error}`);
