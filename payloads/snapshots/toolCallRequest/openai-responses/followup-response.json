@@ -1,7 +1,7 @@
 {
-  "id": "resp_68d23e6542408196b87920d1e91ca58f02880300555bcee0",
+  "id": "resp_68d2b7b6e01c8195987ae4880226dcdf040a34dc63ccaefe",
   "object": "response",
-  "created_at": 1758608997,
+  "created_at": 1758640054,
   "status": "completed",
   "background": false,
   "billing": {
@@ -15,12 +15,12 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68d23e65d0d081968d7a82bdcef2ee6002880300555bcee0",
+      "id": "rs_68d2b7b77d248195bffaffad76175338040a34dc63ccaefe",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "msg_68d23e66f5a081969c165cbfa0d1bfd702880300555bcee0",
+      "id": "msg_68d2b7ba2874819591b3db7d68f51d47040a34dc63ccaefe",
       "type": "message",
       "status": "completed",
       "content": [
@@ -28,7 +28,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Right now in San Francisco, it's 71 degrees Fahrenheit. Want an hourly forecast or more details (humidity, wind, etc.)?"
+          "text": "Right now in San Francisco, CA it's about 71°F. Want an hourly forecast or details like humidity and wind?"
         }
       ],
       "role": "assistant"
@@ -80,13 +80,13 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 289,
+    "output_tokens": 350,
     "output_tokens_details": {
-      "reasoning_tokens": 256
+      "reasoning_tokens": 320
     },
-    "total_tokens": 606
+    "total_tokens": 667
   },
   "user": null,
   "metadata": {},
-  "output_text": "Right now in San Francisco, it's 71 degrees Fahrenheit. Want an hourly forecast or more details (humidity, wind, etc.)?"
+  "output_text": "Right now in San Francisco, CA it's about 71°F. Want an hourly forecast or details like humidity and wind?"
 }

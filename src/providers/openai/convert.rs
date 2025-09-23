@@ -77,12 +77,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                 Some(openai::InputItemType::FunctionCall)
                 | Some(openai::InputItemType::CustomToolCall) => {
                     // Function calls are converted to tool calls in assistant messages
-                    let tool_call_id = input
-                        .call_id
-                        .and_then(|v| v.as_str().map(|s| s.to_string()))
-                        .ok_or_else(|| ConvertError::MissingRequiredField {
-                            field: "function call call_id".to_string(),
-                        })?;
+                    let tool_call_id =
+                        input
+                            .call_id
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call call_id".to_string(),
+                            })?;
                     let tool_name =
                         input
                             .name
@@ -542,7 +542,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 content: None,
                                 input_item_type: Some(openai::InputItemType::FunctionCall),
                                 id: id.clone(),
-                                call_id: call_id.map(serde_json::Value::String),
+                                call_id: call_id,
                                 name: Some(name),
                                 arguments: Some(arguments),
                                 status: Some(openai::FunctionCallItemStatus::Completed),
@@ -580,9 +580,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     serde_json::to_string(&tool_result.output).unwrap_or_default()
                                 ))),
                                 input_item_type: Some(openai::InputItemType::CustomToolCallOutput),
-                                call_id: Some(serde_json::Value::String(
-                                    tool_result.tool_call_id.clone(),
-                                )),
+                                call_id: Some(tool_result.tool_call_id.clone()),
                                 name: Some(tool_result.tool_name.clone()),
                                 output: None, // output field is for Refusal type, not tool output
                                 ..Default::default()
@@ -771,7 +769,7 @@ impl TryFromLLM<Message> for openai::OutputItem {
                                 } => {
                                     // Create synthetic text for tool calls since OutputItem doesn't have proper tool call structure
                                     panic!("Probably broken");
-                                    Sme(arguments.to_string())
+                                    Some(arguments.to_string())
                                 }
                                 _ => None,
                             })

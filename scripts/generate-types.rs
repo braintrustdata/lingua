@@ -867,7 +867,11 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     processed = add_serde_skip_if_none(&processed);
 
     // Fix any specific type mappings that quicktype might miss for OpenAI
-    // (Add any OpenAI-specific replacements here as needed)
+    // Fix call_id fields that quicktype incorrectly generates as serde_json::Value
+    processed = processed.replace(
+        "pub call_id: Option<serde_json::Value>,",
+        "pub call_id: Option<String>,",
+    );
 
     // Add automatic rename_all for enums that need consistent snake_case naming
     processed = processed.replace(

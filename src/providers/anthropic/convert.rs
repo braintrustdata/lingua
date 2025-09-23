@@ -1,7 +1,7 @@
 use crate::providers::anthropic::generated;
 use crate::universal::{
     convert::TryFromLLM, AssistantContent, AssistantContentPart, Message, TextContentPart,
-    UserContent, UserContentPart,
+    ToolCallArguments, UserContent, UserContentPart,
 };
 
 impl TryFromLLM<generated::InputMessage> for Message {
@@ -132,7 +132,9 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         content_parts.push(AssistantContentPart::ToolCall {
                                             tool_call_id: id.clone(),
                                             tool_name: name.clone(),
-                                            input,
+                                            arguments: serde_json::to_string(&input)
+                                                .unwrap_or_else(|_| "{}".to_string())
+                                                .into(),
                                             provider_options: None,
                                             provider_executed: None,
                                         });
@@ -348,13 +350,20 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             AssistantContentPart::ToolCall {
                                 tool_call_id,
                                 tool_name,
-                                input,
+                                arguments,
                                 ..
                             } => {
-                                // Convert JSON value back to HashMap - this is a workaround for type issues
+                                // Convert ToolCallArguments back to HashMap - this is a workaround for type issues
+                                let arguments_json = match &arguments {
+                                    ToolCallArguments::Valid(map) => {
+                                        serde_json::Value::Object(map.clone())
+                                    }
+                                    ToolCallArguments::Invalid(s) => serde_json::from_str(s)
+                                        .unwrap_or(serde_json::Value::Object(Default::default())),
+                                };
                                 let input_map = serde_json::from_value::<
                                     std::collections::HashMap<String, Option<serde_json::Value>>,
-                                >(input.clone())
+                                >(arguments_json)
                                 .ok();
 
                                 Some(generated::InputContentBlock {
@@ -429,7 +438,9 @@ impl TryFromLLM<&Vec<generated::ContentBlock>> for Vec<Message> {
                         content_parts.push(AssistantContentPart::ToolCall {
                             tool_call_id: id.clone(),
                             tool_name: name.clone(),
-                            input,
+                            arguments: serde_json::to_string(&input)
+                                .unwrap_or_else(|_| "{}".to_string())
+                                .into(),
                             provider_options: None,
                             provider_executed: None,
                         });
@@ -517,17 +528,26 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                 AssistantContentPart::ToolCall {
                                     tool_call_id,
                                     tool_name,
-                                    input,
+                                    arguments,
                                     ..
                                 } => {
-                                    // Convert JSON value to HashMap for response generation
+                                    // Convert ToolCallArguments to HashMap for response generation
+                                    let arguments_json = match &arguments {
+                                        ToolCallArguments::Valid(map) => {
+                                            serde_json::Value::Object(map.clone())
+                                        }
+                                        ToolCallArguments::Invalid(s) => serde_json::from_str(s)
+                                            .unwrap_or(serde_json::Value::Object(
+                                                Default::default(),
+                                            )),
+                                    };
                                     let input_map =
                                         serde_json::from_value::<
                                             std::collections::HashMap<
                                                 String,
                                                 Option<serde_json::Value>,
                                             >,
-                                        >(input.clone())
+                                        >(arguments_json)
                                         .ok();
 
                                     content_blocks.push(generated::ContentBlock {
