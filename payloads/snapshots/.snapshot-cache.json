@@ -208,14 +208,16 @@
   },
   "openai-responses:toolCallRequest": {
     "payloadHash": "5742d5f28d4733db0adf74a1ac5d80521b76972eb8102bcf0e7023b48d1f30fa",
-    "capturedAt": "2025-09-22T14:50:19.997Z",
+    "capturedAt": "2025-09-23T06:29:59.720Z",
     "provider": "openai-responses",
     "name": "toolCallRequest",
     "files": [
       "toolCallRequest/openai-responses/request.json",
       "toolCallRequest/openai-responses/response.json",
       "toolCallRequest/openai-responses/response-streaming.json",
-      "toolCallRequest/openai-responses/followup-request.json"
+      "toolCallRequest/openai-responses/followup-request.json",
+      "toolCallRequest/openai-responses/followup-response.json",
+      "toolCallRequest/openai-responses/followup-response-streaming.json"
     ]
   },
   "anthropic:reasoningWithOutput": {

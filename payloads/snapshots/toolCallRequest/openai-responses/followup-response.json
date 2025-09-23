@@ -1,7 +1,7 @@
 {
-  "id": "resp_68d0ea6755e181958a9399338c13da3800a25bd584461811",
+  "id": "resp_68d23e6542408196b87920d1e91ca58f02880300555bcee0",
   "object": "response",
-  "created_at": 1758522058,
+  "created_at": 1758608997,
   "status": "completed",
   "background": false,
   "billing": {
@@ -15,7 +15,12 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "msg_68d0ea67bdac81959ba8df5df91ff01400a25bd584461811",
+      "id": "rs_68d23e65d0d081968d7a82bdcef2ee6002880300555bcee0",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d23e66f5a081969c165cbfa0d1bfd702880300555bcee0",
       "type": "message",
       "status": "completed",
       "content": [
@@ -23,57 +28,65 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Based on the weather information, it's currently 71 degrees in San Francisco. That's quite pleasant! San Francisco typically has mild temperatures year-round due to its Mediterranean climate and proximity to the ocean. 71°F is a comfortable temperature - perfect for walking around the city, whether you're exploring neighborhoods like the Mission, visiting Golden Gate Park, or taking a stroll along the waterfront."
+          "text": "Right now in San Francisco, it's 71 degrees Fahrenheit. Want an hourly forecast or more details (humidity, wind, etc.)?"
         }
       ],
       "role": "assistant"
     }
   ],
   "parallel_tool_calls": true,
-  "previous_response_id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+  "previous_response_id": null,
   "prompt_cache_key": null,
-  "reasoning": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
   "safety_identifier": null,
   "service_tier": "default",
   "store": true,
   "temperature": 1,
-  "text": null,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
   "tool_choice": "auto",
   "tools": [
     {
       "type": "function",
-      "function": {
-        "name": "get_weather",
-        "description": "Get the current weather for a location",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": {
-              "type": "string",
-              "description": "The city and state, e.g. San Francisco, CA"
-            }
-          },
-          "required": [
-            "location"
-          ]
-        }
-      }
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false
     }
   ],
   "top_logprobs": 0,
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 245,
+    "input_tokens": 317,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 96,
+    "output_tokens": 289,
     "output_tokens_details": {
-      "reasoning_tokens": 0
+      "reasoning_tokens": 256
     },
-    "total_tokens": 341
+    "total_tokens": 606
   },
   "user": null,
-  "metadata": {}
+  "metadata": {},
+  "output_text": "Right now in San Francisco, it's 71 degrees Fahrenheit. Want an hourly forecast or more details (humidity, wind, etc.)?"
 }
