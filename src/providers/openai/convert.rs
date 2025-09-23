@@ -77,12 +77,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                 Some(openai::InputItemType::FunctionCall)
                 | Some(openai::InputItemType::CustomToolCall) => {
                     // Function calls are converted to tool calls in assistant messages
-                    let tool_call_id =
-                        input
-                            .call_id
-                            .ok_or_else(|| ConvertError::MissingRequiredField {
-                                field: "function call call_id".to_string(),
-                            })?;
+                    let tool_call_id = input
+                        .call_id
+                        .and_then(|v| v.as_str().map(|s| s.to_string()))
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: "function call call_id".to_string(),
+                        })?;
                     let tool_name =
                         input
                             .name
@@ -91,34 +91,11 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             })?;
                     let arguments_str = input.arguments.unwrap_or("{}".to_string());
 
-                    // Parse arguments JSON
-                    let input_args = serde_json::from_str(&arguments_str).map_err(|e| {
-                        ConvertError::ContentConversionFailed {
-                            reason: format!("Failed to parse function call arguments JSON: {}", e),
-                        }
-                    })?;
-
-                    // Preserve OpenAI-specific call_id in provider_options
-                    let provider_options = if let Some(call_id_val) = input.call_id {
-                        let call_id_str = match call_id_val {
-                            serde_json::Value::String(s) => s,
-                            other => serde_json::to_string(&other).unwrap_or_default(),
-                        };
-                        let mut options = serde_json::Map::new();
-                        options.insert(
-                            "call_id".to_string(),
-                            serde_json::Value::String(call_id_str),
-                        );
-                        Some(crate::universal::message::ProviderOptions { options })
-                    } else {
-                        None
-                    };
-
                     let tool_call_part = AssistantContentPart::ToolCall {
                         tool_call_id,
                         tool_name,
-                        input: input_args,
-                        provider_options,
+                        arguments: arguments_str.into(),
+                        provider_options: None,
                         provider_executed: None,
                     };
 
@@ -369,25 +346,15 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
             AssistantContentPart::ToolCall {
                 tool_call_id: _,
                 tool_name,
-                input,
+                arguments,
                 ..
-            } => {
-                panic!("This is bad");
-                // Convert tool call to synthetic content - this is a workaround since
-                // InputContent doesn't have proper tool call support yet
-                let tool_call_text = format!(
-                    "Tool call: {} with arguments {}",
-                    tool_name,
-                    serde_json::to_string(&input).unwrap_or_default()
-                );
-                openai::InputContent {
-                    input_content_type: openai::InputItemContentListType::OutputText,
-                    text: Some(tool_call_text),
-                    annotations: Some(vec![]),
-                    logprobs: Some(vec![]),
-                    ..Default::default()
-                }
-            }
+            } => openai::InputContent {
+                input_content_type: openai::InputItemContentListType::OutputText,
+                text: Some(format!("{}", arguments)),
+                annotations: Some(vec![]),
+                logprobs: Some(vec![]),
+                ..Default::default()
+            },
             AssistantContentPart::Reasoning {
                 text,
                 encrypted_content: _,
@@ -519,21 +486,23 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 AssistantContentPart::ToolCall {
                                     tool_call_id,
                                     tool_name,
-                                    input,
+                                    arguments,
                                     provider_options,
                                     ..
                                 } => {
                                     has_tool_call = true;
-                                    let arguments =
-                                        serde_json::to_string(&input).unwrap_or_default();
                                     // Extract OpenAI-specific call_id from provider_options
                                     let call_id = provider_options
                                         .as_ref()
                                         .and_then(|opts| opts.options.get("call_id"))
                                         .and_then(|val| val.as_str())
                                         .map(|s| s.to_string());
-                                    tool_call_info =
-                                        Some((tool_call_id, tool_name, arguments, call_id));
+                                    tool_call_info = Some((
+                                        tool_call_id,
+                                        tool_name,
+                                        arguments.to_string(),
+                                        call_id,
+                                    ));
                                 }
                                 _ => {
                                     normal_parts.push(TryFromLLM::try_from(part)?);
@@ -796,14 +765,13 @@ impl TryFromLLM<Message> for openai::OutputItem {
                                     Some(text_part.text.clone())
                                 }
                                 AssistantContentPart::ToolCall {
-                                    tool_name, input, ..
+                                    tool_name,
+                                    arguments,
+                                    ..
                                 } => {
                                     // Create synthetic text for tool calls since OutputItem doesn't have proper tool call structure
-                                    Some(format!(
-                                        "Function call: {} with arguments {}",
-                                        tool_name,
-                                        serde_json::to_string(input).unwrap_or_default()
-                                    ))
+                                    panic!("Probably broken");
+                                    Sme(arguments.to_string())
                                 }
                                 _ => None,
                             })
@@ -978,13 +946,10 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                 if let Some(tool_calls) = msg.tool_calls {
                     for tool_call in tool_calls {
                         if let Some(function) = tool_call.function {
-                            let input = serde_json::from_str(&function.arguments)
-                                .unwrap_or(serde_json::Value::Null);
-
                             content_parts.push(AssistantContentPart::ToolCall {
                                 tool_call_id: tool_call.id,
                                 tool_name: function.name,
-                                input,
+                                arguments: function.arguments.into(),
                                 provider_options: None,
                                 provider_executed: None,
                             });
@@ -1256,7 +1221,7 @@ fn extract_content_and_tool_calls(
                     AssistantContentPart::ToolCall {
                         tool_call_id,
                         tool_name,
-                        input,
+                        arguments,
                         ..
                     } => {
                         tool_calls.push(openai::ToolCall {
@@ -1264,7 +1229,7 @@ fn extract_content_and_tool_calls(
                             tool_call_type: openai::ToolType::Function,
                             function: Some(openai::PurpleFunction {
                                 name: tool_name,
-                                arguments: serde_json::to_string(&input).unwrap_or_default(),
+                                arguments: arguments.to_string(),
                             }),
                             custom: None,
                         });
@@ -1317,14 +1282,10 @@ impl TryFromLLM<&openai::ChatCompletionResponseMessage> for Message {
                 if let Some(tool_calls) = &msg.tool_calls {
                     for tool_call in tool_calls {
                         if let Some(function) = &tool_call.function {
-                            // Parse the arguments JSON back to serde_json::Value
-                            let input = serde_json::from_str(&function.arguments)
-                                .unwrap_or(serde_json::Value::Null);
-
                             content_parts.push(AssistantContentPart::ToolCall {
                                 tool_call_id: tool_call.id.clone(),
                                 tool_name: function.name.clone(),
-                                input,
+                                arguments: function.arguments.clone().into(),
                                 provider_options: None,
                                 provider_executed: None,
                             });
@@ -1380,14 +1341,14 @@ impl TryFromLLM<&Message> for openai::ChatCompletionResponseMessage {
                                 AssistantContentPart::ToolCall {
                                     tool_call_id,
                                     tool_name,
-                                    input,
+                                    arguments,
                                     ..
                                 } => Some(openai::ToolCall {
                                     id: tool_call_id.clone(),
                                     tool_call_type: openai::ToolType::Function,
                                     function: Some(openai::PurpleFunction {
                                         name: tool_name.clone(),
-                                        arguments: serde_json::to_string(input).unwrap_or_default(),
+                                        arguments: arguments.to_string(),
                                     }),
                                     custom: None,
                                 }),

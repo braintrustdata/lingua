@@ -116,6 +116,28 @@ pub enum ToolCallArguments {
     Invalid(String),
 }
 
+impl From<String> for ToolCallArguments {
+    fn from(s: String) -> Self {
+        match serde_json::from_str(&s) {
+            Ok(serde_json::Value::Object(map)) => ToolCallArguments::Valid(map),
+            _ => ToolCallArguments::Invalid(s),
+        }
+    }
+}
+
+impl std::fmt::Display for ToolCallArguments {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ToolCallArguments::Valid(map) => write!(
+                f,
+                "{}",
+                serde_json::to_string(map).map_err(|_| std::fmt::Error)?
+            ),
+            ToolCallArguments::Invalid(s) => write!(f, "{}", s),
+        }
+    }
+}
+
 /// Tool content - array of tool content parts
 pub type ToolContent = Vec<ToolContentPart>;
 
