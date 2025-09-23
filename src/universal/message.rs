@@ -91,8 +91,7 @@ pub enum AssistantContentPart {
     ToolCall {
         tool_call_id: String,
         tool_name: String,
-        #[ts(type = "any")]
-        input: serde_json::Value,
+        arguments: ToolCallArguments,
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
         #[ts(optional)]
@@ -101,11 +100,20 @@ pub enum AssistantContentPart {
     ToolResult {
         tool_call_id: String,
         tool_name: String,
-        #[ts(type = "any")]
+        #[ts(type = "unknown")]
         output: serde_json::Value,
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "camelCase")]
+#[serde(tag = "type")]
+pub enum ToolCallArguments {
+    Valid(#[ts(type = "Record<string, unknown>")] serde_json::Map<String, serde_json::Value>),
+    Invalid(String),
 }
 
 /// Tool content - array of tool content parts

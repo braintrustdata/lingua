@@ -12,11 +12,11 @@ import { anthropicExecutor } from "./providers/anthropic";
 import { ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
-const allProviders: ProviderExecutor<any, any, any>[] = [
+const allProviders = [
   { ...openaiExecutor, name: "openai-chat-completions" },
   openaiResponsesExecutor,
   anthropicExecutor,
-];
+] as const;
 
 interface CaptureOptions {
   list: boolean;
@@ -97,7 +97,7 @@ interface CaseToRun {
   provider: string;
   caseName: string;
   payload: unknown;
-  executor: ProviderExecutor;
+  executor: ProviderExecutor<unknown, unknown, unknown>;
 }
 
 function getAllCases(options: CaptureOptions): CaseToRun[] {
@@ -124,7 +124,8 @@ function getAllCases(options: CaptureOptions): CaseToRun[] {
         provider: executor.name,
         caseName,
         payload,
-        executor,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Runtime type safety guaranteed by executor design
+        executor: executor as ProviderExecutor<unknown, unknown, unknown>,
       });
     }
   }
