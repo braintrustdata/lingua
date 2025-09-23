@@ -1,29 +1,62 @@
 import OpenAI from "openai";
 import { CaptureResult, ProviderExecutor } from "../types";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
+import {
+  ResponseInputItem,
+  ResponseStreamEvent,
+} from "openai/resources/responses/responses";
+import { ResponseStream } from "openai/lib/responses/ResponseStream";
+import { Stream } from "openai/core/streaming";
 
 // OpenAI Responses API cases - extracted from unified cases
-export const openaiResponsesCases: Record<string, OpenAI.Responses.ResponseCreateParams> = {};
+export const openaiResponsesCases: Record<
+  string,
+  OpenAI.Responses.ResponseCreateParams
+> = {};
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
-  const caseData = getCaseForProvider(allTestCases, caseName, "openai-responses");
+  const caseData = getCaseForProvider(
+    allTestCases,
+    caseName,
+    "openai-responses"
+  );
   if (caseData) {
     openaiResponsesCases[caseName] = caseData;
   }
 });
 
+type ParallelResponseResult =
+  | {
+      stream: true;
+      data: Array<ResponseStreamEvent>;
+    }
+  | {
+      stream: false;
+      data: OpenAI.Responses.Response;
+    };
+
 export async function executeOpenAIResponses(
   caseName: string,
   payload: OpenAI.Responses.ResponseCreateParams,
-  stream?: boolean,
-): Promise<CaptureResult<OpenAI.Responses.ResponseCreateParams, OpenAI.Responses.Response, unknown>> {
+  stream?: boolean
+): Promise<
+  CaptureResult<
+    OpenAI.Responses.ResponseCreateParams,
+    OpenAI.Responses.Response,
+    unknown
+  >
+> {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const result: CaptureResult<OpenAI.Responses.ResponseCreateParams, OpenAI.Responses.Response, unknown> = { request: payload };
+  const result: CaptureResult<
+    OpenAI.Responses.ResponseCreateParams,
+    OpenAI.Responses.Response,
+    unknown
+  > = { request: payload };
 
   try {
     // Create promises for parallel execution
-    const promises: Promise<any>[] = [];
+    const promises: Promise<ParallelResponseResult>[] = [];
 
     // Add non-streaming call if requested
     if (stream !== true) {
@@ -33,7 +66,7 @@ export async function executeOpenAIResponses(
             ...payload,
             stream: false,
           })
-          .then((response) => ({ type: "response", data: response })),
+          .then((response) => ({ stream: false, data: response }))
       );
     }
 
@@ -41,7 +74,7 @@ export async function executeOpenAIResponses(
     if (stream !== false) {
       promises.push(
         (async () => {
-          const streamChunks: unknown[] = [];
+          const streamChunks: ResponseStreamEvent[] = [];
           const streamResponse = await client.responses.create({
             ...payload,
             stream: true,
@@ -50,8 +83,8 @@ export async function executeOpenAIResponses(
           for await (const chunk of streamResponse) {
             streamChunks.push(chunk);
           }
-          return { type: "streamingResponse", data: streamChunks };
-        })(),
+          return { stream: true, data: streamChunks };
+        })()
       );
     }
 
@@ -60,28 +93,31 @@ export async function executeOpenAIResponses(
 
     // Process results
     for (const result_ of initialResults) {
-      if (result_.type === "response") {
-        result.response = result_.data;
-      } else if (result_.type === "streamingResponse") {
+      if (result_.stream) {
         result.streamingResponse = result_.data;
+      } else {
+        result.response = result_.data;
       }
     }
 
     // Create follow-up conversation if we have a non-streaming response with valid output
-    if (result.response && typeof result.response === 'object' && result.response !== null && "output" in result.response) {
-      const assistantOutput = (result.response as OpenAI.Responses.Response).output;
+    if (
+      result.response &&
+      typeof result.response === "object" &&
+      result.response !== null &&
+      "output" in result.response
+    ) {
+      const assistantOutput = result.response.output;
 
       // Check if we have valid content for followup (not just reasoning without text)
-      const response = result.response as OpenAI.Responses.Response;
-      const hasValidContent = Array.isArray(assistantOutput)
-        ? assistantOutput.some(
-            (item) => (item as any).type !== "reasoning" || response.output_text,
-          )
-        : (assistantOutput as any).type !== "reasoning" || response.output_text;
+      const response = result.response;
+      const hasValidContent = assistantOutput.some(
+        (item) => item.type !== "reasoning" || response.output_text
+      );
 
       if (!hasValidContent) {
         console.log(
-          `⚠️ Skipping followup for ${caseName} - response contains only reasoning without text output`,
+          `⚠️ Skipping followup for ${caseName} - response contains only reasoning without text output`
         );
         return result;
       }
@@ -89,36 +125,35 @@ export async function executeOpenAIResponses(
       console.log(`📝 Creating followup request for ${caseName}...`);
 
       // Build follow-up input, handling tool calls
-      const followUpInput: any[] = [
-        ...(Array.isArray(payload.input) ? payload.input : [payload.input]),
-        ...(Array.isArray(assistantOutput)
-          ? assistantOutput
-          : [assistantOutput]),
+      const followUpInput: ResponseInputItem[] = [
+        ...(Array.isArray(payload.input)
+          ? payload.input
+          : payload.input
+            ? [
+                {
+                  role: "user" as const,
+                  content: payload.input,
+                },
+              ]
+            : []),
+        ...assistantOutput,
       ];
 
       // Check if the assistant output contains tool calls and add tool responses
-      const assistantMessages = Array.isArray(assistantOutput) ? assistantOutput : [assistantOutput];
+      const assistantMessages = Array.isArray(assistantOutput)
+        ? assistantOutput
+        : [assistantOutput];
       let hasToolCalls = false;
 
       for (const message of assistantMessages) {
-        if ((message as any).type === "message" && (message as any).content) {
-          const contentItems = Array.isArray((message as any).content) ? (message as any).content : [(message as any).content];
-          for (const contentItem of contentItems) {
-            if ((contentItem as any).type === "tool_call" && (contentItem as any).id) {
-              hasToolCalls = true;
-              // Add tool call output for OpenAI Responses API format
-              followUpInput.push({
-                role: "user",
-                content: [
-                  {
-                    type: "custom_tool_call_output",
-                    tool_call_id: (contentItem as any).id,
-                    output: "71 degrees",
-                  },
-                ],
-              });
-            }
-          }
+        if (message.type === "function_call") {
+          hasToolCalls = true;
+          // Add tool call output for OpenAI Responses API format
+          followUpInput.push({
+            type: "custom_tool_call_output",
+            call_id: message.call_id,
+            output: "71 degrees",
+          });
         }
       }
 
@@ -135,7 +170,7 @@ export async function executeOpenAIResponses(
       result.followupRequest = followUpPayload;
 
       // Create follow-up promises for parallel execution
-      const followupPromises: Promise<any>[] = [];
+      const followupPromises: Promise<ParallelResponseResult>[] = [];
 
       if (stream !== true) {
         followupPromises.push(
@@ -144,67 +179,44 @@ export async function executeOpenAIResponses(
               ...followUpPayload,
               stream: false,
             })
-            .then((response) => ({ type: "followupResponse", data: response }))
-            .catch((error) => {
-              console.error(
-                `❌ Followup non-streaming request failed for ${caseName}:`,
-                error,
-              );
-              return {
-                type: "followupResponse",
-                data: null,
-                error: String(error),
-              };
-            }),
+            .then((response) => ({ stream: false, data: response }))
         );
       }
 
       if (stream !== false) {
         followupPromises.push(
           (async () => {
-            try {
-              const followupStreamChunks: unknown[] = [];
-              const followupStreamResponse = await client.responses.create({
-                ...followUpPayload,
-                stream: true,
-              });
+            const followupStreamChunks: ResponseStreamEvent[] = [];
+            const followupStreamResponse = await client.responses.create({
+              ...followUpPayload,
+              stream: true,
+            });
 
-              for await (const chunk of followupStreamResponse) {
-                followupStreamChunks.push(chunk);
-              }
-              return {
-                type: "followupStreamingResponse",
-                data: followupStreamChunks,
-              };
-            } catch (error) {
-              console.error(
-                `❌ Followup streaming request failed for ${caseName}:`,
-                error,
-              );
-              return {
-                type: "followupStreamingResponse",
-                data: null,
-                error: String(error),
-              };
+            for await (const chunk of followupStreamResponse) {
+              followupStreamChunks.push(chunk);
             }
-          })(),
+            return {
+              stream: true,
+              data: followupStreamChunks,
+            };
+          })()
         );
       }
 
       // Execute follow-up calls in parallel
       if (followupPromises.length > 0) {
         console.log(
-          `🚀 Executing ${followupPromises.length} followup requests for ${caseName}...`,
+          `🚀 Executing ${followupPromises.length} followup requests for ${caseName}...`
         );
         const followupResults = await Promise.all(followupPromises);
 
         for (const result_ of followupResults) {
-          if (result_.type === "followupResponse") {
-            console.log(`✅ Got followup response for ${caseName}`);
-            result.followupResponse = result_.data;
-          } else if (result_.type === "followupStreamingResponse") {
+          if (result_.stream) {
             console.log(`✅ Got followup streaming response for ${caseName}`);
             result.followupStreamingResponse = result_.data;
+          } else {
+            console.log(`✅ Got followup response for ${caseName}`);
+            result.followupResponse = result_.data;
           }
         }
         console.log(`📦 Followup execution completed for ${caseName}`);
@@ -219,9 +231,12 @@ export async function executeOpenAIResponses(
   return result;
 }
 
-export const openaiResponsesExecutor: ProviderExecutor<OpenAI.Responses.ResponseCreateParams, OpenAI.Responses.Response, unknown> = {
+export const openaiResponsesExecutor: ProviderExecutor<
+  OpenAI.Responses.ResponseCreateParams,
+  OpenAI.Responses.Response,
+  unknown
+> = {
   name: "openai-responses",
   cases: openaiResponsesCases,
   execute: executeOpenAIResponses,
 };
-

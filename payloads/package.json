@@ -4,7 +4,11 @@
   "description": "Scripts to capture OpenAI and Anthropic API payloads with TypeScript type safety",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "capture": "tsx scripts/capture.ts"
+    "capture": "tsx scripts/capture.ts",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "openai": "^5.22.0",
@@ -12,6 +16,11 @@
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
+    "@typescript-eslint/eslint-plugin": "^8.10.0",
+    "@typescript-eslint/parser": "^8.10.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   }
