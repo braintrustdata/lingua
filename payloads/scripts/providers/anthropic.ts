@@ -3,7 +3,10 @@ import { CaptureResult, ProviderExecutor } from "../types";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 
 // Anthropic cases - extracted from unified cases
-export const anthropicCases: Record<string, Anthropic.Messages.MessageCreateParams> = {};
+export const anthropicCases: Record<
+  string,
+  Anthropic.Messages.MessageCreateParams
+> = {};
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
@@ -17,9 +20,19 @@ export async function executeAnthropic(
   caseName: string,
   payload: Anthropic.Messages.MessageCreateParams,
   stream?: boolean
-): Promise<CaptureResult<Anthropic.Messages.MessageCreateParams, Anthropic.Messages.Message, unknown>> {
+): Promise<
+  CaptureResult<
+    Anthropic.Messages.MessageCreateParams,
+    Anthropic.Messages.Message,
+    unknown
+  >
+> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const result: CaptureResult<Anthropic.Messages.MessageCreateParams, Anthropic.Messages.Message, unknown> = { request: payload };
+  const result: CaptureResult<
+    Anthropic.Messages.MessageCreateParams,
+    Anthropic.Messages.Message,
+    unknown
+  > = { request: payload };
 
   try {
     // Create promises for parallel execution
@@ -28,10 +41,12 @@ export async function executeAnthropic(
     // Add non-streaming call if requested
     if (stream !== true) {
       promises.push(
-        client.messages.create({
-          ...payload,
-          stream: false,
-        }).then(response => ({ type: 'response', data: response }))
+        client.messages
+          .create({
+            ...payload,
+            stream: false,
+          })
+          .then((response) => ({ type: "response", data: response }))
       );
     }
 
@@ -48,7 +63,7 @@ export async function executeAnthropic(
           for await (const chunk of streamResponse) {
             streamChunks.push(chunk);
           }
-          return { type: 'streamingResponse', data: streamChunks };
+          return { type: "streamingResponse", data: streamChunks };
         })()
       );
     }
@@ -58,15 +73,21 @@ export async function executeAnthropic(
 
     // Process results
     for (const result_ of initialResults) {
-      if (result_.type === 'response') {
+      if (result_.type === "response") {
         result.response = result_.data;
-      } else if (result_.type === 'streamingResponse') {
+      } else if (result_.type === "streamingResponse") {
         result.streamingResponse = result_.data;
       }
     }
 
     // Create follow-up conversation if we have a non-streaming response
-    if (result.response && typeof result.response === 'object' && result.response !== null && "content" in result.response && Array.isArray((result.response as any).content)) {
+    if (
+      result.response &&
+      typeof result.response === "object" &&
+      result.response !== null &&
+      "content" in result.response &&
+      Array.isArray((result.response as any).content)
+    ) {
       const assistantMessage: Anthropic.MessageParam = {
         role: "assistant",
         content: result.response.content,
@@ -85,8 +106,12 @@ export async function executeAnthropic(
 
       let hasToolCalls = false;
       for (const contentBlock of assistantContent) {
-        if (typeof contentBlock === 'object' && contentBlock !== null &&
-            'type' in contentBlock && contentBlock.type === 'tool_use') {
+        if (
+          typeof contentBlock === "object" &&
+          contentBlock !== null &&
+          "type" in contentBlock &&
+          contentBlock.type === "tool_use"
+        ) {
           hasToolCalls = true;
           // Add tool result for each tool call
           followUpMessages.push({
@@ -104,7 +129,10 @@ export async function executeAnthropic(
 
       // If no tool calls were found, add the generic follow-up message
       if (!hasToolCalls) {
-        followUpMessages.push({ role: "user", content: "What should I do next?" });
+        followUpMessages.push({
+          role: "user",
+          content: "What should I do next?",
+        });
       }
 
       const followUpPayload: Anthropic.MessageCreateParams = {
@@ -119,10 +147,12 @@ export async function executeAnthropic(
 
       if (stream !== true) {
         followupPromises.push(
-          client.messages.create({
-            ...followUpPayload,
-            stream: false,
-          }).then(response => ({ type: 'followupResponse', data: response }))
+          client.messages
+            .create({
+              ...followUpPayload,
+              stream: false,
+            })
+            .then((response) => ({ type: "followupResponse", data: response }))
         );
       }
 
@@ -138,7 +168,10 @@ export async function executeAnthropic(
             for await (const chunk of followupStreamResponse) {
               followupStreamChunks.push(chunk);
             }
-            return { type: 'followupStreamingResponse', data: followupStreamChunks };
+            return {
+              type: "followupStreamingResponse",
+              data: followupStreamChunks,
+            };
           })()
         );
       }
@@ -148,9 +181,9 @@ export async function executeAnthropic(
         const followupResults = await Promise.all(followupPromises);
 
         for (const result_ of followupResults) {
-          if (result_.type === 'followupResponse') {
+          if (result_.type === "followupResponse") {
             result.followupResponse = result_.data;
-          } else if (result_.type === 'followupStreamingResponse') {
+          } else if (result_.type === "followupStreamingResponse") {
             result.followupStreamingResponse = result_.data;
           }
         }
@@ -163,7 +196,11 @@ export async function executeAnthropic(
   return result;
 }
 
-export const anthropicExecutor: ProviderExecutor<Anthropic.Messages.MessageCreateParams, Anthropic.Messages.Message, unknown> = {
+export const anthropicExecutor: ProviderExecutor<
+  Anthropic.Messages.MessageCreateParams,
+  Anthropic.Messages.Message,
+  unknown
+> = {
   name: "anthropic",
   cases: anthropicCases,
   execute: executeAnthropic,

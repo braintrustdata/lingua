@@ -57,7 +57,7 @@ export function needsRegeneration(
   outputDir: string,
   provider: string,
   name: string,
-  payload: unknown,
+  payload: unknown
 ): boolean {
   const cache = loadCache(outputDir);
   const cacheKey = getCacheKey(provider, name);
@@ -74,12 +74,12 @@ export function needsRegeneration(
 
   // Check if all expected files exist
   const missingFiles = metadata.files.filter(
-    (file) => !existsSync(join(outputDir, file)),
+    (file) => !existsSync(join(outputDir, file))
   );
 
   if (missingFiles.length > 0) {
     console.log(
-      `Cache hit but missing files for ${provider}/${name}: ${missingFiles.join(", ")}`,
+      `Cache hit but missing files for ${provider}/${name}: ${missingFiles.join(", ")}`
     );
     return true; // Files missing, needs regeneration
   }
@@ -92,7 +92,7 @@ export function updateCache(
   provider: string,
   name: string,
   payload: unknown,
-  generatedFiles: string[],
+  generatedFiles: string[]
 ): void {
   const cache = loadCache(outputDir);
   const cacheKey = getCacheKey(provider, name);
@@ -107,4 +107,3 @@ export function updateCache(
 
   saveCache(outputDir, cache);
 }
-
