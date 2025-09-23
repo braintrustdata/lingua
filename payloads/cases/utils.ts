@@ -15,7 +15,9 @@ export function getProviderTypesForCase(
 }
 
 // Helper to get all provider types across all cases in a collection
-export function getAllProviderTypes(collection: TestCaseCollection): ProviderType[] {
+export function getAllProviderTypes(
+  collection: TestCaseCollection
+): ProviderType[] {
   const providerTypes = new Set<ProviderType>();
   Object.values(collection).forEach((testCase) => {
     (Object.keys(testCase) as ProviderType[]).forEach((providerType) => {
@@ -36,7 +38,9 @@ export function getCaseForProvider<T extends ProviderType>(
 }
 
 // Helper to merge multiple test case collections
-export function mergeCollections(...collections: TestCaseCollection[]): TestCaseCollection {
+export function mergeCollections(
+  ...collections: TestCaseCollection[]
+): TestCaseCollection {
   return collections.reduce((merged, collection) => {
     return { ...merged, ...collection };
   }, {});

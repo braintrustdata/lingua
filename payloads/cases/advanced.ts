@@ -121,8 +121,8 @@ export const advancedCases: TestCaseCollection = {
       input: [
         {
           role: "user",
-          content: "What color is the sky?"
-        }
+          content: "What color is the sky?",
+        },
       ],
     },
     "openai-chat-completions": {
@@ -130,8 +130,8 @@ export const advancedCases: TestCaseCollection = {
       messages: [
         {
           role: "user",
-          content: "What color is the sky?"
-        }
+          content: "What color is the sky?",
+        },
       ],
     },
     anthropic: {
@@ -140,8 +140,8 @@ export const advancedCases: TestCaseCollection = {
       messages: [
         {
           role: "user",
-          content: "What color is the sky?"
-        }
+          content: "What color is the sky?",
+        },
       ],
     },
   },
@@ -152,8 +152,8 @@ export const advancedCases: TestCaseCollection = {
       messages: [
         {
           role: "user",
-          content: "What's the weather like in San Francisco?"
-        }
+          content: "What's the weather like in San Francisco?",
+        },
       ],
       tools: [
         {
@@ -166,24 +166,24 @@ export const advancedCases: TestCaseCollection = {
               properties: {
                 location: {
                   type: "string",
-                  description: "The city and state, e.g. San Francisco, CA"
-                }
+                  description: "The city and state, e.g. San Francisco, CA",
+                },
               },
-              required: ["location"]
-            }
-          }
-        }
+              required: ["location"],
+            },
+          },
+        },
       ],
-      tool_choice: "auto"
+      tool_choice: "auto",
     },
-    "anthropic": {
+    anthropic: {
       model: ANTHROPIC_MODEL,
       max_tokens: 20000,
       messages: [
         {
           role: "user",
-          content: "What's the weather like in San Francisco?"
-        }
+          content: "What's the weather like in San Francisco?",
+        },
       ],
       tools: [
         {
@@ -194,24 +194,24 @@ export const advancedCases: TestCaseCollection = {
             properties: {
               location: {
                 type: "string",
-                description: "The city and state, e.g. San Francisco, CA"
-              }
+                description: "The city and state, e.g. San Francisco, CA",
+              },
             },
-            required: ["location"]
-          }
-        }
+            required: ["location"],
+          },
+        },
       ],
       tool_choice: {
-        type: "auto"
-      }
+        type: "auto",
+      },
     },
     "openai-responses": {
       model: OPENAI_RESPONSES_MODEL,
       input: [
         {
           role: "user",
-          content: "What's the weather like in San Francisco?"
-        }
+          content: "What's the weather like in San Francisco?",
+        },
       ],
       tools: [
         {
@@ -223,15 +223,15 @@ export const advancedCases: TestCaseCollection = {
             properties: {
               location: {
                 type: "string",
-                description: "The city and state, e.g. San Francisco, CA"
-              }
+                description: "The city and state, e.g. San Francisco, CA",
+              },
             },
-            required: ["location"]
+            required: ["location"],
           },
-          strict: false
-        }
+          strict: false,
+        },
       ],
-      tool_choice: "auto"
+      tool_choice: "auto",
     },
   },
 };
