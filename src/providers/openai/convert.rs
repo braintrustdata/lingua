@@ -1,3 +1,4 @@
+use crate::providers::google::generated::tool;
 use crate::providers::openai::generated as openai;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{
@@ -461,12 +462,10 @@ impl TryFromLLM<Message> for openai::InputItem {
                     }),
                     AssistantContent::Array(parts) => {
                         let mut has_reasoning = false;
-                        let mut has_tool_call = false;
                         let mut encrypted_content = None;
                         let mut reasoning_parts: Vec<openai::SummaryText> = vec![];
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
-                        let mut tool_call_info: Option<(String, String, String, Option<String>)> =
-                            None; // (id, name, arguments, call_id)
+                        let mut tool_call_info: Option<(String, String, String)> = None; // (tool_call_id, name, arguments, call_id)
 
                         for part in parts {
                             match part {
@@ -490,19 +489,8 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     provider_options,
                                     ..
                                 } => {
-                                    has_tool_call = true;
-                                    // Extract OpenAI-specific call_id from provider_options
-                                    let call_id = provider_options
-                                        .as_ref()
-                                        .and_then(|opts| opts.options.get("call_id"))
-                                        .and_then(|val| val.as_str())
-                                        .map(|s| s.to_string());
-                                    tool_call_info = Some((
-                                        tool_call_id,
-                                        tool_name,
-                                        arguments.to_string(),
-                                        call_id,
-                                    ));
+                                    tool_call_info =
+                                        Some((tool_call_id, tool_name, arguments.to_string()));
                                 }
                                 _ => {
                                     normal_parts.push(TryFromLLM::try_from(part)?);
@@ -511,7 +499,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                         }
 
                         if has_reasoning {
-                            if has_tool_call || !normal_parts.is_empty() {
+                            if tool_call_info.is_some() || !normal_parts.is_empty() {
                                 return Err(ConvertError::ContentConversionFailed {
                                     reason: "Mixed reasoning and other content parts are not supported in OpenAI format".to_string(),
                                 });
@@ -528,21 +516,19 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 ..Default::default()
                             };
                             Ok(reasoning_item)
-                        } else if has_tool_call {
+                        } else if let Some((call_id, name, arguments)) = tool_call_info {
                             if !normal_parts.is_empty() {
                                 return Err(ConvertError::ContentConversionFailed {
                                     reason: "Mixed tool call and normal content parts are not supported in OpenAI format".to_string(),
                                 });
                             }
 
-                            // Pure tool call message - convert to function call InputItem
-                            let (_tool_call_id, name, arguments, call_id) = tool_call_info.unwrap();
                             let function_call_item = openai::InputItem {
                                 role: Some(openai::InputItemRole::Assistant), // Function calls have assistant role
                                 content: None,
                                 input_item_type: Some(openai::InputItemType::FunctionCall),
                                 id: id.clone(),
-                                call_id: call_id,
+                                call_id: Some(call_id),
                                 name: Some(name),
                                 arguments: Some(arguments),
                                 status: Some(openai::FunctionCallItemStatus::Completed),
@@ -576,6 +562,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                             result_items.push(openai::InputItem {
                                 role: Some(openai::InputItemRole::User), // Tools appear as user messages in OpenAI
                                 content: Some(openai::InputItemContent::String(format!(
+                                    // XXX FIX
                                     "Tool result: {}",
                                     serde_json::to_string(&tool_result.output).unwrap_or_default()
                                 ))),
@@ -695,7 +682,25 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             name: output_item.name,
             // Set other fields to None/default - many OutputItem fields don't have InputItem equivalents
             queries: output_item.queries,
-            ..Default::default()
+            call_id: output_item.call_id,
+            results: output_item.results,
+            action: output_item.action,
+            pending_safety_checks: output_item.pending_safety_checks,
+            acknowledged_safety_checks: None,
+            output: None,
+            encrypted_content: output_item.encrypted_content,
+            result: output_item.result,
+            code: output_item.code,
+            container_id: output_item.container_id,
+            outputs: output_item.outputs,
+            error: output_item.error,
+            server_label: output_item.server_label,
+            tools: output_item.tools,
+            approval_request_id: None,
+            approve: None,
+            reason: None,
+            request_id: None,
+            input: output_item.input,
         })
     }
 }
