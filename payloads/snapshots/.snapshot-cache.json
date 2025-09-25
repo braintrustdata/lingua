@@ -57,7 +57,7 @@
   },
   "openai-chat-completions:toolCallRequest": {
     "payloadHash": "5ff8e7c24a577b425761672d2b524b34be00ad35963a310a08a754242b6b3a5b",
-    "capturedAt": "2025-09-22T05:50:39.547Z",
+    "capturedAt": "2025-09-25T07:09:38.679Z",
     "provider": "openai-chat-completions",
     "name": "toolCallRequest",
     "files": [
@@ -194,7 +194,7 @@
   },
   "anthropic:toolCallRequest": {
     "payloadHash": "26237bba5981cfae3d29b42e95dd25918999c15e6e18064a703a42c750bb5107",
-    "capturedAt": "2025-09-22T15:27:52.448Z",
+    "capturedAt": "2025-09-25T07:09:37.115Z",
     "provider": "anthropic",
     "name": "toolCallRequest",
     "files": [
@@ -208,7 +208,7 @@
   },
   "openai-responses:toolCallRequest": {
     "payloadHash": "5742d5f28d4733db0adf74a1ac5d80521b76972eb8102bcf0e7023b48d1f30fa",
-    "capturedAt": "2025-09-23T15:07:39.370Z",
+    "capturedAt": "2025-09-25T07:09:38.454Z",
     "provider": "openai-responses",
     "name": "toolCallRequest",
     "files": [

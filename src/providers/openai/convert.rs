@@ -675,17 +675,11 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
                 openai::MessageRole::Assistant => openai::InputItemRole::Assistant,
             })
             .or_else(|| {
-                // Only infer role for function calls - reasoning and other items preserve None
+                // Only infer role for regular messages, not for function calls or other items
+                // Function calls and other tool-related items should preserve their original role state
                 match output_item.output_item_type {
-                    Some(openai::OutputItemType::FunctionCall)
-                    | Some(openai::OutputItemType::CustomToolCall)
-                    | Some(openai::OutputItemType::CodeInterpreterCall)
-                    | Some(openai::OutputItemType::FileSearchCall)
-                    | Some(openai::OutputItemType::ComputerCall) => {
-                        Some(openai::InputItemRole::Assistant)
-                    }
                     Some(openai::OutputItemType::Message) => Some(openai::InputItemRole::Assistant),
-                    _ => None, // Don't infer role for reasoning and other types, or when no type
+                    _ => None, // Don't infer role for function calls, reasoning, and other types
                 }
             });
 
