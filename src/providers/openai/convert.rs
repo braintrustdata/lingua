@@ -1,4 +1,3 @@
-use crate::providers::google::generated::tool;
 use crate::providers::openai::generated as openai;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{
@@ -103,6 +102,31 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     result.push(Message::Assistant {
                         content: AssistantContent::Array(vec![tool_call_part]),
                         id: input.id.clone(),
+                    });
+                }
+                Some(openai::InputItemType::FunctionCallOutput)
+                | Some(openai::InputItemType::CustomToolCallOutput) => {
+                    // Function call outputs are converted to tool messages
+                    let tool_call_id =
+                        input
+                            .call_id
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call output call_id".to_string(),
+                            })?;
+
+                    let output = input.output.unwrap_or_else(|| "".to_string());
+
+                    let output_value = serde_json::Value::String(output);
+
+                    let tool_result = ToolResultContentPart {
+                        tool_call_id,
+                        tool_name: String::new(), // OpenAI doesn't provide tool name in output
+                        output: output_value,
+                        provider_options: None,
+                    };
+
+                    result.push(Message::Tool {
+                        content: vec![ToolContentPart::ToolResult(tool_result)],
                     });
                 }
                 _ => {
@@ -524,7 +548,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                             }
 
                             let function_call_item = openai::InputItem {
-                                role: Some(openai::InputItemRole::Assistant), // Function calls have assistant role
+                                role: None, // Preserve original role state - request context function calls don't have roles
                                 content: None,
                                 input_item_type: Some(openai::InputItemType::FunctionCall),
                                 id: id.clone(),
@@ -558,18 +582,19 @@ impl TryFromLLM<Message> for openai::InputItem {
                 for tool_part in content {
                     match tool_part {
                         ToolContentPart::ToolResult(tool_result) => {
-                            // Create a tool result InputItem
+                            // Convert tool result output to string for Refusal::String
+                            let output_string = match &tool_result.output {
+                                serde_json::Value::String(s) => s.clone(),
+                                other => serde_json::to_string(other).unwrap_or_default(),
+                            };
+
+                            // Create a tool result InputItem using FunctionCallOutput type
                             result_items.push(openai::InputItem {
-                                role: Some(openai::InputItemRole::User), // Tools appear as user messages in OpenAI
-                                content: Some(openai::InputItemContent::String(format!(
-                                    // XXX FIX
-                                    "Tool result: {}",
-                                    serde_json::to_string(&tool_result.output).unwrap_or_default()
-                                ))),
-                                input_item_type: Some(openai::InputItemType::CustomToolCallOutput),
+                                role: None,    // Function call outputs don't have roles
+                                content: None, // Function call outputs use the output field, not content
+                                input_item_type: Some(openai::InputItemType::FunctionCallOutput),
                                 call_id: Some(tool_result.tool_call_id.clone()),
-                                name: Some(tool_result.tool_name.clone()),
-                                output: None, // output field is for Refusal type, not tool output
+                                output: Some(output_string),
                                 ..Default::default()
                             });
                         }
