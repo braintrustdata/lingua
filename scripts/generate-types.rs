@@ -873,6 +873,13 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "pub call_id: Option<String>,",
     );
 
+    // Fix output field that quicktype incorrectly generates as Refusal instead of String
+    // This is specific to function call outputs where output should be a plain string
+    processed = processed.replace(
+        "pub output: Option<Refusal>,",
+        "pub output: Option<String>,",
+    );
+
     // Add automatic rename_all for enums that need consistent snake_case naming
     processed = processed.replace(
         "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\npub enum InputItemType {",
