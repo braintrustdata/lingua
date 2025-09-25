@@ -2,7 +2,7 @@
   {
     "type": "message_start",
     "message": {
-      "id": "msg_01NPwY1AQRXhgmBxPx3fjYDr",
+      "id": "msg_01AixaXjcVRFgZcQGmcuLKwa",
       "type": "message",
       "role": "assistant",
       "model": "claude-sonnet-4-20250514",
@@ -43,7 +43,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " weather in San Francisco, CA is 71 degrees. That"
+      "text": " weather in San Francisco, CA is 71 degrees Fahren"
     }
   },
   {
@@ -51,7 +51,15 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "'s quite pleasant!"
+      "text": "heit. It's a pleasant temperature for the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " area!"
     }
   },
   {
@@ -68,7 +76,7 @@
       "input_tokens": 486,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 22
+      "output_tokens": 29
     }
   },
   {

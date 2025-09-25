@@ -1,7 +1,7 @@
 {
-  "id": "resp_68d2b7b2e36081958d798bb0eb7d0322040a34dc63ccaefe",
+  "id": "resp_68d4eaad85b081949bfbc175ba606afb0cb22027d8c51cd0",
   "object": "response",
-  "created_at": 1758640051,
+  "created_at": 1758784173,
   "status": "completed",
   "background": false,
   "billing": {
@@ -15,16 +15,16 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_68d2b7b385ec8195ae9e1a02c7dff288040a34dc63ccaefe",
+      "id": "rs_68d4eaae5a688194852dc43cc82c612b0cb22027d8c51cd0",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "fc_68d2b7b5e54c8195b7bab37820124f43040a34dc63ccaefe",
+      "id": "fc_68d4eaaf171c8194b5ae164dea0dd2c70cb22027d8c51cd0",
       "type": "function_call",
       "status": "completed",
       "arguments": "{\"location\":\"San Francisco, CA\"}",
-      "call_id": "call_SQGf5tOPoyJeUNxHsbAItlo9",
+      "call_id": "call_NXPUUYU6hbVoaGbAFLiSXDsg",
       "name": "get_weather"
     }
   ],
@@ -74,11 +74,11 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 215,
+    "output_tokens": 151,
     "output_tokens_details": {
-      "reasoning_tokens": 192
+      "reasoning_tokens": 128
     },
-    "total_tokens": 281
+    "total_tokens": 217
   },
   "user": null,
   "metadata": {},

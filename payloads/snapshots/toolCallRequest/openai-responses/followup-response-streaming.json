@@ -3,9 +3,9 @@
     "type": "response.created",
     "sequence_number": 0,
     "response": {
-      "id": "resp_68d2b7b6c08c8195bc24ef95808eb19b040a34dc63ccaefe",
+      "id": "resp_68d4eab0019c8194b6a6fcb1ed4b8bd30cb22027d8c51cd0",
       "object": "response",
-      "created_at": 1758640054,
+      "created_at": 1758784176,
       "status": "in_progress",
       "background": false,
       "error": null,
@@ -65,9 +65,9 @@
     "type": "response.in_progress",
     "sequence_number": 1,
     "response": {
-      "id": "resp_68d2b7b6c08c8195bc24ef95808eb19b040a34dc63ccaefe",
+      "id": "resp_68d4eab0019c8194b6a6fcb1ed4b8bd30cb22027d8c51cd0",
       "object": "response",
-      "created_at": 1758640054,
+      "created_at": 1758784176,
       "status": "in_progress",
       "background": false,
       "error": null,
@@ -128,7 +128,7 @@
     "sequence_number": 2,
     "output_index": 0,
     "item": {
-      "id": "rs_68d2b7b7900c819588c8f9374761b7ab040a34dc63ccaefe",
+      "id": "rs_68d4eab0b6408194b5b2975c58a8cfca0cb22027d8c51cd0",
       "type": "reasoning",
       "summary": []
     }
@@ -138,7 +138,7 @@
     "sequence_number": 3,
     "output_index": 0,
     "item": {
-      "id": "rs_68d2b7b7900c819588c8f9374761b7ab040a34dc63ccaefe",
+      "id": "rs_68d4eab0b6408194b5b2975c58a8cfca0cb22027d8c51cd0",
       "type": "reasoning",
       "summary": []
     }
@@ -148,7 +148,7 @@
     "sequence_number": 4,
     "output_index": 1,
     "item": {
-      "id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+      "id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
       "type": "message",
       "status": "in_progress",
       "content": [],
@@ -158,7 +158,7 @@
   {
     "type": "response.content_part.added",
     "sequence_number": 5,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "part": {
@@ -171,303 +171,303 @@
   {
     "type": "response.output_text.delta",
     "sequence_number": 6,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": "Right",
     "logprobs": [],
-    "obfuscation": "TUmJdfRXuDe"
+    "obfuscation": "kREpjeLEoaI"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 7,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " now",
     "logprobs": [],
-    "obfuscation": "5dWcuJ66qLgS"
+    "obfuscation": "Kr8Frk2yTnp8"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 8,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " in",
     "logprobs": [],
-    "obfuscation": "fItXN2FlKgUAJ"
+    "obfuscation": "yG5qfYjsCIsYQ"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 9,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " San",
     "logprobs": [],
-    "obfuscation": "LdFXJJw2m6DA"
+    "obfuscation": "M3ux066jgBi0"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 10,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " Francisco",
     "logprobs": [],
-    "obfuscation": "BrlmZO"
+    "obfuscation": "9ZVimC"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 11,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": ",",
     "logprobs": [],
-    "obfuscation": "CHzkcZC9e2NWYJ2"
+    "obfuscation": "fT2uMePIynDSn7N"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 12,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " it",
     "logprobs": [],
-    "obfuscation": "X6Wi7JL9Py8Zz"
+    "obfuscation": "9Vq5dfLaIRZIe"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 13,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": "’s",
     "logprobs": [],
-    "obfuscation": "pbdRqiglkCbEr9"
+    "obfuscation": "54JTe8LaCpm0tB"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 14,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " about",
     "logprobs": [],
-    "obfuscation": "zAEYogSBXY"
+    "obfuscation": "HJTlQpHr0J"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 15,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " ",
     "logprobs": [],
-    "obfuscation": "Zmd0rriywDy22k0"
+    "obfuscation": "7AFbQRFqTJBXr0N"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 16,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": "71",
     "logprobs": [],
-    "obfuscation": "oKeuCM1cWaw0qL"
+    "obfuscation": "XmecNPL2H1hUJm"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 17,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": "°F",
     "logprobs": [],
-    "obfuscation": "2kN43isgRpVujI"
+    "obfuscation": "wHrZA7lgwFzfRm"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 18,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": ".",
     "logprobs": [],
-    "obfuscation": "JdNYaNexYQu0Hnu"
+    "obfuscation": "AzY4oz9jVFUTPVI"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 19,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " Want",
     "logprobs": [],
-    "obfuscation": "LmvDZE1bdx1"
+    "obfuscation": "2CodOJmGg4i"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 20,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": " the",
+    "delta": " me",
     "logprobs": [],
-    "obfuscation": "jz4FgRtcpQ0a"
+    "obfuscation": "QiCiUZiXlBGby"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 21,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": " humidity",
+    "delta": " to",
     "logprobs": [],
-    "obfuscation": "osuZka0"
+    "obfuscation": "fHI6VusD6STc2"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 22,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": ",",
+    "delta": " pull",
     "logprobs": [],
-    "obfuscation": "EQM89SZX320j6FJ"
+    "obfuscation": "h9ZxG9fnbkE"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 23,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": " wind",
+    "delta": " humidity",
     "logprobs": [],
-    "obfuscation": "74nfPZ806co"
+    "obfuscation": "oAbcRRd"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 24,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": ",",
     "logprobs": [],
-    "obfuscation": "sxCwy3RItKnK9Vq"
+    "obfuscation": "P17IG7DhL5BQeSk"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 25,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": " or",
+    "delta": " wind",
     "logprobs": [],
-    "obfuscation": "UHqkHnNqukKjd"
+    "obfuscation": "sN6otxjRXuB"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 26,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": " a",
+    "delta": ",",
     "logprobs": [],
-    "obfuscation": "EFuzyrdyvlF39o"
+    "obfuscation": "G1wBYXzIMj1QfED"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 27,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": " quick",
+    "delta": " and",
     "logprobs": [],
-    "obfuscation": "JuvgUYm3FD"
+    "obfuscation": "pwRxdGcm5LnJ"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 28,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": " hourly",
+    "delta": " a",
     "logprobs": [],
-    "obfuscation": "2Jgls2Blq"
+    "obfuscation": "AEtEP96tVYF2Gv"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 29,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "delta": "/",
+    "delta": " short",
     "logprobs": [],
-    "obfuscation": "JGoyT6E2kzBlNnh"
+    "obfuscation": "rozOYGVogE"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 30,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "7",
-    "logprobs": [],
-    "obfuscation": "mWpAI66Lc628Azq"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 31,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
-    "output_index": 1,
-    "content_index": 0,
-    "delta": "-day",
-    "logprobs": [],
-    "obfuscation": "P7x9lDMmPTuZ"
-  },
-  {
-    "type": "response.output_text.delta",
-    "sequence_number": 32,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": " forecast",
     "logprobs": [],
-    "obfuscation": "i1Ieifn"
+    "obfuscation": "CB7Nxme"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " as",
+    "logprobs": [],
+    "obfuscation": "8PwMNly4Ym83x"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " well",
+    "logprobs": [],
+    "obfuscation": "Xq9W9HogA33"
   },
   {
     "type": "response.output_text.delta",
     "sequence_number": 33,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "delta": "?",
     "logprobs": [],
-    "obfuscation": "Ybmwry7vPWFpgYW"
+    "obfuscation": "4Zn19j7rWz3ROXW"
   },
   {
     "type": "response.output_text.done",
     "sequence_number": 34,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
-    "text": "Right now in San Francisco, it’s about 71°F. Want the humidity, wind, or a quick hourly/7-day forecast?",
+    "text": "Right now in San Francisco, it’s about 71°F. Want me to pull humidity, wind, and a short forecast as well?",
     "logprobs": []
   },
   {
     "type": "response.content_part.done",
     "sequence_number": 35,
-    "item_id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+    "item_id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
     "output_index": 1,
     "content_index": 0,
     "part": {
       "type": "output_text",
       "annotations": [],
       "logprobs": [],
-      "text": "Right now in San Francisco, it’s about 71°F. Want the humidity, wind, or a quick hourly/7-day forecast?"
+      "text": "Right now in San Francisco, it’s about 71°F. Want me to pull humidity, wind, and a short forecast as well?"
     }
   },
   {
@@ -475,7 +475,7 @@
     "sequence_number": 36,
     "output_index": 1,
     "item": {
-      "id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+      "id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
       "type": "message",
       "status": "completed",
       "content": [
@@ -483,7 +483,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Right now in San Francisco, it’s about 71°F. Want the humidity, wind, or a quick hourly/7-day forecast?"
+          "text": "Right now in San Francisco, it’s about 71°F. Want me to pull humidity, wind, and a short forecast as well?"
         }
       ],
       "role": "assistant"
@@ -493,9 +493,9 @@
     "type": "response.completed",
     "sequence_number": 37,
     "response": {
-      "id": "resp_68d2b7b6c08c8195bc24ef95808eb19b040a34dc63ccaefe",
+      "id": "resp_68d4eab0019c8194b6a6fcb1ed4b8bd30cb22027d8c51cd0",
       "object": "response",
-      "created_at": 1758640054,
+      "created_at": 1758784176,
       "status": "completed",
       "background": false,
       "error": null,
@@ -506,12 +506,12 @@
       "model": "gpt-5-nano-2025-08-07",
       "output": [
         {
-          "id": "rs_68d2b7b7900c819588c8f9374761b7ab040a34dc63ccaefe",
+          "id": "rs_68d4eab0b6408194b5b2975c58a8cfca0cb22027d8c51cd0",
           "type": "reasoning",
           "summary": []
         },
         {
-          "id": "msg_68d2b7ba9ee88195a0a59cfba8290aaa040a34dc63ccaefe",
+          "id": "msg_68d4eab207ac8194a97cf5ce451a09cd0cb22027d8c51cd0",
           "type": "message",
           "status": "completed",
           "content": [
@@ -519,7 +519,7 @@
               "type": "output_text",
               "annotations": [],
               "logprobs": [],
-              "text": "Right now in San Francisco, it’s about 71°F. Want the humidity, wind, or a quick hourly/7-day forecast?"
+              "text": "Right now in San Francisco, it’s about 71°F. Want me to pull humidity, wind, and a short forecast as well?"
             }
           ],
           "role": "assistant"
@@ -567,15 +567,15 @@
       "top_p": 1,
       "truncation": "disabled",
       "usage": {
-        "input_tokens": 317,
+        "input_tokens": 256,
         "input_tokens_details": {
           "cached_tokens": 0
         },
-        "output_tokens": 418,
+        "output_tokens": 290,
         "output_tokens_details": {
-          "reasoning_tokens": 384
+          "reasoning_tokens": 256
         },
-        "total_tokens": 735
+        "total_tokens": 546
       },
       "user": null,
       "metadata": {}
