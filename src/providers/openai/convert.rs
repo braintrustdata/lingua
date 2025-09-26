@@ -383,7 +383,7 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
             },
             AssistantContentPart::ToolCall {
                 tool_call_id: _,
-                tool_name,
+                tool_name: _,
                 arguments,
                 ..
             } => openai::InputContent {
@@ -523,7 +523,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     tool_call_id,
                                     tool_name,
                                     arguments,
-                                    provider_options,
+                                    provider_options: _,
                                     ..
                                 } => {
                                     tool_call_info =
@@ -805,13 +805,12 @@ impl TryFromLLM<Message> for openai::OutputItem {
                                     Some(text_part.text.clone())
                                 }
                                 AssistantContentPart::ToolCall {
-                                    tool_name,
-                                    arguments,
+                                    tool_name: _,
+                                    arguments: _,
                                     ..
                                 } => {
                                     // Create synthetic text for tool calls since OutputItem doesn't have proper tool call structure
-                                    panic!("Probably broken");
-                                    Some(arguments.to_string())
+                                    todo!()
                                 }
                                 _ => None,
                             })
