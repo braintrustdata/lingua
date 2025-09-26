@@ -13,6 +13,7 @@ pub enum ConvertError {
     MissingRequiredField { field: String },
     InvalidRole { role: String },
     ContentConversionFailed { reason: String },
+    JsonSerializationFailed { field: String, error: String },
 }
 
 impl fmt::Display for ConvertError {
@@ -25,6 +26,13 @@ impl fmt::Display for ConvertError {
             ConvertError::InvalidRole { role } => write!(f, "Invalid role: {}", role),
             ConvertError::ContentConversionFailed { reason } => {
                 write!(f, "Content conversion failed: {}", reason)
+            }
+            ConvertError::JsonSerializationFailed { field, error } => {
+                write!(
+                    f,
+                    "JSON serialization failed for field '{}': {}",
+                    field, error
+                )
             }
         }
     }
@@ -209,7 +217,12 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                     let mut options = serde_json::Map::new();
                     options.insert(
                         "detail".to_string(),
-                        serde_json::to_value(detail).unwrap_or(serde_json::Value::Null),
+                        serde_json::to_value(detail).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "detail".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?,
                     );
                     Some(crate::universal::message::ProviderOptions { options })
                 } else {
@@ -585,7 +598,12 @@ impl TryFromLLM<Message> for openai::InputItem {
                             // Convert tool result output to string for Refusal::String
                             let output_string = match &tool_result.output {
                                 serde_json::Value::String(s) => s.clone(),
-                                other => serde_json::to_string(other).unwrap_or_default(),
+                                other => serde_json::to_string(other).map_err(|e| {
+                                    ConvertError::JsonSerializationFailed {
+                                        field: "tool_result_output".to_string(),
+                                        error: e.to_string(),
+                                    }
+                                })?,
                             };
 
                             // Create a tool result InputItem using FunctionCallOutput type
@@ -1071,7 +1089,12 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 if let Some(image_url) = part.image_url {
                     // Convert ImageUrl to UserContentPart::Image
                     Ok(UserContentPart::Image {
-                        image: serde_json::to_value(&image_url.url).unwrap_or_default(),
+                        image: serde_json::to_value(&image_url.url).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "image_url".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?,
                         media_type: Some("image/url".to_string()),
                         provider_options: None,
                     })
@@ -1142,7 +1165,12 @@ impl TryFromLLM<Message> for openai::ChatCompletionRequestMessage {
                 // Convert output to string for OpenAI
                 let content_string = match &tool_result.output {
                     serde_json::Value::String(s) => s.clone(),
-                    other => serde_json::to_string(other).unwrap_or_default(),
+                    other => serde_json::to_string(other).map_err(|e| {
+                        ConvertError::JsonSerializationFailed {
+                            field: "tool_result_content".to_string(),
+                            error: e.to_string(),
+                        }
+                    })?,
                 };
 
                 Ok(openai::ChatCompletionRequestMessage {

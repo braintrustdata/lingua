@@ -1,13 +1,80 @@
 use crate::providers::anthropic::generated;
 use crate::universal::{
     convert::TryFromLLM, AssistantContent, AssistantContentPart, Message, TextContentPart,
-    ToolCallArguments, UserContent, UserContentPart,
+    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 
 impl TryFromLLM<generated::InputMessage> for Message {
     type Error = String;
 
     fn try_from(input_msg: generated::InputMessage) -> Result<Self, Self::Error> {
+        // Check if this is a user message that contains only tool results
+        // If so, convert it to a Tool message instead
+        if let generated::MessageRole::User = input_msg.role {
+            if let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content {
+                // Check if all blocks are tool results
+                let all_tool_results = blocks.iter().all(|block| {
+                    matches!(
+                        block.input_content_block_type,
+                        generated::InputContentBlockType::ToolResult
+                    )
+                });
+
+                let has_tool_results = blocks.iter().any(|block| {
+                    matches!(
+                        block.input_content_block_type,
+                        generated::InputContentBlockType::ToolResult
+                    )
+                });
+
+                // If we have tool results and no other content, convert to Tool message
+                if has_tool_results && all_tool_results {
+                    // Take ownership of the content for conversion
+                    if let generated::MessageContent::InputContentBlockArray(owned_blocks) =
+                        input_msg.content
+                    {
+                        let mut tool_content_parts = Vec::new();
+
+                        for block in owned_blocks {
+                            if matches!(
+                                block.input_content_block_type,
+                                generated::InputContentBlockType::ToolResult
+                            ) {
+                                if let (Some(tool_use_id), Some(content)) =
+                                    (block.tool_use_id, block.content)
+                                {
+                                    let output = match content {
+                                        generated::Content::String(s) => serde_json::Value::String(s),
+                                        generated::Content::BlockArray(blocks) => {
+                                            serde_json::to_value(blocks)
+                                                .map_err(|e| format!("Failed to serialize BlockArray to JSON: {}", e))?
+                                        }
+                                        generated::Content::RequestWebSearchToolResultError(err) => {
+                                            serde_json::to_value(err)
+                                                .map_err(|e| format!("Failed to serialize RequestWebSearchToolResultError to JSON: {}", e))?
+                                        }
+                                    };
+
+                                    tool_content_parts.push(ToolContentPart::ToolResult(
+                                        ToolResultContentPart {
+                                            tool_call_id: tool_use_id,
+                                            tool_name: String::new(), // Anthropic doesn't provide tool name in results
+                                            output,
+                                            provider_options: None,
+                                        },
+                                    ));
+                                }
+                            }
+                        }
+
+                        return Ok(Message::Tool {
+                            content: tool_content_parts,
+                        });
+                    }
+                }
+            }
+        }
+
         match input_msg.role {
             generated::MessageRole::User => {
                 let content = match input_msg.content {
@@ -358,8 +425,9 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     ToolCallArguments::Valid(map) => {
                                         serde_json::Value::Object(map.clone())
                                     }
-                                    ToolCallArguments::Invalid(s) => serde_json::from_str(s)
-                                        .unwrap_or(serde_json::Value::Object(Default::default())),
+                                    ToolCallArguments::Invalid(s) => {
+                                        serde_json::Value::String(s.clone())
+                                    }
                                 };
                                 let input_map = serde_json::from_value::<
                                     std::collections::HashMap<String, Option<serde_json::Value>>,
@@ -394,6 +462,50 @@ impl TryFromLLM<Message> for generated::InputMessage {
                 Ok(generated::InputMessage {
                     content: generated::MessageContent::InputContentBlockArray(blocks),
                     role: generated::MessageRole::Assistant,
+                })
+            }
+            Message::Tool { content } => {
+                // Convert tool results back to user message with tool_result blocks
+                let mut blocks = Vec::new();
+                for part in content {
+                    match part {
+                        ToolContentPart::ToolResult(tool_result) => {
+                            let content = match &tool_result.output {
+                                serde_json::Value::String(s) => {
+                                    Some(generated::Content::String(s.clone()))
+                                }
+                                other => Some(generated::Content::String(
+                                    serde_json::to_string(other)
+                                        .map_err(|e| format!("Failed to serialize tool result output to JSON string: {}", e))?,
+                                )),
+                            };
+
+                            blocks.push(generated::InputContentBlock {
+                                cache_control: None,
+                                citations: None,
+                                text: None,
+                                input_content_block_type:
+                                    generated::InputContentBlockType::ToolResult,
+                                source: None,
+                                context: None,
+                                title: None,
+                                content,
+                                signature: None,
+                                thinking: None,
+                                data: None,
+                                id: None,
+                                input: None,
+                                name: None,
+                                is_error: None,
+                                tool_use_id: Some(tool_result.tool_call_id),
+                            });
+                        }
+                    }
+                }
+
+                Ok(generated::InputMessage {
+                    content: generated::MessageContent::InputContentBlockArray(blocks),
+                    role: generated::MessageRole::User,
                 })
             }
             _ => Err("Unsupported message type for Anthropic conversion".to_string()),
@@ -536,10 +648,9 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         ToolCallArguments::Valid(map) => {
                                             serde_json::Value::Object(map.clone())
                                         }
-                                        ToolCallArguments::Invalid(s) => serde_json::from_str(s)
-                                            .unwrap_or(serde_json::Value::Object(
-                                                Default::default(),
-                                            )),
+                                        ToolCallArguments::Invalid(s) => {
+                                            serde_json::Value::String(s.clone())
+                                        }
                                     };
                                     let input_map =
                                         serde_json::from_value::<
