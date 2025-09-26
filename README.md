@@ -130,6 +130,7 @@ The automation downloads the latest specifications, regenerates types, applies f
 
 - [ ] Show token accounting across providers. Ideally we give users a way to access the provider's native usage + a unified format.
 - [ ] How does structured outputs + Anthropic work? Translate to tool, and parse the response? Does that require carrying some state across request/response? Maybe we can generate an object when performing the forward translation that can be used in the reverse translation.
+- [ ] Audit and remove all remaining `todo!()` calls
 
 ## Feature Flags
 
