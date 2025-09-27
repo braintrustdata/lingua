@@ -4,6 +4,7 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
 } from "./models";
+import { warn } from "console";
 
 // Simple test cases - basic functionality testing
 export const simpleCases: TestCaseCollection = {
@@ -79,14 +80,39 @@ export const simpleCases: TestCaseCollection = {
     },
   },
 
-  reasoningWithOutput: {
+  reasoningRequestTruncated: {
+    "openai-chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      max_completion_tokens: 100,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+    },
+
     "openai-responses": {
       model: OPENAI_RESPONSES_MODEL,
-      reasoning: { effort: "low" },
+      max_output_tokens: 100,
+      reasoning: { effort: "high" },
       input: [
         {
           role: "user",
-          content: "What color is the sky?",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 100,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
     },

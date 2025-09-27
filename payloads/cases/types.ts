@@ -3,9 +3,9 @@ import Anthropic from "@anthropic-ai/sdk";
 
 // Well-defined types for test cases
 export interface TestCase {
-  "openai-chat-completions"?: OpenAI.Chat.Completions.ChatCompletionCreateParams;
-  "openai-responses"?: OpenAI.Responses.ResponseCreateParams;
-  anthropic?: Anthropic.Messages.MessageCreateParams;
+  "openai-chat-completions": OpenAI.Chat.Completions.ChatCompletionCreateParams | null;
+  "openai-responses": OpenAI.Responses.ResponseCreateParams | null;
+  anthropic: Anthropic.Messages.MessageCreateParams | null;
 }
 
 // Collection of test cases organized by name

@@ -247,5 +247,44 @@
       "reasoningWithOutput/openai-chat-completions/followup-response.json",
       "reasoningWithOutput/openai-chat-completions/followup-response-streaming.json"
     ]
+  },
+  "openai-responses:reasoningRequestTruncated": {
+    "payloadHash": "27987a459b6414c5ad81f0403eb5f8c4c4d78d3eda0cd8d546b185720e7811d7",
+    "capturedAt": "2025-09-27T22:15:42.856Z",
+    "provider": "openai-responses",
+    "name": "reasoningRequestTruncated",
+    "files": [
+      "reasoningRequestTruncated/openai-responses/request.json",
+      "reasoningRequestTruncated/openai-responses/response.json",
+      "reasoningRequestTruncated/openai-responses/response-streaming.json"
+    ]
+  },
+  "openai-chat-completions:reasoningRequestTruncated": {
+    "payloadHash": "2428d8e021008f561973b7373eb78dc9ff0bc43bed6bf03c6137fd70884eef5d",
+    "capturedAt": "2025-09-27T22:15:43.852Z",
+    "provider": "openai-chat-completions",
+    "name": "reasoningRequestTruncated",
+    "files": [
+      "reasoningRequestTruncated/openai-chat-completions/request.json",
+      "reasoningRequestTruncated/openai-chat-completions/response.json",
+      "reasoningRequestTruncated/openai-chat-completions/response-streaming.json",
+      "reasoningRequestTruncated/openai-chat-completions/followup-request.json",
+      "reasoningRequestTruncated/openai-chat-completions/followup-response.json",
+      "reasoningRequestTruncated/openai-chat-completions/followup-response-streaming.json"
+    ]
+  },
+  "anthropic:reasoningRequestTruncated": {
+    "payloadHash": "5d56bff285b8d4f7f760d973b4b83f587afae5c0ba62123130c255dd3c2ae6f7",
+    "capturedAt": "2025-09-27T22:15:46.508Z",
+    "provider": "anthropic",
+    "name": "reasoningRequestTruncated",
+    "files": [
+      "reasoningRequestTruncated/anthropic/request.json",
+      "reasoningRequestTruncated/anthropic/response.json",
+      "reasoningRequestTruncated/anthropic/response-streaming.json",
+      "reasoningRequestTruncated/anthropic/followup-request.json",
+      "reasoningRequestTruncated/anthropic/followup-response.json",
+      "reasoningRequestTruncated/anthropic/followup-response-streaming.json"
+    ]
   }
 }
