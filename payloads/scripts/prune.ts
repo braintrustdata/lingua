@@ -26,56 +26,64 @@ interface ValidTestCase {
 }
 
 /**
- * Discover valid test cases by simulating the build.rs logic
+ * Discover valid test cases by reading the actual test case definitions
+ * from the TypeScript files in cases/
  */
 async function discoverValidTestCases(): Promise<ValidTestCase[]> {
   const validCases: ValidTestCase[] = [];
 
   try {
-    const entries = await readdir(SNAPSHOTS_DIR);
+    // Import the test case definitions
+    // Note: We need to use dynamic import for TypeScript files
+    const { allTestCases } = await import('../cases/index');
 
-    for (const entry of entries) {
-      const casePath = join(SNAPSHOTS_DIR, entry);
-      const entryStat = await stat(casePath);
+    // Extract test case names from the collection
+    const testCaseNames = Object.keys(allTestCases);
 
-      if (!entryStat.isDirectory()) continue;
+    console.log(`📝 Found ${testCaseNames.length} defined test cases: ${testCaseNames.join(', ')}`);
 
-      // Skip hidden directories and cache files
-      if (entry.startsWith('.')) continue;
+    // For each test case, check which providers have snapshots
+    for (const caseName of testCaseNames) {
+      const casePath = join(SNAPSHOTS_DIR, caseName);
 
-      const caseName = entry;
+      try {
+        const caseStat = await stat(casePath);
+        if (!caseStat.isDirectory()) continue;
 
-      // Check each provider directory
-      for (const provider of PROVIDERS) {
-        const providerDir = join(casePath, provider);
+        // Check each provider directory
+        for (const provider of PROVIDERS) {
+          const providerDir = join(casePath, provider);
 
-        try {
-          const providerStat = await stat(providerDir);
-          if (!providerStat.isDirectory()) continue;
-
-          // Check for first turn (required: request.json)
           try {
-            await stat(join(providerDir, 'request.json'));
-            validCases.push({ caseName, provider, turn: 'first_turn' });
-          } catch {
-            // request.json doesn't exist, skip first turn
-          }
+            const providerStat = await stat(providerDir);
+            if (!providerStat.isDirectory()) continue;
 
-          // Check for followup turn (required: followup-request.json)
-          try {
-            await stat(join(providerDir, 'followup-request.json'));
-            validCases.push({ caseName, provider, turn: 'followup_turn' });
-          } catch {
-            // followup-request.json doesn't exist, skip followup turn
-          }
+            // Check for first turn (required: request.json)
+            try {
+              await stat(join(providerDir, 'request.json'));
+              validCases.push({ caseName, provider, turn: 'first_turn' });
+            } catch {
+              // request.json doesn't exist, skip first turn
+            }
 
-        } catch {
-          // Provider directory doesn't exist, skip
+            // Check for followup turn (required: followup-request.json)
+            try {
+              await stat(join(providerDir, 'followup-request.json'));
+              validCases.push({ caseName, provider, turn: 'followup_turn' });
+            } catch {
+              // followup-request.json doesn't exist, skip followup turn
+            }
+
+          } catch {
+            // Provider directory doesn't exist, skip
+          }
         }
+      } catch {
+        // Case directory doesn't exist in snapshots, skip
       }
     }
   } catch (error) {
-    console.error(`Error scanning snapshots directory: ${error}`);
+    console.error(`Error discovering test cases: ${error}`);
     process.exit(1);
   }
 
