@@ -3,12 +3,12 @@ use std::fs;
 use std::path::Path;
 
 fn main() {
-    // Create TypeScript bindings directory
-    std::fs::create_dir_all("bindings/typescript").unwrap();
+    // Create TypeScript bindings directory structure
+    std::fs::create_dir_all("bindings/typescript/src/generated").unwrap();
 
     // ts-rs will automatically export types marked with #[ts(export)]
     // to the directory specified in TS_RS_EXPORT_DIR
-    println!("cargo:rustc-env=TS_RS_EXPORT_DIR=./bindings/typescript");
+    println!("cargo:rustc-env=TS_RS_EXPORT_DIR=./bindings/typescript/src/generated");
 
     // Only rerun if source files change
     println!("cargo:rerun-if-changed=src/universal/");
