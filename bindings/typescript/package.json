@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "pnpm run build:wasm && tsc",
+    "build:wasm": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm --no-pack",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "vitest run",
@@ -14,7 +15,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "wasm"
   ],
   "keywords": [
     "llm",
@@ -38,3 +40,4 @@
     "openai": "^5.22.0"
   }
 }
+

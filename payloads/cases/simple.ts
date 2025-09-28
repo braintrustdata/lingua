@@ -4,7 +4,6 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
 } from "./models";
-import { warn } from "console";
 
 // Simple test cases - basic functionality testing
 export const simpleCases: TestCaseCollection = {

@@ -26,5 +26,8 @@ export * from './generated/UserContentPart';
 // Main type aliases for convenience
 export type { Message } from './generated/Message';
 
+// WASM conversion functions
+export * from './wasm';
+
 // Version info
 export const VERSION = '0.1.0';
