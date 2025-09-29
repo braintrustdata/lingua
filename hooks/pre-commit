@@ -24,6 +24,17 @@ if [ -f "payloads/package.json" ]; then
     # Change to payloads directory
     cd payloads
 
+    # Check if dependencies are installed
+    if [ ! -d "node_modules" ]; then
+        echo "❌ Dependencies not installed in payloads/"
+        echo "💡 Please run the setup script first:"
+        echo "   ./scripts/setup.sh"
+        echo ""
+        echo "   Or install manually:"
+        echo "   cd payloads && pnpm install && cd .."
+        exit 1
+    fi
+
     # Run ESLint
     echo "🔍 Running ESLint..."
     if ! npm run lint; then
@@ -54,11 +65,12 @@ if [ -f "payloads/package.json" ]; then
     cd ..
 fi
 
-# Check if any files were changed by formatting
-if ! git diff --quiet; then
-    echo "❌ Files were formatted."
+# Check if any Rust files were changed by formatting
+# Only check .rs files since that's what cargo fmt affects
+if ! git diff --quiet -- '*.rs'; then
+    echo "❌ Rust files were formatted."
     echo "💡 Please re-add the formatted files and commit again:"
-    echo "   git add -A && git commit"
+    echo "   git add . && git commit"
     exit 1
 fi
 
