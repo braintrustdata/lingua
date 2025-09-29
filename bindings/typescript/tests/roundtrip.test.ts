@@ -149,53 +149,83 @@ describe("TypeScript Roundtrip Tests", () => {
           snapshot.provider === "openai-chat-completions" &&
           snapshot.request
         ) {
-          test(`${testName}: OpenAI message conversion`, () => {
-            // Test converting the first message if it exists
+          test(`${testName}: full roundtrip conversion`, () => {
             const messages = snapshot.request.messages;
             if (Array.isArray(messages) && messages.length > 0) {
-              const firstMessage = messages[0];
+              // Test each message in the request
+              for (const originalMessage of messages) {
+                try {
+                  // Perform the roundtrip: OpenAI -> LLMIR -> OpenAI
+                  const result = testOpenAIRoundtrip(originalMessage);
 
-              try {
-                const llmirMessage = openAIMessageToLLMIR(firstMessage);
-                expect(llmirMessage).toBeDefined();
-                // The LLMIR message should have a role
-                expect(llmirMessage.role).toBeDefined();
-              } catch (error) {
-                if (error instanceof ConversionError) {
-                  // Log the error for debugging but don't fail the test
-                  // as not all message formats may be supported yet
-                  console.log(
-                    `Conversion not yet supported for ${testName}:`,
-                    error.message,
-                  );
-                } else {
-                  throw error;
+                  // Verify the roundtrip preserved the data
+                  expect(result.llmir).toBeDefined();
+                  expect(result.llmir.role).toBeDefined();
+
+                  // First check for type consistency (e.g., Map vs Object)
+                  const typeError = checkTypeConsistency(originalMessage, result.roundtripped);
+                  if (typeError) {
+                    throw new Error(`Type consistency check failed: ${typeError}`);
+                  }
+
+                  // Then normalize both objects to remove null/undefined/empty arrays
+                  // This matches how Rust's serde skips None values
+                  const normalizedOriginal = normalizeForComparison(originalMessage);
+                  const normalizedRoundtripped = normalizeForComparison(result.roundtripped);
+
+                  // The normalized objects should be equal
+                  expect(normalizedRoundtripped).toEqual(normalizedOriginal);
+                } catch (error) {
+                  if (error instanceof ConversionError) {
+                    // Skip unsupported message formats for now
+                    console.log(
+                      `Skipping unsupported format in ${testName}:`,
+                      error.message,
+                    );
+                  } else {
+                    throw error;
+                  }
                 }
               }
             }
           });
         } else if (snapshot.provider === "anthropic" && snapshot.request) {
-          test(`${testName}: Anthropic message conversion`, () => {
-            // Test converting the first message if it exists
+          test(`${testName}: full roundtrip conversion`, () => {
             const messages = snapshot.request.messages;
             if (Array.isArray(messages) && messages.length > 0) {
-              const firstMessage = messages[0];
+              // Test each message in the request
+              for (const originalMessage of messages) {
+                try {
+                  // Perform the roundtrip: Anthropic -> LLMIR -> Anthropic
+                  const result = testAnthropicRoundtrip(originalMessage);
 
-              try {
-                const llmirMessage = anthropicMessageToLLMIR(firstMessage);
-                expect(llmirMessage).toBeDefined();
-                // The LLMIR message should have a role
-                expect(llmirMessage.role).toBeDefined();
-              } catch (error) {
-                if (error instanceof ConversionError) {
-                  // Log the error for debugging but don't fail the test
-                  // as not all message formats may be supported yet
-                  console.log(
-                    `Conversion not yet supported for ${testName}:`,
-                    error.message,
-                  );
-                } else {
-                  throw error;
+                  // Verify the roundtrip preserved the data
+                  expect(result.llmir).toBeDefined();
+                  expect(result.llmir.role).toBeDefined();
+
+                  // First check for type consistency (e.g., Map vs Object)
+                  const typeError = checkTypeConsistency(originalMessage, result.roundtripped);
+                  if (typeError) {
+                    throw new Error(`Type consistency check failed: ${typeError}`);
+                  }
+
+                  // Then normalize both objects to remove null/undefined/empty arrays
+                  // This matches how Rust's serde skips None values
+                  const normalizedOriginal = normalizeForComparison(originalMessage);
+                  const normalizedRoundtripped = normalizeForComparison(result.roundtripped);
+
+                  // The normalized objects should be equal
+                  expect(normalizedRoundtripped).toEqual(normalizedOriginal);
+                } catch (error) {
+                  if (error instanceof ConversionError) {
+                    // Skip unsupported message formats for now
+                    console.log(
+                      `Skipping unsupported format in ${testName}:`,
+                      error.message,
+                    );
+                  } else {
+                    throw error;
+                  }
                 }
               }
             }
@@ -203,9 +233,6 @@ describe("TypeScript Roundtrip Tests", () => {
         } else {
           test.skip(`${testName}: provider not yet supported`, () => {});
         }
-
-        // More comprehensive roundtrip tests to be implemented
-        test.todo(`${testName}: full roundtrip conversion`);
       }
     });
   }
@@ -240,6 +267,111 @@ describe("TypeScript Roundtrip Tests", () => {
   // ============================================================================
 // Test Helper Functions
 // ============================================================================
+
+/**
+ * Check if two values have the same types recursively
+ * Returns an error message if types don't match, or null if they do
+ */
+function checkTypeConsistency(original: unknown, roundtripped: unknown, path: string = ''): string | null {
+  // Both null or undefined is OK
+  if (original === null && roundtripped === null) return null;
+  if (original === undefined && roundtripped === undefined) return null;
+
+  // One is null/undefined but not the other
+  if ((original === null || original === undefined) !== (roundtripped === null || roundtripped === undefined)) {
+    return `Type mismatch at ${path}: original is ${original}, roundtripped is ${roundtripped}`;
+  }
+
+  // Check primitive types
+  if (typeof original !== typeof roundtripped) {
+    return `Type mismatch at ${path}: original is ${typeof original}, roundtripped is ${typeof roundtripped}`;
+  }
+
+  // Check array vs non-array
+  if (Array.isArray(original) !== Array.isArray(roundtripped)) {
+    return `Type mismatch at ${path}: original is ${Array.isArray(original) ? 'array' : 'not array'}, roundtripped is ${Array.isArray(roundtripped) ? 'array' : 'not array'}`;
+  }
+
+  // Check Map vs Object
+  const origIsMap = original instanceof Map;
+  const roundIsMap = roundtripped instanceof Map;
+  if (origIsMap !== roundIsMap) {
+    return `Type mismatch at ${path}: original is ${origIsMap ? 'Map' : 'Object'}, roundtripped is ${roundIsMap ? 'Map' : 'Object'}`;
+  }
+
+  // Recursively check arrays
+  if (Array.isArray(original) && Array.isArray(roundtripped)) {
+    const maxLen = Math.max(original.length, roundtripped.length);
+    for (let i = 0; i < maxLen; i++) {
+      const error = checkTypeConsistency(original[i], roundtripped[i], `${path}[${i}]`);
+      if (error) return error;
+    }
+  }
+
+  // Recursively check objects
+  if (typeof original === 'object' && original !== null && !Array.isArray(original) && !origIsMap) {
+    const origObj = original as Record<string, unknown>;
+    const roundObj = roundtripped as Record<string, unknown>;
+    const allKeys = new Set([...Object.keys(origObj), ...Object.keys(roundObj)]);
+
+    for (const key of allKeys) {
+      const error = checkTypeConsistency(origObj[key], roundObj[key], path ? `${path}.${key}` : key);
+      if (error) return error;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Recursively normalize an object by removing null, undefined, and empty array values
+ * This mimics how Rust's serde skips None values during serialization
+ */
+function normalizeForComparison(obj: unknown): unknown {
+  if (obj === null || obj === undefined) {
+    return undefined;
+  }
+
+  if (Array.isArray(obj)) {
+    // Remove null/undefined from arrays and recursively normalize
+    const normalized = obj
+      .filter(item => item !== null && item !== undefined)
+      .map(item => normalizeForComparison(item));
+    // Return undefined for empty arrays to remove them
+    return normalized.length === 0 ? undefined : normalized;
+  }
+
+  // Handle Map objects
+  if (obj instanceof Map) {
+    const normalized: Record<string, unknown> = {};
+    for (const [key, value] of obj.entries()) {
+      const normalizedValue = normalizeForComparison(value);
+      if (normalizedValue !== undefined) {
+        normalized[key] = normalizedValue;
+      }
+    }
+    return Object.keys(normalized).length === 0 ? undefined : normalized;
+  }
+
+  if (typeof obj === 'object' && obj !== null) {
+    const normalized: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+      const normalizedValue = normalizeForComparison(value);
+
+      // Only include the property if it's not undefined and not an empty array
+      if (normalizedValue !== undefined) {
+        normalized[key] = normalizedValue;
+      }
+    }
+
+    // Return undefined for empty objects to remove them
+    return Object.keys(normalized).length === 0 ? undefined : normalized;
+  }
+
+  // Primitive values are returned as-is
+  return obj;
+}
 
 /**
  * Test roundtrip conversion: Provider -> LLMIR -> Provider
