@@ -273,30 +273,45 @@ describe("TypeScript Roundtrip Tests", () => {
  * Returns an error message if types don't match, or null if they do
  */
 function checkTypeConsistency(original: unknown, roundtripped: unknown, path: string = ''): string | null {
+  // Helper to format value for display
+  const formatValue = (val: unknown): string => {
+    if (val === null) return 'null';
+    if (val === undefined) return 'undefined';
+    if (val instanceof Map) return `Map(${val.size}) ${JSON.stringify([...val.entries()])}`;
+    if (typeof val === 'object') {
+      try {
+        return JSON.stringify(val, null, 2).substring(0, 200);
+      } catch {
+        return String(val);
+      }
+    }
+    return String(val);
+  };
+
   // Both null or undefined is OK
   if (original === null && roundtripped === null) return null;
   if (original === undefined && roundtripped === undefined) return null;
 
   // One is null/undefined but not the other
   if ((original === null || original === undefined) !== (roundtripped === null || roundtripped === undefined)) {
-    return `Type mismatch at ${path}: original is ${original}, roundtripped is ${roundtripped}`;
+    return `Type mismatch at ${path}:\n  Original: ${formatValue(original)}\n  Roundtripped: ${formatValue(roundtripped)}`;
   }
 
   // Check primitive types
   if (typeof original !== typeof roundtripped) {
-    return `Type mismatch at ${path}: original is ${typeof original}, roundtripped is ${typeof roundtripped}`;
+    return `Type mismatch at ${path}:\n  Original (${typeof original}): ${formatValue(original)}\n  Roundtripped (${typeof roundtripped}): ${formatValue(roundtripped)}`;
   }
 
   // Check array vs non-array
   if (Array.isArray(original) !== Array.isArray(roundtripped)) {
-    return `Type mismatch at ${path}: original is ${Array.isArray(original) ? 'array' : 'not array'}, roundtripped is ${Array.isArray(roundtripped) ? 'array' : 'not array'}`;
+    return `Type mismatch at ${path}:\n  Original (${Array.isArray(original) ? 'array' : 'not array'}): ${formatValue(original)}\n  Roundtripped (${Array.isArray(roundtripped) ? 'array' : 'not array'}): ${formatValue(roundtripped)}`;
   }
 
   // Check Map vs Object
   const origIsMap = original instanceof Map;
   const roundIsMap = roundtripped instanceof Map;
   if (origIsMap !== roundIsMap) {
-    return `Type mismatch at ${path}: original is ${origIsMap ? 'Map' : 'Object'}, roundtripped is ${roundIsMap ? 'Map' : 'Object'}`;
+    return `Type mismatch at ${path}:\n  Original (${origIsMap ? 'Map' : 'Object'}): ${formatValue(original)}\n  Roundtripped (${roundIsMap ? 'Map' : 'Object'}): ${formatValue(roundtripped)}`;
   }
 
   // Recursively check arrays
