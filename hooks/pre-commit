@@ -65,12 +65,11 @@ if [ -f "payloads/package.json" ]; then
     cd ..
 fi
 
-# Check if any Rust files were changed by formatting
-# Only check .rs files since that's what cargo fmt affects
-if ! git diff --quiet -- '*.rs'; then
-    echo "❌ Rust files were formatted."
+# Check if any files were changed by formatting
+if ! git diff --quiet; then
+    echo "❌ Files were formatted."
     echo "💡 Please re-add the formatted files and commit again:"
-    echo "   git add . && git commit"
+    echo "   git add -A && git commit"
     exit 1
 fi
 
