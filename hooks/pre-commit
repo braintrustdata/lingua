@@ -24,6 +24,17 @@ if [ -f "payloads/package.json" ]; then
     # Change to payloads directory
     cd payloads
 
+    # Check if dependencies are installed
+    if [ ! -d "node_modules" ]; then
+        echo "❌ Dependencies not installed in payloads/"
+        echo "💡 Please run the setup script first:"
+        echo "   ./scripts/setup.sh"
+        echo ""
+        echo "   Or install manually:"
+        echo "   cd payloads && pnpm install && cd .."
+        exit 1
+    fi
+
     # Run ESLint
     echo "🔍 Running ESLint..."
     if ! npm run lint; then

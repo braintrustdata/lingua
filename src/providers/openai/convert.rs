@@ -692,7 +692,7 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             .map(|mr| match mr {
                 openai::MessageRole::Assistant => openai::InputItemRole::Assistant,
             })
-            .or_else(|| {
+            .or({
                 // Only infer role for regular messages, not for function calls or other items
                 // Function calls and other tool-related items should preserve their original role state
                 match output_item.output_item_type {
