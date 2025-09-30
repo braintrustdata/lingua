@@ -1,0 +1,20 @@
+{
+  "model": "gpt-5-nano",
+  "max_completion_tokens": 100,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}
