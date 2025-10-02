@@ -140,3 +140,78 @@ export const llmirToAnthropicMessage = createFromLLMIRConverter<Message, unknown
   'Anthropic'
 );
 
+// ============================================================================
+// Validation functions (Zod-style API)
+// ============================================================================
+
+/**
+ * Validation result in Zod-style format
+ */
+export type ValidationResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: { message: string } };
+
+/**
+ * Validate a JSON string as an OpenAI request
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateOpenAIRequest(json: string): ValidationResult<unknown> {
+  try {
+    const data = wasm.validate_openai_request(json);
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error: { message: String(error) },
+    };
+  }
+}
+
+/**
+ * Validate a JSON string as an OpenAI response
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateOpenAIResponse(json: string): ValidationResult<unknown> {
+  try {
+    const data = wasm.validate_openai_response(json);
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error: { message: String(error) },
+    };
+  }
+}
+
+/**
+ * Validate a JSON string as an Anthropic request
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateAnthropicRequest(json: string): ValidationResult<unknown> {
+  try {
+    const data = wasm.validate_anthropic_request(json);
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error: { message: String(error) },
+    };
+  }
+}
+
+/**
+ * Validate a JSON string as an Anthropic response
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateAnthropicResponse(json: string): ValidationResult<unknown> {
+  try {
+    const data = wasm.validate_anthropic_response(json);
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error: { message: String(error) },
+    };
+  }
+}
+

@@ -79,3 +79,87 @@ pub fn anthropic_message_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
 pub fn llmir_to_anthropic_message(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_llmir::<Message, anthropic::InputMessage>(value)
 }
+
+// ============================================================================
+// Validation exports
+// ============================================================================
+
+/// Validate a JSON string as an OpenAI request
+#[wasm_bindgen]
+#[cfg(feature = "openai")]
+pub fn validate_openai_request(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::openai::validate_openai_request as validate;
+    validate(json)
+        .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as an OpenAI response
+#[wasm_bindgen]
+#[cfg(feature = "openai")]
+pub fn validate_openai_response(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::openai::validate_openai_response as validate;
+    validate(json)
+        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as an Anthropic request
+#[wasm_bindgen]
+#[cfg(feature = "anthropic")]
+pub fn validate_anthropic_request(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::anthropic::validate_anthropic_request as validate;
+    validate(json)
+        .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as an Anthropic response
+#[wasm_bindgen]
+#[cfg(feature = "anthropic")]
+pub fn validate_anthropic_response(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::anthropic::validate_anthropic_response as validate;
+    validate(json)
+        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as a Bedrock request
+#[wasm_bindgen]
+#[cfg(feature = "bedrock")]
+pub fn validate_bedrock_request(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::bedrock::validate_bedrock_request as validate;
+    validate(json)
+        .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as a Bedrock response
+#[wasm_bindgen]
+#[cfg(feature = "bedrock")]
+pub fn validate_bedrock_response(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::bedrock::validate_bedrock_response as validate;
+    validate(json)
+        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as a Google request (not supported - protobuf types)
+#[wasm_bindgen]
+#[cfg(feature = "google")]
+pub fn validate_google_request(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::google::validate_google_request as validate;
+    validate(json)
+        .map(|_| JsValue::NULL)
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as a Google response (not supported - protobuf types)
+#[wasm_bindgen]
+#[cfg(feature = "google")]
+pub fn validate_google_response(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::google::validate_google_response as validate;
+    validate(json)
+        .map(|_| JsValue::NULL)
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}

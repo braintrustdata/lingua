@@ -17,6 +17,8 @@ pub mod google;
 #[cfg(feature = "bedrock")]
 pub mod bedrock;
 
+mod cross_provider_tests;
+
 use serde::Deserialize;
 use thiserror::Error;
 
@@ -53,7 +55,7 @@ mod tests {
     #[test]
     fn test_validate_json_success() {
         let json = r#"{"name": "test", "value": 42}"#;
-        let result: Result<TestStruct, _> = validate_json(json);
+        let result = validate_json::<TestStruct>(json);
         assert!(result.is_ok());
         let parsed = result.unwrap();
         assert_eq!(parsed.name, "test");
@@ -63,7 +65,7 @@ mod tests {
     #[test]
     fn test_validate_json_invalid() {
         let json = r#"{"name": "test"}"#; // missing required field
-        let result: Result<TestStruct, _> = validate_json(json);
+        let result = validate_json::<TestStruct>(json);
         assert!(result.is_err());
     }
 }

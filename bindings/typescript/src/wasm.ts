@@ -14,4 +14,13 @@ export {
   // Anthropic conversions
   anthropicMessageToLLMIR,
   llmirToAnthropicMessage,
+
+  // Validation functions
+  validateOpenAIRequest,
+  validateOpenAIResponse,
+  validateAnthropicRequest,
+  validateAnthropicResponse,
 } from './converters';
+
+// Re-export types
+export type { ValidationResult } from './converters';
