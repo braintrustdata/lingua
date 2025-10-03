@@ -32,7 +32,8 @@ mod tests {
                     "role": "assistant",
                     "content": "Hello!"
                 },
-                "finish_reason": "stop"
+                "finish_reason": "stop",
+                "logprobs": null
             }
         ],
         "usage": {
@@ -70,6 +71,7 @@ mod tests {
         ],
         "model": "claude-3-5-sonnet-20241022",
         "stop_reason": "end_turn",
+        "stop_sequence": null,
         "usage": {
             "input_tokens": 10,
             "output_tokens": 20

@@ -14,9 +14,13 @@ import {
   validateAnthropicRequest,
   validateAnthropicResponse,
 } from "../src";
+import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
+import type { ChatCompletion } from "openai/resources/chat/completions";
+import type { MessageCreateParams } from "@anthropic-ai/sdk/resources/messages";
+import type { Message } from "@anthropic-ai/sdk/resources/messages";
 
-// Test payloads for each provider
-const OPENAI_REQUEST = JSON.stringify({
+// Test payloads for each provider - typed with SDK types for correctness
+const OPENAI_REQUEST_DATA: ChatCompletionCreateParamsNonStreaming = {
   model: "gpt-4",
   messages: [
     {
@@ -24,9 +28,10 @@ const OPENAI_REQUEST = JSON.stringify({
       content: "Hello",
     },
   ],
-});
+};
+const OPENAI_REQUEST = JSON.stringify(OPENAI_REQUEST_DATA);
 
-const OPENAI_RESPONSE = JSON.stringify({
+const OPENAI_RESPONSE_DATA: ChatCompletion = {
   id: "chatcmpl-123",
   object: "chat.completion",
   created: 1677652288,
@@ -39,6 +44,7 @@ const OPENAI_RESPONSE = JSON.stringify({
         content: "Hello!",
       },
       finish_reason: "stop",
+      logprobs: null,
     },
   ],
   usage: {
@@ -46,9 +52,10 @@ const OPENAI_RESPONSE = JSON.stringify({
     completion_tokens: 12,
     total_tokens: 21,
   },
-});
+};
+const OPENAI_RESPONSE = JSON.stringify(OPENAI_RESPONSE_DATA);
 
-const ANTHROPIC_REQUEST = JSON.stringify({
+const ANTHROPIC_REQUEST_DATA: MessageCreateParams = {
   model: "claude-3-5-sonnet-20241022",
   messages: [
     {
@@ -62,9 +69,10 @@ const ANTHROPIC_REQUEST = JSON.stringify({
     },
   ],
   max_tokens: 1024,
-});
+};
+const ANTHROPIC_REQUEST = JSON.stringify(ANTHROPIC_REQUEST_DATA);
 
-const ANTHROPIC_RESPONSE = JSON.stringify({
+const ANTHROPIC_RESPONSE_DATA: Message = {
   id: "msg_123",
   type: "message",
   role: "assistant",
@@ -76,11 +84,13 @@ const ANTHROPIC_RESPONSE = JSON.stringify({
   ],
   model: "claude-3-5-sonnet-20241022",
   stop_reason: "end_turn",
+  stop_sequence: null,
   usage: {
     input_tokens: 10,
     output_tokens: 20,
   },
-});
+};
+const ANTHROPIC_RESPONSE = JSON.stringify(ANTHROPIC_RESPONSE_DATA);
 
 describe("OpenAI Validation", () => {
   test("validates OpenAI request successfully", () => {
