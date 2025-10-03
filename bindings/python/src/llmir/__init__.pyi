@@ -1,39 +1,50 @@
 """Type stubs for LLMIR Python bindings"""
 
-from typing import Any, Dict, TypedDict, Union
+from typing import Any, Dict
 
-class ValidationSuccess(TypedDict):
-    ok: bool
-    data: Any
+# ============================================================================
+# Error types
+# ============================================================================
 
-class ValidationError(TypedDict):
-    ok: bool
-    error: Dict[str, str]
+class ConversionError(Exception):
+    """Error during format conversion"""
+    ...
 
-ValidationResult = Union[ValidationSuccess, ValidationError]
-
+# ============================================================================
 # OpenAI conversions
+# ============================================================================
+
 def openai_message_to_llmir(message: Dict[str, Any]) -> Dict[str, Any]: ...
 def llmir_to_openai_message(message: Dict[str, Any]) -> Dict[str, Any]: ...
-def openai_input_items_to_llmir(items: list[Dict[str, Any]]) -> list[Dict[str, Any]]: ...
+def openai_input_items_to_llmir(items: list) -> list: ...
 
+# ============================================================================
 # Anthropic conversions
+# ============================================================================
+
 def anthropic_message_to_llmir(message: Dict[str, Any]) -> Dict[str, Any]: ...
 def llmir_to_anthropic_message(message: Dict[str, Any]) -> Dict[str, Any]: ...
 
-# Validation functions (raw - may raise exceptions)
+# ============================================================================
+# OpenAI validation
+# ============================================================================
+
 def validate_openai_request(json_str: str) -> Any: ...
 def validate_openai_response(json_str: str) -> Any: ...
+
+# ============================================================================
+# Anthropic validation
+# ============================================================================
+
 def validate_anthropic_request(json_str: str) -> Any: ...
 def validate_anthropic_response(json_str: str) -> Any: ...
 
-# Validation functions (safe - return ValidationResult)
-def validate_openai_request_safe(json_str: str) -> ValidationResult: ...
-def validate_openai_response_safe(json_str: str) -> ValidationResult: ...
-def validate_anthropic_request_safe(json_str: str) -> ValidationResult: ...
-def validate_anthropic_response_safe(json_str: str) -> ValidationResult: ...
+# ============================================================================
+# Exports
+# ============================================================================
 
 __all__ = [
+    "ConversionError",
     "openai_message_to_llmir",
     "llmir_to_openai_message",
     "openai_input_items_to_llmir",
@@ -43,11 +54,4 @@ __all__ = [
     "validate_openai_response",
     "validate_anthropic_request",
     "validate_anthropic_response",
-    "validate_openai_request_safe",
-    "validate_openai_response_safe",
-    "validate_anthropic_request_safe",
-    "validate_anthropic_response_safe",
-    "ValidationResult",
-    "ValidationSuccess",
-    "ValidationError",
 ]

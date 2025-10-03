@@ -5,10 +5,10 @@ Tests for LLMIR validation functions
 import json
 import pytest
 from llmir import (
-    validate_openai_request_safe,
-    validate_openai_response_safe,
-    validate_anthropic_request_safe,
-    validate_anthropic_response_safe,
+    validate_openai_request,
+    validate_openai_response,
+    validate_anthropic_request,
+    validate_anthropic_response,
 )
 
 # Test payloads
@@ -62,35 +62,34 @@ class TestOpenAIValidation:
 
     def test_validates_openai_request_successfully(self):
         """Should validate a valid OpenAI request"""
-        result = validate_openai_request_safe(OPENAI_REQUEST)
-        assert result["ok"] is True
-        assert "data" in result
+        data = validate_openai_request(OPENAI_REQUEST)
+        assert data is not None
 
     def test_validates_openai_response_successfully(self):
         """Should validate a valid OpenAI response"""
-        result = validate_openai_response_safe(OPENAI_RESPONSE)
-        assert result["ok"] is True
-        assert "data" in result
+        data = validate_openai_response(OPENAI_RESPONSE)
+        assert data is not None
 
     def test_rejects_anthropic_request_as_openai_request(self):
         """Should reject an Anthropic request when validating as OpenAI request"""
-        result = validate_openai_request_safe(ANTHROPIC_REQUEST)
         # Note: Due to OpenAI's lenient content field, this might pass
         # This test documents the expected behavior
-        if not result["ok"]:
-            assert "error" in result
+        try:
+            validate_openai_request(ANTHROPIC_REQUEST)
+            # If it doesn't raise, that's okay due to structural compatibility
+        except ValueError:
+            # If it raises, that's also expected
+            pass
 
     def test_rejects_anthropic_response_as_openai_response(self):
         """Should reject an Anthropic response when validating as OpenAI response"""
-        result = validate_openai_response_safe(ANTHROPIC_RESPONSE)
-        assert result["ok"] is False
-        assert "error" in result
+        with pytest.raises(ValueError):
+            validate_openai_response(ANTHROPIC_RESPONSE)
 
     def test_rejects_invalid_json(self):
         """Should reject invalid JSON"""
-        result = validate_openai_request_safe("invalid json")
-        assert result["ok"] is False
-        assert "error" in result
+        with pytest.raises(ValueError):
+            validate_openai_request("invalid json")
 
 
 class TestAnthropicValidation:
@@ -98,33 +97,28 @@ class TestAnthropicValidation:
 
     def test_validates_anthropic_request_successfully(self):
         """Should validate a valid Anthropic request"""
-        result = validate_anthropic_request_safe(ANTHROPIC_REQUEST)
-        assert result["ok"] is True
-        assert "data" in result
+        data = validate_anthropic_request(ANTHROPIC_REQUEST)
+        assert data is not None
 
     def test_validates_anthropic_response_successfully(self):
         """Should validate a valid Anthropic response"""
-        result = validate_anthropic_response_safe(ANTHROPIC_RESPONSE)
-        assert result["ok"] is True
-        assert "data" in result
+        data = validate_anthropic_response(ANTHROPIC_RESPONSE)
+        assert data is not None
 
     def test_rejects_openai_request_as_anthropic_request(self):
         """Should reject an OpenAI request when validating as Anthropic request"""
-        result = validate_anthropic_request_safe(OPENAI_REQUEST)
-        assert result["ok"] is False
-        assert "error" in result
+        with pytest.raises(ValueError):
+            validate_anthropic_request(OPENAI_REQUEST)
 
     def test_rejects_openai_response_as_anthropic_response(self):
         """Should reject an OpenAI response when validating as Anthropic response"""
-        result = validate_anthropic_response_safe(OPENAI_RESPONSE)
-        assert result["ok"] is False
-        assert "error" in result
+        with pytest.raises(ValueError):
+            validate_anthropic_response(OPENAI_RESPONSE)
 
     def test_rejects_invalid_json(self):
         """Should reject invalid JSON"""
-        result = validate_anthropic_request_safe("invalid json")
-        assert result["ok"] is False
-        assert "error" in result
+        with pytest.raises(ValueError):
+            validate_anthropic_request("invalid json")
 
 
 class TestCrossProviderValidation:
@@ -132,22 +126,24 @@ class TestCrossProviderValidation:
 
     def test_anthropic_request_fails_openai_validation(self):
         """Anthropic requests should fail OpenAI request validation"""
-        result = validate_openai_request_safe(ANTHROPIC_REQUEST)
         # Note: May pass due to structural compatibility
         # This documents the expected behavior
-        pass
+        try:
+            validate_openai_request(ANTHROPIC_REQUEST)
+        except ValueError:
+            pass
 
     def test_openai_request_fails_anthropic_validation(self):
         """OpenAI requests should fail Anthropic request validation"""
-        result = validate_anthropic_request_safe(OPENAI_REQUEST)
-        assert result["ok"] is False
+        with pytest.raises(ValueError):
+            validate_anthropic_request(OPENAI_REQUEST)
 
     def test_anthropic_response_fails_openai_validation(self):
         """Anthropic responses should fail OpenAI response validation"""
-        result = validate_openai_response_safe(ANTHROPIC_RESPONSE)
-        assert result["ok"] is False
+        with pytest.raises(ValueError):
+            validate_openai_response(ANTHROPIC_RESPONSE)
 
     def test_openai_response_fails_anthropic_validation(self):
         """OpenAI responses should fail Anthropic response validation"""
-        result = validate_anthropic_response_safe(OPENAI_RESPONSE)
-        assert result["ok"] is False
+        with pytest.raises(ValueError):
+            validate_anthropic_response(OPENAI_RESPONSE)

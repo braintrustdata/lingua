@@ -1,5 +1,5 @@
 /**
- * Re-export conversion functions from converters module
+ * Re-export conversion and validation functions from converters module
  */
 
 export {
@@ -15,9 +15,11 @@ export {
   anthropicMessageToLLMIR,
   llmirToAnthropicMessage,
 
-  // Validation functions
+  // OpenAI validation
   validateOpenAIRequest,
   validateOpenAIResponse,
+
+  // Anthropic validation
   validateAnthropicRequest,
   validateAnthropicResponse,
 } from './converters';

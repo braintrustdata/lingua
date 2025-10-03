@@ -141,77 +141,88 @@ export const llmirToAnthropicMessage = createFromLLMIRConverter<Message, unknown
 );
 
 // ============================================================================
-// Validation functions (Zod-style API)
+// Validation
 // ============================================================================
 
-/**
- * Validation result in Zod-style format
- */
 export type ValidationResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: { message: string } };
 
 /**
- * Validate a JSON string as an OpenAI request
- * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ * Generic validator factory
+ * @param wasmFn - The WASM validation function to call
+ * @param provider - Provider name for error reporting
+ * @returns A function that validates JSON and returns ValidationResult
  */
-export function validateOpenAIRequest(json: string): ValidationResult<unknown> {
-  try {
-    const data = wasm.validate_openai_request(json);
-    return { ok: true, data };
-  } catch (error: unknown) {
-    return {
-      ok: false,
-      error: { message: String(error) },
-    };
-  }
+function createValidator<T>(
+  wasmFn: (json: string) => unknown,
+  provider: string,
+  type: 'request' | 'response'
+): (json: string) => ValidationResult<T> {
+  return (json: string): ValidationResult<T> => {
+    try {
+      const data = wasmFn(json) as T;
+      return { ok: true, data };
+    } catch (error: unknown) {
+      return {
+        ok: false,
+        error: {
+          message: `Failed to validate ${provider} ${type}: ${String(error)}`,
+        },
+      };
+    }
+  };
 }
+
+// ============================================================================
+// OpenAI Validation
+// ============================================================================
+
+/**
+ * Validate a JSON string as an OpenAI request
+ * @param json - JSON string to validate
+ * @returns ValidationResult with parsed data or error
+ */
+export const validateOpenAIRequest = createValidator<unknown>(
+  wasm.validate_openai_request,
+  'OpenAI',
+  'request'
+);
 
 /**
  * Validate a JSON string as an OpenAI response
- * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ * @param json - JSON string to validate
+ * @returns ValidationResult with parsed data or error
  */
-export function validateOpenAIResponse(json: string): ValidationResult<unknown> {
-  try {
-    const data = wasm.validate_openai_response(json);
-    return { ok: true, data };
-  } catch (error: unknown) {
-    return {
-      ok: false,
-      error: { message: String(error) },
-    };
-  }
-}
+export const validateOpenAIResponse = createValidator<unknown>(
+  wasm.validate_openai_response,
+  'OpenAI',
+  'response'
+);
+
+// ============================================================================
+// Anthropic Validation
+// ============================================================================
 
 /**
  * Validate a JSON string as an Anthropic request
- * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ * @param json - JSON string to validate
+ * @returns ValidationResult with parsed data or error
  */
-export function validateAnthropicRequest(json: string): ValidationResult<unknown> {
-  try {
-    const data = wasm.validate_anthropic_request(json);
-    return { ok: true, data };
-  } catch (error: unknown) {
-    return {
-      ok: false,
-      error: { message: String(error) },
-    };
-  }
-}
+export const validateAnthropicRequest = createValidator<unknown>(
+  wasm.validate_anthropic_request,
+  'Anthropic',
+  'request'
+);
 
 /**
  * Validate a JSON string as an Anthropic response
- * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ * @param json - JSON string to validate
+ * @returns ValidationResult with parsed data or error
  */
-export function validateAnthropicResponse(json: string): ValidationResult<unknown> {
-  try {
-    const data = wasm.validate_anthropic_response(json);
-    return { ok: true, data };
-  } catch (error: unknown) {
-    return {
-      ok: false,
-      error: { message: String(error) },
-    };
-  }
-}
+export const validateAnthropicResponse = createValidator<unknown>(
+  wasm.validate_anthropic_response,
+  'Anthropic',
+  'response'
+);
 
