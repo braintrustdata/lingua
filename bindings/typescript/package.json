@@ -5,13 +5,13 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run build:wasm && tsc",
+    "build": "pnpm run build:wasm && tsc",
     "build:wasm": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm --no-pack",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist",
