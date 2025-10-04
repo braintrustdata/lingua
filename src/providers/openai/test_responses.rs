@@ -12,7 +12,7 @@ pub fn discover_openai_responses_test_cases(
     test_name_filter: Option<&str>,
 ) -> Result<Vec<OpenAIResponsesTestCase>, crate::util::testutil::TestDiscoveryError> {
     discover_test_cases_typed::<CreateResponseClass, TheResponseObject, Value>(
-        Provider::OpenAIResponses,
+        Provider::Responses,
         test_name_filter,
     )
 }

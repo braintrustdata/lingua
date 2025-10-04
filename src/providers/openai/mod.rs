@@ -10,7 +10,7 @@ pub mod convert;
 pub mod generated;
 
 #[cfg(test)]
-pub mod test_openai;
+pub mod test_responses;
 
 #[cfg(test)]
 pub mod test_chat_completions;

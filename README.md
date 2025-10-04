@@ -50,11 +50,61 @@ llmir/
 │   ├── providers/             # Provider-specific API types
 │   ├── translators/           # Translation logic between formats
 │   ├── capabilities/          # Capability detection system
+│   ├── wasm.rs                # WebAssembly bindings
+│   ├── python.rs              # Python bindings (PyO3)
 │   └── lib.rs                 # Main library entry
-├── bindings/typescript/       # Auto-generated TypeScript types
+├── bindings/
+│   ├── typescript/            # TypeScript/WASM bindings
+│   └── python/                # Python bindings
 ├── examples/                  # Usage examples
 └── tests/typescript/          # TypeScript compatibility tests
 ```
+
+## Building bindings
+
+Use the Makefile for easy building:
+
+```bash
+# Show all available targets
+make help
+
+# Build all bindings
+make all
+
+# Build specific bindings
+make typescript
+make python
+
+# Run tests
+make test
+make test-rust
+make test-typescript
+make test-python
+
+# Clean build artifacts
+make clean
+```
+
+### TypeScript/WASM bindings
+
+```bash
+cd bindings/typescript
+npm install
+npm run build
+npm test
+```
+
+See [bindings/typescript/README.md](bindings/typescript/README.md) for details.
+
+### Python bindings
+
+```bash
+cd bindings/python
+uv sync --extra dev
+uv run pytest tests/
+```
+
+See [bindings/python/README.md](bindings/python/README.md) for details.
 
 ## Update pipeline
 

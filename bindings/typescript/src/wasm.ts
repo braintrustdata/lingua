@@ -1,26 +1,31 @@
 /**
- * Re-export conversion functions from converters module
+ * Re-export conversion and validation functions from converters module
  */
 
 export {
   // Error handling
   ConversionError,
 
-  // OpenAI conversions
-  openAIMessageToLLMIR,
-  llmirToOpenAIMessage,
-  openAIInputItemsToLLMIR,
+  // Chat Completions API conversions
+  chatCompletionsMessagesToLLMIR,
+  llmirToChatCompletionsMessages,
+
+  // Responses API conversions
+  responsesMessagesToLLMIR,
+  llmirToResponsesMessages,
 
   // Anthropic conversions
-  anthropicMessageToLLMIR,
-  llmirToAnthropicMessage,
+  anthropicMessagesToLLMIR,
+  llmirToAnthropicMessages,
 
-  // Validation functions
+  // OpenAI validation
   validateOpenAIRequest,
   validateOpenAIResponse,
+
+  // Anthropic validation
   validateAnthropicRequest,
   validateAnthropicResponse,
-} from './converters';
+} from "./converters";
 
 // Re-export types
-export type { ValidationResult } from './converters';
+export type { ValidationResult } from "./converters";

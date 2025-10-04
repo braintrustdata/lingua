@@ -88,34 +88,47 @@ function createFromLLMIRConverter<T extends Message | Message[], U>(
 }
 
 // ============================================================================
-// OpenAI Conversions
+// Chat Completions API Conversions
 // ============================================================================
 
 /**
- * Convert OpenAI ChatCompletionRequestMessage to LLMIR Message
+ * Convert array of Chat Completions messages to LLMIR Messages
  * @throws {ConversionError} If conversion fails
  */
-export const openAIMessageToLLMIR = createToLLMIRConverter<unknown, Message>(
-  wasm.openai_message_to_llmir,
-  'OpenAI'
+export const chatCompletionsMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
+  wasm.chat_completions_messages_to_llmir,
+  'Chat Completions'
 );
 
 /**
- * Convert LLMIR Message to OpenAI ChatCompletionRequestMessage
+ * Convert array of LLMIR Messages to Chat Completions messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToOpenAIMessage = createFromLLMIRConverter<Message, unknown>(
-  wasm.llmir_to_openai_message,
-  'OpenAI'
+export const llmirToChatCompletionsMessages = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_chat_completions_messages,
+  'Chat Completions'
+);
+
+// ============================================================================
+// Responses API Conversions
+// ============================================================================
+
+/**
+ * Convert array of Responses API messages to LLMIR Messages
+ * @throws {ConversionError} If conversion fails
+ */
+export const responsesMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
+  wasm.responses_messages_to_llmir,
+  'Responses'
 );
 
 /**
- * Convert array of OpenAI InputItems to LLMIR Messages
+ * Convert array of LLMIR Messages to Responses API messages
  * @throws {ConversionError} If conversion fails
  */
-export const openAIInputItemsToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
-  wasm.openai_input_items_to_llmir,
-  'OpenAI'
+export const llmirToResponsesMessages = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_responses_messages,
+  'Responses'
 );
 
 // ============================================================================
@@ -123,20 +136,20 @@ export const openAIInputItemsToLLMIR = createToLLMIRConverter<unknown[], Message
 // ============================================================================
 
 /**
- * Convert Anthropic InputMessage to LLMIR Message
+ * Convert array of Anthropic messages to LLMIR Messages
  * @throws {ConversionError} If conversion fails
  */
-export const anthropicMessageToLLMIR = createToLLMIRConverter<unknown, Message>(
-  wasm.anthropic_message_to_llmir,
+export const anthropicMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
+  wasm.anthropic_messages_to_llmir,
   'Anthropic'
 );
 
 /**
- * Convert LLMIR Message to Anthropic InputMessage
+ * Convert array of LLMIR Messages to Anthropic messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToAnthropicMessage = createFromLLMIRConverter<Message, unknown>(
-  wasm.llmir_to_anthropic_message,
+export const llmirToAnthropicMessages = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_anthropic_messages,
   'Anthropic'
 );
 
@@ -214,4 +227,3 @@ export function validateAnthropicResponse(json: string): ValidationResult<unknow
     };
   }
 }
-

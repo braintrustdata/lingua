@@ -17,6 +17,7 @@ openai = []
 anthropic = []
 google = []
 bedrock = ["dep:aws-sdk-bedrockruntime"]
+python = ["dep:pyo3"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -38,6 +39,7 @@ wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
 serde-wasm-bindgen = "0.6"
 thiserror = "2.0"
+pyo3 = { version = "0.20", features = ["extension-module"], optional = true }
 
 [dev-dependencies]
 tokio-test = "0.4"

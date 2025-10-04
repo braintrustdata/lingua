@@ -1,0 +1,52 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "llmir"
+version = "0.1.0"
+description = "LLMIR - Universal message format for LLM APIs"
+requires-python = ">=3.8"
+license = { text = "MIT OR Apache-2.0" }
+keywords = ["llm", "ai", "openai", "anthropic", "api"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+]
+
+[project.urls]
+Repository = "https://github.com/yourusername/llmir"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "maturin>=1.0,<2.0",
+]
+
+[tool.maturin]
+python-source = "src"
+module-name = "llmir._llmir"
+features = ["pyo3/extension-module", "python"]
+manifest-path = "../../Cargo.toml"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[dependency-groups]
+dev = [
+    "ipython>=8.12.3",
+    "openai>=1.0.0",
+    "anthropic>=0.20.0",
+]

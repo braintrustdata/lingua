@@ -15,7 +15,7 @@ getCaseNames(allTestCases).forEach((caseName) => {
   const caseData = getCaseForProvider(
     allTestCases,
     caseName,
-    "openai-chat-completions"
+    "chat-completions"
   );
   if (caseData) {
     openaiCases[caseName] = caseData;
@@ -201,7 +201,7 @@ export const openaiExecutor: ProviderExecutor<
   OpenAIResponse,
   OpenAIStreamChunk
 > = {
-  name: "openai",
+  name: "chat-completions",
   cases: openaiCases,
   execute: executeOpenAI,
 };

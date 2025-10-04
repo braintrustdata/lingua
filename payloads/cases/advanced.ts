@@ -8,7 +8,7 @@ import {
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
   multimodalRequest: {
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -29,7 +29,7 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_completion_tokens: 300,
     },
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       input: [
         {
@@ -76,7 +76,7 @@ export const advancedCases: TestCaseCollection = {
   },
 
   complexReasoningRequest: {
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "high", summary: "detailed" },
       input: [
@@ -89,7 +89,7 @@ export const advancedCases: TestCaseCollection = {
       max_output_tokens: 20_000,
     },
 
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -115,7 +115,7 @@ export const advancedCases: TestCaseCollection = {
   },
 
   reasoningWithOutput: {
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "low" },
       input: [
@@ -125,7 +125,7 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
     },
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -147,7 +147,7 @@ export const advancedCases: TestCaseCollection = {
   },
 
   toolCallRequest: {
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -205,7 +205,7 @@ export const advancedCases: TestCaseCollection = {
         type: "auto",
       },
     },
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       input: [
         {

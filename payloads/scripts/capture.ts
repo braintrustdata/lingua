@@ -13,7 +13,7 @@ import { ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
 const allProviders = [
-  { ...openaiExecutor, name: "openai-chat-completions" },
+  { ...openaiExecutor, name: "chat-completions" },
   openaiResponsesExecutor,
   anthropicExecutor,
 ] as const;
