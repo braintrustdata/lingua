@@ -10,7 +10,7 @@ Lingua is a library and specification for defining a universal message format fo
 
 ## Anti-goals
 
-- **Framework.** This project is explicitly _not_ providing any higher-level abstractions, guidance on how to structure your app, or model execution support. Frameworks can build on top of LLMIR to avoid reimplementing model-provider translation.
+- **Framework.** This project is explicitly _not_ providing any higher-level abstractions, guidance on how to structure your app, or model execution support. Frameworks can build on top of Lingua to avoid reimplementing model-provider translation.
 - **Proxy.** This format could be used as the foundation for a proxy implementation, but has no concept of actually running prompts or handling authentication.
 - **Optimization.** Messages written in this format will execute _exactly_ what you would expect from the model provider. 3rd party optimizers can be built on the format, and those optimizers will naturally work across providers.
 
