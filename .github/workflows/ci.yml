@@ -48,8 +48,3 @@ jobs:
 
     - name: Run tests
       run: cargo test --verbose
-
-    - name: Build examples
-      run: |
-        cargo build --example basic_usage
-        cargo build --example simple_openai
