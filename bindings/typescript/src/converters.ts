@@ -88,47 +88,47 @@ function createFromLLMIRConverter<T extends Message | Message[], U>(
 }
 
 // ============================================================================
-// OpenAI Chat Completions API Conversions
+// Chat Completions API Conversions
 // ============================================================================
 
 /**
- * Convert array of OpenAI Chat Completions messages to LLMIR Messages
+ * Convert array of Chat Completions messages to LLMIR Messages
  * @throws {ConversionError} If conversion fails
  */
-export const openAIChatMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
-  wasm.openai_chat_messages_to_llmir,
-  'OpenAI Chat Completions'
+export const chatCompletionsMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
+  wasm.chat_completions_messages_to_llmir,
+  'Chat Completions'
 );
 
 /**
- * Convert array of LLMIR Messages to OpenAI Chat Completions messages
+ * Convert array of LLMIR Messages to Chat Completions messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToOpenAIChatMessages = createFromLLMIRConverter<Message[], unknown[]>(
-  wasm.llmir_to_openai_chat_messages,
-  'OpenAI Chat Completions'
+export const llmirToChatCompletionsMessages = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_chat_completions_messages,
+  'Chat Completions'
 );
 
 // ============================================================================
-// OpenAI Responses API Conversions
+// Responses API Conversions
 // ============================================================================
 
 /**
- * Convert array of OpenAI Responses API messages to LLMIR Messages
+ * Convert array of Responses API messages to LLMIR Messages
  * @throws {ConversionError} If conversion fails
  */
-export const openAIResponsesMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
-  wasm.openai_responses_messages_to_llmir,
-  'OpenAI Responses'
+export const responsesMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
+  wasm.responses_messages_to_llmir,
+  'Responses'
 );
 
 /**
- * Convert array of LLMIR Messages to OpenAI Responses API messages
+ * Convert array of LLMIR Messages to Responses API messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToOpenAIResponsesMessages = createFromLLMIRConverter<Message[], unknown[]>(
-  wasm.llmir_to_openai_responses_messages,
-  'OpenAI Responses'
+export const llmirToResponsesMessages = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_responses_messages,
+  'Responses'
 );
 
 // ============================================================================

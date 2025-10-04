@@ -16,9 +16,9 @@ import pytest
 
 from llmir import (
     ConversionError,
-    openai_chat_messages_to_llmir,
+    chat_completions_messages_to_llmir,
     anthropic_messages_to_llmir,
-    llmir_to_openai_chat_messages,
+    llmir_to_chat_completions_messages,
     llmir_to_anthropic_messages,
 )
 
@@ -140,10 +140,10 @@ def normalize_for_comparison(obj: Any) -> Any:
 
 def perform_openai_roundtrip(openai_message: Dict) -> Dict[str, Any]:
     """
-    Perform roundtrip conversion: OpenAI -> LLMIR -> OpenAI
+    Perform roundtrip conversion: Chat Completions -> LLMIR -> Chat Completions
 
     Args:
-        openai_message: Original OpenAI message
+        openai_message: Original Chat Completions message
 
     Returns:
         Dict with original, llmir, and roundtripped data
@@ -151,8 +151,8 @@ def perform_openai_roundtrip(openai_message: Dict) -> Dict[str, Any]:
     Raises:
         ConversionError: If any conversion step fails
     """
-    llmir = openai_chat_messages_to_llmir([openai_message])[0]
-    roundtripped = llmir_to_openai_chat_messages([llmir])[0]
+    llmir = chat_completions_messages_to_llmir([openai_message])[0]
+    roundtripped = llmir_to_chat_completions_messages([llmir])[0]
 
     return {"original": openai_message, "llmir": llmir, "roundtripped": roundtripped}
 
@@ -325,19 +325,19 @@ class TestTypeChecking:
     """Test that our types match the official SDKs"""
 
     def test_openai_message_types(self):
-        """Verify OpenAI message types match the official SDK"""
+        """Verify Chat Completions message types match the official SDK"""
         # Import OpenAI SDK types if available
         try:
             from openai.types.chat import ChatCompletionMessageParam
         except ImportError:
             pytest.skip("OpenAI SDK not installed")
 
-        # Test that we can create valid OpenAI messages
+        # Test that we can create valid Chat Completions messages
         message: ChatCompletionMessageParam = {"role": "user", "content": "Hello"}
 
         # Convert to LLMIR and back
-        llmir = openai_chat_messages_to_llmir([message])[0]
-        roundtripped = llmir_to_openai_chat_messages([llmir])[0]
+        llmir = chat_completions_messages_to_llmir([message])[0]
+        roundtripped = llmir_to_chat_completions_messages([llmir])[0]
 
         assert roundtripped is not None
         assert roundtripped["role"] == "user"

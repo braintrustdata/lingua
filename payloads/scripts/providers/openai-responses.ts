@@ -17,7 +17,7 @@ getCaseNames(allTestCases).forEach((caseName) => {
   const caseData = getCaseForProvider(
     allTestCases,
     caseName,
-    "openai-responses"
+    "responses"
   );
   if (caseData) {
     openaiResponsesCases[caseName] = caseData;
@@ -234,7 +234,7 @@ export const openaiResponsesExecutor: ProviderExecutor<
   OpenAI.Responses.Response,
   unknown
 > = {
-  name: "openai-responses",
+  name: "responses",
   cases: openaiResponsesCases,
   execute: executeOpenAIResponses,
 };

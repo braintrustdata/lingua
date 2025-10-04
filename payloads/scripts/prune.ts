@@ -14,7 +14,7 @@ const SNAPSHOTS_DIR = join(__dirname, '..', 'snapshots');
 const PROJECT_ROOT = join(__dirname, '..', '..');
 
 // Provider directories that are recognized by the build script
-const PROVIDERS = ['openai-responses', 'openai-chat-completions', 'anthropic'] as const;
+const PROVIDERS = ['responses', 'chat-completions', 'anthropic'] as const;
 
 type Provider = typeof PROVIDERS[number];
 type Turn = 'first_turn' | 'followup_turn';

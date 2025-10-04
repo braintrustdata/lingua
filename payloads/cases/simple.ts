@@ -8,7 +8,7 @@ import {
 // Simple test cases - basic functionality testing
 export const simpleCases: TestCaseCollection = {
   simpleRequest: {
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -19,7 +19,7 @@ export const simpleCases: TestCaseCollection = {
       reasoning_effort: "low",
     },
 
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "minimal" },
       text: { verbosity: "low" },
@@ -44,7 +44,7 @@ export const simpleCases: TestCaseCollection = {
   },
 
   reasoningRequest: {
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -55,7 +55,7 @@ export const simpleCases: TestCaseCollection = {
       ],
     },
 
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "high" },
       input: [
@@ -80,7 +80,7 @@ export const simpleCases: TestCaseCollection = {
   },
 
   reasoningRequestTruncated: {
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       max_completion_tokens: 100,
       messages: [
@@ -92,7 +92,7 @@ export const simpleCases: TestCaseCollection = {
       ],
     },
 
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       max_output_tokens: 100,
       reasoning: { effort: "high" },
@@ -118,7 +118,7 @@ export const simpleCases: TestCaseCollection = {
   },
 
   toolCallRequest: {
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -147,7 +147,7 @@ export const simpleCases: TestCaseCollection = {
       ],
       tool_choice: "auto",
     },
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       input: [
         {
