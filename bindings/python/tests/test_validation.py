@@ -11,50 +11,68 @@ from llmir import (
     validate_anthropic_response,
 )
 
-# Test payloads
+# Import official SDK types for type checking
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionMessage,
+    ChatCompletionMessageParam,
+)
+from openai.types import CompletionUsage
+from anthropic.types import Message, MessageParam, TextBlock, Usage
+
+# Test payloads with type annotations
+# OpenAI request message is type checked against official SDK
+_openai_message: ChatCompletionMessageParam = {"role": "user", "content": "Hello"}
 OPENAI_REQUEST_DATA = {
     "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Hello"}],
+    "messages": [_openai_message],
 }
 
-OPENAI_RESPONSE_DATA = {
-    "id": "chatcmpl-123",
-    "object": "chat.completion",
-    "created": 1677652288,
-    "model": "gpt-4",
-    "choices": [
+# OpenAI response is constructed using official SDK types
+OPENAI_RESPONSE_DATA: ChatCompletion = ChatCompletion(
+    id="chatcmpl-123",
+    object="chat.completion",
+    created=1677652288,
+    model="gpt-4",
+    choices=[
         {
             "index": 0,
-            "message": {"role": "assistant", "content": "Hello there!"},
+            "message": ChatCompletionMessage(role="assistant", content="Hello there!"),
             "logprobs": None,
             "finish_reason": "stop",
         }
     ],
-    "usage": {"prompt_tokens": 9, "completion_tokens": 12, "total_tokens": 21},
-}
+    usage=CompletionUsage(prompt_tokens=9, completion_tokens=12, total_tokens=21),
+)
 
+# Anthropic request message is type checked against official SDK
+_anthropic_message: MessageParam = {
+    "role": "user",
+    "content": [{"type": "text", "text": "Hello"}],
+}
 ANTHROPIC_REQUEST_DATA = {
     "model": "claude-3-5-sonnet-20241022",
     "max_tokens": 1024,
-    "messages": [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}],
+    "messages": [_anthropic_message],
 }
 
-ANTHROPIC_RESPONSE_DATA = {
-    "id": "msg_01XFDUDYJgAACzvnptvVoYEL",
-    "type": "message",
-    "role": "assistant",
-    "content": [{"type": "text", "text": "Hello!"}],
-    "model": "claude-3-5-sonnet-20241022",
-    "stop_reason": "end_turn",
-    "stop_sequence": None,
-    "usage": {"input_tokens": 12, "output_tokens": 6},
-}
+# Anthropic response is constructed using official SDK types
+ANTHROPIC_RESPONSE_DATA: Message = Message(
+    id="msg_01XFDUDYJgAACzvnptvVoYEL",
+    type="message",
+    role="assistant",
+    content=[TextBlock(type="text", text="Hello!")],
+    model="claude-3-5-sonnet-20241022",
+    stop_reason="end_turn",
+    stop_sequence=None,
+    usage=Usage(input_tokens=12, output_tokens=6),
+)
 
 # Convert to JSON strings
 OPENAI_REQUEST = json.dumps(OPENAI_REQUEST_DATA)
-OPENAI_RESPONSE = json.dumps(OPENAI_RESPONSE_DATA)
+OPENAI_RESPONSE = OPENAI_RESPONSE_DATA.model_dump_json()
 ANTHROPIC_REQUEST = json.dumps(ANTHROPIC_REQUEST_DATA)
-ANTHROPIC_RESPONSE = json.dumps(ANTHROPIC_RESPONSE_DATA)
+ANTHROPIC_RESPONSE = ANTHROPIC_RESPONSE_DATA.model_dump_json()
 
 
 class TestOpenAIValidation:
