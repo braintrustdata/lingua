@@ -1,6 +1,6 @@
-# LLMIR - A low-level library for translating between LLM formats
+# Lingua - A low-level library for translating between LLM formats
 
-LLMIR is a library and specification for defining a universal message format for large language model APIs. It enables developers to write messages, model parameters, and tool definitions in a single format that can be translated to and from any model provider's API client-side with zero runtime overhead.
+Lingua is a library and specification for defining a universal message format for large language model APIs. It enables developers to write messages, model parameters, and tool definitions in a single format that can be translated to and from any model provider's API client-side with zero runtime overhead.
 
 ## Goals
 
@@ -24,7 +24,7 @@ LLMIR is a library and specification for defining a universal message format for
 ## Architecture
 
 ```
-LLMIR Universal Format
+Lingua Universal Format
          ↓
     Capability Detection
          ↓
@@ -44,9 +44,9 @@ OpenAI │ Anthropic │ Google │ Bedrock │ ...
 ## Project structure
 
 ```
-llmir/
+lingua/
 ├── src/
-│   ├── universal/             # Universal LLMIR format definitions
+│   ├── universal/             # Universal Lingua format definitions
 │   ├── providers/             # Provider-specific API types
 │   ├── translators/           # Translation logic between formats
 │   ├── capabilities/          # Capability detection system
@@ -123,7 +123,7 @@ both use OpenAPI, while Google uses protobuf. The pipeline works as follows:
 
 ## Testing Strategy
 
-LLMIR employs a comprehensive testing strategy to ensure accurate and lossless conversion between provider-specific formats and the universal format.
+Lingua employs a comprehensive testing strategy to ensure accurate and lossless conversion between provider-specific formats and the universal format.
 
 ### Roundtrip Testing
 
@@ -165,7 +165,7 @@ Tests use **real API payloads** captured from actual provider interactions:
 3. **Compatibility Tests**: Cross-provider conversion validation
 4. **Regression Tests**: Ensure updates don't break existing functionality
 
-This strategy ensures LLMIR maintains 100% fidelity when converting between provider formats while providing confidence that the universal format can represent any provider-specific capability.
+This strategy ensures Lingua maintains 100% fidelity when converting between provider formats while providing confidence that the universal format can represent any provider-specific capability.
 
 ### Automated Updates
 
@@ -185,7 +185,7 @@ The automation downloads the latest specifications, regenerates types, applies f
 
 ## Feature Flags
 
-LLMIR supports optional provider dependencies through feature flags to minimize build time and binary size:
+Lingua supports optional provider dependencies through feature flags to minimize build time and binary size:
 
 ### Available Features
 
@@ -200,28 +200,28 @@ LLMIR supports optional provider dependencies through feature flags to minimize 
 
 ```toml
 [dependencies]
-llmir = "0.1.0"
+lingua = "0.1.0"
 ```
 
 **Minimal (only OpenAI):**
 
 ```toml
 [dependencies]
-llmir = { version = "0.1.0", default-features = false, features = ["openai"] }
+lingua = { version = "0.1.0", default-features = false, features = ["openai"] }
 ```
 
 **Without AWS dependencies:**
 
 ```toml
 [dependencies]
-llmir = { version = "0.1.0", default-features = false, features = ["openai", "anthropic", "google"] }
+lingua = { version = "0.1.0", default-features = false, features = ["openai", "anthropic", "google"] }
 ```
 
 **Only Bedrock:**
 
 ```toml
 [dependencies]
-llmir = { version = "0.1.0", default-features = false, features = ["bedrock"] }
+lingua = { version = "0.1.0", default-features = false, features = ["bedrock"] }
 ```
 
 ### Conditional Compilation
@@ -230,10 +230,10 @@ The translators and types are only available when their respective features are 
 
 ```rust
 #[cfg(feature = "openai")]
-use llmir::translators::to_openai_format;
+use lingua::translators::to_openai_format;
 
 #[cfg(feature = "bedrock")]
-use llmir::translators::to_bedrock_format_with_model;
+use lingua::translators::to_bedrock_format_with_model;
 ```
 
 ## Status

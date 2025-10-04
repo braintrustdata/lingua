@@ -2,14 +2,14 @@
  * Provider conversion functions using WASM
  *
  * These functions handle conversion between provider-specific formats
- * (OpenAI, Anthropic) and LLMIR Message format.
+ * (OpenAI, Anthropic) and Lingua Message format.
  *
  * Uses direct object passing for maximum efficiency - no JSON serialization!
  * All functions throw ConversionError on failure instead of returning error objects.
  */
 
 // @ts-ignore - WASM module types are generated
-import * as wasm from '../wasm/llmir.js';
+import * as wasm from '../wasm/lingua.js';
 import type { Message } from './generated/Message';
 
 // ============================================================================
@@ -20,7 +20,7 @@ export class ConversionError extends Error {
   constructor(
     message: string,
     public readonly provider?: string,
-    public readonly direction?: 'to_llmir' | 'from_llmir',
+    public readonly direction?: 'to_lingua' | 'from_lingua',
     public readonly cause?: unknown
   ) {
     super(message);
@@ -67,12 +67,12 @@ function convertMapsToObjects(value: unknown): unknown {
 }
 
 /**
- * Creates a converter function that transforms provider format to LLMIR
+ * Creates a converter function that transforms provider format to Lingua
  * @param wasmFn - The WASM function to call
  * @param provider - Provider name for error reporting
- * @returns A function that converts provider format to LLMIR
+ * @returns A function that converts provider format to Lingua
  */
-function createToLLMIRConverter<T, U extends Message | Message[]>(
+function createToLinguaConverter<T, U extends Message | Message[]>(
   wasmFn: (value: unknown) => unknown,
   provider: string
 ): (input: T) => U {
@@ -83,9 +83,9 @@ function createToLLMIRConverter<T, U extends Message | Message[]>(
       return convertMapsToObjects(result) as U;
     } catch (error: unknown) {
       throw new ConversionError(
-        `Failed to convert ${provider} message to LLMIR`,
+        `Failed to convert ${provider} message to Lingua`,
         provider,
-        'to_llmir',
+        'to_lingua',
         error
       );
     }
@@ -93,12 +93,12 @@ function createToLLMIRConverter<T, U extends Message | Message[]>(
 }
 
 /**
- * Creates a converter function that transforms LLMIR to provider format
+ * Creates a converter function that transforms Lingua to provider format
  * @param wasmFn - The WASM function to call
  * @param provider - Provider name for error reporting
- * @returns A function that converts LLMIR to provider format
+ * @returns A function that converts Lingua to provider format
  */
-function createFromLLMIRConverter<T extends Message | Message[], U>(
+function createFromLinguaConverter<T extends Message | Message[], U>(
   wasmFn: (value: unknown) => unknown,
   provider: string
 ): (input: T) => U {
@@ -109,9 +109,9 @@ function createFromLLMIRConverter<T extends Message | Message[], U>(
       return convertMapsToObjects(result) as U;
     } catch (error: unknown) {
       throw new ConversionError(
-        `Failed to convert LLMIR to ${provider} format`,
+        `Failed to convert Lingua to ${provider} format`,
         provider,
-        'from_llmir',
+        'from_lingua',
         error
       );
     }
@@ -123,20 +123,20 @@ function createFromLLMIRConverter<T extends Message | Message[], U>(
 // ============================================================================
 
 /**
- * Convert array of Chat Completions messages to LLMIR Messages
+ * Convert array of Chat Completions messages to Lingua Messages
  * @throws {ConversionError} If conversion fails
  */
-export const chatCompletionsMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
-  wasm.chat_completions_messages_to_llmir,
+export const chatCompletionsMessagesToLingua = createToLinguaConverter<unknown[], Message[]>(
+  wasm.chat_completions_messages_to_lingua,
   'Chat Completions'
 );
 
 /**
- * Convert array of LLMIR Messages to Chat Completions messages
+ * Convert array of Lingua Messages to Chat Completions messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToChatCompletionsMessages = createFromLLMIRConverter<Message[], unknown[]>(
-  wasm.llmir_to_chat_completions_messages,
+export const linguaToChatCompletionsMessages = createFromLinguaConverter<Message[], unknown[]>(
+  wasm.lingua_to_chat_completions_messages,
   'Chat Completions'
 );
 
@@ -145,20 +145,20 @@ export const llmirToChatCompletionsMessages = createFromLLMIRConverter<Message[]
 // ============================================================================
 
 /**
- * Convert array of Responses API messages to LLMIR Messages
+ * Convert array of Responses API messages to Lingua Messages
  * @throws {ConversionError} If conversion fails
  */
-export const responsesMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
-  wasm.responses_messages_to_llmir,
+export const responsesMessagesToLingua = createToLinguaConverter<unknown[], Message[]>(
+  wasm.responses_messages_to_lingua,
   'Responses'
 );
 
 /**
- * Convert array of LLMIR Messages to Responses API messages
+ * Convert array of Lingua Messages to Responses API messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToResponsesMessages = createFromLLMIRConverter<Message[], unknown[]>(
-  wasm.llmir_to_responses_messages,
+export const linguaToResponsesMessages = createFromLinguaConverter<Message[], unknown[]>(
+  wasm.lingua_to_responses_messages,
   'Responses'
 );
 
@@ -167,20 +167,20 @@ export const llmirToResponsesMessages = createFromLLMIRConverter<Message[], unkn
 // ============================================================================
 
 /**
- * Convert array of Anthropic messages to LLMIR Messages
+ * Convert array of Anthropic messages to Lingua Messages
  * @throws {ConversionError} If conversion fails
  */
-export const anthropicMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
-  wasm.anthropic_messages_to_llmir,
+export const anthropicMessagesToLingua = createToLinguaConverter<unknown[], Message[]>(
+  wasm.anthropic_messages_to_lingua,
   'Anthropic'
 );
 
 /**
- * Convert array of LLMIR Messages to Anthropic messages
+ * Convert array of Lingua Messages to Anthropic messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToAnthropicMessages = createFromLLMIRConverter<Message[], unknown[]>(
-  wasm.llmir_to_anthropic_messages,
+export const linguaToAnthropicMessages = createFromLinguaConverter<Message[], unknown[]>(
+  wasm.lingua_to_anthropic_messages,
   'Anthropic'
 );
 

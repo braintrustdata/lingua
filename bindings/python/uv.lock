@@ -75,6 +75,37 @@ wheels = [
 ]
 
 [[package]]
+name = "braintrust-lingua"
+version = "0.1.0"
+source = { editable = "." }
+
+[package.optional-dependencies]
+dev = [
+    { name = "maturin" },
+    { name = "pytest" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "anthropic" },
+    { name = "ipython" },
+    { name = "openai" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "maturin", marker = "extra == 'dev'", specifier = ">=1.0,<2.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "anthropic", specifier = ">=0.20.0" },
+    { name = "ipython", specifier = ">=8.12.3" },
+    { name = "openai", specifier = ">=1.0.0" },
+]
+
+[[package]]
 name = "certifi"
 version = "2025.8.3"
 source = { registry = "https://pypi.org/simple" }
@@ -312,37 +343,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/51/9a/dc82e218ba839052899df555e34f16b8ad1d7da9c01be208f65a5bf0083c/jiter-0.9.1-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:2da9d485a7c526817cde9ff8b3394fa50ff5b782b86b6896378a3ba8844550f2", size = 1258099 },
     { url = "https://files.pythonhosted.org/packages/58/d5/d853e069624038950265ac0e877985b249049b624e925dab6cd11035140c/jiter-0.9.1-cp39-cp39-win32.whl", hash = "sha256:ea58c155d827d24e5ba8d7958ec4738b26be0894c0881a91d88b39ff48bb06c9", size = 214611 },
     { url = "https://files.pythonhosted.org/packages/cb/8d/7b6b1ee6e3d9d1a06237bbdfe4c6bb21baf323d3f70a0cc8f203de40c6b2/jiter-0.9.1-cp39-cp39-win_amd64.whl", hash = "sha256:be2e911ecdb438951290c2079fe4190e7cc5be9e849df4caeb085b83ed620ff6", size = 211171 },
-]
-
-[[package]]
-name = "llmir"
-version = "0.1.0"
-source = { editable = "." }
-
-[package.optional-dependencies]
-dev = [
-    { name = "maturin" },
-    { name = "pytest" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "anthropic" },
-    { name = "ipython" },
-    { name = "openai" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "maturin", marker = "extra == 'dev'", specifier = ">=1.0,<2.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "anthropic", specifier = ">=0.20.0" },
-    { name = "ipython", specifier = ">=8.12.3" },
-    { name = "openai", specifier = ">=1.0.0" },
 ]
 
 [[package]]

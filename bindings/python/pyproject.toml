@@ -3,12 +3,12 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "llmir"
+name = "braintrust-lingua"
 version = "0.1.0"
-description = "LLMIR - Universal message format for LLM APIs"
+description = "Lingua - Universal message format for LLM APIs"
 requires-python = ">=3.8"
 license = { text = "MIT OR Apache-2.0" }
-keywords = ["llm", "ai", "openai", "anthropic", "api"]
+keywords = ["llm", "ai", "openai", "anthropic", "api", "lingua"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/yourusername/llmir"
+Repository = "https://github.com/braintrustdata/lingua"
 
 [project.optional-dependencies]
 dev = [
@@ -34,7 +34,7 @@ dev = [
 
 [tool.maturin]
 python-source = "src"
-module-name = "llmir._llmir"
+module-name = "lingua._lingua"
 features = ["pyo3/extension-module", "python"]
 manifest-path = "../../Cargo.toml"
 

@@ -1,5 +1,5 @@
 /*!
-Utility modules for LLMIR testing and development.
+Utility modules for Lingua testing and development.
 */
 
 pub mod error_check;

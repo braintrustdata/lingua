@@ -1,10 +1,10 @@
-# LLMIR project guide for Claude
+# Lingua project guide for Claude
 
-This guide helps AI assistants understand and work with the LLMIR codebase effectively.
+This guide helps AI assistants understand and work with the Lingua codebase effectively.
 
 ## Project overview
 
-LLMIR (LLM Intermediate Representation) is a universal message format that compiles to provider-specific formats with zero runtime overhead. It's designed to allow seamless interoperability between different LLM providers without runtime penalties.
+Lingua is a universal message format that compiles to provider-specific formats with zero runtime overhead. It's designed to allow seamless interoperability between different LLM providers without runtime penalties.
 
 ## Key principles
 
@@ -29,7 +29,7 @@ LLMIR (LLM Intermediate Representation) is a universal message format that compi
 
 ```
 src/
-├── universal/             # Core LLMIR message types
+├── universal/             # Core Lingua message types
 ├── providers/             # Provider-specific API type definitions
 ├── translators/           # Bidirectional format conversion logic
 ├── capabilities/          # Provider capability detection

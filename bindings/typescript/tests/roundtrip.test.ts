@@ -2,8 +2,8 @@
  * TypeScript Roundtrip Tests
  *
  * These tests validate that:
- * 1. SDK data can be converted to LLMIR format
- * 2. LLMIR data can be converted back to SDK format
+ * 1. SDK data can be converted to Lingua format
+ * 2. Lingua data can be converted back to SDK format
  * 3. Data is preserved through the roundtrip conversion
  */
 
@@ -12,13 +12,13 @@ import * as fs from "fs";
 import * as path from "path";
 
 // Import our generated types and conversion functions
-import type { Message as LLMIRMessage } from "../src";
+import type { Message as LinguaMessage } from "../src";
 import {
   ConversionError,
-  chatCompletionsMessagesToLLMIR,
-  anthropicMessagesToLLMIR,
-  llmirToChatCompletionsMessages,
-  llmirToAnthropicMessages,
+  chatCompletionsMessagesToLingua,
+  anthropicMessagesToLingua,
+  linguaToChatCompletionsMessages,
+  linguaToAnthropicMessages,
 } from "../src";
 
 interface TestSnapshot {
@@ -155,12 +155,12 @@ describe("TypeScript Roundtrip Tests", () => {
               // Test each message in the request
               for (const originalMessage of messages) {
                 try {
-                  // Perform the roundtrip: Chat Completions -> LLMIR -> Chat Completions
+                  // Perform the roundtrip: Chat Completions -> Lingua -> Chat Completions
                   const result = testChatCompletionsRoundtrip(originalMessage);
 
                   // Verify the roundtrip preserved the data
-                  expect(result.llmir).toBeDefined();
-                  expect(result.llmir.role).toBeDefined();
+                  expect(result.lingua).toBeDefined();
+                  expect(result.lingua.role).toBeDefined();
 
                   // First check for type consistency (e.g., Map vs Object)
                   const typeError = checkTypeConsistency(originalMessage, result.roundtripped);
@@ -196,12 +196,12 @@ describe("TypeScript Roundtrip Tests", () => {
               // Test each message in the request
               for (const originalMessage of messages) {
                 try {
-                  // Perform the roundtrip: Anthropic -> LLMIR -> Anthropic
+                  // Perform the roundtrip: Anthropic -> Lingua -> Anthropic
                   const result = testAnthropicRoundtrip(originalMessage);
 
                   // Verify the roundtrip preserved the data
-                  expect(result.llmir).toBeDefined();
-                  expect(result.llmir.role).toBeDefined();
+                  expect(result.lingua).toBeDefined();
+                  expect(result.lingua.role).toBeDefined();
 
                   // First check for type consistency (e.g., Map vs Object)
                   const typeError = checkTypeConsistency(originalMessage, result.roundtripped);
@@ -386,39 +386,39 @@ function normalizeForComparison(obj: unknown): unknown {
 }
 
 /**
- * Test roundtrip conversion: Provider -> LLMIR -> Provider
+ * Test roundtrip conversion: Provider -> Lingua -> Provider
  * @throws {ConversionError} If any conversion step fails
  */
 function testChatCompletionsRoundtrip(chatCompletionsMessage: unknown): {
   original: unknown;
-  llmir: LLMIRMessage;
+  lingua: LinguaMessage;
   roundtripped: unknown;
 } {
-  const llmir = chatCompletionsMessagesToLLMIR([chatCompletionsMessage])[0];
-  const roundtripped = llmirToChatCompletionsMessages([llmir])[0];
+  const lingua = chatCompletionsMessagesToLingua([chatCompletionsMessage])[0];
+  const roundtripped = linguaToChatCompletionsMessages([lingua])[0];
 
   return {
     original: chatCompletionsMessage,
-    llmir,
+    lingua,
     roundtripped
   };
 }
 
 /**
- * Test roundtrip conversion: Provider -> LLMIR -> Provider
+ * Test roundtrip conversion: Provider -> Lingua -> Provider
  * @throws {ConversionError} If any conversion step fails
  */
 function testAnthropicRoundtrip(anthropicMessage: unknown): {
   original: unknown;
-  llmir: LLMIRMessage;
+  lingua: LinguaMessage;
   roundtripped: unknown;
 } {
-  const llmir = anthropicMessagesToLLMIR([anthropicMessage])[0];
-  const roundtripped = llmirToAnthropicMessages([llmir])[0];
+  const lingua = anthropicMessagesToLingua([anthropicMessage])[0];
+  const roundtripped = linguaToAnthropicMessages([lingua])[0];
 
   return {
     original: anthropicMessage,
-    llmir,
+    lingua,
     roundtripped
   };
 }
@@ -435,7 +435,7 @@ describe("Generated Types", () => {
     test("TypeScript types compile correctly", () => {
       // This test just verifies that we can import the types
       // The actual type checking happens at compile time
-      const testMessage: LLMIRMessage = {
+      const testMessage: LinguaMessage = {
         role: "user",
         content: "Test message",
       };

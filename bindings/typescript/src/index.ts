@@ -1,7 +1,7 @@
 /**
- * LLMIR TypeScript Bindings
+ * Lingua TypeScript Bindings
  *
- * LLM Intermediate Representation - Universal message format for LLMs
+ * Universal message format for LLMs
  */
 
 // Re-export all generated types

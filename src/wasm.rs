@@ -7,7 +7,7 @@ use crate::providers::anthropic::generated as anthropic;
 use crate::providers::openai::generated as openai;
 use crate::universal::{convert::TryFromLLM, Message};
 
-fn convert_to_llmir<T, U>(value: JsValue) -> Result<JsValue, JsValue>
+fn convert_to_lingua<T, U>(value: JsValue) -> Result<JsValue, JsValue>
 where
     T: for<'de> Deserialize<'de>,
     U: TryFromLLM<T> + Serialize,
@@ -17,27 +17,27 @@ where
     let provider_msg: T = serde_wasm_bindgen::from_value(value)
         .map_err(|e| JsValue::from_str(&format!("Failed to parse input: {}", e)))?;
 
-    // Convert to LLMIR type
-    let llmir_msg = U::try_from(provider_msg)
+    // Convert to Lingua type
+    let lingua_msg = U::try_from(provider_msg)
         .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
 
     // Convert back to JS value
-    serde_wasm_bindgen::to_value(&llmir_msg)
+    serde_wasm_bindgen::to_value(&lingua_msg)
         .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
 }
 
-fn convert_from_llmir<T, U>(value: JsValue) -> Result<JsValue, JsValue>
+fn convert_from_lingua<T, U>(value: JsValue) -> Result<JsValue, JsValue>
 where
     T: for<'de> Deserialize<'de>,
     U: TryFromLLM<T> + Serialize,
     <U as TryFromLLM<T>>::Error: std::fmt::Debug,
 {
-    // Convert JS value to LLMIR type
-    let llmir_msg: T = serde_wasm_bindgen::from_value(value)
+    // Convert JS value to Lingua type
+    let lingua_msg: T = serde_wasm_bindgen::from_value(value)
         .map_err(|e| JsValue::from_str(&format!("Failed to parse input: {}", e)))?;
 
     // Convert to provider type
-    let provider_msg = U::try_from(llmir_msg)
+    let provider_msg = U::try_from(lingua_msg)
         .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
 
     // Convert back to JS value
@@ -50,40 +50,40 @@ where
 // provider
 // ============================================================================
 
-/// Convert array of Chat Completions messages to LLMIR Messages
+/// Convert array of Chat Completions messages to Lingua Messages
 #[wasm_bindgen]
-pub fn chat_completions_messages_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_to_llmir::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(value)
+pub fn chat_completions_messages_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_lingua::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(value)
 }
 
-/// Convert array of LLMIR Messages to Chat Completions messages
+/// Convert array of Lingua Messages to Chat Completions messages
 #[wasm_bindgen]
-pub fn llmir_to_chat_completions_messages(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_from_llmir::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(value)
+pub fn lingua_to_chat_completions_messages(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_lingua::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(value)
 }
 
-/// Convert array of Responses API messages to LLMIR Messages
+/// Convert array of Responses API messages to Lingua Messages
 #[wasm_bindgen]
-pub fn responses_messages_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_to_llmir::<Vec<openai::InputItem>, Vec<Message>>(value)
+pub fn responses_messages_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_lingua::<Vec<openai::InputItem>, Vec<Message>>(value)
 }
 
-/// Convert array of LLMIR Messages to Responses API messages
+/// Convert array of Lingua Messages to Responses API messages
 #[wasm_bindgen]
-pub fn llmir_to_responses_messages(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_from_llmir::<Vec<Message>, Vec<openai::InputItem>>(value)
+pub fn lingua_to_responses_messages(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_lingua::<Vec<Message>, Vec<openai::InputItem>>(value)
 }
 
-/// Convert array of Anthropic messages to LLMIR Messages
+/// Convert array of Anthropic messages to Lingua Messages
 #[wasm_bindgen]
-pub fn anthropic_messages_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_to_llmir::<Vec<anthropic::InputMessage>, Vec<Message>>(value)
+pub fn anthropic_messages_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_lingua::<Vec<anthropic::InputMessage>, Vec<Message>>(value)
 }
 
-/// Convert array of LLMIR Messages to Anthropic messages
+/// Convert array of Lingua Messages to Anthropic messages
 #[wasm_bindgen]
-pub fn llmir_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_from_llmir::<Vec<Message>, Vec<anthropic::InputMessage>>(value)
+pub fn lingua_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_lingua::<Vec<Message>, Vec<anthropic::InputMessage>>(value)
 }
 
 // ============================================================================

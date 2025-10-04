@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Pre-commit hook for LLMIR project
+# Pre-commit hook for Lingua project
 # Runs cargo fmt for Rust and ESLint/Prettier for TypeScript
 
 set -e

@@ -1,10 +1,10 @@
 """
-Tests for LLMIR validation functions
+Tests for Lingua validation functions
 """
 
 import json
 import pytest
-from llmir import (
+from lingua import (
     validate_openai_request,
     validate_openai_response,
     validate_anthropic_request,

@@ -2,8 +2,8 @@
 Python Roundtrip Tests
 
 These tests validate that:
-1. SDK data can be converted to LLMIR format
-2. LLMIR data can be converted back to SDK format
+1. SDK data can be converted to Lingua format
+2. Lingua data can be converted back to SDK format
 3. Data is preserved through the roundtrip conversion
 """
 
@@ -14,12 +14,12 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from llmir import (
+from lingua import (
     ConversionError,
-    chat_completions_messages_to_llmir,
-    anthropic_messages_to_llmir,
-    llmir_to_chat_completions_messages,
-    llmir_to_anthropic_messages,
+    chat_completions_messages_to_lingua,
+    anthropic_messages_to_lingua,
+    lingua_to_chat_completions_messages,
+    lingua_to_anthropic_messages,
 )
 
 
@@ -140,42 +140,42 @@ def normalize_for_comparison(obj: Any) -> Any:
 
 def perform_openai_roundtrip(openai_message: Dict) -> Dict[str, Any]:
     """
-    Perform roundtrip conversion: Chat Completions -> LLMIR -> Chat Completions
+    Perform roundtrip conversion: Chat Completions -> Lingua -> Chat Completions
 
     Args:
         openai_message: Original Chat Completions message
 
     Returns:
-        Dict with original, llmir, and roundtripped data
+        Dict with original, lingua, and roundtripped data
 
     Raises:
         ConversionError: If any conversion step fails
     """
-    llmir = chat_completions_messages_to_llmir([openai_message])[0]
-    roundtripped = llmir_to_chat_completions_messages([llmir])[0]
+    lingua_msg = chat_completions_messages_to_lingua([openai_message])[0]
+    roundtripped = lingua_to_chat_completions_messages([lingua_msg])[0]
 
-    return {"original": openai_message, "llmir": llmir, "roundtripped": roundtripped}
+    return {"original": openai_message, "lingua": lingua_msg, "roundtripped": roundtripped}
 
 
 def perform_anthropic_roundtrip(anthropic_message: Dict) -> Dict[str, Any]:
     """
-    Perform roundtrip conversion: Anthropic -> LLMIR -> Anthropic
+    Perform roundtrip conversion: Anthropic -> Lingua -> Anthropic
 
     Args:
         anthropic_message: Original Anthropic message
 
     Returns:
-        Dict with original, llmir, and roundtripped data
+        Dict with original, lingua, and roundtripped data
 
     Raises:
         ConversionError: If any conversion step fails
     """
-    llmir = anthropic_messages_to_llmir([anthropic_message])[0]
-    roundtripped = llmir_to_anthropic_messages([llmir])[0]
+    lingua_msg = anthropic_messages_to_lingua([anthropic_message])[0]
+    roundtripped = lingua_to_anthropic_messages([lingua_msg])[0]
 
     return {
         "original": anthropic_message,
-        "llmir": llmir,
+        "lingua": lingua_msg,
         "roundtripped": roundtripped,
     }
 
@@ -231,9 +231,9 @@ class TestRoundtrip:
                         # Perform the roundtrip
                         result = perform_openai_roundtrip(original_message)
 
-                        # Verify LLMIR conversion worked
-                        assert result["llmir"] is not None
-                        assert "role" in result["llmir"]
+                        # Verify Lingua conversion worked
+                        assert result["lingua"] is not None
+                        assert "role" in result["lingua"]
 
                         # Normalize both objects
                         normalized_original = normalize_for_comparison(original_message)
@@ -275,9 +275,9 @@ class TestRoundtrip:
                         # Perform the roundtrip
                         result = perform_anthropic_roundtrip(original_message)
 
-                        # Verify LLMIR conversion worked
-                        assert result["llmir"] is not None
-                        assert "role" in result["llmir"]
+                        # Verify Lingua conversion worked
+                        assert result["lingua"] is not None
+                        assert "role" in result["lingua"]
 
                         # Normalize both objects
                         normalized_original = normalize_for_comparison(original_message)
@@ -335,9 +335,9 @@ class TestTypeChecking:
         # Test that we can create valid Chat Completions messages
         message: ChatCompletionMessageParam = {"role": "user", "content": "Hello"}
 
-        # Convert to LLMIR and back
-        llmir = chat_completions_messages_to_llmir([message])[0]
-        roundtripped = llmir_to_chat_completions_messages([llmir])[0]
+        # Convert to Lingua and back
+        lingua_msg = chat_completions_messages_to_lingua([message])[0]
+        roundtripped = lingua_to_chat_completions_messages([lingua_msg])[0]
 
         assert roundtripped is not None
         assert roundtripped["role"] == "user"
@@ -356,9 +356,9 @@ class TestTypeChecking:
             "content": [{"type": "text", "text": "Hello"}],
         }
 
-        # Convert to LLMIR and back
-        llmir = anthropic_messages_to_llmir([message])[0]
-        roundtripped = llmir_to_anthropic_messages([llmir])[0]
+        # Convert to Lingua and back
+        lingua_msg = anthropic_messages_to_lingua([message])[0]
+        roundtripped = lingua_to_anthropic_messages([lingua_msg])[0]
 
         assert roundtripped is not None
         assert roundtripped["role"] == "user"
