@@ -56,16 +56,16 @@ fn generate_test_cases() {
                 continue;
             }
 
-            // Check if this test case has openai-responses directory
-            let openai_responses_dir = path.join("openai-responses");
-            if !openai_responses_dir.exists() {
+            // Check if this test case has responses directory
+            let responses_dir = path.join("responses");
+            if !responses_dir.exists() {
                 continue;
             }
 
             // Generate tests for both turns if they exist
-            if openai_responses_dir.join("request.json").exists() {
+            if responses_dir.join("request.json").exists() {
                 let test_fn_name = format!("test_roundtrip_{}_first_turn", test_case_name);
-                let full_case_name = format!("{}_openai-responses_first_turn", test_case_name);
+                let full_case_name = format!("{}_responses_first_turn", test_case_name);
 
                 generated_tests.push_str(&format!(
                     r#"
@@ -78,9 +78,9 @@ fn {test_fn_name}() {{
                 ));
             }
 
-            if openai_responses_dir.join("followup-request.json").exists() {
+            if responses_dir.join("followup-request.json").exists() {
                 let test_fn_name = format!("test_roundtrip_{}_followup_turn", test_case_name);
-                let full_case_name = format!("{}_openai-responses_followup_turn", test_case_name);
+                let full_case_name = format!("{}_responses_followup_turn", test_case_name);
 
                 generated_tests.push_str(&format!(
                     r#"
@@ -138,17 +138,16 @@ fn generate_chat_completions_test_cases() {
                 continue;
             }
 
-            // Check if this test case has openai-chat-completions directory
-            let openai_chat_dir = path.join("openai-chat-completions");
-            if !openai_chat_dir.exists() {
+            // Check if this test case has chat-completions directory
+            let chat_completions_dir = path.join("chat-completions");
+            if !chat_completions_dir.exists() {
                 continue;
             }
 
             // Generate tests for both turns if they exist
-            if openai_chat_dir.join("request.json").exists() {
+            if chat_completions_dir.join("request.json").exists() {
                 let test_fn_name = format!("test_roundtrip_{}_first_turn", test_case_name);
-                let full_case_name =
-                    format!("{}_openai-chat-completions_first_turn", test_case_name);
+                let full_case_name = format!("{}_chat-completions_first_turn", test_case_name);
 
                 generated_tests.push_str(&format!(
                     r#"
@@ -161,10 +160,9 @@ fn {test_fn_name}() {{
                 ));
             }
 
-            if openai_chat_dir.join("followup-request.json").exists() {
+            if chat_completions_dir.join("followup-request.json").exists() {
                 let test_fn_name = format!("test_roundtrip_{}_followup_turn", test_case_name);
-                let full_case_name =
-                    format!("{}_openai-chat-completions_followup_turn", test_case_name);
+                let full_case_name = format!("{}_chat-completions_followup_turn", test_case_name);
 
                 generated_tests.push_str(&format!(
                     r#"

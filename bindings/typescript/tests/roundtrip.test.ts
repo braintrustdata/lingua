@@ -15,15 +15,15 @@ import * as path from "path";
 import type { Message as LLMIRMessage } from "../src";
 import {
   ConversionError,
-  openAIMessageToLLMIR,
-  anthropicMessageToLLMIR,
-  llmirToOpenAIMessage,
-  llmirToAnthropicMessage,
+  chatCompletionsMessagesToLLMIR,
+  anthropicMessagesToLLMIR,
+  llmirToChatCompletionsMessages,
+  llmirToAnthropicMessages,
 } from "../src";
 
 interface TestSnapshot {
   name: string;
-  provider: "openai-chat-completions" | "openai-responses" | "anthropic";
+  provider: "chat-completions" | "responses" | "anthropic";
   turn: "first_turn" | "followup_turn";
   request?: unknown;
   response?: unknown;
@@ -43,8 +43,8 @@ function loadTestSnapshots(testCaseName: string): TestSnapshot[] {
   );
 
   const providers = [
-    "openai-chat-completions",
-    "openai-responses",
+    "chat-completions",
+    "responses",
     "anthropic",
   ] as const;
   const turns = ["first_turn", "followup_turn"] as const;
@@ -146,7 +146,7 @@ describe("TypeScript Roundtrip Tests", () => {
         const testName = `${snapshot.provider} - ${snapshot.turn}`;
 
         if (
-          snapshot.provider === "openai-chat-completions" &&
+          snapshot.provider === "chat-completions" &&
           snapshot.request
         ) {
           test(`${testName}: full roundtrip conversion`, () => {
@@ -155,8 +155,8 @@ describe("TypeScript Roundtrip Tests", () => {
               // Test each message in the request
               for (const originalMessage of messages) {
                 try {
-                  // Perform the roundtrip: OpenAI -> LLMIR -> OpenAI
-                  const result = testOpenAIRoundtrip(originalMessage);
+                  // Perform the roundtrip: Chat Completions -> LLMIR -> Chat Completions
+                  const result = testChatCompletionsRoundtrip(originalMessage);
 
                   // Verify the roundtrip preserved the data
                   expect(result.llmir).toBeDefined();
@@ -392,16 +392,16 @@ function normalizeForComparison(obj: unknown): unknown {
  * Test roundtrip conversion: Provider -> LLMIR -> Provider
  * @throws {ConversionError} If any conversion step fails
  */
-function testOpenAIRoundtrip(openAIMessage: unknown): {
+function testChatCompletionsRoundtrip(chatCompletionsMessage: unknown): {
   original: unknown;
   llmir: LLMIRMessage;
   roundtripped: unknown;
 } {
-  const llmir = openAIMessageToLLMIR(openAIMessage);
-  const roundtripped = llmirToOpenAIMessage(llmir);
+  const llmir = chatCompletionsMessagesToLLMIR([chatCompletionsMessage])[0];
+  const roundtripped = llmirToChatCompletionsMessages([llmir])[0];
 
   return {
-    original: openAIMessage,
+    original: chatCompletionsMessage,
     llmir,
     roundtripped
   };
@@ -416,8 +416,8 @@ function testAnthropicRoundtrip(anthropicMessage: unknown): {
   llmir: LLMIRMessage;
   roundtripped: unknown;
 } {
-  const llmir = anthropicMessageToLLMIR(anthropicMessage);
-  const roundtripped = llmirToAnthropicMessage(llmir);
+  const llmir = anthropicMessagesToLLMIR([anthropicMessage])[0];
+  const roundtripped = llmirToAnthropicMessages([llmir])[0];
 
   return {
     original: anthropicMessage,
