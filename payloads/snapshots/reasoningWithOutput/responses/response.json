@@ -1,0 +1,73 @@
+{
+  "id": "resp_68d0ea6655e081958a9399338c13da3800a25bd584461810",
+  "object": "response",
+  "created_at": 1758521958,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_68d0ea6706c081959175f70d5cdb9b4300a25bd584461810",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d0ea67adac81959ba8df5df91ff01400a25bd584461810",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "low",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 12,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 179,
+    "output_tokens_details": {
+      "reasoning_tokens": 128
+    },
+    "total_tokens": 191
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
+}

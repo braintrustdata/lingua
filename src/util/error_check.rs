@@ -76,7 +76,6 @@ mod tests {
         }
 
         // This test always passes - it's just for information
-        assert!(true);
     }
 
     /// Find directories that likely contain test data

@@ -827,8 +827,25 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
         processed
     );
 
-    // Fix specific type mappings that quicktype might miss
-    processed = processed.replace("serde_json::Value", "WebSearchToolResultErrorCode");
+    // Fix HashMap to serde_json::Map for proper JavaScript object serialization
+    // This ensures that JSON objects serialize to plain JS objects {} instead of Maps
+    processed = processed.replace(
+        "HashMap<String, Option<serde_json::Value>>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace(
+        "HashMap<String, serde_json::Value>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    // Remove HashMap import if it's no longer needed
+    processed = processed.replace("use std::collections::HashMap;\n", "");
+
+    // Fix specific type mappings that quicktype might miss - be very specific to avoid over-replacement
+    // Only replace serde_json::Value in error_code fields, not in general input/properties fields
+    processed = processed.replace(
+        "pub error_code: serde_json::Value",
+        "pub error_code: WebSearchToolResultErrorCode",
+    );
 
     // Ensure proper serde attributes for discriminated unions
     if processed.contains("ContentBlock") && processed.contains("#[derive(") {
@@ -863,7 +880,35 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     processed = add_serde_skip_if_none(&processed);
 
     // Fix any specific type mappings that quicktype might miss for OpenAI
-    // (Add any OpenAI-specific replacements here as needed)
+    // Fix call_id fields that quicktype incorrectly generates as serde_json::Value
+    processed = processed.replace(
+        "pub call_id: Option<serde_json::Value>,",
+        "pub call_id: Option<String>,",
+    );
+
+    // Fix output field that quicktype incorrectly generates as Refusal instead of String
+    // This is specific to function call outputs where output should be a plain string
+    processed = processed.replace(
+        "pub output: Option<Refusal>,",
+        "pub output: Option<String>,",
+    );
+
+    // Add automatic rename_all for enums that need consistent snake_case naming
+    processed = processed.replace(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\npub enum InputItemType {",
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\n#[serde(rename_all = \"snake_case\")]\npub enum InputItemType {"
+    );
+
+    processed = processed.replace(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\npub enum OutputItemType {",
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\n#[serde(rename_all = \"snake_case\")]\npub enum OutputItemType {"
+    );
+
+    // Make output_item_type field optional to handle cases where original data doesn't have it
+    processed = processed.replace(
+        "pub output_item_type: OutputItemType,",
+        "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
+    );
 
     processed
 }

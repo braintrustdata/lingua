@@ -1,0 +1,73 @@
+{
+  "id": "resp_68d0ea662bf4819696d0dad835c6da700adc22e2826a9c16",
+  "object": "response",
+  "created_at": 1758521958,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_68d0ea66c15881969b8df2736d4d75980adc22e2826a9c16",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d0ea6c9c3c8196af58736d61ac8af70adc22e2826a9c16",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Step 1: Compute distance for each leg\n- Leg 1: 60 mph × 2 h = 120 miles\n- Leg 2: 80 mph × 1 h = 80 miles\n\nStep 2: Total distance\n- 120 + 80 = 200 miles\n\nStep 3: Total time\n- 2 h + 1 h = 3 h\n\nStep 4: Average speed\n- Average speed = total distance / total time = 200 miles / 3 hours = 200/3 mph ≈ 66.67 mph\n\nAnswer: 200/3 mph ≈ 66.67 mph (about 66 2/3 mph)."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 38,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1302,
+    "output_tokens_details": {
+      "reasoning_tokens": 1152
+    },
+    "total_tokens": 1340
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Step 1: Compute distance for each leg\n- Leg 1: 60 mph × 2 h = 120 miles\n- Leg 2: 80 mph × 1 h = 80 miles\n\nStep 2: Total distance\n- 120 + 80 = 200 miles\n\nStep 3: Total time\n- 2 h + 1 h = 3 h\n\nStep 4: Average speed\n- Average speed = total distance / total time = 200 miles / 3 hours = 200/3 mph ≈ 66.67 mph\n\nAnswer: 200/3 mph ≈ 66.67 mph (about 66 2/3 mph)."
+}

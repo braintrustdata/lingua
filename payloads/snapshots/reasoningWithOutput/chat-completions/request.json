@@ -1,0 +1,9 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    }
+  ]
+}

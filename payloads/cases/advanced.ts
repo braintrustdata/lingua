@@ -8,7 +8,7 @@ import {
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
   multimodalRequest: {
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -29,7 +29,7 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_completion_tokens: 300,
     },
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       input: [
         {
@@ -76,7 +76,7 @@ export const advancedCases: TestCaseCollection = {
   },
 
   complexReasoningRequest: {
-    "openai-responses": {
+    "responses": {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "high", summary: "detailed" },
       input: [
@@ -89,7 +89,7 @@ export const advancedCases: TestCaseCollection = {
       max_output_tokens: 20_000,
     },
 
-    "openai-chat-completions": {
+    "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
       messages: [
         {
@@ -111,6 +111,127 @@ export const advancedCases: TestCaseCollection = {
             "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
         },
       ],
+    },
+  },
+
+  reasoningWithOutput: {
+    "responses": {
+      model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "low" },
+      input: [
+        {
+          role: "user",
+          content: "What color is the sky?",
+        },
+      ],
+    },
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What color is the sky?",
+        },
+      ],
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 20000,
+      messages: [
+        {
+          role: "user",
+          content: "What color is the sky?",
+        },
+      ],
+    },
+  },
+
+  toolCallRequest: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get the current weather for a location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA",
+                },
+              },
+              required: ["location"],
+            },
+          },
+        },
+      ],
+      tool_choice: "auto",
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 20000,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: {
+        type: "auto",
+      },
+    },
+    "responses": {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          parameters: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+          strict: false,
+        },
+      ],
+      tool_choice: "auto",
     },
   },
 };

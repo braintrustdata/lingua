@@ -1,0 +1,8 @@
+dist/
+node_modules/
+wasm/
+
+# Test artifacts (tests should not be compiled)
+tests/**/*.js
+tests/**/*.d.ts
+tests/**/*.d.ts.map

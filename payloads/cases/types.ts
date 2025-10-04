@@ -3,9 +3,9 @@ import Anthropic from "@anthropic-ai/sdk";
 
 // Well-defined types for test cases
 export interface TestCase {
-  "openai-chat-completions"?: OpenAI.Chat.Completions.ChatCompletionCreateParams;
-  "openai-responses"?: OpenAI.Responses.ResponseCreateParams;
-  "anthropic"?: Anthropic.Messages.MessageCreateParams;
+  "chat-completions": OpenAI.Chat.Completions.ChatCompletionCreateParams | null;
+  "responses": OpenAI.Responses.ResponseCreateParams | null;
+  anthropic: Anthropic.Messages.MessageCreateParams | null;
 }
 
 // Collection of test cases organized by name
@@ -17,7 +17,7 @@ export interface TestCaseCollection {
 export type ProviderType = keyof TestCase;
 
 export const PROVIDER_TYPES = [
-  "openai-chat-completions",
-  "openai-responses",
-  "anthropic"
+  "chat-completions",
+  "responses",
+  "anthropic",
 ] as const;

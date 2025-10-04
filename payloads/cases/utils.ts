@@ -11,13 +11,17 @@ export function getProviderTypesForCase(
   caseName: string
 ): ProviderType[] {
   const testCase = collection[caseName];
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Object.keys() returns string[], but we know these are ProviderType keys
   return testCase ? (Object.keys(testCase) as ProviderType[]) : [];
 }
 
 // Helper to get all provider types across all cases in a collection
-export function getAllProviderTypes(collection: TestCaseCollection): ProviderType[] {
+export function getAllProviderTypes(
+  collection: TestCaseCollection
+): ProviderType[] {
   const providerTypes = new Set<ProviderType>();
   Object.values(collection).forEach((testCase) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Object.keys() returns string[], but we know these are ProviderType keys
     (Object.keys(testCase) as ProviderType[]).forEach((providerType) => {
       providerTypes.add(providerType);
     });
@@ -36,7 +40,9 @@ export function getCaseForProvider<T extends ProviderType>(
 }
 
 // Helper to merge multiple test case collections
-export function mergeCollections(...collections: TestCaseCollection[]): TestCaseCollection {
+export function mergeCollections(
+  ...collections: TestCaseCollection[]
+): TestCaseCollection {
   return collections.reduce((merged, collection) => {
     return { ...merged, ...collection };
   }, {});

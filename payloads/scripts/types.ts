@@ -1,6 +1,10 @@
 // Standardized types for payload capture across all providers
 
-export interface CaptureResult<TRequest = unknown, TResponse = unknown, TStreamChunk = unknown> {
+export interface CaptureResult<
+  TRequest = unknown,
+  TResponse = unknown,
+  TStreamChunk = unknown,
+> {
   request: TRequest;
   response?: TResponse;
   streamingResponse?: TStreamChunk[];
@@ -15,8 +19,16 @@ export interface ProviderCase<TPayload = unknown> {
   payload: TPayload;
 }
 
-export interface ProviderExecutor<TRequest = unknown, TResponse = unknown, TStreamChunk = unknown> {
+export interface ProviderExecutor<
+  TRequest = unknown,
+  TResponse = unknown,
+  TStreamChunk = unknown,
+> {
   name: string;
   cases: Record<string, TRequest>;
-  execute: (caseName: string, payload: TRequest, stream?: boolean) => Promise<CaptureResult<TRequest, TResponse, TStreamChunk>>;
+  execute: (
+    caseName: string,
+    payload: TRequest,
+    stream?: boolean
+  ) => Promise<CaptureResult<TRequest, TResponse, TStreamChunk>>;
 }

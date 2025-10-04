@@ -1,15 +1,80 @@
 use crate::providers::anthropic::generated;
 use crate::universal::{
     convert::TryFromLLM, AssistantContent, AssistantContentPart, Message, TextContentPart,
-    UserContent, UserContentPart,
+    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
-
-// Vec conversion is handled by the blanket implementation in universal/convert.rs
 
 impl TryFromLLM<generated::InputMessage> for Message {
     type Error = String;
 
     fn try_from(input_msg: generated::InputMessage) -> Result<Self, Self::Error> {
+        // Check if this is a user message that contains only tool results
+        // If so, convert it to a Tool message instead
+        if let generated::MessageRole::User = input_msg.role {
+            if let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content {
+                // Check if all blocks are tool results
+                let all_tool_results = blocks.iter().all(|block| {
+                    matches!(
+                        block.input_content_block_type,
+                        generated::InputContentBlockType::ToolResult
+                    )
+                });
+
+                let has_tool_results = blocks.iter().any(|block| {
+                    matches!(
+                        block.input_content_block_type,
+                        generated::InputContentBlockType::ToolResult
+                    )
+                });
+
+                // If we have tool results and no other content, convert to Tool message
+                if has_tool_results && all_tool_results {
+                    // Take ownership of the content for conversion
+                    if let generated::MessageContent::InputContentBlockArray(owned_blocks) =
+                        input_msg.content
+                    {
+                        let mut tool_content_parts = Vec::new();
+
+                        for block in owned_blocks {
+                            if matches!(
+                                block.input_content_block_type,
+                                generated::InputContentBlockType::ToolResult
+                            ) {
+                                if let (Some(tool_use_id), Some(content)) =
+                                    (block.tool_use_id, block.content)
+                                {
+                                    let output = match content {
+                                        generated::Content::String(s) => serde_json::Value::String(s),
+                                        generated::Content::BlockArray(blocks) => {
+                                            serde_json::to_value(blocks)
+                                                .map_err(|e| format!("Failed to serialize BlockArray to JSON: {}", e))?
+                                        }
+                                        generated::Content::RequestWebSearchToolResultError(err) => {
+                                            serde_json::to_value(err)
+                                                .map_err(|e| format!("Failed to serialize RequestWebSearchToolResultError to JSON: {}", e))?
+                                        }
+                                    };
+
+                                    tool_content_parts.push(ToolContentPart::ToolResult(
+                                        ToolResultContentPart {
+                                            tool_call_id: tool_use_id,
+                                            tool_name: String::new(), // Anthropic doesn't provide tool name in results
+                                            output,
+                                            provider_options: None,
+                                        },
+                                    ));
+                                }
+                            }
+                        }
+
+                        return Ok(Message::Tool {
+                            content: tool_content_parts,
+                        });
+                    }
+                }
+            }
+        }
+
         match input_msg.role {
             generated::MessageRole::User => {
                 let content = match input_msg.content {
@@ -33,9 +98,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     if let Some(source) = block.source {
                                         // Convert Anthropic image source to universal format
                                         match source {
-                                            generated::InputContentBlockSource::PurpleSource(
-                                                purple_source,
-                                            ) => {
+                                            generated::Source::SourceSource(purple_source) => {
                                                 if let Some(data) = purple_source.data {
                                                     let media_type = purple_source.media_type.map(|mt| match mt {
                                                         generated::FluffyMediaType::ImageJpeg => "image/jpeg".to_string(),
@@ -59,8 +122,12 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         }
                                     }
                                 }
+                                generated::InputContentBlockType::ToolResult => {
+                                    // Skip tool results for now - should be handled properly
+                                    continue;
+                                }
                                 _ => {
-                                    // Skip other types for now (tool_use, tool_result, etc.)
+                                    // Skip other types for now
                                     continue;
                                 }
                             }
@@ -116,8 +183,30 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         });
                                     }
                                 }
+                                generated::InputContentBlockType::ToolUse => {
+                                    if let (Some(id), Some(name)) = (&block.id, &block.name) {
+                                        // The input field type is wrong in generated code, use serde_json for now
+                                        let input = if let Some(input_map) = &block.input {
+                                            // Convert HashMap to JSON value
+                                            serde_json::to_value(input_map)
+                                                .unwrap_or(serde_json::Value::Null)
+                                        } else {
+                                            serde_json::Value::Null
+                                        };
+
+                                        content_parts.push(AssistantContentPart::ToolCall {
+                                            tool_call_id: id.clone(),
+                                            tool_name: name.clone(),
+                                            arguments: serde_json::to_string(&input)
+                                                .unwrap_or_else(|_| "{}".to_string())
+                                                .into(),
+                                            provider_options: None,
+                                            provider_executed: None,
+                                        });
+                                    }
+                                }
                                 _ => {
-                                    // Skip other types for now (tool_use, tool_result, etc.)
+                                    // Skip other types for now
                                     continue;
                                 }
                             }
@@ -157,6 +246,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             .into_iter()
                             .filter_map(|part| match part {
                                 UserContentPart::Text(text_part) => {
+                                    // Regular text content
                                     Some(generated::InputContentBlock {
                                         cache_control: None,
                                         citations: None,
@@ -216,17 +306,15 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             text: None,
                                             input_content_block_type:
                                                 generated::InputContentBlockType::Image,
-                                            source: Some(
-                                                generated::InputContentBlockSource::PurpleSource(
-                                                    generated::PurpleSource {
-                                                        data: Some(image_data),
-                                                        media_type: anthropic_media_type,
-                                                        source_type: generated::FluffyType::Base64,
-                                                        url: None,
-                                                        content: None,
-                                                    },
-                                                ),
-                                            ),
+                                            source: Some(generated::Source::SourceSource(
+                                                generated::SourceSource {
+                                                    data: Some(image_data),
+                                                    media_type: anthropic_media_type,
+                                                    source_type: generated::FluffyType::Base64,
+                                                    url: None,
+                                                    content: None,
+                                                },
+                                            )),
                                             context: None,
                                             title: None,
                                             content: None,
@@ -322,6 +410,38 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     tool_use_id: None,
                                 })
                             }
+                            AssistantContentPart::ToolCall {
+                                tool_call_id,
+                                tool_name,
+                                arguments,
+                                ..
+                            } => {
+                                // Convert ToolCallArguments to serde_json::Map
+                                let input_map = match &arguments {
+                                    ToolCallArguments::Valid(map) => Some(map.clone()),
+                                    ToolCallArguments::Invalid(_) => None,
+                                };
+
+                                Some(generated::InputContentBlock {
+                                    cache_control: None,
+                                    citations: None,
+                                    text: None,
+                                    input_content_block_type:
+                                        generated::InputContentBlockType::ToolUse,
+                                    source: None,
+                                    context: None,
+                                    title: None,
+                                    content: None,
+                                    signature: None,
+                                    thinking: None,
+                                    data: None,
+                                    id: Some(tool_call_id.clone()),
+                                    input: input_map,
+                                    name: Some(tool_name.clone()),
+                                    is_error: None,
+                                    tool_use_id: None,
+                                })
+                            }
                             _ => None, // Skip other types for now
                         })
                         .collect(),
@@ -330,6 +450,50 @@ impl TryFromLLM<Message> for generated::InputMessage {
                 Ok(generated::InputMessage {
                     content: generated::MessageContent::InputContentBlockArray(blocks),
                     role: generated::MessageRole::Assistant,
+                })
+            }
+            Message::Tool { content } => {
+                // Convert tool results back to user message with tool_result blocks
+                let mut blocks = Vec::new();
+                for part in content {
+                    match part {
+                        ToolContentPart::ToolResult(tool_result) => {
+                            let content = match &tool_result.output {
+                                serde_json::Value::String(s) => {
+                                    Some(generated::Content::String(s.clone()))
+                                }
+                                other => Some(generated::Content::String(
+                                    serde_json::to_string(other)
+                                        .map_err(|e| format!("Failed to serialize tool result output to JSON string: {}", e))?,
+                                )),
+                            };
+
+                            blocks.push(generated::InputContentBlock {
+                                cache_control: None,
+                                citations: None,
+                                text: None,
+                                input_content_block_type:
+                                    generated::InputContentBlockType::ToolResult,
+                                source: None,
+                                context: None,
+                                title: None,
+                                content,
+                                signature: None,
+                                thinking: None,
+                                data: None,
+                                id: None,
+                                input: None,
+                                name: None,
+                                is_error: None,
+                                tool_use_id: Some(tool_result.tool_call_id),
+                            });
+                        }
+                    }
+                }
+
+                Ok(generated::InputMessage {
+                    content: generated::MessageContent::InputContentBlockArray(blocks),
+                    role: generated::MessageRole::User,
                 })
             }
             _ => Err("Unsupported message type for Anthropic conversion".to_string()),
@@ -362,8 +526,28 @@ impl TryFromLLM<&Vec<generated::ContentBlock>> for Vec<Message> {
                         });
                     }
                 }
+                generated::ContentBlockType::ToolUse => {
+                    if let (Some(id), Some(name)) = (&block.id, &block.name) {
+                        // Convert HashMap to JSON value for response processing too
+                        let input = if let Some(input_map) = &block.input {
+                            serde_json::to_value(input_map).unwrap_or(serde_json::Value::Null)
+                        } else {
+                            serde_json::Value::Null
+                        };
+
+                        content_parts.push(AssistantContentPart::ToolCall {
+                            tool_call_id: id.clone(),
+                            tool_name: name.clone(),
+                            arguments: serde_json::to_string(&input)
+                                .unwrap_or_else(|_| "{}".to_string())
+                                .into(),
+                            provider_options: None,
+                            provider_executed: None,
+                        });
+                    }
+                }
                 _ => {
-                    // Skip other types for now (tool_use, tool_result, etc.)
+                    // Skip other types for now
                     continue;
                 }
             }
@@ -437,6 +621,32 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        content: None,
+                                        tool_use_id: None,
+                                    });
+                                }
+                                AssistantContentPart::ToolCall {
+                                    tool_call_id,
+                                    tool_name,
+                                    arguments,
+                                    ..
+                                } => {
+                                    // Convert ToolCallArguments to serde_json::Map for response generation
+                                    let input_map = match &arguments {
+                                        ToolCallArguments::Valid(map) => Some(map.clone()),
+                                        ToolCallArguments::Invalid(_) => None,
+                                    };
+
+                                    content_blocks.push(generated::ContentBlock {
+                                        citations: None,
+                                        text: None,
+                                        content_block_type: generated::ContentBlockType::ToolUse,
+                                        signature: None,
+                                        thinking: None,
+                                        data: None,
+                                        id: Some(tool_call_id.clone()),
+                                        input: input_map,
+                                        name: Some(tool_name.clone()),
                                         content: None,
                                         tool_use_id: None,
                                     });

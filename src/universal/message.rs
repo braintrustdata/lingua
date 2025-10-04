@@ -91,8 +91,7 @@ pub enum AssistantContentPart {
     ToolCall {
         tool_call_id: String,
         tool_name: String,
-        #[ts(type = "any")]
-        input: serde_json::Value,
+        arguments: ToolCallArguments,
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
         #[ts(optional)]
@@ -101,11 +100,42 @@ pub enum AssistantContentPart {
     ToolResult {
         tool_call_id: String,
         tool_name: String,
-        #[ts(type = "any")]
+        #[ts(type = "unknown")]
         output: serde_json::Value,
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "camelCase")]
+#[serde(tag = "type")]
+pub enum ToolCallArguments {
+    Valid(#[ts(type = "Record<string, unknown>")] serde_json::Map<String, serde_json::Value>),
+    Invalid(String),
+}
+
+impl From<String> for ToolCallArguments {
+    fn from(s: String) -> Self {
+        match serde_json::from_str(&s) {
+            Ok(serde_json::Value::Object(map)) => ToolCallArguments::Valid(map),
+            _ => ToolCallArguments::Invalid(s),
+        }
+    }
+}
+
+impl std::fmt::Display for ToolCallArguments {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ToolCallArguments::Valid(map) => write!(
+                f,
+                "{}",
+                serde_json::to_string(map).map_err(|_| std::fmt::Error)?
+            ),
+            ToolCallArguments::Invalid(s) => write!(f, "{}", s),
+        }
+    }
 }
 
 /// Tool content - array of tool content parts

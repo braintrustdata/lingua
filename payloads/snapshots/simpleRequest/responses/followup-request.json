@@ -1,0 +1,38 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "text": {
+    "verbosity": "low"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What is the capital of France?"
+    },
+    {
+      "id": "rs_68d0ea66b7dc81979ee818ad50c9a236067a31a5ec6e55c5",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d0ea66cd8481979891bbe14859626c067a31a5ec6e55c5",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Paris."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

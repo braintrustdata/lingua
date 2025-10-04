@@ -5,16 +5,16 @@ use std::path::Path;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Provider {
-    OpenAIResponses,
-    OpenAIChatCompletions,
+    Responses,
+    ChatCompletions,
     Anthropic,
 }
 
 impl Provider {
     pub fn directory_name(&self) -> &'static str {
         match self {
-            Provider::OpenAIResponses => "openai-responses",
-            Provider::OpenAIChatCompletions => "openai-chat-completions",
+            Provider::Responses => "responses",
+            Provider::ChatCompletions => "chat-completions",
             Provider::Anthropic => "anthropic",
         }
     }
@@ -251,8 +251,8 @@ where
             TurnType::FollowupTurn,
         ) {
             Ok(case) => test_cases.push(case),
-            Err(e) => {
-                eprintln!("Note: Followup turn not found or invalid for test case '{}' provider '{}' ({:?})", test_case_name, provider.directory_name(), e);
+            Err(_e) => {
+                // Note: Followup turn not found or invalid for test case
             }
         }
     }
@@ -410,13 +410,10 @@ mod tests {
 
     #[test]
     fn test_provider_directory_names() {
+        assert_eq!(Provider::Responses.directory_name(), "responses");
         assert_eq!(
-            Provider::OpenAIResponses.directory_name(),
-            "openai-responses"
-        );
-        assert_eq!(
-            Provider::OpenAIChatCompletions.directory_name(),
-            "openai-chat-completions"
+            Provider::ChatCompletions.directory_name(),
+            "chat-completions"
         );
         assert_eq!(Provider::Anthropic.directory_name(), "anthropic");
     }
@@ -428,13 +425,10 @@ mod tests {
     }
 
     #[test]
-    fn test_discover_openai_responses_cases_untyped() {
-        match discover_test_cases(Provider::OpenAIResponses, None) {
+    fn test_discover_responses_cases_untyped() {
+        match discover_test_cases(Provider::Responses, None) {
             Ok(cases) => {
-                println!(
-                    "Found {} OpenAI Responses test cases (untyped):",
-                    cases.len()
-                );
+                println!("Found {} Responses test cases (untyped):", cases.len());
                 for case in &cases {
                     println!("  - {} (turn: {:?})", case.name, case.turn);
                     println!("    Request: present");
@@ -451,7 +445,7 @@ mod tests {
 
                 // Basic validation
                 for case in &cases {
-                    assert_eq!(case.provider, Provider::OpenAIResponses);
+                    assert_eq!(case.provider, Provider::Responses);
                     assert!(!case.name.is_empty());
                 }
             }
@@ -467,9 +461,12 @@ mod tests {
 
     #[test]
     fn test_discover_with_filter() {
-        match discover_test_cases(Provider::OpenAIChatCompletions, Some("simple")) {
+        match discover_test_cases(Provider::ChatCompletions, Some("simple")) {
             Ok(cases) => {
-                println!("Found {} filtered OpenAI Chat test cases:", cases.len());
+                println!(
+                    "Found {} filtered Chat Completions test cases:",
+                    cases.len()
+                );
                 for case in &cases {
                     assert!(case.name.contains("simple"));
                     println!("  - {}", case.name);
@@ -484,8 +481,8 @@ mod tests {
     #[test]
     fn test_discover_all_providers() {
         let providers = vec![
-            Provider::OpenAIResponses,
-            Provider::OpenAIChatCompletions,
+            Provider::Responses,
+            Provider::ChatCompletions,
             Provider::Anthropic,
         ];
 

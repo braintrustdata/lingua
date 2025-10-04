@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Pre-commit hook for Elmir project
-# Runs cargo fmt and fails commit so files need to be re-added
+# Pre-commit hook for Lingua project
+# Runs cargo fmt for Rust and ESLint/Prettier for TypeScript
 
 set -e
 
@@ -17,9 +17,57 @@ fi
 echo "📝 Running cargo fmt..."
 cargo fmt --all
 
+# Check for TypeScript files and run linting/formatting
+if [ -f "payloads/package.json" ]; then
+    echo "📝 Running TypeScript checks..."
+
+    # Change to payloads directory
+    cd payloads
+
+    # Check if dependencies are installed
+    if [ ! -d "node_modules" ]; then
+        echo "❌ Dependencies not installed in payloads/"
+        echo "💡 Please run the setup script first:"
+        echo "   ./scripts/setup.sh"
+        echo ""
+        echo "   Or install manually:"
+        echo "   cd payloads && pnpm install && cd .."
+        exit 1
+    fi
+
+    # Run ESLint
+    echo "🔍 Running ESLint..."
+    if ! npm run lint; then
+        echo "❌ ESLint found issues. Run 'npm run lint:fix' to fix automatically or fix manually."
+        exit 1
+    fi
+
+    # Run Prettier check
+    echo "🎨 Checking code formatting..."
+    if ! npm run format:check; then
+        echo "❌ Code formatting issues found."
+        echo "💡 Running Prettier to fix formatting..."
+        npm run format
+        cd ..
+        echo "❌ Files were formatted by Prettier."
+        echo "💡 Please re-add the formatted files and commit again:"
+        echo "   git add -A && git commit"
+        exit 1
+    fi
+
+    # Run TypeScript type checking
+    echo "🔍 Running TypeScript type check..."
+    if ! npm run typecheck; then
+        echo "❌ TypeScript type errors found. Please fix before committing."
+        exit 1
+    fi
+
+    cd ..
+fi
+
 # Check if any files were changed by formatting
 if ! git diff --quiet; then
-    echo "❌ Files were formatted by cargo fmt."
+    echo "❌ Files were formatted."
     echo "💡 Please re-add the formatted files and commit again:"
     echo "   git add -A && git commit"
     exit 1

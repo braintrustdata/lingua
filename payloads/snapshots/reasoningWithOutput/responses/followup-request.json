@@ -1,0 +1,35 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "low"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    },
+    {
+      "id": "rs_68d0ea6706c081959175f70d5cdb9b4300a25bd584461810",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d0ea67adac81959ba8df5df91ff01400a25bd584461810",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Usually blue on a clear day. But it can turn red/orange/purple at sunrise/sunset, gray when cloudy, or black at night. If you have an image, I can describe its sky color for you."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

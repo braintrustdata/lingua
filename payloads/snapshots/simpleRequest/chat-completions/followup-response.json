@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-CIUBLM6HcOKXTC6dyOj82FCQ7xoHL",
+  "object": "chat.completion",
+  "created": 1758521959,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Could you share a bit more about what you’re trying to achieve? Here are a few common directions, with quick next steps:\n\n- If you’re planning a trip to Paris: decide dates, set a budget, list must-see sights (Eiffel Tower, Louvre, Montmartre), and book tickets in advance.\n- If you want to learn more about France or French: pick a goal (basic phrases, history, cuisine) and I can give a simple learning plan or practice phrases.\n- If this is for a different topic (news, math, writing, etc.): tell me the topic and what you need (explanation, steps, examples).\n- If you’re unsure: I can help you brainstorm options and help you pick the best next step.\n\nTell me which path fits, and I’ll tailor the next steps.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 36,
+    "completion_tokens": 240,
+    "total_tokens": 276,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 64,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

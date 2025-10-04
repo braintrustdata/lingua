@@ -1,0 +1,48 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "What's the weather like in San Francisco?"
+    },
+    {
+      "id": "rs_68d4eaae5a688194852dc43cc82c612b0cb22027d8c51cd0",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_68d4eaaf171c8194b5ae164dea0dd2c70cb22027d8c51cd0",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"San Francisco, CA\"}",
+      "call_id": "call_NXPUUYU6hbVoaGbAFLiSXDsg",
+      "name": "get_weather"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_NXPUUYU6hbVoaGbAFLiSXDsg",
+      "output": "71 degrees"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get the current weather for a location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false
+    }
+  ],
+  "tool_choice": "auto"
+}

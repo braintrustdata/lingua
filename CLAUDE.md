@@ -1,17 +1,18 @@
-# LLMIR project guide for Claude
+# Lingua project guide for Claude
 
-This guide helps AI assistants understand and work with the LLMIR codebase effectively.
+This guide helps AI assistants understand and work with the Lingua codebase effectively.
 
 ## Project overview
 
-LLMIR (LLM Intermediate Representation) is a universal message format that compiles to provider-specific formats with zero runtime overhead. It's designed to allow seamless interoperability between different LLM providers without runtime penalties.
+Lingua is a universal message format that compiles to provider-specific formats with zero runtime overhead. It's designed to allow seamless interoperability between different LLM providers without runtime penalties.
 
 ## Key principles
 
 - **Universal compatibility**: Supports 100% of provider-specific quirks and capabilities
-- **Zero runtime overhead**: Pure compile-time translation to native provider formats  
+- **Zero runtime overhead**: Pure compile-time translation to native provider formats
 - **Type safety**: Full TypeScript and Rust type generation with bidirectional validation
 - **No network calls**: This is a message format library, not an API client
+- **Explicit error handling**: All errors must be properly handled, never silently swallowed
 
 ## Documentation style guide
 
@@ -28,7 +29,7 @@ LLMIR (LLM Intermediate Representation) is a universal message format that compi
 
 ```
 src/
-├── universal/             # Core LLMIR message types
+├── universal/             # Core Lingua message types
 ├── providers/             # Provider-specific API type definitions
 ├── translators/           # Bidirectional format conversion logic
 ├── capabilities/          # Provider capability detection
@@ -92,16 +93,27 @@ Each provider should have:
 
 **🚨 DO NOT EDIT `generated.rs` FILES DIRECTLY 🚨**
 
+**⚠️ ABSOLUTELY FORBIDDEN - CHANGES WILL BE LOST ⚠️**
+
 Files named `generated.rs` are automatically generated and will be overwritten:
 - `src/providers/google/generated.rs` - Generated from protobuf files
-- `src/providers/openai/generated.rs` - Generated from OpenAPI specs  
+- `src/providers/openai/generated.rs` - Generated from OpenAPI specs
 - `src/providers/anthropic/generated.rs` - Generated from OpenAPI specs
+
+**ANY MANUAL CHANGES TO THESE FILES WILL BE PERMANENTLY LOST ON NEXT REGENERATION**
 
 **If you need to fix issues in generated files:**
 1. ✅ **DO**: Edit the generation logic in `scripts/generate-types.rs`
 2. ✅ **DO**: Add fixes to the `fix_google_type_references()` or similar functions
 3. ✅ **DO**: Regenerate using `cargo run --bin generate-types <provider>`
 4. ❌ **DON'T**: Edit the generated files directly - your changes will be lost!
+
+**⚠️ NEVER MANUALLY EDIT:**
+- Any struct, enum, or type definitions in `generated.rs` files
+- Field types, names, or annotations in generated types
+- Serde attributes or derives in generated code
+
+**Claude Code AI Assistant: You must NEVER directly edit generated.rs files. Always use the generation pipeline and post-processing functions.**
 
 **Example of proper fix approach:**
 ```rust
@@ -133,6 +145,67 @@ This ensures fixes are permanent and survive regeneration cycles.
 - Use `rename_all = "snake_case"` sparingly (only when provider uses snake_case)
 - Most providers use camelCase, so default serde behavior is correct
 - Add `#[serde(skip_serializing_if = "Option::is_none")]` for optional fields
+
+## Error handling guidelines
+
+**🚨 CRITICAL: Never silently swallow errors with `unwrap_or_default()` or `unwrap_or()` 🚨**
+
+Silent error handling makes debugging extremely difficult and can hide important issues. Always use explicit error propagation or logging.
+
+**❌ NEVER DO THIS:**
+```rust
+// Dangerous - silently swallows serialization errors
+serde_json::to_value(data).unwrap_or_default()
+serde_json::to_string(data).unwrap_or(String::new())
+```
+
+**✅ ALWAYS DO THIS INSTEAD:**
+
+**For functions that return `Result` (most conversions):**
+```rust
+// Propagate errors with proper context
+serde_json::to_value(data).map_err(|e| ConvertError::JsonSerializationFailed {
+    field: "field_name".to_string(),
+    error: e.to_string(),
+})?
+
+// Or for String error types:
+serde_json::to_string(data)
+    .map_err(|e| format!("Failed to serialize field_name to JSON: {}", e))?
+```
+
+**For `filter_map` closures that return `Option`:**
+```rust
+// For invalid data that's already known to be invalid, use appropriate fallback
+match tool_arguments {
+    ToolCallArguments::Valid(map) => serde_json::Value::Object(map.clone()),
+    ToolCallArguments::Invalid(s) => serde_json::Value::String(s.clone()), // Don't try to parse invalid data
+}
+```
+
+**Error types to use:**
+- **OpenAI conversions**: Use `ConvertError` enum with specific variants
+- **Anthropic conversions**: Use descriptive `String` error messages
+- **Always include context**: field names, operation type, original data when safe
+
+**When adding new `ConvertError` variants:**
+```rust
+pub enum ConvertError {
+    // Existing variants...
+    JsonSerializationFailed { field: String, error: String },
+    // Add new specific variants as needed
+}
+
+// Update the Display impl:
+ConvertError::JsonSerializationFailed { field, error } => {
+    write!(f, "JSON serialization failed for field '{}': {}", field, error)
+}
+```
+
+**Testing error conditions:**
+- Always test that error conditions produce meaningful error messages
+- Verify that errors propagate correctly through the call stack
+- Never ignore warnings from error handling during development
 
 ## Pipeline maintenance
 

@@ -5,3 +5,7 @@
 .vscode/
 .idea/
 node_modules/
+*.swp
+__pycache__
+*.so
+dev-notes/

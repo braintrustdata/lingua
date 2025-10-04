@@ -14,7 +14,7 @@ pub fn discover_openai_chat_completions_test_cases(
     test_name_filter: Option<&str>,
 ) -> Result<Vec<OpenAIChatCompletionsTestCase>, crate::util::testutil::TestDiscoveryError> {
     discover_test_cases_typed::<CreateChatCompletionRequestClass, CreateChatCompletionResponse, Value>(
-        Provider::OpenAIChatCompletions,
+        Provider::ChatCompletions,
         test_name_filter,
     )
 }
