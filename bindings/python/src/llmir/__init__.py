@@ -18,8 +18,10 @@ from llmir._llmir import (
     openai_message_to_llmir as _openai_message_to_llmir,
     llmir_to_openai_message as _llmir_to_openai_message,
     openai_input_items_to_llmir as _openai_input_items_to_llmir,
+    llmir_to_openai_input_items as _llmir_to_openai_input_items,
     anthropic_message_to_llmir as _anthropic_message_to_llmir,
     llmir_to_anthropic_message as _llmir_to_anthropic_message,
+    llmir_to_anthropic_messages as _llmir_to_anthropic_messages,
     validate_openai_request as _validate_openai_request,
     validate_openai_response as _validate_openai_response,
     validate_anthropic_request as _validate_anthropic_request,
@@ -97,6 +99,25 @@ def openai_input_items_to_llmir(items: list) -> list:
         raise ConversionError(f"Failed to convert OpenAI input items to LLMIR: {e}") from e
 
 
+def llmir_to_openai_input_items(messages: list) -> list:
+    """
+    Convert array of LLMIR Messages to OpenAI InputItems.
+
+    Args:
+        messages: List of LLMIR Message objects
+
+    Returns:
+        List of OpenAI InputItem objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _llmir_to_openai_input_items(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert LLMIR to OpenAI input items: {e}") from e
+
+
 # ============================================================================
 # Anthropic conversions
 # ============================================================================
@@ -137,6 +158,25 @@ def llmir_to_anthropic_message(message: Dict[str, Any]) -> Dict[str, Any]:
         return _llmir_to_anthropic_message(message)
     except Exception as e:
         raise ConversionError(f"Failed to convert LLMIR to Anthropic message: {e}") from e
+
+
+def llmir_to_anthropic_messages(messages: list) -> list:
+    """
+    Convert array of LLMIR Messages to Anthropic InputMessages.
+
+    Args:
+        messages: List of LLMIR Message objects
+
+    Returns:
+        List of Anthropic InputMessage objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _llmir_to_anthropic_messages(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert LLMIR to Anthropic messages: {e}") from e
 
 
 # ============================================================================
@@ -223,10 +263,12 @@ __all__ = [
     "openai_message_to_llmir",
     "llmir_to_openai_message",
     "openai_input_items_to_llmir",
+    "llmir_to_openai_input_items",
 
     # Anthropic conversions
     "anthropic_message_to_llmir",
     "llmir_to_anthropic_message",
+    "llmir_to_anthropic_messages",
 
     # OpenAI validation
     "validate_openai_request",

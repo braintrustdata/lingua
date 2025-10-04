@@ -10,10 +10,12 @@ export {
   openAIMessageToLLMIR,
   llmirToOpenAIMessage,
   openAIInputItemsToLLMIR,
+  llmirToOpenAIInputItems,
 
   // Anthropic conversions
   anthropicMessageToLLMIR,
   llmirToAnthropicMessage,
+  llmirToAnthropicMessages,
 
   // OpenAI validation
   validateOpenAIRequest,

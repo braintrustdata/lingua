@@ -68,6 +68,12 @@ pub fn openai_input_items_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
     convert_to_llmir::<Vec<openai::InputItem>, Vec<Message>>(value)
 }
 
+/// Convert array of LLMIR Messages to OpenAI InputItems
+#[wasm_bindgen]
+pub fn llmir_to_openai_input_items(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_llmir::<Vec<Message>, Vec<openai::InputItem>>(value)
+}
+
 /// Convert Anthropic InputMessage to LLMIR Message
 #[wasm_bindgen]
 pub fn anthropic_message_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
@@ -78,6 +84,12 @@ pub fn anthropic_message_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn llmir_to_anthropic_message(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_llmir::<Message, anthropic::InputMessage>(value)
+}
+
+/// Convert array of LLMIR Messages to Anthropic InputMessages
+#[wasm_bindgen]
+pub fn llmir_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_llmir::<Vec<Message>, Vec<anthropic::InputMessage>>(value)
 }
 
 // ============================================================================

@@ -118,6 +118,15 @@ export const openAIInputItemsToLLMIR = createToLLMIRConverter<unknown[], Message
   'OpenAI'
 );
 
+/**
+ * Convert array of LLMIR Messages to OpenAI InputItems
+ * @throws {ConversionError} If conversion fails
+ */
+export const llmirToOpenAIInputItems = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_openai_input_items,
+  'OpenAI'
+);
+
 // ============================================================================
 // Anthropic Conversions
 // ============================================================================
@@ -137,6 +146,15 @@ export const anthropicMessageToLLMIR = createToLLMIRConverter<unknown, Message>(
  */
 export const llmirToAnthropicMessage = createFromLLMIRConverter<Message, unknown>(
   wasm.llmir_to_anthropic_message,
+  'Anthropic'
+);
+
+/**
+ * Convert array of LLMIR Messages to Anthropic InputMessages
+ * @throws {ConversionError} If conversion fails
+ */
+export const llmirToAnthropicMessages = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_anthropic_messages,
   'Anthropic'
 );
 
