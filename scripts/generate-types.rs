@@ -827,6 +827,19 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
         processed
     );
 
+    // Fix HashMap to serde_json::Map for proper JavaScript object serialization
+    // This ensures that JSON objects serialize to plain JS objects {} instead of Maps
+    processed = processed.replace(
+        "HashMap<String, Option<serde_json::Value>>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace(
+        "HashMap<String, serde_json::Value>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    // Remove HashMap import if it's no longer needed
+    processed = processed.replace("use std::collections::HashMap;\n", "");
+
     // Fix specific type mappings that quicktype might miss - be very specific to avoid over-replacement
     // Only replace serde_json::Value in error_code fields, not in general input/properties fields
     processed = processed.replace(
