@@ -86,9 +86,7 @@ jobs:
       run: make typescript
 
     - name: Run TypeScript tests
-      run: |
-        cd bindings/typescript
-        npm test
+      run: make test-typescript
 
   test-python:
     runs-on: ubuntu-latest
@@ -120,13 +118,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y protobuf-compiler
 
-    - name: Install maturin
-      run: pip install maturin pytest
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v5
 
     - name: Build Python bindings
       run: make python
 
     - name: Run Python tests
-      run: |
-        cd bindings/python
-        pytest
+      run: make test-python
