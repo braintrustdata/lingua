@@ -22,7 +22,7 @@ uv run python
 
 ```python
 >>> import lingua
->>> lingua.chat_completions_messages_to_llmir([{'role': 'user', 'content': 'Hello'}])
+>>> lingua.chat_completions_messages_to_lingua([{'role': 'user', 'content': 'Hello'}])
 ```
 
 ### Building wheels
@@ -43,28 +43,28 @@ uv run maturin build --features python --release
 ```python
 from lingua import (
     # Chat Completions API conversions
-    chat_completions_messages_to_llmir,
-    llmir_to_chat_completions_messages,
+    chat_completions_messages_to_lingua,
+    lingua_to_chat_completions_messages,
 
     # Responses API conversions
-    responses_messages_to_llmir,
-    llmir_to_responses_messages,
+    responses_messages_to_lingua,
+    lingua_to_responses_messages,
 
     # Anthropic conversions
-    anthropic_messages_to_llmir,
-    llmir_to_anthropic_messages,
+    anthropic_messages_to_lingua,
+    lingua_to_anthropic_messages,
 )
 
 # Convert OpenAI Chat Completions messages to universal format
-lingua_msgs = chat_completions_messages_to_llmir([
+lingua_msgs = chat_completions_messages_to_lingua([
     {'role': 'user', 'content': 'Hello'}
 ])
 
 # Convert universal format to Anthropic
-anthropic_msgs = llmir_to_anthropic_messages(lingua_msgs)
+anthropic_msgs = lingua_to_anthropic_messages(lingua_msgs)
 
 # Convert Anthropic messages to universal format
-lingua_msgs = anthropic_messages_to_llmir([
+lingua_msgs = anthropic_messages_to_lingua([
     {'role': 'user', 'content': [{'type': 'text', 'text': 'Hello'}]}
 ])
 ```
@@ -101,7 +101,7 @@ All validation functions raise `ValueError` on invalid input.
 from lingua import ConversionError
 
 try:
-    result = llmir_to_chat_completions_messages(invalid_messages)
+    result = lingua_to_chat_completions_messages(invalid_messages)
 except ConversionError as e:
     print(f"Conversion failed: {e}")
 ```

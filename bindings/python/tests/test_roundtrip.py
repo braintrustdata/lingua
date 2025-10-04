@@ -16,10 +16,10 @@ import pytest
 
 from lingua import (
     ConversionError,
-    chat_completions_messages_to_llmir,
-    anthropic_messages_to_llmir,
-    llmir_to_chat_completions_messages,
-    llmir_to_anthropic_messages,
+    chat_completions_messages_to_lingua,
+    anthropic_messages_to_lingua,
+    lingua_to_chat_completions_messages,
+    lingua_to_anthropic_messages,
 )
 
 
@@ -151,8 +151,8 @@ def perform_openai_roundtrip(openai_message: Dict) -> Dict[str, Any]:
     Raises:
         ConversionError: If any conversion step fails
     """
-    lingua_msg = chat_completions_messages_to_llmir([openai_message])[0]
-    roundtripped = llmir_to_chat_completions_messages([lingua_msg])[0]
+    lingua_msg = chat_completions_messages_to_lingua([openai_message])[0]
+    roundtripped = lingua_to_chat_completions_messages([lingua_msg])[0]
 
     return {"original": openai_message, "lingua": lingua_msg, "roundtripped": roundtripped}
 
@@ -170,8 +170,8 @@ def perform_anthropic_roundtrip(anthropic_message: Dict) -> Dict[str, Any]:
     Raises:
         ConversionError: If any conversion step fails
     """
-    lingua_msg = anthropic_messages_to_llmir([anthropic_message])[0]
-    roundtripped = llmir_to_anthropic_messages([lingua_msg])[0]
+    lingua_msg = anthropic_messages_to_lingua([anthropic_message])[0]
+    roundtripped = lingua_to_anthropic_messages([lingua_msg])[0]
 
     return {
         "original": anthropic_message,
@@ -336,8 +336,8 @@ class TestTypeChecking:
         message: ChatCompletionMessageParam = {"role": "user", "content": "Hello"}
 
         # Convert to Lingua and back
-        lingua_msg = chat_completions_messages_to_llmir([message])[0]
-        roundtripped = llmir_to_chat_completions_messages([lingua_msg])[0]
+        lingua_msg = chat_completions_messages_to_lingua([message])[0]
+        roundtripped = lingua_to_chat_completions_messages([lingua_msg])[0]
 
         assert roundtripped is not None
         assert roundtripped["role"] == "user"
@@ -357,8 +357,8 @@ class TestTypeChecking:
         }
 
         # Convert to Lingua and back
-        lingua_msg = anthropic_messages_to_llmir([message])[0]
-        roundtripped = llmir_to_anthropic_messages([lingua_msg])[0]
+        lingua_msg = anthropic_messages_to_lingua([message])[0]
+        roundtripped = lingua_to_anthropic_messages([lingua_msg])[0]
 
         assert roundtripped is not None
         assert roundtripped["role"] == "user"

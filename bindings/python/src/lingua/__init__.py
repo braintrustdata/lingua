@@ -15,12 +15,12 @@ from typing import Any, Dict
 
 # Import the native conversion functions
 from lingua._lingua import (
-    chat_completions_messages_to_llmir as _chat_completions_messages_to_llmir,
-    llmir_to_chat_completions_messages as _llmir_to_chat_completions_messages,
-    responses_messages_to_llmir as _responses_messages_to_llmir,
-    llmir_to_responses_messages as _llmir_to_responses_messages,
-    anthropic_messages_to_llmir as _anthropic_messages_to_llmir,
-    llmir_to_anthropic_messages as _llmir_to_anthropic_messages,
+    chat_completions_messages_to_lingua as _chat_completions_messages_to_lingua,
+    lingua_to_chat_completions_messages as _lingua_to_chat_completions_messages,
+    responses_messages_to_lingua as _responses_messages_to_lingua,
+    lingua_to_responses_messages as _lingua_to_responses_messages,
+    anthropic_messages_to_lingua as _anthropic_messages_to_lingua,
+    lingua_to_anthropic_messages as _lingua_to_anthropic_messages,
     validate_openai_request as _validate_openai_request,
     validate_openai_response as _validate_openai_response,
     validate_anthropic_request as _validate_anthropic_request,
@@ -41,7 +41,7 @@ class ConversionError(Exception):
 # Chat Completions API conversions
 # ============================================================================
 
-def chat_completions_messages_to_llmir(messages: list) -> list:
+def chat_completions_messages_to_lingua(messages: list) -> list:
     """
     Convert array of Chat Completions messages to Lingua Messages.
 
@@ -55,12 +55,12 @@ def chat_completions_messages_to_llmir(messages: list) -> list:
         ConversionError: If conversion fails
     """
     try:
-        return _chat_completions_messages_to_llmir(messages)
+        return _chat_completions_messages_to_lingua(messages)
     except Exception as e:
         raise ConversionError(f"Failed to convert chat completions messages to Lingua: {e}") from e
 
 
-def llmir_to_chat_completions_messages(messages: list) -> list:
+def lingua_to_chat_completions_messages(messages: list) -> list:
     """
     Convert array of Lingua Messages to Chat Completions messages.
 
@@ -74,7 +74,7 @@ def llmir_to_chat_completions_messages(messages: list) -> list:
         ConversionError: If conversion fails
     """
     try:
-        return _llmir_to_chat_completions_messages(messages)
+        return _lingua_to_chat_completions_messages(messages)
     except Exception as e:
         raise ConversionError(f"Failed to convert Lingua to chat completions messages: {e}") from e
 
@@ -83,7 +83,7 @@ def llmir_to_chat_completions_messages(messages: list) -> list:
 # Responses API conversions
 # ============================================================================
 
-def responses_messages_to_llmir(messages: list) -> list:
+def responses_messages_to_lingua(messages: list) -> list:
     """
     Convert array of Responses API messages to Lingua Messages.
 
@@ -97,12 +97,12 @@ def responses_messages_to_llmir(messages: list) -> list:
         ConversionError: If conversion fails
     """
     try:
-        return _responses_messages_to_llmir(messages)
+        return _responses_messages_to_lingua(messages)
     except Exception as e:
         raise ConversionError(f"Failed to convert responses messages to Lingua: {e}") from e
 
 
-def llmir_to_responses_messages(messages: list) -> list:
+def lingua_to_responses_messages(messages: list) -> list:
     """
     Convert array of Lingua Messages to Responses API messages.
 
@@ -116,7 +116,7 @@ def llmir_to_responses_messages(messages: list) -> list:
         ConversionError: If conversion fails
     """
     try:
-        return _llmir_to_responses_messages(messages)
+        return _lingua_to_responses_messages(messages)
     except Exception as e:
         raise ConversionError(f"Failed to convert Lingua to responses messages: {e}") from e
 
@@ -125,7 +125,7 @@ def llmir_to_responses_messages(messages: list) -> list:
 # Anthropic conversions
 # ============================================================================
 
-def anthropic_messages_to_llmir(messages: list) -> list:
+def anthropic_messages_to_lingua(messages: list) -> list:
     """
     Convert array of Anthropic messages to Lingua Messages.
 
@@ -139,12 +139,12 @@ def anthropic_messages_to_llmir(messages: list) -> list:
         ConversionError: If conversion fails
     """
     try:
-        return _anthropic_messages_to_llmir(messages)
+        return _anthropic_messages_to_lingua(messages)
     except Exception as e:
         raise ConversionError(f"Failed to convert Anthropic messages to Lingua: {e}") from e
 
 
-def llmir_to_anthropic_messages(messages: list) -> list:
+def lingua_to_anthropic_messages(messages: list) -> list:
     """
     Convert array of Lingua Messages to Anthropic messages.
 
@@ -158,7 +158,7 @@ def llmir_to_anthropic_messages(messages: list) -> list:
         ConversionError: If conversion fails
     """
     try:
-        return _llmir_to_anthropic_messages(messages)
+        return _lingua_to_anthropic_messages(messages)
     except Exception as e:
         raise ConversionError(f"Failed to convert Lingua to Anthropic messages: {e}") from e
 
@@ -244,16 +244,16 @@ __all__ = [
     "ConversionError",
 
     # Chat Completions API conversions
-    "chat_completions_messages_to_llmir",
-    "llmir_to_chat_completions_messages",
+    "chat_completions_messages_to_lingua",
+    "lingua_to_chat_completions_messages",
 
     # Responses API conversions
-    "responses_messages_to_llmir",
-    "llmir_to_responses_messages",
+    "responses_messages_to_lingua",
+    "lingua_to_responses_messages",
 
     # Anthropic conversions
-    "anthropic_messages_to_llmir",
-    "llmir_to_anthropic_messages",
+    "anthropic_messages_to_lingua",
+    "lingua_to_anthropic_messages",
 
     # OpenAI validation
     "validate_openai_request",

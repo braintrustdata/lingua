@@ -41,7 +41,7 @@ where
 }
 
 /// Generic conversion from provider to Lingua
-fn convert_to_llmir<T, U>(py: Python, value: &PyAny) -> PyResult<PyObject>
+fn convert_to_lingua<T, U>(py: Python, value: &PyAny) -> PyResult<PyObject>
 where
     T: for<'de> Deserialize<'de>,
     U: TryFromLLM<T> + Serialize,
@@ -55,7 +55,7 @@ where
 }
 
 /// Generic conversion from Lingua to provider
-fn convert_from_llmir<T, U>(py: Python, value: &PyAny) -> PyResult<PyObject>
+fn convert_from_lingua<T, U>(py: Python, value: &PyAny) -> PyResult<PyObject>
 where
     T: for<'de> Deserialize<'de>,
     U: TryFromLLM<T> + Serialize,
@@ -74,38 +74,38 @@ where
 
 /// Convert array of Chat Completions messages to Lingua Messages
 #[pyfunction]
-fn chat_completions_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_to_llmir::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(py, value)
+fn chat_completions_messages_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_to_lingua::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(py, value)
 }
 
 /// Convert array of Lingua Messages to Chat Completions messages
 #[pyfunction]
-fn llmir_to_chat_completions_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_from_llmir::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(py, value)
+fn lingua_to_chat_completions_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_from_lingua::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(py, value)
 }
 
 /// Convert array of Responses API messages to Lingua Messages
 #[pyfunction]
-fn responses_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_to_llmir::<Vec<openai::InputItem>, Vec<Message>>(py, value)
+fn responses_messages_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_to_lingua::<Vec<openai::InputItem>, Vec<Message>>(py, value)
 }
 
 /// Convert array of Lingua Messages to Responses API messages
 #[pyfunction]
-fn llmir_to_responses_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_from_llmir::<Vec<Message>, Vec<openai::InputItem>>(py, value)
+fn lingua_to_responses_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_from_lingua::<Vec<Message>, Vec<openai::InputItem>>(py, value)
 }
 
 /// Convert array of Anthropic messages to Lingua Messages
 #[pyfunction]
-fn anthropic_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_to_llmir::<Vec<anthropic::InputMessage>, Vec<Message>>(py, value)
+fn anthropic_messages_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_to_lingua::<Vec<anthropic::InputMessage>, Vec<Message>>(py, value)
 }
 
 /// Convert array of Lingua Messages to Anthropic messages
 #[pyfunction]
-fn llmir_to_anthropic_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_from_llmir::<Vec<Message>, Vec<anthropic::InputMessage>>(py, value)
+fn lingua_to_anthropic_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_from_lingua::<Vec<Message>, Vec<anthropic::InputMessage>>(py, value)
 }
 
 // ============================================================================
@@ -160,12 +160,12 @@ fn validate_anthropic_response(py: Python, json: &str) -> PyResult<PyObject> {
 #[pymodule]
 fn _lingua(_py: Python, m: &PyModule) -> PyResult<()> {
     // Conversion functions
-    m.add_function(wrap_pyfunction!(chat_completions_messages_to_llmir, m)?)?;
-    m.add_function(wrap_pyfunction!(llmir_to_chat_completions_messages, m)?)?;
-    m.add_function(wrap_pyfunction!(responses_messages_to_llmir, m)?)?;
-    m.add_function(wrap_pyfunction!(llmir_to_responses_messages, m)?)?;
-    m.add_function(wrap_pyfunction!(anthropic_messages_to_llmir, m)?)?;
-    m.add_function(wrap_pyfunction!(llmir_to_anthropic_messages, m)?)?;
+    m.add_function(wrap_pyfunction!(chat_completions_messages_to_lingua, m)?)?;
+    m.add_function(wrap_pyfunction!(lingua_to_chat_completions_messages, m)?)?;
+    m.add_function(wrap_pyfunction!(responses_messages_to_lingua, m)?)?;
+    m.add_function(wrap_pyfunction!(lingua_to_responses_messages, m)?)?;
+    m.add_function(wrap_pyfunction!(anthropic_messages_to_lingua, m)?)?;
+    m.add_function(wrap_pyfunction!(lingua_to_anthropic_messages, m)?)?;
 
     // Validation functions
     #[cfg(feature = "openai")]

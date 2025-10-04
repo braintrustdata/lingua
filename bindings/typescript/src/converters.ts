@@ -20,7 +20,7 @@ export class ConversionError extends Error {
   constructor(
     message: string,
     public readonly provider?: string,
-    public readonly direction?: 'to_llmir' | 'from_llmir',
+    public readonly direction?: 'to_lingua' | 'from_lingua',
     public readonly cause?: unknown
   ) {
     super(message);
@@ -127,7 +127,7 @@ function createFromLinguaConverter<T extends Message | Message[], U>(
  * @throws {ConversionError} If conversion fails
  */
 export const chatCompletionsMessagesToLingua = createToLinguaConverter<unknown[], Message[]>(
-  wasm.chat_completions_messages_to_llmir,
+  wasm.chat_completions_messages_to_lingua,
   'Chat Completions'
 );
 
@@ -136,7 +136,7 @@ export const chatCompletionsMessagesToLingua = createToLinguaConverter<unknown[]
  * @throws {ConversionError} If conversion fails
  */
 export const linguaToChatCompletionsMessages = createFromLinguaConverter<Message[], unknown[]>(
-  wasm.llmir_to_chat_completions_messages,
+  wasm.lingua_to_chat_completions_messages,
   'Chat Completions'
 );
 
@@ -149,7 +149,7 @@ export const linguaToChatCompletionsMessages = createFromLinguaConverter<Message
  * @throws {ConversionError} If conversion fails
  */
 export const responsesMessagesToLingua = createToLinguaConverter<unknown[], Message[]>(
-  wasm.responses_messages_to_llmir,
+  wasm.responses_messages_to_lingua,
   'Responses'
 );
 
@@ -158,7 +158,7 @@ export const responsesMessagesToLingua = createToLinguaConverter<unknown[], Mess
  * @throws {ConversionError} If conversion fails
  */
 export const linguaToResponsesMessages = createFromLinguaConverter<Message[], unknown[]>(
-  wasm.llmir_to_responses_messages,
+  wasm.lingua_to_responses_messages,
   'Responses'
 );
 
@@ -171,7 +171,7 @@ export const linguaToResponsesMessages = createFromLinguaConverter<Message[], un
  * @throws {ConversionError} If conversion fails
  */
 export const anthropicMessagesToLingua = createToLinguaConverter<unknown[], Message[]>(
-  wasm.anthropic_messages_to_llmir,
+  wasm.anthropic_messages_to_lingua,
   'Anthropic'
 );
 
@@ -180,7 +180,7 @@ export const anthropicMessagesToLingua = createToLinguaConverter<unknown[], Mess
  * @throws {ConversionError} If conversion fails
  */
 export const linguaToAnthropicMessages = createFromLinguaConverter<Message[], unknown[]>(
-  wasm.llmir_to_anthropic_messages,
+  wasm.lingua_to_anthropic_messages,
   'Anthropic'
 );
 
