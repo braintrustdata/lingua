@@ -40,7 +40,7 @@ where
         .extract()
 }
 
-/// Generic conversion from provider to LLMIR
+/// Generic conversion from provider to Lingua
 fn convert_to_llmir<T, U>(py: Python, value: &PyAny) -> PyResult<PyObject>
 where
     T: for<'de> Deserialize<'de>,
@@ -54,7 +54,7 @@ where
     rust_to_py(py, &llmir_msg)
 }
 
-/// Generic conversion from LLMIR to provider
+/// Generic conversion from Lingua to provider
 fn convert_from_llmir<T, U>(py: Python, value: &PyAny) -> PyResult<PyObject>
 where
     T: for<'de> Deserialize<'de>,
@@ -72,37 +72,37 @@ where
 // Conversion functions
 // ============================================================================
 
-/// Convert array of Chat Completions messages to LLMIR Messages
+/// Convert array of Chat Completions messages to Lingua Messages
 #[pyfunction]
 fn chat_completions_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_to_llmir::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(py, value)
 }
 
-/// Convert array of LLMIR Messages to Chat Completions messages
+/// Convert array of Lingua Messages to Chat Completions messages
 #[pyfunction]
 fn llmir_to_chat_completions_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_from_llmir::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(py, value)
 }
 
-/// Convert array of Responses API messages to LLMIR Messages
+/// Convert array of Responses API messages to Lingua Messages
 #[pyfunction]
 fn responses_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_to_llmir::<Vec<openai::InputItem>, Vec<Message>>(py, value)
 }
 
-/// Convert array of LLMIR Messages to Responses API messages
+/// Convert array of Lingua Messages to Responses API messages
 #[pyfunction]
 fn llmir_to_responses_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_from_llmir::<Vec<Message>, Vec<openai::InputItem>>(py, value)
 }
 
-/// Convert array of Anthropic messages to LLMIR Messages
+/// Convert array of Anthropic messages to Lingua Messages
 #[pyfunction]
 fn anthropic_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_to_llmir::<Vec<anthropic::InputMessage>, Vec<Message>>(py, value)
 }
 
-/// Convert array of LLMIR Messages to Anthropic messages
+/// Convert array of Lingua Messages to Anthropic messages
 #[pyfunction]
 fn llmir_to_anthropic_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_from_llmir::<Vec<Message>, Vec<anthropic::InputMessage>>(py, value)
@@ -156,9 +156,9 @@ fn validate_anthropic_response(py: Python, json: &str) -> PyResult<PyObject> {
 // Python module definition
 // ============================================================================
 
-/// Python module for LLMIR
+/// Python module for Lingua
 #[pymodule]
-fn _llmir(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _lingua(_py: Python, m: &PyModule) -> PyResult<()> {
     // Conversion functions
     m.add_function(wrap_pyfunction!(chat_completions_messages_to_llmir, m)?)?;
     m.add_function(wrap_pyfunction!(llmir_to_chat_completions_messages, m)?)?;

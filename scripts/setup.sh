@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Development environment setup script for LLMIR
+# Development environment setup script for Lingua
 # Run this after cloning the repository
 
 set -e
 
-echo "🚀 Setting up LLMIR for development..."
+echo "🚀 Setting up Lingua for development..."
 
 # Get the absolute path to the scripts directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,7 +15,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Check if we're in the right directory
 if [ "$(pwd)" != "$REPO_ROOT" ]; then
-    echo "❌ Please run this script from the LLMIR project root: $REPO_ROOT"
+    echo "❌ Please run this script from the Lingua project root: $REPO_ROOT"
     exit 1
 fi
 

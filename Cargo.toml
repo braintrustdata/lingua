@@ -1,10 +1,10 @@
 [package]
-name = "llmir"
+name = "lingua"
 version = "0.1.0"
 edition = "2021"
-description = "LLMIR - Universal message format for LLM APIs"
+description = "Lingua - Universal message format for LLM APIs"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/yourusername/llmir"
+repository = "https://github.com/braintrustdata/lingua"
 keywords = ["llm", "ai", "openai", "anthropic", "api"]
 categories = ["api-bindings", "development-tools"]
 
@@ -54,6 +54,6 @@ path = "scripts/generate-types.rs"
 
 
 [lib]
-name = "llmir"
+name = "lingua"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]

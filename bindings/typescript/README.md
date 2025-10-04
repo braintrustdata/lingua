@@ -1,23 +1,23 @@
-# @llmir/typescript
+# @braintrust/lingua
 
-TypeScript bindings for LLMIR (LLM Intermediate Representation) - a universal message format for LLMs.
+TypeScript bindings for Lingua - a universal message format for LLMs.
 
 ## Installation
 
 ```bash
-pnpm add @llmir/typescript
+pnpm add @braintrust/lingua
 # or
-npm install @llmir/typescript
+npm install @braintrust/lingua
 # or
-yarn add @llmir/typescript
+yarn add @braintrust/lingua
 ```
 
 ## Usage
 
 ```typescript
-import { Message } from '@llmir/typescript';
+import { Message } from '@braintrust/lingua';
 
-// Create messages in LLMIR format
+// Create messages in Lingua format
 const userMessage: Message = {
   role: 'user',
   content: 'Hello, how are you?'
@@ -32,7 +32,7 @@ const assistantMessage: Message = {
 
 ## Development
 
-This package is part of the LLMIR monorepo. The TypeScript types are automatically generated from the Rust source code using ts-rs.
+This package is part of the Lingua monorepo. The TypeScript types are automatically generated from the Rust source code using ts-rs.
 
 ### Generating Types
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Git hooks installation script for LLMIR project
+# Git hooks installation script for Lingua project
 # This script installs pre-commit hooks to ensure code quality
 
 set -e
@@ -9,12 +9,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 HOOKS_DIR="$PROJECT_ROOT/.git/hooks"
 
-echo "🔗 Installing git hooks for Elmir project..."
+echo "🔗 Installing git hooks for Lingua project..."
 
 # Check if we're in a git repository
 if [ ! -d "$PROJECT_ROOT/.git" ]; then
     echo "❌ Error: Not in a git repository"
-    echo "   Make sure you're running this from the Elmir project root"
+    echo "   Make sure you're running this from the Lingua project root"
     exit 1
 fi
 

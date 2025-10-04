@@ -1,6 +1,6 @@
-# LLMIR Python Bindings
+# Lingua Python Bindings
 
-Python bindings for LLMIR (LLM Intermediate Representation) using PyO3.
+Python bindings for Lingua - a universal message format for LLMs - using PyO3.
 
 ## Installation
 
@@ -21,8 +21,8 @@ uv run python
 ```
 
 ```python
->>> import llmir
->>> llmir.openai_message_to_llmir({'role': 'user', 'content': 'Hello'})
+>>> import lingua
+>>> lingua.chat_completions_messages_to_llmir([{'role': 'user', 'content': 'Hello'}])
 ```
 
 ### Building wheels
@@ -41,38 +41,38 @@ uv run maturin build --features python --release
 ### Message conversions
 
 ```python
-from llmir import (
-    # OpenAI conversions
-    openai_message_to_llmir,
-    llmir_to_openai_message,
-    openai_input_items_to_llmir,
-    llmir_to_openai_input_items,
+from lingua import (
+    # Chat Completions API conversions
+    chat_completions_messages_to_llmir,
+    llmir_to_chat_completions_messages,
+
+    # Responses API conversions
+    responses_messages_to_llmir,
+    llmir_to_responses_messages,
 
     # Anthropic conversions
-    anthropic_message_to_llmir,
-    llmir_to_anthropic_message,
+    anthropic_messages_to_llmir,
     llmir_to_anthropic_messages,
 )
 
-# Convert OpenAI message to universal format
-llmir_msg = openai_message_to_llmir({
-    'role': 'user',
-    'content': 'Hello'
-})
+# Convert OpenAI Chat Completions messages to universal format
+lingua_msgs = chat_completions_messages_to_llmir([
+    {'role': 'user', 'content': 'Hello'}
+])
 
 # Convert universal format to Anthropic
-anthropic_msg = llmir_to_anthropic_message(llmir_msg)
+anthropic_msgs = llmir_to_anthropic_messages(lingua_msgs)
 
-# Convert lists
-openai_items = [...]
-llmir_msgs = openai_input_items_to_llmir(openai_items)
-anthropic_msgs = llmir_to_anthropic_messages(llmir_msgs)
+# Convert Anthropic messages to universal format
+lingua_msgs = anthropic_messages_to_llmir([
+    {'role': 'user', 'content': [{'type': 'text', 'text': 'Hello'}]}
+])
 ```
 
 ### Validation
 
 ```python
-from llmir import (
+from lingua import (
     validate_openai_request,
     validate_openai_response,
     validate_anthropic_request,
@@ -98,10 +98,10 @@ All conversion functions raise `ConversionError` on failure.
 All validation functions raise `ValueError` on invalid input.
 
 ```python
-from llmir import ConversionError
+from lingua import ConversionError
 
 try:
-    result = llmir_to_openai_message(invalid_message)
+    result = llmir_to_chat_completions_messages(invalid_messages)
 except ConversionError as e:
     print(f"Conversion failed: {e}")
 ```

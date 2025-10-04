@@ -1,4 +1,4 @@
-"""Type stubs for LLMIR Python bindings"""
+"""Type stubs for Lingua Python bindings"""
 
 from typing import Any, Dict
 

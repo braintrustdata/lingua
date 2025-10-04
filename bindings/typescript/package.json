@@ -1,7 +1,7 @@
 {
-  "name": "@llmir/typescript",
+  "name": "@braintrust/lingua",
   "version": "0.1.0",
-  "description": "TypeScript bindings for LLMIR - LLM Intermediate Representation",
+  "description": "TypeScript bindings for Lingua - Universal message format for LLM APIs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

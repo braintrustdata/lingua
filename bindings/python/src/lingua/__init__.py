@@ -1,11 +1,11 @@
 """
-LLMIR - Universal message format for LLM APIs
+Lingua - Universal message format for LLM APIs
 
 This package provides conversion and validation functions for translating between
-different LLM provider formats (OpenAI, Anthropic, etc.) and the universal LLMIR format.
+different LLM provider formats (OpenAI, Anthropic, etc.) and the universal Lingua format.
 
 API matches the TypeScript interface but with Pythonic snake_case naming:
-- openai_message_to_llmir (TypeScript: openAIMessageToLLMIR)
+- openai_message_to_lingua (TypeScript: openAIMessageToLingua)
 - validate_openai_request (TypeScript: validateOpenAIRequest)
 
 Note: Python uses exceptions while TypeScript uses Zod-style result objects.
@@ -14,7 +14,7 @@ Note: Python uses exceptions while TypeScript uses Zod-style result objects.
 from typing import Any, Dict
 
 # Import the native conversion functions
-from llmir._llmir import (
+from lingua._lingua import (
     chat_completions_messages_to_llmir as _chat_completions_messages_to_llmir,
     llmir_to_chat_completions_messages as _llmir_to_chat_completions_messages,
     responses_messages_to_llmir as _responses_messages_to_llmir,
@@ -43,13 +43,13 @@ class ConversionError(Exception):
 
 def chat_completions_messages_to_llmir(messages: list) -> list:
     """
-    Convert array of Chat Completions messages to LLMIR Messages.
+    Convert array of Chat Completions messages to Lingua Messages.
 
     Args:
         messages: List of ChatCompletionRequestMessage objects
 
     Returns:
-        List of LLMIR Message objects
+        List of Lingua Message objects
 
     Raises:
         ConversionError: If conversion fails
@@ -57,15 +57,15 @@ def chat_completions_messages_to_llmir(messages: list) -> list:
     try:
         return _chat_completions_messages_to_llmir(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert chat completions messages to LLMIR: {e}") from e
+        raise ConversionError(f"Failed to convert chat completions messages to Lingua: {e}") from e
 
 
 def llmir_to_chat_completions_messages(messages: list) -> list:
     """
-    Convert array of LLMIR Messages to Chat Completions messages.
+    Convert array of Lingua Messages to Chat Completions messages.
 
     Args:
-        messages: List of LLMIR Message objects
+        messages: List of Lingua Message objects
 
     Returns:
         List of ChatCompletionRequestMessage objects
@@ -76,7 +76,7 @@ def llmir_to_chat_completions_messages(messages: list) -> list:
     try:
         return _llmir_to_chat_completions_messages(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert LLMIR to chat completions messages: {e}") from e
+        raise ConversionError(f"Failed to convert Lingua to chat completions messages: {e}") from e
 
 
 # ============================================================================
@@ -85,13 +85,13 @@ def llmir_to_chat_completions_messages(messages: list) -> list:
 
 def responses_messages_to_llmir(messages: list) -> list:
     """
-    Convert array of Responses API messages to LLMIR Messages.
+    Convert array of Responses API messages to Lingua Messages.
 
     Args:
         messages: List of InputItem objects
 
     Returns:
-        List of LLMIR Message objects
+        List of Lingua Message objects
 
     Raises:
         ConversionError: If conversion fails
@@ -99,15 +99,15 @@ def responses_messages_to_llmir(messages: list) -> list:
     try:
         return _responses_messages_to_llmir(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert responses messages to LLMIR: {e}") from e
+        raise ConversionError(f"Failed to convert responses messages to Lingua: {e}") from e
 
 
 def llmir_to_responses_messages(messages: list) -> list:
     """
-    Convert array of LLMIR Messages to Responses API messages.
+    Convert array of Lingua Messages to Responses API messages.
 
     Args:
-        messages: List of LLMIR Message objects
+        messages: List of Lingua Message objects
 
     Returns:
         List of InputItem objects
@@ -118,7 +118,7 @@ def llmir_to_responses_messages(messages: list) -> list:
     try:
         return _llmir_to_responses_messages(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert LLMIR to responses messages: {e}") from e
+        raise ConversionError(f"Failed to convert Lingua to responses messages: {e}") from e
 
 
 # ============================================================================
@@ -127,13 +127,13 @@ def llmir_to_responses_messages(messages: list) -> list:
 
 def anthropic_messages_to_llmir(messages: list) -> list:
     """
-    Convert array of Anthropic messages to LLMIR Messages.
+    Convert array of Anthropic messages to Lingua Messages.
 
     Args:
         messages: List of Anthropic message objects
 
     Returns:
-        List of LLMIR Message objects
+        List of Lingua Message objects
 
     Raises:
         ConversionError: If conversion fails
@@ -141,15 +141,15 @@ def anthropic_messages_to_llmir(messages: list) -> list:
     try:
         return _anthropic_messages_to_llmir(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert Anthropic messages to LLMIR: {e}") from e
+        raise ConversionError(f"Failed to convert Anthropic messages to Lingua: {e}") from e
 
 
 def llmir_to_anthropic_messages(messages: list) -> list:
     """
-    Convert array of LLMIR Messages to Anthropic messages.
+    Convert array of Lingua Messages to Anthropic messages.
 
     Args:
-        messages: List of LLMIR Message objects
+        messages: List of Lingua Message objects
 
     Returns:
         List of Anthropic message objects
@@ -160,7 +160,7 @@ def llmir_to_anthropic_messages(messages: list) -> list:
     try:
         return _llmir_to_anthropic_messages(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert LLMIR to Anthropic messages: {e}") from e
+        raise ConversionError(f"Failed to convert Lingua to Anthropic messages: {e}") from e
 
 
 # ============================================================================
