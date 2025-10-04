@@ -18,7 +18,6 @@
 // }
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AnthropicSchemas {
@@ -92,27 +91,7 @@ pub struct CreateMessageParams {
     /// {"role": "user", "content": [{"type": "text", "text": "Hello, Claude"}]}
     /// ```
     ///
-    /// Starting with Claude 3 models, you can also send image content blocks:
-    ///
-    /// ```json
-    /// {"role": "user", "content": [
-    /// {
-    /// "type": "image",
-    /// "source": {
-    /// "type": "base64",
-    /// "media_type": "image/jpeg",
-    /// "data": "/9j/4AAQSkZJRg...",
-    /// }
-    /// },
-    /// {"type": "text", "text": "What is in this image?"}
-    /// ]}
-    /// ```
-    ///
-    /// We currently support the `base64` source type for images, and the `image/jpeg`,
-    /// `image/png`, `image/gif`, and `image/webp` media types.
-    ///
-    /// See [examples](https://docs.anthropic.com/en/api/messages-examples#vision) for more input
-    /// examples.
+    /// See [input examples](https://docs.anthropic.com/en/api/messages-examples).
     ///
     /// Note that if you want to include a [system
     /// prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use the top-level
@@ -301,7 +280,7 @@ pub struct InputContentBlock {
     #[serde(rename = "type")]
     pub input_content_block_type: InputContentBlockType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<InputContentBlockSource>,
+    pub source: Option<Source>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -317,7 +296,7 @@ pub struct InputContentBlock {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub input: Option<HashMap<String, Option<serde_json::Value>>>,
+    pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -434,6 +413,9 @@ pub enum Content {
 /// Image content specified directly as base64 data or as a reference via a URL.
 ///
 /// A search result block containing source, title, and content from search operations.
+///
+/// Document content, either specified directly as base64 data, as text, or as a reference
+/// via a URL.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     /// Create a cache control breakpoint at this content block.
@@ -445,11 +427,13 @@ pub struct Block {
     #[serde(rename = "type")]
     pub block_type: WebSearchToolResultBlockItemType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<WebSearchToolResultBlockItemSource>,
+    pub source: Option<Source>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Vec<RequestTextBlock>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -461,6 +445,7 @@ pub struct Block {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WebSearchToolResultBlockItemType {
+    Document,
     Image,
     #[serde(rename = "search_result")]
     SearchResult,
@@ -490,13 +475,57 @@ pub enum SystemType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum WebSearchToolResultBlockItemSource {
+pub enum Source {
     SourceSource(SourceSource),
     String(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SourceSource {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
+    pub media_type: Option<FluffyMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: FluffyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<SourceContent>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum SourceContent {
+    ContentBlockSourceContentItemArray(Vec<ContentBlockSourceContentItem>),
+    String(String),
+}
+
+/// Regular text content.
+///
+/// Image content specified directly as base64 data or as a reference via a URL.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ContentBlockSourceContentItem {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub citations: Option<Vec<RequestLocationCitation>>,
+    pub text: Option<String>,
+    #[serde(rename = "type")]
+    pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source: Option<SourceSourceClass>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ContentBlockSourceContentItemType {
+    Image,
+    Text,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SourceSourceClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     pub media_type: Option<PurpleMediaType>,
@@ -522,6 +551,31 @@ pub enum PurpleMediaType {
 #[serde(rename_all = "snake_case")]
 pub enum PurpleType {
     Base64,
+    Url,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum FluffyMediaType {
+    #[serde(rename = "application/pdf")]
+    ApplicationPdf,
+    #[serde(rename = "image/gif")]
+    ImageGif,
+    #[serde(rename = "image/jpeg")]
+    ImageJpeg,
+    #[serde(rename = "image/png")]
+    ImagePng,
+    #[serde(rename = "image/webp")]
+    ImageWebp,
+    #[serde(rename = "text/plain")]
+    TextPlain,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FluffyType {
+    Base64,
+    Content,
+    Text,
     Url,
 }
 
@@ -572,82 +626,6 @@ pub enum InputContentBlockType {
     ToolUse,
     #[serde(rename = "web_search_tool_result")]
     WebSearchToolResult,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum InputContentBlockSource {
-    PurpleSource(PurpleSource),
-    String(String),
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct PurpleSource {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<String>,
-    pub media_type: Option<FluffyMediaType>,
-    #[serde(rename = "type")]
-    pub source_type: FluffyType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<SourceContent>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum SourceContent {
-    ContentBlockSourceContentItemArray(Vec<ContentBlockSourceContentItem>),
-    String(String),
-}
-
-/// Regular text content.
-///
-/// Image content specified directly as base64 data or as a reference via a URL.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ContentBlockSourceContentItem {
-    /// Create a cache control breakpoint at this content block.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<CacheControlEphemeral>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub citations: Option<Vec<RequestLocationCitation>>,
-    pub text: Option<String>,
-    #[serde(rename = "type")]
-    pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<SourceSource>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ContentBlockSourceContentItemType {
-    Image,
-    Text,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum FluffyMediaType {
-    #[serde(rename = "application/pdf")]
-    ApplicationPdf,
-    #[serde(rename = "image/gif")]
-    ImageGif,
-    #[serde(rename = "image/jpeg")]
-    ImageJpeg,
-    #[serde(rename = "image/png")]
-    ImagePng,
-    #[serde(rename = "image/webp")]
-    ImageWebp,
-    #[serde(rename = "text/plain")]
-    TextPlain,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum FluffyType {
-    Base64,
-    Content,
-    Text,
-    Url,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -815,7 +793,7 @@ pub struct Tool {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InputSchema {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub properties: Option<HashMap<String, Option<serde_json::Value>>>,
+    pub properties: Option<serde_json::Map<String, serde_json::Value>>,
     pub required: Option<Vec<String>>,
     #[serde(rename = "type")]
     pub input_schema_type: InputSchemaType,
@@ -973,7 +951,7 @@ pub struct ContentBlock {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub input: Option<HashMap<String, Option<serde_json::Value>>>,
+    pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1088,6 +1066,8 @@ pub enum StopReason {
     EndTurn,
     #[serde(rename = "max_tokens")]
     MaxTokens,
+    #[serde(rename = "model_context_window_exceeded")]
+    ModelContextWindowExceeded,
     #[serde(rename = "pause_turn")]
     PauseTurn,
     Refusal,

@@ -98,9 +98,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     if let Some(source) = block.source {
                                         // Convert Anthropic image source to universal format
                                         match source {
-                                            generated::InputContentBlockSource::PurpleSource(
-                                                purple_source,
-                                            ) => {
+                                            generated::Source::SourceSource(purple_source) => {
                                                 if let Some(data) = purple_source.data {
                                                     let media_type = purple_source.media_type.map(|mt| match mt {
                                                         generated::FluffyMediaType::ImageJpeg => "image/jpeg".to_string(),
@@ -308,17 +306,15 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             text: None,
                                             input_content_block_type:
                                                 generated::InputContentBlockType::Image,
-                                            source: Some(
-                                                generated::InputContentBlockSource::PurpleSource(
-                                                    generated::PurpleSource {
-                                                        data: Some(image_data),
-                                                        media_type: anthropic_media_type,
-                                                        source_type: generated::FluffyType::Base64,
-                                                        url: None,
-                                                        content: None,
-                                                    },
-                                                ),
-                                            ),
+                                            source: Some(generated::Source::SourceSource(
+                                                generated::SourceSource {
+                                                    data: Some(image_data),
+                                                    media_type: anthropic_media_type,
+                                                    source_type: generated::FluffyType::Base64,
+                                                    url: None,
+                                                    content: None,
+                                                },
+                                            )),
                                             context: None,
                                             title: None,
                                             content: None,
@@ -420,19 +416,11 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 arguments,
                                 ..
                             } => {
-                                // Convert ToolCallArguments back to HashMap - this is a workaround for type issues
-                                let arguments_json = match &arguments {
-                                    ToolCallArguments::Valid(map) => {
-                                        serde_json::Value::Object(map.clone())
-                                    }
-                                    ToolCallArguments::Invalid(s) => {
-                                        serde_json::Value::String(s.clone())
-                                    }
+                                // Convert ToolCallArguments to serde_json::Map
+                                let input_map = match &arguments {
+                                    ToolCallArguments::Valid(map) => Some(map.clone()),
+                                    ToolCallArguments::Invalid(_) => None,
                                 };
-                                let input_map = serde_json::from_value::<
-                                    std::collections::HashMap<String, Option<serde_json::Value>>,
-                                >(arguments_json)
-                                .ok();
 
                                 Some(generated::InputContentBlock {
                                     cache_control: None,
@@ -643,23 +631,11 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     arguments,
                                     ..
                                 } => {
-                                    // Convert ToolCallArguments to HashMap for response generation
-                                    let arguments_json = match &arguments {
-                                        ToolCallArguments::Valid(map) => {
-                                            serde_json::Value::Object(map.clone())
-                                        }
-                                        ToolCallArguments::Invalid(s) => {
-                                            serde_json::Value::String(s.clone())
-                                        }
+                                    // Convert ToolCallArguments to serde_json::Map for response generation
+                                    let input_map = match &arguments {
+                                        ToolCallArguments::Valid(map) => Some(map.clone()),
+                                        ToolCallArguments::Invalid(_) => None,
                                     };
-                                    let input_map =
-                                        serde_json::from_value::<
-                                            std::collections::HashMap<
-                                                String,
-                                                Option<serde_json::Value>,
-                                            >,
-                                        >(arguments_json)
-                                        .ok();
 
                                     content_blocks.push(generated::ContentBlock {
                                         citations: None,

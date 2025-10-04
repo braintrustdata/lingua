@@ -38,6 +38,35 @@ export class ConversionError extends Error {
 // ============================================================================
 
 /**
+ * Convert Map objects to plain objects recursively.
+ * This is needed because serde-wasm-bindgen serializes serde_json::Map to JS Map
+ * instead of plain objects.
+ */
+function convertMapsToObjects(value: unknown): unknown {
+  if (value instanceof Map) {
+    const obj: Record<string, unknown> = {};
+    for (const [key, val] of value.entries()) {
+      obj[key] = convertMapsToObjects(val);
+    }
+    return obj;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(item => convertMapsToObjects(item));
+  }
+
+  if (value !== null && typeof value === 'object') {
+    const obj: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value)) {
+      obj[key] = convertMapsToObjects(val);
+    }
+    return obj;
+  }
+
+  return value;
+}
+
+/**
  * Creates a converter function that transforms provider format to LLMIR
  * @param wasmFn - The WASM function to call
  * @param provider - Provider name for error reporting
@@ -50,7 +79,8 @@ function createToLLMIRConverter<T, U extends Message | Message[]>(
   return (input: T): U => {
     try {
       const result = wasmFn(input);
-      return result as U;
+      // Convert any Map objects to plain objects
+      return convertMapsToObjects(result) as U;
     } catch (error: unknown) {
       throw new ConversionError(
         `Failed to convert ${provider} message to LLMIR`,
@@ -75,7 +105,8 @@ function createFromLLMIRConverter<T extends Message | Message[], U>(
   return (input: T): U => {
     try {
       const result = wasmFn(input);
-      return result as U;
+      // Convert any Map objects to plain objects
+      return convertMapsToObjects(result) as U;
     } catch (error: unknown) {
       throw new ConversionError(
         `Failed to convert LLMIR to ${provider} format`,

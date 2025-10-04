@@ -288,12 +288,18 @@ function checkTypeConsistency(original: unknown, roundtripped: unknown, path: st
     return String(val);
   };
 
-  // Both null or undefined is OK
-  if (original === null && roundtripped === null) return null;
-  if (original === undefined && roundtripped === undefined) return null;
+  // Special case: empty array → undefined is OK (serde skips empty arrays)
+  if (Array.isArray(original) && (original as unknown[]).length === 0 &&
+      (roundtripped === null || roundtripped === undefined)) {
+    return null;
+  }
 
-  // One is null/undefined but not the other
-  if ((original === null || original === undefined) !== (roundtripped === null || roundtripped === undefined)) {
+  // Treat null and undefined as equivalent (serde skips None values)
+  const origIsNullish = original === null || original === undefined;
+  const roundIsNullish = roundtripped === null || roundtripped === undefined;
+
+  if (origIsNullish && roundIsNullish) return null;
+  if (origIsNullish !== roundIsNullish) {
     return `Type mismatch at ${path}:\n  Original: ${formatValue(original)}\n  Roundtripped: ${formatValue(roundtripped)}`;
   }
 
@@ -303,11 +309,14 @@ function checkTypeConsistency(original: unknown, roundtripped: unknown, path: st
   }
 
   // Check array vs non-array
-  if (Array.isArray(original) !== Array.isArray(roundtripped)) {
-    return `Type mismatch at ${path}:\n  Original (${Array.isArray(original) ? 'array' : 'not array'}): ${formatValue(original)}\n  Roundtripped (${Array.isArray(roundtripped) ? 'array' : 'not array'}): ${formatValue(roundtripped)}`;
+  const origIsArray = Array.isArray(original);
+  const roundIsArray = Array.isArray(roundtripped);
+
+  if (origIsArray !== roundIsArray) {
+    return `Type mismatch at ${path}:\n  Original (${origIsArray ? 'array' : 'not array'}): ${formatValue(original)}\n  Roundtripped (${roundIsArray ? 'array' : 'not array'}): ${formatValue(roundtripped)}`;
   }
 
-  // Check Map vs Object
+  // Check Map vs Object - should not happen if types are correct
   const origIsMap = original instanceof Map;
   const roundIsMap = roundtripped instanceof Map;
   if (origIsMap !== roundIsMap) {
@@ -354,18 +363,6 @@ function normalizeForComparison(obj: unknown): unknown {
       .map(item => normalizeForComparison(item));
     // Return undefined for empty arrays to remove them
     return normalized.length === 0 ? undefined : normalized;
-  }
-
-  // Handle Map objects
-  if (obj instanceof Map) {
-    const normalized: Record<string, unknown> = {};
-    for (const [key, value] of obj.entries()) {
-      const normalizedValue = normalizeForComparison(value);
-      if (normalizedValue !== undefined) {
-        normalized[key] = normalizedValue;
-      }
-    }
-    return Object.keys(normalized).length === 0 ? undefined : normalized;
   }
 
   if (typeof obj === 'object' && obj !== null) {
