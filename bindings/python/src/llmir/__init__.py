@@ -15,12 +15,9 @@ from typing import Any, Dict
 
 # Import the native conversion functions
 from llmir._llmir import (
-    openai_message_to_llmir as _openai_message_to_llmir,
-    llmir_to_openai_message as _llmir_to_openai_message,
-    openai_input_items_to_llmir as _openai_input_items_to_llmir,
-    llmir_to_openai_input_items as _llmir_to_openai_input_items,
-    anthropic_message_to_llmir as _anthropic_message_to_llmir,
-    llmir_to_anthropic_message as _llmir_to_anthropic_message,
+    openai_messages_to_llmir as _openai_messages_to_llmir,
+    llmir_to_openai_messages as _llmir_to_openai_messages,
+    anthropic_messages_to_llmir as _anthropic_messages_to_llmir,
     llmir_to_anthropic_messages as _llmir_to_anthropic_messages,
     validate_openai_request as _validate_openai_request,
     validate_openai_response as _validate_openai_response,
@@ -42,50 +39,12 @@ class ConversionError(Exception):
 # OpenAI conversions
 # ============================================================================
 
-def openai_message_to_llmir(message: Dict[str, Any]) -> Dict[str, Any]:
+def openai_messages_to_llmir(messages: list) -> list:
     """
-    Convert OpenAI ChatCompletionRequestMessage to LLMIR Message.
+    Convert array of OpenAI messages to LLMIR Messages.
 
     Args:
-        message: OpenAI message object
-
-    Returns:
-        LLMIR Message object
-
-    Raises:
-        ConversionError: If conversion fails
-    """
-    try:
-        return _openai_message_to_llmir(message)
-    except Exception as e:
-        raise ConversionError(f"Failed to convert OpenAI message to LLMIR: {e}") from e
-
-
-def llmir_to_openai_message(message: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Convert LLMIR Message to OpenAI ChatCompletionRequestMessage.
-
-    Args:
-        message: LLMIR Message object
-
-    Returns:
-        OpenAI message object
-
-    Raises:
-        ConversionError: If conversion fails
-    """
-    try:
-        return _llmir_to_openai_message(message)
-    except Exception as e:
-        raise ConversionError(f"Failed to convert LLMIR to OpenAI message: {e}") from e
-
-
-def openai_input_items_to_llmir(items: list) -> list:
-    """
-    Convert array of OpenAI InputItems to LLMIR Messages.
-
-    Args:
-        items: List of OpenAI InputItem objects
+        messages: List of OpenAI message objects
 
     Returns:
         List of LLMIR Message objects
@@ -94,81 +53,62 @@ def openai_input_items_to_llmir(items: list) -> list:
         ConversionError: If conversion fails
     """
     try:
-        return _openai_input_items_to_llmir(items)
+        return _openai_messages_to_llmir(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert OpenAI input items to LLMIR: {e}") from e
+        raise ConversionError(f"Failed to convert OpenAI messages to LLMIR: {e}") from e
 
 
-def llmir_to_openai_input_items(messages: list) -> list:
+def llmir_to_openai_messages(messages: list) -> list:
     """
-    Convert array of LLMIR Messages to OpenAI InputItems.
+    Convert array of LLMIR Messages to OpenAI messages.
 
     Args:
         messages: List of LLMIR Message objects
 
     Returns:
-        List of OpenAI InputItem objects
+        List of OpenAI message objects
 
     Raises:
         ConversionError: If conversion fails
     """
     try:
-        return _llmir_to_openai_input_items(messages)
+        return _llmir_to_openai_messages(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert LLMIR to OpenAI input items: {e}") from e
+        raise ConversionError(f"Failed to convert LLMIR to OpenAI messages: {e}") from e
 
 
 # ============================================================================
 # Anthropic conversions
 # ============================================================================
 
-def anthropic_message_to_llmir(message: Dict[str, Any]) -> Dict[str, Any]:
+def anthropic_messages_to_llmir(messages: list) -> list:
     """
-    Convert Anthropic InputMessage to LLMIR Message.
+    Convert array of Anthropic messages to LLMIR Messages.
 
     Args:
-        message: Anthropic message object
+        messages: List of Anthropic message objects
 
     Returns:
-        LLMIR Message object
+        List of LLMIR Message objects
 
     Raises:
         ConversionError: If conversion fails
     """
     try:
-        return _anthropic_message_to_llmir(message)
+        return _anthropic_messages_to_llmir(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert Anthropic message to LLMIR: {e}") from e
-
-
-def llmir_to_anthropic_message(message: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Convert LLMIR Message to Anthropic InputMessage.
-
-    Args:
-        message: LLMIR Message object
-
-    Returns:
-        Anthropic message object
-
-    Raises:
-        ConversionError: If conversion fails
-    """
-    try:
-        return _llmir_to_anthropic_message(message)
-    except Exception as e:
-        raise ConversionError(f"Failed to convert LLMIR to Anthropic message: {e}") from e
+        raise ConversionError(f"Failed to convert Anthropic messages to LLMIR: {e}") from e
 
 
 def llmir_to_anthropic_messages(messages: list) -> list:
     """
-    Convert array of LLMIR Messages to Anthropic InputMessages.
+    Convert array of LLMIR Messages to Anthropic messages.
 
     Args:
         messages: List of LLMIR Message objects
 
     Returns:
-        List of Anthropic InputMessage objects
+        List of Anthropic message objects
 
     Raises:
         ConversionError: If conversion fails
@@ -260,14 +200,11 @@ __all__ = [
     "ConversionError",
 
     # OpenAI conversions
-    "openai_message_to_llmir",
-    "llmir_to_openai_message",
-    "openai_input_items_to_llmir",
-    "llmir_to_openai_input_items",
+    "openai_messages_to_llmir",
+    "llmir_to_openai_messages",
 
     # Anthropic conversions
-    "anthropic_message_to_llmir",
-    "llmir_to_anthropic_message",
+    "anthropic_messages_to_llmir",
     "llmir_to_anthropic_messages",
 
     # OpenAI validation

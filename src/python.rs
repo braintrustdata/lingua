@@ -72,43 +72,25 @@ where
 // Conversion functions
 // ============================================================================
 
-/// Convert OpenAI ChatCompletionRequestMessage to LLMIR Message
+/// Convert array of OpenAI messages to LLMIR Messages
 #[pyfunction]
-fn openai_message_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_to_llmir::<openai::ChatCompletionRequestMessage, Message>(py, value)
-}
-
-/// Convert LLMIR Message to OpenAI ChatCompletionRequestMessage
-#[pyfunction]
-fn llmir_to_openai_message(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_from_llmir::<Message, openai::ChatCompletionRequestMessage>(py, value)
-}
-
-/// Convert array of OpenAI InputItems to LLMIR Messages
-#[pyfunction]
-fn openai_input_items_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn openai_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_to_llmir::<Vec<openai::InputItem>, Vec<Message>>(py, value)
 }
 
-/// Convert array of LLMIR Messages to OpenAI InputItems
+/// Convert array of LLMIR Messages to OpenAI messages
 #[pyfunction]
-fn llmir_to_openai_input_items(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn llmir_to_openai_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_from_llmir::<Vec<Message>, Vec<openai::InputItem>>(py, value)
 }
 
-/// Convert Anthropic InputMessage to LLMIR Message
+/// Convert array of Anthropic messages to LLMIR Messages
 #[pyfunction]
-fn anthropic_message_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_to_llmir::<anthropic::InputMessage, Message>(py, value)
+fn anthropic_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_to_llmir::<Vec<anthropic::InputMessage>, Vec<Message>>(py, value)
 }
 
-/// Convert LLMIR Message to Anthropic InputMessage
-#[pyfunction]
-fn llmir_to_anthropic_message(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_from_llmir::<Message, anthropic::InputMessage>(py, value)
-}
-
-/// Convert array of LLMIR Messages to Anthropic InputMessages
+/// Convert array of LLMIR Messages to Anthropic messages
 #[pyfunction]
 fn llmir_to_anthropic_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_from_llmir::<Vec<Message>, Vec<anthropic::InputMessage>>(py, value)
@@ -166,12 +148,9 @@ fn validate_anthropic_response(py: Python, json: &str) -> PyResult<PyObject> {
 #[pymodule]
 fn _llmir(_py: Python, m: &PyModule) -> PyResult<()> {
     // Conversion functions
-    m.add_function(wrap_pyfunction!(openai_message_to_llmir, m)?)?;
-    m.add_function(wrap_pyfunction!(llmir_to_openai_message, m)?)?;
-    m.add_function(wrap_pyfunction!(openai_input_items_to_llmir, m)?)?;
-    m.add_function(wrap_pyfunction!(llmir_to_openai_input_items, m)?)?;
-    m.add_function(wrap_pyfunction!(anthropic_message_to_llmir, m)?)?;
-    m.add_function(wrap_pyfunction!(llmir_to_anthropic_message, m)?)?;
+    m.add_function(wrap_pyfunction!(openai_messages_to_llmir, m)?)?;
+    m.add_function(wrap_pyfunction!(llmir_to_openai_messages, m)?)?;
+    m.add_function(wrap_pyfunction!(anthropic_messages_to_llmir, m)?)?;
     m.add_function(wrap_pyfunction!(llmir_to_anthropic_messages, m)?)?;
 
     // Validation functions

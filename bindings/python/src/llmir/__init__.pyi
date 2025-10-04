@@ -14,17 +14,14 @@ class ConversionError(Exception):
 # OpenAI conversions
 # ============================================================================
 
-def openai_message_to_llmir(message: Dict[str, Any]) -> Dict[str, Any]: ...
-def llmir_to_openai_message(message: Dict[str, Any]) -> Dict[str, Any]: ...
-def openai_input_items_to_llmir(items: list) -> list: ...
-def llmir_to_openai_input_items(messages: list) -> list: ...
+def openai_messages_to_llmir(messages: list) -> list: ...
+def llmir_to_openai_messages(messages: list) -> list: ...
 
 # ============================================================================
 # Anthropic conversions
 # ============================================================================
 
-def anthropic_message_to_llmir(message: Dict[str, Any]) -> Dict[str, Any]: ...
-def llmir_to_anthropic_message(message: Dict[str, Any]) -> Dict[str, Any]: ...
+def anthropic_messages_to_llmir(messages: list) -> list: ...
 def llmir_to_anthropic_messages(messages: list) -> list: ...
 
 # ============================================================================
@@ -47,12 +44,9 @@ def validate_anthropic_response(json_str: str) -> Any: ...
 
 __all__ = [
     "ConversionError",
-    "openai_message_to_llmir",
-    "llmir_to_openai_message",
-    "openai_input_items_to_llmir",
-    "llmir_to_openai_input_items",
-    "anthropic_message_to_llmir",
-    "llmir_to_anthropic_message",
+    "openai_messages_to_llmir",
+    "llmir_to_openai_messages",
+    "anthropic_messages_to_llmir",
     "llmir_to_anthropic_messages",
     "validate_openai_request",
     "validate_openai_response",

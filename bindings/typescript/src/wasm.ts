@@ -7,14 +7,12 @@ export {
   ConversionError,
 
   // OpenAI conversions
-  openAIMessageToLLMIR,
-  llmirToOpenAIMessage,
-  openAIInputItemsToLLMIR,
-  llmirToOpenAIInputItems,
+  openAIMessagesToLLMIR,
+  llmirToOpenAIMessages,
 
   // Anthropic conversions
-  anthropicMessageToLLMIR,
-  llmirToAnthropicMessage,
+  anthropicMessagesToLLMIR,
+  llmirToAnthropicMessages,
 
   // OpenAI validation
   validateOpenAIRequest,

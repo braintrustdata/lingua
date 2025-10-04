@@ -92,38 +92,20 @@ function createFromLLMIRConverter<T extends Message | Message[], U>(
 // ============================================================================
 
 /**
- * Convert OpenAI ChatCompletionRequestMessage to LLMIR Message
+ * Convert array of OpenAI messages to LLMIR Messages
  * @throws {ConversionError} If conversion fails
  */
-export const openAIMessageToLLMIR = createToLLMIRConverter<unknown, Message>(
-  wasm.openai_message_to_llmir,
+export const openAIMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
+  wasm.openai_messages_to_llmir,
   'OpenAI'
 );
 
 /**
- * Convert LLMIR Message to OpenAI ChatCompletionRequestMessage
+ * Convert array of LLMIR Messages to OpenAI messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToOpenAIMessage = createFromLLMIRConverter<Message, unknown>(
-  wasm.llmir_to_openai_message,
-  'OpenAI'
-);
-
-/**
- * Convert array of OpenAI InputItems to LLMIR Messages
- * @throws {ConversionError} If conversion fails
- */
-export const openAIInputItemsToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
-  wasm.openai_input_items_to_llmir,
-  'OpenAI'
-);
-
-/**
- * Convert array of LLMIR Messages to OpenAI InputItems
- * @throws {ConversionError} If conversion fails
- */
-export const llmirToOpenAIInputItems = createFromLLMIRConverter<Message[], unknown[]>(
-  wasm.llmir_to_openai_input_items,
+export const llmirToOpenAIMessages = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_openai_messages,
   'OpenAI'
 );
 
@@ -132,20 +114,20 @@ export const llmirToOpenAIInputItems = createFromLLMIRConverter<Message[], unkno
 // ============================================================================
 
 /**
- * Convert Anthropic InputMessage to LLMIR Message
+ * Convert array of Anthropic messages to LLMIR Messages
  * @throws {ConversionError} If conversion fails
  */
-export const anthropicMessageToLLMIR = createToLLMIRConverter<unknown, Message>(
-  wasm.anthropic_message_to_llmir,
+export const anthropicMessagesToLLMIR = createToLLMIRConverter<unknown[], Message[]>(
+  wasm.anthropic_messages_to_llmir,
   'Anthropic'
 );
 
 /**
- * Convert LLMIR Message to Anthropic InputMessage
+ * Convert array of LLMIR Messages to Anthropic messages
  * @throws {ConversionError} If conversion fails
  */
-export const llmirToAnthropicMessage = createFromLLMIRConverter<Message, unknown>(
-  wasm.llmir_to_anthropic_message,
+export const llmirToAnthropicMessages = createFromLLMIRConverter<Message[], unknown[]>(
+  wasm.llmir_to_anthropic_messages,
   'Anthropic'
 );
 

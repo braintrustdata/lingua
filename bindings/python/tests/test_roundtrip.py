@@ -16,10 +16,10 @@ import pytest
 
 from llmir import (
     ConversionError,
-    openai_message_to_llmir,
-    anthropic_message_to_llmir,
-    llmir_to_openai_message,
-    llmir_to_anthropic_message,
+    openai_messages_to_llmir,
+    anthropic_messages_to_llmir,
+    llmir_to_openai_messages,
+    llmir_to_anthropic_messages,
 )
 
 
@@ -151,8 +151,8 @@ def perform_openai_roundtrip(openai_message: Dict) -> Dict[str, Any]:
     Raises:
         ConversionError: If any conversion step fails
     """
-    llmir = openai_message_to_llmir(openai_message)
-    roundtripped = llmir_to_openai_message(llmir)
+    llmir = openai_messages_to_llmir([openai_message])[0]
+    roundtripped = llmir_to_openai_messages([llmir])[0]
 
     return {"original": openai_message, "llmir": llmir, "roundtripped": roundtripped}
 
@@ -170,8 +170,8 @@ def perform_anthropic_roundtrip(anthropic_message: Dict) -> Dict[str, Any]:
     Raises:
         ConversionError: If any conversion step fails
     """
-    llmir = anthropic_message_to_llmir(anthropic_message)
-    roundtripped = llmir_to_anthropic_message(llmir)
+    llmir = anthropic_messages_to_llmir([anthropic_message])[0]
+    roundtripped = llmir_to_anthropic_messages([llmir])[0]
 
     return {
         "original": anthropic_message,
@@ -336,8 +336,8 @@ class TestTypeChecking:
         message: ChatCompletionMessageParam = {"role": "user", "content": "Hello"}
 
         # Convert to LLMIR and back
-        llmir = openai_message_to_llmir(message)
-        roundtripped = llmir_to_openai_message(llmir)
+        llmir = openai_messages_to_llmir([message])[0]
+        roundtripped = llmir_to_openai_messages([llmir])[0]
 
         assert roundtripped is not None
         assert roundtripped["role"] == "user"
@@ -357,8 +357,8 @@ class TestTypeChecking:
         }
 
         # Convert to LLMIR and back
-        llmir = anthropic_message_to_llmir(message)
-        roundtripped = llmir_to_anthropic_message(llmir)
+        llmir = anthropic_messages_to_llmir([message])[0]
+        roundtripped = llmir_to_anthropic_messages([llmir])[0]
 
         assert roundtripped is not None
         assert roundtripped["role"] == "user"

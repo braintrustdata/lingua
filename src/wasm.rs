@@ -50,43 +50,25 @@ where
 // provider
 // ============================================================================
 
-/// Convert OpenAI ChatCompletionRequestMessage to LLMIR Message
+/// Convert array of OpenAI messages to LLMIR Messages
 #[wasm_bindgen]
-pub fn openai_message_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_to_llmir::<openai::ChatCompletionRequestMessage, Message>(value)
-}
-
-/// Convert LLMIR Message to OpenAI ChatCompletionRequestMessage
-#[wasm_bindgen]
-pub fn llmir_to_openai_message(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_from_llmir::<Message, openai::ChatCompletionRequestMessage>(value)
-}
-
-/// Convert array of OpenAI InputItems to LLMIR Messages
-#[wasm_bindgen]
-pub fn openai_input_items_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
+pub fn openai_messages_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
     convert_to_llmir::<Vec<openai::InputItem>, Vec<Message>>(value)
 }
 
-/// Convert array of LLMIR Messages to OpenAI InputItems
+/// Convert array of LLMIR Messages to OpenAI messages
 #[wasm_bindgen]
-pub fn llmir_to_openai_input_items(value: JsValue) -> Result<JsValue, JsValue> {
+pub fn llmir_to_openai_messages(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_llmir::<Vec<Message>, Vec<openai::InputItem>>(value)
 }
 
-/// Convert Anthropic InputMessage to LLMIR Message
+/// Convert array of Anthropic messages to LLMIR Messages
 #[wasm_bindgen]
-pub fn anthropic_message_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_to_llmir::<anthropic::InputMessage, Message>(value)
+pub fn anthropic_messages_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_llmir::<Vec<anthropic::InputMessage>, Vec<Message>>(value)
 }
 
-/// Convert LLMIR Message to Anthropic InputMessage
-#[wasm_bindgen]
-pub fn llmir_to_anthropic_message(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_from_llmir::<Message, anthropic::InputMessage>(value)
-}
-
-/// Convert array of LLMIR Messages to Anthropic InputMessages
+/// Convert array of LLMIR Messages to Anthropic messages
 #[wasm_bindgen]
 pub fn llmir_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_llmir::<Vec<Message>, Vec<anthropic::InputMessage>>(value)
