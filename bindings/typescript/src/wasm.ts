@@ -15,7 +15,6 @@ export {
   // Anthropic conversions
   anthropicMessageToLLMIR,
   llmirToAnthropicMessage,
-  llmirToAnthropicMessages,
 
   // OpenAI validation
   validateOpenAIRequest,
@@ -24,7 +23,7 @@ export {
   // Anthropic validation
   validateAnthropicRequest,
   validateAnthropicResponse,
-} from './converters';
+} from "./converters";
 
 // Re-export types
-export type { ValidationResult } from './converters';
+export type { ValidationResult } from "./converters";

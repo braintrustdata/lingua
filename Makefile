@@ -1,11 +1,12 @@
 .PHONY: all typescript python test clean help
 
+all: typescript python ## Build all bindings
+
 help: ## Show this help message
 	@echo "LLMIR Build Targets:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-all: typescript python ## Build all bindings
 
 typescript: ## Build TypeScript bindings (WASM)
 	@echo "Building TypeScript bindings..."
@@ -48,4 +49,4 @@ fmt: ## Format all code
 	@echo "Formatting TypeScript code..."
 	cd bindings/typescript && npm run lint
 
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := all

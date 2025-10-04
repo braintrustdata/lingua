@@ -137,10 +137,12 @@ Provider Payload → Universal ModelMessage → Provider Payload
 **Key test scenarios:**
 
 1. **Request Roundtrips**:
+
    - `openai_request → universal → openai_request` (should be identical)
    - `anthropic_request → universal → anthropic_request` (should be identical)
 
 2. **Response Roundtrips**:
+
    - `openai_response → universal → openai_response` (should be identical)
    - `anthropic_response → universal → anthropic_response` (should be identical)
 
@@ -175,7 +177,6 @@ Provider types can be automatically updated using GitHub Actions:
 
 The automation downloads the latest specifications, regenerates types, applies formatting, and creates a pull request for review.
 
-
 ## Tests / interesting cases
 
 - [ ] Show token accounting across providers. Ideally we give users a way to access the provider's native usage + a unified format.
@@ -189,31 +190,35 @@ LLMIR supports optional provider dependencies through feature flags to minimize 
 ### Available Features
 
 - **`openai`** - OpenAI API types and translators
-- **`anthropic`** - Anthropic API types and translators  
+- **`anthropic`** - Anthropic API types and translators
 - **`google`** - Google Gemini API types and translators
 - **`bedrock`** - Amazon Bedrock API types and translators (pulls in AWS SDK)
 
 ### Usage
 
 **Default (all providers):**
+
 ```toml
 [dependencies]
 llmir = "0.1.0"
 ```
 
 **Minimal (only OpenAI):**
+
 ```toml
 [dependencies]
 llmir = { version = "0.1.0", default-features = false, features = ["openai"] }
 ```
 
 **Without AWS dependencies:**
+
 ```toml
 [dependencies]
 llmir = { version = "0.1.0", default-features = false, features = ["openai", "anthropic", "google"] }
 ```
 
 **Only Bedrock:**
+
 ```toml
 [dependencies]
 llmir = { version = "0.1.0", default-features = false, features = ["bedrock"] }
@@ -240,6 +245,12 @@ use llmir::translators::to_bedrock_format_with_model;
 ## Contributing
 
 This project aims to support the entire ecosystem of LLM providers. Contributions for new providers, capability detection improvements, and format enhancements are welcome.
+
+### Developer Setup
+
+Prerequisites: Rust toolchain, Node.js, pnpm.
+
+Run `./scripts/setup.sh` from the project root after cloning. If the script succeeds, you should be all set! Otherwise, follow the error messages.
 
 ## License
 
