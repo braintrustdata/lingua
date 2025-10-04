@@ -15,8 +15,10 @@ from typing import Any, Dict
 
 # Import the native conversion functions
 from llmir._llmir import (
-    openai_messages_to_llmir as _openai_messages_to_llmir,
-    llmir_to_openai_messages as _llmir_to_openai_messages,
+    openai_chat_messages_to_llmir as _openai_chat_messages_to_llmir,
+    llmir_to_openai_chat_messages as _llmir_to_openai_chat_messages,
+    openai_responses_messages_to_llmir as _openai_responses_messages_to_llmir,
+    llmir_to_openai_responses_messages as _llmir_to_openai_responses_messages,
     anthropic_messages_to_llmir as _anthropic_messages_to_llmir,
     llmir_to_anthropic_messages as _llmir_to_anthropic_messages,
     validate_openai_request as _validate_openai_request,
@@ -36,15 +38,15 @@ class ConversionError(Exception):
 
 
 # ============================================================================
-# OpenAI conversions
+# OpenAI Chat Completions API conversions
 # ============================================================================
 
-def openai_messages_to_llmir(messages: list) -> list:
+def openai_chat_messages_to_llmir(messages: list) -> list:
     """
-    Convert array of OpenAI messages to LLMIR Messages.
+    Convert array of OpenAI Chat Completions messages to LLMIR Messages.
 
     Args:
-        messages: List of OpenAI message objects
+        messages: List of OpenAI ChatCompletionRequestMessage objects
 
     Returns:
         List of LLMIR Message objects
@@ -53,28 +55,70 @@ def openai_messages_to_llmir(messages: list) -> list:
         ConversionError: If conversion fails
     """
     try:
-        return _openai_messages_to_llmir(messages)
+        return _openai_chat_messages_to_llmir(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert OpenAI messages to LLMIR: {e}") from e
+        raise ConversionError(f"Failed to convert OpenAI chat messages to LLMIR: {e}") from e
 
 
-def llmir_to_openai_messages(messages: list) -> list:
+def llmir_to_openai_chat_messages(messages: list) -> list:
     """
-    Convert array of LLMIR Messages to OpenAI messages.
+    Convert array of LLMIR Messages to OpenAI Chat Completions messages.
 
     Args:
         messages: List of LLMIR Message objects
 
     Returns:
-        List of OpenAI message objects
+        List of OpenAI ChatCompletionRequestMessage objects
 
     Raises:
         ConversionError: If conversion fails
     """
     try:
-        return _llmir_to_openai_messages(messages)
+        return _llmir_to_openai_chat_messages(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert LLMIR to OpenAI messages: {e}") from e
+        raise ConversionError(f"Failed to convert LLMIR to OpenAI chat messages: {e}") from e
+
+
+# ============================================================================
+# OpenAI Responses API conversions
+# ============================================================================
+
+def openai_responses_messages_to_llmir(messages: list) -> list:
+    """
+    Convert array of OpenAI Responses API messages to LLMIR Messages.
+
+    Args:
+        messages: List of OpenAI InputItem objects
+
+    Returns:
+        List of LLMIR Message objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _openai_responses_messages_to_llmir(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert OpenAI responses messages to LLMIR: {e}") from e
+
+
+def llmir_to_openai_responses_messages(messages: list) -> list:
+    """
+    Convert array of LLMIR Messages to OpenAI Responses API messages.
+
+    Args:
+        messages: List of LLMIR Message objects
+
+    Returns:
+        List of OpenAI InputItem objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _llmir_to_openai_responses_messages(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert LLMIR to OpenAI responses messages: {e}") from e
 
 
 # ============================================================================
@@ -199,9 +243,13 @@ __all__ = [
     # Error handling
     "ConversionError",
 
-    # OpenAI conversions
-    "openai_messages_to_llmir",
-    "llmir_to_openai_messages",
+    # OpenAI Chat Completions API conversions
+    "openai_chat_messages_to_llmir",
+    "llmir_to_openai_chat_messages",
+
+    # OpenAI Responses API conversions
+    "openai_responses_messages_to_llmir",
+    "llmir_to_openai_responses_messages",
 
     # Anthropic conversions
     "anthropic_messages_to_llmir",

@@ -6,9 +6,13 @@ export {
   // Error handling
   ConversionError,
 
-  // OpenAI conversions
-  openAIMessagesToLLMIR,
-  llmirToOpenAIMessages,
+  // OpenAI Chat Completions API conversions
+  openAIChatMessagesToLLMIR,
+  llmirToOpenAIChatMessages,
+
+  // OpenAI Responses API conversions
+  openAIResponsesMessagesToLLMIR,
+  llmirToOpenAIResponsesMessages,
 
   // Anthropic conversions
   anthropicMessagesToLLMIR,

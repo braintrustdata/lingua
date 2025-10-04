@@ -50,15 +50,27 @@ where
 // provider
 // ============================================================================
 
-/// Convert array of OpenAI messages to LLMIR Messages
+/// Convert array of OpenAI Chat Completions messages to LLMIR Messages
 #[wasm_bindgen]
-pub fn openai_messages_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
+pub fn openai_chat_messages_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_llmir::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(value)
+}
+
+/// Convert array of LLMIR Messages to OpenAI Chat Completions messages
+#[wasm_bindgen]
+pub fn llmir_to_openai_chat_messages(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_llmir::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(value)
+}
+
+/// Convert array of OpenAI Responses API messages to LLMIR Messages
+#[wasm_bindgen]
+pub fn openai_responses_messages_to_llmir(value: JsValue) -> Result<JsValue, JsValue> {
     convert_to_llmir::<Vec<openai::InputItem>, Vec<Message>>(value)
 }
 
-/// Convert array of LLMIR Messages to OpenAI messages
+/// Convert array of LLMIR Messages to OpenAI Responses API messages
 #[wasm_bindgen]
-pub fn llmir_to_openai_messages(value: JsValue) -> Result<JsValue, JsValue> {
+pub fn llmir_to_openai_responses_messages(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_llmir::<Vec<Message>, Vec<openai::InputItem>>(value)
 }
 

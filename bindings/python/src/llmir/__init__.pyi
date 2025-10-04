@@ -11,11 +11,18 @@ class ConversionError(Exception):
     ...
 
 # ============================================================================
-# OpenAI conversions
+# OpenAI Chat Completions API conversions
 # ============================================================================
 
-def openai_messages_to_llmir(messages: list) -> list: ...
-def llmir_to_openai_messages(messages: list) -> list: ...
+def openai_chat_messages_to_llmir(messages: list) -> list: ...
+def llmir_to_openai_chat_messages(messages: list) -> list: ...
+
+# ============================================================================
+# OpenAI Responses API conversions
+# ============================================================================
+
+def openai_responses_messages_to_llmir(messages: list) -> list: ...
+def llmir_to_openai_responses_messages(messages: list) -> list: ...
 
 # ============================================================================
 # Anthropic conversions
@@ -44,8 +51,10 @@ def validate_anthropic_response(json_str: str) -> Any: ...
 
 __all__ = [
     "ConversionError",
-    "openai_messages_to_llmir",
-    "llmir_to_openai_messages",
+    "openai_chat_messages_to_llmir",
+    "llmir_to_openai_chat_messages",
+    "openai_responses_messages_to_llmir",
+    "llmir_to_openai_responses_messages",
     "anthropic_messages_to_llmir",
     "llmir_to_anthropic_messages",
     "validate_openai_request",

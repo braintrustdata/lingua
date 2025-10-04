@@ -16,9 +16,9 @@ import pytest
 
 from llmir import (
     ConversionError,
-    openai_messages_to_llmir,
+    openai_chat_messages_to_llmir,
     anthropic_messages_to_llmir,
-    llmir_to_openai_messages,
+    llmir_to_openai_chat_messages,
     llmir_to_anthropic_messages,
 )
 
@@ -151,8 +151,8 @@ def perform_openai_roundtrip(openai_message: Dict) -> Dict[str, Any]:
     Raises:
         ConversionError: If any conversion step fails
     """
-    llmir = openai_messages_to_llmir([openai_message])[0]
-    roundtripped = llmir_to_openai_messages([llmir])[0]
+    llmir = openai_chat_messages_to_llmir([openai_message])[0]
+    roundtripped = llmir_to_openai_chat_messages([llmir])[0]
 
     return {"original": openai_message, "llmir": llmir, "roundtripped": roundtripped}
 
@@ -336,8 +336,8 @@ class TestTypeChecking:
         message: ChatCompletionMessageParam = {"role": "user", "content": "Hello"}
 
         # Convert to LLMIR and back
-        llmir = openai_messages_to_llmir([message])[0]
-        roundtripped = llmir_to_openai_messages([llmir])[0]
+        llmir = openai_chat_messages_to_llmir([message])[0]
+        roundtripped = llmir_to_openai_chat_messages([llmir])[0]
 
         assert roundtripped is not None
         assert roundtripped["role"] == "user"

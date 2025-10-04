@@ -72,15 +72,27 @@ where
 // Conversion functions
 // ============================================================================
 
-/// Convert array of OpenAI messages to LLMIR Messages
+/// Convert array of OpenAI Chat Completions messages to LLMIR Messages
 #[pyfunction]
-fn openai_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn openai_chat_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_to_llmir::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(py, value)
+}
+
+/// Convert array of LLMIR Messages to OpenAI Chat Completions messages
+#[pyfunction]
+fn llmir_to_openai_chat_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_from_llmir::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(py, value)
+}
+
+/// Convert array of OpenAI Responses API messages to LLMIR Messages
+#[pyfunction]
+fn openai_responses_messages_to_llmir(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_to_llmir::<Vec<openai::InputItem>, Vec<Message>>(py, value)
 }
 
-/// Convert array of LLMIR Messages to OpenAI messages
+/// Convert array of LLMIR Messages to OpenAI Responses API messages
 #[pyfunction]
-fn llmir_to_openai_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn llmir_to_openai_responses_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_from_llmir::<Vec<Message>, Vec<openai::InputItem>>(py, value)
 }
 
@@ -148,8 +160,10 @@ fn validate_anthropic_response(py: Python, json: &str) -> PyResult<PyObject> {
 #[pymodule]
 fn _llmir(_py: Python, m: &PyModule) -> PyResult<()> {
     // Conversion functions
-    m.add_function(wrap_pyfunction!(openai_messages_to_llmir, m)?)?;
-    m.add_function(wrap_pyfunction!(llmir_to_openai_messages, m)?)?;
+    m.add_function(wrap_pyfunction!(openai_chat_messages_to_llmir, m)?)?;
+    m.add_function(wrap_pyfunction!(llmir_to_openai_chat_messages, m)?)?;
+    m.add_function(wrap_pyfunction!(openai_responses_messages_to_llmir, m)?)?;
+    m.add_function(wrap_pyfunction!(llmir_to_openai_responses_messages, m)?)?;
     m.add_function(wrap_pyfunction!(anthropic_messages_to_llmir, m)?)?;
     m.add_function(wrap_pyfunction!(llmir_to_anthropic_messages, m)?)?;
 
