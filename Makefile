@@ -10,7 +10,7 @@ help: ## Show this help message
 
 typescript: ## Build TypeScript bindings (WASM)
 	@echo "Building TypeScript bindings..."
-	cd bindings/typescript && npm install && npm run build
+	cd bindings/typescript && pnpm install && pnpm run build
 
 python: ## Build Python bindings (PyO3)
 	@echo "Building Python bindings..."
@@ -24,7 +24,7 @@ test-rust: ## Run Rust tests
 
 test-typescript: ## Run TypeScript tests
 	@echo "Running TypeScript tests..."
-	cd bindings/typescript && npm run test:run
+	cd bindings/typescript && pnpm run test:run
 
 test-python: ## Run Python tests
 	@echo "Running Python tests..."
@@ -41,12 +41,12 @@ check: ## Check all code compiles
 	@echo "Checking Rust code..."
 	cargo check --all-features
 	@echo "Checking TypeScript code..."
-	cd bindings/typescript && npm run typecheck
+	cd bindings/typescript && pnpm run typecheck
 
 fmt: ## Format all code
 	@echo "Formatting Rust code..."
 	cargo fmt
 	@echo "Formatting TypeScript code..."
-	cd bindings/typescript && npm run lint
+	cd bindings/typescript && pnpm run lint
 
 .DEFAULT_GOAL := all
