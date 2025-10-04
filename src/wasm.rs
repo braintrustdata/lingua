@@ -18,11 +18,11 @@ where
         .map_err(|e| JsValue::from_str(&format!("Failed to parse input: {}", e)))?;
 
     // Convert to Lingua type
-    let llmir_msg = U::try_from(provider_msg)
+    let lingua_msg = U::try_from(provider_msg)
         .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
 
     // Convert back to JS value
-    serde_wasm_bindgen::to_value(&llmir_msg)
+    serde_wasm_bindgen::to_value(&lingua_msg)
         .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
 }
 
@@ -33,11 +33,11 @@ where
     <U as TryFromLLM<T>>::Error: std::fmt::Debug,
 {
     // Convert JS value to Lingua type
-    let llmir_msg: T = serde_wasm_bindgen::from_value(value)
+    let lingua_msg: T = serde_wasm_bindgen::from_value(value)
         .map_err(|e| JsValue::from_str(&format!("Failed to parse input: {}", e)))?;
 
     // Convert to provider type
-    let provider_msg = U::try_from(llmir_msg)
+    let provider_msg = U::try_from(lingua_msg)
         .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
 
     // Convert back to JS value

@@ -165,7 +165,7 @@ Tests use **real API payloads** captured from actual provider interactions:
 3. **Compatibility Tests**: Cross-provider conversion validation
 4. **Regression Tests**: Ensure updates don't break existing functionality
 
-This strategy ensures LLMIR maintains 100% fidelity when converting between provider formats while providing confidence that the universal format can represent any provider-specific capability.
+This strategy ensures Lingua maintains 100% fidelity when converting between provider formats while providing confidence that the universal format can represent any provider-specific capability.
 
 ### Automated Updates
 

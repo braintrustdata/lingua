@@ -48,10 +48,10 @@ where
     <U as TryFromLLM<T>>::Error: std::fmt::Debug,
 {
     let provider_msg: T = py_to_rust(py, value)?;
-    let llmir_msg = U::try_from(provider_msg).map_err(|e| {
+    let lingua_msg = U::try_from(provider_msg).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Conversion error: {:?}", e))
     })?;
-    rust_to_py(py, &llmir_msg)
+    rust_to_py(py, &lingua_msg)
 }
 
 /// Generic conversion from Lingua to provider
@@ -61,8 +61,8 @@ where
     U: TryFromLLM<T> + Serialize,
     <U as TryFromLLM<T>>::Error: std::fmt::Debug,
 {
-    let llmir_msg: T = py_to_rust(py, value)?;
-    let provider_msg = U::try_from(llmir_msg).map_err(|e| {
+    let lingua_msg: T = py_to_rust(py, value)?;
+    let provider_msg = U::try_from(lingua_msg).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Conversion error: {:?}", e))
     })?;
     rust_to_py(py, &provider_msg)

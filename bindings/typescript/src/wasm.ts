@@ -7,16 +7,16 @@ export {
   ConversionError,
 
   // Chat Completions API conversions
-  chatCompletionsMessagesToLLMIR,
-  llmirToChatCompletionsMessages,
+  chatCompletionsMessagesToLingua,
+  linguaToChatCompletionsMessages,
 
   // Responses API conversions
-  responsesMessagesToLLMIR,
-  llmirToResponsesMessages,
+  responsesMessagesToLingua,
+  linguaToResponsesMessages,
 
   // Anthropic conversions
-  anthropicMessagesToLLMIR,
-  llmirToAnthropicMessages,
+  anthropicMessagesToLingua,
+  linguaToAnthropicMessages,
 
   // OpenAI validation
   validateOpenAIRequest,
