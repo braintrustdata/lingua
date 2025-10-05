@@ -5,7 +5,7 @@ use ts_rs::TS;
 pub type Thread = Vec<Message>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase")]
+#[ts(export, rename_all = "snake_case")]
 #[serde(tag = "role", rename_all = "lowercase")]
 pub enum Message {
     System {
@@ -33,7 +33,7 @@ pub enum UserContent {
 
 /// User content parts - text, image, and file parts allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase")]
+#[ts(export, rename_all = "snake_case")]
 #[serde(tag = "type")]
 #[skip_serializing_none]
 pub enum UserContentPart {
@@ -68,8 +68,8 @@ pub enum AssistantContent {
 /// Assistant content parts - text, file, reasoning, tool calls, and tool results allowed
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase")]
-#[serde(tag = "type")]
+#[ts(export, rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum AssistantContentPart {
     Text(TextContentPart),
     File {
@@ -109,8 +109,8 @@ pub enum AssistantContentPart {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase")]
-#[serde(tag = "type")]
+#[ts(export, rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToolCallArguments {
     Valid(#[ts(type = "Record<string, unknown>")] serde_json::Map<String, serde_json::Value>),
     Invalid(String),
@@ -144,7 +144,7 @@ pub type ToolContent = Vec<ToolContentPart>;
 /// Reusable tool result content part for tagged unions
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct ToolResultContentPart {
     pub tool_call_id: String,
     pub tool_name: String,
@@ -156,7 +156,7 @@ pub struct ToolResultContentPart {
 /// Reusable text content part for tagged unions
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct TextContentPart {
     pub text: String,
     pub provider_options: Option<ProviderOptions>,
@@ -164,16 +164,16 @@ pub struct TextContentPart {
 
 /// Tool content parts - only tool results allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-#[serde(tag = "type")]
+#[ts(export, rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToolContentPart {
     ToolResult(ToolResultContentPart),
 }
 
 /// Source type enum - matches AI SDK Source sourceType
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export)]
-#[serde(rename_all = "lowercase")]
+#[ts(export, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum SourceType {
     Url,
     Document,
@@ -192,9 +192,9 @@ pub struct ProviderOptions {
 /// Provider metadata
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
-#[ts(type = "Record<string, any>")]
+#[ts(type = "Record<string, unknown>")]
 pub struct ProviderMetadata {
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     #[serde(flatten)]
     pub metadata: serde_json::Map<String, serde_json::Value>,
 }
@@ -202,8 +202,8 @@ pub struct ProviderMetadata {
 /// Source content part - matching AI SDK Source type
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase")]
-#[serde(tag = "sourceType")]
+#[ts(export, rename_all = "snake_case")]
+#[serde(tag = "source_type", rename_all = "snake_case")]
 pub enum SourceContentPart {
     Url {
         id: String,
@@ -227,7 +227,7 @@ pub enum SourceContentPart {
 /// Generated file content part - matching AI SDK GeneratedFile
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct GeneratedFileContentPart {
     #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
     pub file: serde_json::Value,
@@ -237,7 +237,7 @@ pub struct GeneratedFileContentPart {
 /// Tool call content part for response messages
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct ToolCallContentPart {
     pub tool_call_id: String,
     pub tool_name: String,
@@ -250,7 +250,7 @@ pub struct ToolCallContentPart {
 /// Tool result content part for response messages
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct ToolResultResponsePart {
     pub tool_call_id: String,
     pub tool_name: String,
@@ -262,7 +262,7 @@ pub struct ToolResultResponsePart {
 /// Tool error content part for response messages
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
-#[ts(export, rename_all = "camelCase", optional_fields)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct ToolErrorContentPart {
     pub tool_call_id: String,
     pub tool_name: String,

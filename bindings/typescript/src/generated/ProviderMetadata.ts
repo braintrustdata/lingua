@@ -3,4 +3,4 @@
 /**
  * Provider metadata
  */
-export type ProviderMetadata = Record<string, any>;
+export type ProviderMetadata = Record<string, unknown>;

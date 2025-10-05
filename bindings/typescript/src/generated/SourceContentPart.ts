@@ -4,4 +4,4 @@ import type { ProviderMetadata } from "./ProviderMetadata";
 /**
  * Source content part - matching AI SDK Source type
  */
-export type SourceContentPart = { "sourceType": "url", id: string, url: string, title?: string, provider_metadata?: ProviderMetadata, } | { "sourceType": "document", id: string, media_type: string, title: string, filename?: string, provider_metadata?: ProviderMetadata, };
+export type SourceContentPart = { "source_type": "url", id: string, url: string, title?: string, provider_metadata?: ProviderMetadata, } | { "source_type": "document", id: string, media_type: string, title: string, filename?: string, provider_metadata?: ProviderMetadata, };
