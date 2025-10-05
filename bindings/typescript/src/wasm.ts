@@ -18,6 +18,9 @@ export {
   anthropicMessagesToLingua,
   linguaToAnthropicMessages,
 
+  // Processing functions
+  deduplicateMessages,
+
   // Chat Completions validation
   validateChatCompletionsRequest,
   validateChatCompletionsResponse,

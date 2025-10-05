@@ -87,6 +87,28 @@ pub fn lingua_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> 
 }
 
 // ============================================================================
+// Processing exports
+// ============================================================================
+
+/// Deduplicate messages based on role and content
+#[wasm_bindgen]
+pub fn deduplicate_messages(value: JsValue) -> Result<JsValue, JsValue> {
+    use crate::processing::dedup::deduplicate_messages as dedup;
+    use crate::universal::Message;
+
+    // Convert JS value to Vec<Message>
+    let messages: Vec<Message> = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse messages: {}", e)))?;
+
+    // Deduplicate
+    let deduplicated = dedup(messages);
+
+    // Convert back to JS value
+    serde_wasm_bindgen::to_value(&deduplicated)
+        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+}
+
+// ============================================================================
 // Validation exports
 // ============================================================================
 

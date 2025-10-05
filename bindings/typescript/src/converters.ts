@@ -185,6 +185,42 @@ export const linguaToAnthropicMessages = createFromLinguaConverter<Message[], un
 );
 
 // ============================================================================
+// Processing functions
+// ============================================================================
+
+/**
+ * Deduplicate messages based on role and content.
+ *
+ * Two messages are considered duplicates if:
+ * - They have the same role
+ * - Their content is semantically identical
+ *
+ * This handles equivalence between string and array content representations:
+ * - `{"role": "user", "content": "foo"}` equals `{"role": "user", "content": [{"type": "text", "text": "foo"}]}`
+ *
+ * The function preserves the order of messages and keeps the first occurrence of each unique message.
+ * Original messages are returned unmodified - hashing is only used for deduplication.
+ *
+ * @param messages - Array of Lingua messages to deduplicate
+ * @returns Deduplicated array of messages
+ * @throws {ConversionError} If processing fails
+ */
+export function deduplicateMessages(messages: Message[]): Message[] {
+  try {
+    const result = wasm.deduplicate_messages(messages);
+    // Convert any Map objects to plain objects
+    return convertMapsToObjects(result) as Message[];
+  } catch (error: unknown) {
+    throw new ConversionError(
+      'Failed to deduplicate messages',
+      undefined,
+      undefined,
+      error
+    );
+  }
+}
+
+// ============================================================================
 // Validation functions (Zod-style API)
 // ============================================================================
 

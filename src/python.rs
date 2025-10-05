@@ -109,6 +109,26 @@ fn lingua_to_anthropic_messages(py: Python, value: &PyAny) -> PyResult<PyObject>
 }
 
 // ============================================================================
+// Processing functions
+// ============================================================================
+
+/// Deduplicate messages based on role and content
+#[pyfunction]
+fn deduplicate_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    use crate::processing::dedup::deduplicate_messages as dedup;
+    use crate::universal::Message;
+
+    // Convert Python value to Vec<Message>
+    let messages: Vec<Message> = py_to_rust(py, value)?;
+
+    // Deduplicate
+    let deduplicated = dedup(messages);
+
+    // Convert back to Python
+    rust_to_py(py, &deduplicated)
+}
+
+// ============================================================================
 // Validation functions
 // ============================================================================
 
@@ -202,6 +222,9 @@ fn _lingua(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(lingua_to_responses_messages, m)?)?;
     m.add_function(wrap_pyfunction!(anthropic_messages_to_lingua, m)?)?;
     m.add_function(wrap_pyfunction!(lingua_to_anthropic_messages, m)?)?;
+
+    // Processing functions
+    m.add_function(wrap_pyfunction!(deduplicate_messages, m)?)?;
 
     // Validation functions
     #[cfg(feature = "openai")]
