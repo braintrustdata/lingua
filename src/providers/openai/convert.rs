@@ -1071,7 +1071,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                             text
                         } else {
                             return Err(ConvertError::UnsupportedInputType {
-                                type_info: format!("Tool content part must have text"),
+                                type_info: "Tool content part must have text".to_string(),
                             });
                         }
                     }
