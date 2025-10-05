@@ -21,6 +21,10 @@ from lingua._lingua import (
     lingua_to_responses_messages as _lingua_to_responses_messages,
     anthropic_messages_to_lingua as _anthropic_messages_to_lingua,
     lingua_to_anthropic_messages as _lingua_to_anthropic_messages,
+    validate_chat_completions_request as _validate_chat_completions_request,
+    validate_chat_completions_response as _validate_chat_completions_response,
+    validate_responses_request as _validate_responses_request,
+    validate_responses_response as _validate_responses_response,
     validate_openai_request as _validate_openai_request,
     validate_openai_response as _validate_openai_response,
     validate_anthropic_request as _validate_anthropic_request,
@@ -164,12 +168,87 @@ def lingua_to_anthropic_messages(messages: list) -> list:
 
 
 # ============================================================================
-# OpenAI validation
+# Chat Completions validation
+# ============================================================================
+
+def validate_chat_completions_request(json_str: str) -> Any:
+    """
+    Validate a JSON string as a Chat Completions request.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Chat Completions request data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_chat_completions_request(json_str)
+
+
+def validate_chat_completions_response(json_str: str) -> Any:
+    """
+    Validate a JSON string as a Chat Completions response.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Chat Completions response data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_chat_completions_response(json_str)
+
+
+# ============================================================================
+# Responses API validation
+# ============================================================================
+
+def validate_responses_request(json_str: str) -> Any:
+    """
+    Validate a JSON string as a Responses API request.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Responses API request data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_responses_request(json_str)
+
+
+def validate_responses_response(json_str: str) -> Any:
+    """
+    Validate a JSON string as a Responses API response.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Responses API response data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_responses_response(json_str)
+
+
+# ============================================================================
+# OpenAI validation (deprecated)
 # ============================================================================
 
 def validate_openai_request(json_str: str) -> Any:
     """
     Validate a JSON string as an OpenAI request.
+
+    .. deprecated::
+        Use :func:`validate_chat_completions_request` instead
 
     Args:
         json_str: JSON string to validate
@@ -186,6 +265,9 @@ def validate_openai_request(json_str: str) -> Any:
 def validate_openai_response(json_str: str) -> Any:
     """
     Validate a JSON string as an OpenAI response.
+
+    .. deprecated::
+        Use :func:`validate_chat_completions_response` instead
 
     Args:
         json_str: JSON string to validate
@@ -255,7 +337,15 @@ __all__ = [
     "anthropic_messages_to_lingua",
     "lingua_to_anthropic_messages",
 
-    # OpenAI validation
+    # Chat Completions validation
+    "validate_chat_completions_request",
+    "validate_chat_completions_response",
+
+    # Responses API validation
+    "validate_responses_request",
+    "validate_responses_response",
+
+    # OpenAI validation (deprecated - use Chat Completions or Responses instead)
     "validate_openai_request",
     "validate_openai_response",
 

@@ -112,24 +112,60 @@ fn lingua_to_anthropic_messages(py: Python, value: &PyAny) -> PyResult<PyObject>
 // Validation functions
 // ============================================================================
 
-/// Validate a JSON string as an OpenAI request
+/// Validate a JSON string as a Chat Completions request
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_openai_request(py: Python, json: &str) -> PyResult<PyObject> {
-    use crate::validation::openai::validate_openai_request as validate;
+fn validate_chat_completions_request(py: Python, json: &str) -> PyResult<PyObject> {
+    use crate::validation::openai::validate_chat_completions_request as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
     rust_to_py(py, &result)
 }
 
-/// Validate a JSON string as an OpenAI response
+/// Validate a JSON string as a Chat Completions response
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_openai_response(py: Python, json: &str) -> PyResult<PyObject> {
-    use crate::validation::openai::validate_openai_response as validate;
+fn validate_chat_completions_response(py: Python, json: &str) -> PyResult<PyObject> {
+    use crate::validation::openai::validate_chat_completions_response as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
     rust_to_py(py, &result)
+}
+
+/// Validate a JSON string as a Responses API request
+#[pyfunction]
+#[cfg(feature = "openai")]
+fn validate_responses_request(py: Python, json: &str) -> PyResult<PyObject> {
+    use crate::validation::openai::validate_responses_request as validate;
+    let result = validate(json)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    rust_to_py(py, &result)
+}
+
+/// Validate a JSON string as a Responses API response
+#[pyfunction]
+#[cfg(feature = "openai")]
+fn validate_responses_response(py: Python, json: &str) -> PyResult<PyObject> {
+    use crate::validation::openai::validate_responses_response as validate;
+    let result = validate(json)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    rust_to_py(py, &result)
+}
+
+/// Validate a JSON string as an OpenAI request
+/// @deprecated Use validate_chat_completions_request instead
+#[pyfunction]
+#[cfg(feature = "openai")]
+fn validate_openai_request(py: Python, json: &str) -> PyResult<PyObject> {
+    validate_chat_completions_request(py, json)
+}
+
+/// Validate a JSON string as an OpenAI response
+/// @deprecated Use validate_chat_completions_response instead
+#[pyfunction]
+#[cfg(feature = "openai")]
+fn validate_openai_response(py: Python, json: &str) -> PyResult<PyObject> {
+    validate_chat_completions_response(py, json)
 }
 
 /// Validate a JSON string as an Anthropic request
@@ -170,6 +206,10 @@ fn _lingua(_py: Python, m: &PyModule) -> PyResult<()> {
     // Validation functions
     #[cfg(feature = "openai")]
     {
+        m.add_function(wrap_pyfunction!(validate_chat_completions_request, m)?)?;
+        m.add_function(wrap_pyfunction!(validate_chat_completions_response, m)?)?;
+        m.add_function(wrap_pyfunction!(validate_responses_request, m)?)?;
+        m.add_function(wrap_pyfunction!(validate_responses_response, m)?)?;
         m.add_function(wrap_pyfunction!(validate_openai_request, m)?)?;
         m.add_function(wrap_pyfunction!(validate_openai_response, m)?)?;
     }
