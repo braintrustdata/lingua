@@ -7,17 +7,16 @@
  * in the build.rs file, helping keep the snapshots directory clean.
  */
 
-import { readdir, stat, unlink, rmdir } from 'fs/promises';
-import { join } from 'path';
+import { readdir, stat, unlink, rmdir } from "fs/promises";
+import { join } from "path";
 
-const SNAPSHOTS_DIR = join(__dirname, '..', 'snapshots');
-const PROJECT_ROOT = join(__dirname, '..', '..');
+const SNAPSHOTS_DIR = join(__dirname, "..", "snapshots");
 
 // Provider directories that are recognized by the build script
-const PROVIDERS = ['responses', 'chat-completions', 'anthropic'] as const;
+const PROVIDERS = ["responses", "chat-completions", "anthropic"] as const;
 
-type Provider = typeof PROVIDERS[number];
-type Turn = 'first_turn' | 'followup_turn';
+type Provider = (typeof PROVIDERS)[number];
+type Turn = "first_turn" | "followup_turn";
 
 interface ValidTestCase {
   caseName: string;
@@ -35,12 +34,14 @@ async function discoverValidTestCases(): Promise<ValidTestCase[]> {
   try {
     // Import the test case definitions
     // Note: We need to use dynamic import for TypeScript files
-    const { allTestCases } = await import('../cases/index');
+    const { allTestCases } = await import("../cases/index");
 
     // Extract test case names from the collection
     const testCaseNames = Object.keys(allTestCases);
 
-    console.log(`📝 Found ${testCaseNames.length} defined test cases: ${testCaseNames.join(', ')}`);
+    console.log(
+      `📝 Found ${testCaseNames.length} defined test cases: ${testCaseNames.join(", ")}`
+    );
 
     // For each test case, check which providers have snapshots
     for (const caseName of testCaseNames) {
@@ -60,20 +61,19 @@ async function discoverValidTestCases(): Promise<ValidTestCase[]> {
 
             // Check for first turn (required: request.json)
             try {
-              await stat(join(providerDir, 'request.json'));
-              validCases.push({ caseName, provider, turn: 'first_turn' });
+              await stat(join(providerDir, "request.json"));
+              validCases.push({ caseName, provider, turn: "first_turn" });
             } catch {
               // request.json doesn't exist, skip first turn
             }
 
             // Check for followup turn (required: followup-request.json)
             try {
-              await stat(join(providerDir, 'followup-request.json'));
-              validCases.push({ caseName, provider, turn: 'followup_turn' });
+              await stat(join(providerDir, "followup-request.json"));
+              validCases.push({ caseName, provider, turn: "followup_turn" });
             } catch {
               // followup-request.json doesn't exist, skip followup turn
             }
-
           } catch {
             // Provider directory doesn't exist, skip
           }
@@ -100,13 +100,16 @@ function isValidSnapshot(
   validCases: ValidTestCase[]
 ): boolean {
   // Determine which turn this file belongs to
-  const turn: Turn = filename.startsWith('followup-') ? 'followup_turn' : 'first_turn';
+  const turn: Turn = filename.startsWith("followup-")
+    ? "followup_turn"
+    : "first_turn";
 
   // Check if this combination exists in valid cases
   return validCases.some(
-    testCase => testCase.caseName === caseName &&
-                testCase.provider === provider &&
-                testCase.turn === turn
+    (testCase) =>
+      testCase.caseName === caseName &&
+      testCase.provider === provider &&
+      testCase.turn === turn
   );
 }
 
@@ -126,7 +129,7 @@ async function isEmptyDirectory(dirPath: string): Promise<boolean> {
  * Main prune function
  */
 async function pruneOrphanedSnapshots(): Promise<void> {
-  console.log('🗑️  Pruning snapshots that don\'t correspond to test cases...');
+  console.log("🗑️  Pruning snapshots that don't correspond to test cases...");
   console.log(`🔍 Scanning snapshots directory: ${SNAPSHOTS_DIR}`);
 
   const validCases = await discoverValidTestCases();
@@ -134,8 +137,8 @@ async function pruneOrphanedSnapshots(): Promise<void> {
 
   // Debug: show what test cases were found
   if (process.env.DEBUG) {
-    console.log('Valid test cases:');
-    validCases.forEach(tc =>
+    console.log("Valid test cases:");
+    validCases.forEach((tc) =>
       console.log(`  - ${tc.caseName}/${tc.provider}/${tc.turn}`)
     );
   }
@@ -153,7 +156,7 @@ async function pruneOrphanedSnapshots(): Promise<void> {
       if (!caseStat.isDirectory()) continue;
 
       // Skip hidden directories and cache files
-      if (caseEntry.startsWith('.')) continue;
+      if (caseEntry.startsWith(".")) continue;
 
       const caseName = caseEntry;
 
@@ -176,10 +179,17 @@ async function pruneOrphanedSnapshots(): Promise<void> {
 
             totalSnapshots++;
 
-            const isValid = isValidSnapshot(caseName, provider, file, validCases);
+            const isValid = isValidSnapshot(
+              caseName,
+              provider,
+              file,
+              validCases
+            );
 
             if (process.env.DEBUG) {
-              console.log(`  File: ${caseName}/${provider}/${file} - Valid: ${isValid}`);
+              console.log(
+                `  File: ${caseName}/${provider}/${file} - Valid: ${isValid}`
+              );
             }
 
             if (!isValid) {
@@ -191,10 +201,11 @@ async function pruneOrphanedSnapshots(): Promise<void> {
 
           // Remove empty provider directories
           if (await isEmptyDirectory(providerDir)) {
-            console.log(`🗑️  Removing empty provider directory: ${providerDir}`);
+            console.log(
+              `🗑️  Removing empty provider directory: ${providerDir}`
+            );
             await rmdir(providerDir);
           }
-
         } catch {
           // Provider directory doesn't exist or can't be accessed, skip
         }
@@ -211,18 +222,20 @@ async function pruneOrphanedSnapshots(): Promise<void> {
     process.exit(1);
   }
 
-  console.log('✅ Pruning completed');
+  console.log("✅ Pruning completed");
   console.log(`📊 Total snapshots scanned: ${totalSnapshots}`);
   console.log(`🗑️  Orphaned snapshots deleted: ${deletedCount}`);
 
   if (deletedCount === 0) {
-    console.log('🎉 No orphaned snapshots found - all snapshots correspond to valid test cases!');
+    console.log(
+      "🎉 No orphaned snapshots found - all snapshots correspond to valid test cases!"
+    );
   }
 }
 
 // Run the script
 if (require.main === module) {
-  pruneOrphanedSnapshots().catch(error => {
+  pruneOrphanedSnapshots().catch((error) => {
     console.error(`Fatal error: ${error}`);
     process.exit(1);
   });

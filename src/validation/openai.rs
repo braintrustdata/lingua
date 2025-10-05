@@ -23,9 +23,7 @@ pub fn validate_chat_completions_response(
 }
 
 /// Validates a JSON string as a Responses API request
-pub fn validate_responses_request(
-    json: &str,
-) -> Result<CreateResponseClass, ValidationError> {
+pub fn validate_responses_request(json: &str) -> Result<CreateResponseClass, ValidationError> {
     validate_json(json)
 }
 

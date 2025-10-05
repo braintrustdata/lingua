@@ -29,7 +29,7 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_completion_tokens: 300,
     },
-    "responses": {
+    responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [
         {
@@ -76,7 +76,7 @@ export const advancedCases: TestCaseCollection = {
   },
 
   complexReasoningRequest: {
-    "responses": {
+    responses: {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "high", summary: "detailed" },
       input: [
@@ -115,7 +115,7 @@ export const advancedCases: TestCaseCollection = {
   },
 
   reasoningWithOutput: {
-    "responses": {
+    responses: {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "low" },
       input: [
@@ -205,7 +205,7 @@ export const advancedCases: TestCaseCollection = {
         type: "auto",
       },
     },
-    "responses": {
+    responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [
         {

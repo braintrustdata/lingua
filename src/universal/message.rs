@@ -35,7 +35,7 @@ pub enum UserContent {
 /// User content parts - text, image, and file parts allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "lowercase")]
 #[skip_serializing_none]
 pub enum UserContentPart {
     Text(TextContentPart),
