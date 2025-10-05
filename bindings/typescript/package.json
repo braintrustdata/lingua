@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "pnpm run build:wasm && tsc",
-    "build:wasm": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm --no-pack && wasm-opt -Oz bindings/typescript/wasm/lingua_bg.wasm -o bindings/typescript/wasm/lingua_bg.wasm",
+    "build:wasm": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm --no-pack && (command -v wasm-opt >/dev/null 2>&1 && wasm-opt -Oz bindings/typescript/wasm/lingua_bg.wasm -o bindings/typescript/wasm/lingua_bg.wasm || echo 'wasm-opt not found, skipping optimization')",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "vitest run",

@@ -89,8 +89,10 @@ jobs:
 
     - name: Install binaryen (wasm-opt)
       run: |
-        sudo apt-get update
-        sudo apt-get install -y binaryen
+        wget https://github.com/WebAssembly/binaryen/releases/download/version_119/binaryen-version_119-x86_64-linux.tar.gz
+        tar -xzf binaryen-version_119-x86_64-linux.tar.gz
+        sudo cp binaryen-version_119/bin/wasm-opt /usr/local/bin/
+        rm -rf binaryen-version_119*
 
     - name: Build TypeScript bindings
       run: make typescript
