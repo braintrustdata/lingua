@@ -16,6 +16,7 @@ pub enum Message {
     },
     Assistant {
         content: AssistantContent,
+        #[ts(optional)]
         id: Option<String>,
     },
     Tool {
