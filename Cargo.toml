@@ -11,6 +11,9 @@ categories = ["api-bindings", "development-tools"]
 [package.metadata.ts-rs]
 optional_option_fields = true
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
 [features]
 default = ["openai", "anthropic", "google"]
 openai = []
@@ -57,3 +60,9 @@ path = "scripts/generate-types.rs"
 name = "lingua"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = "z"     # Optimize for size
+lto = true          # Enable Link Time Optimization
+strip = true        # Strip symbols
+codegen-units = 1   # Better optimization (slower build)
