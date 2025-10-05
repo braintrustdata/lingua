@@ -1,4 +1,4 @@
-.PHONY: all typescript python test clean help generate-types
+.PHONY: all typescript python test clean help generate-types install-hooks
 
 all: typescript python ## Build all bindings
 
@@ -52,5 +52,9 @@ fmt: ## Format all code
 	cargo fmt
 	@echo "Formatting TypeScript code..."
 	cd bindings/typescript && pnpm run lint
+
+install-hooks: ## Install git pre-commit hooks
+	@echo "Installing git hooks..."
+	./scripts/install-hooks.sh
 
 .DEFAULT_GOAL := all

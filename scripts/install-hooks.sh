@@ -7,12 +7,26 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-HOOKS_DIR="$PROJECT_ROOT/.git/hooks"
 
 echo "🔗 Installing git hooks for Lingua project..."
 
-# Check if we're in a git repository
-if [ ! -d "$PROJECT_ROOT/.git" ]; then
+# Check if we're in a git repository (handles both normal repos and submodules/worktrees)
+if [ -d "$PROJECT_ROOT/.git" ]; then
+    # Normal git repository
+    HOOKS_DIR="$PROJECT_ROOT/.git/hooks"
+elif [ -f "$PROJECT_ROOT/.git" ]; then
+    # Git submodule or worktree - .git is a file pointing to the real git dir
+    GIT_DIR=$(grep "gitdir:" "$PROJECT_ROOT/.git" | cut -d' ' -f2)
+    if [ -z "$GIT_DIR" ]; then
+        echo "❌ Error: Could not parse .git file"
+        exit 1
+    fi
+    # Resolve relative path if needed
+    if [[ "$GIT_DIR" != /* ]]; then
+        GIT_DIR="$PROJECT_ROOT/$GIT_DIR"
+    fi
+    HOOKS_DIR="$GIT_DIR/hooks"
+else
     echo "❌ Error: Not in a git repository"
     echo "   Make sure you're running this from the Lingua project root"
     exit 1
@@ -32,14 +46,19 @@ else
     exit 1
 fi
 
-# Test the hook
-echo "🧪 Testing pre-commit hook..."
-if "$HOOKS_DIR/pre-commit"; then
-    echo "✅ Pre-commit hook test passed"
+# Test the hook (skip if there are uncommitted changes)
+if git diff --quiet && git diff --cached --quiet; then
+    echo "🧪 Testing pre-commit hook..."
+    if "$HOOKS_DIR/pre-commit"; then
+        echo "✅ Pre-commit hook test passed"
+    else
+        echo "❌ Pre-commit hook test failed"
+        echo "   You may need to run 'cargo fmt' to fix formatting issues"
+        exit 1
+    fi
 else
-    echo "❌ Pre-commit hook test failed"
-    echo "   You may need to run 'cargo fmt' to fix formatting issues"
-    exit 1
+    echo "⚠️  Skipping pre-commit hook test (uncommitted changes present)"
+    echo "   The hook will run automatically on your next commit"
 fi
 
 echo ""
