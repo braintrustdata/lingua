@@ -1,3 +1,4 @@
 packages:
   - 'payloads'
   - 'bindings/typescript'
+  - 'examples/typescript'
