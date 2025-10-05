@@ -4,4 +4,4 @@ import type { ProviderMetadata } from "./ProviderMetadata";
 /**
  * Generated file content part - matching AI SDK GeneratedFile
  */
-export type GeneratedFileContentPart = { file: string | Uint8Array | ArrayBuffer | Buffer | URL, providerMetadata?: ProviderMetadata, };
+export type GeneratedFileContentPart = { file: string | Uint8Array | ArrayBuffer | Buffer | URL, provider_metadata?: ProviderMetadata, };

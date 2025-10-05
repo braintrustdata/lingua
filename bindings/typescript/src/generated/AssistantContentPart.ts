@@ -11,4 +11,4 @@ export type AssistantContentPart = { "type": "text" } & TextContentPart | { "typ
  * Providers will occasionally return encrypted content for reasoning parts which can
  * be useful when you send a follow up message.
  */
-encrypted_content?: string, } | { "type": "toolCall", tool_call_id: string, tool_name: string, arguments: ToolCallArguments, provider_options?: ProviderOptions, provider_executed?: boolean, } | { "type": "toolResult", tool_call_id: string, tool_name: string, output: unknown, provider_options?: ProviderOptions, };
+encrypted_content?: string, } | { "type": "tool_call", tool_call_id: string, tool_name: string, arguments: ToolCallArguments, provider_options?: ProviderOptions, provider_executed?: boolean, } | { "type": "tool_result", tool_call_id: string, tool_name: string, output: unknown, provider_options?: ProviderOptions, };

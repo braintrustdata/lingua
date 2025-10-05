@@ -4,4 +4,4 @@ import type { ToolResultContentPart } from "./ToolResultContentPart";
 /**
  * Tool content parts - only tool results allowed
  */
-export type ToolContentPart = { "type": "ToolResult" } & ToolResultContentPart;
+export type ToolContentPart = { "type": "tool_result" } & ToolResultContentPart;

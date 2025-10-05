@@ -4,4 +4,4 @@ import type { ProviderOptions } from "./ProviderOptions";
 /**
  * Reusable text content part for tagged unions
  */
-export type TextContentPart = { text: string, providerOptions?: ProviderOptions, };
+export type TextContentPart = { text: string, provider_options?: ProviderOptions, };
