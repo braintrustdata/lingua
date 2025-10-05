@@ -4,4 +4,4 @@ import type { ProviderMetadata } from "./ProviderMetadata";
 /**
  * Tool call content part for response messages
  */
-export type ToolCallContentPart = { toolCallId: string, toolName: string, input: any, providerExecuted?: boolean, providerMetadata?: ProviderMetadata, };
+export type ToolCallContentPart = { tool_call_id: string, tool_name: string, input: any, provider_executed?: boolean, provider_metadata?: ProviderMetadata, };

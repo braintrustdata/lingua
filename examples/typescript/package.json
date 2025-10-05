@@ -5,11 +5,13 @@
   "description": "Example demonstrating Lingua universal message format conversion",
   "type": "module",
   "scripts": {
-    "example": "tsx index.ts",
+    "start": "tsx index.ts",
     "watch": "tsx watch index.ts"
   },
   "dependencies": {
-    "@braintrust/lingua": "file:../../bindings/typescript"
+    "@braintrust/lingua": "file:../../bindings/typescript",
+    "@anthropic-ai/sdk": "^0.63.0",
+    "openai": "^5.22.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",

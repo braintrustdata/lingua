@@ -29,6 +29,13 @@ importers:
       '@braintrust/lingua':
         specifier: file:../../bindings/typescript
         version: file:bindings/typescript(@anthropic-ai/sdk@0.63.1)(openai@5.23.1)
+    optionalDependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.63.0
+        version: 0.63.1
+      openai:
+        specifier: ^5.22.0
+        version: 5.23.1
     devDependencies:
       '@types/node':
         specifier: ^22.9.0
