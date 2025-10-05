@@ -111,7 +111,7 @@ pub enum AssistantContentPart {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ToolCallArguments {
     Valid(#[ts(type = "Record<string, unknown>")] serde_json::Map<String, serde_json::Value>),
     Invalid(String),
