@@ -57,3 +57,10 @@ path = "scripts/generate-types.rs"
 name = "lingua"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = "z"     # Optimize for size
+lto = true          # Enable Link Time Optimization
+strip = true        # Strip symbols
+codegen-units = 1   # Better optimization (slower build)
+panic = "abort"     # Smaller binary

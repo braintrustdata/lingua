@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "pnpm run build:wasm && tsc",
-    "build:wasm": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm --no-pack",
+    "build:wasm": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm --no-pack && wasm-opt -Oz bindings/typescript/wasm/lingua_bg.wasm -o bindings/typescript/wasm/lingua_bg.wasm",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "vitest run",
