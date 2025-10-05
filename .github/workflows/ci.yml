@@ -49,6 +49,18 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
 
+    - name: Check generated TypeScript types are up to date
+      run: |
+        # Generate types (happens during test compilation via ts-rs)
+        cargo test --lib --no-run --quiet
+        # Check for any differences
+        if ! git diff --exit-code bindings/typescript/src/generated/; then
+          echo "❌ Generated TypeScript types are out of date!"
+          echo "Please run 'make generate-types' and commit the changes."
+          exit 1
+        fi
+        echo "✅ Generated TypeScript types are up to date"
+
   test-typescript:
     runs-on: ubuntu-latest
 
