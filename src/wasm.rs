@@ -87,27 +87,85 @@ pub fn lingua_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> 
 }
 
 // ============================================================================
+// Processing exports
+// ============================================================================
+
+/// Deduplicate messages based on role and content
+#[wasm_bindgen]
+pub fn deduplicate_messages(value: JsValue) -> Result<JsValue, JsValue> {
+    use crate::processing::dedup::deduplicate_messages as dedup;
+    use crate::universal::Message;
+
+    // Convert JS value to Vec<Message>
+    let messages: Vec<Message> = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse messages: {}", e)))?;
+
+    // Deduplicate
+    let deduplicated = dedup(messages);
+
+    // Convert back to JS value
+    serde_wasm_bindgen::to_value(&deduplicated)
+        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+}
+
+// ============================================================================
 // Validation exports
 // ============================================================================
 
-/// Validate a JSON string as an OpenAI request
+/// Validate a JSON string as a Chat Completions request
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
-pub fn validate_openai_request(json: &str) -> Result<JsValue, JsValue> {
-    use crate::validation::openai::validate_openai_request as validate;
+pub fn validate_chat_completions_request(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::openai::validate_chat_completions_request as validate;
     validate(json)
         .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
-/// Validate a JSON string as an OpenAI response
+/// Validate a JSON string as a Chat Completions response
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
-pub fn validate_openai_response(json: &str) -> Result<JsValue, JsValue> {
-    use crate::validation::openai::validate_openai_response as validate;
+pub fn validate_chat_completions_response(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::openai::validate_chat_completions_response as validate;
     validate(json)
         .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
         .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as a Responses API request
+#[wasm_bindgen]
+#[cfg(feature = "openai")]
+pub fn validate_responses_request(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::openai::validate_responses_request as validate;
+    validate(json)
+        .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as a Responses API response
+#[wasm_bindgen]
+#[cfg(feature = "openai")]
+pub fn validate_responses_response(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::openai::validate_responses_response as validate;
+    validate(json)
+        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+/// Validate a JSON string as an OpenAI request
+/// @deprecated Use validate_chat_completions_request instead
+#[wasm_bindgen]
+#[cfg(feature = "openai")]
+pub fn validate_openai_request(json: &str) -> Result<JsValue, JsValue> {
+    validate_chat_completions_request(json)
+}
+
+/// Validate a JSON string as an OpenAI response
+/// @deprecated Use validate_chat_completions_response instead
+#[wasm_bindgen]
+#[cfg(feature = "openai")]
+pub fn validate_openai_response(json: &str) -> Result<JsValue, JsValue> {
+    validate_chat_completions_response(json)
 }
 
 /// Validate a JSON string as an Anthropic request

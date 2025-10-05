@@ -1,4 +1,4 @@
-.PHONY: all typescript python test clean help
+.PHONY: all typescript python test clean help generate-types install-hooks
 
 all: typescript python ## Build all bindings
 
@@ -7,8 +7,11 @@ help: ## Show this help message
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
+generate-types: ## Generate TypeScript types from Rust (via ts-rs)
+	@echo "Generating TypeScript types from Rust..."
+	@cargo test --lib --no-run --quiet
 
-typescript: ## Build TypeScript bindings (WASM)
+typescript: generate-types ## Build TypeScript bindings (WASM)
 	@echo "Building TypeScript bindings..."
 	cd bindings/typescript && pnpm install && pnpm run build
 
@@ -22,7 +25,7 @@ test-rust: ## Run Rust tests
 	@echo "Running Rust tests..."
 	cargo test
 
-test-typescript: ## Run TypeScript tests
+test-typescript: generate-types ## Run TypeScript tests
 	@echo "Running TypeScript tests..."
 	cd bindings/typescript && pnpm run test:run
 
@@ -34,6 +37,7 @@ clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	cargo clean
 	rm -rf bindings/typescript/wasm bindings/typescript/dist bindings/typescript/node_modules
+	rm -rf bindings/typescript/src/generated
 	rm -rf bindings/python/.venv bindings/python/target
 	rm -rf target/wheels
 
@@ -48,5 +52,9 @@ fmt: ## Format all code
 	cargo fmt
 	@echo "Formatting TypeScript code..."
 	cd bindings/typescript && pnpm run lint
+
+install-hooks: ## Install git pre-commit hooks
+	@echo "Installing git hooks..."
+	./scripts/install-hooks.sh
 
 .DEFAULT_GOAL := all

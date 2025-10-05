@@ -18,7 +18,18 @@ export {
   anthropicMessagesToLingua,
   linguaToAnthropicMessages,
 
-  // OpenAI validation
+  // Processing functions
+  deduplicateMessages,
+
+  // Chat Completions validation
+  validateChatCompletionsRequest,
+  validateChatCompletionsResponse,
+
+  // Responses API validation
+  validateResponsesRequest,
+  validateResponsesResponse,
+
+  // OpenAI validation (deprecated - use Chat Completions or Responses instead)
   validateOpenAIRequest,
   validateOpenAIResponse,
 

@@ -248,6 +248,19 @@ Prerequisites: Rust toolchain, Node.js, pnpm.
 
 Run `./scripts/setup.sh` from the project root after cloning. If the script succeeds, you should be all set! Otherwise, follow the error messages.
 
+### TypeScript Type Generation
+
+TypeScript types for the universal `Message` format are automatically generated from Rust types using [ts-rs](https://github.com/Aleph-Alpha/ts-rs):
+
+```bash
+# Generate TypeScript types from Rust
+make generate-types
+
+# Generated files: bindings/typescript/src/generated/*.ts
+```
+
+**Important**: After modifying Rust types in `src/universal/`, run `make generate-types` and commit the updated TypeScript files. CI will verify that generated types are up to date.
+
 ## License
 
 TBD

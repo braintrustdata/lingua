@@ -16,6 +16,7 @@ pub enum Message {
     },
     Assistant {
         content: AssistantContent,
+        #[ts(optional)]
         id: Option<String>,
     },
     Tool {
@@ -34,7 +35,7 @@ pub enum UserContent {
 /// User content parts - text, image, and file parts allowed
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "snake_case")]
 #[skip_serializing_none]
 pub enum UserContentPart {
     Text(TextContentPart),
@@ -110,7 +111,7 @@ pub enum AssistantContentPart {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ToolCallArguments {
     Valid(#[ts(type = "Record<string, unknown>")] serde_json::Map<String, serde_json::Value>),
     Invalid(String),

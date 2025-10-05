@@ -3,22 +3,49 @@ OpenAI format validation.
 */
 
 use crate::providers::openai::generated::{
-    CreateChatCompletionRequestClass, CreateChatCompletionResponse,
+    CreateChatCompletionRequestClass, CreateChatCompletionResponse, CreateResponseClass,
+    TheResponseObject,
 };
 use crate::validation::{validate_json, ValidationError};
 
-/// Validates a JSON string as an OpenAI chat completion request
-pub fn validate_openai_request(
+/// Validates a JSON string as a chat completions request
+pub fn validate_chat_completions_request(
     json: &str,
 ) -> Result<CreateChatCompletionRequestClass, ValidationError> {
     validate_json(json)
 }
 
-/// Validates a JSON string as an OpenAI chat completion response
-pub fn validate_openai_response(
+/// Validates a JSON string as a chat completions response
+pub fn validate_chat_completions_response(
     json: &str,
 ) -> Result<CreateChatCompletionResponse, ValidationError> {
     validate_json(json)
+}
+
+/// Validates a JSON string as a Responses API request
+pub fn validate_responses_request(json: &str) -> Result<CreateResponseClass, ValidationError> {
+    validate_json(json)
+}
+
+/// Validates a JSON string as a Responses API response
+pub fn validate_responses_response(json: &str) -> Result<TheResponseObject, ValidationError> {
+    validate_json(json)
+}
+
+/// Validates a JSON string as an OpenAI chat completion request
+/// @deprecated Use validate_chat_completions_request instead
+pub fn validate_openai_request(
+    json: &str,
+) -> Result<CreateChatCompletionRequestClass, ValidationError> {
+    validate_chat_completions_request(json)
+}
+
+/// Validates a JSON string as an OpenAI chat completion response
+/// @deprecated Use validate_chat_completions_response instead
+pub fn validate_openai_response(
+    json: &str,
+) -> Result<CreateChatCompletionResponse, ValidationError> {
+    validate_chat_completions_response(json)
 }
 
 #[cfg(test)]

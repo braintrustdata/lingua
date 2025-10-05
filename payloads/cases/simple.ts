@@ -19,7 +19,7 @@ export const simpleCases: TestCaseCollection = {
       reasoning_effort: "low",
     },
 
-    "responses": {
+    responses: {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "minimal" },
       text: { verbosity: "low" },
@@ -55,7 +55,7 @@ export const simpleCases: TestCaseCollection = {
       ],
     },
 
-    "responses": {
+    responses: {
       model: OPENAI_RESPONSES_MODEL,
       reasoning: { effort: "high" },
       input: [
@@ -92,7 +92,7 @@ export const simpleCases: TestCaseCollection = {
       ],
     },
 
-    "responses": {
+    responses: {
       model: OPENAI_RESPONSES_MODEL,
       max_output_tokens: 100,
       reasoning: { effort: "high" },
@@ -147,7 +147,7 @@ export const simpleCases: TestCaseCollection = {
       ],
       tool_choice: "auto",
     },
-    "responses": {
+    responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [
         {

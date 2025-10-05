@@ -14,11 +14,7 @@ export const openaiResponsesCases: Record<
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
-  const caseData = getCaseForProvider(
-    allTestCases,
-    caseName,
-    "responses"
-  );
+  const caseData = getCaseForProvider(allTestCases, caseName, "responses");
   if (caseData) {
     openaiResponsesCases[caseName] = caseData;
   }

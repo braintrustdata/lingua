@@ -9,7 +9,7 @@ use std::fmt;
 /// Errors that can occur during conversion between OpenAI and universal formats
 #[derive(Debug)]
 pub enum ConvertError {
-    UnsupportedInputType,
+    UnsupportedInputType { type_info: String },
     MissingRequiredField { field: String },
     InvalidRole { role: String },
     ContentConversionFailed { reason: String },
@@ -19,7 +19,9 @@ pub enum ConvertError {
 impl fmt::Display for ConvertError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ConvertError::UnsupportedInputType => write!(f, "Unsupported input item type"),
+            ConvertError::UnsupportedInputType { type_info } => {
+                write!(f, "Unsupported input type: {}", type_info)
+            }
             ConvertError::MissingRequiredField { field } => {
                 write!(f, "Missing required field: {}", field)
             }
@@ -237,11 +239,15 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
             }
             openai::InputItemContentListType::InputAudio => {
                 // Handle audio input if needed in the future
-                return Err(ConvertError::UnsupportedInputType);
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: "InputAudio content type".to_string(),
+                });
             }
             openai::InputItemContentListType::InputFile => {
                 // Handle file input if needed in the future
-                return Err(ConvertError::UnsupportedInputType);
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: "InputFile content type".to_string(),
+                });
             }
             openai::InputItemContentListType::ReasoningText => {
                 // Handle reasoning text - treat as regular text for now
@@ -314,7 +320,11 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
             } => {
                 let image_url = match image {
                     serde_json::Value::String(url) => url,
-                    _ => return Err(ConvertError::UnsupportedInputType),
+                    _ => {
+                        return Err(ConvertError::UnsupportedInputType {
+                            type_info: format!("Image type must be string URL, got: {:?}", image),
+                        })
+                    }
                 };
 
                 // Extract detail from provider_options if present
@@ -330,7 +340,11 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
-            _ => return Err(ConvertError::UnsupportedInputType),
+            _ => {
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: format!("UserContentPart variant: {:?}", part),
+                })
+            }
         })
     }
 }
@@ -406,7 +420,11 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
-            _ => return Err(ConvertError::UnsupportedInputType),
+            _ => {
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: format!("AssistantContentPart variant: {:?}", part),
+                })
+            }
         })
     }
 }
@@ -429,7 +447,9 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
             }
             // TODO: ToolCall content type support - not yet implemented in generated types
             _ => {
-                return Err(ConvertError::UnsupportedInputType);
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: format!("InputContent type: {:?}", value.input_content_type),
+                });
             }
         })
     }
@@ -836,7 +856,12 @@ impl TryFromLLM<Message> for openai::OutputItem {
             }
             _ => {
                 // OutputItem only supports Assistant messages in responses
-                Err(ConvertError::UnsupportedInputType)
+                Err(ConvertError::UnsupportedInputType {
+                    type_info: format!(
+                        "OutputItem only supports Assistant messages, got: {:?}",
+                        message
+                    ),
+                })
             }
         }
     }
@@ -972,7 +997,9 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                                             Err(ConvertError::MissingRequiredField { field: "text".to_string() })
                                         }
                                     }
-                                    _ => Err(ConvertError::UnsupportedInputType),
+                                    _ => Err(ConvertError::UnsupportedInputType {
+                                        type_info: format!("ChatCompletionRequestMessageContentPart type: {:?}", part.chat_completion_request_message_content_part_type),
+                                    }),
                                 }
                             })
                             .collect();
@@ -1033,8 +1060,20 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                 // Tool messages should extract tool_call_id and content
                 let content_text = match msg.content {
                     Some(openai::ChatCompletionRequestMessageContent::String(text)) => text,
-                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(_)) => {
-                        return Err(ConvertError::UnsupportedInputType); // Tool messages typically have string content
+                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(mut arr)) => {
+                        if arr.len() != 1 {
+                            return Err(ConvertError::UnsupportedInputType {
+                                type_info: format!("Tool messages must have a single array element (found {})", arr.len()),
+                            });
+                        }
+                        let part = arr.remove(0);
+                        if let Some(text) = part.text {
+                            text
+                        } else {
+                            return Err(ConvertError::UnsupportedInputType {
+                                type_info: "Tool content part must have text".to_string(),
+                            });
+                        }
                     }
                     None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
                 };
@@ -1103,7 +1142,12 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     })
                 }
             }
-            _ => Err(ConvertError::UnsupportedInputType),
+            _ => Err(ConvertError::UnsupportedInputType {
+                type_info: format!(
+                    "ChatCompletionRequestMessageContentPart type: {:?}",
+                    part.chat_completion_request_message_content_part_type
+                ),
+            }),
         }
     }
 }
@@ -1226,7 +1270,14 @@ fn convert_user_content_part_to_chat_completion_part(
             // Convert image to ImageUrl format
             let url = match image {
                 serde_json::Value::String(url) => url,
-                _ => return Err(ConvertError::UnsupportedInputType),
+                _ => {
+                    return Err(ConvertError::UnsupportedInputType {
+                        type_info: format!(
+                            "Image must be string URL for ChatCompletion, got: {:?}",
+                            image
+                        ),
+                    })
+                }
             };
             Ok(openai::ChatCompletionRequestMessageContentPart {
                 text: None,
@@ -1237,7 +1288,12 @@ fn convert_user_content_part_to_chat_completion_part(
                 refusal: None,
             })
         }
-        _ => Err(ConvertError::UnsupportedInputType),
+        _ => Err(ConvertError::UnsupportedInputType {
+            type_info: format!(
+                "UserContentPart variant in ChatCompletion conversion: {:?}",
+                part
+            ),
+        }),
     }
 }
 

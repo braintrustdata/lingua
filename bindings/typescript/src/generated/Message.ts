@@ -3,4 +3,4 @@ import type { AssistantContent } from "./AssistantContent";
 import type { ToolContentPart } from "./ToolContentPart";
 import type { UserContent } from "./UserContent";
 
-export type Message = { "role": "system", content: UserContent, } | { "role": "user", content: UserContent, } | { "role": "assistant", content: AssistantContent, id: string | null, } | { "role": "tool", content: Array<ToolContentPart>, };
+export type Message = { "role": "system", content: UserContent, } | { "role": "user", content: UserContent, } | { "role": "assistant", content: AssistantContent, id?: string, } | { "role": "tool", content: Array<ToolContentPart>, };

@@ -185,6 +185,42 @@ export const linguaToAnthropicMessages = createFromLinguaConverter<Message[], un
 );
 
 // ============================================================================
+// Processing functions
+// ============================================================================
+
+/**
+ * Deduplicate messages based on role and content.
+ *
+ * Two messages are considered duplicates if:
+ * - They have the same role
+ * - Their content is semantically identical
+ *
+ * This handles equivalence between string and array content representations:
+ * - `{"role": "user", "content": "foo"}` equals `{"role": "user", "content": [{"type": "text", "text": "foo"}]}`
+ *
+ * The function preserves the order of messages and keeps the first occurrence of each unique message.
+ * Original messages are returned unmodified - hashing is only used for deduplication.
+ *
+ * @param messages - Array of Lingua messages to deduplicate
+ * @returns Deduplicated array of messages
+ * @throws {ConversionError} If processing fails
+ */
+export function deduplicateMessages(messages: Message[]): Message[] {
+  try {
+    const result = wasm.deduplicate_messages(messages);
+    // Convert any Map objects to plain objects
+    return convertMapsToObjects(result) as Message[];
+  } catch (error: unknown) {
+    throw new ConversionError(
+      'Failed to deduplicate messages',
+      undefined,
+      undefined,
+      error
+    );
+  }
+}
+
+// ============================================================================
 // Validation functions (Zod-style API)
 // ============================================================================
 
@@ -196,12 +232,12 @@ export type ValidationResult<T> =
   | { ok: false; error: { message: string } };
 
 /**
- * Validate a JSON string as an OpenAI request
+ * Validate a JSON string as a Chat Completions request
  * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
  */
-export function validateOpenAIRequest(json: string): ValidationResult<unknown> {
+export function validateChatCompletionsRequest(json: string): ValidationResult<unknown> {
   try {
-    const data = wasm.validate_openai_request(json);
+    const data = wasm.validate_chat_completions_request(json);
     return { ok: true, data };
   } catch (error: unknown) {
     return {
@@ -212,12 +248,12 @@ export function validateOpenAIRequest(json: string): ValidationResult<unknown> {
 }
 
 /**
- * Validate a JSON string as an OpenAI response
+ * Validate a JSON string as a Chat Completions response
  * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
  */
-export function validateOpenAIResponse(json: string): ValidationResult<unknown> {
+export function validateChatCompletionsResponse(json: string): ValidationResult<unknown> {
   try {
-    const data = wasm.validate_openai_response(json);
+    const data = wasm.validate_chat_completions_response(json);
     return { ok: true, data };
   } catch (error: unknown) {
     return {
@@ -225,6 +261,56 @@ export function validateOpenAIResponse(json: string): ValidationResult<unknown> 
       error: { message: String(error) },
     };
   }
+}
+
+/**
+ * Validate a JSON string as a Responses API request
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateResponsesRequest(json: string): ValidationResult<unknown> {
+  try {
+    const data = wasm.validate_responses_request(json);
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error: { message: String(error) },
+    };
+  }
+}
+
+/**
+ * Validate a JSON string as a Responses API response
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateResponsesResponse(json: string): ValidationResult<unknown> {
+  try {
+    const data = wasm.validate_responses_response(json);
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error: { message: String(error) },
+    };
+  }
+}
+
+/**
+ * Validate a JSON string as an OpenAI request
+ * @deprecated Use validateChatCompletionsRequest instead
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateOpenAIRequest(json: string): ValidationResult<unknown> {
+  return validateChatCompletionsRequest(json);
+}
+
+/**
+ * Validate a JSON string as an OpenAI response
+ * @deprecated Use validateChatCompletionsResponse instead
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateOpenAIResponse(json: string): ValidationResult<unknown> {
+  return validateChatCompletionsResponse(json);
 }
 
 /**
