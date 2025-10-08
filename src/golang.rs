@@ -31,8 +31,12 @@ fn string_to_c_str(s: String) -> *mut c_char {
 }
 
 /// Free a C string that was allocated by Rust
+///
+/// # Safety
+/// - `s` must be null or a pointer previously returned by a lingua function
+/// - `s` must not be used after calling this function (consumed/freed)
 #[no_mangle]
-pub extern "C" fn lingua_free_string(s: *mut c_char) {
+pub unsafe extern "C" fn lingua_free_string(s: *mut c_char) {
     if !s.is_null() {
         unsafe {
             let _ = CString::from_raw(s);
@@ -86,8 +90,13 @@ where
 ///
 /// # Returns
 /// JSON string containing array of Lingua Messages, or null on error
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
-pub extern "C" fn lingua_chat_completions_to_lingua(
+pub unsafe extern "C" fn lingua_chat_completions_to_lingua(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -96,9 +105,7 @@ pub extern "C" fn lingua_chat_completions_to_lingua(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -126,8 +133,13 @@ pub extern "C" fn lingua_chat_completions_to_lingua(
 }
 
 /// Convert array of Lingua Messages to Chat Completions messages
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
-pub extern "C" fn lingua_to_chat_completions(
+pub unsafe extern "C" fn lingua_to_chat_completions(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -136,9 +148,7 @@ pub extern "C" fn lingua_to_chat_completions(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -171,8 +181,13 @@ pub extern "C" fn lingua_to_chat_completions(
 // ============================================================================
 
 /// Convert array of Responses API messages to Lingua Messages
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
-pub extern "C" fn lingua_responses_to_lingua(
+pub unsafe extern "C" fn lingua_responses_to_lingua(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -181,9 +196,7 @@ pub extern "C" fn lingua_responses_to_lingua(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -211,8 +224,13 @@ pub extern "C" fn lingua_responses_to_lingua(
 }
 
 /// Convert array of Lingua Messages to Responses API messages
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
-pub extern "C" fn lingua_to_responses(
+pub unsafe extern "C" fn lingua_to_responses(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -221,9 +239,7 @@ pub extern "C" fn lingua_to_responses(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -255,8 +271,13 @@ pub extern "C" fn lingua_to_responses(
 // ============================================================================
 
 /// Convert array of Anthropic messages to Lingua Messages
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
-pub extern "C" fn lingua_anthropic_to_lingua(
+pub unsafe extern "C" fn lingua_anthropic_to_lingua(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -265,9 +286,7 @@ pub extern "C" fn lingua_anthropic_to_lingua(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -295,8 +314,13 @@ pub extern "C" fn lingua_anthropic_to_lingua(
 }
 
 /// Convert array of Lingua Messages to Anthropic messages
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
-pub extern "C" fn lingua_to_anthropic(
+pub unsafe extern "C" fn lingua_to_anthropic(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -305,9 +329,7 @@ pub extern "C" fn lingua_to_anthropic(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -339,8 +361,13 @@ pub extern "C" fn lingua_to_anthropic(
 // ============================================================================
 
 /// Deduplicate messages based on role and content
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
-pub extern "C" fn lingua_deduplicate_messages(
+pub unsafe extern "C" fn lingua_deduplicate_messages(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -351,9 +378,7 @@ pub extern "C" fn lingua_deduplicate_messages(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -399,9 +424,14 @@ pub extern "C" fn lingua_deduplicate_messages(
 // ============================================================================
 
 /// Validate a JSON string as a Chat Completions request
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
 #[cfg(feature = "openai")]
-pub extern "C" fn lingua_validate_chat_completions_request(
+pub unsafe extern "C" fn lingua_validate_chat_completions_request(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -412,9 +442,7 @@ pub extern "C" fn lingua_validate_chat_completions_request(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -452,9 +480,14 @@ pub extern "C" fn lingua_validate_chat_completions_request(
 }
 
 /// Validate a JSON string as a Chat Completions response
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
 #[cfg(feature = "openai")]
-pub extern "C" fn lingua_validate_chat_completions_response(
+pub unsafe extern "C" fn lingua_validate_chat_completions_response(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -465,9 +498,7 @@ pub extern "C" fn lingua_validate_chat_completions_response(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -505,9 +536,14 @@ pub extern "C" fn lingua_validate_chat_completions_response(
 }
 
 /// Validate a JSON string as a Responses API request
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
 #[cfg(feature = "openai")]
-pub extern "C" fn lingua_validate_responses_request(
+pub unsafe extern "C" fn lingua_validate_responses_request(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -518,9 +554,7 @@ pub extern "C" fn lingua_validate_responses_request(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -558,9 +592,14 @@ pub extern "C" fn lingua_validate_responses_request(
 }
 
 /// Validate a JSON string as a Responses API response
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
 #[cfg(feature = "openai")]
-pub extern "C" fn lingua_validate_responses_response(
+pub unsafe extern "C" fn lingua_validate_responses_response(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -571,9 +610,7 @@ pub extern "C" fn lingua_validate_responses_response(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -611,9 +648,14 @@ pub extern "C" fn lingua_validate_responses_response(
 }
 
 /// Validate a JSON string as an Anthropic request
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
 #[cfg(feature = "anthropic")]
-pub extern "C" fn lingua_validate_anthropic_request(
+pub unsafe extern "C" fn lingua_validate_anthropic_request(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -624,9 +666,7 @@ pub extern "C" fn lingua_validate_anthropic_request(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
@@ -664,9 +704,14 @@ pub extern "C" fn lingua_validate_anthropic_request(
 }
 
 /// Validate a JSON string as an Anthropic response
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
 #[no_mangle]
 #[cfg(feature = "anthropic")]
-pub extern "C" fn lingua_validate_anthropic_response(
+pub unsafe extern "C" fn lingua_validate_anthropic_response(
     json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
@@ -677,9 +722,7 @@ pub extern "C" fn lingua_validate_anthropic_response(
             Some(s) => s,
             None => {
                 if !error_out.is_null() {
-                    unsafe {
-                        *error_out = string_to_c_str("Input JSON is null".to_string());
-                    }
+                    *error_out = string_to_c_str("Input JSON is null".to_string());
                 }
                 return ptr::null_mut();
             }
