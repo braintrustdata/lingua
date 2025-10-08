@@ -181,4 +181,6 @@ jobs:
 
     - name: Run Go tests
       working-directory: bindings/golang
-      run: go test -v
+      run: |
+        export LD_LIBRARY_PATH="${{ github.workspace }}/target/release:$LD_LIBRARY_PATH"
+        go test -v
