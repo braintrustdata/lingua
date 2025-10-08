@@ -53,11 +53,16 @@ lingua/
 │   ├── capabilities/          # Capability detection system
 │   ├── wasm.rs                # WebAssembly bindings
 │   ├── python.rs              # Python bindings (PyO3)
+│   ├── golang.rs              # Go bindings (CGo/FFI)
 │   └── lib.rs                 # Main library entry
 ├── bindings/
 │   ├── typescript/            # TypeScript/WASM bindings
-│   └── python/                # Python bindings
-├── examples/                  # Usage examples
+│   ├── python/                # Python bindings
+│   └── golang/                # Go bindings
+├── examples/
+│   ├── typescript/            # TypeScript examples
+│   ├── python/                # Python examples
+│   └── golang/                # Go examples
 └── tests/typescript/          # TypeScript compatibility tests
 ```
 
@@ -75,12 +80,14 @@ make all
 # Build specific bindings
 make typescript
 make python
+make golang
 
 # Run tests
 make test
 make test-rust
 make test-typescript
 make test-python
+make test-golang
 
 # Clean build artifacts
 make clean
@@ -106,6 +113,20 @@ uv run pytest tests/
 ```
 
 See [bindings/python/README.md](bindings/python/README.md) for details.
+
+### Go bindings
+
+```bash
+cd bindings/golang
+make build
+make test
+
+# Run examples
+cd ../../examples/golang
+go run full_demo.go
+```
+
+See [bindings/golang/README.md](bindings/golang/README.md) for details.
 
 ## Update pipeline
 

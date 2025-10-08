@@ -21,6 +21,7 @@ anthropic = []
 google = []
 bedrock = ["dep:aws-sdk-bedrockruntime"]
 python = ["dep:pyo3"]
+golang = []
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

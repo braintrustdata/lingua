@@ -9,3 +9,14 @@ node_modules/
 __pycache__
 *.so
 dev-notes/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.test
+*.out
+coverage.html
+vendor/
+go.work
