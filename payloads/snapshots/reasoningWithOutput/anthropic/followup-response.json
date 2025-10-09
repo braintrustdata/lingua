@@ -1,0 +1,25 @@
+{
+  "id": "msg_01NR3VKvE5y6kSFqzgMg2JTC",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-4-20250514",
+  "content": [
+    {
+      "type": "text",
+      "text": "I don't have enough information about your current situation, goals, or what you're trying to accomplish to give you specific advice about what to do next. \n\nCould you share more context? For example:\n- What are you currently working on or thinking about?\n- Is there a particular area where you're looking for suggestions (work, personal projects, entertainment, etc.)?\n- Are you facing a specific decision or problem?\n- What are your current priorities or interests?\n\nWith more details, I'd be happy to offer more tailored suggestions!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 105,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 118,
+    "service_tier": "standard"
+  }
+}

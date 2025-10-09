@@ -1,0 +1,58 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 20000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What's the weather like in San Francisco?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll check the current weather in San Francisco for you."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_011K7vBi4Gcyn9j8epDoYveK",
+          "name": "get_weather",
+          "input": {
+            "location": "San Francisco, CA"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_011K7vBi4Gcyn9j8epDoYveK",
+          "content": "71 degrees"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "auto"
+  }
+}

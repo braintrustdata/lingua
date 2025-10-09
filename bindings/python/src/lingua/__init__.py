@@ -1,0 +1,355 @@
+"""
+Lingua - Universal message format for LLM APIs
+
+This package provides conversion and validation functions for translating between
+different LLM provider formats (OpenAI, Anthropic, etc.) and the universal Lingua format.
+
+API matches the TypeScript interface but with Pythonic snake_case naming:
+- openai_message_to_lingua (TypeScript: openAIMessageToLingua)
+- validate_openai_request (TypeScript: validateOpenAIRequest)
+
+Note: Python uses exceptions while TypeScript uses Zod-style result objects.
+"""
+
+from typing import Any, Dict
+
+# Import the native conversion functions
+from lingua._lingua import (
+    chat_completions_messages_to_lingua as _chat_completions_messages_to_lingua,
+    lingua_to_chat_completions_messages as _lingua_to_chat_completions_messages,
+    responses_messages_to_lingua as _responses_messages_to_lingua,
+    lingua_to_responses_messages as _lingua_to_responses_messages,
+    anthropic_messages_to_lingua as _anthropic_messages_to_lingua,
+    lingua_to_anthropic_messages as _lingua_to_anthropic_messages,
+    validate_chat_completions_request as _validate_chat_completions_request,
+    validate_chat_completions_response as _validate_chat_completions_response,
+    validate_responses_request as _validate_responses_request,
+    validate_responses_response as _validate_responses_response,
+    validate_openai_request as _validate_openai_request,
+    validate_openai_response as _validate_openai_response,
+    validate_anthropic_request as _validate_anthropic_request,
+    validate_anthropic_response as _validate_anthropic_response,
+)
+
+
+# ============================================================================
+# Error types
+# ============================================================================
+
+class ConversionError(Exception):
+    """Error during format conversion"""
+    pass
+
+
+# ============================================================================
+# Chat Completions API conversions
+# ============================================================================
+
+def chat_completions_messages_to_lingua(messages: list) -> list:
+    """
+    Convert array of Chat Completions messages to Lingua Messages.
+
+    Args:
+        messages: List of ChatCompletionRequestMessage objects
+
+    Returns:
+        List of Lingua Message objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _chat_completions_messages_to_lingua(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert chat completions messages to Lingua: {e}") from e
+
+
+def lingua_to_chat_completions_messages(messages: list) -> list:
+    """
+    Convert array of Lingua Messages to Chat Completions messages.
+
+    Args:
+        messages: List of Lingua Message objects
+
+    Returns:
+        List of ChatCompletionRequestMessage objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _lingua_to_chat_completions_messages(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert Lingua to chat completions messages: {e}") from e
+
+
+# ============================================================================
+# Responses API conversions
+# ============================================================================
+
+def responses_messages_to_lingua(messages: list) -> list:
+    """
+    Convert array of Responses API messages to Lingua Messages.
+
+    Args:
+        messages: List of InputItem objects
+
+    Returns:
+        List of Lingua Message objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _responses_messages_to_lingua(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert responses messages to Lingua: {e}") from e
+
+
+def lingua_to_responses_messages(messages: list) -> list:
+    """
+    Convert array of Lingua Messages to Responses API messages.
+
+    Args:
+        messages: List of Lingua Message objects
+
+    Returns:
+        List of InputItem objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _lingua_to_responses_messages(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert Lingua to responses messages: {e}") from e
+
+
+# ============================================================================
+# Anthropic conversions
+# ============================================================================
+
+def anthropic_messages_to_lingua(messages: list) -> list:
+    """
+    Convert array of Anthropic messages to Lingua Messages.
+
+    Args:
+        messages: List of Anthropic message objects
+
+    Returns:
+        List of Lingua Message objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _anthropic_messages_to_lingua(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert Anthropic messages to Lingua: {e}") from e
+
+
+def lingua_to_anthropic_messages(messages: list) -> list:
+    """
+    Convert array of Lingua Messages to Anthropic messages.
+
+    Args:
+        messages: List of Lingua Message objects
+
+    Returns:
+        List of Anthropic message objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _lingua_to_anthropic_messages(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to convert Lingua to Anthropic messages: {e}") from e
+
+
+# ============================================================================
+# Chat Completions validation
+# ============================================================================
+
+def validate_chat_completions_request(json_str: str) -> Any:
+    """
+    Validate a JSON string as a Chat Completions request.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Chat Completions request data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_chat_completions_request(json_str)
+
+
+def validate_chat_completions_response(json_str: str) -> Any:
+    """
+    Validate a JSON string as a Chat Completions response.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Chat Completions response data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_chat_completions_response(json_str)
+
+
+# ============================================================================
+# Responses API validation
+# ============================================================================
+
+def validate_responses_request(json_str: str) -> Any:
+    """
+    Validate a JSON string as a Responses API request.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Responses API request data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_responses_request(json_str)
+
+
+def validate_responses_response(json_str: str) -> Any:
+    """
+    Validate a JSON string as a Responses API response.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Responses API response data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_responses_response(json_str)
+
+
+# ============================================================================
+# OpenAI validation (deprecated)
+# ============================================================================
+
+def validate_openai_request(json_str: str) -> Any:
+    """
+    Validate a JSON string as an OpenAI request.
+
+    .. deprecated::
+        Use :func:`validate_chat_completions_request` instead
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated OpenAI request data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_openai_request(json_str)
+
+
+def validate_openai_response(json_str: str) -> Any:
+    """
+    Validate a JSON string as an OpenAI response.
+
+    .. deprecated::
+        Use :func:`validate_chat_completions_response` instead
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated OpenAI response data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_openai_response(json_str)
+
+
+# ============================================================================
+# Anthropic validation
+# ============================================================================
+
+def validate_anthropic_request(json_str: str) -> Any:
+    """
+    Validate a JSON string as an Anthropic request.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Anthropic request data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_anthropic_request(json_str)
+
+
+def validate_anthropic_response(json_str: str) -> Any:
+    """
+    Validate a JSON string as an Anthropic response.
+
+    Args:
+        json_str: JSON string to validate
+
+    Returns:
+        Validated Anthropic response data
+
+    Raises:
+        ValueError: If validation fails
+    """
+    return _validate_anthropic_response(json_str)
+
+
+# ============================================================================
+# Exports
+# ============================================================================
+
+__all__ = [
+    # Error handling
+    "ConversionError",
+
+    # Chat Completions API conversions
+    "chat_completions_messages_to_lingua",
+    "lingua_to_chat_completions_messages",
+
+    # Responses API conversions
+    "responses_messages_to_lingua",
+    "lingua_to_responses_messages",
+
+    # Anthropic conversions
+    "anthropic_messages_to_lingua",
+    "lingua_to_anthropic_messages",
+
+    # Chat Completions validation
+    "validate_chat_completions_request",
+    "validate_chat_completions_response",
+
+    # Responses API validation
+    "validate_responses_request",
+    "validate_responses_response",
+
+    # OpenAI validation (deprecated - use Chat Completions or Responses instead)
+    "validate_openai_request",
+    "validate_openai_response",
+
+    # Anthropic validation
+    "validate_anthropic_request",
+    "validate_anthropic_response",
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+    "object": "response.delta",
+    "created_at": 1758519400,
+    "delta": {
+      "type": "response.start",
+      "response": {
+        "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+        "object": "response",
+        "created_at": 1758519400,
+        "status": "in_progress",
+        "model": "gpt-5-nano-2025-08-07"
+      }
+    }
+  },
+  {
+    "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+    "object": "response.delta",
+    "created_at": 1758519400,
+    "delta": {
+      "type": "output_item.start",
+      "index": 0,
+      "output_item": {
+        "id": "msg_68d0e02d864c8193adf028455b2e789906a9b00521bf41b6",
+        "type": "message",
+        "status": "in_progress",
+        "role": "assistant",
+        "content": []
+      }
+    }
+  },
+  {
+    "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+    "object": "response.delta",
+    "created_at": 1758519400,
+    "delta": {
+      "type": "content_part.start",
+      "index": 0,
+      "content_part": {
+        "type": "output_text",
+        "text": ""
+      }
+    }
+  },
+  {
+    "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+    "object": "response.delta",
+    "created_at": 1758519400,
+    "delta": {
+      "type": "content_part.delta",
+      "index": 0,
+      "text": "Based on your interest in the landscape image, here are some suggestions for what you could do next:\n\n1. **Photography practice** - Try taking similar landscape photos in your area\n2. **Learn about composition** - Study the rule of thirds and other photography techniques\n3. **Explore nature** - Visit local parks or hiking trails to find scenic views\n4. **Image editing** - Learn how to enhance landscape photos using editing software\n5. **Share or discuss** - Share the image with friends or photography communities\n\nWhat interests you most about this type of imagery?"
+    }
+  },
+  {
+    "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+    "object": "response.delta",
+    "created_at": 1758519400,
+    "delta": {
+      "type": "content_part.stop",
+      "index": 0
+    }
+  },
+  {
+    "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+    "object": "response.delta",
+    "created_at": 1758519400,
+    "delta": {
+      "type": "output_item.stop",
+      "index": 0
+    }
+  },
+  {
+    "id": "resp_68d0e02c827881939fd06ddd6bc520ef06a9b00521bf41b6",
+    "object": "response.delta",
+    "created_at": 1758519400,
+    "delta": {
+      "type": "response.stop"
+    }
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+    },
+    {
+      "id": "rs_68d0ea66c15881969b8df2736d4d75980adc22e2826a9c16",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d0ea6c9c3c8196af58736d61ac8af70adc22e2826a9c16",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Step 1: Compute distance for each leg\n- Leg 1: 60 mph × 2 h = 120 miles\n- Leg 2: 80 mph × 1 h = 80 miles\n\nStep 2: Total distance\n- 120 + 80 = 200 miles\n\nStep 3: Total time\n- 2 h + 1 h = 3 h\n\nStep 4: Average speed\n- Average speed = total distance / total time = 200 miles / 3 hours = 200/3 mph ≈ 66.67 mph\n\nAnswer: 200/3 mph ≈ 66.67 mph (about 66 2/3 mph)."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

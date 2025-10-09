@@ -1,0 +1,73 @@
+{
+  "id": "resp_68d0ea674a20819784a0e3f003864422067a31a5ec6e55c5",
+  "object": "response",
+  "created_at": 1758521959,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_68d0ea67cd408197afdbb86948a7811c067a31a5ec6e55c5",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_68d0ea67f0908197806fed4bb9ca8346067a31a5ec6e55c5",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Could you tell me what you’re trying to accomplish? For example:\n- Do you want ideas for a day in Paris?\n- Are you looking for travel tips, language help, or something else?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "low"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 31,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 46,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 77
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Could you tell me what you’re trying to accomplish? For example:\n- Do you want ideas for a day in Paris?\n- Are you looking for travel tips, language help, or something else?"
+}

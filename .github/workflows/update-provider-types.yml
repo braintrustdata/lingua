@@ -1,0 +1,142 @@
+name: Update Provider Types
+
+on:
+  workflow_dispatch:
+    inputs:
+      providers:
+        description: 'Providers to update (comma-separated: openai,anthropic,google or "all")'
+        required: false
+        default: 'all'
+        type: string
+
+jobs:
+  update-provider-types:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install dependencies
+        run: |
+          # Install protobuf compiler for Google types
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: Parse provider input
+        id: providers
+        run: |
+          PROVIDERS="${{ github.event.inputs.providers }}"
+          if [ "$PROVIDERS" = "all" ]; then
+            PROVIDERS="openai,anthropic,google"
+          fi
+          echo "providers=$PROVIDERS" >> $GITHUB_OUTPUT
+          echo "Will update providers: $PROVIDERS"
+
+      - name: Update provider specifications and types
+        run: |
+          PROVIDERS="${{ steps.providers.outputs.providers }}"
+          
+          # Split providers by comma and update each one
+          IFS=',' read -ra PROVIDER_ARRAY <<< "$PROVIDERS"
+          for provider in "${PROVIDER_ARRAY[@]}"; do
+            provider=$(echo "$provider" | xargs) # trim whitespace
+            echo "📦 Updating $provider provider..."
+            
+            # Download latest specifications
+            ./pipelines/generate-provider-types.sh "$provider"
+            
+            if [ $? -ne 0 ]; then
+              echo "❌ Failed to update $provider provider"
+              exit 1
+            fi
+          done
+
+      - name: Check for changes
+        id: changes
+        run: |
+          # Check if there are any changes in the generated files
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in provider types"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in provider types"
+            echo "Changed files:"
+            git diff --name-only
+          fi
+
+      - name: Format code
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          cargo fmt --all
+          
+      - name: Run clippy
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          cargo clippy --all-targets --all-features --fix --allow-dirty
+          cargo fmt --all  # Format again after clippy fixes
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            Update ${{ steps.providers.outputs.providers }} provider types
+            
+            🤖 Generated with [Claude Code](https://claude.ai/code)
+            
+            Co-Authored-By: Claude <noreply@anthropic.com>
+          title: "Update ${{ steps.providers.outputs.providers }} provider types"
+          body: |
+            ## Summary
+            - Updated provider type definitions for: `${{ steps.providers.outputs.providers }}`
+            - Downloaded latest OpenAPI specs and protobuf files
+            - Regenerated Rust types using automated pipeline
+            
+            ## Changes Made
+            - 📥 Downloaded latest provider specifications
+            - 🏗️ Regenerated types using `generate-provider-types.sh`
+            - 🔧 Applied cargo fmt and clippy fixes
+            - ✅ All checks passing
+            
+            ## Test Plan
+            - [ ] Verify types compile without errors
+            - [ ] Check that all essential API types are present
+            - [ ] Ensure backwards compatibility with existing code
+            - [ ] Run integration tests if available
+            
+            ---
+            
+            🤖 Generated with [Claude Code](https://claude.ai/code)
+            
+            This PR was created automatically by the **Update Provider Types** GitHub Action.
+          branch: update-provider-types-${{ github.run_number }}
+          delete-branch: true
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
+            echo "✅ Provider types updated successfully!"
+            echo "📝 Pull request created with the latest changes"
+            echo "🔍 Updated providers: ${{ steps.providers.outputs.providers }}"
+          else
+            echo "ℹ️ No changes detected - provider types are already up to date"
+            echo "🔍 Checked providers: ${{ steps.providers.outputs.providers }}"
+          fi

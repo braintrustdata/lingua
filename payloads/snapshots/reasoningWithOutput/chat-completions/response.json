@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-CIc9puA2917sc5Bfa5W2ayLt57ToH",
+  "object": "chat.completion",
+  "created": 1758552617,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Mostly blue during a clear day. That blue comes from sunlight scattering in the atmosphere. It changes with time and conditions:\n\n- Sunrise/sunset: red, orange, pink\n- Cloudy/overcast: gray\n- Night: dark blue to black\n- Sometimes other colors appear (greenish, yellowish) due to pollution, dust, or auroras\n\nIf you tell me your time and place, I can give a more exact description for right now.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 743,
+    "total_tokens": 755,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 640,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

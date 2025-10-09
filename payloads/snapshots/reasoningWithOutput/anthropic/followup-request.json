@@ -1,0 +1,23 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 20000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "The sky appears blue during a clear day. This happens because molecules in Earth's atmosphere scatter blue light from the sun more than other colors. At sunrise and sunset, the sky can appear orange, pink, or red due to the longer path sunlight takes through the atmosphere. At night, the sky appears dark or black, though it may have different hues depending on light pollution and atmospheric conditions."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

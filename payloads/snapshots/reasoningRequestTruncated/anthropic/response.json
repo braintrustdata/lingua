@@ -1,0 +1,25 @@
+{
+  "id": "msg_01JLMCLAWYysj93dVQi2mEcn",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-4-20250514",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'll solve this step by step using the formula: Average speed = Total distance ÷ Total time\n\n**Step 1: Calculate distance for each segment**\n\nSegment 1:\n- Speed = 60 mph\n- Time = 2 hours  \n- Distance = 60 × 2 = 120 miles\n\nSegment 2:\n- Speed = 80 mph\n- Time = 1 hour\n- Distance = "
+    }
+  ],
+  "stop_reason": "max_tokens",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 45,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 100,
+    "service_tier": "standard"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "What do you see in this image?"
+        },
+        {
+          "type": "input_image",
+          "detail": "auto",
+          "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+        }
+      ]
+    }
+  ],
+  "max_output_tokens": 300
+}
