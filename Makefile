@@ -1,6 +1,6 @@
-.PHONY: all typescript python test clean help generate-types install-hooks install-wasm-tools setup
+.PHONY: all typescript python golang test clean help generate-types install-hooks install-wasm-tools setup lint-golang
 
-all: typescript python ## Build all bindings
+all: typescript python golang ## Build all bindings
 
 help: ## Show this help message
 	@echo "Lingua Build Targets:"
@@ -19,7 +19,12 @@ python: ## Build Python bindings (PyO3)
 	@echo "Building Python bindings..."
 	cd bindings/python && uv sync --all-extras --group dev
 
-test: test-rust test-typescript test-python ## Run all tests
+golang: ## Build Golang bindings (CGo)
+	@echo "Building Rust library with golang feature..."
+	cargo build --release --features golang
+	@echo "Golang bindings ready at target/release/liblingua"
+
+test: test-rust test-typescript test-python test-golang ## Run all tests
 
 test-rust: ## Run Rust tests
 	@echo "Running Rust tests..."
@@ -37,6 +42,10 @@ test-python: ## Run Python tests
 	@echo "Running Python tests..."
 	cd bindings/python && uv run pytest tests/ -v
 
+test-golang: golang ## Run Golang tests
+	@echo "Running Golang tests..."
+	cd bindings/golang && go test -v
+
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	cargo clean
@@ -44,6 +53,7 @@ clean: ## Clean build artifacts
 	rm -rf bindings/typescript/src/generated
 	rm -rf bindings/python/.venv bindings/python/target
 	rm -rf target/wheels
+	rm -rf bindings/golang/coverage.out bindings/golang/coverage.html
 
 check: ## Check all code compiles
 	@echo "Checking Rust code..."
@@ -54,6 +64,8 @@ check: ## Check all code compiles
 fmt: ## Format all code
 	@echo "Formatting Rust code..."
 	cargo fmt
+	@echo "Formatting Go code..."
+	cd bindings/golang && go fmt ./...
 	@echo "Formatting TypeScript code..."
 	cd bindings/typescript && pnpm run lint
 

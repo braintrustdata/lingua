@@ -153,3 +153,37 @@ jobs:
 
     - name: Run Python tests
       run: make test-python
+
+  test-golang:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Build Rust library with golang feature
+      run: cargo build --release --features golang
+
+    - name: Run Go tests
+      working-directory: bindings/golang
+      run: |
+        export LD_LIBRARY_PATH="${{ github.workspace }}/target/release:$LD_LIBRARY_PATH"
+        go test -v
