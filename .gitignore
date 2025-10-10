@@ -10,3 +10,13 @@ __pycache__
 dev-notes/
 *.node
 .turbo
+# Go
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.test
+*.out
+coverage.html
+vendor/
+go.work
