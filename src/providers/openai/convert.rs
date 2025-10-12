@@ -762,6 +762,18 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
     }
 }
 
+impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
+    type Error = ConvertError;
+
+    fn try_from(messages: Vec<openai::OutputItem>) -> Result<Vec<Message>, Self::Error> {
+        let input_items: Vec<openai::InputItem> = messages
+            .into_iter()
+            .map(TryFromLLM::try_from)
+            .collect::<Result<_, _>>()?;
+        TryFromLLM::try_from(input_items)
+    }
+}
+
 /// Convert universal Message to OpenAI OutputItem (for Responses API responses)
 impl TryFromLLM<Message> for openai::OutputItem {
     type Error = ConvertError;
