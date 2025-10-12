@@ -762,6 +762,82 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
     }
 }
 
+/// Convert InputItem to OutputItem (reverse of OutputItem -> InputItem conversion)
+impl TryFromLLM<openai::InputItem> for openai::OutputItem {
+    type Error = ConvertError;
+
+    fn try_from(input_item: openai::InputItem) -> Result<Self, Self::Error> {
+        // Convert InputItem to OutputItem by mapping the fields
+        let output_item_type = match input_item.input_item_type {
+            Some(openai::InputItemType::Message) => Some(openai::OutputItemType::Message),
+            Some(openai::InputItemType::Reasoning) => Some(openai::OutputItemType::Reasoning),
+            Some(openai::InputItemType::FunctionCall) => Some(openai::OutputItemType::FunctionCall),
+            Some(openai::InputItemType::CustomToolCall) => {
+                Some(openai::OutputItemType::CustomToolCall)
+            }
+            _ => None,
+        };
+
+        // Convert content from InputItemContent to Vec<OutputMessageContent>
+        let content = if let Some(input_content) = input_item.content {
+            match input_content {
+                openai::InputItemContent::String(text) => {
+                    // Single string content becomes single OutputMessageContent
+                    Some(vec![openai::OutputMessageContent {
+                        output_message_content_type: openai::ContentType::OutputText,
+                        text: Some(text),
+                        annotations: Some(vec![]),
+                        logprobs: Some(vec![]),
+                        refusal: None,
+                    }])
+                }
+                openai::InputItemContent::InputContentArray(input_contents) => {
+                    // Convert InputContent array to OutputMessageContent array
+                    let output_contents: Result<Vec<_>, _> = input_contents
+                        .into_iter()
+                        .map(convert_input_content_to_output_message_content)
+                        .collect();
+                    Some(output_contents?)
+                }
+            }
+        } else {
+            None
+        };
+
+        // Convert role from InputItemRole to MessageRole
+        let role = input_item.role.and_then(|ir| match ir {
+            openai::InputItemRole::Assistant => Some(openai::MessageRole::Assistant),
+            _ => None, // OutputItem only supports Assistant role
+        });
+
+        Ok(openai::OutputItem {
+            role,
+            content,
+            output_item_type,
+            status: input_item.status,
+            id: input_item.id,
+            summary: input_item.summary,
+            arguments: input_item.arguments,
+            name: input_item.name,
+            queries: input_item.queries,
+            call_id: input_item.call_id,
+            results: input_item.results,
+            action: input_item.action,
+            pending_safety_checks: input_item.pending_safety_checks,
+            encrypted_content: input_item.encrypted_content,
+            result: input_item.result,
+            code: input_item.code,
+            container_id: input_item.container_id,
+            outputs: input_item.outputs,
+            error: input_item.error,
+            output: input_item.output,
+            server_label: input_item.server_label,
+            tools: input_item.tools,
+            input: input_item.input,
+        })
+    }
+}
+
 impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
     type Error = ConvertError;
 
@@ -774,107 +850,52 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
     }
 }
 
-/// Convert universal Message to OpenAI OutputItem (for Responses API responses)
-impl TryFromLLM<Message> for openai::OutputItem {
+/// Convert universal Message collection to OpenAI OutputItem collection
+/// This leverages the Message -> InputItem -> OutputItem conversion chain
+impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
     type Error = ConvertError;
 
-    fn try_from(message: Message) -> Result<Self, Self::Error> {
-        match message {
-            Message::Assistant { content, id } => {
-                match content {
-                    AssistantContent::String(text) => {
-                        // Regular text message
-                        Ok(openai::OutputItem {
-                            role: Some(openai::MessageRole::Assistant),
-                            content: Some(vec![openai::OutputMessageContent {
-                                output_message_content_type: openai::ContentType::OutputText,
-                                text: Some(text),
-                                annotations: Some(vec![]),
-                                logprobs: Some(vec![]),
-                                refusal: None,
-                            }]),
-                            output_item_type: None, // Don't add type field if original didn't have it
-                            id,
-                            status: Some(openai::FunctionCallItemStatus::Completed),
-                            ..openai::OutputItem::default()
-                        })
-                    }
-                    AssistantContent::Array(parts) => {
-                        // Check if this is a pure reasoning message
-                        if parts.len() == 1 {
-                            if let AssistantContentPart::Reasoning {
-                                text,
-                                encrypted_content: _,
-                            } = &parts[0]
-                            {
-                                // Pure reasoning message - convert to reasoning OutputItem
-                                let summary_parts = if text.is_empty() {
-                                    vec![]
-                                } else {
-                                    vec![openai::SummaryText {
-                                        text: text.clone(),
-                                        summary_text_type: openai::SummaryType::SummaryText,
-                                    }]
-                                };
+    fn try_from(messages: Vec<Message>) -> Result<Self, Self::Error> {
+        // Convert each message to InputItem first, then to OutputItem
+        let input_items: Vec<openai::InputItem> = messages
+            .into_iter()
+            .map(TryFromLLM::try_from)
+            .collect::<Result<_, _>>()?;
 
-                                return Ok(openai::OutputItem {
-                                    role: None, // Reasoning items don't have roles
-                                    content: None,
-                                    output_item_type: Some(openai::OutputItemType::Reasoning),
-                                    id,
-                                    summary: Some(summary_parts),
-                                    ..openai::OutputItem::default()
-                                });
-                            }
-                        }
+        // Then convert InputItems to OutputItems
+        input_items.into_iter().map(TryFromLLM::try_from).collect()
+    }
+}
 
-                        // For other cases, convert to regular message format
-                        // Note: This is a fallback for complex content that doesn't fit OutputItem structure perfectly
-                        let text_content = parts
-                            .iter()
-                            .filter_map(|part| match part {
-                                AssistantContentPart::Text(text_part) => {
-                                    Some(text_part.text.clone())
-                                }
-                                AssistantContentPart::ToolCall {
-                                    tool_name: _,
-                                    arguments: _,
-                                    ..
-                                } => {
-                                    // Create synthetic text for tool calls since OutputItem doesn't have proper tool call structure
-                                    todo!()
-                                }
-                                _ => None,
-                            })
-                            .collect::<Vec<_>>()
-                            .join("");
-
-                        Ok(openai::OutputItem {
-                            role: Some(openai::MessageRole::Assistant),
-                            content: Some(vec![openai::OutputMessageContent {
-                                output_message_content_type: openai::ContentType::OutputText,
-                                text: Some(text_content),
-                                annotations: Some(vec![]),
-                                logprobs: Some(vec![]),
-                                refusal: None,
-                            }]),
-                            output_item_type: None, // Don't add type field if original didn't have it
-                            id,
-                            status: Some(openai::FunctionCallItemStatus::Completed),
-                            ..openai::OutputItem::default()
-                        })
-                    }
-                }
-            }
-            _ => {
-                // OutputItem only supports Assistant messages in responses
-                Err(ConvertError::UnsupportedInputType {
-                    type_info: format!(
-                        "OutputItem only supports Assistant messages, got: {:?}",
-                        message
-                    ),
-                })
-            }
+/// Helper function to convert InputContent to OutputMessageContent
+fn convert_input_content_to_output_message_content(
+    input_content: openai::InputContent,
+) -> Result<openai::OutputMessageContent, ConvertError> {
+    match input_content.input_content_type {
+        openai::InputItemContentListType::OutputText
+        | openai::InputItemContentListType::InputText => Ok(openai::OutputMessageContent {
+            output_message_content_type: openai::ContentType::OutputText,
+            text: input_content.text,
+            annotations: input_content.annotations,
+            logprobs: input_content.logprobs,
+            refusal: input_content.refusal,
+        }),
+        openai::InputItemContentListType::ReasoningText => Ok(openai::OutputMessageContent {
+            output_message_content_type: openai::ContentType::OutputText,
+            text: input_content.text,
+            annotations: input_content.annotations,
+            logprobs: input_content.logprobs,
+            refusal: input_content.refusal,
+        }),
+        _ => {
+            // For other content types, try to preserve as much information as possible
+            Ok(openai::OutputMessageContent {
+                output_message_content_type: openai::ContentType::OutputText,
+                text: input_content.text,
+                annotations: input_content.annotations,
+                logprobs: input_content.logprobs,
+                refusal: input_content.refusal,
+            })
         }
     }
 }
