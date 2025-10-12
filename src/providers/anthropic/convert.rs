@@ -1,3 +1,4 @@
+use crate::error::ConvertError;
 use crate::providers::anthropic::generated;
 use crate::universal::{
     convert::TryFromLLM, AssistantContent, AssistantContentPart, Message, TextContentPart,
@@ -5,7 +6,7 @@ use crate::universal::{
 };
 
 impl TryFromLLM<generated::InputMessage> for Message {
-    type Error = String;
+    type Error = ConvertError;
 
     fn try_from(input_msg: generated::InputMessage) -> Result<Self, Self::Error> {
         // Check if this is a user message that contains only tool results
@@ -44,15 +45,26 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     (block.tool_use_id, block.content)
                                 {
                                     let output = match content {
-                                        generated::Content::String(s) => serde_json::Value::String(s),
+                                        generated::Content::String(s) => {
+                                            serde_json::Value::String(s)
+                                        }
                                         generated::Content::BlockArray(blocks) => {
-                                            serde_json::to_value(blocks)
-                                                .map_err(|e| format!("Failed to serialize BlockArray to JSON: {}", e))?
+                                            serde_json::to_value(blocks).map_err(|e| {
+                                                ConvertError::JsonSerializationFailed {
+                                                    field: "BlockArray".to_string(),
+                                                    error: e.to_string(),
+                                                }
+                                            })?
                                         }
-                                        generated::Content::RequestWebSearchToolResultError(err) => {
-                                            serde_json::to_value(err)
-                                                .map_err(|e| format!("Failed to serialize RequestWebSearchToolResultError to JSON: {}", e))?
-                                        }
+                                        generated::Content::RequestWebSearchToolResultError(
+                                            err,
+                                        ) => serde_json::to_value(err).map_err(|e| {
+                                            ConvertError::JsonSerializationFailed {
+                                                field: "RequestWebSearchToolResultError"
+                                                    .to_string(),
+                                                error: e.to_string(),
+                                            }
+                                        })?,
                                     };
 
                                     tool_content_parts.push(ToolContentPart::ToolResult(
@@ -234,7 +246,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
 // Vec conversion is handled by the blanket implementation in universal/convert.rs
 
 impl TryFromLLM<Message> for generated::InputMessage {
-    type Error = String;
+    type Error = ConvertError;
 
     fn try_from(msg: Message) -> Result<Self, Self::Error> {
         match msg {
@@ -464,7 +476,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 }
                                 other => Some(generated::Content::String(
                                     serde_json::to_string(other)
-                                        .map_err(|e| format!("Failed to serialize tool result output to JSON string: {}", e))?,
+                                        .map_err(|e| ConvertError::JsonSerializationFailed {
+                                            field: "tool_result_output".to_string(),
+                                            error: e.to_string(),
+                                        })?,
                                 )),
                             };
 
@@ -496,14 +511,16 @@ impl TryFromLLM<Message> for generated::InputMessage {
                     role: generated::MessageRole::User,
                 })
             }
-            _ => Err("Unsupported message type for Anthropic conversion".to_string()),
+            Message::System { .. } => Err(ConvertError::UnsupportedInputType {
+                type_info: "System messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
+            }),
         }
     }
 }
 
 // Convert from Anthropic response ContentBlock to Universal Message
 impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
-    type Error = String;
+    type Error = ConvertError;
 
     fn try_from(content_blocks: Vec<generated::ContentBlock>) -> Result<Self, Self::Error> {
         let mut content_parts = Vec::new();
@@ -569,7 +586,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
 
 // Convert from Universal Message to Anthropic response ContentBlock
 impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
-    type Error = String;
+    type Error = ConvertError;
 
     fn try_from(messages: Vec<Message>) -> Result<Self, Self::Error> {
         let mut content_blocks = Vec::new();

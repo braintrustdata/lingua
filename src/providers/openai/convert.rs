@@ -1,46 +1,10 @@
+use crate::error::ConvertError;
 use crate::providers::openai::generated as openai;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart,
     ToolResultContentPart, UserContent, UserContentPart,
 };
-use std::fmt;
-
-/// Errors that can occur during conversion between OpenAI and universal formats
-#[derive(Debug)]
-pub enum ConvertError {
-    UnsupportedInputType { type_info: String },
-    MissingRequiredField { field: String },
-    InvalidRole { role: String },
-    ContentConversionFailed { reason: String },
-    JsonSerializationFailed { field: String, error: String },
-}
-
-impl fmt::Display for ConvertError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ConvertError::UnsupportedInputType { type_info } => {
-                write!(f, "Unsupported input type: {}", type_info)
-            }
-            ConvertError::MissingRequiredField { field } => {
-                write!(f, "Missing required field: {}", field)
-            }
-            ConvertError::InvalidRole { role } => write!(f, "Invalid role: {}", role),
-            ConvertError::ContentConversionFailed { reason } => {
-                write!(f, "Content conversion failed: {}", reason)
-            }
-            ConvertError::JsonSerializationFailed { field, error } => {
-                write!(
-                    f,
-                    "JSON serialization failed for field '{}': {}",
-                    field, error
-                )
-            }
-        }
-    }
-}
-
-impl std::error::Error for ConvertError {}
 
 /// Convert OpenAI InputItem collection to universal Message collection
 /// This handles OpenAI-specific logic for combining or transforming multiple items
