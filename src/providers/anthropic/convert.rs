@@ -502,42 +502,42 @@ impl TryFromLLM<Message> for generated::InputMessage {
 }
 
 // Convert from Anthropic response ContentBlock to Universal Message
-impl TryFromLLM<&Vec<generated::ContentBlock>> for Vec<Message> {
+impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
     type Error = String;
 
-    fn try_from(content_blocks: &Vec<generated::ContentBlock>) -> Result<Self, Self::Error> {
+    fn try_from(content_blocks: Vec<generated::ContentBlock>) -> Result<Self, Self::Error> {
         let mut content_parts = Vec::new();
 
         for block in content_blocks {
             match block.content_block_type {
                 generated::ContentBlockType::Text => {
-                    if let Some(text) = &block.text {
+                    if let Some(text) = block.text {
                         content_parts.push(AssistantContentPart::Text(TextContentPart {
-                            text: text.clone(),
+                            text,
                             provider_options: None,
                         }));
                     }
                 }
                 generated::ContentBlockType::Thinking => {
-                    if let Some(thinking) = &block.thinking {
+                    if let Some(thinking) = block.thinking {
                         content_parts.push(AssistantContentPart::Reasoning {
-                            text: thinking.clone(),
+                            text: thinking,
                             encrypted_content: None,
                         });
                     }
                 }
                 generated::ContentBlockType::ToolUse => {
-                    if let (Some(id), Some(name)) = (&block.id, &block.name) {
+                    if let (Some(id), Some(name)) = (block.id, block.name) {
                         // Convert HashMap to JSON value for response processing too
-                        let input = if let Some(input_map) = &block.input {
+                        let input = if let Some(input_map) = block.input {
                             serde_json::to_value(input_map).unwrap_or(serde_json::Value::Null)
                         } else {
                             serde_json::Value::Null
                         };
 
                         content_parts.push(AssistantContentPart::ToolCall {
-                            tool_call_id: id.clone(),
-                            tool_name: name.clone(),
+                            tool_call_id: id,
+                            tool_name: name,
                             arguments: serde_json::to_string(&input)
                                 .unwrap_or_else(|_| "{}".to_string())
                                 .into(),
