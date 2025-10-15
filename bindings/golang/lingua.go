@@ -12,6 +12,7 @@ extern char* lingua_to_responses(const char* json, char** error_out);
 extern char* lingua_anthropic_to_lingua(const char* json, char** error_out);
 extern char* lingua_to_anthropic(const char* json, char** error_out);
 extern char* lingua_deduplicate_messages(const char* json, char** error_out);
+extern char* lingua_import_messages_from_spans(const char* json, char** error_out);
 extern char* lingua_validate_chat_completions_request(const char* json, char** error_out);
 extern char* lingua_validate_chat_completions_response(const char* json, char** error_out);
 extern char* lingua_validate_responses_request(const char* json, char** error_out);
@@ -51,6 +52,7 @@ const (
 	fnAnthropicToLingua
 	fnLinguaToAnthropic
 	fnDeduplicateMessages
+	fnImportMessagesFromSpans
 	fnValidateChatCompletionsRequest
 	fnValidateChatCompletionsResponse
 	fnValidateResponsesRequest
@@ -83,6 +85,8 @@ func callRustFunction(fnID rustFunctionID, input string) (string, error) {
 		cResult = C.lingua_to_anthropic(cInput, &cError)
 	case fnDeduplicateMessages:
 		cResult = C.lingua_deduplicate_messages(cInput, &cError)
+	case fnImportMessagesFromSpans:
+		cResult = C.lingua_import_messages_from_spans(cInput, &cError)
 	case fnValidateChatCompletionsRequest:
 		cResult = C.lingua_validate_chat_completions_request(cInput, &cError)
 	case fnValidateChatCompletionsResponse:
@@ -314,6 +318,32 @@ func DeduplicateMessages(messages interface{}) ([]map[string]interface{}, error)
 	}
 
 	resultJSON, err := callRustFunction(fnDeduplicateMessages, string(jsonBytes))
+	if err != nil {
+		return nil, &ConversionError{
+			Message: err.Error(),
+		}
+	}
+
+	var result []map[string]interface{}
+	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+		return nil, &ConversionError{
+			Message: "failed to unmarshal result: " + err.Error(),
+		}
+	}
+
+	return result, nil
+}
+
+// ImportMessagesFromSpans extracts messages from spans by attempting multiple provider format conversions
+func ImportMessagesFromSpans(spans interface{}) ([]map[string]interface{}, error) {
+	jsonBytes, err := json.Marshal(spans)
+	if err != nil {
+		return nil, &ConversionError{
+			Message: "failed to marshal input: " + err.Error(),
+		}
+	}
+
+	resultJSON, err := callRustFunction(fnImportMessagesFromSpans, string(jsonBytes))
 	if err != nil {
 		return nil, &ConversionError{
 			Message: err.Error(),
