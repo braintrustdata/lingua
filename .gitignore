@@ -10,3 +10,4 @@ __pycache__
 dev-notes/
 *.node
 .turbo
+.env

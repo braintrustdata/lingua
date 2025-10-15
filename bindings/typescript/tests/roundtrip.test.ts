@@ -150,8 +150,14 @@ describe("TypeScript Roundtrip Tests", () => {
           snapshot.request
         ) {
           test(`${testName}: full roundtrip conversion`, () => {
-            const messages = snapshot.request.messages;
-            if (Array.isArray(messages) && messages.length > 0) {
+            // Runtime type check: ensure request has messages array
+            if (
+              typeof snapshot.request === "object" &&
+              snapshot.request !== null &&
+              "messages" in snapshot.request
+            ) {
+              const messages = (snapshot.request as { messages: unknown }).messages;
+              if (Array.isArray(messages) && messages.length > 0) {
               // Test each message in the request
               for (const originalMessage of messages) {
                 try {
@@ -187,12 +193,19 @@ describe("TypeScript Roundtrip Tests", () => {
                   }
                 }
               }
+              }
             }
           });
         } else if (snapshot.provider === "anthropic" && snapshot.request) {
           test(`${testName}: full roundtrip conversion`, () => {
-            const messages = snapshot.request.messages;
-            if (Array.isArray(messages) && messages.length > 0) {
+            // Runtime type check: ensure request has messages array
+            if (
+              typeof snapshot.request === "object" &&
+              snapshot.request !== null &&
+              "messages" in snapshot.request
+            ) {
+              const messages = (snapshot.request as { messages: unknown }).messages;
+              if (Array.isArray(messages) && messages.length > 0) {
               // Test each message in the request
               for (const originalMessage of messages) {
                 try {
@@ -227,6 +240,7 @@ describe("TypeScript Roundtrip Tests", () => {
                     throw error;
                   }
                 }
+              }
               }
             }
           });

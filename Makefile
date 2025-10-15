@@ -25,9 +25,13 @@ test-rust: ## Run Rust tests
 	@echo "Running Rust tests..."
 	cargo test
 
-test-typescript: generate-types ## Run TypeScript tests
+test-typescript: typescript ## Run TypeScript tests
 	@echo "Running TypeScript tests..."
 	cd bindings/typescript && pnpm run test:run
+
+test-typescript-integration: typescript ## Run TypeScript integration tests
+	@echo "Running TypeScript integration tests..."
+	cd bindings/typescript && pnpm run test:integration
 
 test-python: ## Run Python tests
 	@echo "Running Python tests..."
@@ -56,5 +60,11 @@ fmt: ## Format all code
 install-hooks: ## Install git pre-commit hooks
 	@echo "Installing git hooks..."
 	./scripts/install-hooks.sh
+
+install-dependencies: ## Install dependencies
+	@echo "Installing dependencies..."
+	./scripts/setup.sh
+
+setup: install-dependencies install-hooks ## Setup the project
 
 .DEFAULT_GOAL := all
