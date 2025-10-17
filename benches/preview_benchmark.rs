@@ -55,37 +55,64 @@ fn run_benchmark(snapshots: &[TraceSnapshot], iterations: usize, warmup: usize) 
     }
     println!();
 
-    // Detailed timing breakdown
+    // Detailed timing breakdown with granular measurements
     println!(
         "\n📊 Detailed timing breakdown (all {} snapshots):",
         snapshots.len()
     );
+    println!("\n  Measuring breakdown of each stage:");
+
     let mut total_conversion = 0.0;
-    let mut total_processing = 0.0;
+    let mut total_import = 0.0;
+    let mut total_dedup = 0.0;
 
     for (i, snapshot) in snapshots.iter().enumerate() {
-        let start = Instant::now();
-        let spans = convert_to_spans(&snapshot.spans);
-        let conversion_time = start.elapsed();
-        total_conversion += conversion_time.as_secs_f64() * 1000.0;
+        // Time: Value -> Span deserialization
+        let (spans, conversion_time) = convert_to_spans_timed(&snapshot.spans);
+        total_conversion += conversion_time;
 
+        // Time: Message extraction (import_messages_from_spans)
         let start = Instant::now();
-        let _ = import_and_deduplicate_messages(spans);
-        let processing_time = start.elapsed();
-        total_processing += processing_time.as_secs_f64() * 1000.0;
+        let messages = lingua::processing::import::import_messages_from_spans(spans);
+        let import_time = start.elapsed().as_secs_f64() * 1000.0;
+        total_import += import_time;
+
+        // Time: Deduplication
+        let start = Instant::now();
+        let _ = lingua::processing::dedup::deduplicate_messages(messages);
+        let dedup_time = start.elapsed().as_secs_f64() * 1000.0;
+        total_dedup += dedup_time;
+
+        let total_time = conversion_time + import_time + dedup_time;
 
         println!(
-            "  Snapshot {}: conversion={:.3}ms, processing={:.3}ms, total={:.3}ms",
+            "  Snapshot {}: deserialize={:.3}ms, import={:.3}ms, dedup={:.3}ms, total={:.3}ms",
             i + 1,
-            conversion_time.as_secs_f64() * 1000.0,
-            processing_time.as_secs_f64() * 1000.0,
-            (conversion_time + processing_time).as_secs_f64() * 1000.0
+            conversion_time,
+            import_time,
+            dedup_time,
+            total_time
         );
     }
 
-    println!("\n  Total conversion time: {:.3}ms", total_conversion);
-    println!("  Total processing time: {:.3}ms", total_processing);
-    println!("  Total time: {:.3}ms", total_conversion + total_processing);
+    let grand_total = total_conversion + total_import + total_dedup;
+    println!("\n  === BREAKDOWN SUMMARY ===");
+    println!(
+        "  Value->Span deserialization: {:.3}ms ({:.1}%)",
+        total_conversion,
+        total_conversion / grand_total * 100.0
+    );
+    println!(
+        "  Message import:              {:.3}ms ({:.1}%)",
+        total_import,
+        total_import / grand_total * 100.0
+    );
+    println!(
+        "  Deduplication:               {:.3}ms ({:.1}%)",
+        total_dedup,
+        total_dedup / grand_total * 100.0
+    );
+    println!("  Total:                       {:.3}ms", grand_total);
 
     // Benchmark
     let mut timings = Vec::new();
@@ -178,6 +205,9 @@ fn run_benchmark(snapshots: &[TraceSnapshot], iterations: usize, warmup: usize) 
 }
 
 fn main() -> anyhow::Result<()> {
+    let args: Vec<String> = std::env::args().collect();
+    let verify_mode = args.get(1).map(|s| s.as_str()) == Some("--verify");
+
     println!("🚀 Loading snapshot data...");
     let snapshots = load_snapshots()?;
     println!("📊 Total snapshots: {}", snapshots.len());
@@ -191,7 +221,79 @@ fn main() -> anyhow::Result<()> {
     }
     println!("📝 Total messages extracted: {}", total_messages);
 
+    if verify_mode {
+        println!("\n🔍 VERIFICATION MODE: Extracting messages for comparison\n");
+        for (i, snapshot) in snapshots.iter().enumerate() {
+            println!(
+                "=== Snapshot {} (root_span_id: {}) ===",
+                i + 1,
+                snapshot.root_span_id
+            );
+            let spans = convert_to_spans(&snapshot.spans);
+            let messages = import_and_deduplicate_messages(spans);
+            println!("Messages extracted: {}", messages.len());
+            for (j, msg) in messages.iter().enumerate() {
+                let content_preview = match &msg {
+                    lingua::universal::Message::User { content, .. } => {
+                        format_content_preview(content)
+                    }
+                    lingua::universal::Message::Assistant { content, .. } => {
+                        format_assistant_content_preview(content)
+                    }
+                    lingua::universal::Message::System { content } => {
+                        format_content_preview(content)
+                    }
+                    lingua::universal::Message::Tool { content } => {
+                        format!("[tool content with {} parts]", content.len())
+                    }
+                };
+                println!("  {}: {:?} - {}", j + 1, get_role(msg), content_preview);
+            }
+            println!();
+        }
+        return Ok(());
+    }
+
     run_benchmark(&snapshots, 10, 5);
 
     Ok(())
+}
+
+fn get_role(msg: &lingua::universal::Message) -> &str {
+    match msg {
+        lingua::universal::Message::User { .. } => "user",
+        lingua::universal::Message::Assistant { .. } => "assistant",
+        lingua::universal::Message::System { .. } => "system",
+        lingua::universal::Message::Tool { .. } => "tool",
+    }
+}
+
+fn format_content_preview(content: &lingua::universal::UserContent) -> String {
+    match content {
+        lingua::universal::UserContent::String(s) => {
+            if s.len() > 100 {
+                format!("\"{}...\" ({} chars)", &s[..100], s.len())
+            } else {
+                format!("\"{}\"", s)
+            }
+        }
+        lingua::universal::UserContent::Array(parts) => {
+            format!("[{} parts]", parts.len())
+        }
+    }
+}
+
+fn format_assistant_content_preview(content: &lingua::universal::AssistantContent) -> String {
+    match content {
+        lingua::universal::AssistantContent::String(s) => {
+            if s.len() > 100 {
+                format!("\"{}...\" ({} chars)", &s[..100], s.len())
+            } else {
+                format!("\"{}\"", s)
+            }
+        }
+        lingua::universal::AssistantContent::Array(parts) => {
+            format!("[{} parts]", parts.len())
+        }
+    }
 }
