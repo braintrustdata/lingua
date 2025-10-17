@@ -142,6 +142,96 @@ pub fn import_and_deduplicate_messages(value: JsValue) -> Result<JsValue, JsValu
         .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
 }
 
+/// Import messages from spans with string-based input/output
+///
+/// This optimized version accepts spans with pre-stringified JSON input/output fields,
+/// reducing WASM boundary serialization overhead. The Rust side handles JSON parsing.
+#[wasm_bindgen]
+pub fn import_messages_from_spans_strings(value: JsValue) -> Result<JsValue, JsValue> {
+    use serde_json::Value;
+
+    #[derive(Deserialize)]
+    struct SpanWithStrings {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        input: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        output: Option<String>,
+        #[serde(flatten)]
+        other: serde_json::Map<String, Value>,
+    }
+
+    let spans_with_strings: Vec<SpanWithStrings> = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse spans: {}", e)))?;
+
+    let spans: Vec<crate::processing::import::Span> = spans_with_strings
+        .into_iter()
+        .map(|s| {
+            let input = s
+                .input
+                .and_then(|json_str| serde_json::from_str::<Value>(&json_str).ok());
+            let output = s
+                .output
+                .and_then(|json_str| serde_json::from_str::<Value>(&json_str).ok());
+
+            crate::processing::import::Span {
+                input,
+                output,
+                other: s.other,
+            }
+        })
+        .collect();
+
+    let messages = crate::processing::import::import_messages_from_spans(spans);
+
+    serde_wasm_bindgen::to_value(&messages)
+        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+}
+
+/// Import and deduplicate messages from spans with string-based input/output
+///
+/// This optimized version accepts spans with pre-stringified JSON input/output fields,
+/// reducing WASM boundary serialization overhead. The Rust side handles JSON parsing.
+#[wasm_bindgen]
+pub fn import_and_deduplicate_messages_strings(value: JsValue) -> Result<JsValue, JsValue> {
+    use serde_json::Value;
+
+    #[derive(Deserialize)]
+    struct SpanWithStrings {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        input: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        output: Option<String>,
+        #[serde(flatten)]
+        other: serde_json::Map<String, Value>,
+    }
+
+    let spans_with_strings: Vec<SpanWithStrings> = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse spans: {}", e)))?;
+
+    let spans: Vec<crate::processing::import::Span> = spans_with_strings
+        .into_iter()
+        .map(|s| {
+            let input = s
+                .input
+                .and_then(|json_str| serde_json::from_str::<Value>(&json_str).ok());
+            let output = s
+                .output
+                .and_then(|json_str| serde_json::from_str::<Value>(&json_str).ok());
+
+            crate::processing::import::Span {
+                input,
+                output,
+                other: s.other,
+            }
+        })
+        .collect();
+
+    let messages = crate::processing::import::import_and_deduplicate_messages(spans);
+
+    serde_wasm_bindgen::to_value(&messages)
+        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+}
+
 // ============================================================================
 // Validation exports
 // ============================================================================

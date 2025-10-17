@@ -23,6 +23,10 @@ export {
   importMessagesFromSpans,
   importAndDeduplicateMessages,
 
+  // Processing functions (optimized string-based)
+  importMessagesFromSpansStrings,
+  importAndDeduplicateMessagesStrings,
+
   // Chat Completions validation
   validateChatCompletionsRequest,
   validateChatCompletionsResponse,

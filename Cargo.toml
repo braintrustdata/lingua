@@ -54,6 +54,10 @@ env_logger = "0.11"
 name = "generate-types"
 path = "scripts/generate-types.rs"
 
+[[bin]]
+name = "preview-benchmark"
+path = "benches/preview_benchmark.rs"
+
 
 
 [lib]
@@ -62,7 +66,13 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [profile.release]
-opt-level = "z"     # Optimize for size
+opt-level = "z"     # Optimize for size (for WASM)
 lto = true          # Enable Link Time Optimization
 strip = true        # Strip symbols
 codegen-units = 1   # Better optimization (slower build)
+
+[profile.bench]
+inherits = "release"
+opt-level = 3       # Optimize for speed
+lto = true
+codegen-units = 1
