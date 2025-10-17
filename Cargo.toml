@@ -58,39 +58,6 @@ path = "scripts/generate-types.rs"
 name = "preview-benchmark"
 path = "benches/preview_benchmark.rs"
 
-[[bin]]
-name = "profile-import"
-path = "benches/profile_import.rs"
-
-[[bin]]
-name = "json-bench"
-path = "benches/json_bench.rs"
-
-[[bin]]
-name = "complex-parse-bench"
-path = "benches/complex_parse_bench.rs"
-
-[[bin]]
-name = "large-parse-bench"
-path = "benches/large_parse_bench.rs"
-
-[[bin]]
-name = "real-data-bench"
-path = "benches/real_data_bench.rs"
-
-[[bin]]
-name = "simple-json-bench"
-path = "benches/simple_json_bench.rs"
-
-[[bin]]
-name = "profile-validation"
-path = "benches/profile_validation.rs"
-
-[[bin]]
-name = "end-to-end-bench"
-path = "benches/end_to_end_bench.rs"
-
-
 
 [lib]
 name = "lingua"
