@@ -274,60 +274,6 @@ export function importAndDeduplicateMessages(spans: Array<{input?: unknown, outp
   }
 }
 
-/**
- * Import messages from spans with string-based input/output (optimized)
- *
- * This is an optimized version that accepts pre-stringified JSON for input/output fields,
- * reducing serialization overhead at the WASM boundary. The Rust side handles JSON parsing.
- * Use this when you already have JSON strings or can easily stringify them.
- *
- * @param spans - Array of span objects with stringified input/output fields
- * @returns Array of Lingua messages extracted from spans
- * @throws {ConversionError} If processing fails
- */
-export function importMessagesFromSpansStrings(spans: Array<{input?: string, output?: string}>): Message[] {
-  try {
-    const result = wasm.import_messages_from_spans_strings(spans);
-    // Convert any Map objects to plain objects
-    return convertMapsToObjects(result) as Message[];
-  } catch (error: unknown) {
-    throw new ConversionError(
-      'Failed to import messages from spans (string-based)',
-      undefined,
-      undefined,
-      error
-    );
-  }
-}
-
-/**
- * Import and deduplicate messages from spans with string-based input/output (optimized)
- *
- * This is an optimized version that accepts pre-stringified JSON for input/output fields,
- * reducing serialization overhead at the WASM boundary. The Rust side handles JSON parsing.
- * Use this when you already have JSON strings or can easily stringify them.
- *
- * Combines importMessagesFromSpansStrings and deduplicateMessages for optimal performance.
- *
- * @param spans - Array of span objects with stringified input/output fields
- * @returns Deduplicated array of Lingua messages extracted from spans
- * @throws {ConversionError} If processing fails
- */
-export function importAndDeduplicateMessagesStrings(spans: Array<{input?: string, output?: string}>): Message[] {
-  try {
-    const result = wasm.import_and_deduplicate_messages_strings(spans);
-    // Convert any Map objects to plain objects
-    return convertMapsToObjects(result) as Message[];
-  } catch (error: unknown) {
-    throw new ConversionError(
-      'Failed to import and deduplicate messages from spans (string-based)',
-      undefined,
-      undefined,
-      error
-    );
-  }
-}
-
 // ============================================================================
 // Validation functions (Zod-style API)
 // ============================================================================
