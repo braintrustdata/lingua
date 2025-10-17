@@ -1,4 +1,4 @@
-.PHONY: all typescript python test clean help generate-types install-hooks
+.PHONY: all typescript python test clean help generate-types install-hooks install-wasm-tools setup
 
 all: typescript python ## Build all bindings
 
@@ -60,6 +60,15 @@ fmt: ## Format all code
 install-hooks: ## Install git pre-commit hooks
 	@echo "Installing git hooks..."
 	./scripts/install-hooks.sh
+
+install-wasm-tools: ## Install WASM build tools (wasm32-unknown-unknown target, wasm-bindgen-cli)
+	@echo "Installing WASM build tools..."
+	@rustup target add wasm32-unknown-unknown
+	@if ! command -v wasm-bindgen >/dev/null 2>&1; then \
+		cargo install wasm-bindgen-cli@0.2.100; \
+	else \
+		echo "✅ wasm-bindgen already installed"; \
+	fi
 
 install-dependencies: ## Install dependencies
 	@echo "Installing dependencies..."
