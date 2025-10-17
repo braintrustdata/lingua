@@ -109,6 +109,9 @@ jobs:
     - name: Build TypeScript bindings
       run: make typescript
 
+    - name: Run TypeScript type checking
+      run: cd bindings/typescript && pnpm run typecheck
+
     - name: Run TypeScript tests
       run: make test-typescript
 
