@@ -17,8 +17,46 @@ pub struct Span {
     pub other: serde_json::Map<String, Value>,
 }
 
+/// Cheap check to see if a value looks like it might contain messages
+/// Returns early to avoid expensive deserialization attempts on non-message data
+fn has_message_structure(data: &Value) -> bool {
+    match data {
+        // Check if it's an array where first element has "role" field
+        Value::Array(arr) => {
+            if arr.is_empty() {
+                return false;
+            }
+            if let Some(Value::Object(first)) = arr.first() {
+                return first.contains_key("role");
+            }
+            false
+        }
+        // Check if it's an object with "role" field (single message)
+        Value::Object(obj) => obj.contains_key("role"),
+        _ => false,
+    }
+}
+
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+    // Early bailout: if data doesn't have message structure, skip expensive deserializations
+    if !has_message_structure(data) {
+        // Still try nested object search (for wrapped messages like {messages: [...]})
+        if let Value::Object(obj) = data {
+            for key in [
+                "messages", "input", "output", "choices", "result", "response",
+            ] {
+                if let Some(nested) = obj.get(key) {
+                    let nested_messages = try_converting_to_messages(nested);
+                    if !nested_messages.is_empty() {
+                        return nested_messages;
+                    }
+                }
+            }
+        }
+        return Vec::new();
+    }
+
     // Try Chat Completions format (most common)
     if let Ok(provider_messages) =
         serde_json::from_value::<Vec<openai::ChatCompletionRequestMessage>>(data.clone())
@@ -61,20 +99,6 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     if let Some(lenient_messages) = try_lenient_message_parsing(data) {
         if !lenient_messages.is_empty() {
             return lenient_messages;
-        }
-    }
-
-    // Try as object with nested message array
-    if let Value::Object(obj) = data {
-        for key in [
-            "messages", "input", "output", "choices", "result", "response",
-        ] {
-            if let Some(nested) = obj.get(key) {
-                let nested_messages = try_converting_to_messages(nested);
-                if !nested_messages.is_empty() {
-                    return nested_messages;
-                }
-            }
         }
     }
 
