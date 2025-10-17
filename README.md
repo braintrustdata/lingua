@@ -63,6 +63,20 @@ lingua/
 
 ## Building bindings
 
+### First-time setup
+
+Before building WASM bindings for the first time, install the required tools:
+
+```bash
+# Install WASM build tools (wasm32-unknown-unknown target, wasm-bindgen-cli)
+make install-wasm-tools
+
+# Or run the full setup script
+./scripts/setup.sh
+```
+
+### Building
+
 Use the Makefile for easy building:
 
 ```bash

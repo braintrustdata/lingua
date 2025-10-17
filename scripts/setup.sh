@@ -34,11 +34,22 @@ if ! command -v cargo &> /dev/null; then
     exit 1
 fi
 
-# Check for wasm-pack
-echo "📦 Checking wasm-pack..."
-if ! command -v wasm-pack &> /dev/null; then
-    echo "❌ wasm-pack not found. Please install wasm-pack: https://drager.github.io/wasm-pack/installer/"
-    exit 1
+# Setup WASM build tools
+echo "📦 Setting up WASM build tools..."
+rustup target add wasm32-unknown-unknown
+
+# Install wasm-bindgen-cli (matching the version in Cargo.toml)
+echo "📦 Installing wasm-bindgen-cli..."
+if ! command -v wasm-bindgen &> /dev/null; then
+    cargo install wasm-bindgen-cli@0.2.100
+else
+    echo "✅ wasm-bindgen already installed"
+fi
+
+# Check for wasm-opt (optional but recommended)
+if ! command -v wasm-opt &> /dev/null; then
+    echo "⚠️  wasm-opt not found - WASM files will not be optimized"
+    echo "   Install binaryen for smaller WASM files: https://github.com/WebAssembly/binaryen"
 fi
 
 # Setup TypeScript environment
