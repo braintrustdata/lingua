@@ -9,8 +9,8 @@
 
 import { describe, test, expect } from "vitest";
 import {
-  validateOpenAIRequest,
-  validateOpenAIResponse,
+  validateChatCompletionsRequest,
+  validateChatCompletionsResponse,
   validateAnthropicRequest,
   validateAnthropicResponse,
 } from "../src";
@@ -92,26 +92,26 @@ const ANTHROPIC_RESPONSE_DATA: Message = {
 };
 const ANTHROPIC_RESPONSE = JSON.stringify(ANTHROPIC_RESPONSE_DATA);
 
-describe("OpenAI Validation", () => {
-  test("validates OpenAI request successfully", () => {
-    const result = validateOpenAIRequest(OPENAI_REQUEST);
+describe("OpenAI Chat Completions Validation", () => {
+  test("validates Chat Completions request successfully", () => {
+    const result = validateChatCompletionsRequest(OPENAI_REQUEST);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data).toBeDefined();
-      expect((result.data as any).model).toBe("gpt-4");
+      expect(result.data.model).toBe("gpt-4");
     }
   });
 
-  test("validates OpenAI response successfully", () => {
-    const result = validateOpenAIResponse(OPENAI_RESPONSE);
+  test("validates Chat Completions response successfully", () => {
+    const result = validateChatCompletionsResponse(OPENAI_RESPONSE);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data).toBeDefined();
     }
   });
 
-  test("Anthropic response fails to validate as OpenAI", () => {
-    const result = validateOpenAIResponse(ANTHROPIC_RESPONSE);
+  test("Anthropic response fails to validate as Chat Completions", () => {
+    const result = validateChatCompletionsResponse(ANTHROPIC_RESPONSE);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.message).toBeDefined();
@@ -119,7 +119,7 @@ describe("OpenAI Validation", () => {
   });
 
   test("rejects invalid JSON", () => {
-    const result = validateOpenAIRequest("{invalid json}");
+    const result = validateChatCompletionsRequest("{invalid json}");
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.message).toContain("Deserialization failed");
@@ -128,7 +128,7 @@ describe("OpenAI Validation", () => {
 
   test("rejects missing required fields", () => {
     const invalid = JSON.stringify({ model: "gpt-4" }); // missing messages
-    const result = validateOpenAIRequest(invalid);
+    const result = validateChatCompletionsRequest(invalid);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.message).toBeDefined();
@@ -188,37 +188,37 @@ describe("Anthropic Validation", () => {
 });
 
 describe("Cross-provider validation", () => {
-  test("OpenAI and Anthropic requests are distinct", () => {
-    // OpenAI request should not validate as Anthropic
+  test("Chat Completions and Anthropic requests are distinct", () => {
+    // Chat Completions request should not validate as Anthropic
     const result = validateAnthropicRequest(OPENAI_REQUEST);
     expect(result.ok).toBe(false);
 
-    // Note: Anthropic request might validate as OpenAI due to structural compatibility
+    // Note: Anthropic request might validate as Chat Completions due to structural compatibility
     // This is expected behavior - validation checks structure, not semantic correctness
   });
 
-  test("OpenAI and Anthropic responses are distinct", () => {
-    // OpenAI response should not validate as Anthropic
+  test("Chat Completions and Anthropic responses are distinct", () => {
+    // Chat Completions response should not validate as Anthropic
     const anthropicResult = validateAnthropicResponse(OPENAI_RESPONSE);
     expect(anthropicResult.ok).toBe(false);
 
-    // Anthropic response should not validate as OpenAI
-    const openaiResult = validateOpenAIResponse(ANTHROPIC_RESPONSE);
+    // Anthropic response should not validate as Chat Completions
+    const openaiResult = validateChatCompletionsResponse(ANTHROPIC_RESPONSE);
     expect(openaiResult.ok).toBe(false);
   });
 
   test("validation returns parsed object on success", () => {
-    const result = validateOpenAIRequest(OPENAI_REQUEST);
+    const result = validateChatCompletionsRequest(OPENAI_REQUEST);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data).toBeDefined();
-      expect((result.data as any).model).toBe("gpt-4");
-      expect((result.data as any).messages).toHaveLength(1);
+      expect(result.data.model).toBe("gpt-4");
+      expect(result.data.messages).toHaveLength(1);
     }
   });
 
   test("validation returns error object on failure", () => {
-    const result = validateOpenAIRequest("{invalid json}");
+    const result = validateChatCompletionsRequest("{invalid json}");
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error).toBeDefined();

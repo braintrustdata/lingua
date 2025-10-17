@@ -54,15 +54,26 @@ env_logger = "0.11"
 name = "generate-types"
 path = "scripts/generate-types.rs"
 
-
-
 [lib]
 name = "lingua"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [profile.release]
-opt-level = "z"     # Optimize for size
+opt-level = 3       # Optimize for speed
 lto = true          # Enable Link Time Optimization
 strip = true        # Strip symbols
 codegen-units = 1   # Better optimization (slower build)
+
+[profile.wasm]
+inherits = "release"
+opt-level = "z"     # Optimize for size (WASM builds)
+lto = true
+strip = true
+codegen-units = 1
+
+[profile.bench]
+inherits = "release"
+opt-level = 3       # Optimize for speed
+lto = true
+codegen-units = 1

@@ -34,21 +34,55 @@ if ! command -v cargo &> /dev/null; then
     exit 1
 fi
 
+# Setup WASM build tools
+echo "📦 Setting up WASM build tools..."
+rustup target add wasm32-unknown-unknown
+
+# Install wasm-bindgen-cli (matching the version in Cargo.toml)
+echo "📦 Installing wasm-bindgen-cli..."
+if ! command -v wasm-bindgen &> /dev/null; then
+    cargo install wasm-bindgen-cli@0.2.100
+else
+    echo "✅ wasm-bindgen already installed"
+fi
+
+# Check for wasm-opt (optional but recommended)
+if ! command -v wasm-opt &> /dev/null; then
+    echo "⚠️  wasm-opt not found - WASM files will not be optimized"
+    echo "   Install binaryen for smaller WASM files: https://github.com/WebAssembly/binaryen"
+fi
+
 # Setup TypeScript environment
 if [ -f "payloads/package.json" ]; then
     echo "📦 Setting up TypeScript environment..."
     cd payloads
-    
+
     # Check for pnpm
     if ! command -v pnpm &> /dev/null; then
         echo "❌ pnpm not found. Please install pnpm: https://pnpm.io/installation"
         exit 1
     fi
-    
+
     echo "📦 Installing TypeScript dependencies..."
     pnpm install
-    
+
     cd ..
+fi
+
+# Setup Python environment
+if [ -f "bindings/python/pyproject.toml" ]; then
+    echo "🐍 Setting up Python environment..."
+
+    # Check for uv
+    if ! command -v uv &> /dev/null; then
+        echo "❌ uv not found. Please install uv: https://astral.sh/uv/install.sh"
+        exit 1
+    fi
+
+    echo "📦 Installing Python dependencies..."
+    cd bindings/python
+    uv sync --extra dev
+    cd ../..
 fi
 
 echo "✅ Setup complete!"
