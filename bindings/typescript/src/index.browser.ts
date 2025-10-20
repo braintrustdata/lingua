@@ -21,7 +21,6 @@ import { ensureOnce, getWasm, setWasm } from './wasm-runtime';
  *   - **Response**: `await fetch('/wasm/lingua_bg.wasm')`
  *   - **BufferSource**: ArrayBuffer or TypedArray
  *   - **WebAssembly.Module**: Pre-compiled WASM module
- *   - **undefined**: Auto-detect from script location (default)
  *
  * @returns Promise that resolves when initialization is complete
  *
@@ -32,10 +31,6 @@ import { ensureOnce, getWasm, setWasm } from './wasm-runtime';
  * @example
  * // Load from bundled asset with Vite/Webpack
  * await init(new URL('./lingua_bg.wasm', import.meta.url));
- *
- * @example
- * // Auto-detect (works if wasm file is co-located with JS)
- * await init();
  */
 export async function init(module: InitInput): Promise<void> {
   await ensureOnce(async () => {

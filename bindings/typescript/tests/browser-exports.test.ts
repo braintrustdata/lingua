@@ -196,5 +196,32 @@ describe("Browser exports", () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(1);
     });
+
+    test("init() accepts fetch() Response and works", async () => {
+      const { resetWasmForTests } = await import("../src/wasm-runtime");
+      resetWasmForTests();
+
+      const init = (await import("../src/index.browser")).default;
+      const { anthropicMessagesToLingua } = await import(
+        "../src/index.browser"
+      );
+
+      const wasmUrl = `http://127.0.0.1:${serverPort}/lingua_bg.wasm`;
+      const response = await fetch(wasmUrl);
+      await init(response);
+
+      const anthropicMessages = [
+        {
+          role: "user" as const,
+          content: "Test with fetch response",
+        },
+      ];
+
+      const result = anthropicMessagesToLingua(anthropicMessages);
+      expect(result).toBeDefined();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(1);
+      expect(result[0].role).toBe("user");
+    });
   });
 });

@@ -44,12 +44,16 @@ The browser build requires initialization of the WASM module before use:
 ```typescript
 import { init, importMessagesFromSpans, type Message } from '@braintrust/lingua/browser';
 
-// Option 1: Import WASM URL from package (recommended - no fetch needed!)
-import wasmUrl from '@braintrust/lingua/browser/lingua_bg.wasm?url';
-await init(wasmUrl);
-
-// Option 2: Load from your own public URL
+// Option 1: Load from a public URL
 await init('/lingua_bg.wasm');
+
+// Option 2: Load from bytes (useful for testing)
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const wasmPath = join(__dirname, 'path/to/lingua_bg.wasm');
+const wasmBuffer = readFileSync(wasmPath);
+await init(wasmBuffer);
 
 // Now you can use Lingua functions
 const messages = importMessagesFromSpans([
@@ -61,85 +65,11 @@ const messages = importMessagesFromSpans([
 ```
 
 > **Important**:
-> - Use the `?url` suffix when importing the WASM file. This tells the bundler to return the file's URL instead of trying to instantiate it. The bundler will automatically include the file in your build output.
 > - You **must** provide a WASM module, path, or URL to `init()`. The function will throw an error if called without an argument (this prevents webpack static analysis issues).
-
-#### Bundler Configuration
-
-**Next.js**: Enable WebAssembly support in `next.config.js`:
-
-```javascript
-module.exports = {
-  webpack: (config) => {
-    config.experiments = {
-      asyncWebAssembly: true,
-    };
-    return config;
-  }
-};
-```
-
-**Vite**: WebAssembly is supported by default. Copy the WASM file to your public directory:
-
-```javascript
-// vite.config.js
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-  // WASM file should be in public/ and will be served at root
-});
-```
-
-#### WASM File Setup
-
-**Option 1 (Recommended): Let the bundler handle it**
-
-Import the WASM file with `?url` suffix - the bundler will automatically include it:
-
-```typescript
-import wasmUrl from '@braintrust/lingua/browser/lingua_bg.wasm?url';
-await init(wasmUrl);
-```
-
-This works with:
-- **Webpack/Next.js**: Treats it as an asset and returns the public URL
-- **Vite**: Returns the public URL to the asset
-- **Other bundlers**: Most modern bundlers support the `?url` suffix
-
-**Option 2: Manual public directory**
-
-Copy the WASM file from the package to your public/static assets folder:
-
-```bash
-cp node_modules/@braintrust/lingua/wasm-web/lingua_bg.wasm public/
-```
-
-Then initialize with the public URL:
-
-```typescript
-await init('/lingua_bg.wasm');
-```
 
 ## Development
 
 This package is part of the Lingua monorepo. The TypeScript types are automatically generated from the Rust source code using ts-rs.
-
-### Building
-
-The package uses a two-stage build process:
-
-1. **WASM compilation**: Rust code is compiled to WASM for both Node.js and browser targets
-2. **Type bundling**: TypeScript types and entry points are bundled with `tsup`
-
-```bash
-pnpm build              # Full build (WASM + types)
-pnpm build:wasm         # Build WASM modules only
-pnpm build:wasm:node    # Build Node.js WASM target
-pnpm build:wasm:web     # Build browser WASM target
-pnpm build:types        # Build TypeScript with tsup
-```
-
-The build process includes optional `wasm-opt` optimization if available.
 
 ### Generating Types
 
