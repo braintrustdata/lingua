@@ -1,0 +1,176 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_0fe55d80dd9c70580068f6c81299808193beaf2f8cb5642464",
+              "reasoningEncryptedContent": null
+            }
+          }
+        }
+      ],
+      "finishReason": "length",
+      "usage": {
+        "inputTokens": 54,
+        "outputTokens": 64,
+        "totalTokens": 118,
+        "reasoningTokens": 64,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": ""
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What should I do next?"
+                }
+              ]
+            }
+          ],
+          "max_output_tokens": 100
+        }
+      },
+      "response": {
+        "id": "resp_0fe55d80dd9c70580068f6c812190c81939cde291c9569a642",
+        "timestamp": "2025-10-20T23:38:58.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "991c5a0f0f3a238d-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Mon, 20 Oct 2025 23:38:59 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "1699",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=XOStSsD_dl1qAm6dErCKLU8EBHcrb9ypJPaTlx.col4-1761003539815-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "1703",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999730",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_1bf70fa9ff6a484aa91cc1adda6d88d4"
+        },
+        "body": {
+          "id": "resp_0fe55d80dd9c70580068f6c812190c81939cde291c9569a642",
+          "object": "response",
+          "created_at": 1761003538,
+          "status": "incomplete",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": {
+            "reason": "max_output_tokens"
+          },
+          "instructions": null,
+          "max_output_tokens": 100,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_0fe55d80dd9c70580068f6c81299808193beaf2f8cb5642464",
+              "type": "reasoning",
+              "summary": []
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 54,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 64,
+            "output_tokens_details": {
+              "reasoning_tokens": 64
+            },
+            "total_tokens": 118
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_0fe55d80dd9c70580068f6c81299808193beaf2f8cb5642464",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_0fe55d80dd9c70580068f6c812190c81939cde291c9569a642",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

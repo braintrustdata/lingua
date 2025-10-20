@@ -1,0 +1,40 @@
+{
+  "ai-sdk:reasoningRequest": {
+    "payloadHash": "3ece7ea29c21fc8676ecaaf70277aebd9a239ebc59b09604e4b7501a5f357160",
+    "capturedAt": "2025-10-20T23:38:59.831Z",
+    "provider": "ai-sdk",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/ai-sdk/request.json",
+      "reasoningRequest/ai-sdk/response.json",
+      "reasoningRequest/ai-sdk/response-streaming.json",
+      "reasoningRequest/ai-sdk/followup-request.json",
+      "reasoningRequest/ai-sdk/followup-response.json",
+      "reasoningRequest/ai-sdk/followup-response-streaming.json"
+    ]
+  },
+  "ai-sdk:simpleRequest": {
+    "payloadHash": "3d35ff17d14be59e6bca505db43d894efc82ad3456fc4d415bc967b0312c2109",
+    "capturedAt": "2025-10-20T23:39:07.356Z",
+    "provider": "ai-sdk",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/ai-sdk/request.json",
+      "simpleRequest/ai-sdk/response.json",
+      "simpleRequest/ai-sdk/response-streaming.json",
+      "simpleRequest/ai-sdk/followup-request.json",
+      "simpleRequest/ai-sdk/followup-response.json",
+      "simpleRequest/ai-sdk/followup-response-streaming.json"
+    ]
+  },
+  "ai-sdk:reasoningRequestTruncated": {
+    "payloadHash": "3d1e050b66036150ba7939512346adee42cd41ebbd04934aee116f742f75b885",
+    "capturedAt": "2025-10-20T23:29:27.624Z",
+    "provider": "ai-sdk",
+    "name": "reasoningRequestTruncated",
+    "files": [
+      "reasoningRequestTruncated/ai-sdk/request.json",
+      "reasoningRequestTruncated/ai-sdk/error.json"
+    ]
+  }
+}

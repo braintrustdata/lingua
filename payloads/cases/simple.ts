@@ -4,6 +4,9 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
 } from "./models";
+import { openai } from "@ai-sdk/openai";
+import { tool } from "ai";
+import { z } from "zod";
 
 // Simple test cases - basic functionality testing
 export const simpleCases: TestCaseCollection = {
@@ -34,6 +37,16 @@ export const simpleCases: TestCaseCollection = {
     anthropic: {
       model: ANTHROPIC_MODEL,
       max_tokens: 20_000,
+      messages: [
+        {
+          role: "user",
+          content: "What is the capital of France?",
+        },
+      ],
+    },
+
+    "ai-sdk": {
+      model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
       messages: [
         {
           role: "user",
@@ -77,6 +90,18 @@ export const simpleCases: TestCaseCollection = {
         },
       ],
     },
+
+    "ai-sdk": {
+      model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
+      messages: [
+        {
+          role: "user",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+      maxOutputTokens: 100,
+    },
   },
 
   reasoningRequestTruncated: {
@@ -114,6 +139,18 @@ export const simpleCases: TestCaseCollection = {
             "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
+    },
+
+    "ai-sdk": {
+      model: `openai/${OPENAI_CHAT_COMPLETIONS_MODEL}`,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+      maxOutputTokens: 100,
     },
   },
 
@@ -200,6 +237,27 @@ export const simpleCases: TestCaseCollection = {
           },
         },
       ],
+    },
+
+    "ai-sdk": {
+      model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: {
+        get_weather: tool({
+          description: "Get the current weather for a location",
+          parameters: z.object({
+            location: z
+              .string()
+              .describe("The city and state, e.g. San Francisco, CA"),
+          }),
+        }),
+      },
+      toolChoice: "auto",
     },
   },
 };

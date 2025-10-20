@@ -1,0 +1,205 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_0726df010682e97d0068f6c8137a8481939b7e20501735cd56",
+              "reasoningEncryptedContent": null
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "It depends on what you’re aiming for. Here are a few quick options—pick a number or tell me your goal and I’ll tailor it:\n\n1) Do a quick capitals quiz (I’ll give you 10 country names, you name the capitals).\n2) Learn practical French phrases (greetings, numbers, polite questions) with a short practice.\n3) Plan a mini Paris trip itinerary (top sights for 1–2 days, getting around tips).\n4) Do a bit of geography trivia (fun facts about France and its neighbors).\n5) Tell me another goal and I’ll tailor a short plan.\n\nWant me to start with a 5-question capitals quiz right now?",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "msg_0726df010682e97d0068f6c81a1d988193906272d5312979a1"
+            }
+          }
+        }
+      ],
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 31,
+        "outputTokens": 1105,
+        "totalTokens": 1136,
+        "reasoningTokens": 960,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What is the capital of France?"
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Paris."
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What should I do next?"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "response": {
+        "id": "resp_0726df010682e97d0068f6c8131d3c8193ac06dd1695ed0ffc",
+        "timestamp": "2025-10-20T23:38:59.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "991c5a171d0c2314-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Mon, 20 Oct 2025 23:39:07 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "8222",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=h0dzjKIPUE1bag7FDqC6l5v51jT2VU5z1c.oeOjLkH0-1761003547345-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "8227",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999754",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_4f44946941bb4875969372edb13e5e0f"
+        },
+        "body": {
+          "id": "resp_0726df010682e97d0068f6c8131d3c8193ac06dd1695ed0ffc",
+          "object": "response",
+          "created_at": 1761003539,
+          "status": "completed",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": null,
+          "instructions": null,
+          "max_output_tokens": null,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_0726df010682e97d0068f6c8137a8481939b7e20501735cd56",
+              "type": "reasoning",
+              "summary": []
+            },
+            {
+              "id": "msg_0726df010682e97d0068f6c81a1d988193906272d5312979a1",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "It depends on what you’re aiming for. Here are a few quick options—pick a number or tell me your goal and I’ll tailor it:\n\n1) Do a quick capitals quiz (I’ll give you 10 country names, you name the capitals).\n2) Learn practical French phrases (greetings, numbers, polite questions) with a short practice.\n3) Plan a mini Paris trip itinerary (top sights for 1–2 days, getting around tips).\n4) Do a bit of geography trivia (fun facts about France and its neighbors).\n5) Tell me another goal and I’ll tailor a short plan.\n\nWant me to start with a 5-question capitals quiz right now?"
+                }
+              ],
+              "role": "assistant"
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 31,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 1105,
+            "output_tokens_details": {
+              "reasoning_tokens": 960
+            },
+            "total_tokens": 1136
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_0726df010682e97d0068f6c8137a8481939b7e20501735cd56",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "text": "It depends on what you’re aiming for. Here are a few quick options—pick a number or tell me your goal and I’ll tailor it:\n\n1) Do a quick capitals quiz (I’ll give you 10 country names, you name the capitals).\n2) Learn practical French phrases (greetings, numbers, polite questions) with a short practice.\n3) Plan a mini Paris trip itinerary (top sights for 1–2 days, getting around tips).\n4) Do a bit of geography trivia (fun facts about France and its neighbors).\n5) Tell me another goal and I’ll tailor a short plan.\n\nWant me to start with a 5-question capitals quiz right now?",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_0726df010682e97d0068f6c81a1d988193906272d5312979a1"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_0726df010682e97d0068f6c8131d3c8193ac06dd1695ed0ffc",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

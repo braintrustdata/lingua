@@ -1,0 +1,22 @@
+[
+  {
+    "type": "text",
+    "textDelta": "Paris"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "final",
+    "value": {
+      "text": {},
+      "toolCalls": {},
+      "toolResults": {},
+      "usage": {},
+      "finishReason": {},
+      "warnings": {},
+      "rawResponse": {}
+    }
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "model": {
+    "specificationVersion": "v2",
+    "supportedUrls": {
+      "image/*": [
+        {}
+      ],
+      "application/pdf": [
+        {}
+      ]
+    },
+    "modelId": "gpt-5-nano",
+    "config": {
+      "provider": "openai.responses",
+      "fileIdPrefixes": [
+        "file-"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the capital of France?"
+    },
+    {
+      "role": "assistant",
+      "content": "Paris."
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

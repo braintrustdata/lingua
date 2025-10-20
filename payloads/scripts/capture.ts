@@ -9,6 +9,7 @@ import { saveAllFiles } from "./file-manager";
 import { openaiExecutor } from "./providers/openai";
 import { openaiResponsesExecutor } from "./providers/openai-responses";
 import { anthropicExecutor } from "./providers/anthropic";
+import { aiSDKExecutor } from "./providers/ai-sdk";
 import { ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
@@ -16,6 +17,7 @@ const allProviders = [
   { ...openaiExecutor, name: "chat-completions" },
   openaiResponsesExecutor,
   anthropicExecutor,
+  aiSDKExecutor,
 ] as const;
 
 interface CaptureOptions {

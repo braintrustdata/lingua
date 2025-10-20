@@ -12,8 +12,12 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.53",
+    "@ai-sdk/provider-utils": "^3.0.12",
+    "@anthropic-ai/sdk": "^0.63.0",
+    "ai": "^5.0.76",
     "openai": "^5.22.0",
-    "@anthropic-ai/sdk": "^0.63.0"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
