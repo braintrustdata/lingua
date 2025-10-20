@@ -23,7 +23,7 @@ export default defineConfig([
     dts: true,
     splitting: false,
     sourcemap: true,
-    clean: true,
+    clean: false,
     onSuccess: async () => {
       const filePath = join(__dirname, "dist", "index.browser.mjs");
       let content = readFileSync(filePath, "utf-8");

@@ -4,24 +4,25 @@
   "description": "TypeScript bindings for Lingua - Universal message format for LLM APIs",
   "module": "dist/index.mjs",
   "browser": "dist/index.browser.mjs",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/index.d.mts",
       "browser": "./dist/index.browser.mjs",
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     },
     "./node": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     },
     "./browser": {
-      "types": "./dist/index.browser.d.ts",
+      "types": "./dist/index.browser.d.mts",
       "import": "./dist/index.browser.mjs",
       "default": "./dist/index.browser.mjs"
-    }
+    },
+    "./browser/lingua_bg.wasm": "./wasm-web/lingua_bg.wasm"
   },
   "scripts": {
     "build": "pnpm run build:wasm && pnpm run build:types",

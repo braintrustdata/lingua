@@ -37,7 +37,7 @@ import { ensureOnce, getWasm, setWasm } from './wasm-runtime';
  * // Auto-detect (works if wasm file is co-located with JS)
  * await init();
  */
-export async function init(module?: InitInput): Promise<void> {
+export async function init(module: InitInput): Promise<void> {
   await ensureOnce(async () => {
     await initWasm(module);
     const exports = wasmModule as unknown as typeof import('../wasm/lingua.js');
