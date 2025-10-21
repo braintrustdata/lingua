@@ -63,16 +63,19 @@ type AISDKGenerateTextParams = CallSettings &
     // _internal?: { generateId?: IdGenerator; currentDate?: () => Date; }
   };
 
+// TODO: streamObject
+// TODO: gnerateObject
 // TODO: wrapLanguageModel
-type AISDKCreateParams = AISDKStreamTextParams | AISDKGenerateTextParams;
 
 // Well-defined types for test cases
 export interface TestCase {
   "chat-completions": OpenAI.Chat.Completions.ChatCompletionCreateParams | null;
   responses: OpenAI.Responses.ResponseCreateParams | null;
   anthropic: Anthropic.Messages.MessageCreateParams | null;
-  // TODO: what about different versions? i.e. LanguageModel changed from v4 to v5
-  "ai-sdk": AISDKCreateParams | null;
+  "ai-sdk.v5.generateText": AISDKGenerateTextParams | null;
+  // "ai-sdk.v5.streamText": AISDKStreamTextParams | null;
+  // "ai-sdk.v5.generateObject": AISDKGenerateObjectParams | null;
+  // "ai-sdk.v5.streamObject": AISDKGenerateObjectParams | null;
 }
 
 // Collection of test cases organized by name
@@ -87,5 +90,5 @@ export const PROVIDER_TYPES = [
   "chat-completions",
   "responses",
   "anthropic",
-  "ai-sdk",
+  "ai-sdk.v5.generateText",
 ] as const;

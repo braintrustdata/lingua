@@ -1,0 +1,44 @@
+{
+  "model": {
+    "specificationVersion": "v2",
+    "supportedUrls": {
+      "image/*": [
+        {}
+      ],
+      "application/pdf": [
+        {}
+      ]
+    },
+    "modelId": "gpt-5-nano",
+    "config": {
+      "provider": "openai.responses",
+      "fileIdPrefixes": [
+        "file-"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "What do you see in this image?"
+        },
+        {
+          "type": "image",
+          "image": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "A cute tabby cat lying on a wooden table, with its front paws stretched out. It’s looking at the camera with big amber eyes, ears perked, and striped fur, against a softly blurred indoor background."
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "maxOutputTokens": 300
+}

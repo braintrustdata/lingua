@@ -1,0 +1,187 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_00cd0972d2b86e430068f7efeca45c8195884d2bac768f4f58",
+              "reasoningEncryptedContent": null
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "Usually blue during the day. That's because sunlight scattering in Earth's atmosphere makes blue light spread out in all directions. At sunrise or sunset it can look red, orange, or pink. At night the sky is dark (often black with stars). On cloudy days it appears gray.",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "msg_00cd0972d2b86e430068f7eff04fd88195b48f4eb1a59bde87"
+            }
+          }
+        }
+      ],
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 12,
+        "outputTokens": 573,
+        "totalTokens": 585,
+        "reasoningTokens": 512,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What color is the sky?"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "response": {
+        "id": "resp_00cd0972d2b86e430068f7efebda788195a1a8dbefcdf51455",
+        "timestamp": "2025-10-21T20:41:16.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "99239321ce34ebeb-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Tue, 21 Oct 2025 20:41:21 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "5282",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=rYtt9HX8VoEeaH24iggD0HirWD0jeDiaSYKLVSgMNNg-1761079281149-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "5289",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999769",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_50cdf60a74034f78bf8a4e1ddc44cd53"
+        },
+        "body": {
+          "id": "resp_00cd0972d2b86e430068f7efebda788195a1a8dbefcdf51455",
+          "object": "response",
+          "created_at": 1761079276,
+          "status": "completed",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": null,
+          "instructions": null,
+          "max_output_tokens": null,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_00cd0972d2b86e430068f7efeca45c8195884d2bac768f4f58",
+              "type": "reasoning",
+              "summary": []
+            },
+            {
+              "id": "msg_00cd0972d2b86e430068f7eff04fd88195b48f4eb1a59bde87",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "Usually blue during the day. That's because sunlight scattering in Earth's atmosphere makes blue light spread out in all directions. At sunrise or sunset it can look red, orange, or pink. At night the sky is dark (often black with stars). On cloudy days it appears gray."
+                }
+              ],
+              "role": "assistant"
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 12,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 573,
+            "output_tokens_details": {
+              "reasoning_tokens": 512
+            },
+            "total_tokens": 585
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_00cd0972d2b86e430068f7efeca45c8195884d2bac768f4f58",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "text": "Usually blue during the day. That's because sunlight scattering in Earth's atmosphere makes blue light spread out in all directions. At sunrise or sunset it can look red, orange, or pink. At night the sky is dark (often black with stars). On cloudy days it appears gray.",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_00cd0972d2b86e430068f7eff04fd88195b48f4eb1a59bde87"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_00cd0972d2b86e430068f7efebda788195a1a8dbefcdf51455",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

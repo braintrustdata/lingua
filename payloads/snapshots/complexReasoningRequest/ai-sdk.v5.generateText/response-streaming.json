@@ -1,0 +1,1830 @@
+[
+  {
+    "type": "text",
+    "textDelta": "Answer"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "for"
+  },
+  {
+    "type": "text",
+    "textDelta": " one"
+  },
+  {
+    "type": "text",
+    "textDelta": " full"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "24"
+  },
+  {
+    "type": "text",
+    "textDelta": "-hour"
+  },
+  {
+    "type": "text",
+    "textDelta": " cycle"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " i"
+  },
+  {
+    "type": "text",
+    "textDelta": ".e"
+  },
+  {
+    "type": "text",
+    "textDelta": ".,"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "23"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "59"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " all"
+  },
+  {
+    "type": "text",
+    "textDelta": " four"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " per"
+  },
+  {
+    "type": "text",
+    "textDelta": " time"
+  },
+  {
+    "type": "text",
+    "textDelta": ";"
+  },
+  {
+    "type": "text",
+    "textDelta": " total"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": " ×"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "576"
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "):\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Most"
+  },
+  {
+    "type": "text",
+    "textDelta": " common"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "tie"
+  },
+  {
+    "type": "text",
+    "textDelta": ")\n"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": " -"
+  },
+  {
+    "type": "text",
+    "textDelta": " Each"
+  },
+  {
+    "type": "text",
+    "textDelta": " appears"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "116"
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "576"
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": " -"
+  },
+  {
+    "type": "text",
+    "textDelta": " Percentage"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "116"
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": " /"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "576"
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " ≈"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "text",
+    "textDelta": "202"
+  },
+  {
+    "type": "text",
+    "textDelta": "083"
+  },
+  {
+    "type": "text",
+    "textDelta": "3"
+  },
+  {
+    "type": "text",
+    "textDelta": " →"
+  },
+  {
+    "type": "text",
+    "textDelta": " about"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "20"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "text",
+    "textDelta": "208"
+  },
+  {
+    "type": "text",
+    "textDelta": "%\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Rare"
+  },
+  {
+    "type": "text",
+    "textDelta": "st"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "6"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "7"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "8"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "9"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "tie"
+  },
+  {
+    "type": "text",
+    "textDelta": ")\n"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": " -"
+  },
+  {
+    "type": "text",
+    "textDelta": " Each"
+  },
+  {
+    "type": "text",
+    "textDelta": " appears"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "264"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": " -"
+  },
+  {
+    "type": "text",
+    "textDelta": " Percentage"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "264"
+  },
+  {
+    "type": "text",
+    "textDelta": " /"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "576"
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " ≈"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "text",
+    "textDelta": "045"
+  },
+  {
+    "type": "text",
+    "textDelta": "833"
+  },
+  {
+    "type": "text",
+    "textDelta": "3"
+  },
+  {
+    "type": "text",
+    "textDelta": " →"
+  },
+  {
+    "type": "text",
+    "textDelta": " about"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "text",
+    "textDelta": "583"
+  },
+  {
+    "type": "text",
+    "textDelta": "%\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "How"
+  },
+  {
+    "type": "text",
+    "textDelta": " these"
+  },
+  {
+    "type": "text",
+    "textDelta": " counts"
+  },
+  {
+    "type": "text",
+    "textDelta": " come"
+  },
+  {
+    "type": "text",
+    "textDelta": " about"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "brief"
+  },
+  {
+    "type": "text",
+    "textDelta": "):\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " H"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "t"
+  },
+  {
+    "type": "text",
+    "textDelta": "ens"
+  },
+  {
+    "type": "text",
+    "textDelta": " of"
+  },
+  {
+    "type": "text",
+    "textDelta": " hour"
+  },
+  {
+    "type": "text",
+    "textDelta": "):"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " occurs"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "09"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "600"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": "),"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "10"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "19"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "600"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": "),"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "20"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "23"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": ")."
+  },
+  {
+    "type": "text",
+    "textDelta": " Other"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " H"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "units"
+  },
+  {
+    "type": "text",
+    "textDelta": " of"
+  },
+  {
+    "type": "text",
+    "textDelta": " hour"
+  },
+  {
+    "type": "text",
+    "textDelta": "):"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "3"
+  },
+  {
+    "type": "text",
+    "textDelta": " appear"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "180"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "9"
+  },
+  {
+    "type": "text",
+    "textDelta": " appear"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "120"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "t"
+  },
+  {
+    "type": "text",
+    "textDelta": "ens"
+  },
+  {
+    "type": "text",
+    "textDelta": " of"
+  },
+  {
+    "type": "text",
+    "textDelta": " minute"
+  },
+  {
+    "type": "text",
+    "textDelta": "):"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "5"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": " appear"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": ";"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "6"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "9"
+  },
+  {
+    "type": "text",
+    "textDelta": " never"
+  },
+  {
+    "type": "text",
+    "textDelta": " appear"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "units"
+  },
+  {
+    "type": "text",
+    "textDelta": " of"
+  },
+  {
+    "type": "text",
+    "textDelta": " minute"
+  },
+  {
+    "type": "text",
+    "textDelta": "):"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "9"
+  },
+  {
+    "type": "text",
+    "textDelta": " appears"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "Sum"
+  },
+  {
+    "type": "text",
+    "textDelta": " per"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": " across"
+  },
+  {
+    "type": "text",
+    "textDelta": " all"
+  },
+  {
+    "type": "text",
+    "textDelta": " positions"
+  },
+  {
+    "type": "text",
+    "textDelta": " gives"
+  },
+  {
+    "type": "text",
+    "textDelta": ":\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "600"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "180"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "116"
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "600"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "180"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "116"
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "180"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "804"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "3"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "180"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "564"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "120"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "504"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "5"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "120"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "240"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "504"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "6"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "9"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "120"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " +"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "144"
+  },
+  {
+    "type": "text",
+    "textDelta": " ="
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "264"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "Thus"
+  },
+  {
+    "type": "text",
+    "textDelta": " zeros"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " ones"
+  },
+  {
+    "type": "text",
+    "textDelta": " are"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " most"
+  },
+  {
+    "type": "text",
+    "textDelta": " frequent"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " while"
+  },
+  {
+    "type": "text",
+    "textDelta": " six"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " seven"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " eight"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " nine"
+  },
+  {
+    "type": "text",
+    "textDelta": " are"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " least"
+  },
+  {
+    "type": "text",
+    "textDelta": " frequent"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "final",
+    "value": {
+      "text": {},
+      "toolCalls": {},
+      "toolResults": {},
+      "usage": {},
+      "finishReason": {},
+      "warnings": {},
+      "rawResponse": {}
+    }
+  }
+]

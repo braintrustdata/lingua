@@ -1,0 +1,241 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_0c4c3a7aa8b3f25b0068f7efefec108197ad7c80c3d02a2d4c",
+              "reasoningEncryptedContent": null
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "Right now in San Francisco, CA, it’s about 71°F. Want an hourly forecast or details like humidity, wind, or conditions (sunny/cloudy)?",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "msg_0c4c3a7aa8b3f25b0068f7eff30cfc8197ab360ff058f0e31b"
+            }
+          }
+        }
+      ],
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 97,
+        "outputTokens": 424,
+        "totalTokens": 521,
+        "reasoningTokens": 384,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What's the weather like in San Francisco?"
+                }
+              ]
+            },
+            {
+              "type": "function_call",
+              "call_id": "call_YXhmvXUNB5q05elwWSvG2hGJ",
+              "name": "get_weather",
+              "arguments": "{\"location\":\"San Francisco, CA\"}"
+            },
+            {
+              "type": "function_call_output",
+              "call_id": "call_YXhmvXUNB5q05elwWSvG2hGJ",
+              "output": "71 degrees"
+            }
+          ],
+          "tools": [
+            {
+              "type": "function",
+              "name": "get_weather",
+              "description": "Get the current weather for a location",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "description": "The city and state, e.g. San Francisco, CA",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "location"
+                ],
+                "additionalProperties": false
+              },
+              "strict": false
+            }
+          ],
+          "tool_choice": "auto"
+        }
+      },
+      "response": {
+        "id": "resp_0c4c3a7aa8b3f25b0068f7efef47988197af3ebf7acf9fbdb0",
+        "timestamp": "2025-10-21T20:41:19.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "99239336f8b6cf65-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Tue, 21 Oct 2025 20:41:23 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "4529",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=HD.zk_2rH8K3X.JWCs3eQmgAat0gvcPKZSkknF0B3PY-1761079283818-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "4540",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999412",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_96aef2e0b08c4b1f928301a0b9d46d4d"
+        },
+        "body": {
+          "id": "resp_0c4c3a7aa8b3f25b0068f7efef47988197af3ebf7acf9fbdb0",
+          "object": "response",
+          "created_at": 1761079279,
+          "status": "completed",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": null,
+          "instructions": null,
+          "max_output_tokens": null,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_0c4c3a7aa8b3f25b0068f7efefec108197ad7c80c3d02a2d4c",
+              "type": "reasoning",
+              "summary": []
+            },
+            {
+              "id": "msg_0c4c3a7aa8b3f25b0068f7eff30cfc8197ab360ff058f0e31b",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "Right now in San Francisco, CA, it’s about 71°F. Want an hourly forecast or details like humidity, wind, or conditions (sunny/cloudy)?"
+                }
+              ],
+              "role": "assistant"
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Get the current weather for a location",
+              "name": "get_weather",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "description": "The city and state, e.g. San Francisco, CA",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "location"
+                ],
+                "additionalProperties": false
+              },
+              "strict": false
+            }
+          ],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 97,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 424,
+            "output_tokens_details": {
+              "reasoning_tokens": 384
+            },
+            "total_tokens": 521
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_0c4c3a7aa8b3f25b0068f7efefec108197ad7c80c3d02a2d4c",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "text": "Right now in San Francisco, CA, it’s about 71°F. Want an hourly forecast or details like humidity, wind, or conditions (sunny/cloudy)?",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_0c4c3a7aa8b3f25b0068f7eff30cfc8197ab360ff058f0e31b"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_0c4c3a7aa8b3f25b0068f7efef47988197af3ebf7acf9fbdb0",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

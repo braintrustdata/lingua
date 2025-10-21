@@ -1,0 +1,205 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_064374cabe994e220068f7eff1ef4c81939f825b021da1b427",
+              "reasoningEncryptedContent": null
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "Could you tell me what you’d like to do next? Here are a few options:\n\n- Learn more about the sky: quick explanations of why the sky is blue, why colors change at sunrise/sunset, and night sky basics.\n- Do a quick outdoor activity: a 5-minute sky observation checklist you can follow right now.\n- Plan something fun: ideas for photos, stargazing, or a small weather experiment you can do at home.\n- Get practical tips: check the weather, air quality, or best times to be outside today.\n- If you’re feeling stuck or overwhelmed: simple grounding or goal-setting steps.\n\nTell me which option sounds good, or share your particular goal and I’ll tailor it.",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "msg_064374cabe994e220068f7eff6eda48193807ed33b863066d0"
+            }
+          }
+        }
+      ],
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 83,
+        "outputTokens": 791,
+        "totalTokens": 874,
+        "reasoningTokens": 640,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What color is the sky?"
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Usually blue during the day. That's because sunlight scattering in Earth's atmosphere makes blue light spread out in all directions. At sunrise or sunset it can look red, orange, or pink. At night the sky is dark (often black with stars). On cloudy days it appears gray."
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What should I do next?"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "response": {
+        "id": "resp_064374cabe994e220068f7eff140208193b1093ec0b0b5c52a",
+        "timestamp": "2025-10-21T20:41:21.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "99239343584467c1-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Tue, 21 Oct 2025 20:41:28 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "7434",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=b5WFmwHsyVttP8gCWFwtmIp0Qc5iwDM5IC3SpPqrIQo-1761079288682-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "7442",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999700",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_100eb6c1ede24f5f9c38d686c7111b1f"
+        },
+        "body": {
+          "id": "resp_064374cabe994e220068f7eff140208193b1093ec0b0b5c52a",
+          "object": "response",
+          "created_at": 1761079281,
+          "status": "completed",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": null,
+          "instructions": null,
+          "max_output_tokens": null,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_064374cabe994e220068f7eff1ef4c81939f825b021da1b427",
+              "type": "reasoning",
+              "summary": []
+            },
+            {
+              "id": "msg_064374cabe994e220068f7eff6eda48193807ed33b863066d0",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "Could you tell me what you’d like to do next? Here are a few options:\n\n- Learn more about the sky: quick explanations of why the sky is blue, why colors change at sunrise/sunset, and night sky basics.\n- Do a quick outdoor activity: a 5-minute sky observation checklist you can follow right now.\n- Plan something fun: ideas for photos, stargazing, or a small weather experiment you can do at home.\n- Get practical tips: check the weather, air quality, or best times to be outside today.\n- If you’re feeling stuck or overwhelmed: simple grounding or goal-setting steps.\n\nTell me which option sounds good, or share your particular goal and I’ll tailor it."
+                }
+              ],
+              "role": "assistant"
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 83,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 791,
+            "output_tokens_details": {
+              "reasoning_tokens": 640
+            },
+            "total_tokens": 874
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_064374cabe994e220068f7eff1ef4c81939f825b021da1b427",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "text": "Could you tell me what you’d like to do next? Here are a few options:\n\n- Learn more about the sky: quick explanations of why the sky is blue, why colors change at sunrise/sunset, and night sky basics.\n- Do a quick outdoor activity: a 5-minute sky observation checklist you can follow right now.\n- Plan something fun: ideas for photos, stargazing, or a small weather experiment you can do at home.\n- Get practical tips: check the weather, air quality, or best times to be outside today.\n- If you’re feeling stuck or overwhelmed: simple grounding or goal-setting steps.\n\nTell me which option sounds good, or share your particular goal and I’ll tailor it.",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_064374cabe994e220068f7eff6eda48193807ed33b863066d0"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_064374cabe994e220068f7eff140208193b1093ec0b0b5c52a",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

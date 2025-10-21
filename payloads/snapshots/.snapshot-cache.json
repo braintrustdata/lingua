@@ -1,100 +1,100 @@
 {
-  "ai-sdk:reasoningRequest": {
+  "ai-sdk.v5.generateText:reasoningRequestTruncated": {
     "payloadHash": "3ece7ea29c21fc8676ecaaf70277aebd9a239ebc59b09604e4b7501a5f357160",
-    "capturedAt": "2025-10-20T23:38:59.831Z",
-    "provider": "ai-sdk",
-    "name": "reasoningRequest",
-    "files": [
-      "reasoningRequest/ai-sdk/request.json",
-      "reasoningRequest/ai-sdk/response.json",
-      "reasoningRequest/ai-sdk/response-streaming.json",
-      "reasoningRequest/ai-sdk/followup-request.json",
-      "reasoningRequest/ai-sdk/followup-response.json",
-      "reasoningRequest/ai-sdk/followup-response-streaming.json"
-    ]
-  },
-  "ai-sdk:simpleRequest": {
-    "payloadHash": "3d35ff17d14be59e6bca505db43d894efc82ad3456fc4d415bc967b0312c2109",
-    "capturedAt": "2025-10-20T23:39:07.356Z",
-    "provider": "ai-sdk",
-    "name": "simpleRequest",
-    "files": [
-      "simpleRequest/ai-sdk/request.json",
-      "simpleRequest/ai-sdk/response.json",
-      "simpleRequest/ai-sdk/response-streaming.json",
-      "simpleRequest/ai-sdk/followup-request.json",
-      "simpleRequest/ai-sdk/followup-response.json",
-      "simpleRequest/ai-sdk/followup-response-streaming.json"
-    ]
-  },
-  "ai-sdk:reasoningRequestTruncated": {
-    "payloadHash": "3ece7ea29c21fc8676ecaaf70277aebd9a239ebc59b09604e4b7501a5f357160",
-    "capturedAt": "2025-10-21T20:08:12.123Z",
-    "provider": "ai-sdk",
+    "capturedAt": "2025-10-21T20:41:21.022Z",
+    "provider": "ai-sdk.v5.generateText",
     "name": "reasoningRequestTruncated",
     "files": [
-      "reasoningRequestTruncated/ai-sdk/request.json",
-      "reasoningRequestTruncated/ai-sdk/response.json",
-      "reasoningRequestTruncated/ai-sdk/response-streaming.json",
-      "reasoningRequestTruncated/ai-sdk/followup-request.json",
-      "reasoningRequestTruncated/ai-sdk/followup-response.json",
-      "reasoningRequestTruncated/ai-sdk/followup-response-streaming.json"
+      "reasoningRequestTruncated/ai-sdk.v5.generateText/request.json",
+      "reasoningRequestTruncated/ai-sdk.v5.generateText/response.json",
+      "reasoningRequestTruncated/ai-sdk.v5.generateText/response-streaming.json",
+      "reasoningRequestTruncated/ai-sdk.v5.generateText/followup-request.json",
+      "reasoningRequestTruncated/ai-sdk.v5.generateText/followup-response.json",
+      "reasoningRequestTruncated/ai-sdk.v5.generateText/followup-response-streaming.json"
     ]
   },
-  "ai-sdk:toolCallRequest": {
+  "ai-sdk.v5.generateText:reasoningRequest": {
+    "payloadHash": "3ece7ea29c21fc8676ecaaf70277aebd9a239ebc59b09604e4b7501a5f357160",
+    "capturedAt": "2025-10-21T20:41:21.120Z",
+    "provider": "ai-sdk.v5.generateText",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/ai-sdk.v5.generateText/request.json",
+      "reasoningRequest/ai-sdk.v5.generateText/response.json",
+      "reasoningRequest/ai-sdk.v5.generateText/response-streaming.json",
+      "reasoningRequest/ai-sdk.v5.generateText/followup-request.json",
+      "reasoningRequest/ai-sdk.v5.generateText/followup-response.json",
+      "reasoningRequest/ai-sdk.v5.generateText/followup-response-streaming.json"
+    ]
+  },
+  "ai-sdk.v5.generateText:toolCallRequest": {
     "payloadHash": "23c1d5696dd1240c73060c9bfe94fd2c04931e675b7889fcebfc8757a28c1ac7",
-    "capturedAt": "2025-10-21T20:08:15.994Z",
-    "provider": "ai-sdk",
+    "capturedAt": "2025-10-21T20:41:23.804Z",
+    "provider": "ai-sdk.v5.generateText",
     "name": "toolCallRequest",
     "files": [
-      "toolCallRequest/ai-sdk/request.json",
-      "toolCallRequest/ai-sdk/response.json",
-      "toolCallRequest/ai-sdk/response-streaming.json",
-      "toolCallRequest/ai-sdk/followup-request.json",
-      "toolCallRequest/ai-sdk/followup-response.json",
-      "toolCallRequest/ai-sdk/followup-response-streaming.json"
+      "toolCallRequest/ai-sdk.v5.generateText/request.json",
+      "toolCallRequest/ai-sdk.v5.generateText/response.json",
+      "toolCallRequest/ai-sdk.v5.generateText/response-streaming.json",
+      "toolCallRequest/ai-sdk.v5.generateText/followup-request.json",
+      "toolCallRequest/ai-sdk.v5.generateText/followup-response.json",
+      "toolCallRequest/ai-sdk.v5.generateText/followup-response-streaming.json"
     ]
   },
-  "ai-sdk:multimodalRequest": {
+  "ai-sdk.v5.generateText:multimodalRequest": {
     "payloadHash": "06e2c4b3f0d22bcfbdcfa914234bbeb7f24187968ccd38c9d47459e560ded37a",
-    "capturedAt": "2025-10-21T20:08:17.825Z",
-    "provider": "ai-sdk",
+    "capturedAt": "2025-10-21T20:41:24.159Z",
+    "provider": "ai-sdk.v5.generateText",
     "name": "multimodalRequest",
     "files": [
-      "multimodalRequest/ai-sdk/request.json",
-      "multimodalRequest/ai-sdk/response.json",
-      "multimodalRequest/ai-sdk/response-streaming.json",
-      "multimodalRequest/ai-sdk/followup-request.json",
-      "multimodalRequest/ai-sdk/followup-response.json",
-      "multimodalRequest/ai-sdk/followup-response-streaming.json"
+      "multimodalRequest/ai-sdk.v5.generateText/request.json",
+      "multimodalRequest/ai-sdk.v5.generateText/response.json",
+      "multimodalRequest/ai-sdk.v5.generateText/response-streaming.json",
+      "multimodalRequest/ai-sdk.v5.generateText/followup-request.json",
+      "multimodalRequest/ai-sdk.v5.generateText/followup-response.json",
+      "multimodalRequest/ai-sdk.v5.generateText/followup-response-streaming.json"
     ]
   },
-  "ai-sdk:reasoningWithOutput": {
+  "ai-sdk.v5.generateText:reasoningWithOutput": {
     "payloadHash": "d32bbfe81ef0b32fbd0e0094a136044158afd9c16000bcab2515f346713fdce5",
-    "capturedAt": "2025-10-21T20:08:31.628Z",
-    "provider": "ai-sdk",
+    "capturedAt": "2025-10-21T20:41:31.647Z",
+    "provider": "ai-sdk.v5.generateText",
     "name": "reasoningWithOutput",
     "files": [
-      "reasoningWithOutput/ai-sdk/request.json",
-      "reasoningWithOutput/ai-sdk/response.json",
-      "reasoningWithOutput/ai-sdk/response-streaming.json",
-      "reasoningWithOutput/ai-sdk/followup-request.json",
-      "reasoningWithOutput/ai-sdk/followup-response.json",
-      "reasoningWithOutput/ai-sdk/followup-response-streaming.json"
+      "reasoningWithOutput/ai-sdk.v5.generateText/request.json",
+      "reasoningWithOutput/ai-sdk.v5.generateText/response.json",
+      "reasoningWithOutput/ai-sdk.v5.generateText/response-streaming.json",
+      "reasoningWithOutput/ai-sdk.v5.generateText/followup-request.json",
+      "reasoningWithOutput/ai-sdk.v5.generateText/followup-response.json",
+      "reasoningWithOutput/ai-sdk.v5.generateText/followup-response-streaming.json"
     ]
   },
-  "ai-sdk:complexReasoningRequest": {
+  "ai-sdk.v5.generateText:simpleRequest": {
+    "payloadHash": "3d35ff17d14be59e6bca505db43d894efc82ad3456fc4d415bc967b0312c2109",
+    "capturedAt": "2025-10-21T20:41:31.772Z",
+    "provider": "ai-sdk.v5.generateText",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/ai-sdk.v5.generateText/request.json",
+      "simpleRequest/ai-sdk.v5.generateText/response.json",
+      "simpleRequest/ai-sdk.v5.generateText/response-streaming.json",
+      "simpleRequest/ai-sdk.v5.generateText/followup-request.json",
+      "simpleRequest/ai-sdk.v5.generateText/followup-response.json",
+      "simpleRequest/ai-sdk.v5.generateText/followup-response-streaming.json"
+    ]
+  },
+  "ai-sdk.v5.generateText:complexReasoningRequest": {
     "payloadHash": "8153f90726799040e5adfe32f8a0a284a170301591f3a14af6b003ed42db8791",
-    "capturedAt": "2025-10-21T20:10:22.129Z",
-    "provider": "ai-sdk",
+    "capturedAt": "2025-10-21T20:43:00.009Z",
+    "provider": "ai-sdk.v5.generateText",
     "name": "complexReasoningRequest",
     "files": [
-      "complexReasoningRequest/ai-sdk/request.json",
-      "complexReasoningRequest/ai-sdk/response.json",
-      "complexReasoningRequest/ai-sdk/response-streaming.json",
-      "complexReasoningRequest/ai-sdk/followup-request.json",
-      "complexReasoningRequest/ai-sdk/followup-response.json",
-      "complexReasoningRequest/ai-sdk/followup-response-streaming.json"
+      "complexReasoningRequest/ai-sdk.v5.generateText/request.json",
+      "complexReasoningRequest/ai-sdk.v5.generateText/response.json",
+      "complexReasoningRequest/ai-sdk.v5.generateText/response-streaming.json",
+      "complexReasoningRequest/ai-sdk.v5.generateText/followup-request.json",
+      "complexReasoningRequest/ai-sdk.v5.generateText/followup-response.json",
+      "complexReasoningRequest/ai-sdk.v5.generateText/followup-response-streaming.json"
     ]
   }
 }

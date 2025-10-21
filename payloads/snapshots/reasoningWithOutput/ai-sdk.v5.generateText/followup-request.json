@@ -1,0 +1,34 @@
+{
+  "model": {
+    "specificationVersion": "v2",
+    "supportedUrls": {
+      "image/*": [
+        {}
+      ],
+      "application/pdf": [
+        {}
+      ]
+    },
+    "modelId": "gpt-5-nano",
+    "config": {
+      "provider": "openai.responses",
+      "fileIdPrefixes": [
+        "file-"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    },
+    {
+      "role": "assistant",
+      "content": "Usually blue during the day. That's because sunlight scattering in Earth's atmosphere makes blue light spread out in all directions. At sunrise or sunset it can look red, orange, or pink. At night the sky is dark (often black with stars). On cloudy days it appears gray."
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

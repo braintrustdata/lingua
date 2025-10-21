@@ -1,0 +1,232 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_0c7272d1c54d998f0068f7efec89bc8194ba5f03725fbd49f1",
+              "reasoningEncryptedContent": null
+            }
+          }
+        },
+        {
+          "type": "tool-call",
+          "toolCallId": "call_YXhmvXUNB5q05elwWSvG2hGJ",
+          "toolName": "get_weather",
+          "input": {
+            "location": "San Francisco, CA"
+          },
+          "providerMetadata": {
+            "openai": {
+              "itemId": "fc_0c7272d1c54d998f0068f7efedd37081949fb0b436bb71748e"
+            }
+          }
+        }
+      ],
+      "finishReason": "tool-calls",
+      "usage": {
+        "inputTokens": 66,
+        "outputTokens": 151,
+        "totalTokens": 217,
+        "reasoningTokens": 128,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What's the weather like in San Francisco?"
+                }
+              ]
+            }
+          ],
+          "tools": [
+            {
+              "type": "function",
+              "name": "get_weather",
+              "description": "Get the current weather for a location",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "description": "The city and state, e.g. San Francisco, CA",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "location"
+                ],
+                "additionalProperties": false
+              },
+              "strict": false
+            }
+          ],
+          "tool_choice": "auto"
+        }
+      },
+      "response": {
+        "id": "resp_0c7272d1c54d998f0068f7efec0764819495e448345129bc84",
+        "timestamp": "2025-10-21T20:41:16.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "99239321acc6cf65-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Tue, 21 Oct 2025 20:41:18 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "2251",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=By9gJI8PI5uCJbKYKA4p4TboMN816eEllztEsb2u0ag-1761079278285-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "2431",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999445",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_92a50687187345d1884f465539b68803"
+        },
+        "body": {
+          "id": "resp_0c7272d1c54d998f0068f7efec0764819495e448345129bc84",
+          "object": "response",
+          "created_at": 1761079276,
+          "status": "completed",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": null,
+          "instructions": null,
+          "max_output_tokens": null,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_0c7272d1c54d998f0068f7efec89bc8194ba5f03725fbd49f1",
+              "type": "reasoning",
+              "summary": []
+            },
+            {
+              "id": "fc_0c7272d1c54d998f0068f7efedd37081949fb0b436bb71748e",
+              "type": "function_call",
+              "status": "completed",
+              "arguments": "{\"location\":\"San Francisco, CA\"}",
+              "call_id": "call_YXhmvXUNB5q05elwWSvG2hGJ",
+              "name": "get_weather"
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Get the current weather for a location",
+              "name": "get_weather",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "description": "The city and state, e.g. San Francisco, CA",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "location"
+                ],
+                "additionalProperties": false
+              },
+              "strict": false
+            }
+          ],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 66,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 151,
+            "output_tokens_details": {
+              "reasoning_tokens": 128
+            },
+            "total_tokens": 217
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_0c7272d1c54d998f0068f7efec89bc8194ba5f03725fbd49f1",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              },
+              {
+                "type": "tool-call",
+                "toolCallId": "call_YXhmvXUNB5q05elwWSvG2hGJ",
+                "toolName": "get_weather",
+                "input": {
+                  "location": "San Francisco, CA"
+                },
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "fc_0c7272d1c54d998f0068f7efedd37081949fb0b436bb71748e"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_0c7272d1c54d998f0068f7efec0764819495e448345129bc84",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

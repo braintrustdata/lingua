@@ -1,0 +1,180 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_0de85183ba0e54ad0068f7eff0fb308197a45dce3057c7c20a",
+              "reasoningEncryptedContent": null
+            }
+          }
+        }
+      ],
+      "finishReason": "length",
+      "usage": {
+        "inputTokens": 381,
+        "outputTokens": 256,
+        "totalTokens": 637,
+        "reasoningTokens": 256,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What do you see in this image?"
+                },
+                {
+                  "type": "input_image",
+                  "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "A cute tabby cat lying on a wooden table, with its front paws stretched out. It’s looking at the camera with big amber eyes, ears perked, and striped fur, against a softly blurred indoor background."
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What should I do next?"
+                }
+              ]
+            }
+          ],
+          "max_output_tokens": 300
+        }
+      },
+      "response": {
+        "id": "resp_0de85183ba0e54ad0068f7eff01f408197bfdd507da6555375",
+        "timestamp": "2025-10-21T20:41:20.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "99239339b837fb28-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Tue, 21 Oct 2025 20:41:24 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "4039",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=NUNjFXv3fp6zJXqLXBW_caNHDUHI9PmGCw9NZLaJ09A-1761079284169-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "4479",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999235",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_42f5587a99244142b4512c2cd989b451"
+        },
+        "body": {
+          "id": "resp_0de85183ba0e54ad0068f7eff01f408197bfdd507da6555375",
+          "object": "response",
+          "created_at": 1761079280,
+          "status": "incomplete",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": {
+            "reason": "max_output_tokens"
+          },
+          "instructions": null,
+          "max_output_tokens": 300,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_0de85183ba0e54ad0068f7eff0fb308197a45dce3057c7c20a",
+              "type": "reasoning",
+              "summary": []
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 381,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 256,
+            "output_tokens_details": {
+              "reasoning_tokens": 256
+            },
+            "total_tokens": 637
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_0de85183ba0e54ad0068f7eff0fb308197a45dce3057c7c20a",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_0de85183ba0e54ad0068f7eff01f408197bfdd507da6555375",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

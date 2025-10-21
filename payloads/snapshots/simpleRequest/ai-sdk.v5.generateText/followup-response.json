@@ -1,0 +1,205 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_0ca9248158fc98130068f7efef16fc8194abb552997f7550fa",
+              "reasoningEncryptedContent": null
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "Could you tell me what you want to achieve? Here are a few quick options. You can pick one or I can suggest something else:\n\n- Quick capitals quiz (5 questions) to test your memory\n- Learn about Paris: top sights, best time to visit, getting around\n- Plan a quick Paris itinerary (2 days) or a travel budget\n- A short geography lesson about France and its regions\n\nIf you’d like, we can start right now with a 5-question world capitals quiz. Want me to begin?",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "msg_0ca9248158fc98130068f7eff6a19c8194b106c110693072e3"
+            }
+          }
+        }
+      ],
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 31,
+        "outputTokens": 881,
+        "totalTokens": 912,
+        "reasoningTokens": 768,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What is the capital of France?"
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Paris."
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What should I do next?"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "response": {
+        "id": "resp_0ca9248158fc98130068f7efee84d48194a707aabd076c9614",
+        "timestamp": "2025-10-21T20:41:18.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "992393325ec32284-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Tue, 21 Oct 2025 20:41:27 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "9289",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=xrfcwy1zSN9jeqakv0c5y8IYu1zfPJpWo2mQ9wLGl7Q-1761079287845-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "9295",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999751",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_324b8f6eec8e44c4805b4fdce9cb5c49"
+        },
+        "body": {
+          "id": "resp_0ca9248158fc98130068f7efee84d48194a707aabd076c9614",
+          "object": "response",
+          "created_at": 1761079278,
+          "status": "completed",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": null,
+          "instructions": null,
+          "max_output_tokens": null,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_0ca9248158fc98130068f7efef16fc8194abb552997f7550fa",
+              "type": "reasoning",
+              "summary": []
+            },
+            {
+              "id": "msg_0ca9248158fc98130068f7eff6a19c8194b106c110693072e3",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "Could you tell me what you want to achieve? Here are a few quick options. You can pick one or I can suggest something else:\n\n- Quick capitals quiz (5 questions) to test your memory\n- Learn about Paris: top sights, best time to visit, getting around\n- Plan a quick Paris itinerary (2 days) or a travel budget\n- A short geography lesson about France and its regions\n\nIf you’d like, we can start right now with a 5-question world capitals quiz. Want me to begin?"
+                }
+              ],
+              "role": "assistant"
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 31,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 881,
+            "output_tokens_details": {
+              "reasoning_tokens": 768
+            },
+            "total_tokens": 912
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_0ca9248158fc98130068f7efef16fc8194abb552997f7550fa",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "text": "Could you tell me what you want to achieve? Here are a few quick options. You can pick one or I can suggest something else:\n\n- Quick capitals quiz (5 questions) to test your memory\n- Learn about Paris: top sights, best time to visit, getting around\n- Plan a quick Paris itinerary (2 days) or a travel budget\n- A short geography lesson about France and its regions\n\nIf you’d like, we can start right now with a 5-question world capitals quiz. Want me to begin?",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_0ca9248158fc98130068f7eff6a19c8194b106c110693072e3"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_0ca9248158fc98130068f7efee84d48194a707aabd076c9614",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

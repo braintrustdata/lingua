@@ -77,7 +77,7 @@ export const advancedCases: TestCaseCollection = {
       ],
     },
 
-    "ai-sdk": {
+    "ai-sdk.v5.generateText": {
       model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
       messages: [
         {
@@ -137,7 +137,7 @@ export const advancedCases: TestCaseCollection = {
       ],
     },
 
-    "ai-sdk": {
+    "ai-sdk.v5.generateText": {
       model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
       messages: [
         {
@@ -181,7 +181,7 @@ export const advancedCases: TestCaseCollection = {
       ],
     },
 
-    "ai-sdk": {
+    "ai-sdk.v5.generateText": {
       model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
       messages: [
         {
@@ -280,7 +280,7 @@ export const advancedCases: TestCaseCollection = {
       tool_choice: "auto",
     },
 
-    "ai-sdk": {
+    "ai-sdk.v5.generateText": {
       model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
       messages: [
         {

@@ -1,0 +1,192 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_0139ee44bc51a6840068f7efed73188193bdc5099fd9049423",
+              "reasoningEncryptedContent": null
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "A cute tabby cat lying on a wooden table, with its front paws stretched out. It’s looking at the camera with big amber eyes, ears perked, and striped fur, against a softly blurred indoor background.",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "msg_0139ee44bc51a6840068f7efeebd608193abcb3839abcbf583"
+            }
+          }
+        }
+      ],
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 321,
+        "outputTokens": 242,
+        "totalTokens": 563,
+        "reasoningTokens": 192,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What do you see in this image?"
+                },
+                {
+                  "type": "input_image",
+                  "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+                }
+              ]
+            }
+          ],
+          "max_output_tokens": 300
+        }
+      },
+      "response": {
+        "id": "resp_0139ee44bc51a6840068f7efebd8a88193afd34c30ec1c9ce1",
+        "timestamp": "2025-10-21T20:41:15.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "99239321b9877afd-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Tue, 21 Oct 2025 20:41:19 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "3428",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=CUfg.lOxKel_lvGctMKLVHqmkKQU0JsloTBSNQT9df0-1761079279290-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "3431",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999235",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_2abcf2787acd45f2861b13dd0f8bd21f"
+        },
+        "body": {
+          "id": "resp_0139ee44bc51a6840068f7efebd8a88193afd34c30ec1c9ce1",
+          "object": "response",
+          "created_at": 1761079275,
+          "status": "completed",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": null,
+          "instructions": null,
+          "max_output_tokens": 300,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_0139ee44bc51a6840068f7efed73188193bdc5099fd9049423",
+              "type": "reasoning",
+              "summary": []
+            },
+            {
+              "id": "msg_0139ee44bc51a6840068f7efeebd608193abcb3839abcbf583",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "A cute tabby cat lying on a wooden table, with its front paws stretched out. It’s looking at the camera with big amber eyes, ears perked, and striped fur, against a softly blurred indoor background."
+                }
+              ],
+              "role": "assistant"
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 321,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 242,
+            "output_tokens_details": {
+              "reasoning_tokens": 192
+            },
+            "total_tokens": 563
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_0139ee44bc51a6840068f7efed73188193bdc5099fd9049423",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "text": "A cute tabby cat lying on a wooden table, with its front paws stretched out. It’s looking at the camera with big amber eyes, ears perked, and striped fur, against a softly blurred indoor background.",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_0139ee44bc51a6840068f7efeebd608193abcb3839abcbf583"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_0139ee44bc51a6840068f7efebd8a88193afd34c30ec1c9ce1",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

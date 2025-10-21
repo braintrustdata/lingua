@@ -1,0 +1,14 @@
+[
+  {
+    "type": "final",
+    "value": {
+      "text": {},
+      "toolCalls": {},
+      "toolResults": {},
+      "usage": {},
+      "finishReason": {},
+      "warnings": {},
+      "rawResponse": {}
+    }
+  }
+]
