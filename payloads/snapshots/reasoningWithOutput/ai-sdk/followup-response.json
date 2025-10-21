@@ -1,0 +1,205 @@
+{
+  "steps": [
+    {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": "",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_0e9b0604fa7ffaff0068f7e8347ccc81969d8ab57fc692e232",
+              "reasoningEncryptedContent": null
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "Sure—do you want to focus on something practical right now, or more about the sky? Here are a few quick options. Pick one or tell me your goal and I’ll tailor it:\n\n- Sky-focused (immediate): Tell me your city and current time, and I’ll describe the sky color right now. Or I can guide a quick sky-watching mini-activity (observe colors, note clouds, take a photo).\n\n- Learn something: I can explain why the sky changes color (sunrise/sunset, storms, auroras) or give you tips for photographing the sky.\n\n- Short, productive task: Choose one small task to finish in 15–25 minutes (e.g., tidy desk, respond to 1 email, plan tomorrow’s top 1-2 priorities).\n\n- Relaxation break: Try a 5-minute breathing/grounding exercise or a light stretch routine.\n\n- Quick decision help: If you’re unsure what to do next in general, tell me your goal (work, study, hobby, fitness) and I’ll suggest a simple next action.",
+          "providerMetadata": {
+            "openai": {
+              "itemId": "msg_0e9b0604fa7ffaff0068f7e83ad99c81969b5c9ca2ce9c8c38"
+            }
+          }
+        }
+      ],
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 124,
+        "outputTokens": 1185,
+        "totalTokens": 1309,
+        "reasoningTokens": 960,
+        "cachedInputTokens": 0
+      },
+      "warnings": [],
+      "request": {
+        "body": {
+          "model": "gpt-5-nano",
+          "input": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What color is the sky?"
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Typically blue during a clear day. That blue comes from Rayleigh scattering, where sunlight hits the atmosphere and blue light scatters in all directions.\n\nOther times:\n- Sunrise/sunset: red, orange, pink\n- Cloudy days: gray or white\n- Night: dark/black (with stars)\n- Occasionally: greenish during severe storms or visible colors from auroras\n\nIf you share your location and time, I can describe the sky color more specifically for now."
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "What should I do next?"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "response": {
+        "id": "resp_0e9b0604fa7ffaff0068f7e833f5ac8196a9769ccc34710c33",
+        "timestamp": "2025-10-21T20:08:19.000Z",
+        "modelId": "gpt-5-nano-2025-08-07",
+        "headers": {
+          "alt-svc": "h3=\":443\"; ma=86400",
+          "cf-cache-status": "DYNAMIC",
+          "cf-ray": "992362e46f9c174e-SJC",
+          "connection": "keep-alive",
+          "content-encoding": "br",
+          "content-type": "application/json",
+          "date": "Tue, 21 Oct 2025 20:08:28 GMT",
+          "openai-organization": "braintrust-data",
+          "openai-processing-ms": "8562",
+          "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
+          "openai-version": "2020-10-01",
+          "server": "cloudflare",
+          "set-cookie": "_cfuvid=QCg5sxYqyKMbKpdN_R9PVUkNhC2umfjxGJ049d717l8-1761077308536-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+          "transfer-encoding": "chunked",
+          "x-content-type-options": "nosniff",
+          "x-envoy-upstream-service-time": "8567",
+          "x-ratelimit-limit-requests": "30000",
+          "x-ratelimit-limit-tokens": "180000000",
+          "x-ratelimit-remaining-requests": "29999",
+          "x-ratelimit-remaining-tokens": "179999658",
+          "x-ratelimit-reset-requests": "2ms",
+          "x-ratelimit-reset-tokens": "0s",
+          "x-request-id": "req_20567e5a6f114032a5048406f2fc98b9"
+        },
+        "body": {
+          "id": "resp_0e9b0604fa7ffaff0068f7e833f5ac8196a9769ccc34710c33",
+          "object": "response",
+          "created_at": 1761077299,
+          "status": "completed",
+          "background": false,
+          "billing": {
+            "payer": "developer"
+          },
+          "error": null,
+          "incomplete_details": null,
+          "instructions": null,
+          "max_output_tokens": null,
+          "max_tool_calls": null,
+          "model": "gpt-5-nano-2025-08-07",
+          "output": [
+            {
+              "id": "rs_0e9b0604fa7ffaff0068f7e8347ccc81969d8ab57fc692e232",
+              "type": "reasoning",
+              "summary": []
+            },
+            {
+              "id": "msg_0e9b0604fa7ffaff0068f7e83ad99c81969b5c9ca2ce9c8c38",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "Sure—do you want to focus on something practical right now, or more about the sky? Here are a few quick options. Pick one or tell me your goal and I’ll tailor it:\n\n- Sky-focused (immediate): Tell me your city and current time, and I’ll describe the sky color right now. Or I can guide a quick sky-watching mini-activity (observe colors, note clouds, take a photo).\n\n- Learn something: I can explain why the sky changes color (sunrise/sunset, storms, auroras) or give you tips for photographing the sky.\n\n- Short, productive task: Choose one small task to finish in 15–25 minutes (e.g., tidy desk, respond to 1 email, plan tomorrow’s top 1-2 priorities).\n\n- Relaxation break: Try a 5-minute breathing/grounding exercise or a light stretch routine.\n\n- Quick decision help: If you’re unsure what to do next in general, tell me your goal (work, study, hobby, fitness) and I’ll suggest a simple next action."
+                }
+              ],
+              "role": "assistant"
+            }
+          ],
+          "parallel_tool_calls": true,
+          "previous_response_id": null,
+          "prompt_cache_key": null,
+          "reasoning": {
+            "effort": "medium",
+            "summary": null
+          },
+          "safety_identifier": null,
+          "service_tier": "default",
+          "store": true,
+          "temperature": 1,
+          "text": {
+            "format": {
+              "type": "text"
+            },
+            "verbosity": "medium"
+          },
+          "tool_choice": "auto",
+          "tools": [],
+          "top_logprobs": 0,
+          "top_p": 1,
+          "truncation": "disabled",
+          "usage": {
+            "input_tokens": 124,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 1185,
+            "output_tokens_details": {
+              "reasoning_tokens": 960
+            },
+            "total_tokens": 1309
+          },
+          "user": null,
+          "metadata": {}
+        },
+        "messages": [
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "reasoning",
+                "text": "",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_0e9b0604fa7ffaff0068f7e8347ccc81969d8ab57fc692e232",
+                    "reasoningEncryptedContent": null
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "text": "Sure—do you want to focus on something practical right now, or more about the sky? Here are a few quick options. Pick one or tell me your goal and I’ll tailor it:\n\n- Sky-focused (immediate): Tell me your city and current time, and I’ll describe the sky color right now. Or I can guide a quick sky-watching mini-activity (observe colors, note clouds, take a photo).\n\n- Learn something: I can explain why the sky changes color (sunrise/sunset, storms, auroras) or give you tips for photographing the sky.\n\n- Short, productive task: Choose one small task to finish in 15–25 minutes (e.g., tidy desk, respond to 1 email, plan tomorrow’s top 1-2 priorities).\n\n- Relaxation break: Try a 5-minute breathing/grounding exercise or a light stretch routine.\n\n- Quick decision help: If you’re unsure what to do next in general, tell me your goal (work, study, hobby, fitness) and I’ll suggest a simple next action.",
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_0e9b0604fa7ffaff0068f7e83ad99c81969b5c9ca2ce9c8c38"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_0e9b0604fa7ffaff0068f7e833f5ac8196a9769ccc34710c33",
+          "serviceTier": "default"
+        }
+      }
+    }
+  ]
+}

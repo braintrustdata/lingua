@@ -1,0 +1,258 @@
+[
+  {
+    "type": "text",
+    "textDelta": "Typically"
+  },
+  {
+    "type": "text",
+    "textDelta": " blue"
+  },
+  {
+    "type": "text",
+    "textDelta": " during"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " day"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "due"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " Ray"
+  },
+  {
+    "type": "text",
+    "textDelta": "leigh"
+  },
+  {
+    "type": "text",
+    "textDelta": " scattering"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " Earth's"
+  },
+  {
+    "type": "text",
+    "textDelta": " atmosphere"
+  },
+  {
+    "type": "text",
+    "textDelta": ")."
+  },
+  {
+    "type": "text",
+    "textDelta": " It"
+  },
+  {
+    "type": "text",
+    "textDelta": " can"
+  },
+  {
+    "type": "text",
+    "textDelta": " vary"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " pale"
+  },
+  {
+    "type": "text",
+    "textDelta": " or"
+  },
+  {
+    "type": "text",
+    "textDelta": " bright"
+  },
+  {
+    "type": "text",
+    "textDelta": " blue"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " gray"
+  },
+  {
+    "type": "text",
+    "textDelta": " when"
+  },
+  {
+    "type": "text",
+    "textDelta": " cloudy"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " orange"
+  },
+  {
+    "type": "text",
+    "textDelta": "/red"
+  },
+  {
+    "type": "text",
+    "textDelta": "/p"
+  },
+  {
+    "type": "text",
+    "textDelta": "ink"
+  },
+  {
+    "type": "text",
+    "textDelta": " at"
+  },
+  {
+    "type": "text",
+    "textDelta": " sunrise"
+  },
+  {
+    "type": "text",
+    "textDelta": " or"
+  },
+  {
+    "type": "text",
+    "textDelta": " sunset"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " dark"
+  },
+  {
+    "type": "text",
+    "textDelta": " at"
+  },
+  {
+    "type": "text",
+    "textDelta": " night"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "text",
+    "textDelta": " If"
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": " tell"
+  },
+  {
+    "type": "text",
+    "textDelta": " me"
+  },
+  {
+    "type": "text",
+    "textDelta": " your"
+  },
+  {
+    "type": "text",
+    "textDelta": " location"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " time"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " I"
+  },
+  {
+    "type": "text",
+    "textDelta": " can"
+  },
+  {
+    "type": "text",
+    "textDelta": " describe"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " current"
+  },
+  {
+    "type": "text",
+    "textDelta": " sky"
+  },
+  {
+    "type": "text",
+    "textDelta": " color"
+  },
+  {
+    "type": "text",
+    "textDelta": " more"
+  },
+  {
+    "type": "text",
+    "textDelta": " precisely"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "final",
+    "value": {
+      "text": {},
+      "toolCalls": {},
+      "toolResults": {},
+      "usage": {},
+      "finishReason": {},
+      "warnings": {},
+      "rawResponse": {}
+    }
+  }
+]

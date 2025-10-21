@@ -1,3 +1,0 @@
-{
-  "error": "GatewayError: Vercel AI Gateway access failed. If you want to use AI SDK providers directly, use the providers, e.g. @ai-sdk/openai, or register a different global default provider."
-}

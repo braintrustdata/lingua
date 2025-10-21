@@ -1,0 +1,34 @@
+{
+  "model": {
+    "specificationVersion": "v2",
+    "supportedUrls": {
+      "image/*": [
+        {}
+      ],
+      "application/pdf": [
+        {}
+      ]
+    },
+    "modelId": "gpt-5-nano",
+    "config": {
+      "provider": "openai.responses",
+      "fileIdPrefixes": [
+        "file-"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    },
+    {
+      "role": "assistant",
+      "content": "Typically blue during a clear day. That blue comes from Rayleigh scattering, where sunlight hits the atmosphere and blue light scatters in all directions.\n\nOther times:\n- Sunrise/sunset: red, orange, pink\n- Cloudy days: gray or white\n- Night: dark/black (with stars)\n- Occasionally: greenish during severe storms or visible colors from auroras\n\nIf you share your location and time, I can describe the sky color more specifically for now."
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

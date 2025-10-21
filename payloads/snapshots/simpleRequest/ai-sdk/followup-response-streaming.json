@@ -1,51 +1,11 @@
 [
   {
     "type": "text",
-    "textDelta": "I"
+    "textDelta": "That"
   },
   {
     "type": "text",
-    "textDelta": "’m"
-  },
-  {
-    "type": "text",
-    "textDelta": " happy"
-  },
-  {
-    "type": "text",
-    "textDelta": " to"
-  },
-  {
-    "type": "text",
-    "textDelta": " help"
-  },
-  {
-    "type": "text",
-    "textDelta": "."
-  },
-  {
-    "type": "text",
-    "textDelta": " What"
-  },
-  {
-    "type": "text",
-    "textDelta": " would"
-  },
-  {
-    "type": "text",
-    "textDelta": " you"
-  },
-  {
-    "type": "text",
-    "textDelta": " like"
-  },
-  {
-    "type": "text",
-    "textDelta": " to"
-  },
-  {
-    "type": "text",
-    "textDelta": " focus"
+    "textDelta": " depends"
   },
   {
     "type": "text",
@@ -53,7 +13,15 @@
   },
   {
     "type": "text",
-    "textDelta": "?"
+    "textDelta": " your"
+  },
+  {
+    "type": "text",
+    "textDelta": " goal"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
   },
   {
     "type": "text",
@@ -73,7 +41,55 @@
   },
   {
     "type": "text",
+    "textDelta": " quick"
+  },
+  {
+    "type": "text",
     "textDelta": " options"
+  },
+  {
+    "type": "text",
+    "textDelta": "—"
+  },
+  {
+    "type": "text",
+    "textDelta": "tell"
+  },
+  {
+    "type": "text",
+    "textDelta": " me"
+  },
+  {
+    "type": "text",
+    "textDelta": " which"
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": " want"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " I"
+  },
+  {
+    "type": "text",
+    "textDelta": "’ll"
+  },
+  {
+    "type": "text",
+    "textDelta": " tailor"
+  },
+  {
+    "type": "text",
+    "textDelta": " it"
   },
   {
     "type": "text",
@@ -89,15 +105,67 @@
   },
   {
     "type": "text",
-    "textDelta": " knowledge"
+    "textDelta": " productivity"
   },
   {
     "type": "text",
-    "textDelta": " check"
+    "textDelta": " boost"
   },
   {
     "type": "text",
-    "textDelta": ":"
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "today"
+  },
+  {
+    "type": "text",
+    "textDelta": "):"
+  },
+  {
+    "type": "text",
+    "textDelta": " List"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "3"
+  },
+  {
+    "type": "text",
+    "textDelta": " tasks"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " pick"
+  },
+  {
+    "type": "text",
+    "textDelta": " one"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " start"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " set"
   },
   {
     "type": "text",
@@ -105,7 +173,43 @@
   },
   {
     "type": "text",
-    "textDelta": " short"
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "25"
+  },
+  {
+    "type": "text",
+    "textDelta": "-minute"
+  },
+  {
+    "type": "text",
+    "textDelta": " timer"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "Pom"
+  },
+  {
+    "type": "text",
+    "textDelta": "odoro"
+  },
+  {
+    "type": "text",
+    "textDelta": "),"
+  },
+  {
+    "type": "text",
+    "textDelta": " then"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
   },
   {
     "type": "text",
@@ -117,39 +221,35 @@
   },
   {
     "type": "text",
-    "textDelta": "-question"
+    "textDelta": "-minute"
   },
   {
     "type": "text",
-    "textDelta": " geography"
+    "textDelta": " break"
   },
   {
     "type": "text",
-    "textDelta": " quiz"
+    "textDelta": "."
   },
   {
     "type": "text",
-    "textDelta": " ("
+    "textDelta": " Repeat"
   },
   {
     "type": "text",
-    "textDelta": " Capitals"
+    "textDelta": " once"
   },
   {
     "type": "text",
-    "textDelta": " around"
+    "textDelta": " or"
   },
   {
     "type": "text",
-    "textDelta": " the"
+    "textDelta": " twice"
   },
   {
     "type": "text",
-    "textDelta": " world"
-  },
-  {
-    "type": "text",
-    "textDelta": " ).\n"
+    "textDelta": ".\n\n"
   },
   {
     "type": "text",
@@ -161,7 +261,75 @@
   },
   {
     "type": "text",
+    "textDelta": " something"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "10"
+  },
+  {
+    "type": "text",
+    "textDelta": " minutes"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": " A"
+  },
+  {
+    "type": "text",
+    "textDelta": " short"
+  },
+  {
+    "type": "text",
+    "textDelta": " mini"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": "lesson"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "e"
+  },
+  {
+    "type": "text",
+    "textDelta": ".g"
+  },
+  {
+    "type": "text",
+    "textDelta": ".,"
+  },
+  {
+    "type": "text",
     "textDelta": " about"
+  },
+  {
+    "type": "text",
+    "textDelta": " Paris"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
   },
   {
     "type": "text",
@@ -169,15 +337,11 @@
   },
   {
     "type": "text",
-    "textDelta": "/"
+    "textDelta": ","
   },
   {
     "type": "text",
-    "textDelta": "Paris"
-  },
-  {
-    "type": "text",
-    "textDelta": ":"
+    "textDelta": " or"
   },
   {
     "type": "text",
@@ -189,23 +353,15 @@
   },
   {
     "type": "text",
-    "textDelta": " overview"
+    "textDelta": " geography"
   },
   {
     "type": "text",
-    "textDelta": " and"
+    "textDelta": " quiz"
   },
   {
     "type": "text",
-    "textDelta": " interesting"
-  },
-  {
-    "type": "text",
-    "textDelta": " facts"
-  },
-  {
-    "type": "text",
-    "textDelta": ".\n"
+    "textDelta": ").\n\n"
   },
   {
     "type": "text",
@@ -237,7 +393,11 @@
   },
   {
     "type": "text",
-    "textDelta": " a"
+    "textDelta": " A"
+  },
+  {
+    "type": "text",
+    "textDelta": " simple"
   },
   {
     "type": "text",
@@ -245,7 +405,7 @@
   },
   {
     "type": "text",
-    "textDelta": "2"
+    "textDelta": "3"
   },
   {
     "type": "text",
@@ -253,7 +413,7 @@
   },
   {
     "type": "text",
-    "textDelta": "3"
+    "textDelta": "4"
   },
   {
     "type": "text",
@@ -281,71 +441,19 @@
   },
   {
     "type": "text",
-    "textDelta": ","
-  },
-  {
-    "type": "text",
-    "textDelta": " neighborhoods"
-  },
-  {
-    "type": "text",
-    "textDelta": ","
-  },
-  {
-    "type": "text",
     "textDelta": " and"
   },
   {
     "type": "text",
-    "textDelta": " food"
+    "textDelta": " transit"
   },
   {
     "type": "text",
-    "textDelta": ".\n"
+    "textDelta": " tips"
   },
   {
     "type": "text",
-    "textDelta": "-"
-  },
-  {
-    "type": "text",
-    "textDelta": " Learn"
-  },
-  {
-    "type": "text",
-    "textDelta": " basic"
-  },
-  {
-    "type": "text",
-    "textDelta": " French"
-  },
-  {
-    "type": "text",
-    "textDelta": " phrases"
-  },
-  {
-    "type": "text",
-    "textDelta": " for"
-  },
-  {
-    "type": "text",
-    "textDelta": " travel"
-  },
-  {
-    "type": "text",
-    "textDelta": ":"
-  },
-  {
-    "type": "text",
-    "textDelta": " essential"
-  },
-  {
-    "type": "text",
-    "textDelta": " expressions"
-  },
-  {
-    "type": "text",
-    "textDelta": ".\n"
+    "textDelta": ".\n\n"
   },
   {
     "type": "text",
@@ -353,11 +461,7 @@
   },
   {
     "type": "text",
-    "textDelta": " Work"
-  },
-  {
-    "type": "text",
-    "textDelta": " on"
+    "textDelta": " Start"
   },
   {
     "type": "text",
@@ -365,7 +469,11 @@
   },
   {
     "type": "text",
-    "textDelta": " project"
+    "textDelta": " small"
+  },
+  {
+    "type": "text",
+    "textDelta": " habit"
   },
   {
     "type": "text",
@@ -373,7 +481,7 @@
   },
   {
     "type": "text",
-    "textDelta": " task"
+    "textDelta": " project"
   },
   {
     "type": "text",
@@ -381,11 +489,31 @@
   },
   {
     "type": "text",
-    "textDelta": " describe"
+    "textDelta": " Choose"
   },
   {
     "type": "text",
-    "textDelta": " it"
+    "textDelta": " one"
+  },
+  {
+    "type": "text",
+    "textDelta": " thing"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " start"
+  },
+  {
+    "type": "text",
+    "textDelta": " this"
+  },
+  {
+    "type": "text",
+    "textDelta": " week"
   },
   {
     "type": "text",
@@ -393,35 +521,19 @@
   },
   {
     "type": "text",
-    "textDelta": " I"
+    "textDelta": " outline"
   },
   {
     "type": "text",
-    "textDelta": "’ll"
+    "textDelta": " "
   },
   {
     "type": "text",
-    "textDelta": " help"
+    "textDelta": "3"
   },
   {
     "type": "text",
-    "textDelta": " you"
-  },
-  {
-    "type": "text",
-    "textDelta": " map"
-  },
-  {
-    "type": "text",
-    "textDelta": " out"
-  },
-  {
-    "type": "text",
-    "textDelta": " the"
-  },
-  {
-    "type": "text",
-    "textDelta": " next"
+    "textDelta": " concrete"
   },
   {
     "type": "text",
@@ -433,55 +545,35 @@
   },
   {
     "type": "text",
-    "textDelta": "Or"
+    "textDelta": "What"
   },
   {
     "type": "text",
-    "textDelta": " tell"
+    "textDelta": " would"
   },
   {
     "type": "text",
-    "textDelta": " me"
+    "textDelta": " you"
   },
   {
     "type": "text",
-    "textDelta": " your"
+    "textDelta": " like"
   },
   {
     "type": "text",
-    "textDelta": " goal"
+    "textDelta": " to"
   },
   {
     "type": "text",
-    "textDelta": " and"
+    "textDelta": " focus"
   },
   {
     "type": "text",
-    "textDelta": " I"
+    "textDelta": " on"
   },
   {
     "type": "text",
-    "textDelta": "’ll"
-  },
-  {
-    "type": "text",
-    "textDelta": " tailor"
-  },
-  {
-    "type": "text",
-    "textDelta": " the"
-  },
-  {
-    "type": "text",
-    "textDelta": " next"
-  },
-  {
-    "type": "text",
-    "textDelta": " steps"
-  },
-  {
-    "type": "text",
-    "textDelta": "."
+    "textDelta": "?"
   },
   {
     "type": "text",
@@ -493,15 +585,7 @@
   },
   {
     "type": "text",
-    "textDelta": "’re"
-  },
-  {
-    "type": "text",
-    "textDelta": " not"
-  },
-  {
-    "type": "text",
-    "textDelta": " sure"
+    "textDelta": " want"
   },
   {
     "type": "text",
@@ -517,7 +601,11 @@
   },
   {
     "type": "text",
-    "textDelta": " start"
+    "textDelta": " jump"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
   },
   {
     "type": "text",
@@ -529,23 +617,15 @@
   },
   {
     "type": "text",
-    "textDelta": " quick"
+    "textDelta": " ready"
   },
   {
     "type": "text",
-    "textDelta": " "
+    "textDelta": "-made"
   },
   {
     "type": "text",
-    "textDelta": "5"
-  },
-  {
-    "type": "text",
-    "textDelta": "-minute"
-  },
-  {
-    "type": "text",
-    "textDelta": " quiz"
+    "textDelta": " plan"
   },
   {
     "type": "text",
@@ -553,31 +633,11 @@
   },
   {
     "type": "text",
-    "textDelta": " now"
+    "textDelta": " away"
   },
   {
     "type": "text",
     "textDelta": "."
-  },
-  {
-    "type": "text",
-    "textDelta": " Which"
-  },
-  {
-    "type": "text",
-    "textDelta": " would"
-  },
-  {
-    "type": "text",
-    "textDelta": " you"
-  },
-  {
-    "type": "text",
-    "textDelta": " prefer"
-  },
-  {
-    "type": "text",
-    "textDelta": "?"
   },
   {
     "type": "final",

@@ -7,27 +7,27 @@
           "text": "",
           "providerMetadata": {
             "openai": {
-              "itemId": "rs_0c443bdb6ec370c30068f7d72b054481969f3f2f8c94a0af60",
+              "itemId": "rs_0ab9dc68ab64fbb20068f7e829516c8196b42a70e1eb1d6394",
               "reasoningEncryptedContent": null
             }
           }
         },
         {
           "type": "text",
-          "text": "Paris.",
+          "text": "Typically blue during a clear day. That blue comes from Rayleigh scattering, where sunlight hits the atmosphere and blue light scatters in all directions.\n\nOther times:\n- Sunrise/sunset: red, orange, pink\n- Cloudy days: gray or white\n- Night: dark/black (with stars)\n- Occasionally: greenish during severe storms or visible colors from auroras\n\nIf you share your location and time, I can describe the sky color more specifically for now.",
           "providerMetadata": {
             "openai": {
-              "itemId": "msg_0c443bdb6ec370c30068f7d72d7954819698bd80e2af69e1cf"
+              "itemId": "msg_0ab9dc68ab64fbb20068f7e832cd6c8196a1bd37526fb487b3"
             }
           }
         }
       ],
       "finishReason": "stop",
       "usage": {
-        "inputTokens": 13,
-        "outputTokens": 136,
-        "totalTokens": 149,
-        "reasoningTokens": 128,
+        "inputTokens": 12,
+        "outputTokens": 806,
+        "totalTokens": 818,
+        "reasoningTokens": 704,
         "cachedInputTokens": 0
       },
       "warnings": [],
@@ -40,7 +40,7 @@
               "content": [
                 {
                   "type": "input_text",
-                  "text": "What is the capital of France?"
+                  "text": "What color is the sky?"
                 }
               ]
             }
@@ -48,39 +48,39 @@
         }
       },
       "response": {
-        "id": "resp_0c443bdb6ec370c30068f7d7296be881969f7092c46393942a",
-        "timestamp": "2025-10-21T18:55:38.000Z",
+        "id": "resp_0ab9dc68ab64fbb20068f7e828be388196a67e0f6f22c80b01",
+        "timestamp": "2025-10-21T20:08:08.000Z",
         "modelId": "gpt-5-nano-2025-08-07",
         "headers": {
           "alt-svc": "h3=\":443\"; ma=86400",
           "cf-cache-status": "DYNAMIC",
-          "cf-ray": "9922f8622b979429-SJC",
+          "cf-ray": "9923629e4a67eb2c-SJC",
           "connection": "keep-alive",
           "content-encoding": "br",
           "content-type": "application/json",
-          "date": "Tue, 21 Oct 2025 18:55:42 GMT",
+          "date": "Tue, 21 Oct 2025 20:08:19 GMT",
           "openai-organization": "braintrust-data",
-          "openai-processing-ms": "4778",
+          "openai-processing-ms": "11132",
           "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
           "openai-version": "2020-10-01",
           "server": "cloudflare",
-          "set-cookie": "_cfuvid=V_Vz.IJpygB5nnsEf6aW9Na1rColfycy9F7pMArWmDA-1761072942184-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "set-cookie": "_cfuvid=kCmmnEX2d1GPOyC13sglYil5ZA7diSZkAGplqjnUP0A-1761077299886-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
           "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
           "transfer-encoding": "chunked",
           "x-content-type-options": "nosniff",
-          "x-envoy-upstream-service-time": "4810",
+          "x-envoy-upstream-service-time": "11137",
           "x-ratelimit-limit-requests": "30000",
           "x-ratelimit-limit-tokens": "180000000",
           "x-ratelimit-remaining-requests": "29999",
           "x-ratelimit-remaining-tokens": "179999772",
           "x-ratelimit-reset-requests": "2ms",
           "x-ratelimit-reset-tokens": "0s",
-          "x-request-id": "req_8893fa278698473d9b12b162606f6b08"
+          "x-request-id": "req_c9479e139780460abb19318ba9dfa944"
         },
         "body": {
-          "id": "resp_0c443bdb6ec370c30068f7d7296be881969f7092c46393942a",
+          "id": "resp_0ab9dc68ab64fbb20068f7e828be388196a67e0f6f22c80b01",
           "object": "response",
-          "created_at": 1761072938,
+          "created_at": 1761077288,
           "status": "completed",
           "background": false,
           "billing": {
@@ -94,12 +94,12 @@
           "model": "gpt-5-nano-2025-08-07",
           "output": [
             {
-              "id": "rs_0c443bdb6ec370c30068f7d72b054481969f3f2f8c94a0af60",
+              "id": "rs_0ab9dc68ab64fbb20068f7e829516c8196b42a70e1eb1d6394",
               "type": "reasoning",
               "summary": []
             },
             {
-              "id": "msg_0c443bdb6ec370c30068f7d72d7954819698bd80e2af69e1cf",
+              "id": "msg_0ab9dc68ab64fbb20068f7e832cd6c8196a1bd37526fb487b3",
               "type": "message",
               "status": "completed",
               "content": [
@@ -107,7 +107,7 @@
                   "type": "output_text",
                   "annotations": [],
                   "logprobs": [],
-                  "text": "Paris."
+                  "text": "Typically blue during a clear day. That blue comes from Rayleigh scattering, where sunlight hits the atmosphere and blue light scatters in all directions.\n\nOther times:\n- Sunrise/sunset: red, orange, pink\n- Cloudy days: gray or white\n- Night: dark/black (with stars)\n- Occasionally: greenish during severe storms or visible colors from auroras\n\nIf you share your location and time, I can describe the sky color more specifically for now."
                 }
               ],
               "role": "assistant"
@@ -136,15 +136,15 @@
           "top_p": 1,
           "truncation": "disabled",
           "usage": {
-            "input_tokens": 13,
+            "input_tokens": 12,
             "input_tokens_details": {
               "cached_tokens": 0
             },
-            "output_tokens": 136,
+            "output_tokens": 806,
             "output_tokens_details": {
-              "reasoning_tokens": 128
+              "reasoning_tokens": 704
             },
-            "total_tokens": 149
+            "total_tokens": 818
           },
           "user": null,
           "metadata": {}
@@ -158,17 +158,17 @@
                 "text": "",
                 "providerOptions": {
                   "openai": {
-                    "itemId": "rs_0c443bdb6ec370c30068f7d72b054481969f3f2f8c94a0af60",
+                    "itemId": "rs_0ab9dc68ab64fbb20068f7e829516c8196b42a70e1eb1d6394",
                     "reasoningEncryptedContent": null
                   }
                 }
               },
               {
                 "type": "text",
-                "text": "Paris.",
+                "text": "Typically blue during a clear day. That blue comes from Rayleigh scattering, where sunlight hits the atmosphere and blue light scatters in all directions.\n\nOther times:\n- Sunrise/sunset: red, orange, pink\n- Cloudy days: gray or white\n- Night: dark/black (with stars)\n- Occasionally: greenish during severe storms or visible colors from auroras\n\nIf you share your location and time, I can describe the sky color more specifically for now.",
                 "providerOptions": {
                   "openai": {
-                    "itemId": "msg_0c443bdb6ec370c30068f7d72d7954819698bd80e2af69e1cf"
+                    "itemId": "msg_0ab9dc68ab64fbb20068f7e832cd6c8196a1bd37526fb487b3"
                   }
                 }
               }
@@ -178,7 +178,7 @@
       },
       "providerMetadata": {
         "openai": {
-          "responseId": "resp_0c443bdb6ec370c30068f7d7296be881969f7092c46393942a",
+          "responseId": "resp_0ab9dc68ab64fbb20068f7e828be388196a67e0f6f22c80b01",
           "serviceTier": "default"
         }
       }

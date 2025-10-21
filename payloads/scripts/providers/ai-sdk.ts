@@ -121,35 +121,55 @@ export async function executeAISDK(
     }
 
     // Create follow-up conversation if we have a non-streaming response
+    // We allow follow-ups even with empty responses for testing purposes
+    const hasText =
+      result.response &&
+      "text" in result.response &&
+      result.response.text &&
+      result.response.text.trim().length > 0;
+    const hasToolCalls =
+      result.response &&
+      result.response.toolCalls &&
+      result.response.toolCalls.length > 0;
+
     if (result.response && "text" in result.response) {
       // Build follow-up messages
       const originalMessages = payload.messages || [];
-      const followUpMessages: CoreMessage[] = [
-        ...originalMessages,
-        {
+      const followUpMessages: CoreMessage[] = [...originalMessages];
+
+      // Add assistant's response message
+      if (hasToolCalls) {
+        // Message with tool calls
+        followUpMessages.push({
+          role: "assistant",
+          content: [
+            { type: "text", text: result.response.text || "" },
+            ...result.response.toolCalls.map(
+              (toolCall): ToolCallPart => ({
+                type: "tool-call",
+                toolCallId: toolCall.toolCallId,
+                toolName: toolCall.toolName,
+                input: toolCall.input,
+              })
+            ),
+          ],
+        });
+      } else if (hasText) {
+        // Simple text message (only if text is non-empty)
+        followUpMessages.push({
           role: "assistant",
           content: result.response.text,
-          // Include tool calls if present
-          ...(result.response.toolCalls && result.response.toolCalls.length > 0
-            ? {
-                content: [
-                  { type: "text", text: result.response.text || "" },
-                  ...result.response.toolCalls.map(
-                    (toolCall): ToolCallPart => ({
-                      type: "tool-call",
-                      toolCallId: toolCall.toolCallId,
-                      toolName: toolCall.toolName,
-                      input: toolCall.input,
-                    })
-                  ),
-                ],
-              }
-            : {}),
-        },
-      ];
+        });
+      } else if (!hasText && !hasToolCalls) {
+        // For testing: add empty assistant message if response was empty/truncated
+        followUpMessages.push({
+          role: "assistant",
+          content: "",
+        });
+      }
 
       // If the assistant message contains tool calls, add dummy tool responses
-      if (result.response.toolCalls && result.response.toolCalls.length > 0) {
+      if (hasToolCalls) {
         for (const toolCall of result.response.toolCalls) {
           const toolResult: ToolResultPart = {
             type: "tool-result",

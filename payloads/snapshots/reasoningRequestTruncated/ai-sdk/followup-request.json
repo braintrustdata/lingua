@@ -21,6 +21,14 @@
     {
       "role": "user",
       "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
     }
   ],
   "maxOutputTokens": 100

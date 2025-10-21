@@ -1,0 +1,57 @@
+{
+  "model": {
+    "specificationVersion": "v2",
+    "supportedUrls": {
+      "image/*": [
+        {}
+      ],
+      "application/pdf": [
+        {}
+      ]
+    },
+    "modelId": "gpt-5-nano",
+    "config": {
+      "provider": "openai.responses",
+      "fileIdPrefixes": [
+        "file-"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "What's the weather like in San Francisco?"
+    }
+  ],
+  "tools": {
+    "get_weather": {
+      "description": "Get the current weather for a location",
+      "inputSchema": {
+        "~standard": {
+          "vendor": "zod",
+          "version": 1
+        },
+        "def": {
+          "type": "object",
+          "shape": {
+            "location": {
+              "~standard": {
+                "vendor": "zod",
+                "version": 1
+              },
+              "def": {
+                "type": "string"
+              },
+              "type": "string",
+              "format": null,
+              "minLength": null,
+              "maxLength": null
+            }
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "toolChoice": "auto"
+}

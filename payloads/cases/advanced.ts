@@ -4,6 +4,9 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
 } from "./models";
+import { openai } from "@ai-sdk/openai";
+import { tool } from "ai";
+import { z } from "zod";
 
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
@@ -73,6 +76,27 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
     },
+
+    "ai-sdk": {
+      model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "What do you see in this image?",
+            },
+            {
+              type: "image",
+              image:
+                "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            },
+          ],
+        },
+      ],
+      maxOutputTokens: 300,
+    },
   },
 
   complexReasoningRequest: {
@@ -112,6 +136,18 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
     },
+
+    "ai-sdk": {
+      model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
+      messages: [
+        {
+          role: "user",
+          content:
+            "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+        },
+      ],
+      maxOutputTokens: 20_000,
+    },
   },
 
   reasoningWithOutput: {
@@ -137,6 +173,16 @@ export const advancedCases: TestCaseCollection = {
     anthropic: {
       model: ANTHROPIC_MODEL,
       max_tokens: 20000,
+      messages: [
+        {
+          role: "user",
+          content: "What color is the sky?",
+        },
+      ],
+    },
+
+    "ai-sdk": {
+      model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
       messages: [
         {
           role: "user",
@@ -232,6 +278,27 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
       tool_choice: "auto",
+    },
+
+    "ai-sdk": {
+      model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: {
+        get_weather: tool({
+          description: "Get the current weather for a location",
+          inputSchema: z.object({
+            location: z
+              .string()
+              .describe("The city and state, e.g. San Francisco, CA"),
+          }),
+        }),
+      },
+      toolChoice: "auto",
     },
   },
 };

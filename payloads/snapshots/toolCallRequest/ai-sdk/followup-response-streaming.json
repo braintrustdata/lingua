@@ -1,0 +1,118 @@
+[
+  {
+    "type": "text",
+    "textDelta": "It's"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "71"
+  },
+  {
+    "type": "text",
+    "textDelta": " degrees"
+  },
+  {
+    "type": "text",
+    "textDelta": " Fahrenheit"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " San"
+  },
+  {
+    "type": "text",
+    "textDelta": " Francisco"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " CA"
+  },
+  {
+    "type": "text",
+    "textDelta": " right"
+  },
+  {
+    "type": "text",
+    "textDelta": " now"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "Want"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " forecast"
+  },
+  {
+    "type": "text",
+    "textDelta": " or"
+  },
+  {
+    "type": "text",
+    "textDelta": " more"
+  },
+  {
+    "type": "text",
+    "textDelta": " details"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "humidity"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " wind"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " precipitation"
+  },
+  {
+    "type": "text",
+    "textDelta": ")?"
+  },
+  {
+    "type": "final",
+    "value": {
+      "text": {},
+      "toolCalls": {},
+      "toolResults": {},
+      "usage": {},
+      "finishReason": {},
+      "warnings": {},
+      "rawResponse": {}
+    }
+  }
+]

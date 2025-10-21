@@ -20,8 +20,8 @@
   "messages": [
     {
       "role": "user",
-      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?"
     }
   ],
-  "maxOutputTokens": 100
+  "maxOutputTokens": 20000
 }

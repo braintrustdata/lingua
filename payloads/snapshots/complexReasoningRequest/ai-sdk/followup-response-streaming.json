@@ -1,0 +1,2242 @@
+[
+  {
+    "type": "text",
+    "textDelta": "Nice"
+  },
+  {
+    "type": "text",
+    "textDelta": " question"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " extend"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "text",
+    "textDelta": " Here"
+  },
+  {
+    "type": "text",
+    "textDelta": " are"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " few"
+  },
+  {
+    "type": "text",
+    "textDelta": " concrete"
+  },
+  {
+    "type": "text",
+    "textDelta": " things"
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": " can"
+  },
+  {
+    "type": "text",
+    "textDelta": " try"
+  },
+  {
+    "type": "text",
+    "textDelta": " next"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " with"
+  },
+  {
+    "type": "text",
+    "textDelta": " quick"
+  },
+  {
+    "type": "text",
+    "textDelta": " hints"
+  },
+  {
+    "type": "text",
+    "textDelta": " on"
+  },
+  {
+    "type": "text",
+    "textDelta": " what"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " expect"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " Verify"
+  },
+  {
+    "type": "text",
+    "textDelta": " or"
+  },
+  {
+    "type": "text",
+    "textDelta": " reproduce"
+  },
+  {
+    "type": "text",
+    "textDelta": " with"
+  },
+  {
+    "type": "text",
+    "textDelta": " code"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Write"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " tiny"
+  },
+  {
+    "type": "text",
+    "textDelta": " script"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " enumerate"
+  },
+  {
+    "type": "text",
+    "textDelta": " all"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": " from"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "23"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "59"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " count"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " HH"
+  },
+  {
+    "type": "text",
+    "textDelta": "MM"
+  },
+  {
+    "type": "text",
+    "textDelta": " representation"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " print"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " totals"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " percentages"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " This"
+  },
+  {
+    "type": "text",
+    "textDelta": " helps"
+  },
+  {
+    "type": "text",
+    "textDelta": " confirm"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " numbers"
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": " already"
+  },
+  {
+    "type": "text",
+    "textDelta": " have"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " makes"
+  },
+  {
+    "type": "text",
+    "textDelta": " it"
+  },
+  {
+    "type": "text",
+    "textDelta": " easy"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " test"
+  },
+  {
+    "type": "text",
+    "textDelta": " variations"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "like"
+  },
+  {
+    "type": "text",
+    "textDelta": " different"
+  },
+  {
+    "type": "text",
+    "textDelta": " formats"
+  },
+  {
+    "type": "text",
+    "textDelta": ").\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " If"
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": " want"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " I"
+  },
+  {
+    "type": "text",
+    "textDelta": " can"
+  },
+  {
+    "type": "text",
+    "textDelta": " provide"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " ready"
+  },
+  {
+    "type": "text",
+    "textDelta": "-to"
+  },
+  {
+    "type": "text",
+    "textDelta": "-run"
+  },
+  {
+    "type": "text",
+    "textDelta": " snippet"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " Explore"
+  },
+  {
+    "type": "text",
+    "textDelta": " other"
+  },
+  {
+    "type": "text",
+    "textDelta": " clock"
+  },
+  {
+    "type": "text",
+    "textDelta": " formats"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "12"
+  },
+  {
+    "type": "text",
+    "textDelta": "-hour"
+  },
+  {
+    "type": "text",
+    "textDelta": " clock"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "01"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "12"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "59"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " with"
+  },
+  {
+    "type": "text",
+    "textDelta": " AM"
+  },
+  {
+    "type": "text",
+    "textDelta": "/"
+  },
+  {
+    "type": "text",
+    "textDelta": "PM"
+  },
+  {
+    "type": "text",
+    "textDelta": " indicator"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " changes"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " distribution"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "text",
+    "textDelta": " The"
+  },
+  {
+    "type": "text",
+    "textDelta": " hours"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " will"
+  },
+  {
+    "type": "text",
+    "textDelta": " be"
+  },
+  {
+    "type": "text",
+    "textDelta": " from"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "01"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "12"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " so"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " H"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": " will"
+  },
+  {
+    "type": "text",
+    "textDelta": " now"
+  },
+  {
+    "type": "text",
+    "textDelta": " be"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": " only"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "and"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": " never"
+  },
+  {
+    "type": "text",
+    "textDelta": ")."
+  },
+  {
+    "type": "text",
+    "textDelta": " See"
+  },
+  {
+    "type": "text",
+    "textDelta": " how"
+  },
+  {
+    "type": "text",
+    "textDelta": " that"
+  },
+  {
+    "type": "text",
+    "textDelta": " shifts"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " frequencies"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " especially"
+  },
+  {
+    "type": "text",
+    "textDelta": " for"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Include"
+  },
+  {
+    "type": "text",
+    "textDelta": " or"
+  },
+  {
+    "type": "text",
+    "textDelta": " exclude"
+  },
+  {
+    "type": "text",
+    "textDelta": " leading"
+  },
+  {
+    "type": "text",
+    "textDelta": " zeros"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "e"
+  },
+  {
+    "type": "text",
+    "textDelta": ".g"
+  },
+  {
+    "type": "text",
+    "textDelta": ".,"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "H"
+  },
+  {
+    "type": "text",
+    "textDelta": " as"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " single"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " changes"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " counts"
+  },
+  {
+    "type": "text",
+    "textDelta": " entirely"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "3"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " Add"
+  },
+  {
+    "type": "text",
+    "textDelta": " seconds"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "HH"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "MM"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "SS"
+  },
+  {
+    "type": "text",
+    "textDelta": ")\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " If"
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": " count"
+  },
+  {
+    "type": "text",
+    "textDelta": " every"
+  },
+  {
+    "type": "text",
+    "textDelta": " second"
+  },
+  {
+    "type": "text",
+    "textDelta": " from"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "23"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "59"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "59"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": "’ll"
+  },
+  {
+    "type": "text",
+    "textDelta": " have"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "86"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": "400"
+  },
+  {
+    "type": "text",
+    "textDelta": " times"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "text",
+    "textDelta": " Each"
+  },
+  {
+    "type": "text",
+    "textDelta": " position"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "H"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " H"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " S"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " S"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " will"
+  },
+  {
+    "type": "text",
+    "textDelta": " have"
+  },
+  {
+    "type": "text",
+    "textDelta": " its"
+  },
+  {
+    "type": "text",
+    "textDelta": " own"
+  },
+  {
+    "type": "text",
+    "textDelta": " distribution"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Expect"
+  },
+  {
+    "type": "text",
+    "textDelta": " similar"
+  },
+  {
+    "type": "text",
+    "textDelta": " asym"
+  },
+  {
+    "type": "text",
+    "textDelta": "metry"
+  },
+  {
+    "type": "text",
+    "textDelta": " from"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " hour"
+  },
+  {
+    "type": "text",
+    "textDelta": " parts"
+  },
+  {
+    "type": "text",
+    "textDelta": " but"
+  },
+  {
+    "type": "text",
+    "textDelta": " with"
+  },
+  {
+    "type": "text",
+    "textDelta": " more"
+  },
+  {
+    "type": "text",
+    "textDelta": " variety"
+  },
+  {
+    "type": "text",
+    "textDelta": " from"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " seconds"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " especially"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " S"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "4"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " Pose"
+  },
+  {
+    "type": "text",
+    "textDelta": " probability"
+  },
+  {
+    "type": "text",
+    "textDelta": " questions"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " What"
+  },
+  {
+    "type": "text",
+    "textDelta": " is"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " probability"
+  },
+  {
+    "type": "text",
+    "textDelta": " that"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " first"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "H"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " is"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "?"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": "?"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": "?\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " What"
+  },
+  {
+    "type": "text",
+    "textDelta": " is"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " probability"
+  },
+  {
+    "type": "text",
+    "textDelta": " that"
+  },
+  {
+    "type": "text",
+    "textDelta": " at"
+  },
+  {
+    "type": "text",
+    "textDelta": " least"
+  },
+  {
+    "type": "text",
+    "textDelta": " one"
+  },
+  {
+    "type": "text",
+    "textDelta": " of"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " four"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " is"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "6"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "or"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "7"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "8"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "9"
+  },
+  {
+    "type": "text",
+    "textDelta": ")?\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " What"
+  },
+  {
+    "type": "text",
+    "textDelta": " is"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " expected"
+  },
+  {
+    "type": "text",
+    "textDelta": " number"
+  },
+  {
+    "type": "text",
+    "textDelta": " of"
+  },
+  {
+    "type": "text",
+    "textDelta": " distinct"
+  },
+  {
+    "type": "text",
+    "textDelta": " digits"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " random"
+  },
+  {
+    "type": "text",
+    "textDelta": " time"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "on"
+  },
+  {
+    "type": "text",
+    "textDelta": " HH"
+  },
+  {
+    "type": "text",
+    "textDelta": "MM"
+  },
+  {
+    "type": "text",
+    "textDelta": ")?\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "5"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " Visual"
+  },
+  {
+    "type": "text",
+    "textDelta": "ize"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " distribution"
+  },
+  {
+    "type": "text",
+    "textDelta": "\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Create"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " bar"
+  },
+  {
+    "type": "text",
+    "textDelta": " chart"
+  },
+  {
+    "type": "text",
+    "textDelta": " of"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": " frequencies"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "0"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "9"
+  },
+  {
+    "type": "text",
+    "textDelta": ")."
+  },
+  {
+    "type": "text",
+    "textDelta": " Visual"
+  },
+  {
+    "type": "text",
+    "textDelta": "s"
+  },
+  {
+    "type": "text",
+    "textDelta": " often"
+  },
+  {
+    "type": "text",
+    "textDelta": " reveal"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " asym"
+  },
+  {
+    "type": "text",
+    "textDelta": "met"
+  },
+  {
+    "type": "text",
+    "textDelta": "ries"
+  },
+  {
+    "type": "text",
+    "textDelta": " more"
+  },
+  {
+    "type": "text",
+    "textDelta": " clearly"
+  },
+  {
+    "type": "text",
+    "textDelta": " than"
+  },
+  {
+    "type": "text",
+    "textDelta": " raw"
+  },
+  {
+    "type": "text",
+    "textDelta": " counts"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " You"
+  },
+  {
+    "type": "text",
+    "textDelta": " can"
+  },
+  {
+    "type": "text",
+    "textDelta": " also"
+  },
+  {
+    "type": "text",
+    "textDelta": " plot"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " pie"
+  },
+  {
+    "type": "text",
+    "textDelta": " or"
+  },
+  {
+    "type": "text",
+    "textDelta": " stacked"
+  },
+  {
+    "type": "text",
+    "textDelta": " bars"
+  },
+  {
+    "type": "text",
+    "textDelta": " by"
+  },
+  {
+    "type": "text",
+    "textDelta": " position"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "H"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " H"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " see"
+  },
+  {
+    "type": "text",
+    "textDelta": " where"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": " tends"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " appear"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "6"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " Do"
+  },
+  {
+    "type": "text",
+    "textDelta": " it"
+  },
+  {
+    "type": "text",
+    "textDelta": " analyt"
+  },
+  {
+    "type": "text",
+    "textDelta": "ically"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "without"
+  },
+  {
+    "type": "text",
+    "textDelta": " brute"
+  },
+  {
+    "type": "text",
+    "textDelta": " force"
+  },
+  {
+    "type": "text",
+    "textDelta": ")\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Practice"
+  },
+  {
+    "type": "text",
+    "textDelta": " deriving"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " counts"
+  },
+  {
+    "type": "text",
+    "textDelta": " by"
+  },
+  {
+    "type": "text",
+    "textDelta": " considering"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": " position"
+  },
+  {
+    "type": "text",
+    "textDelta": " independently"
+  },
+  {
+    "type": "text",
+    "textDelta": " ("
+  },
+  {
+    "type": "text",
+    "textDelta": "as"
+  },
+  {
+    "type": "text",
+    "textDelta": " in"
+  },
+  {
+    "type": "text",
+    "textDelta": " your"
+  },
+  {
+    "type": "text",
+    "textDelta": " earlier"
+  },
+  {
+    "type": "text",
+    "textDelta": " breakdown"
+  },
+  {
+    "type": "text",
+    "textDelta": " for"
+  },
+  {
+    "type": "text",
+    "textDelta": " H"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " H"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "1"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " M"
+  },
+  {
+    "type": "text",
+    "textDelta": "2"
+  },
+  {
+    "type": "text",
+    "textDelta": ")"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " then"
+  },
+  {
+    "type": "text",
+    "textDelta": " summ"
+  },
+  {
+    "type": "text",
+    "textDelta": "ing"
+  },
+  {
+    "type": "text",
+    "textDelta": " contributions"
+  },
+  {
+    "type": "text",
+    "textDelta": " for"
+  },
+  {
+    "type": "text",
+    "textDelta": " each"
+  },
+  {
+    "type": "text",
+    "textDelta": " digit"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Then"
+  },
+  {
+    "type": "text",
+    "textDelta": " compare"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " brute"
+  },
+  {
+    "type": "text",
+    "textDelta": "-force"
+  },
+  {
+    "type": "text",
+    "textDelta": " results"
+  },
+  {
+    "type": "text",
+    "textDelta": " as"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " check"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "If"
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": "’d"
+  },
+  {
+    "type": "text",
+    "textDelta": " like"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " I"
+  },
+  {
+    "type": "text",
+    "textDelta": " can"
+  },
+  {
+    "type": "text",
+    "textDelta": ":\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Provide"
+  },
+  {
+    "type": "text",
+    "textDelta": " a"
+  },
+  {
+    "type": "text",
+    "textDelta": " short"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " copy"
+  },
+  {
+    "type": "text",
+    "textDelta": "-p"
+  },
+  {
+    "type": "text",
+    "textDelta": "aste"
+  },
+  {
+    "type": "text",
+    "textDelta": " Python"
+  },
+  {
+    "type": "text",
+    "textDelta": " snippet"
+  },
+  {
+    "type": "text",
+    "textDelta": " that"
+  },
+  {
+    "type": "text",
+    "textDelta": " computes"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " exact"
+  },
+  {
+    "type": "text",
+    "textDelta": " counts"
+  },
+  {
+    "type": "text",
+    "textDelta": " and"
+  },
+  {
+    "type": "text",
+    "textDelta": " percentages"
+  },
+  {
+    "type": "text",
+    "textDelta": " for"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "00"
+  },
+  {
+    "type": "text",
+    "textDelta": "–"
+  },
+  {
+    "type": "text",
+    "textDelta": "23"
+  },
+  {
+    "type": "text",
+    "textDelta": ":"
+  },
+  {
+    "type": "text",
+    "textDelta": "59"
+  },
+  {
+    "type": "text",
+    "textDelta": ".\n"
+  },
+  {
+    "type": "text",
+    "textDelta": "-"
+  },
+  {
+    "type": "text",
+    "textDelta": " Adapt"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " snippet"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " "
+  },
+  {
+    "type": "text",
+    "textDelta": "12"
+  },
+  {
+    "type": "text",
+    "textDelta": "-hour"
+  },
+  {
+    "type": "text",
+    "textDelta": " format"
+  },
+  {
+    "type": "text",
+    "textDelta": " or"
+  },
+  {
+    "type": "text",
+    "textDelta": " to"
+  },
+  {
+    "type": "text",
+    "textDelta": " include"
+  },
+  {
+    "type": "text",
+    "textDelta": " seconds"
+  },
+  {
+    "type": "text",
+    "textDelta": ","
+  },
+  {
+    "type": "text",
+    "textDelta": " so"
+  },
+  {
+    "type": "text",
+    "textDelta": " you"
+  },
+  {
+    "type": "text",
+    "textDelta": " can"
+  },
+  {
+    "type": "text",
+    "textDelta": " compare"
+  },
+  {
+    "type": "text",
+    "textDelta": " how"
+  },
+  {
+    "type": "text",
+    "textDelta": " the"
+  },
+  {
+    "type": "text",
+    "textDelta": " distributions"
+  },
+  {
+    "type": "text",
+    "textDelta": " change"
+  },
+  {
+    "type": "text",
+    "textDelta": "."
+  },
+  {
+    "type": "final",
+    "value": {
+      "text": {},
+      "toolCalls": {},
+      "toolResults": {},
+      "usage": {},
+      "finishReason": {},
+      "warnings": {},
+      "rawResponse": {}
+    }
+  }
+]

@@ -7,7 +7,7 @@
           "text": "",
           "providerMetadata": {
             "openai": {
-              "itemId": "rs_059e316b593fc1130068f6c81109e08196b92c56724dd1d732",
+              "itemId": "rs_052a0385e549469b0068f7d729a67c8196baf090dadb11d24b",
               "reasoningEncryptedContent": null
             }
           }
@@ -40,39 +40,39 @@
         }
       },
       "response": {
-        "id": "resp_059e316b593fc1130068f6c81044d08196a544a95c84587230",
-        "timestamp": "2025-10-20T23:38:56.000Z",
+        "id": "resp_052a0385e549469b0068f7d72960f88196a893bf7f8194e47d",
+        "timestamp": "2025-10-21T18:55:37.000Z",
         "modelId": "gpt-5-nano-2025-08-07",
         "headers": {
           "alt-svc": "h3=\":443\"; ma=86400",
           "cf-cache-status": "DYNAMIC",
-          "cf-ray": "991c59fe481ee0ce-SJC",
+          "cf-ray": "9922f8622d47cfb0-SJC",
           "connection": "keep-alive",
           "content-encoding": "br",
           "content-type": "application/json",
-          "date": "Mon, 20 Oct 2025 23:38:57 GMT",
+          "date": "Tue, 21 Oct 2025 18:55:38 GMT",
           "openai-organization": "braintrust-data",
-          "openai-processing-ms": "1462",
+          "openai-processing-ms": "1016",
           "openai-project": "proj_vsCSXafhhByzWOThMrJcZiw9",
           "openai-version": "2020-10-01",
           "server": "cloudflare",
-          "set-cookie": "_cfuvid=eRNFim53HCaxH0550LT9fBr2mvRkYtC85MTLXr3mZWw-1761003537745-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+          "set-cookie": "_cfuvid=oZS14EKzC0bf4igfUnapqbbYpZj5yn5pOP_NooRg2kA-1761072938404-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
           "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
           "transfer-encoding": "chunked",
           "x-content-type-options": "nosniff",
-          "x-envoy-upstream-service-time": "1465",
+          "x-envoy-upstream-service-time": "1019",
           "x-ratelimit-limit-requests": "30000",
           "x-ratelimit-limit-tokens": "180000000",
           "x-ratelimit-remaining-requests": "29999",
-          "x-ratelimit-remaining-tokens": "179999745",
+          "x-ratelimit-remaining-tokens": "179999748",
           "x-ratelimit-reset-requests": "2ms",
           "x-ratelimit-reset-tokens": "0s",
-          "x-request-id": "req_4ebca6b585ed4ad7a30d788548036951"
+          "x-request-id": "req_1dea8c48dd1144e7925d2f6677811e15"
         },
         "body": {
-          "id": "resp_059e316b593fc1130068f6c81044d08196a544a95c84587230",
+          "id": "resp_052a0385e549469b0068f7d72960f88196a893bf7f8194e47d",
           "object": "response",
-          "created_at": 1761003536,
+          "created_at": 1761072937,
           "status": "incomplete",
           "background": false,
           "billing": {
@@ -88,7 +88,7 @@
           "model": "gpt-5-nano-2025-08-07",
           "output": [
             {
-              "id": "rs_059e316b593fc1130068f6c81109e08196b92c56724dd1d732",
+              "id": "rs_052a0385e549469b0068f7d729a67c8196baf090dadb11d24b",
               "type": "reasoning",
               "summary": []
             }
@@ -138,7 +138,7 @@
                 "text": "",
                 "providerOptions": {
                   "openai": {
-                    "itemId": "rs_059e316b593fc1130068f6c81109e08196b92c56724dd1d732",
+                    "itemId": "rs_052a0385e549469b0068f7d729a67c8196baf090dadb11d24b",
                     "reasoningEncryptedContent": null
                   }
                 }
@@ -149,7 +149,7 @@
       },
       "providerMetadata": {
         "openai": {
-          "responseId": "resp_059e316b593fc1130068f6c81044d08196a544a95c84587230",
+          "responseId": "resp_052a0385e549469b0068f7d72960f88196a893bf7f8194e47d",
           "serviceTier": "default"
         }
       }

@@ -1,3 +1,0 @@
-{
-  "error": "AI_UnsupportedModelVersionError: Unsupported model version v1 for provider \"openai.chat\" and model \"gpt-5-nano\". AI SDK 5 only supports models that implement specification version \"v2\"."
-}

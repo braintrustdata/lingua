@@ -28,13 +28,73 @@
     ]
   },
   "ai-sdk:reasoningRequestTruncated": {
-    "payloadHash": "3d1e050b66036150ba7939512346adee42cd41ebbd04934aee116f742f75b885",
-    "capturedAt": "2025-10-20T23:29:27.624Z",
+    "payloadHash": "3ece7ea29c21fc8676ecaaf70277aebd9a239ebc59b09604e4b7501a5f357160",
+    "capturedAt": "2025-10-21T20:08:12.123Z",
     "provider": "ai-sdk",
     "name": "reasoningRequestTruncated",
     "files": [
       "reasoningRequestTruncated/ai-sdk/request.json",
-      "reasoningRequestTruncated/ai-sdk/error.json"
+      "reasoningRequestTruncated/ai-sdk/response.json",
+      "reasoningRequestTruncated/ai-sdk/response-streaming.json",
+      "reasoningRequestTruncated/ai-sdk/followup-request.json",
+      "reasoningRequestTruncated/ai-sdk/followup-response.json",
+      "reasoningRequestTruncated/ai-sdk/followup-response-streaming.json"
+    ]
+  },
+  "ai-sdk:toolCallRequest": {
+    "payloadHash": "23c1d5696dd1240c73060c9bfe94fd2c04931e675b7889fcebfc8757a28c1ac7",
+    "capturedAt": "2025-10-21T20:08:15.994Z",
+    "provider": "ai-sdk",
+    "name": "toolCallRequest",
+    "files": [
+      "toolCallRequest/ai-sdk/request.json",
+      "toolCallRequest/ai-sdk/response.json",
+      "toolCallRequest/ai-sdk/response-streaming.json",
+      "toolCallRequest/ai-sdk/followup-request.json",
+      "toolCallRequest/ai-sdk/followup-response.json",
+      "toolCallRequest/ai-sdk/followup-response-streaming.json"
+    ]
+  },
+  "ai-sdk:multimodalRequest": {
+    "payloadHash": "06e2c4b3f0d22bcfbdcfa914234bbeb7f24187968ccd38c9d47459e560ded37a",
+    "capturedAt": "2025-10-21T20:08:17.825Z",
+    "provider": "ai-sdk",
+    "name": "multimodalRequest",
+    "files": [
+      "multimodalRequest/ai-sdk/request.json",
+      "multimodalRequest/ai-sdk/response.json",
+      "multimodalRequest/ai-sdk/response-streaming.json",
+      "multimodalRequest/ai-sdk/followup-request.json",
+      "multimodalRequest/ai-sdk/followup-response.json",
+      "multimodalRequest/ai-sdk/followup-response-streaming.json"
+    ]
+  },
+  "ai-sdk:reasoningWithOutput": {
+    "payloadHash": "d32bbfe81ef0b32fbd0e0094a136044158afd9c16000bcab2515f346713fdce5",
+    "capturedAt": "2025-10-21T20:08:31.628Z",
+    "provider": "ai-sdk",
+    "name": "reasoningWithOutput",
+    "files": [
+      "reasoningWithOutput/ai-sdk/request.json",
+      "reasoningWithOutput/ai-sdk/response.json",
+      "reasoningWithOutput/ai-sdk/response-streaming.json",
+      "reasoningWithOutput/ai-sdk/followup-request.json",
+      "reasoningWithOutput/ai-sdk/followup-response.json",
+      "reasoningWithOutput/ai-sdk/followup-response-streaming.json"
+    ]
+  },
+  "ai-sdk:complexReasoningRequest": {
+    "payloadHash": "8153f90726799040e5adfe32f8a0a284a170301591f3a14af6b003ed42db8791",
+    "capturedAt": "2025-10-21T20:10:22.129Z",
+    "provider": "ai-sdk",
+    "name": "complexReasoningRequest",
+    "files": [
+      "complexReasoningRequest/ai-sdk/request.json",
+      "complexReasoningRequest/ai-sdk/response.json",
+      "complexReasoningRequest/ai-sdk/response-streaming.json",
+      "complexReasoningRequest/ai-sdk/followup-request.json",
+      "complexReasoningRequest/ai-sdk/followup-response.json",
+      "complexReasoningRequest/ai-sdk/followup-response-streaming.json"
     ]
   }
 }

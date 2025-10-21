@@ -142,7 +142,7 @@ export const simpleCases: TestCaseCollection = {
     },
 
     "ai-sdk": {
-      model: `openai/${OPENAI_CHAT_COMPLETIONS_MODEL}`,
+      model: openai(OPENAI_CHAT_COMPLETIONS_MODEL),
       messages: [
         {
           role: "user",
@@ -250,7 +250,7 @@ export const simpleCases: TestCaseCollection = {
       tools: {
         get_weather: tool({
           description: "Get the current weather for a location",
-          parameters: z.object({
+          inputSchema: z.object({
             location: z
               .string()
               .describe("The city and state, e.g. San Francisco, CA"),
