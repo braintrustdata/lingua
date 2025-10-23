@@ -821,11 +821,55 @@ fn fix_anthropic_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
 fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String {
     let mut processed = quicktype_output.to_string();
 
+    // Add ts-rs import
+    let lines: Vec<&str> = processed.lines().collect();
+    let mut new_lines = Vec::new();
+    let mut ts_import_added = false;
+
+    for (i, line) in lines.iter().enumerate() {
+        new_lines.push(line.to_string());
+
+        // Add ts-rs import after the last use statement
+        if !ts_import_added && line.starts_with("use ") {
+            // Check if next line is also a use statement
+            let next_is_use = lines
+                .get(i + 1)
+                .map(|l| l.starts_with("use "))
+                .unwrap_or(false);
+            if !next_is_use {
+                // This is the last use statement, add ts-rs import
+                new_lines.push("use ts_rs::TS;".to_string());
+                ts_import_added = true;
+            }
+        }
+    }
+    processed = new_lines.join("\n");
+
     // Add proper header with clippy allows for generated code
     processed = format!(
         "// Generated Anthropic types using quicktype\n// Essential types for Elmir Anthropic integration\n#![allow(non_camel_case_types)]\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
         processed
     );
+
+    // Add TS derive to all structs and enums
+    processed = processed.replace(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]",
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
+    );
+
+    // Add export_to path to all types so dependencies export to correct subdirectory
+    processed = add_ts_export_to_all_types(&processed, "anthropic/");
+
+    // Add ts-rs type annotations for serde_json types to generate better TypeScript
+    // This must happen AFTER we add the TS derives and export_to
+    processed = add_ts_type_annotations(&processed);
+
+    // Only export entry point types that are actually used in our public API
+    // ts-rs will automatically export their transitive dependencies to the same directory
+    let entry_points = vec![
+        "InputMessage", // Used by linguaToAnthropicMessages
+    ];
+    processed = add_ts_export_to_types(&processed, &entry_points, "anthropic/");
 
     // Fix HashMap to serde_json::Map for proper JavaScript object serialization
     // This ensures that JSON objects serialize to plain JS objects {} instead of Maps
@@ -864,11 +908,56 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     let mut processed = quicktype_output.to_string();
 
+    // Add ts-rs import
+    let lines: Vec<&str> = processed.lines().collect();
+    let mut new_lines = Vec::new();
+    let mut ts_import_added = false;
+
+    for (i, line) in lines.iter().enumerate() {
+        new_lines.push(line.to_string());
+
+        // Add ts-rs import after the last use statement
+        if !ts_import_added && line.starts_with("use ") {
+            // Check if next line is also a use statement
+            let next_is_use = lines
+                .get(i + 1)
+                .map(|l| l.starts_with("use "))
+                .unwrap_or(false);
+            if !next_is_use {
+                // This is the last use statement, add ts-rs import
+                new_lines.push("use ts_rs::TS;".to_string());
+                ts_import_added = true;
+            }
+        }
+    }
+    processed = new_lines.join("\n");
+
     // Add proper header with clippy allows for generated code
     processed = format!(
         "// Generated OpenAI types using quicktype\n// Essential types for Elmir OpenAI integration\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
         processed
     );
+
+    // Add TS derive to all structs and enums
+    processed = processed.replace(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]",
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
+    );
+
+    // Add export_to path to all types so dependencies export to correct subdirectory
+    processed = add_ts_export_to_all_types(&processed, "openai/");
+
+    // Add ts-rs type annotations for serde_json types to generate better TypeScript
+    // This must happen AFTER we add the TS derives and export_to
+    processed = add_ts_type_annotations(&processed);
+
+    // Only export entry point types that are actually used in our public API
+    // ts-rs will automatically export their transitive dependencies to the same directory
+    let entry_points = vec![
+        "ChatCompletionRequestMessage", // Used by linguaToChatCompletionsMessages
+        "InputItem",                    // Used by linguaToResponsesMessages
+    ];
+    processed = add_ts_export_to_types(&processed, &entry_points, "openai/");
 
     // Fix doctest JSON examples that fail to compile
     processed = processed.replace(
@@ -911,6 +1000,119 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     );
 
     processed
+}
+
+/// Add #[ts(export_to = "...")] to ALL type definitions (after their #[derive(...)] line)
+fn add_ts_export_to_all_types(content: &str, export_path: &str) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut result_lines = Vec::new();
+
+    for i in 0..lines.len() {
+        let line = lines[i];
+
+        // Check if this line is a pub struct/enum, and search backwards for derive with TS
+        if (line.starts_with("pub struct ") || line.starts_with("pub enum ")) && i > 0 {
+            // Search backwards through previous lines for #[derive(...)] with TS
+            // This handles cases where there are attributes between derive and the type definition
+            let mut found_ts_derive = false;
+            for j in (0..i).rev() {
+                let prev_line = lines[j];
+                if prev_line.contains("#[derive(") {
+                    if prev_line.contains("TS") {
+                        found_ts_derive = true;
+                    }
+                    break; // Stop at first derive, don't search further back
+                }
+                // Stop searching if we hit another type definition or non-attribute line
+                if !prev_line.trim().starts_with("#[") && !prev_line.trim().is_empty() {
+                    break;
+                }
+            }
+
+            if found_ts_derive {
+                // Add export_to attribute before the type definition
+                result_lines.push(format!("#[ts(export_to = \"{}\")]", export_path));
+            }
+        }
+
+        result_lines.push(line.to_string());
+    }
+
+    result_lines.join("\n")
+}
+
+/// Add #[ts(export, export_to = "...")] to specific type definitions
+/// Replaces the existing export_to attribute with one that has the export flag
+fn add_ts_export_to_types(content: &str, type_names: &[&str], export_dir: &str) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut result_lines = Vec::new();
+
+    for i in 0..lines.len() {
+        let line = lines[i];
+
+        // Check if this line defines a struct or enum that should be exported
+        if line.starts_with("pub struct ") || line.starts_with("pub enum ") {
+            // Extract the type name
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 3 {
+                let type_name = parts[2].trim_end_matches(" {").trim_end_matches('<');
+
+                // Check if this type should be exported
+                if type_names.contains(&type_name) {
+                    // Check if previous line has export_to attribute
+                    if i > 0 {
+                        let prev_line = lines[i - 1];
+                        if prev_line.contains("#[ts(export_to =") {
+                            // REPLACE the previous line with an export directive
+                            result_lines.pop(); // Remove the previous line
+                                                // Add export annotation with export flag and same path
+                            result_lines
+                                .push(format!("#[ts(export, export_to = \"{}\")]", export_dir));
+                        }
+                    }
+                }
+            }
+        }
+
+        result_lines.push(line.to_string());
+    }
+
+    result_lines.join("\n")
+}
+
+/// Add #[ts(type = "...")] annotations for serde_json types to generate better TypeScript
+fn add_ts_type_annotations(content: &str) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut result_lines = Vec::new();
+
+    for i in 0..lines.len() {
+        let line = lines[i];
+
+        // Check if this line contains a pub field with serde_json types
+        // Use the full line text, not split parts, since types can contain spaces
+        if line.trim_start().starts_with("pub ") && line.ends_with(",") {
+            // Check if the previous line already has a ts attribute
+            let prev_line = if i > 0 { lines[i - 1].trim() } else { "" };
+            let has_ts_attr = prev_line.starts_with("#[ts(");
+
+            // Determine if we need to add ts annotation
+            // Check the FULL line for serde_json::Value (handles complex generic types)
+            let needs_ts_annotation = line.contains("serde_json::Value");
+
+            if needs_ts_annotation && !has_ts_attr {
+                // Get the indentation level from the current line
+                let indent = line.len() - line.trim_start().len();
+                let ts_attr = format!("{}#[ts(type = \"any\")]", " ".repeat(indent));
+
+                // Add the ts attribute BEFORE the field line
+                result_lines.push(ts_attr);
+            }
+        }
+
+        result_lines.push(line.to_string());
+    }
+
+    result_lines.join("\n")
 }
 
 /// Add #[serde(skip_serializing_if = "Option::is_none")] to all Option<T> fields
