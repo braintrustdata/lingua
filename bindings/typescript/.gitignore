@@ -1,6 +1,7 @@
 dist/
 node_modules/
 wasm/
+wasm-web/
 
 # Test artifacts (tests should not be compiled)
 tests/**/*.js
