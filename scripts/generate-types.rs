@@ -857,8 +857,10 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
         "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
     );
 
-    // Add export_to path to all types so dependencies export to correct subdirectory
-    processed = add_ts_export_to_all_types(&processed, "anthropic/");
+    // Add export_to path to all derived TS types so they export to the correct subdirectory
+    // Note that we add this to *all* derived TS types so that any transitive dependencies
+    // that get exported also land in this directory
+    processed = add_export_path_to_all_ts_types(&processed, "anthropic/");
 
     // Add ts-rs type annotations for serde_json types to generate better TypeScript
     // This must happen AFTER we add the TS derives and export_to
@@ -944,8 +946,10 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
     );
 
-    // Add export_to path to all types so dependencies export to correct subdirectory
-    processed = add_ts_export_to_all_types(&processed, "openai/");
+    // Add export_to path to all derived TS types so they export to the correct subdirectory
+    // Note that we add this to *all* derived TS types so that any transitive dependencies
+    // that get exported also land in this directory
+    processed = add_export_path_to_all_ts_types(&processed, "openai/");
 
     // Add ts-rs type annotations for serde_json types to generate better TypeScript
     // This must happen AFTER we add the TS derives and export_to
@@ -1002,36 +1006,23 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     processed
 }
 
-/// Add #[ts(export_to = "...")] to ALL type definitions (after their #[derive(...)] line)
-fn add_ts_export_to_all_types(content: &str, export_path: &str) -> String {
+/// Add #[ts(export_to = "...")] to all TS-enabled type definitions
+fn add_export_path_to_all_ts_types(content: &str, export_path: &str) -> String {
     let lines: Vec<&str> = content.lines().collect();
     let mut result_lines = Vec::new();
+    let mut pending_export_to: Option<&str> = None;
 
-    for i in 0..lines.len() {
-        let line = lines[i];
+    for line in lines {
+        // Step 1: Check if this line has #[derive(..., TS)]
+        if line.contains("#[derive(") && line.contains("TS") {
+            pending_export_to = Some(export_path);
+        }
 
-        // Check if this line is a pub struct/enum, and search backwards for derive with TS
-        if (line.starts_with("pub struct ") || line.starts_with("pub enum ")) && i > 0 {
-            // Search backwards through previous lines for #[derive(...)] with TS
-            // This handles cases where there are attributes between derive and the type definition
-            let mut found_ts_derive = false;
-            for j in (0..i).rev() {
-                let prev_line = lines[j];
-                if prev_line.contains("#[derive(") {
-                    if prev_line.contains("TS") {
-                        found_ts_derive = true;
-                    }
-                    break; // Stop at first derive, don't search further back
-                }
-                // Stop searching if we hit another type definition or non-attribute line
-                if !prev_line.trim().starts_with("#[") && !prev_line.trim().is_empty() {
-                    break;
-                }
-            }
-
-            if found_ts_derive {
-                // Add export_to attribute before the type definition
-                result_lines.push(format!("#[ts(export_to = \"{}\")]", export_path));
+        // Step 3: Check if we hit a type definition
+        if line.starts_with("pub struct ") || line.starts_with("pub enum ") {
+            if let Some(path) = pending_export_to.take() {
+                // Step 4: Append export_to before appending line
+                result_lines.push(format!("#[ts(export_to = \"{}\")]", path));
             }
         }
 
@@ -1046,30 +1037,31 @@ fn add_ts_export_to_all_types(content: &str, export_path: &str) -> String {
 fn add_ts_export_to_types(content: &str, type_names: &[&str], export_dir: &str) -> String {
     let lines: Vec<&str> = content.lines().collect();
     let mut result_lines = Vec::new();
+    let mut export_to_line_index: Option<usize> = None;
 
-    for i in 0..lines.len() {
-        let line = lines[i];
+    for line in lines {
+        // Step 1: Track when we see #[ts(export_to = "...")]
+        if line.contains("#[ts(export_to =") {
+            export_to_line_index = Some(result_lines.len());
+        }
 
-        // Check if this line defines a struct or enum that should be exported
+        // Step 3: Check if we hit a type definition
         if line.starts_with("pub struct ") || line.starts_with("pub enum ") {
             // Extract the type name
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts.len() >= 3 {
                 let type_name = parts[2].trim_end_matches(" {").trim_end_matches('<');
 
-                // Check if this type should be exported
+                // Step 4: If this is an entry point type, replace the export_to line
                 if type_names.contains(&type_name) {
-                    // Check if previous line has export_to attribute
-                    if i > 0 {
-                        let prev_line = lines[i - 1];
-                        if prev_line.contains("#[ts(export_to =") {
-                            // REPLACE the previous line with an export directive
-                            result_lines.pop(); // Remove the previous line
-                                                // Add export annotation with export flag and same path
-                            result_lines
-                                .push(format!("#[ts(export, export_to = \"{}\")]", export_dir));
-                        }
+                    if let Some(index) = export_to_line_index.take() {
+                        // Replace the previous #[ts(export_to = "...")] with the export version
+                        result_lines[index] =
+                            format!("#[ts(export, export_to = \"{}\")]", export_dir);
                     }
+                } else {
+                    // Clear the flag - not an entry point
+                    export_to_line_index = None;
                 }
             }
         }
