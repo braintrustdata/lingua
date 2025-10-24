@@ -22,7 +22,7 @@
       "import": "./dist/index.browser.mjs",
       "default": "./dist/index.browser.mjs"
     },
-    "./browser/lingua_bg.wasm": "./wasm-web/lingua_bg.wasm"
+    "./browser/lingua_bg.wasm": "./dist/wasm-web/lingua_bg.wasm"
   },
   "scripts": {
     "build": "pnpm run build:wasm && pnpm run build:types",
