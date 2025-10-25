@@ -1,5 +1,5 @@
 import { defineConfig } from "tsup";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, cpSync, mkdirSync } from "fs";
 import { join } from "path";
 
 export default defineConfig([
@@ -36,6 +36,14 @@ export default defineConfig([
       );
 
       writeFileSync(filePath, content, "utf-8");
+
+      // Copy .wasm binaries for export
+      const distWasmNode = join(__dirname, "dist", "wasm-node");
+      const distWasmWeb = join(__dirname, "dist", "wasm-web");
+      mkdirSync(distWasmNode, { recursive: true });
+      mkdirSync(distWasmWeb, { recursive: true });
+      cpSync(join(__dirname, "wasm", "lingua_bg.wasm"), join(distWasmNode, "lingua_bg.wasm"));
+      cpSync(join(__dirname, "wasm-web", "lingua_bg.wasm"), join(distWasmWeb, "lingua_bg.wasm"));
     },
   },
 ]);
