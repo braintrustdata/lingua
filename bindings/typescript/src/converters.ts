@@ -8,8 +8,7 @@
  * All functions throw ConversionError on failure instead of returning error objects.
  */
 
-// @ts-ignore - WASM module types are generated
-import * as wasm from "../wasm/lingua.js";
+import { getWasm } from "./wasm-runtime";
 import type { Message } from "./generated/Message";
 import type { ChatCompletionRequestMessage } from "./generated/openai/ChatCompletionRequestMessage";
 import type { InputItem } from "./generated/openai/InputItem";
@@ -76,12 +75,12 @@ function convertMapsToObjects(value: unknown): unknown {
  * @returns A function that converts provider format to Lingua
  */
 function createToLinguaConverter<TOutput extends Message | Message[]>(
-  wasmFn: (value: unknown) => unknown,
+  wasmFn: () => (value: unknown) => unknown,
   provider: string
 ): (input: unknown) => TOutput {
   return (input: unknown): TOutput => {
     try {
-      const result = wasmFn(input);
+      const result = wasmFn()(input);
       // Convert any Map objects to plain objects
       return convertMapsToObjects(result) as TOutput;
     } catch (error: unknown) {
@@ -102,12 +101,12 @@ function createToLinguaConverter<TOutput extends Message | Message[]>(
  * @returns A function that converts Lingua to provider format
  */
 function createFromLinguaConverter<TInput extends Message | Message[], TOutput>(
-  wasmFn: (value: unknown) => unknown,
+  wasmFn: () => (value: unknown) => unknown,
   provider: string
 ): <T = TOutput>(input: TInput) => T {
   return <T = TOutput>(input: TInput): T => {
     try {
-      const result = wasmFn(input);
+      const result = wasmFn()(input);
       // Convert any Map objects to plain objects
       return convertMapsToObjects(result) as T;
     } catch (error: unknown) {
@@ -140,7 +139,7 @@ function createFromLinguaConverter<TInput extends Message | Message[], TOutput>(
  */
 export const chatCompletionsMessagesToLingua = createToLinguaConverter<
   Message[]
->(wasm.chat_completions_messages_to_lingua, "Chat Completions");
+>(() => getWasm().chat_completions_messages_to_lingua, "Chat Completions");
 
 /**
  * Convert array of Lingua Messages to Chat Completions messages
@@ -169,7 +168,7 @@ export const chatCompletionsMessagesToLingua = createToLinguaConverter<
 export const linguaToChatCompletionsMessages = createFromLinguaConverter<
   Message[],
   ChatCompletionRequestMessage[]
->(wasm.lingua_to_chat_completions_messages, "Chat Completions");
+>(() => getWasm().lingua_to_chat_completions_messages, "Chat Completions");
 
 // ============================================================================
 // Responses API Conversions
@@ -189,7 +188,7 @@ export const linguaToChatCompletionsMessages = createFromLinguaConverter<
  * @throws {ConversionError} If conversion fails
  */
 export const responsesMessagesToLingua = createToLinguaConverter<Message[]>(
-  wasm.responses_messages_to_lingua,
+  () => getWasm().responses_messages_to_lingua,
   "Responses"
 );
 
@@ -215,7 +214,7 @@ export const responsesMessagesToLingua = createToLinguaConverter<Message[]>(
 export const linguaToResponsesMessages = createFromLinguaConverter<
   Message[],
   InputItem[]
->(wasm.lingua_to_responses_messages, "Responses");
+>(() => getWasm().lingua_to_responses_messages, "Responses");
 
 // ============================================================================
 // Anthropic Conversions
@@ -235,7 +234,7 @@ export const linguaToResponsesMessages = createFromLinguaConverter<
  * @throws {ConversionError} If conversion fails
  */
 export const anthropicMessagesToLingua = createToLinguaConverter<Message[]>(
-  wasm.anthropic_messages_to_lingua,
+  () => getWasm().anthropic_messages_to_lingua,
   "Anthropic"
 );
 
@@ -261,7 +260,7 @@ export const anthropicMessagesToLingua = createToLinguaConverter<Message[]>(
 export const linguaToAnthropicMessages = createFromLinguaConverter<
   Message[],
   InputMessage[]
->(wasm.lingua_to_anthropic_messages, "Anthropic");
+>(() => getWasm().lingua_to_anthropic_messages, "Anthropic");
 
 // ============================================================================
 // Processing functions
@@ -286,7 +285,7 @@ export const linguaToAnthropicMessages = createFromLinguaConverter<
  */
 export function deduplicateMessages(messages: Message[]): Message[] {
   try {
-    const result = wasm.deduplicate_messages(messages);
+    const result = getWasm().deduplicate_messages(messages);
     // Convert any Map objects to plain objects
     return convertMapsToObjects(result) as Message[];
   } catch (error: unknown) {
@@ -317,7 +316,7 @@ export function importMessagesFromSpans(
   spans: Array<{ input?: unknown; output?: unknown }>
 ): Message[] {
   try {
-    const result = wasm.import_messages_from_spans(spans);
+    const result = getWasm().import_messages_from_spans(spans);
     // Convert any Map objects to plain objects
     return convertMapsToObjects(result) as Message[];
   } catch (error: unknown) {
@@ -344,7 +343,7 @@ export function importAndDeduplicateMessages(
   spans: Array<{ input?: unknown; output?: unknown }>
 ): Message[] {
   try {
-    const result = wasm.import_and_deduplicate_messages(spans);
+    const result = getWasm().import_and_deduplicate_messages(spans);
     // Convert any Map objects to plain objects
     return convertMapsToObjects(result) as Message[];
   } catch (error: unknown) {
@@ -376,7 +375,7 @@ export function validateChatCompletionsRequest(
   json: string
 ): ValidationResult<unknown> {
   try {
-    const data = wasm.validate_chat_completions_request(json);
+    const data = getWasm().validate_chat_completions_request(json);
     return { ok: true, data };
   } catch (error: unknown) {
     return {
@@ -394,7 +393,7 @@ export function validateChatCompletionsResponse(
   json: string
 ): ValidationResult<unknown> {
   try {
-    const data = wasm.validate_chat_completions_response(json);
+    const data = getWasm().validate_chat_completions_response(json);
     return { ok: true, data };
   } catch (error: unknown) {
     return {
@@ -412,7 +411,7 @@ export function validateResponsesRequest(
   json: string
 ): ValidationResult<unknown> {
   try {
-    const data = wasm.validate_responses_request(json);
+    const data = getWasm().validate_responses_request(json);
     return { ok: true, data };
   } catch (error: unknown) {
     return {
@@ -430,7 +429,7 @@ export function validateResponsesResponse(
   json: string
 ): ValidationResult<unknown> {
   try {
-    const data = wasm.validate_responses_response(json);
+    const data = getWasm().validate_responses_response(json);
     return { ok: true, data };
   } catch (error: unknown) {
     return {
@@ -468,7 +467,7 @@ export function validateAnthropicRequest(
   json: string
 ): ValidationResult<unknown> {
   try {
-    const data = wasm.validate_anthropic_request(json);
+    const data = getWasm().validate_anthropic_request(json);
     return { ok: true, data };
   } catch (error: unknown) {
     return {
@@ -486,7 +485,7 @@ export function validateAnthropicResponse(
   json: string
 ): ValidationResult<unknown> {
   try {
-    const data = wasm.validate_anthropic_response(json);
+    const data = getWasm().validate_anthropic_response(json);
     return { ok: true, data };
   } catch (error: unknown) {
     return {

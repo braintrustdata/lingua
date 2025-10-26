@@ -4,6 +4,16 @@
  * Universal message format for LLMs
  */
 
+import * as wasm from "../wasm/lingua.js";
+
+import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
+
+setWasm(wasm);
+
+export { ensureOnce, getWasm };
+
+export * from "./wasm";
+
 // Re-export all generated types
 export * from "./generated/Message";
 export * from "./generated/AssistantContent";
@@ -26,8 +36,5 @@ export * from "./generated/UserContentPart";
 // Main type aliases for convenience
 export type { Message } from "./generated/Message";
 
-// WASM conversion functions
-export * from "./wasm";
-
 // Version info
-export const VERSION = "0.1.0";
+export { VERSION } from "./version";

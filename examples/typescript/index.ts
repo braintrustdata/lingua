@@ -18,7 +18,7 @@ async function basicUsage() {
     },
   ];
 
-  console.log("\n📝 Step 1: Write in Lingua universal format");
+  console.log("\n📝 Step 1: Write in Lingua's universal format");
   console.log("   Message:", JSON.stringify(messages[0].content));
 
   // (Imagine we have a feature flag controlling which model we use)
@@ -33,7 +33,7 @@ async function basicUsage() {
     ? chatCompletionsMessagesToLingua(await createOpenAiCompletion(messages))
     : anthropicMessagesToLingua(await createAnthropicCompletion(messages));
 
-  console.log("\n✅ Step 4: Response converted back to universal format");
+  console.log("\n✅ Step 4: Response converted back to Lingua");
 
   // ✨ Proceed in Lingua format ✨
   return response;
@@ -44,17 +44,23 @@ async function main() {
   const hasAnthropicApiKey = !!process.env.ANTHROPIC_API_KEY;
 
   if (hasOpenAiApiKey && hasAnthropicApiKey) {
-    console.log("\n" + "═".repeat(80));
-    console.log("  🌍 Lingua: Universal Message Format for LLMs");
-    console.log("═".repeat(80));
+    console.log("═".repeat(COL_WIDTH));
+    console.log(
+      centerText("🌍 Lingua: Universal Message Format for LLMs", COL_WIDTH)
+    );
+    console.log("═".repeat(COL_WIDTH));
 
     const [message] = await basicUsage();
 
     console.log("\n💬 Response:");
-    console.log("─".repeat(80));
+    // console.log("─".repeat(COL_WIDTH));
     console.log(message.content);
-    console.log("─".repeat(80));
-    console.log("\n✨ One format. Any model. No proxy. ✨");
+    // console.log("─".repeat(COL_WIDTH));
+    console.log("\n" + "═".repeat(COL_WIDTH));
+    console.log(
+      centerText("✨ One format. Any model. No proxy. ✨", COL_WIDTH)
+    );
+    console.log("═".repeat(COL_WIDTH));
   } else {
     console.log(
       "⚠️  Skipping example - both OPENAI_API_KEY and ANTHROPIC_API_KEY required"
@@ -95,5 +101,22 @@ const createAnthropicCompletion = async (messages: Message[]) => {
  * - Fallback to different provider within agent loop
  * - Fan out to multiple providers using same lingua messages, then do something cool with the results (choose best candidate perhaps or have LLM choose best?)
  */
+
+const COL_WIDTH = 80;
+
+function centerText(
+  text: string,
+  width: number,
+  padChar: string = " "
+): string {
+  const textLength = text.length;
+  if (textLength >= width) return text;
+
+  const totalPadding = width - textLength;
+  const leftPadding = Math.floor(totalPadding / 2);
+  const rightPadding = totalPadding - leftPadding;
+
+  return padChar.repeat(leftPadding) + text + padChar.repeat(rightPadding);
+}
 
 main().catch(console.error);
