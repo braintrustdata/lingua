@@ -50,29 +50,20 @@ mod tests {
                 <Vec<InputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
                     .map_err(|e| format!("Failed to roundtrip conversion: {}", e))
             },
-            // Extract response content (output messages from OpenAI Responses API converted to InputItems)
-            |response: &TheResponseObject| -> Result<Vec<InputItem>, String> {
-                // Convert OutputItems to InputItems for comparison (this is the supported direction)
-                let input_items_from_output: Vec<InputItem> = response
-                    .output
-                    .iter()
-                    .map(|output_item| {
-                        <InputItem as TryFromLLM<OutputItem>>::try_from(output_item.clone())
+            // Extract response content (output messages from OpenAI Responses API)
+            |response: &TheResponseObject| -> Result<Vec<OutputItem>, String> {
+                Ok(response.output.clone())
+            },
+            // Convert response to universal (OutputItems to Messages)
+            |output_items: &Vec<OutputItem>| {
+                <Vec<Message> as TryFromLLM<Vec<OutputItem>>>::try_from(output_items.clone())
+                    .map_err(|e| {
+                        format!("Failed to convert OutputItems to universal format: {}", e)
                     })
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| format!("Failed to convert OutputItem to InputItem: {}", e))?;
-                Ok(input_items_from_output)
             },
-            // Convert response to universal (InputItems are already converted from OutputItems)
-            |input_messages: &Vec<InputItem>| {
-                // Convert InputItems to universal format
-                <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(input_messages.clone())
-                    .map_err(|e| format!("Failed to convert InputItems to universal format: {}", e))
-            },
-            // Convert universal to response (via InputItem conversion - note: we compare InputItems, not OutputItems)
+            // Convert universal to response (Messages to OutputItems)
             |messages: Vec<Message>| {
-                // Convert universal messages back to InputItems (this is what we can compare)
-                <Vec<InputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
+                <Vec<OutputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
                     .map_err(|e| format!("Failed to roundtrip conversion from universal: {}", e))
             },
         )

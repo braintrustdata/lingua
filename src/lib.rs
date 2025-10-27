@@ -1,4 +1,5 @@
 pub mod capabilities;
+pub mod error;
 pub mod processing;
 pub mod providers;
 pub mod universal;
