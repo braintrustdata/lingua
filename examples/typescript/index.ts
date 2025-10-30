@@ -1,17 +1,3 @@
-/**
- * Lingua TypeScript Example - Tool Calling with Multiple Providers
- *
- * This example demonstrates the core value of Lingua:
- * Define your conversation once (including tool calls and results),
- * then execute it with any provider using their native APIs.
- *
- * The conversation flow:
- * 1. User asks about weather
- * 2. Assistant calls weather tool
- * 3. Tool returns result
- * 4. Assistant uses result to answer user
- */
-
 import {
   type Message,
   linguaToChatCompletionsMessages,
@@ -20,205 +6,117 @@ import {
   anthropicMessagesToLingua,
 } from "@braintrust/lingua";
 
-// Import SDKs
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-// ============================================================================
-// Define the conversation once in Lingua's universal format
-// ============================================================================
-
-// Complete conversation with tool call and result already included
-// The model just needs to look at this and provide the final answer
-const linguaConversation: Message[] = [
-  {
-    role: "user",
-    content: "What's the weather like in San Francisco?",
-  },
-  {
-    role: "assistant",
-    content: [
-      {
-        type: "tool_call",
-        tool_call_id: "call_weather_123",
-        tool_name: "get_weather",
-        arguments: {
-          type: "valid",
-          location: "San Francisco, CA",
-        },
-      },
-    ],
-    id: null,
-  },
-  {
-    role: "tool",
-    content: [
-      {
-        type: "tool_result",
-        tool_call_id: "call_weather_123",
-        tool_name: "get_weather",
-        output: "72 degrees Fahrenheit, sunny with light clouds",
-      },
-    ],
-  },
-];
-
-// Tool definition (same schema for both providers)
-const weatherTool = {
-  name: "get_weather",
-  description: "Get the current weather for a location",
-  parameters: {
-    type: "object" as const,
-    properties: {
-      location: {
-        type: "string" as const,
-        description: "The city and state, e.g. San Francisco, CA",
-      },
+async function basicUsage() {
+  // Write messages and tools in Lingua's universal format
+  const messages: Message[] = [
+    {
+      role: "user",
+      content: "Tell me a little-known fact about pizza",
     },
-    required: ["location"],
-  },
-};
+  ];
 
-// ============================================================================
-// Execute with OpenAI
-// ============================================================================
+  console.log("\n📝 Step 1: Write in Lingua's universal format");
+  console.log("   Message:", JSON.stringify(messages[0].content));
 
-async function runWithOpenAI() {
-  if (!process.env.OPENAI_API_KEY) {
-    console.log("⏭️  Skipping OpenAI (no API key)");
-    console.log("   Set OPENAI_API_KEY environment variable to enable");
-    console.log();
-    return;
-  }
+  // (Imagine we have a feature flag controlling which model we use)
+  const useOpenAi = Math.random() > 0.5;
+  const provider = useOpenAi ? "OpenAI" : "Anthropic";
 
-  console.log("🤖 Running with OpenAI (gpt-5-nano)");
-  console.log("-".repeat(80));
+  console.log(`\n🎲 Step 2: Dynamically choosing provider: ${provider}`);
+  console.log("\n🔄 Step 3: Calling provider API...");
 
-  try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  // Call any provider
+  const response = useOpenAi
+    ? chatCompletionsMessagesToLingua(await createOpenAiCompletion(messages))
+    : anthropicMessagesToLingua(await createAnthropicCompletion(messages));
 
-    // Convert to OpenAI format
-    const openaiMessages = linguaToChatCompletionsMessages(linguaConversation);
+  console.log("\n✅ Step 4: Response converted back to Lingua");
 
-    console.log("📤 Sending conversation to OpenAI...");
-    console.log(JSON.stringify(openaiMessages, null, 2));
-    console.log();
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-5-nano",
-      messages: openaiMessages,
-      tools: [
-        {
-          type: "function",
-          function: weatherTool,
-        },
-      ],
-    });
-
-    console.log("✅ OpenAI Response:");
-    console.log(JSON.stringify(response.choices[0].message, null, 2));
-    console.log();
-
-    // Convert response back to Lingua
-    const linguaResponse = chatCompletionsMessagesToLingua([response.choices[0].message]);
-    console.log("🔄 Converted to Lingua format:");
-    console.log(JSON.stringify(linguaResponse, null, 2));
-    console.log();
-  } catch (error: any) {
-    console.error("❌ OpenAI error:", error.message);
-    console.log();
-  }
+  // ✨ Proceed in Lingua format ✨
+  return response;
 }
-
-// ============================================================================
-// Execute with Anthropic
-// ============================================================================
-
-async function runWithAnthropic() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.log("⏭️  Skipping Anthropic (no API key)");
-    console.log("   Set ANTHROPIC_API_KEY environment variable to enable");
-    console.log();
-    return;
-  }
-
-  console.log("🤖 Running with Anthropic (claude-sonnet-4-20250514)");
-  console.log("-".repeat(80));
-
-  try {
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    // Convert to Anthropic format
-    const anthropicMessages = linguaToAnthropicMessages(linguaConversation);
-
-    console.log("📤 Sending conversation to Anthropic...");
-    console.log(JSON.stringify(anthropicMessages, null, 2));
-    console.log();
-
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      messages: anthropicMessages,
-      tools: [
-        {
-          name: weatherTool.name,
-          description: weatherTool.description,
-          input_schema: weatherTool.parameters,
-        },
-      ],
-    });
-
-    console.log("✅ Anthropic Response:");
-    console.log(JSON.stringify(response, null, 2));
-    console.log();
-
-    // Convert response back to Lingua
-    const linguaResponse = anthropicMessagesToLingua([
-      {
-        role: "assistant",
-        content: response.content,
-      },
-    ]);
-    console.log("🔄 Converted to Lingua format:");
-    console.log(JSON.stringify(linguaResponse, null, 2));
-    console.log();
-  } catch (error: any) {
-    console.error("❌ Anthropic error:", error.message);
-    console.log();
-  }
-}
-
-// ============================================================================
-// Main
-// ============================================================================
 
 async function main() {
-  console.log("=".repeat(80));
-  console.log("Lingua - Universal Message Format for LLMs");
-  console.log("=".repeat(80));
-  console.log();
-  console.log("This example shows the same conversation executed with multiple providers.");
-  console.log("The conversation includes tool calling - a complex multi-turn interaction.");
-  console.log();
+  const hasOpenAiApiKey = !!process.env.OPENAI_API_KEY;
+  const hasAnthropicApiKey = !!process.env.ANTHROPIC_API_KEY;
 
-  console.log("📝 Lingua Conversation (universal format):");
-  console.log("-".repeat(80));
-  console.log(JSON.stringify(linguaConversation, null, 2));
-  console.log();
-  console.log("=".repeat(80));
-  console.log();
+  if (hasOpenAiApiKey && hasAnthropicApiKey) {
+    console.log("═".repeat(COL_WIDTH));
+    console.log(
+      centerText("🌍 Lingua: Universal Message Format for LLMs", COL_WIDTH)
+    );
+    console.log("═".repeat(COL_WIDTH));
 
-  await runWithOpenAI();
-  console.log("=".repeat(80));
-  console.log();
+    const [message] = await basicUsage();
 
-  await runWithAnthropic();
-  console.log("=".repeat(80));
-  console.log();
+    console.log("\n💬 Response:");
+    // console.log("─".repeat(COL_WIDTH));
+    console.log(message.content);
+    // console.log("─".repeat(COL_WIDTH));
+    console.log("\n" + "═".repeat(COL_WIDTH));
+    console.log(
+      centerText("✨ One format. Any model. No proxy. ✨", COL_WIDTH)
+    );
+    console.log("═".repeat(COL_WIDTH));
+  } else {
+    console.log(
+      "⚠️  Skipping example - both OPENAI_API_KEY and ANTHROPIC_API_KEY required"
+    );
+  }
+}
 
-  console.log("✨ Key Takeaway:");
-  console.log("   Same conversation → Multiple providers → Zero runtime overhead");
-  console.log("=".repeat(80));
+const createOpenAiCompletion = async (messages: Message[]) => {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openaiMessages =
+    linguaToChatCompletionsMessages<OpenAI.Chat.ChatCompletionMessageParam[]>(
+      messages
+    );
+  const openAiResponse = await openai.chat.completions.create({
+    model: "gpt-5-nano",
+    messages: openaiMessages,
+  });
+
+  return [openAiResponse.choices[0].message];
+};
+
+const createAnthropicCompletion = async (messages: Message[]) => {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const anthropicMessages =
+    linguaToAnthropicMessages<Anthropic.MessageParam[]>(messages);
+  const anthropicResponse = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    messages: anthropicMessages,
+    max_tokens: 1000,
+  });
+
+  return [anthropicResponse];
+};
+
+/**
+ * Test ideas:
+ * - Agent loop
+ * - Fallback to different provider within agent loop
+ * - Fan out to multiple providers using same lingua messages, then do something cool with the results (choose best candidate perhaps or have LLM choose best?)
+ */
+
+const COL_WIDTH = 80;
+
+function centerText(
+  text: string,
+  width: number,
+  padChar: string = " "
+): string {
+  const textLength = text.length;
+  if (textLength >= width) return text;
+
+  const totalPadding = width - textLength;
+  const leftPadding = Math.floor(totalPadding / 2);
+  const rightPadding = totalPadding - leftPadding;
+
+  return padChar.repeat(leftPadding) + text + padChar.repeat(rightPadding);
 }
 
 main().catch(console.error);

@@ -9,7 +9,7 @@ help: ## Show this help message
 
 generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."
-	@cargo test --lib --no-run --quiet
+	@cargo test export_bindings --lib --quiet
 
 typescript: generate-types ## Build TypeScript bindings (WASM)
 	@echo "Building TypeScript bindings..."

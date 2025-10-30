@@ -18,8 +18,10 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use ts_rs::TS;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct OpenaiSchemas {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub chat_request: Option<CreateChatCompletionRequestClass>,
@@ -33,7 +35,8 @@ pub struct OpenaiSchemas {
     pub responses_response: Option<TheResponseObject>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CreateChatCompletionRequestClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
@@ -226,7 +229,8 @@ pub struct CreateChatCompletionRequestClass {
 
 /// Parameters for audio output. Required when audio output is requested with
 /// `modalities: ["audio"]`. [Learn more](https://platform.openai.com/docs/guides/audio).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CreateChatCompletionRequestAudio {
     /// Specifies the output audio format. Must be one of `wav`, `mp3`, `flac`,
     /// `opus`, or `pcm16`.
@@ -238,8 +242,9 @@ pub struct CreateChatCompletionRequestAudio {
 
 /// Specifies the output audio format. Must be one of `wav`, `mp3`, `flac`,
 /// `opus`, or `pcm16`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum AudioFormat {
     Aac,
     Flac,
@@ -264,8 +269,9 @@ pub enum AudioFormat {
 ///
 /// `none` is the default when no functions are present. `auto` is the default
 /// if functions are present.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum FunctionCallUnion {
     ChatCompletionFunctionCallOption(ChatCompletionFunctionCallOption),
     Enum(FunctionCallMode),
@@ -273,7 +279,8 @@ pub enum FunctionCallUnion {
 
 /// Specifying a particular function via `{"name": "my_function"}` forces the model to call
 /// that function.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionFunctionCallOption {
     /// The name of the function to call.
     pub name: String,
@@ -281,14 +288,16 @@ pub struct ChatCompletionFunctionCallOption {
 
 /// `none` means the model will not call a function and instead generates a message. `auto`
 /// means the model can pick between generating a message or calling a function.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum FunctionCallMode {
     Auto,
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionFunctions {
     /// A description of what the function does, used by the model to choose when and how to call
     /// the function.
@@ -297,6 +306,7 @@ pub struct ChatCompletionFunctions {
     /// The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and
     /// dashes, with a maximum length of 64.
     pub name: String,
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,
 }
@@ -316,7 +326,8 @@ pub struct ChatCompletionFunctions {
 ///
 ///
 /// Messages sent by the model in response to user messages.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "openai/")]
 pub struct ChatCompletionRequestMessage {
     /// The contents of the developer message.
     ///
@@ -361,14 +372,16 @@ pub struct ChatCompletionRequestMessage {
 
 /// Data about a previous audio response from the model.
 /// [Learn more](https://platform.openai.com/docs/guides/audio).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionRequestMessageAudio {
     /// Unique identifier for a previous audio response from the model.
     pub id: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum ChatCompletionRequestMessageContent {
     ChatCompletionRequestMessageContentPartArray(Vec<ChatCompletionRequestMessageContentPart>),
     String(String),
@@ -406,7 +419,8 @@ pub enum ChatCompletionRequestMessageContent {
 ///
 /// An array of content parts with a defined type. Can be one or more of type `text`, or
 /// exactly one of type `refusal`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionRequestMessageContentPart {
     /// The text content.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -434,8 +448,9 @@ pub struct ChatCompletionRequestMessageContentPart {
 /// The type of the content part. Always `input_audio`.
 ///
 /// The type of the content part. Always `file`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum PurpleType {
     File,
     #[serde(rename = "image_url")]
@@ -446,7 +461,8 @@ pub enum PurpleType {
     Text,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct File {
     /// The base64 encoded file data, used when passing the file to the model
     /// as a string.
@@ -461,7 +477,8 @@ pub struct File {
     pub filename: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ImageUrl {
     /// Specifies the detail level of the image. Learn more in the [Vision
     /// guide](https://platform.openai.com/docs/guides/vision#low-or-high-fidelity-image-understanding).
@@ -476,15 +493,17 @@ pub struct ImageUrl {
 ///
 /// The detail level of the image to be sent to the model. One of `high`, `low`, or `auto`.
 /// Defaults to `auto`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ImageDetail {
     Auto,
     High,
     Low,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ArrayOfContentPartInputAudio {
     /// Base64 encoded audio data.
     pub data: String,
@@ -497,8 +516,9 @@ pub struct ArrayOfContentPartInputAudio {
 ///
 /// The format of the audio data. Currently supported formats are `mp3` and
 /// `wav`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum InputAudioFormat {
     Mp3,
     Wav,
@@ -506,7 +526,8 @@ pub enum InputAudioFormat {
 
 /// Deprecated and replaced by `tool_calls`. The name and arguments of a function that should
 /// be called, as generated by the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionRequestMessageFunctionCall {
     /// The arguments to call the function with, as generated by the model in JSON format. Note
     /// that the model does not always generate valid JSON, and may hallucinate parameters not
@@ -528,8 +549,9 @@ pub struct ChatCompletionRequestMessageFunctionCall {
 /// The role of the messages author, in this case `tool`.
 ///
 /// The role of the messages author, in this case `function`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ChatCompletionRequestMessageRole {
     Assistant,
     Developer,
@@ -545,7 +567,8 @@ pub enum ChatCompletionRequestMessageRole {
 ///
 ///
 /// A call to a custom tool created by the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ToolCall {
     /// The function that the model called.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -563,7 +586,8 @@ pub struct ToolCall {
 }
 
 /// The custom tool that the model called.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ToolCallCustom {
     /// The input for the custom tool call generated by the model.
     pub input: String,
@@ -572,7 +596,8 @@ pub struct ToolCallCustom {
 }
 
 /// The function that the model called.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct PurpleFunction {
     /// The arguments to call the function with, as generated by the model in JSON format. Note
     /// that the model does not always generate valid JSON, and may hallucinate parameters not
@@ -588,8 +613,9 @@ pub struct PurpleFunction {
 /// The type of the tool. Always `custom`.
 ///
 /// The type of the custom tool. Always `custom`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ToolType {
     Custom,
     Function,
@@ -606,8 +632,9 @@ pub enum ToolType {
 /// both text and audio responses, you can use:
 ///
 /// `["text", "audio"]`
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ResponseModality {
     Audio,
     Text,
@@ -622,7 +649,8 @@ pub enum ResponseModality {
 ///
 /// Static predicted output content, such as the content of a text file that is
 /// being regenerated.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct StaticContent {
     /// The content that should be matched when generating a model response.
     /// If generated tokens would match this content, the entire model response
@@ -637,8 +665,9 @@ pub struct StaticContent {
 /// The contents of the system message.
 ///
 /// The contents of the tool message.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum PredictionContent {
     ContentPartArray(Vec<ContentPart>),
     String(String),
@@ -659,7 +688,8 @@ pub enum PredictionContent {
 ///
 /// An array of content parts with a defined type. For tool messages, only type `text` is
 /// supported.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ContentPart {
     /// The text content.
     pub text: String,
@@ -669,16 +699,18 @@ pub struct ContentPart {
 }
 
 /// The type of the content part.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum FluffyType {
     Text,
 }
 
 /// The type of the predicted content you want to provide. This type is
 /// currently always `content`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum PredictionType {
     Content,
 }
@@ -688,8 +720,9 @@ pub enum PredictionType {
 /// Currently supported values are `minimal`, `low`, `medium`, and `high`. Reducing
 /// reasoning effort can result in faster responses and fewer tokens used
 /// on reasoning in a response.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ReasoningEffort {
     High,
     Low,
@@ -721,7 +754,8 @@ pub enum ReasoningEffort {
 /// Using `json_schema` is recommended for models that support it. Note that the
 /// model will not generate JSON without a system or user message instructing it
 /// to do so.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ResponseFormatClass {
     /// The type of response format being defined. Always `text`.
     ///
@@ -736,7 +770,8 @@ pub struct ResponseFormatClass {
 }
 
 /// Structured Outputs configuration options, including a JSON Schema.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct JsonSchema {
     /// A description of what the response format is for, used by the model to
     /// determine how to respond in the format.
@@ -745,6 +780,7 @@ pub struct JsonSchema {
     /// The name of the response format. Must be a-z, A-Z, 0-9, or contain
     /// underscores and dashes, with a maximum length of 64.
     pub name: String,
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub schema: Option<HashMap<String, Option<serde_json::Value>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -756,8 +792,9 @@ pub struct JsonSchema {
 /// The type of response format being defined. Always `json_schema`.
 ///
 /// The type of response format being defined. Always `json_object`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ResponseFormatType {
     #[serde(rename = "json_object")]
     JsonObject,
@@ -779,8 +816,9 @@ pub enum ResponseFormatType {
 /// When the `service_tier` parameter is set, the response body will include the
 /// `service_tier` value based on the processing mode actually used to serve the request.
 /// This response value may be different from the value set in the parameter.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ServiceTier {
     Auto,
     Default,
@@ -793,15 +831,17 @@ pub enum ServiceTier {
 ///
 /// Up to 4 sequences where the API will stop generating further tokens. The
 /// returned text will not contain the stop sequence.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum StopConfiguration {
     String(String),
     StringArray(Vec<String>),
 }
 
 /// Options for streaming response. Only set this when you set `stream: true`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionStreamOptions {
     /// When true, stream obfuscation will be enabled. Stream obfuscation adds
     /// random characters to an `obfuscation` field on streaming delta events to
@@ -834,8 +874,9 @@ pub struct ChatCompletionStreamOptions {
 ///
 /// `none` is the default when no tools are present. `auto` is the default if tools are
 /// present.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum ChatCompletionToolChoiceOption {
     Enum(Auto),
     FunctionToolChoiceClass(FunctionToolChoiceClass),
@@ -849,7 +890,8 @@ pub enum ChatCompletionToolChoiceOption {
 ///
 /// Specifies a tool the model should use. Use to force the model to call a specific custom
 /// tool.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct FunctionToolChoiceClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_tools: Option<AllowedTools>,
@@ -867,7 +909,8 @@ pub struct FunctionToolChoiceClass {
 }
 
 /// Constrains the tools available to the model to a pre-defined set.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct AllowedTools {
     /// Constrains the tools available to the model to a pre-defined set.
     ///
@@ -885,6 +928,7 @@ pub struct AllowedTools {
     /// { "type": "function", "function": { "name": "get_time" } }
     /// ]
     /// ```
+    #[ts(type = "any")]
     pub tools: Vec<HashMap<String, Option<serde_json::Value>>>,
 }
 
@@ -894,8 +938,9 @@ pub struct AllowedTools {
 /// message.
 ///
 /// `required` requires the model to call one or more of the allowed tools.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Mode {
     Auto,
     Required,
@@ -906,8 +951,9 @@ pub enum Mode {
 /// For function calling, the type is always `function`.
 ///
 /// For custom tool calling, the type is always `custom`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum FunctionToolChoiceType {
     #[serde(rename = "allowed_tools")]
     AllowedTools,
@@ -915,13 +961,15 @@ pub enum FunctionToolChoiceType {
     Function,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct AllowedToolsCustom {
     /// The name of the custom tool to call.
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct AllowedToolsFunction {
     /// The name of the function to call.
     pub name: String,
@@ -940,8 +988,9 @@ pub struct AllowedToolsFunction {
 /// more tools.
 ///
 /// `required` means the model must call one or more tools.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Auto {
     Auto,
     None,
@@ -952,7 +1001,8 @@ pub enum Auto {
 ///
 ///
 /// A custom tool that processes input using a specified format.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ToolElement {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub function: Option<FunctionObject>,
@@ -967,7 +1017,8 @@ pub struct ToolElement {
 }
 
 /// Properties of the custom tool.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CustomToolProperties {
     /// Optional description of the custom tool, used to provide more context.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -985,7 +1036,8 @@ pub struct CustomToolProperties {
 /// Unconstrained free-form text.
 ///
 /// A grammar defined by the user.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CustomFormat {
     /// Unconstrained text format. Always `text`.
     ///
@@ -1000,15 +1052,17 @@ pub struct CustomFormat {
 /// Unconstrained text format. Always `text`.
 ///
 /// Grammar format. Always `grammar`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum FormatType {
     Grammar,
     Text,
 }
 
 /// Your chosen grammar.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct GrammarFormat {
     /// The grammar definition.
     pub definition: String,
@@ -1017,14 +1071,16 @@ pub struct GrammarFormat {
 }
 
 /// The syntax of the grammar definition. One of `lark` or `regex`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Syntax {
     Lark,
     Regex,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct FunctionObject {
     /// A description of what the function does, used by the model to choose when and how to call
     /// the function.
@@ -1033,6 +1089,7 @@ pub struct FunctionObject {
     /// The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and
     /// dashes, with a maximum length of 64.
     pub name: String,
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1050,8 +1107,9 @@ pub struct FunctionObject {
 ///
 /// High level guidance for the amount of context window space to use for the search. One of
 /// `low`, `medium`, or `high`. `medium` is the default.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum WebSearchContextSize {
     High,
     Low,
@@ -1061,7 +1119,8 @@ pub enum WebSearchContextSize {
 /// This tool searches the web for relevant results to use in a response.
 /// Learn more about the [web search
 /// tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct WebSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub search_context_size: Option<WebSearchContextSize>,
@@ -1071,7 +1130,8 @@ pub struct WebSearch {
 }
 
 /// Approximate location parameters for the search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct UserLocation {
     pub approximate: WebSearchLocation,
     /// The type of location approximation. Always `approximate`.
@@ -1080,7 +1140,8 @@ pub struct UserLocation {
 }
 
 /// Approximate location parameters for the search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct WebSearchLocation {
     /// Free text input for the city of the user, e.g. `San Francisco`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1103,14 +1164,16 @@ pub struct WebSearchLocation {
 ///
 ///
 /// The type of location approximation. Always `approximate`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum UserLocationType {
     Approximate,
 }
 
 /// Represents a chat completion response returned by model, based on the provided input.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CreateChatCompletionResponse {
     /// A list of chat completion choices. Can be more than one if `n` is greater than 1.
     pub choices: Vec<ChatResponseChoice>,
@@ -1134,7 +1197,8 @@ pub struct CreateChatCompletionResponse {
     pub usage: Option<CompletionUsage>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatResponseChoice {
     /// The reason the model stopped generating tokens. This will be `stop` if the model hit a
     /// natural stop point or a provided stop sequence,
@@ -1156,8 +1220,9 @@ pub struct ChatResponseChoice {
 /// `content_filter` if content was omitted due to a flag from our content filters,
 /// `tool_calls` if the model called a tool, or `function_call` (deprecated) if the model
 /// called a function.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum FinishReason {
     #[serde(rename = "content_filter")]
     ContentFilter,
@@ -1170,7 +1235,8 @@ pub enum FinishReason {
 }
 
 /// Log probability information for the choice.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct PurpleLogprobs {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Vec<ChatCompletionTokenLogprob>>,
@@ -1181,7 +1247,8 @@ pub struct PurpleLogprobs {
 /// A list of message content tokens with log probability information.
 ///
 /// A list of message refusal tokens with log probability information.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionTokenLogprob {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bytes: Option<Vec<i64>>,
@@ -1195,7 +1262,8 @@ pub struct ChatCompletionTokenLogprob {
     pub top_logprobs: Vec<TopLogprob>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct TopLogprob {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bytes: Option<Vec<i64>>,
@@ -1207,7 +1275,8 @@ pub struct TopLogprob {
 }
 
 /// A chat completion message generated by the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionResponseMessage {
     /// Annotations for the message, when applicable, as when using the
     /// [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
@@ -1230,7 +1299,8 @@ pub struct ChatCompletionResponseMessage {
 }
 
 /// A URL citation when using web search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct AnnotationElement {
     /// The type of the URL citation. Always `url_citation`.
     #[serde(rename = "type")]
@@ -1240,15 +1310,17 @@ pub struct AnnotationElement {
 }
 
 /// The type of the URL citation. Always `url_citation`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum AnnotationType {
     #[serde(rename = "url_citation")]
     UrlCitation,
 }
 
 /// A URL citation when using web search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct UrlCitation {
     /// The index of the last character of the URL citation in the message.
     pub end_index: i64,
@@ -1263,7 +1335,8 @@ pub struct UrlCitation {
 /// If the audio output modality is requested, this object contains data
 /// about the audio response from the model. [Learn
 /// more](https://platform.openai.com/docs/guides/audio).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct MessageAudio {
     /// Base64 encoded audio bytes generated by the model, in the format
     /// specified in the request.
@@ -1280,7 +1353,8 @@ pub struct MessageAudio {
 
 /// Deprecated and replaced by `tool_calls`. The name and arguments of a function that should
 /// be called, as generated by the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct MessageFunctionCall {
     /// The arguments to call the function with, as generated by the model in JSON format. Note
     /// that the model does not always generate valid JSON, and may hallucinate parameters not
@@ -1294,14 +1368,16 @@ pub struct MessageFunctionCall {
 /// The role of the author of this message.
 ///
 /// The role of the output message. Always `assistant`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum MessageRole {
     Assistant,
 }
 
 /// The object type, which is always `chat.completion`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub enum ChatResponseObject {
     #[serde(rename = "chat.completion")]
     ChatCompletion,
@@ -1317,7 +1393,8 @@ pub enum ChatResponseObject {
 /// **NOTE:** If the stream is interrupted or cancelled, you may not
 /// receive the final usage chunk which contains the total token usage for
 /// the request.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CompletionUsage {
     /// Number of tokens in the generated completion.
     pub completion_tokens: i64,
@@ -1334,7 +1411,8 @@ pub struct CompletionUsage {
 }
 
 /// Breakdown of tokens used in a completion.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CompletionTokensDetails {
     /// When using Predicted Outputs, the number of tokens in the
     /// prediction that appeared in the completion.
@@ -1356,7 +1434,8 @@ pub struct CompletionTokensDetails {
 }
 
 /// Breakdown of tokens used in the prompt.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct PromptTokensDetails {
     /// Audio input tokens present in the prompt.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1369,7 +1448,8 @@ pub struct PromptTokensDetails {
 /// Represents a streamed chunk of a chat completion response returned
 /// by the model, based on the provided input.
 /// [Learn more](https://platform.openai.com/docs/guides/streaming-responses).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CreateChatCompletionStreamResponse {
     /// A list of chat completion choices. Can contain more than one elements if `n` is greater
     /// than 1. Can also be empty for the
@@ -1403,7 +1483,8 @@ pub struct CreateChatCompletionStreamResponse {
     pub usage: Option<CompletionUsage>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatStreamResponseChoice {
     pub delta: ChatCompletionStreamResponseDelta,
     /// The reason the model stopped generating tokens. This will be `stop` if the model hit a
@@ -1421,7 +1502,8 @@ pub struct ChatStreamResponseChoice {
 }
 
 /// A chat completion delta generated by streamed model responses.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionStreamResponseDelta {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
@@ -1440,7 +1522,8 @@ pub struct ChatCompletionStreamResponseDelta {
 
 /// Deprecated and replaced by `tool_calls`. The name and arguments of a function that should
 /// be called, as generated by the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct DeltaFunctionCall {
     /// The arguments to call the function with, as generated by the model in JSON format. Note
     /// that the model does not always generate valid JSON, and may hallucinate parameters not
@@ -1454,8 +1537,9 @@ pub struct DeltaFunctionCall {
 }
 
 /// The role of the author of this message.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum DeltaRole {
     Assistant,
     Developer,
@@ -1464,7 +1548,8 @@ pub enum DeltaRole {
     User,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ChatCompletionMessageToolCallChunk {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub function: Option<FluffyFunction>,
@@ -1479,13 +1564,15 @@ pub struct ChatCompletionMessageToolCallChunk {
 }
 
 /// The type of the tool. Currently, only `function` is supported.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum TentacledType {
     Function,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct FluffyFunction {
     /// The arguments to call the function with, as generated by the model in JSON format. Note
     /// that the model does not always generate valid JSON, and may hallucinate parameters not
@@ -1499,7 +1586,8 @@ pub struct FluffyFunction {
 }
 
 /// Log probability information for the choice.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct FluffyLogprobs {
     /// A list of message content tokens with log probability information.
     pub content: Vec<ChatCompletionTokenLogprob>,
@@ -1508,13 +1596,15 @@ pub struct FluffyLogprobs {
 }
 
 /// The object type, which is always `chat.completion.chunk`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub enum ChatStreamResponseObject {
     #[serde(rename = "chat.completion.chunk")]
     ChatCompletionChunk,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
@@ -1628,15 +1718,17 @@ pub struct CreateResponseClass {
     pub stream_options: Option<ResponseStreamOptions>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum ConversationUnion {
     ConversationObject(ConversationObject),
     String(String),
 }
 
 /// The conversation that this response belongs to.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ConversationObject {
     /// The unique ID of the conversation.
     pub id: String,
@@ -1658,7 +1750,8 @@ pub struct ConversationObject {
 /// multi-turn conversations when using the Responses API statelessly (like
 /// when the `store` parameter is set to `false`, or when an organization is
 /// enrolled in the zero data retention program).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub enum Includable {
     #[serde(rename = "code_interpreter_call.outputs")]
     CodeInterpreterCallOutputs,
@@ -1674,8 +1767,9 @@ pub enum Includable {
     ReasoningEncryptedContent,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum Instructions {
     InputItemArray(Vec<InputItem>),
     String(String),
@@ -1769,7 +1863,8 @@ pub enum Instructions {
 ///
 ///
 /// An internal identifier for an item to reference.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "openai/")]
 pub struct InputItem {
     /// Text, image, or audio input to the model, used to generate a response.
     /// Can also contain previous assistant responses.
@@ -1951,6 +2046,7 @@ pub struct InputItem {
     ///
     ///
     /// An identifier used to map this custom tool call to a tool call output.
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub call_id: Option<String>,
     /// The pending safety checks for the computer call.
@@ -2021,6 +2117,7 @@ pub struct InputItem {
     pub approve: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request_id: Option<serde_json::Value>,
     /// The input for the custom tool call generated by the model.
@@ -2031,7 +2128,8 @@ pub struct InputItem {
 /// The safety checks reported by the API that have been acknowledged by the developer.
 ///
 /// A pending safety check for the computer call.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ComputerCallSafetyCheckParam {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
@@ -2082,7 +2180,8 @@ pub struct ComputerCallSafetyCheckParam {
 ///
 ///
 /// Execute a shell command on the server.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ComputerAction {
     /// Indicates which mouse button was pressed during the click. One of `left`, `right`,
     /// `wheel`, `back`, or `forward`.
@@ -2209,8 +2308,9 @@ pub struct ComputerAction {
 
 /// Indicates which mouse button was pressed during the click. One of `left`, `right`,
 /// `wheel`, `back`, or `forward`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Button {
     Back,
     Forward,
@@ -2259,8 +2359,9 @@ pub enum Button {
 ///
 ///
 /// The type of the local shell action. Always `exec`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ActionType {
     Click,
     #[serde(rename = "double_click")]
@@ -2283,7 +2384,8 @@ pub enum ActionType {
 ///
 ///
 /// An x/y coordinate pair, e.g. `{ x: 100, y: 200 }`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct Coordinate {
     /// The x-coordinate.
     pub x: i64,
@@ -2292,7 +2394,8 @@ pub struct Coordinate {
 }
 
 /// A source used in the search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct WebSearchSource {
     /// The type of source. Always `url`.
     #[serde(rename = "type")]
@@ -2302,14 +2405,16 @@ pub struct WebSearchSource {
 }
 
 /// The type of source. Always `url`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum SourceType {
     Url,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum InputItemContent {
     InputContentArray(Vec<InputContent>),
     String(String),
@@ -2334,7 +2439,8 @@ pub enum InputItemContent {
 /// A refusal from the model.
 ///
 /// Reasoning text from the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct InputContent {
     /// The text input to the model.
     ///
@@ -2395,7 +2501,8 @@ pub struct InputContent {
 /// A citation for a container file used to generate a model response.
 ///
 /// A path to a file.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct Annotation {
     /// The ID of the file.
     ///
@@ -2449,8 +2556,9 @@ pub struct Annotation {
 /// The type of the container file citation. Always `container_file_citation`.
 ///
 /// The type of the file path. Always `file_path`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum AnnotationTypeEnum {
     #[serde(rename = "container_file_citation")]
     ContainerFileCitation,
@@ -2462,7 +2570,8 @@ pub enum AnnotationTypeEnum {
     UrlCitation,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct InputItemContentListInputAudio {
     /// Base64-encoded audio data.
     pub data: String,
@@ -2485,8 +2594,9 @@ pub struct InputItemContentListInputAudio {
 /// The type of the refusal. Always `refusal`.
 ///
 /// The type of the reasoning text. Always `reasoning_text`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum InputItemContentListType {
     #[serde(rename = "input_audio")]
     InputAudio,
@@ -2504,7 +2614,8 @@ pub enum InputItemContentListType {
 }
 
 /// The log probability of a token.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct LogProbability {
     pub bytes: Vec<i64>,
     pub logprob: f64,
@@ -2513,7 +2624,8 @@ pub struct LogProbability {
 }
 
 /// The top log probability of a token.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct TopLogProbability {
     pub bytes: Vec<i64>,
     pub logprob: f64,
@@ -2578,8 +2690,9 @@ pub struct TopLogProbability {
 ///
 ///
 /// The type of item to reference. Always `item_reference`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum InputItemType {
     #[serde(rename = "code_interpreter_call")]
     CodeInterpreterCall,
@@ -2619,15 +2732,17 @@ pub enum InputItemType {
     WebSearchCall,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum Refusal {
     ComputerScreenshotImage(ComputerScreenshotImage),
     String(String),
 }
 
 /// A computer screenshot image used with the computer use tool.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ComputerScreenshotImage {
     /// The identifier of an uploaded file that contains the screenshot.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2643,8 +2758,9 @@ pub struct ComputerScreenshotImage {
 
 /// Specifies the event type. For a computer screenshot, this property is
 /// always set to `computer_screenshot`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum StickyType {
     #[serde(rename = "computer_screenshot")]
     ComputerScreenshot,
@@ -2658,7 +2774,8 @@ pub enum StickyType {
 ///
 ///
 /// The image output from the code interpreter.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CodeInterpreterOutput {
     /// The logs output from the code interpreter.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2676,15 +2793,17 @@ pub struct CodeInterpreterOutput {
 /// The type of the output. Always 'logs'.
 ///
 /// The type of the output. Always 'image'.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum IndigoType {
     Image,
     Logs,
 }
 
 /// A pending safety check for the computer call.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ComputerToolCallSafetyCheck {
     /// The type of the pending safety check.
     pub code: String,
@@ -2695,7 +2814,8 @@ pub struct ComputerToolCallSafetyCheck {
 }
 
 /// The results of the file search tool call.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct Result {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<HashMap<String, VectorStoreFileAttribute>>,
@@ -2713,8 +2833,9 @@ pub struct Result {
     pub text: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum VectorStoreFileAttribute {
     Bool(bool),
     Double(f64),
@@ -2729,8 +2850,9 @@ pub enum VectorStoreFileAttribute {
 ///
 ///
 /// The role of the output message. Always `assistant`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum InputItemRole {
     Assistant,
     Developer,
@@ -2774,8 +2896,9 @@ pub enum InputItemRole {
 ///
 ///
 /// The status of the item. One of `in_progress`, `completed`, or `incomplete`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum FunctionCallItemStatus {
     Completed,
     Failed,
@@ -2788,7 +2911,8 @@ pub enum FunctionCallItemStatus {
 }
 
 /// A summary text from the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct SummaryText {
     /// A summary of the reasoning output from the model so far.
     pub text: String,
@@ -2798,21 +2922,25 @@ pub struct SummaryText {
 }
 
 /// The type of the object. Always `summary_text`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum SummaryType {
     #[serde(rename = "summary_text")]
     SummaryText,
 }
 
 /// A tool available on an MCP server.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct McpListToolsTool {
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub annotations: Option<HashMap<String, Option<serde_json::Value>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// The JSON schema describing the tool's input.
+    #[ts(type = "any")]
     pub input_schema: HashMap<String, Option<serde_json::Value>>,
     /// The name of the tool.
     pub name: String,
@@ -2821,7 +2949,8 @@ pub struct McpListToolsTool {
 /// Reference to a prompt template and its variables.
 /// [Learn
 /// more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct Prompt {
     /// The unique identifier of the prompt template to use.
     pub id: String,
@@ -2831,8 +2960,9 @@ pub struct Prompt {
     pub version: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum PromptVariable {
     Input(Input),
     String(String),
@@ -2844,7 +2974,8 @@ pub enum PromptVariable {
 /// inputs](https://platform.openai.com/docs/guides/vision).
 ///
 /// A file input to the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct Input {
     /// The text input to the model.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2880,8 +3011,9 @@ pub struct Input {
 /// The type of the input item. Always `input_image`.
 ///
 /// The type of the input item. Always `input_file`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum InputTextType {
     #[serde(rename = "input_file")]
     InputFile,
@@ -2895,7 +3027,8 @@ pub enum InputTextType {
 ///
 /// Configuration options for
 /// [reasoning models](https://platform.openai.com/docs/guides/reasoning).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct Reasoning {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<ReasoningEffort>,
@@ -2915,8 +3048,9 @@ pub struct Reasoning {
 /// A summary of the reasoning performed by the model. This can be
 /// useful for debugging and understanding the model's reasoning process.
 /// One of `auto`, `concise`, or `detailed`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Summary {
     Auto,
     Concise,
@@ -2924,7 +3058,8 @@ pub enum Summary {
 }
 
 /// Options for streaming responses. Only set this when you set `stream: true`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ResponseStreamOptions {
     /// When true, stream obfuscation will be enabled. Stream obfuscation adds
     /// random characters to an `obfuscation` field on streaming delta events to
@@ -2941,7 +3076,8 @@ pub struct ResponseStreamOptions {
 /// text or structured JSON data. Learn more:
 /// - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
 /// - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct TextClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<TextResponseFormatConfiguration>,
@@ -2976,7 +3112,8 @@ pub struct TextClass {
 /// Using `json_schema` is recommended for models that support it. Note that the
 /// model will not generate JSON without a system or user message instructing it
 /// to do so.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct TextResponseFormatConfiguration {
     /// The type of response format being defined. Always `text`.
     ///
@@ -2993,6 +3130,7 @@ pub struct TextResponseFormatConfiguration {
     /// underscores and dashes, with a maximum length of 64.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub schema: Option<HashMap<String, Option<serde_json::Value>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3002,8 +3140,9 @@ pub struct TextResponseFormatConfiguration {
 /// How the model should select which tool (or tools) to use when generating
 /// a response. See the `tools` parameter to see how to specify which tools
 /// the model can call.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum CreateResponseToolChoice {
     Enum(Auto),
     HostedToolClass(HostedToolClass),
@@ -3023,7 +3162,8 @@ pub enum CreateResponseToolChoice {
 ///
 ///
 /// Use this option to force the model to call a specific custom tool.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct HostedToolClass {
     /// Constrains the tools available to the model to a pre-defined set.
     ///
@@ -3043,6 +3183,7 @@ pub struct HostedToolClass {
     /// { "type": "image_generation" }
     /// ]
     /// ```
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<HashMap<String, Option<serde_json::Value>>>>,
     /// Allowed tool configuration type. Always `allowed_tools`.
@@ -3093,8 +3234,9 @@ pub struct HostedToolClass {
 /// For MCP tools, the type is always `mcp`.
 ///
 /// For custom tool calling, the type is always `custom`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum HostedToolType {
     #[serde(rename = "allowed_tools")]
     AllowedTools,
@@ -3151,7 +3293,8 @@ pub enum HostedToolType {
 ///
 /// This tool searches the web for relevant results to use in a response. Learn more about
 /// the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct Tool {
     /// Optional description of the custom tool, used to provide more context.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3161,6 +3304,7 @@ pub struct Tool {
     /// The name of the custom tool, used to identify it in tool calls.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3295,15 +3439,17 @@ pub struct Tool {
     pub format: Option<ToolFormat>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum AllowedToolsUnion {
     McpToolFilter(McpToolFilter),
     StringArray(Vec<String>),
 }
 
 /// A filter object to specify which tools are allowed.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct McpToolFilter {
     /// Indicates whether or not a tool modifies data or is read-only. If an
     /// MCP server is [annotated with
@@ -3318,8 +3464,9 @@ pub struct McpToolFilter {
 
 /// Background type for the generated image. One of `transparent`,
 /// `opaque`, or `auto`. Default: `auto`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Background {
     Auto,
     Opaque,
@@ -3340,8 +3487,9 @@ pub enum Background {
 /// - Outlook Calendar: `connector_outlookcalendar`
 /// - Outlook Email: `connector_outlookemail`
 /// - SharePoint: `connector_sharepoint`
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ConnectorId {
     #[serde(rename = "connector_dropbox")]
     ConnectorDropbox,
@@ -3363,8 +3511,9 @@ pub enum ConnectorId {
 
 /// The code interpreter container. Can be a container ID or an object that
 /// specifies uploaded file IDs to make available to your code.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum Container {
     CodeInterpreterContainerAuto(CodeInterpreterContainerAuto),
     String(String),
@@ -3372,7 +3521,8 @@ pub enum Container {
 
 /// Configuration for a code interpreter container. Optionally specify the IDs
 /// of the files to run the code on.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CodeInterpreterContainerAuto {
     /// An optional list of uploaded files to make available to your code.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3383,15 +3533,17 @@ pub struct CodeInterpreterContainerAuto {
 }
 
 /// Always `auto`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum CodeInterpreterContainerAutoType {
     Auto,
 }
 
 /// The type of computer environment to control.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ComputerEnvironment {
     Browser,
     Linux,
@@ -3407,7 +3559,8 @@ pub enum ComputerEnvironment {
 /// Combine multiple filters using `and` or `or`.
 ///
 /// Filters for the search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct CompFilter {
     /// The key to compare against the value.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3429,6 +3582,7 @@ pub struct CompFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub value: Option<Value>,
     /// Array of filters to combine. Items can be `ComparisonFilter` or `CompoundFilter`.
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<Vec<Option<serde_json::Value>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3445,8 +3599,9 @@ pub struct CompFilter {
 ///
 ///
 /// Type of operation: `and` or `or`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ComparisonFilterType {
     And,
     Eq,
@@ -3459,8 +3614,9 @@ pub enum ComparisonFilterType {
 }
 
 /// The value to compare against the attribute key; supports string, number, or boolean types.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum Value {
     Bool(bool),
     Double(f64),
@@ -3473,7 +3629,8 @@ pub enum Value {
 /// Unconstrained free-form text.
 ///
 /// A grammar defined by the user.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ToolFormat {
     /// Unconstrained text format. Always `text`.
     ///
@@ -3491,8 +3648,9 @@ pub struct ToolFormat {
 /// Control how much effort the model will exert to match the style and features,
 /// especially facial features, of input images. This parameter is only supported
 /// for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ImageInputFidelity {
     High,
     Low,
@@ -3500,7 +3658,8 @@ pub enum ImageInputFidelity {
 
 /// Optional mask for inpainting. Contains `image_url`
 /// (string, optional) and `file_id` (string, optional).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct InputImageMask {
     /// File ID for the mask image.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3511,16 +3670,18 @@ pub struct InputImageMask {
 }
 
 /// The image generation model to use. Default: `gpt-image-1`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "kebab-case")]
+#[ts(export_to = "openai/")]
 pub enum Model {
     #[serde(rename = "gpt-image-1")]
     GptImage1,
 }
 
 /// Moderation level for the generated image. Default: `auto`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Moderation {
     Auto,
     Low,
@@ -3528,8 +3689,9 @@ pub enum Moderation {
 
 /// The output format of the generated image. One of `png`, `webp`, or
 /// `jpeg`. Default: `png`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum OutputFormat {
     Jpeg,
     Png,
@@ -3538,8 +3700,9 @@ pub enum OutputFormat {
 
 /// The quality of the generated image. One of `low`, `medium`, `high`,
 /// or `auto`. Default: `auto`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Quality {
     Auto,
     High,
@@ -3548,7 +3711,8 @@ pub enum Quality {
 }
 
 /// Ranking options for search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct RankingOptions {
     /// The ranker to use for the file search.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3560,16 +3724,18 @@ pub struct RankingOptions {
 }
 
 /// The ranker to use for the file search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "kebab-case")]
+#[ts(export_to = "openai/")]
 pub enum RankerVersionType {
     Auto,
     #[serde(rename = "default-2024-11-15")]
     Default20241115,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum RequireApproval {
     Enum(McpToolApprovalSetting),
     McpToolApprovalFilter(McpToolApprovalFilter),
@@ -3578,7 +3744,8 @@ pub enum RequireApproval {
 /// Specify which of the MCP server's tools require approval. Can be
 /// `always`, `never`, or a filter object associated with tools
 /// that require approval.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct McpToolApprovalFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub always: Option<McpToolFilter>,
@@ -3589,8 +3756,9 @@ pub struct McpToolApprovalFilter {
 /// Specify a single approval policy for all tools. One of `always` or
 /// `never`. When set to `always`, all tools will require approval. When
 /// set to `never`, all tools will not require approval.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum McpToolApprovalSetting {
     Always,
     Never,
@@ -3598,8 +3766,9 @@ pub enum McpToolApprovalSetting {
 
 /// The size of the generated image. One of `1024x1024`, `1024x1536`,
 /// `1536x1024`, or `auto`. Default: `auto`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Size {
     Auto,
     #[serde(rename = "1024x1024")]
@@ -3632,8 +3801,9 @@ pub enum Size {
 ///
 /// The type of the web search tool. One of `web_search_preview` or
 /// `web_search_preview_2025_03_11`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ToolTypeEnum {
     #[serde(rename = "code_interpreter")]
     CodeInterpreter,
@@ -3662,7 +3832,8 @@ pub enum ToolTypeEnum {
 ///
 ///
 /// The user's location.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ApproximateLocation {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub city: Option<String>,
@@ -3685,14 +3856,16 @@ pub struct ApproximateLocation {
 /// conversation.
 /// - `disabled` (default): If the input size will exceed the context window
 /// size for a model, the request will fail with a 400 error.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Truncation {
     Auto,
     Disabled,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct TheResponseObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
@@ -3812,14 +3985,16 @@ pub struct TheResponseObject {
 
 /// The conversation that this response belongs to. Input items and output items from this
 /// response are automatically added to this conversation.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct Conversation {
     /// The unique ID of the conversation.
     pub id: String,
 }
 
 /// An error object returned when the model fails to generate a Response.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ResponseError {
     pub code: ResponseErrorCode,
     /// A human-readable description of the error.
@@ -3827,8 +4002,9 @@ pub struct ResponseError {
 }
 
 /// The error code for the response.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ResponseErrorCode {
     #[serde(rename = "empty_image_file")]
     EmptyImageFile,
@@ -3869,7 +4045,8 @@ pub enum ResponseErrorCode {
 }
 
 /// Details about why the response is incomplete.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct IncompleteDetails {
     /// The reason why the response is incomplete.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3877,8 +4054,9 @@ pub struct IncompleteDetails {
 }
 
 /// The reason why the response is incomplete.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Reason {
     #[serde(rename = "content_filter")]
     ContentFilter,
@@ -3887,8 +4065,9 @@ pub enum Reason {
 }
 
 /// The object type of this resource - always set to `response`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum TheResponseObjectObject {
     Response,
 }
@@ -3941,7 +4120,8 @@ pub enum TheResponseObjectObject {
 ///
 ///
 /// A call to a custom tool created by the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct OutputItem {
     /// The content of the output message.
     ///
@@ -4139,7 +4319,8 @@ pub struct OutputItem {
 /// A refusal from the model.
 ///
 /// Reasoning text from the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct OutputMessageContent {
     /// The annotations of the text output.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -4168,8 +4349,9 @@ pub struct OutputMessageContent {
 /// The type of the refusal. Always `refusal`.
 ///
 /// The type of the reasoning text. Always `reasoning_text`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum ContentType {
     #[serde(rename = "output_text")]
     OutputText,
@@ -4214,8 +4396,9 @@ pub enum ContentType {
 ///
 ///
 /// The type of the custom tool call. Always `custom_tool_call`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum OutputItemType {
     #[serde(rename = "code_interpreter_call")]
     CodeInterpreterCall,
@@ -4245,8 +4428,9 @@ pub enum OutputItemType {
 
 /// The status of the response generation. One of `completed`, `failed`,
 /// `in_progress`, `cancelled`, `queued`, or `incomplete`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
 pub enum Status {
     Cancelled,
     Completed,
@@ -4260,8 +4444,9 @@ pub enum Status {
 /// How the model should select which tool (or tools) to use when generating
 /// a response. See the `tools` parameter to see how to specify which tools
 /// the model can call.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "openai/")]
 pub enum TheResponseObjectToolChoice {
     Enum(Auto),
     HostedToolClass(HostedToolClass),
@@ -4269,7 +4454,8 @@ pub enum TheResponseObjectToolChoice {
 
 /// Represents token usage details including input tokens, output tokens,
 /// a breakdown of output tokens, and the total tokens used.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct ResponseUsage {
     /// The number of input tokens.
     pub input_tokens: i64,
@@ -4284,7 +4470,8 @@ pub struct ResponseUsage {
 }
 
 /// A detailed breakdown of the input tokens.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct InputTokensDetails {
     /// The number of tokens that were retrieved from the cache.
     /// [More on prompt caching](https://platform.openai.com/docs/guides/prompt-caching).
@@ -4292,7 +4479,8 @@ pub struct InputTokensDetails {
 }
 
 /// A detailed breakdown of the output tokens.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
 pub struct OutputTokensDetails {
     /// The number of reasoning tokens.
     pub reasoning_tokens: i64,
