@@ -23,6 +23,9 @@ if [ -d "bindings/golang" ] && [ -f "bindings/golang/go.mod" ]; then
 
     cd bindings/golang
 
+    # Ensure the jsonv2 experiment is enabled for Go tooling unless already set
+    export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
+
     # Check if Go is installed
     if ! command -v go &> /dev/null; then
         echo "⚠️  Go not installed, skipping Go checks"

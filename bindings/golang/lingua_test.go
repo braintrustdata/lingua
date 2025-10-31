@@ -1,7 +1,7 @@
 package lingua
 
 import (
-	"encoding/json"
+	jsonv2 "encoding/json/v2"
 	"errors"
 	"strings"
 	"testing"
@@ -225,14 +225,14 @@ func TestRoundTripPreservesData(t *testing.T) {
 	require.NoError(t, err)
 
 	// Compare as JSON to handle type differences
-	originalJSON, err := json.Marshal(original)
+	originalJSON, err := jsonv2.Marshal(original)
 	require.NoError(t, err)
-	resultJSON, err := json.Marshal(result1)
+	resultJSON, err := jsonv2.Marshal(result1)
 	require.NoError(t, err)
 
 	var originalParsed, resultParsed any
-	require.NoError(t, json.Unmarshal(originalJSON, &originalParsed))
-	require.NoError(t, json.Unmarshal(resultJSON, &resultParsed))
+	require.NoError(t, jsonv2.Unmarshal(originalJSON, &originalParsed))
+	require.NoError(t, jsonv2.Unmarshal(resultJSON, &resultParsed))
 
 	assert.Equal(t, originalParsed, resultParsed, "Round-trip should preserve data")
 }

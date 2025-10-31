@@ -1,6 +1,6 @@
 module github.com/braintrustdata/lingua/examples/golang
 
-go 1.21
+go 1.25
 
 replace github.com/braintrustdata/lingua/bindings/golang => ../../bindings/golang
 

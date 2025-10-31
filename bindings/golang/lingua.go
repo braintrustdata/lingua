@@ -32,7 +32,7 @@ extern void lingua_free_string(char* s);
 */
 import "C"
 import (
-	"encoding/json"
+	jsonv2 "encoding/json/v2"
 	"errors"
 	"unsafe"
 )
@@ -137,7 +137,7 @@ func callRustFunction(fnID rustFunctionID, input string) (string, error) {
 
 // ChatCompletionsMessagesToLingua converts Chat Completions messages to Lingua format.
 func ChatCompletionsMessagesToLingua(messages any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(messages)
+	jsonBytes, err := jsonv2.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to marshal input: " + err.Error(),
@@ -154,7 +154,7 @@ func ChatCompletionsMessagesToLingua(messages any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
@@ -169,7 +169,7 @@ func ChatCompletionsMessagesToLingua(messages any) ([]map[string]any, error) {
 //
 //nolint:revive // Preserve exported name for backward compatibility
 func LinguaToChatCompletionsMessages(messages any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(messages)
+	jsonBytes, err := jsonv2.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to marshal input: " + err.Error(),
@@ -186,7 +186,7 @@ func LinguaToChatCompletionsMessages(messages any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
@@ -203,7 +203,7 @@ func LinguaToChatCompletionsMessages(messages any) ([]map[string]any, error) {
 
 // ResponsesMessagesToLingua converts Responses API messages to Lingua format.
 func ResponsesMessagesToLingua(messages any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(messages)
+	jsonBytes, err := jsonv2.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to marshal input: " + err.Error(),
@@ -220,7 +220,7 @@ func ResponsesMessagesToLingua(messages any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
@@ -235,7 +235,7 @@ func ResponsesMessagesToLingua(messages any) ([]map[string]any, error) {
 //
 //nolint:revive // Preserve exported name for backward compatibility
 func LinguaToResponsesMessages(messages any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(messages)
+	jsonBytes, err := jsonv2.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to marshal input: " + err.Error(),
@@ -252,7 +252,7 @@ func LinguaToResponsesMessages(messages any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
@@ -269,7 +269,7 @@ func LinguaToResponsesMessages(messages any) ([]map[string]any, error) {
 
 // AnthropicMessagesToLingua converts Anthropic messages to Lingua format.
 func AnthropicMessagesToLingua(messages any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(messages)
+	jsonBytes, err := jsonv2.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to marshal input: " + err.Error(),
@@ -286,7 +286,7 @@ func AnthropicMessagesToLingua(messages any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
@@ -301,7 +301,7 @@ func AnthropicMessagesToLingua(messages any) ([]map[string]any, error) {
 //
 //nolint:revive // Preserve exported name for backward compatibility
 func LinguaToAnthropicMessages(messages any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(messages)
+	jsonBytes, err := jsonv2.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to marshal input: " + err.Error(),
@@ -318,7 +318,7 @@ func LinguaToAnthropicMessages(messages any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
@@ -335,7 +335,7 @@ func LinguaToAnthropicMessages(messages any) ([]map[string]any, error) {
 
 // DeduplicateMessages removes duplicate messages based on role and content.
 func DeduplicateMessages(messages any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(messages)
+	jsonBytes, err := jsonv2.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
 			Message: "failed to marshal input: " + err.Error(),
@@ -350,7 +350,7 @@ func DeduplicateMessages(messages any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message: "failed to unmarshal result: " + err.Error(),
@@ -362,7 +362,7 @@ func DeduplicateMessages(messages any) ([]map[string]any, error) {
 
 // ImportMessagesFromSpans extracts messages from spans by attempting multiple provider format conversions.
 func ImportMessagesFromSpans(spans any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(spans)
+	jsonBytes, err := jsonv2.Marshal(spans)
 	if err != nil {
 		return nil, &ConversionError{
 			Message: "failed to marshal input: " + err.Error(),
@@ -377,7 +377,7 @@ func ImportMessagesFromSpans(spans any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message: "failed to unmarshal result: " + err.Error(),
@@ -389,7 +389,7 @@ func ImportMessagesFromSpans(spans any) ([]map[string]any, error) {
 
 // ImportAndDeduplicateMessages imports messages from spans and removes duplicates for downstream processing.
 func ImportAndDeduplicateMessages(spans any) ([]map[string]any, error) {
-	jsonBytes, err := json.Marshal(spans)
+	jsonBytes, err := jsonv2.Marshal(spans)
 	if err != nil {
 		return nil, &ConversionError{
 			Message: "failed to marshal input: " + err.Error(),
@@ -404,7 +404,7 @@ func ImportAndDeduplicateMessages(spans any) ([]map[string]any, error) {
 	}
 
 	var result []map[string]any
-	err = json.Unmarshal([]byte(resultJSON), &result)
+	err = jsonv2.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		return nil, &ConversionError{
 			Message: "failed to unmarshal result: " + err.Error(),
@@ -426,7 +426,7 @@ func ValidateChatCompletionsRequest(jsonStr string) (map[string]any, error) {
 	}
 
 	var result map[string]any
-	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+	if unmarshalErr := jsonv2.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
 		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
@@ -441,7 +441,7 @@ func ValidateChatCompletionsResponse(jsonStr string) (map[string]any, error) {
 	}
 
 	var result map[string]any
-	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+	if unmarshalErr := jsonv2.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
 		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
@@ -456,7 +456,7 @@ func ValidateResponsesRequest(jsonStr string) (map[string]any, error) {
 	}
 
 	var result map[string]any
-	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+	if unmarshalErr := jsonv2.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
 		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
@@ -471,7 +471,7 @@ func ValidateResponsesResponse(jsonStr string) (map[string]any, error) {
 	}
 
 	var result map[string]any
-	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+	if unmarshalErr := jsonv2.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
 		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
@@ -486,7 +486,7 @@ func ValidateAnthropicRequest(jsonStr string) (map[string]any, error) {
 	}
 
 	var result map[string]any
-	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+	if unmarshalErr := jsonv2.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
 		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
@@ -501,7 +501,7 @@ func ValidateAnthropicResponse(jsonStr string) (map[string]any, error) {
 	}
 
 	var result map[string]any
-	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+	if unmarshalErr := jsonv2.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
 		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 

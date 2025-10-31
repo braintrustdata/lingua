@@ -1,4 +1,6 @@
 .PHONY: all typescript python golang test clean help generate-types install-hooks install-wasm-tools setup lint-golang
+GOEXPERIMENT ?= jsonv2
+GOENV := GOEXPERIMENT=$(GOEXPERIMENT)
 
 all: typescript python golang ## Build all bindings
 
@@ -44,11 +46,11 @@ test-python: ## Run Python tests
 
 test-golang: golang ## Run Golang tests
 	@echo "Running Golang tests..."
-	cd bindings/golang && go test -v
+	cd bindings/golang && $(GOENV) go test -v
 
 lint-golang: ## Run golangci-lint on Golang bindings
 	@echo "Running golangci-lint on Golang bindings..."
-	cd bindings/golang && golangci-lint run
+	cd bindings/golang && $(GOENV) golangci-lint run
 
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
@@ -69,7 +71,7 @@ fmt: ## Format all code
 	@echo "Formatting Rust code..."
 	cargo fmt
 	@echo "Formatting Go code..."
-	cd bindings/golang && go fmt ./...
+	cd bindings/golang && $(GOENV) go fmt ./...
 	@echo "Formatting TypeScript code..."
 	cd bindings/typescript && pnpm run lint
 

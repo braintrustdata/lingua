@@ -1,7 +1,8 @@
 package main
 
 import (
-	"encoding/json"
+	jsontext "encoding/json/jsontext"
+	jsonv2 "encoding/json/v2"
 	"fmt"
 	"log"
 	"strings"
@@ -339,12 +340,12 @@ func exampleRoundTrip() error {
 	printJSON(result)
 
 	// Compare
-	originalJSON, _ := json.Marshal(original)
-	resultJSON, _ := json.Marshal(result)
+	originalJSON, _ := jsonv2.Marshal(original)
+	resultJSON, _ := jsonv2.Marshal(result)
 
 	var originalParsed, resultParsed interface{}
-	json.Unmarshal(originalJSON, &originalParsed)
-	json.Unmarshal(resultJSON, &resultParsed)
+	jsonv2.Unmarshal(originalJSON, &originalParsed)
+	jsonv2.Unmarshal(resultJSON, &resultParsed)
 
 	originalStr := fmt.Sprintf("%v", originalParsed)
 	resultStr := fmt.Sprintf("%v", resultParsed)
@@ -359,7 +360,7 @@ func exampleRoundTrip() error {
 }
 
 func printJSON(v interface{}) {
-	b, err := json.MarshalIndent(v, "   ", "  ")
+	b, err := jsonv2.Marshal(v, jsontext.WithIndentPrefix("   "), jsontext.WithIndent("  "))
 	if err != nil {
 		fmt.Printf("   Error formatting JSON: %v\n", err)
 		return

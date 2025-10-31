@@ -101,9 +101,6 @@ issues:
         - gocritic
       text: "dupImport"
 
-    # Backward compatibility: Keep deprecated Lingua* function names for existing users
-    # New code should use the shorter To* variants
-
     # CGo FFI false positive: dupSubExpr triggers on CGo function calls
     # The &cError parameter appears identical but is actually different C pointers
     - linters:

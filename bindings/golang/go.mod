@@ -1,6 +1,6 @@
 module github.com/braintrustdata/lingua/bindings/golang
 
-go 1.21
+go 1.25
 
 require github.com/stretchr/testify v1.9.0
 

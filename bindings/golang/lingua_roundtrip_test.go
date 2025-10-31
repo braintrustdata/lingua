@@ -1,7 +1,8 @@
 package lingua
 
 import (
-	"encoding/json"
+	jsontext "encoding/json/jsontext"
+	jsonv2 "encoding/json/v2"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -101,7 +102,7 @@ func loadSnapshotMap(path string) map[string]any {
 	}
 
 	var result map[string]any
-	if err := json.Unmarshal(data, &result); err != nil {
+	if err := jsonv2.Unmarshal(data, &result); err != nil {
 		return nil
 	}
 
@@ -115,7 +116,7 @@ func loadStreamingSnapshot(path string) []map[string]any {
 	}
 
 	var streamResp []map[string]any
-	if err := json.Unmarshal(data, &streamResp); err == nil {
+	if err := jsonv2.Unmarshal(data, &streamResp); err == nil {
 		return streamResp
 	}
 
@@ -128,7 +129,7 @@ func loadStreamingSnapshot(path string) []map[string]any {
 		}
 
 		var item map[string]any
-		if err := json.Unmarshal([]byte(line), &item); err == nil {
+		if err := jsonv2.Unmarshal([]byte(line), &item); err == nil {
 			items = append(items, item)
 		}
 	}
@@ -256,10 +257,10 @@ func runRoundtripTests(
 							roundtrippedMessage := roundtrippedMessages[0]
 
 							if !deepEqual(originalMessage, roundtrippedMessage) {
-								originalPretty, marshalErr := json.MarshalIndent(originalMessage, "", "  ")
+								originalPretty, marshalErr := jsonv2.Marshal(originalMessage, jsontext.WithIndent("  "))
 								require.NoError(t, marshalErr, "Failed to pretty-print original message")
 
-								roundtrippedPretty, marshalErr := json.MarshalIndent(roundtrippedMessage, "", "  ")
+								roundtrippedPretty, marshalErr := jsonv2.Marshal(roundtrippedMessage, jsontext.WithIndent("  "))
 								require.NoError(t, marshalErr, "Failed to pretty-print roundtripped message")
 
 								t.Errorf("Roundtrip did not preserve data:\nOriginal:\n%s\n\nRoundtripped:\n%s",
