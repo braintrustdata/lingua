@@ -1,3 +1,11 @@
+// Package lingua provides Go bindings for the Lingua universal message format library.
+//
+// Lingua is a universal message format that compiles to provider-specific formats
+// with zero runtime overhead. It enables seamless interoperability between different
+// LLM providers (OpenAI, Anthropic, etc.) through compile-time translation.
+//
+// This package wraps the Rust implementation of Lingua using CGo and provides
+// idiomatic Go functions for message conversion, validation, and processing.
 package lingua
 
 /*
@@ -28,7 +36,7 @@ import (
 	"unsafe"
 )
 
-// ConversionError represents an error during format conversion
+// ConversionError represents an error during format conversion.
 type ConversionError struct {
 	Message  string
 	Provider string
@@ -41,7 +49,7 @@ func (e *ConversionError) Error() string {
 	return e.Message
 }
 
-// rustFunctionID identifies which Rust FFI function to call
+// rustFunctionID identifies which Rust FFI function to call.
 type rustFunctionID int
 
 const (
@@ -61,7 +69,7 @@ const (
 	fnValidateAnthropicResponse
 )
 
-// callRustFunction is a helper to call Rust FFI functions and handle errors
+// callRustFunction is a helper to call Rust FFI functions and handle errors.
 func callRustFunction(fnID rustFunctionID, input string) (string, error) {
 	cInput := C.CString(input)
 	defer C.free(unsafe.Pointer(cInput))
@@ -70,6 +78,7 @@ func callRustFunction(fnID rustFunctionID, input string) (string, error) {
 	var cResult *C.char
 
 	// Call the appropriate Rust FFI function based on ID
+	//nolint:gocritic // CGo FFI dispatch requires enumerating each function call explicitly
 	switch fnID {
 	case fnChatCompletionsToLingua:
 		cResult = C.lingua_chat_completions_to_lingua(cInput, &cError)
@@ -122,8 +131,8 @@ func callRustFunction(fnID rustFunctionID, input string) (string, error) {
 // Chat Completions API Conversions
 // ============================================================================
 
-// ChatCompletionsMessagesToLingua converts Chat Completions messages to Lingua format
-func ChatCompletionsMessagesToLingua(messages interface{}) ([]map[string]interface{}, error) {
+// ChatCompletionsMessagesToLingua converts Chat Completions messages to Lingua format.
+func ChatCompletionsMessagesToLingua(messages any) ([]map[string]any, error) {
 	jsonBytes, err := json.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
@@ -140,8 +149,9 @@ func ChatCompletionsMessagesToLingua(messages interface{}) ([]map[string]interfa
 		}
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
 			Provider: "Chat Completions",
@@ -151,8 +161,10 @@ func ChatCompletionsMessagesToLingua(messages interface{}) ([]map[string]interfa
 	return result, nil
 }
 
-// LinguaToChatCompletionsMessages converts Lingua messages to Chat Completions format
-func LinguaToChatCompletionsMessages(messages interface{}) ([]map[string]interface{}, error) {
+// LinguaToChatCompletionsMessages converts Lingua messages to Chat Completions format.
+//
+//nolint:revive // Preserve exported name for backward compatibility
+func LinguaToChatCompletionsMessages(messages any) ([]map[string]any, error) {
 	jsonBytes, err := json.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
@@ -169,8 +181,9 @@ func LinguaToChatCompletionsMessages(messages interface{}) ([]map[string]interfa
 		}
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
 			Provider: "Chat Completions",
@@ -184,8 +197,8 @@ func LinguaToChatCompletionsMessages(messages interface{}) ([]map[string]interfa
 // Responses API Conversions
 // ============================================================================
 
-// ResponsesMessagesToLingua converts Responses API messages to Lingua format
-func ResponsesMessagesToLingua(messages interface{}) ([]map[string]interface{}, error) {
+// ResponsesMessagesToLingua converts Responses API messages to Lingua format.
+func ResponsesMessagesToLingua(messages any) ([]map[string]any, error) {
 	jsonBytes, err := json.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
@@ -202,8 +215,9 @@ func ResponsesMessagesToLingua(messages interface{}) ([]map[string]interface{}, 
 		}
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
 			Provider: "Responses",
@@ -213,8 +227,10 @@ func ResponsesMessagesToLingua(messages interface{}) ([]map[string]interface{}, 
 	return result, nil
 }
 
-// LinguaToResponsesMessages converts Lingua messages to Responses API format
-func LinguaToResponsesMessages(messages interface{}) ([]map[string]interface{}, error) {
+// LinguaToResponsesMessages converts Lingua messages to Responses API format.
+//
+//nolint:revive // Preserve exported name for backward compatibility
+func LinguaToResponsesMessages(messages any) ([]map[string]any, error) {
 	jsonBytes, err := json.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
@@ -231,8 +247,9 @@ func LinguaToResponsesMessages(messages interface{}) ([]map[string]interface{}, 
 		}
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
 			Provider: "Responses",
@@ -246,8 +263,8 @@ func LinguaToResponsesMessages(messages interface{}) ([]map[string]interface{}, 
 // Anthropic Conversions
 // ============================================================================
 
-// AnthropicMessagesToLingua converts Anthropic messages to Lingua format
-func AnthropicMessagesToLingua(messages interface{}) ([]map[string]interface{}, error) {
+// AnthropicMessagesToLingua converts Anthropic messages to Lingua format.
+func AnthropicMessagesToLingua(messages any) ([]map[string]any, error) {
 	jsonBytes, err := json.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
@@ -264,8 +281,9 @@ func AnthropicMessagesToLingua(messages interface{}) ([]map[string]interface{}, 
 		}
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
 			Provider: "Anthropic",
@@ -275,8 +293,10 @@ func AnthropicMessagesToLingua(messages interface{}) ([]map[string]interface{}, 
 	return result, nil
 }
 
-// LinguaToAnthropicMessages converts Lingua messages to Anthropic format
-func LinguaToAnthropicMessages(messages interface{}) ([]map[string]interface{}, error) {
+// LinguaToAnthropicMessages converts Lingua messages to Anthropic format.
+//
+//nolint:revive // Preserve exported name for backward compatibility
+func LinguaToAnthropicMessages(messages any) ([]map[string]any, error) {
 	jsonBytes, err := json.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
@@ -293,8 +313,9 @@ func LinguaToAnthropicMessages(messages interface{}) ([]map[string]interface{}, 
 		}
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
 		return nil, &ConversionError{
 			Message:  "failed to unmarshal result: " + err.Error(),
 			Provider: "Anthropic",
@@ -308,8 +329,8 @@ func LinguaToAnthropicMessages(messages interface{}) ([]map[string]interface{}, 
 // Processing Functions
 // ============================================================================
 
-// DeduplicateMessages removes duplicate messages based on role and content
-func DeduplicateMessages(messages interface{}) ([]map[string]interface{}, error) {
+// DeduplicateMessages removes duplicate messages based on role and content.
+func DeduplicateMessages(messages any) ([]map[string]any, error) {
 	jsonBytes, err := json.Marshal(messages)
 	if err != nil {
 		return nil, &ConversionError{
@@ -324,8 +345,9 @@ func DeduplicateMessages(messages interface{}) ([]map[string]interface{}, error)
 		}
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
 		return nil, &ConversionError{
 			Message: "failed to unmarshal result: " + err.Error(),
 		}
@@ -334,8 +356,8 @@ func DeduplicateMessages(messages interface{}) ([]map[string]interface{}, error)
 	return result, nil
 }
 
-// ImportMessagesFromSpans extracts messages from spans by attempting multiple provider format conversions
-func ImportMessagesFromSpans(spans interface{}) ([]map[string]interface{}, error) {
+// ImportMessagesFromSpans extracts messages from spans by attempting multiple provider format conversions.
+func ImportMessagesFromSpans(spans any) ([]map[string]any, error) {
 	jsonBytes, err := json.Marshal(spans)
 	if err != nil {
 		return nil, &ConversionError{
@@ -350,8 +372,9 @@ func ImportMessagesFromSpans(spans interface{}) ([]map[string]interface{}, error
 		}
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
 		return nil, &ConversionError{
 			Message: "failed to unmarshal result: " + err.Error(),
 		}
@@ -364,91 +387,91 @@ func ImportMessagesFromSpans(spans interface{}) ([]map[string]interface{}, error
 // Validation Functions
 // ============================================================================
 
-// ValidateChatCompletionsRequest validates a JSON string as a Chat Completions request
-func ValidateChatCompletionsRequest(jsonStr string) (map[string]interface{}, error) {
+// ValidateChatCompletionsRequest validates a JSON string as a Chat Completions request.
+func ValidateChatCompletionsRequest(jsonStr string) (map[string]any, error) {
 	resultJSON, err := callRustFunction(fnValidateChatCompletionsRequest, jsonStr)
 	if err != nil {
 		return nil, err
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
-		return nil, errors.New("failed to unmarshal result: " + err.Error())
+	var result map[string]any
+	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
 	return result, nil
 }
 
-// ValidateChatCompletionsResponse validates a JSON string as a Chat Completions response
-func ValidateChatCompletionsResponse(jsonStr string) (map[string]interface{}, error) {
+// ValidateChatCompletionsResponse validates a JSON string as a Chat Completions response.
+func ValidateChatCompletionsResponse(jsonStr string) (map[string]any, error) {
 	resultJSON, err := callRustFunction(fnValidateChatCompletionsResponse, jsonStr)
 	if err != nil {
 		return nil, err
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
-		return nil, errors.New("failed to unmarshal result: " + err.Error())
+	var result map[string]any
+	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
 	return result, nil
 }
 
-// ValidateResponsesRequest validates a JSON string as a Responses API request
-func ValidateResponsesRequest(jsonStr string) (map[string]interface{}, error) {
+// ValidateResponsesRequest validates a JSON string as a Responses API request.
+func ValidateResponsesRequest(jsonStr string) (map[string]any, error) {
 	resultJSON, err := callRustFunction(fnValidateResponsesRequest, jsonStr)
 	if err != nil {
 		return nil, err
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
-		return nil, errors.New("failed to unmarshal result: " + err.Error())
+	var result map[string]any
+	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
 	return result, nil
 }
 
-// ValidateResponsesResponse validates a JSON string as a Responses API response
-func ValidateResponsesResponse(jsonStr string) (map[string]interface{}, error) {
+// ValidateResponsesResponse validates a JSON string as a Responses API response.
+func ValidateResponsesResponse(jsonStr string) (map[string]any, error) {
 	resultJSON, err := callRustFunction(fnValidateResponsesResponse, jsonStr)
 	if err != nil {
 		return nil, err
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
-		return nil, errors.New("failed to unmarshal result: " + err.Error())
+	var result map[string]any
+	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
 	return result, nil
 }
 
-// ValidateAnthropicRequest validates a JSON string as an Anthropic request
-func ValidateAnthropicRequest(jsonStr string) (map[string]interface{}, error) {
+// ValidateAnthropicRequest validates a JSON string as an Anthropic request.
+func ValidateAnthropicRequest(jsonStr string) (map[string]any, error) {
 	resultJSON, err := callRustFunction(fnValidateAnthropicRequest, jsonStr)
 	if err != nil {
 		return nil, err
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
-		return nil, errors.New("failed to unmarshal result: " + err.Error())
+	var result map[string]any
+	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
 	return result, nil
 }
 
-// ValidateAnthropicResponse validates a JSON string as an Anthropic response
-func ValidateAnthropicResponse(jsonStr string) (map[string]interface{}, error) {
+// ValidateAnthropicResponse validates a JSON string as an Anthropic response.
+func ValidateAnthropicResponse(jsonStr string) (map[string]any, error) {
 	resultJSON, err := callRustFunction(fnValidateAnthropicResponse, jsonStr)
 	if err != nil {
 		return nil, err
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal([]byte(resultJSON), &result); err != nil {
-		return nil, errors.New("failed to unmarshal result: " + err.Error())
+	var result map[string]any
+	if unmarshalErr := json.Unmarshal([]byte(resultJSON), &result); unmarshalErr != nil {
+		return nil, errors.New("failed to unmarshal result: " + unmarshalErr.Error())
 	}
 
 	return result, nil

@@ -2,6 +2,7 @@ package lingua
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
@@ -11,7 +12,7 @@ import (
 
 func TestChatCompletionsConversion(t *testing.T) {
 	// Test converting Chat Completions format to Lingua
-	chatMsgs := []map[string]interface{}{
+	chatMsgs := []map[string]any{
 		{"role": "user", "content": "Hello, how are you?"},
 	}
 
@@ -29,10 +30,10 @@ func TestChatCompletionsConversion(t *testing.T) {
 
 func TestAnthropicConversion(t *testing.T) {
 	// Test converting Anthropic format to Lingua
-	anthropicMsgs := []map[string]interface{}{
+	anthropicMsgs := []map[string]any{
 		{
 			"role": "user",
-			"content": []map[string]interface{}{
+			"content": []map[string]any{
 				{"type": "text", "text": "Hello"},
 			},
 		},
@@ -52,7 +53,7 @@ func TestAnthropicConversion(t *testing.T) {
 
 func TestCrossProviderConversion(t *testing.T) {
 	// Test converting from Chat Completions to Anthropic via Lingua
-	chatMsgs := []map[string]interface{}{
+	chatMsgs := []map[string]any{
 		{"role": "user", "content": "What is the weather?"},
 		{"role": "assistant", "content": "I don't have access to real-time weather data."},
 	}
@@ -72,7 +73,7 @@ func TestCrossProviderConversion(t *testing.T) {
 
 func TestDeduplicateMessages(t *testing.T) {
 	// Test deduplication with duplicate messages
-	messages := []map[string]interface{}{
+	messages := []map[string]any{
 		{"role": "user", "content": "Hello"},
 		{"role": "user", "content": "Hello"}, // Duplicate
 		{"role": "assistant", "content": "Hi there!"},
@@ -137,8 +138,8 @@ func TestConversionError(t *testing.T) {
 	_, err := ChatCompletionsMessagesToLingua(invalidMsgs)
 	require.Error(t, err)
 
-	convErr, ok := err.(*ConversionError)
-	require.True(t, ok, "Error should be ConversionError type")
+	var convErr *ConversionError
+	require.True(t, errors.As(err, &convErr), "Error should be ConversionError type")
 	assert.Equal(t, "Chat Completions", convErr.Provider)
 	// The error could be from marshaling or parsing
 	assert.True(t,
@@ -149,14 +150,14 @@ func TestConversionError(t *testing.T) {
 
 func TestComplexMessageContent(t *testing.T) {
 	// Test message with array content
-	chatMsgs := []map[string]interface{}{
+	chatMsgs := []map[string]any{
 		{
 			"role": "user",
-			"content": []map[string]interface{}{
+			"content": []map[string]any{
 				{"type": "text", "text": "What's in this image?"},
 				{
 					"type": "image_url",
-					"image_url": map[string]interface{}{
+					"image_url": map[string]any{
 						"url": "https://example.com/image.jpg",
 					},
 				},
@@ -175,7 +176,7 @@ func TestComplexMessageContent(t *testing.T) {
 
 func TestRoundTripPreservesData(t *testing.T) {
 	// Test that round-trip conversion preserves message data
-	original := []map[string]interface{}{
+	original := []map[string]any{
 		{
 			"role":    "user",
 			"content": "Test message",
@@ -194,10 +195,12 @@ func TestRoundTripPreservesData(t *testing.T) {
 	require.NoError(t, err)
 
 	// Compare as JSON to handle type differences
-	originalJSON, _ := json.Marshal(original)
-	resultJSON, _ := json.Marshal(result1)
+	originalJSON, err := json.Marshal(original)
+	require.NoError(t, err)
+	resultJSON, err := json.Marshal(result1)
+	require.NoError(t, err)
 
-	var originalParsed, resultParsed interface{}
+	var originalParsed, resultParsed any
 	require.NoError(t, json.Unmarshal(originalJSON, &originalParsed))
 	require.NoError(t, json.Unmarshal(resultJSON, &resultParsed))
 

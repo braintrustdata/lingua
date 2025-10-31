@@ -1,0 +1,111 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+  env:
+    - CGO_ENABLED=1
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gocritic
+    - revive
+    - unconvert
+    - unparam
+    - misspell
+    - prealloc
+    - nolintlint
+    - gosec
+    - errorlint
+    - gocyclo
+    - dupl
+    - goconst
+    - gocognit
+    - nestif
+    - godot
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  govet:
+    enable-all: true
+
+  gocyclo:
+    min-complexity: 15
+
+  gocognit:
+    min-complexity: 20
+
+  nestif:
+    min-complexity: 5
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+      - experimental
+      - opinionated
+
+  revive:
+    rules:
+      - name: exported
+        arguments:
+          - checkPrivateReceivers
+          - sayRepetitiveInsteadOfStutters
+      - name: package-comments
+      - name: var-naming
+      - name: unexported-return
+      - name: errorf
+      - name: error-return
+      - name: error-strings
+      - name: receiver-naming
+      - name: increment-decrement
+      - name: error-naming
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    # Test files: Allow duplication and security checks (test data often duplicates)
+    - linters:
+        - dupl
+        - gosec
+        - goconst
+        - nolintlint
+      path: _test\.go$
+
+    # CGo requirement: import "C" is required by CGo and cannot be avoided
+    # This is standard practice for all CGo code
+    - linters:
+        - revive
+      text: "should not use dot imports"
+
+    # CGo requirement: Package "C" and "unsafe" must be imported separately
+    # This is how CGo works - not a real duplicate import issue
+    - linters:
+        - gocritic
+      text: "dupImport"
+
+    # Backward compatibility: Keep deprecated Lingua* function names for existing users
+    # New code should use the shorter To* variants
+
+    # CGo FFI false positive: dupSubExpr triggers on CGo function calls
+    # The &cError parameter appears identical but is actually different C pointers
+    - linters:
+        - gocritic
+      text: "dupSubExpr"

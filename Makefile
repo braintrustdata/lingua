@@ -46,6 +46,10 @@ test-golang: golang ## Run Golang tests
 	@echo "Running Golang tests..."
 	cd bindings/golang && go test -v
 
+lint-golang: ## Run golangci-lint on Golang bindings
+	@echo "Running golangci-lint on Golang bindings..."
+	cd bindings/golang && mkdir -p .cache/go-build .cache/golangci-lint && CGO_ENABLED=1 GOCACHE=$$(pwd)/.cache/go-build GOLANGCI_LINT_CACHE=$$(pwd)/.cache/golangci-lint golangci-lint run
+
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	cargo clean

@@ -2,6 +2,7 @@ package lingua
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,116 +13,157 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestSnapshot represents a test case loaded from the snapshots directory
+// TestSnapshot represents a test case loaded from the snapshots directory.
 type TestSnapshot struct {
 	Name              string
 	Provider          string // "chat-completions", "responses", or "anthropic"
 	Turn              string // "first_turn" or "followup_turn"
-	Request           map[string]interface{}
-	Response          map[string]interface{}
-	StreamingResponse []map[string]interface{}
+	Request           map[string]any
+	Response          map[string]any
+	StreamingResponse []map[string]any
 }
 
-// loadTestSnapshots loads all snapshots for a given test case
-func loadTestSnapshots(t *testing.T, testCaseName string) []TestSnapshot {
-	t.Helper()
+const snapshotsBase = "../../payloads/snapshots"
 
-	snapshots := []TestSnapshot{}
-	snapshotsDir := filepath.Join("../../payloads/snapshots", testCaseName)
-
-	providers := []string{"chat-completions", "responses", "anthropic"}
-	turns := []struct {
+var (
+	snapshotProviders = []string{"chat-completions", "responses", "anthropic"}
+	snapshotTurns     = []struct {
 		name   string
 		prefix string
 	}{
-		{"first_turn", ""},
-		{"followup_turn", "followup-"},
+		{name: "first_turn", prefix: ""},
+		{name: "followup_turn", prefix: "followup-"},
+	}
+)
+
+func listSnapshotTestCases(t *testing.T) []string {
+	t.Helper()
+
+	entries, err := os.ReadDir(snapshotsBase)
+	require.NoError(t, err, "Failed to read snapshots directory")
+
+	testCases := []string{}
+	for _, entry := range entries {
+		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
+			testCases = append(testCases, entry.Name())
+		}
 	}
 
-	for _, provider := range providers {
-		providerDir := filepath.Join(snapshotsDir, provider)
+	require.NotEmpty(t, testCases, "No test cases found in snapshots directory")
+	return testCases
+}
 
-		// Check if provider directory exists
-		if _, err := os.Stat(providerDir); os.IsNotExist(err) {
-			continue
+// loadTestSnapshots loads all snapshots for a given test case.
+func loadTestSnapshots(t *testing.T, testCaseName string) []TestSnapshot {
+	t.Helper()
+
+	snapshotsDir := filepath.Join(snapshotsBase, testCaseName)
+
+	var snapshots []TestSnapshot
+	for _, provider := range snapshotProviders {
+		snapshots = append(snapshots, loadProviderSnapshots(testCaseName, provider, snapshotsDir)...)
+	}
+
+	return snapshots
+}
+
+func loadProviderSnapshots(testCaseName, provider, snapshotsDir string) []TestSnapshot {
+	providerDir := filepath.Join(snapshotsDir, provider)
+	info, err := os.Stat(providerDir)
+	if err != nil || !info.IsDir() {
+		return nil
+	}
+
+	var snapshots []TestSnapshot
+	for _, turn := range snapshotTurns {
+		snapshot := TestSnapshot{
+			Name:     testCaseName,
+			Provider: provider,
+			Turn:     turn.name,
 		}
 
-		for _, turn := range turns {
-			snapshot := TestSnapshot{
-				Name:     testCaseName,
-				Provider: provider,
-				Turn:     turn.name,
-			}
+		snapshot.Request = loadSnapshotMap(filepath.Join(providerDir, turn.prefix+"request.json"))
+		snapshot.Response = loadSnapshotMap(filepath.Join(providerDir, turn.prefix+"response.json"))
+		snapshot.StreamingResponse = loadStreamingSnapshot(filepath.Join(providerDir, turn.prefix+"response-streaming.json"))
 
-			// Load request
-			requestPath := filepath.Join(providerDir, turn.prefix+"request.json")
-			if data, err := os.ReadFile(requestPath); err == nil {
-				var req map[string]interface{}
-				if err := json.Unmarshal(data, &req); err == nil {
-					snapshot.Request = req
-				}
-			}
-
-			// Load response
-			responsePath := filepath.Join(providerDir, turn.prefix+"response.json")
-			if data, err := os.ReadFile(responsePath); err == nil {
-				var resp map[string]interface{}
-				if err := json.Unmarshal(data, &resp); err == nil {
-					snapshot.Response = resp
-				}
-			}
-
-			// Load streaming response
-			streamingPath := filepath.Join(providerDir, turn.prefix+"response-streaming.json")
-			if data, err := os.ReadFile(streamingPath); err == nil {
-				// Try parsing as JSON array first
-				var streamResp []map[string]interface{}
-				if err := json.Unmarshal(data, &streamResp); err == nil {
-					snapshot.StreamingResponse = streamResp
-				} else {
-					// Try newline-delimited JSON
-					lines := strings.Split(string(data), "\n")
-					for _, line := range lines {
-						line = strings.TrimSpace(line)
-						if line == "" {
-							continue
-						}
-						var item map[string]interface{}
-						if err := json.Unmarshal([]byte(line), &item); err == nil {
-							snapshot.StreamingResponse = append(snapshot.StreamingResponse, item)
-						}
-					}
-				}
-			}
-
-			// Only add snapshot if it has at least one payload
-			if snapshot.Request != nil || snapshot.Response != nil || len(snapshot.StreamingResponse) > 0 {
-				snapshots = append(snapshots, snapshot)
-			}
+		if snapshot.Request != nil || snapshot.Response != nil || len(snapshot.StreamingResponse) > 0 {
+			snapshots = append(snapshots, snapshot)
 		}
 	}
 
 	return snapshots
 }
 
-// normalizeForComparison recursively normalizes an object by removing null, undefined, and empty values
-// This mimics how Rust's serde skips None values during serialization
-func normalizeForComparison(obj interface{}) interface{} {
+func loadSnapshotMap(path string) map[string]any {
+	data, err := readSnapshotFile(path)
+	if err != nil {
+		return nil
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil
+	}
+
+	return result
+}
+
+func loadStreamingSnapshot(path string) []map[string]any {
+	data, err := readSnapshotFile(path)
+	if err != nil {
+		return nil
+	}
+
+	var streamResp []map[string]any
+	if err := json.Unmarshal(data, &streamResp); err == nil {
+		return streamResp
+	}
+
+	lines := strings.Split(string(data), "\n")
+	var items []map[string]any
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		var item map[string]any
+		if err := json.Unmarshal([]byte(line), &item); err == nil {
+			items = append(items, item)
+		}
+	}
+
+	if len(items) == 0 {
+		return nil
+	}
+
+	return items
+}
+
+func readSnapshotFile(path string) ([]byte, error) {
+	// #nosec G304 -- reading trusted test fixture data from repository
+	return os.ReadFile(path)
+}
+
+// normalizeForComparison recursively removes empty slices/maps to match Rust's serde behavior.
+//
+// This mimics how Rust's serde skips None values during serialization.
+func normalizeForComparison(obj any) any {
 	if obj == nil {
 		return nil
 	}
 
 	switch v := obj.(type) {
-	case map[string]interface{}:
-		normalized := make(map[string]interface{})
+	case map[string]any:
+		normalized := make(map[string]any)
 		for key, value := range v {
 			normalizedValue := normalizeForComparison(value)
 			// Only include non-nil values and non-empty maps/arrays
 			if normalizedValue != nil {
-				if m, ok := normalizedValue.(map[string]interface{}); ok && len(m) == 0 {
+				if m, ok := normalizedValue.(map[string]any); ok && len(m) == 0 {
 					continue
 				}
-				if a, ok := normalizedValue.([]interface{}); ok && len(a) == 0 {
+				if a, ok := normalizedValue.([]any); ok && len(a) == 0 {
 					continue
 				}
 				normalized[key] = normalizedValue
@@ -132,8 +174,8 @@ func normalizeForComparison(obj interface{}) interface{} {
 		}
 		return normalized
 
-	case []interface{}:
-		normalized := []interface{}{}
+	case []any:
+		normalized := []any{}
 		for _, item := range v {
 			normalizedItem := normalizeForComparison(item)
 			if normalizedItem != nil {
@@ -150,185 +192,110 @@ func normalizeForComparison(obj interface{}) interface{} {
 	}
 }
 
-// deepEqual checks if two objects are deeply equal after normalization
-func deepEqual(a, b interface{}) bool {
+// deepEqual checks if two objects are deeply equal after normalization.
+func deepEqual(a, b any) bool {
 	normalizedA := normalizeForComparison(a)
 	normalizedB := normalizeForComparison(b)
 	return reflect.DeepEqual(normalizedA, normalizedB)
 }
 
-// TestChatCompletionsRoundtrip tests roundtrip conversion for OpenAI Chat Completions format
+func runRoundtripTests(
+	t *testing.T,
+	provider string,
+	toLingua func([]any) ([]map[string]any, error),
+	fromLingua func([]map[string]any) ([]map[string]any, error),
+) {
+	t.Helper()
+
+	testCases := listSnapshotTestCases(t)
+
+	for _, testCase := range testCases {
+		t.Run(testCase, func(t *testing.T) {
+			snapshots := loadTestSnapshots(t, testCase)
+
+			if len(snapshots) == 0 {
+				t.Skip("No snapshots found for this test case")
+				return
+			}
+
+			for _, snapshot := range snapshots {
+				if snapshot.Provider != provider || snapshot.Request == nil {
+					continue
+				}
+
+				testName := snapshot.Provider + " - " + snapshot.Turn
+				t.Run(testName, func(t *testing.T) {
+					messages, ok := snapshot.Request["messages"].([]any)
+					require.True(t, ok, "Request should have messages array")
+					require.NotEmpty(t, messages, "Messages array should not be empty")
+
+					for i, msgInterface := range messages {
+						originalMessage, ok := msgInterface.(map[string]any)
+						require.True(t, ok, "Message should be a map")
+
+						t.Run(fmt.Sprintf("message_%d", i), func(t *testing.T) {
+							linguaMessages, err := toLingua([]any{originalMessage})
+							require.NoError(t, err, "Failed to convert to Lingua format")
+							require.Len(t, linguaMessages, 1, "Should have exactly one Lingua message")
+
+							linguaMessage := linguaMessages[0]
+							assert.NotNil(t, linguaMessage["role"], "Lingua message should have role")
+
+							roundtrippedMessages, err := fromLingua(linguaMessages)
+							require.NoError(t, err, "Failed to convert back to provider format")
+							require.Len(t, roundtrippedMessages, 1, "Should have exactly one roundtripped message")
+
+							roundtrippedMessage := roundtrippedMessages[0]
+
+							if !deepEqual(originalMessage, roundtrippedMessage) {
+								originalPretty, marshalErr := json.MarshalIndent(originalMessage, "", "  ")
+								require.NoError(t, marshalErr, "Failed to pretty-print original message")
+
+								roundtrippedPretty, marshalErr := json.MarshalIndent(roundtrippedMessage, "", "  ")
+								require.NoError(t, marshalErr, "Failed to pretty-print roundtripped message")
+
+								t.Errorf("Roundtrip did not preserve data:\nOriginal:\n%s\n\nRoundtripped:\n%s",
+									string(originalPretty), string(roundtrippedPretty))
+							}
+						})
+					}
+				})
+			}
+		})
+	}
+}
+
+// TestChatCompletionsRoundtrip tests roundtrip conversion for OpenAI Chat Completions format.
 func TestChatCompletionsRoundtrip(t *testing.T) {
-	snapshotsDir := "../../payloads/snapshots"
-
-	// Get all test cases
-	entries, err := os.ReadDir(snapshotsDir)
-	if err != nil {
-		t.Fatalf("Failed to read snapshots directory: %v", err)
-	}
-
-	testCases := []string{}
-	for _, entry := range entries {
-		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
-			testCases = append(testCases, entry.Name())
-		}
-	}
-
-	require.NotEmpty(t, testCases, "No test cases found in snapshots directory")
-
-	for _, testCase := range testCases {
-		t.Run(testCase, func(t *testing.T) {
-			snapshots := loadTestSnapshots(t, testCase)
-
-			if len(snapshots) == 0 {
-				t.Skip("No snapshots found for this test case")
-				return
-			}
-
-			for _, snapshot := range snapshots {
-				if snapshot.Provider != "chat-completions" || snapshot.Request == nil {
-					continue
-				}
-
-				testName := snapshot.Provider + " - " + snapshot.Turn
-				t.Run(testName, func(t *testing.T) {
-					messages, ok := snapshot.Request["messages"].([]interface{})
-					require.True(t, ok, "Request should have messages array")
-					require.NotEmpty(t, messages, "Messages array should not be empty")
-
-					// Test each message in the request
-					for i, msgInterface := range messages {
-						originalMessage, ok := msgInterface.(map[string]interface{})
-						require.True(t, ok, "Message should be a map")
-
-						t.Run("message_"+string(rune(i)), func(t *testing.T) {
-							// Perform the roundtrip: Chat Completions -> Lingua -> Chat Completions
-							// Convert to Lingua
-							linguaMessages, err := ChatCompletionsMessagesToLingua([]interface{}{originalMessage})
-							require.NoError(t, err, "Failed to convert to Lingua format")
-							require.Len(t, linguaMessages, 1, "Should have exactly one Lingua message")
-
-							linguaMessage := linguaMessages[0]
-							assert.NotNil(t, linguaMessage["role"], "Lingua message should have role")
-
-							// Convert back to Chat Completions
-							roundtrippedMessages, err := LinguaToChatCompletionsMessages(linguaMessages)
-							require.NoError(t, err, "Failed to convert back to Chat Completions format")
-							require.Len(t, roundtrippedMessages, 1, "Should have exactly one roundtripped message")
-
-							roundtrippedMessage := roundtrippedMessages[0]
-
-							// Verify the roundtrip preserved the data
-							// Normalize both to handle serde's None-skipping behavior
-							if !deepEqual(originalMessage, roundtrippedMessage) {
-								// Pretty print for debugging
-								originalPretty, _ := json.MarshalIndent(originalMessage, "", "  ")
-								roundtrippedPretty, _ := json.MarshalIndent(roundtrippedMessage, "", "  ")
-								t.Errorf("Roundtrip did not preserve data:\nOriginal:\n%s\n\nRoundtripped:\n%s",
-									string(originalPretty), string(roundtrippedPretty))
-							}
-						})
-					}
-				})
-			}
-		})
-	}
+	runRoundtripTests(
+		t,
+		"chat-completions",
+		func(messages []any) ([]map[string]any, error) {
+			return ChatCompletionsMessagesToLingua(messages)
+		},
+		func(messages []map[string]any) ([]map[string]any, error) {
+			return LinguaToChatCompletionsMessages(messages)
+		},
+	)
 }
 
-// TestAnthropicRoundtrip tests roundtrip conversion for Anthropic format
+// TestAnthropicRoundtrip tests roundtrip conversion for Anthropic format.
 func TestAnthropicRoundtrip(t *testing.T) {
-	snapshotsDir := "../../payloads/snapshots"
-
-	// Get all test cases
-	entries, err := os.ReadDir(snapshotsDir)
-	if err != nil {
-		t.Fatalf("Failed to read snapshots directory: %v", err)
-	}
-
-	testCases := []string{}
-	for _, entry := range entries {
-		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
-			testCases = append(testCases, entry.Name())
-		}
-	}
-
-	require.NotEmpty(t, testCases, "No test cases found in snapshots directory")
-
-	for _, testCase := range testCases {
-		t.Run(testCase, func(t *testing.T) {
-			snapshots := loadTestSnapshots(t, testCase)
-
-			if len(snapshots) == 0 {
-				t.Skip("No snapshots found for this test case")
-				return
-			}
-
-			for _, snapshot := range snapshots {
-				if snapshot.Provider != "anthropic" || snapshot.Request == nil {
-					continue
-				}
-
-				testName := snapshot.Provider + " - " + snapshot.Turn
-				t.Run(testName, func(t *testing.T) {
-					messages, ok := snapshot.Request["messages"].([]interface{})
-					require.True(t, ok, "Request should have messages array")
-					require.NotEmpty(t, messages, "Messages array should not be empty")
-
-					// Test each message in the request
-					for i, msgInterface := range messages {
-						originalMessage, ok := msgInterface.(map[string]interface{})
-						require.True(t, ok, "Message should be a map")
-
-						t.Run("message_"+string(rune(i)), func(t *testing.T) {
-							// Perform the roundtrip: Anthropic -> Lingua -> Anthropic
-							// Convert to Lingua
-							linguaMessages, err := AnthropicMessagesToLingua([]interface{}{originalMessage})
-							require.NoError(t, err, "Failed to convert to Lingua format")
-							require.Len(t, linguaMessages, 1, "Should have exactly one Lingua message")
-
-							linguaMessage := linguaMessages[0]
-							assert.NotNil(t, linguaMessage["role"], "Lingua message should have role")
-
-							// Convert back to Anthropic
-							roundtrippedMessages, err := LinguaToAnthropicMessages(linguaMessages)
-							require.NoError(t, err, "Failed to convert back to Anthropic format")
-							require.Len(t, roundtrippedMessages, 1, "Should have exactly one roundtripped message")
-
-							roundtrippedMessage := roundtrippedMessages[0]
-
-							// Verify the roundtrip preserved the data
-							// Normalize both to handle serde's None-skipping behavior
-							if !deepEqual(originalMessage, roundtrippedMessage) {
-								// Pretty print for debugging
-								originalPretty, _ := json.MarshalIndent(originalMessage, "", "  ")
-								roundtrippedPretty, _ := json.MarshalIndent(roundtrippedMessage, "", "  ")
-								t.Errorf("Roundtrip did not preserve data:\nOriginal:\n%s\n\nRoundtripped:\n%s",
-									string(originalPretty), string(roundtrippedPretty))
-							}
-						})
-					}
-				})
-			}
-		})
-	}
+	runRoundtripTests(
+		t,
+		"anthropic",
+		func(messages []any) ([]map[string]any, error) {
+			return AnthropicMessagesToLingua(messages)
+		},
+		func(messages []map[string]any) ([]map[string]any, error) {
+			return LinguaToAnthropicMessages(messages)
+		},
+	)
 }
 
-// TestSnapshotCoverage verifies that we have good test coverage across all snapshot cases
+// TestSnapshotCoverage verifies that we have good test coverage across all snapshot cases.
 func TestSnapshotCoverage(t *testing.T) {
-	snapshotsDir := "../../payloads/snapshots"
-
-	// Get all test cases
-	entries, err := os.ReadDir(snapshotsDir)
-	require.NoError(t, err, "Failed to read snapshots directory")
-
-	testCases := []string{}
-	for _, entry := range entries {
-		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
-			testCases = append(testCases, entry.Name())
-		}
-	}
-
-	require.NotEmpty(t, testCases, "No test cases found in snapshots directory")
+	testCases := listSnapshotTestCases(t)
 
 	coverage := make(map[string]struct {
 		Providers []string
