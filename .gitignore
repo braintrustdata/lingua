@@ -12,3 +12,14 @@ dev-notes/
 .turbo
 .env
 .claude
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.test
+*.out
+coverage.html
+vendor/
+go.work
