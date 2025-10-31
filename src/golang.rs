@@ -478,6 +478,57 @@ pub unsafe extern "C" fn lingua_import_messages_from_spans(
     }
 }
 
+/// Import messages from spans and deduplicate them in a single operation
+///
+/// # Safety
+/// - `json` must be a valid null-terminated C string or null
+/// - `error_out` must be null or point to valid memory for a `*mut c_char`
+/// - Caller must free returned string using `lingua_free_string`
+#[no_mangle]
+pub unsafe extern "C" fn lingua_import_and_deduplicate_messages(
+    json: *const c_char,
+    error_out: *mut *mut c_char,
+) -> *mut c_char {
+    use crate::processing::import::{import_and_deduplicate_messages as import_dedup, Span};
+
+    let json_str = match c_str_to_string(json) {
+        Some(s) => s,
+        None => {
+            if !error_out.is_null() {
+                *error_out = string_to_c_str("Input JSON is null".to_string());
+            }
+            return ptr::null_mut();
+        }
+    };
+
+    let spans: Vec<Span> = match serde_json::from_str(&json_str) {
+        Ok(s) => s,
+        Err(e) => {
+            if !error_out.is_null() {
+                *error_out = string_to_c_str(format!("Failed to parse spans: {}", e));
+            }
+            return ptr::null_mut();
+        }
+    };
+
+    let messages = import_dedup(spans);
+
+    match serde_json::to_string(&messages) {
+        Ok(result) => {
+            if !error_out.is_null() {
+                *error_out = ptr::null_mut();
+            }
+            string_to_c_str(result)
+        }
+        Err(e) => {
+            if !error_out.is_null() {
+                *error_out = string_to_c_str(format!("Failed to serialize result: {}", e));
+            }
+            ptr::null_mut()
+        }
+    }
+}
+
 // ============================================================================
 // Validation functions
 // ============================================================================

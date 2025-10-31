@@ -225,9 +225,17 @@ func runRoundtripTests(
 
 				testName := snapshot.Provider + " - " + snapshot.Turn
 				t.Run(testName, func(t *testing.T) {
-					messages, ok := snapshot.Request["messages"].([]any)
-					require.True(t, ok, "Request should have messages array")
-					require.NotEmpty(t, messages, "Messages array should not be empty")
+					field := "messages"
+					if provider == "responses" {
+						field = "input"
+					}
+
+					messagesValue, ok := snapshot.Request[field]
+					require.Truef(t, ok, "Request should have %s array", field)
+
+					messages, ok := messagesValue.([]any)
+					require.Truef(t, ok, "%s field should be an array", field)
+					require.NotEmptyf(t, messages, "%s array should not be empty", field)
 
 					for i, msgInterface := range messages {
 						originalMessage, ok := msgInterface.(map[string]any)
@@ -289,6 +297,20 @@ func TestAnthropicRoundtrip(t *testing.T) {
 		},
 		func(messages []map[string]any) ([]map[string]any, error) {
 			return LinguaToAnthropicMessages(messages)
+		},
+	)
+}
+
+// TestResponsesRoundtrip tests roundtrip conversion for OpenAI Responses API format.
+func TestResponsesRoundtrip(t *testing.T) {
+	runRoundtripTests(
+		t,
+		"responses",
+		func(messages []any) ([]map[string]any, error) {
+			return ResponsesMessagesToLingua(messages)
+		},
+		func(messages []map[string]any) ([]map[string]any, error) {
+			return LinguaToResponsesMessages(messages)
 		},
 	)
 }

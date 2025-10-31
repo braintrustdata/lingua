@@ -86,6 +86,36 @@ func TestDeduplicateMessages(t *testing.T) {
 	assert.Equal(t, "assistant", deduplicated[1]["role"])
 }
 
+func TestImportMessagesFromSpans(t *testing.T) {
+	spans := []map[string]any{
+		{
+			"input": []map[string]any{
+				{"role": "user", "content": "Hello"},
+			},
+			"output": []map[string]any{
+				{"role": "assistant", "content": "Hi there"},
+			},
+		},
+		{
+			"output": []map[string]any{
+				{"role": "assistant", "content": "Hi there"},
+			},
+		},
+	}
+
+	messages, err := ImportMessagesFromSpans(spans)
+	require.NoError(t, err)
+	require.Len(t, messages, 3)
+	assert.Equal(t, "user", messages[0]["role"])
+	assert.Equal(t, "assistant", messages[1]["role"])
+
+	deduplicated, err := ImportAndDeduplicateMessages(spans)
+	require.NoError(t, err)
+	require.Len(t, deduplicated, 2)
+	assert.Equal(t, "user", deduplicated[0]["role"])
+	assert.Equal(t, "assistant", deduplicated[1]["role"])
+}
+
 func TestValidateChatCompletionsRequest(t *testing.T) {
 	validRequest := `{
 		"model": "gpt-4",

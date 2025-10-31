@@ -21,6 +21,7 @@ extern char* lingua_anthropic_to_lingua(const char* json, char** error_out);
 extern char* lingua_to_anthropic(const char* json, char** error_out);
 extern char* lingua_deduplicate_messages(const char* json, char** error_out);
 extern char* lingua_import_messages_from_spans(const char* json, char** error_out);
+extern char* lingua_import_and_deduplicate_messages(const char* json, char** error_out);
 extern char* lingua_validate_chat_completions_request(const char* json, char** error_out);
 extern char* lingua_validate_chat_completions_response(const char* json, char** error_out);
 extern char* lingua_validate_responses_request(const char* json, char** error_out);
@@ -61,6 +62,7 @@ const (
 	fnLinguaToAnthropic
 	fnDeduplicateMessages
 	fnImportMessagesFromSpans
+	fnImportAndDeduplicateMessages
 	fnValidateChatCompletionsRequest
 	fnValidateChatCompletionsResponse
 	fnValidateResponsesRequest
@@ -96,6 +98,8 @@ func callRustFunction(fnID rustFunctionID, input string) (string, error) {
 		cResult = C.lingua_deduplicate_messages(cInput, &cError)
 	case fnImportMessagesFromSpans:
 		cResult = C.lingua_import_messages_from_spans(cInput, &cError)
+	case fnImportAndDeduplicateMessages:
+		cResult = C.lingua_import_and_deduplicate_messages(cInput, &cError)
 	case fnValidateChatCompletionsRequest:
 		cResult = C.lingua_validate_chat_completions_request(cInput, &cError)
 	case fnValidateChatCompletionsResponse:
@@ -366,6 +370,33 @@ func ImportMessagesFromSpans(spans any) ([]map[string]any, error) {
 	}
 
 	resultJSON, err := callRustFunction(fnImportMessagesFromSpans, string(jsonBytes))
+	if err != nil {
+		return nil, &ConversionError{
+			Message: err.Error(),
+		}
+	}
+
+	var result []map[string]any
+	err = json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
+		return nil, &ConversionError{
+			Message: "failed to unmarshal result: " + err.Error(),
+		}
+	}
+
+	return result, nil
+}
+
+// ImportAndDeduplicateMessages imports messages from spans and removes duplicates for downstream processing.
+func ImportAndDeduplicateMessages(spans any) ([]map[string]any, error) {
+	jsonBytes, err := json.Marshal(spans)
+	if err != nil {
+		return nil, &ConversionError{
+			Message: "failed to marshal input: " + err.Error(),
+		}
+	}
+
+	resultJSON, err := callRustFunction(fnImportAndDeduplicateMessages, string(jsonBytes))
 	if err != nil {
 		return nil, &ConversionError{
 			Message: err.Error(),
