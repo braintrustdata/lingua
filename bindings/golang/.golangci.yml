@@ -1,7 +1,7 @@
 version: "2"
 
 run:
-  timeout: 30s
+  timeout: 2m
   tests: true
   modules-download-mode: readonly
  
