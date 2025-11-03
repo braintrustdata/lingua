@@ -27,7 +27,7 @@
   "scripts": {
     "build": "pnpm run build:wasm && pnpm run build:types",
     "build:wasm": "pnpm run build:wasm:node && pnpm run build:wasm:web",
-    "build:wasm:node": "cd ../.. && cargo build --lib --target wasm32-unknown-unknown --profile wasm && wasm-bindgen target/wasm32-unknown-unknown/wasm/lingua.wasm --out-dir bindings/typescript/wasm --typescript --target nodejs && (command -v wasm-opt >/dev/null 2>&1 && wasm-opt -Oz bindings/typescript/wasm/lingua_bg.wasm -o bindings/typescript/wasm/lingua_bg.wasm || echo 'wasm-opt not found, skipping optimization')",
+    "build:wasm:node": "cd ../.. && cargo build --lib --target wasm32-unknown-unknown --profile wasm && wasm-bindgen target/wasm32-unknown-unknown/wasm/lingua.wasm --out-dir bindings/typescript/wasm --typescript --target experimental-nodejs-module && (command -v wasm-opt >/dev/null 2>&1 && wasm-opt -Oz bindings/typescript/wasm/lingua_bg.wasm -o bindings/typescript/wasm/lingua_bg.wasm || echo 'wasm-opt not found, skipping optimization')",
     "build:wasm:web": "cd ../.. && cargo build --lib --target wasm32-unknown-unknown --profile wasm && wasm-bindgen target/wasm32-unknown-unknown/wasm/lingua.wasm --out-dir bindings/typescript/wasm-web --typescript --target web && (command -v wasm-opt >/dev/null 2>&1 && wasm-opt -Oz bindings/typescript/wasm-web/lingua_bg.wasm -o bindings/typescript/wasm-web/lingua_bg.wasm || echo 'wasm-opt not found, skipping optimization')",
     "build:types": "tsup",
     "generate": "cd ../.. && cargo test --features ts-rs/export",

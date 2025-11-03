@@ -5,16 +5,17 @@
   "description": "Example demonstrating Lingua universal message format conversion",
   "type": "module",
   "scripts": {
-    "start": "tsx index.ts",
-    "watch": "tsx watch index.ts"
+    "start": "dotenv -e .env -- tsx index.ts",
+    "watch": "dotenv -e .env -- tsx watch index.ts"
   },
   "dependencies": {
-    "@braintrust/lingua": "file:../../bindings/typescript",
     "@anthropic-ai/sdk": "^0.63.0",
+    "@braintrust/lingua": "file:../../bindings/typescript",
     "openai": "^5.22.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
+    "dotenv-cli": "^10.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.3"
   }
