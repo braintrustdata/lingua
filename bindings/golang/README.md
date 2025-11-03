@@ -6,7 +6,7 @@ Go bindings for Lingua - a universal message format for LLMs - using CGo and Rus
 
 ### Prerequisites
 
-- Go 1.21 or higher
+- Go 1.25 or higher
 - Rust toolchain (for building the native library)
 - C compiler (gcc/clang)
 
@@ -39,6 +39,7 @@ make golang          # Build Rust library with golang feature
 make test-golang     # Build and run all Go tests
 make fmt             # Format all code including Go
 make clean           # Clean all build artifacts
+make lint-golang     # Run golangci-lint
 ```
 
 ## API
@@ -197,6 +198,6 @@ All data is passed as JSON strings for simplicity and type safety.
 
 ## Requirements
 
-- Go 1.21+
+- Go 1.25+
 - Rust toolchain (for building from source)
 - C compiler (gcc, clang, or MSVC)
