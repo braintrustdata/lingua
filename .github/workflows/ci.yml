@@ -156,6 +156,8 @@ jobs:
 
   test-golang:
     runs-on: ubuntu-latest
+    env:
+      GOEXPERIMENT: jsonv2
 
     steps:
     - uses: actions/checkout@v4
