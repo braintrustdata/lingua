@@ -74,7 +74,7 @@ const (
 
 // callRustFunction is a helper to call Rust FFI functions and handle errors.
 //
-//nolint:gocyclo // CGo FFI dispatch requires enumerating each function call explicitly
+//nolint:gocyclo,revive // CGo FFI dispatch requires enumerating each function call explicitly
 func callRustFunction(fnID rustFunctionID, input string) (string, error) {
 	cInput := C.CString(input)
 	defer C.free(unsafe.Pointer(cInput))

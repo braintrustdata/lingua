@@ -49,21 +49,21 @@ linters:
       enable-all: true
 
     revive:
+      enable-all-rules: true
       rules:
+        - name: line-length-limit
+          arguments:
+            - 125
+        - name: package-directory-mismatch
+          disabled: true
+        - name: add-constant
+          disabled: true
+        - name: cognitive-complexity
+          arguments: [10]
         - name: exported
           arguments:
             - checkPrivateReceivers
             - sayRepetitiveInsteadOfStutters
-        - name: package-comments
-        - name: var-naming
-        - name: unexported-return
-        - name: errorf
-        - name: error-return
-        - name: error-strings
-        - name: receiver-naming
-        - name: increment-decrement
-        - name: error-naming
-
 formatters:
   enable:
     - gofmt

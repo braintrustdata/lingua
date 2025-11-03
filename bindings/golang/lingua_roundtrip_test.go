@@ -1,7 +1,7 @@
 package lingua
 
 import (
-	jsontext "encoding/json/jsontext"
+	"encoding/json/jsontext"
 	jsonv2 "encoding/json/v2"
 	"fmt"
 	"os"

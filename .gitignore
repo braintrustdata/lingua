@@ -23,4 +23,5 @@ dev-notes/
 coverage.html
 vendor/
 bindings/golang/.gocache/
+bindings/golang/.golangci-lint-cache/
 go.work
