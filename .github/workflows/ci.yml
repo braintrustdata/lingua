@@ -184,6 +184,16 @@ jobs:
     - name: Build Rust library with golang feature
       run: cargo build --release --features golang
 
+    - name: Install golangci-lint
+      run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+
+    - name: Run golangci-lint
+      working-directory: bindings/golang
+      run: |
+        export LD_LIBRARY_PATH="${{ github.workspace }}/target/release:$LD_LIBRARY_PATH"
+        golangci-lint config verify
+        golangci-lint run
+
     - name: Run Go tests
       working-directory: bindings/golang
       run: |
