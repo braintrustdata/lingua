@@ -30,7 +30,8 @@ extern char* lingua_validate_anthropic_request(const char* json, char** error_ou
 extern char* lingua_validate_anthropic_response(const char* json, char** error_out);
 extern void lingua_free_string(char* s);
 */
-import "C"
+import "C" //nolint:gocritic // CGo requires a separate import for pseudo-package "C"
+//nolint:gocritic // CGo import block must remain adjacent to the C pseudo-package import
 import (
 	jsonv2 "encoding/json/v2"
 	"errors"
@@ -72,6 +73,8 @@ const (
 )
 
 // callRustFunction is a helper to call Rust FFI functions and handle errors.
+//
+//nolint:gocyclo // CGo FFI dispatch requires enumerating each function call explicitly
 func callRustFunction(fnID rustFunctionID, input string) (string, error) {
 	cInput := C.CString(input)
 	defer C.free(unsafe.Pointer(cInput))

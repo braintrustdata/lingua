@@ -50,7 +50,7 @@ test-golang: golang ## Run Golang tests
 
 lint-golang: ## Run golangci-lint on Golang bindings
 	@echo "Running golangci-lint on Golang bindings..."
-	cd bindings/golang && $(GOENV) golangci-lint run
+	cd bindings/golang && $(GOENV) golangci-lint config verify && $(GOENV) golangci-lint run
 
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."

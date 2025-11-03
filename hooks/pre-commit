@@ -45,6 +45,13 @@ if [ -d "bindings/golang" ] && [ -f "bindings/golang/go.mod" ]; then
 
         # Run golangci-lint if available (recommended but optional)
         if command -v golangci-lint &> /dev/null; then
+            echo "🧪 Verifying golangci-lint config..."
+            if ! golangci-lint config verify; then
+                echo "❌ golangci-lint configuration is invalid. Please fix ${PWD}/.golangci.yml before committing."
+                cd ../..
+                exit 1
+            fi
+
             echo "🔍 Running golangci-lint..."
             if ! golangci-lint run ./...; then
                 echo "❌ golangci-lint found issues. Please fix before committing."

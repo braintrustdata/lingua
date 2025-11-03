@@ -22,4 +22,5 @@ dev-notes/
 *.out
 coverage.html
 vendor/
+bindings/golang/.gocache/
 go.work

@@ -4,9 +4,7 @@ run:
   timeout: 5m
   tests: true
   modules-download-mode: readonly
-  env:
-    - CGO_ENABLED=1
-
+ 
 linters:
   default: standard
   enable:
@@ -30,46 +28,41 @@ linters:
     - unparam
     - usetesting
 
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
 
-  govet:
-    enable-all: true
+    govet:
+      enable-all: true
 
-  gocyclo:
-    min-complexity: 15
+    gocyclo:
+      min-complexity: 15
 
-  gocognit:
-    min-complexity: 20
+    gocognit:
+      min-complexity: 20
 
-  nestif:
-    min-complexity: 5
+    nestif:
+      min-complexity: 5
 
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-      - experimental
-      - opinionated
+    gocritic:
+      enable-all: true
 
-  revive:
-    rules:
-      - name: exported
-        arguments:
-          - checkPrivateReceivers
-          - sayRepetitiveInsteadOfStutters
-      - name: package-comments
-      - name: var-naming
-      - name: unexported-return
-      - name: errorf
-      - name: error-return
-      - name: error-strings
-      - name: receiver-naming
-      - name: increment-decrement
-      - name: error-naming
+    revive:
+      rules:
+        - name: exported
+          arguments:
+            - checkPrivateReceivers
+            - sayRepetitiveInsteadOfStutters
+        - name: package-comments
+        - name: var-naming
+        - name: unexported-return
+        - name: errorf
+        - name: error-return
+        - name: error-strings
+        - name: receiver-naming
+        - name: increment-decrement
+        - name: error-naming
 
 formatters:
   enable:

@@ -150,47 +150,59 @@ func readSnapshotFile(path string) ([]byte, error) {
 //
 // This mimics how Rust's serde skips None values during serialization.
 func normalizeForComparison(obj any) any {
-	if obj == nil {
-		return nil
-	}
-
 	switch v := obj.(type) {
+	case nil:
+		return nil
 	case map[string]any:
-		normalized := make(map[string]any)
-		for key, value := range v {
-			normalizedValue := normalizeForComparison(value)
-			// Only include non-nil values and non-empty maps/arrays
-			if normalizedValue != nil {
-				if m, ok := normalizedValue.(map[string]any); ok && len(m) == 0 {
-					continue
-				}
-				if a, ok := normalizedValue.([]any); ok && len(a) == 0 {
-					continue
-				}
-				normalized[key] = normalizedValue
-			}
-		}
-		if len(normalized) == 0 {
-			return nil
-		}
-		return normalized
-
+		return normalizeMapForComparison(v)
 	case []any:
-		normalized := []any{}
-		for _, item := range v {
-			normalizedItem := normalizeForComparison(item)
-			if normalizedItem != nil {
-				normalized = append(normalized, normalizedItem)
-			}
-		}
-		if len(normalized) == 0 {
-			return nil
-		}
-		return normalized
-
+		return normalizeSliceForComparison(v)
 	default:
 		return v
 	}
+}
+
+func normalizeMapForComparison(values map[string]any) map[string]any {
+	normalized := make(map[string]any)
+	for key, value := range values {
+		normalizedValue := normalizeForComparison(value)
+		if !shouldIncludeNormalizedValue(normalizedValue) {
+			continue
+		}
+		normalized[key] = normalizedValue
+	}
+	if len(normalized) == 0 {
+		return nil
+	}
+	return normalized
+}
+
+func normalizeSliceForComparison(items []any) []any {
+	normalized := make([]any, 0, len(items))
+	for _, item := range items {
+		normalizedItem := normalizeForComparison(item)
+		if !shouldIncludeNormalizedValue(normalizedItem) {
+			continue
+		}
+		normalized = append(normalized, normalizedItem)
+	}
+	if len(normalized) == 0 {
+		return nil
+	}
+	return normalized
+}
+
+func shouldIncludeNormalizedValue(value any) bool {
+	if value == nil {
+		return false
+	}
+	if normalizedMap, ok := value.(map[string]any); ok {
+		return len(normalizedMap) > 0
+	}
+	if normalizedArray, ok := value.([]any); ok {
+		return len(normalizedArray) > 0
+	}
+	return true
 }
 
 // deepEqual checks if two objects are deeply equal after normalization.
@@ -208,70 +220,163 @@ func runRoundtripTests(
 ) {
 	t.Helper()
 
-	testCases := listSnapshotTestCases(t)
-
-	for _, testCase := range testCases {
+	for _, testCase := range listSnapshotTestCases(t) {
+		testCase := testCase
 		t.Run(testCase, func(t *testing.T) {
-			snapshots := loadTestSnapshots(t, testCase)
-
-			if len(snapshots) == 0 {
-				t.Skip("No snapshots found for this test case")
-				return
-			}
-
-			for _, snapshot := range snapshots {
-				if snapshot.Provider != provider || snapshot.Request == nil {
-					continue
-				}
-
-				testName := snapshot.Provider + " - " + snapshot.Turn
-				t.Run(testName, func(t *testing.T) {
-					field := "messages"
-					if provider == "responses" {
-						field = "input"
-					}
-
-					messagesValue, ok := snapshot.Request[field]
-					require.Truef(t, ok, "Request should have %s array", field)
-
-					messages, ok := messagesValue.([]any)
-					require.Truef(t, ok, "%s field should be an array", field)
-					require.NotEmptyf(t, messages, "%s array should not be empty", field)
-
-					for i, msgInterface := range messages {
-						originalMessage, ok := msgInterface.(map[string]any)
-						require.True(t, ok, "Message should be a map")
-
-						t.Run(fmt.Sprintf("message_%d", i), func(t *testing.T) {
-							linguaMessages, err := toLingua([]any{originalMessage})
-							require.NoError(t, err, "Failed to convert to Lingua format")
-							require.Len(t, linguaMessages, 1, "Should have exactly one Lingua message")
-
-							linguaMessage := linguaMessages[0]
-							assert.NotNil(t, linguaMessage["role"], "Lingua message should have role")
-
-							roundtrippedMessages, err := fromLingua(linguaMessages)
-							require.NoError(t, err, "Failed to convert back to provider format")
-							require.Len(t, roundtrippedMessages, 1, "Should have exactly one roundtripped message")
-
-							roundtrippedMessage := roundtrippedMessages[0]
-
-							if !deepEqual(originalMessage, roundtrippedMessage) {
-								originalPretty, marshalErr := jsonv2.Marshal(originalMessage, jsontext.WithIndent("  "))
-								require.NoError(t, marshalErr, "Failed to pretty-print original message")
-
-								roundtrippedPretty, marshalErr := jsonv2.Marshal(roundtrippedMessage, jsontext.WithIndent("  "))
-								require.NoError(t, marshalErr, "Failed to pretty-print roundtripped message")
-
-								t.Errorf("Roundtrip did not preserve data:\nOriginal:\n%s\n\nRoundtripped:\n%s",
-									string(originalPretty), string(roundtrippedPretty))
-							}
-						})
-					}
-				})
-			}
+			runRoundtripTestCase(t, testCase, provider, toLingua, fromLingua)
 		})
 	}
+}
+
+func runRoundtripTestCase(
+	t *testing.T,
+	testCase string,
+	provider string,
+	toLingua func([]any) ([]map[string]any, error),
+	fromLingua func([]map[string]any) ([]map[string]any, error),
+) {
+	t.Helper()
+
+	snapshots := loadTestSnapshots(t, testCase)
+	if len(snapshots) == 0 {
+		t.Skip("No snapshots found for this test case")
+		return
+	}
+
+	for i := range snapshots {
+		snapshot := &snapshots[i]
+		if !shouldRunSnapshot(provider, snapshot) {
+			continue
+		}
+
+		t.Run(snapshot.Provider+" - "+snapshot.Turn, func(t *testing.T) {
+			runRoundtripSnapshot(t, provider, snapshot, toLingua, fromLingua)
+		})
+	}
+}
+
+func shouldRunSnapshot(provider string, snapshot *TestSnapshot) bool {
+	return snapshot.Provider == provider && snapshot.Request != nil
+}
+
+func runRoundtripSnapshot(
+	t *testing.T,
+	provider string,
+	snapshot *TestSnapshot,
+	toLingua func([]any) ([]map[string]any, error),
+	fromLingua func([]map[string]any) ([]map[string]any, error),
+) {
+	t.Helper()
+
+	field := snapshotRequestField(provider)
+	messages := extractSnapshotMessages(t, snapshot, field)
+
+	for index, msgInterface := range messages {
+		index := index
+		msgInterface := msgInterface
+		t.Run(fmt.Sprintf("message_%d", index), func(t *testing.T) {
+			runRoundtripMessage(t, msgInterface, toLingua, fromLingua)
+		})
+	}
+}
+
+func snapshotRequestField(provider string) string {
+	if provider == "responses" {
+		return "input"
+	}
+	return "messages"
+}
+
+func extractSnapshotMessages(t *testing.T, snapshot *TestSnapshot, field string) []any {
+	t.Helper()
+
+	messagesValue, ok := snapshot.Request[field]
+	require.Truef(t, ok, "Request should have %s array", field)
+
+	messages, ok := messagesValue.([]any)
+	require.Truef(t, ok, "%s field should be an array", field)
+	require.NotEmptyf(t, messages, "%s array should not be empty", field)
+
+	return messages
+}
+
+func runRoundtripMessage(
+	t *testing.T,
+	msgInterface any,
+	toLingua func([]any) ([]map[string]any, error),
+	fromLingua func([]map[string]any) ([]map[string]any, error),
+) {
+	t.Helper()
+
+	originalMessage, ok := msgInterface.(map[string]any)
+	require.True(t, ok, "Message should be a map")
+
+	linguaMessages := convertToLingua(t, originalMessage, toLingua)
+	linguaMessage := linguaMessages[0]
+	assert.NotNil(t, linguaMessage["role"], "Lingua message should have role")
+
+	roundtrippedMessages := convertFromLingua(t, linguaMessages, fromLingua)
+	roundtrippedMessage := roundtrippedMessages[0]
+
+	assertRoundtripEquality(t, originalMessage, roundtrippedMessage, linguaMessage)
+}
+
+func convertToLingua(
+	t *testing.T,
+	originalMessage map[string]any,
+	toLingua func([]any) ([]map[string]any, error),
+) []map[string]any {
+	t.Helper()
+
+	linguaMessages, err := toLingua([]any{originalMessage})
+	require.NoError(t, err, "Failed to convert to Lingua format")
+	require.Len(t, linguaMessages, 1, "Should have exactly one Lingua message")
+	return linguaMessages
+}
+
+func convertFromLingua(
+	t *testing.T,
+	linguaMessages []map[string]any,
+	fromLingua func([]map[string]any) ([]map[string]any, error),
+) []map[string]any {
+	t.Helper()
+
+	roundtrippedMessages, err := fromLingua(linguaMessages)
+	require.NoError(t, err, "Failed to convert back to provider format")
+	require.Len(t, roundtrippedMessages, 1, "Should have exactly one roundtripped message")
+	return roundtrippedMessages
+}
+
+func assertRoundtripEquality(
+	t *testing.T,
+	originalMessage map[string]any,
+	roundtrippedMessage map[string]any,
+	linguaMessage map[string]any,
+) {
+	t.Helper()
+
+	if deepEqual(originalMessage, roundtrippedMessage) {
+		return
+	}
+
+	originalPretty := mustPrettyJSON(t, originalMessage)
+	roundtrippedPretty := mustPrettyJSON(t, roundtrippedMessage)
+	linguaPretty := mustPrettyJSON(t, linguaMessage)
+
+	t.Fatalf(
+		"Roundtrip mismatch:\nOriginal:\n%s\nRoundtripped:\n%s\nLingua intermediate:\n%s",
+		originalPretty,
+		roundtrippedPretty,
+		linguaPretty,
+	)
+}
+
+func mustPrettyJSON(t *testing.T, value any) string {
+	t.Helper()
+
+	data, err := jsonv2.Marshal(value, jsontext.WithIndent("  "))
+	require.NoError(t, err, "Failed to pretty print value")
+	return string(data)
 }
 
 // TestChatCompletionsRoundtrip tests roundtrip conversion for OpenAI Chat Completions format.
