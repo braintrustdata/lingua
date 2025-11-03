@@ -10,21 +10,25 @@ run:
 linters:
   default: standard
   enable:
+    - bodyclose
+    - dupl
+    - errorlint
+    - forcetypeassert
+    - gocognit
+    - goconst
     - gocritic
+    - gocyclo
+    - godot
+    - gosec
+    - misspell
+    - nestif
+    - nolintlint
+    - prealloc
     - revive
+    - thelper
     - unconvert
     - unparam
-    - misspell
-    - prealloc
-    - nolintlint
-    - gosec
-    - errorlint
-    - gocyclo
-    - dupl
-    - goconst
-    - gocognit
-    - nestif
-    - godot
+    - usetesting
 
 linters-settings:
   errcheck:
