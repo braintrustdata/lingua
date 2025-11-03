@@ -8,13 +8,8 @@ run:
     - CGO_ENABLED=1
 
 linters:
-  default: none
+  default: standard
   enable:
-    - errcheck
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
     - gocritic
     - revive
     - unconvert
