@@ -212,6 +212,22 @@ func deepEqual(a, b any) bool {
 	return reflect.DeepEqual(normalizedA, normalizedB)
 }
 
+func assertJSONEqual(t *testing.T, expected, actual any, message string) {
+	t.Helper()
+
+	expectedJSON, err := jsonv2.Marshal(expected)
+	require.NoError(t, err)
+
+	actualJSON, err := jsonv2.Marshal(actual)
+	require.NoError(t, err)
+
+	var expectedParsed, actualParsed any
+	require.NoError(t, jsonv2.Unmarshal(expectedJSON, &expectedParsed))
+	require.NoError(t, jsonv2.Unmarshal(actualJSON, &actualParsed))
+
+	assert.Equal(t, expectedParsed, actualParsed, message)
+}
+
 func runRoundtripTests(
 	t *testing.T,
 	provider string,

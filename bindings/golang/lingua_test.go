@@ -1,7 +1,6 @@
 package lingua
 
 import (
-	jsonv2 "encoding/json/v2"
 	"errors"
 	"strings"
 	"testing"
@@ -19,13 +18,13 @@ func TestChatCompletionsConversion(t *testing.T) {
 	linguaMsgs, err := ChatCompletionsMessagesToLingua(chatMsgs)
 	require.NoError(t, err)
 	require.Len(t, linguaMsgs, 1)
-	assert.Equal(t, "user", linguaMsgs[0]["role"])
+	assertJSONEqual(t, chatMsgs, linguaMsgs, "Conversion to Lingua should preserve Chat Completions message")
 
 	// Test converting back to Chat Completions format
 	backToChat, err := LinguaToChatCompletionsMessages(linguaMsgs)
 	require.NoError(t, err)
 	require.Len(t, backToChat, 1)
-	assert.Equal(t, "user", backToChat[0]["role"])
+	assertJSONEqual(t, chatMsgs, backToChat, "Round-trip conversion should preserve Chat Completions message")
 }
 
 func TestAnthropicConversion(t *testing.T) {
@@ -35,6 +34,7 @@ func TestAnthropicConversion(t *testing.T) {
 			"role": "user",
 			"content": []map[string]any{
 				{"type": "text", "text": "Hello"},
+				{"type": "text", "text": "World"},
 			},
 		},
 	}
@@ -42,13 +42,23 @@ func TestAnthropicConversion(t *testing.T) {
 	linguaMsgs, err := AnthropicMessagesToLingua(anthropicMsgs)
 	require.NoError(t, err)
 	require.Len(t, linguaMsgs, 1)
-	assert.Equal(t, "user", linguaMsgs[0]["role"])
+	expectedLingua := []map[string]any{
+		{
+			"role": "user",
+			"content": []map[string]any{
+				{"type": "text", "text": "Hello"},
+				{"type": "text", "text": "World"},
+			},
+		},
+	}
+	assertJSONEqual(t, expectedLingua, linguaMsgs, "Conversion to Lingua should preserve message data")
 
 	// Test converting back to Anthropic format
 	backToAnthropic, err := LinguaToAnthropicMessages(linguaMsgs)
 	require.NoError(t, err)
 	require.Len(t, backToAnthropic, 1)
-	assert.Equal(t, "user", backToAnthropic[0]["role"])
+
+	assertJSONEqual(t, anthropicMsgs, backToAnthropic, "Round-trip preserves original Anthropic message")
 }
 
 func TestCrossProviderConversion(t *testing.T) {
@@ -62,13 +72,32 @@ func TestCrossProviderConversion(t *testing.T) {
 	linguaMsgs, err := ChatCompletionsMessagesToLingua(chatMsgs)
 	require.NoError(t, err)
 	require.Len(t, linguaMsgs, 2)
+	expectedLingua := []map[string]any{
+		{"role": "user", "content": "What is the weather?"},
+		{"role": "assistant", "content": "I don't have access to real-time weather data.", "id": nil},
+	}
+
+	assertJSONEqual(t, expectedLingua, linguaMsgs, "Chat Completions -> Lingua conversion should preserve message data")
 
 	// Lingua -> Anthropic
 	anthropicMsgs, err := LinguaToAnthropicMessages(linguaMsgs)
 	require.NoError(t, err)
 	require.Len(t, anthropicMsgs, 2)
-	assert.Equal(t, "user", anthropicMsgs[0]["role"])
-	assert.Equal(t, "assistant", anthropicMsgs[1]["role"])
+
+	expectedAnthropic := []map[string]any{
+		{
+			"role":    "user",
+			"content": "What is the weather?",
+		},
+		{
+			"role": "assistant",
+			"content": []map[string]any{
+				{"type": "text", "text": "I don't have access to real-time weather data."},
+			},
+		},
+	}
+
+	assertJSONEqual(t, expectedAnthropic, anthropicMsgs, "Lingua -> Anthropic conversion should preserve message data")
 }
 
 func TestDeduplicateMessages(t *testing.T) {
@@ -81,9 +110,13 @@ func TestDeduplicateMessages(t *testing.T) {
 
 	deduplicated, err := DeduplicateMessages(messages)
 	require.NoError(t, err)
-	assert.Len(t, deduplicated, 2, "Should remove duplicate message")
-	assert.Equal(t, "user", deduplicated[0]["role"])
-	assert.Equal(t, "assistant", deduplicated[1]["role"])
+
+	expectedDeduplicated := []map[string]any{
+		{"role": "user", "content": "Hello"},
+		{"role": "assistant", "content": "Hi there!", "id": nil},
+	}
+
+	assertJSONEqual(t, expectedDeduplicated, deduplicated, "DeduplicateMessages removes duplicate content")
 }
 
 func TestImportMessagesFromSpans(t *testing.T) {
@@ -106,14 +139,25 @@ func TestImportMessagesFromSpans(t *testing.T) {
 	messages, err := ImportMessagesFromSpans(spans)
 	require.NoError(t, err)
 	require.Len(t, messages, 3)
-	assert.Equal(t, "user", messages[0]["role"])
-	assert.Equal(t, "assistant", messages[1]["role"])
+
+	expectedMessages := []map[string]any{
+		{"role": "user", "content": "Hello"},
+		{"role": "assistant", "content": "Hi there", "id": nil},
+		{"role": "assistant", "content": "Hi there", "id": nil},
+	}
+
+	assertJSONEqual(t, expectedMessages, messages, "ImportMessagesFromSpans should import all messages in order")
 
 	deduplicated, err := ImportAndDeduplicateMessages(spans)
 	require.NoError(t, err)
 	require.Len(t, deduplicated, 2)
-	assert.Equal(t, "user", deduplicated[0]["role"])
-	assert.Equal(t, "assistant", deduplicated[1]["role"])
+
+	expectedDeduplicated := []map[string]any{
+		{"role": "user", "content": "Hello"},
+		{"role": "assistant", "content": "Hi there", "id": nil},
+	}
+
+	assertJSONEqual(t, expectedDeduplicated, deduplicated, "ImportAndDeduplicateMessages should dedupe imported messages")
 }
 
 func TestValidateChatCompletionsRequest(t *testing.T) {
@@ -199,9 +243,27 @@ func TestComplexMessageContent(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, linguaMsgs, 1)
 
-	// Verify content structure is preserved
-	content := linguaMsgs[0]["content"]
-	assert.NotNil(t, content)
+	expectedLingua := []map[string]any{
+		{
+			"role": "user",
+			"content": []map[string]any{
+				{"type": "text", "text": "What's in this image?"},
+				{
+					"type":             "image",
+					"image":            "https://example.com/image.jpg",
+					"media_type":       "image/url",
+					"provider_options": nil,
+				},
+			},
+		},
+	}
+
+	assertJSONEqual(t, expectedLingua, linguaMsgs, "Conversion to Lingua should preserve multimodal content")
+
+	backToChat, err := LinguaToChatCompletionsMessages(linguaMsgs)
+	require.NoError(t, err)
+	require.Len(t, backToChat, 1)
+	assertJSONEqual(t, chatMsgs, backToChat, "Round-trip conversion should preserve multimodal Chat Completions message")
 }
 
 func TestRoundTripPreservesData(t *testing.T) {
@@ -224,15 +286,5 @@ func TestRoundTripPreservesData(t *testing.T) {
 	result1, err := LinguaToChatCompletionsMessages(lingua1)
 	require.NoError(t, err)
 
-	// Compare as JSON to handle type differences
-	originalJSON, err := jsonv2.Marshal(original)
-	require.NoError(t, err)
-	resultJSON, err := jsonv2.Marshal(result1)
-	require.NoError(t, err)
-
-	var originalParsed, resultParsed any
-	require.NoError(t, jsonv2.Unmarshal(originalJSON, &originalParsed))
-	require.NoError(t, jsonv2.Unmarshal(resultJSON, &resultParsed))
-
-	assert.Equal(t, originalParsed, resultParsed, "Round-trip should preserve data")
+	assertJSONEqual(t, original, result1, "Round-trip should preserve data")
 }
