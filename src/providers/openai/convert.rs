@@ -394,11 +394,6 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
-            _ => {
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: format!("UserContentPart variant: {:?}", part),
-                })
-            }
         })
     }
 }
@@ -1558,12 +1553,6 @@ fn convert_user_content_part_to_chat_completion_part(
                 refusal: None,
             })
         }
-        _ => Err(ConvertError::UnsupportedInputType {
-            type_info: format!(
-                "UserContentPart variant in ChatCompletion conversion: {:?}",
-                part
-            ),
-        }),
     }
 }
 
