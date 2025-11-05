@@ -1,0 +1,19 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning_effort": "low",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hi, my name is Alice."
+    },
+    {
+      "role": "assistant",
+      "content": "Hello Alice! Nice to meet you."
+    },
+    {
+      "role": "user",
+      "content": "What did I just tell you my name was?"
+    }
+  ],
+  "max_completion_tokens": 300
+}

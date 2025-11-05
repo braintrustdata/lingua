@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-CYfuY7MFxeqzwlaLNuYeC2UkQtNTH",
+  "object": "chat.completion",
+  "created": 1762380294,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "This document is a test PDF that contains only a few sentences. The only visible content, from the parsed text, is: \"This is a test PDF. It contains only a few sentences.\" There don’t appear to be any images or other content. If you want, I can extract or summarize any other parts or check for hidden content.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 241,
+    "completion_tokens": 206,
+    "total_tokens": 447,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

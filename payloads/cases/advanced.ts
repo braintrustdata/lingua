@@ -137,7 +137,28 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_output_tokens: 300,
     },
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      reasoning_effort: "low",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/png;base64,${readFileAsBase64("test-image.png")}`,
+              },
+            },
+            {
+              type: "text",
+              text: "What color is this image?",
+            },
+          ],
+        },
+      ],
+      max_completion_tokens: 300,
+    },
     anthropic: null,
   },
 
@@ -163,7 +184,29 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_output_tokens: 300,
     },
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      reasoning_effort: "low",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "file",
+              file: {
+                file_data: `data:application/pdf;base64,${readFileAsBase64("test-document.pdf")}`,
+                filename: "test-document.pdf",
+              },
+            },
+            {
+              type: "text",
+              text: "What is in this document?",
+            },
+          ],
+        },
+      ],
+      max_completion_tokens: 300,
+    },
     anthropic: null,
   },
 
@@ -203,7 +246,42 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_output_tokens: 750,
     },
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      reasoning_effort: "low",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "First, look at this image:",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/png;base64,${readFileAsBase64("test-image.png")}`,
+              },
+            },
+            {
+              type: "text",
+              text: "Then look at this one:",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+              },
+            },
+            {
+              type: "text",
+              text: "Now describe what you see and explain why it matters.",
+            },
+          ],
+        },
+      ],
+      max_completion_tokens: 750,
+    },
     anthropic: null,
   },
 };

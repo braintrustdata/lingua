@@ -207,5 +207,89 @@
       "complexReasoningRequest/responses/followup-response.json",
       "complexReasoningRequest/responses/followup-response-streaming.json"
     ]
+  },
+  "chat-completions:documentInputBase64Request": {
+    "payloadHash": "2ed8c4185e1b29f854a6469fc510ef30ec78ab466ebcac68fd2369653fca9cd4",
+    "capturedAt": "2025-11-05T22:05:01.073Z",
+    "provider": "chat-completions",
+    "name": "documentInputBase64Request",
+    "files": [
+      "documentInputBase64Request/chat-completions/request.json",
+      "documentInputBase64Request/chat-completions/response.json",
+      "documentInputBase64Request/chat-completions/response-streaming.json",
+      "documentInputBase64Request/chat-completions/followup-request.json",
+      "documentInputBase64Request/chat-completions/followup-response.json",
+      "documentInputBase64Request/chat-completions/followup-response-streaming.json"
+    ]
+  },
+  "chat-completions:multiTurnRequest": {
+    "payloadHash": "f4759073156ec515743fcab7eb620f933e8e5a9e279abdc9a32ee7cf54bd995d",
+    "capturedAt": "2025-11-05T22:05:01.274Z",
+    "provider": "chat-completions",
+    "name": "multiTurnRequest",
+    "files": [
+      "multiTurnRequest/chat-completions/request.json",
+      "multiTurnRequest/chat-completions/response.json",
+      "multiTurnRequest/chat-completions/response-streaming.json",
+      "multiTurnRequest/chat-completions/followup-request.json",
+      "multiTurnRequest/chat-completions/followup-response.json",
+      "multiTurnRequest/chat-completions/followup-response-streaming.json"
+    ]
+  },
+  "chat-completions:prefillRequest": {
+    "payloadHash": "4bf48f904c22d4c42750955c59a94eff00b2a4d3871a35cbfbcbf1410d4bce1f",
+    "capturedAt": "2025-11-05T22:05:01.486Z",
+    "provider": "chat-completions",
+    "name": "prefillRequest",
+    "files": [
+      "prefillRequest/chat-completions/request.json",
+      "prefillRequest/chat-completions/response.json",
+      "prefillRequest/chat-completions/response-streaming.json",
+      "prefillRequest/chat-completions/followup-request.json",
+      "prefillRequest/chat-completions/followup-response.json",
+      "prefillRequest/chat-completions/followup-response-streaming.json"
+    ]
+  },
+  "chat-completions:base64ImageRequest": {
+    "payloadHash": "934438bad8b369f9f1b9a95fe64ac45e310ca938cefcfc83714eb94b4795a420",
+    "capturedAt": "2025-11-05T22:05:03.578Z",
+    "provider": "chat-completions",
+    "name": "base64ImageRequest",
+    "files": [
+      "base64ImageRequest/chat-completions/request.json",
+      "base64ImageRequest/chat-completions/response.json",
+      "base64ImageRequest/chat-completions/response-streaming.json",
+      "base64ImageRequest/chat-completions/followup-request.json",
+      "base64ImageRequest/chat-completions/followup-response.json",
+      "base64ImageRequest/chat-completions/followup-response-streaming.json"
+    ]
+  },
+  "chat-completions:systemPromptRequest": {
+    "payloadHash": "a79e73dfbd3ce6f4895d2743ce7079e0aacd4ec4ebf9d7e2e4affb44c8bd3114",
+    "capturedAt": "2025-11-05T22:05:03.580Z",
+    "provider": "chat-completions",
+    "name": "systemPromptRequest",
+    "files": [
+      "systemPromptRequest/chat-completions/request.json",
+      "systemPromptRequest/chat-completions/response.json",
+      "systemPromptRequest/chat-completions/response-streaming.json",
+      "systemPromptRequest/chat-completions/followup-request.json",
+      "systemPromptRequest/chat-completions/followup-response.json",
+      "systemPromptRequest/chat-completions/followup-response-streaming.json"
+    ]
+  },
+  "chat-completions:mixedContentComplexRequest": {
+    "payloadHash": "44fabdfc72a331b5cafab54e94ecbc96d093f5fe7ceca1e65f567d28cb709a95",
+    "capturedAt": "2025-11-05T22:05:13.915Z",
+    "provider": "chat-completions",
+    "name": "mixedContentComplexRequest",
+    "files": [
+      "mixedContentComplexRequest/chat-completions/request.json",
+      "mixedContentComplexRequest/chat-completions/response.json",
+      "mixedContentComplexRequest/chat-completions/response-streaming.json",
+      "mixedContentComplexRequest/chat-completions/followup-request.json",
+      "mixedContentComplexRequest/chat-completions/followup-response.json",
+      "mixedContentComplexRequest/chat-completions/followup-response-streaming.json"
+    ]
   }
 }

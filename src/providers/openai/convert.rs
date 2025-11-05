@@ -1330,6 +1330,57 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     })
                 }
             }
+            openai::PurpleType::File => {
+                if let Some(file) = part.file {
+                    // Convert File to UserContentPart::File
+                    // Priority: file_data over file_id
+                    let (data, media_type) = if let Some(file_data) = file.file_data {
+                        // Extract media type from data URL if present (e.g., "data:application/pdf;base64,...")
+                        let media_type = if file_data.starts_with("data:") {
+                            file_data
+                                .split(';')
+                                .next()
+                                .and_then(|s| s.strip_prefix("data:"))
+                                .unwrap_or("application/octet-stream")
+                                .to_string()
+                        } else {
+                            "application/octet-stream".to_string()
+                        };
+
+                        let data_value = serde_json::to_value(&file_data).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "file_data".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?;
+                        (data_value, media_type)
+                    } else if let Some(file_id) = file.file_id {
+                        let data_value = serde_json::to_value(&file_id).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "file_id".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?;
+                        // File IDs don't have media type info, use generic
+                        (data_value, "application/octet-stream".to_string())
+                    } else {
+                        return Err(ConvertError::MissingRequiredField {
+                            field: "file_data or file_id".to_string(),
+                        });
+                    };
+
+                    Ok(UserContentPart::File {
+                        data,
+                        filename: file.filename,
+                        media_type,
+                        provider_options: None,
+                    })
+                } else {
+                    Err(ConvertError::MissingRequiredField {
+                        field: "file".to_string(),
+                    })
+                }
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -1473,6 +1524,37 @@ fn convert_user_content_part_to_chat_completion_part(
                 image_url: Some(openai::ImageUrl { url, detail: None }),
                 input_audio: None,
                 file: None,
+                refusal: None,
+            })
+        }
+        UserContentPart::File {
+            data,
+            filename,
+            media_type: _,
+            provider_options: _,
+        } => {
+            // Convert file data to File format
+            let file_data = match data {
+                serde_json::Value::String(data_str) => data_str,
+                _ => {
+                    return Err(ConvertError::UnsupportedInputType {
+                        type_info: format!(
+                            "File data must be string for ChatCompletion, got: {:?}",
+                            data
+                        ),
+                    })
+                }
+            };
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: None,
+                chat_completion_request_message_content_part_type: openai::PurpleType::File,
+                image_url: None,
+                input_audio: None,
+                file: Some(openai::File {
+                    file_data: Some(file_data),
+                    file_id: None,
+                    filename,
+                }),
                 refusal: None,
             })
         }

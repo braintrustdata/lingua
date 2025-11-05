@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-CYfudvF9GXt9NFRQUirzxUUDyVFOE",
+  "object": "chat.completion",
+  "created": 1762380299,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here are a few options for what you can do next. Tell me which you’d like, or I can do a mix:\n\n- Write a caption or alt text for the image\n- Describe the scene and mood in more detail\n- Create a short story or poem inspired by the image\n- Generate a color palette or mood board from the image\n- Produce a prompt for AI art generation based on the scene\n- Improve or tailor a title for a project or presentation using this image\n\nIf you want, I can start with a caption or an alt description right away.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1567,
+    "completion_tokens": 253,
+    "total_tokens": 1820,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
