@@ -245,11 +245,12 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
             }
             openai::InputItemContentListType::InputFile => {
                 // Extract file data
-                let file_data = value
-                    .file_data
-                    .ok_or_else(|| ConvertError::MissingRequiredField {
-                        field: "file_data".to_string(),
-                    })?;
+                let file_data =
+                    value
+                        .file_data
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: "file_data".to_string(),
+                        })?;
 
                 // Extract filename if available
                 let filename = value.filename;
@@ -373,11 +374,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
-            UserContentPart::File {
-                data,
-                filename,
-                ..
-            } => {
+            UserContentPart::File { data, filename, .. } => {
                 let file_data = match data {
                     serde_json::Value::String(url) => url,
                     _ => {
@@ -846,16 +843,18 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                 }
                 Some(openai::OutputItemType::FunctionCall)
                 | Some(openai::OutputItemType::CustomToolCall) => {
-                    let tool_call_id = output.call_id.ok_or_else(|| {
-                        ConvertError::MissingRequiredField {
-                            field: "function call call_id".to_string(),
-                        }
-                    })?;
-                    let tool_name = output.name.ok_or_else(|| {
-                        ConvertError::MissingRequiredField {
-                            field: "function call name".to_string(),
-                        }
-                    })?;
+                    let tool_call_id =
+                        output
+                            .call_id
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call call_id".to_string(),
+                            })?;
+                    let tool_name =
+                        output
+                            .name
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call name".to_string(),
+                            })?;
                     let arguments_str = output.arguments.unwrap_or("{}".to_string());
 
                     let tool_call_part = AssistantContentPart::ToolCall {
@@ -873,11 +872,12 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                 }
                 _ => {
                     // Regular message - convert content from OutputMessageContent array
-                    let content_vec = output.content.ok_or_else(|| {
-                        ConvertError::MissingRequiredField {
-                            field: "content".to_string(),
-                        }
-                    })?;
+                    let content_vec =
+                        output
+                            .content
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "content".to_string(),
+                            })?;
 
                     // Convert OutputMessageContent to AssistantContent
                     let content = if content_vec.len() == 1
@@ -885,9 +885,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             == openai::ContentType::OutputText
                     {
                         // Single text item - use string format
-                        AssistantContent::String(
-                            content_vec[0].text.clone().unwrap_or_default(),
-                        )
+                        AssistantContent::String(content_vec[0].text.clone().unwrap_or_default())
                     } else {
                         // Multiple items or non-text - use array format
                         let parts: Result<Vec<AssistantContentPart>, _> = content_vec
@@ -945,7 +943,9 @@ impl TryFromLLM<Message> for openai::OutputItem {
                     }
                     AssistantContent::Array(parts) => {
                         // Check if this is a pure reasoning message (all parts are Reasoning)
-                        let all_reasoning = parts.iter().all(|p| matches!(p, AssistantContentPart::Reasoning { .. }));
+                        let all_reasoning = parts
+                            .iter()
+                            .all(|p| matches!(p, AssistantContentPart::Reasoning { .. }));
 
                         if all_reasoning && !parts.is_empty() {
                             // Convert all reasoning parts to summary_text items
@@ -987,9 +987,8 @@ impl TryFromLLM<Message> for openai::OutputItem {
                             } = &parts[0]
                             {
                                 let args_str = match arguments {
-                                    ToolCallArguments::Valid(map) => {
-                                        serde_json::to_string(map).unwrap_or_else(|_| "{}".to_string())
-                                    }
+                                    ToolCallArguments::Valid(map) => serde_json::to_string(map)
+                                        .unwrap_or_else(|_| "{}".to_string()),
                                     ToolCallArguments::Invalid(s) => s.clone(),
                                 };
 

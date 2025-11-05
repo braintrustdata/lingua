@@ -57,7 +57,9 @@ mod tests {
             // Convert response to universal
             |output_items: &Vec<OutputItem>| {
                 <Vec<Message> as TryFromLLM<Vec<OutputItem>>>::try_from(output_items.clone())
-                    .map_err(|e| format!("Failed to convert OutputItems to universal format: {}", e))
+                    .map_err(|e| {
+                        format!("Failed to convert OutputItems to universal format: {}", e)
+                    })
             },
             // Convert universal back to response (OutputItem)
             |messages: Vec<Message>| {
