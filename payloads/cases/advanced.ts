@@ -159,7 +159,29 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_completion_tokens: 300,
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: readFileAsBase64("test-image.png"),
+              },
+            },
+            {
+              type: "text",
+              text: "What color is this image?",
+            },
+          ],
+        },
+      ],
+    },
   },
 
   documentInputBase64Request: {
@@ -207,7 +229,29 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_completion_tokens: 300,
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "document",
+              source: {
+                type: "base64",
+                media_type: "application/pdf",
+                data: readFileAsBase64("test-document.pdf"),
+              },
+            },
+            {
+              type: "text",
+              text: "What is in this document?",
+            },
+          ],
+        },
+      ],
+    },
   },
 
   mixedContentComplexRequest: {
@@ -282,6 +326,43 @@ export const advancedCases: TestCaseCollection = {
       ],
       max_completion_tokens: 750,
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 750,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "First, look at this image:",
+            },
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: readFileAsBase64("test-image.png"),
+              },
+            },
+            {
+              type: "text",
+              text: "Then look at this one:",
+            },
+            {
+              type: "image",
+              source: {
+                type: "url",
+                url: "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+              },
+            },
+            {
+              type: "text",
+              text: "Now describe what you see and explain why it matters.",
+            },
+          ],
+        },
+      ],
+    },
   },
 };

@@ -1,0 +1,11 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 500,
+  "system": "You are a pirate. Always respond in pirate speak.",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tell me about the weather."
+    }
+  ]
+}

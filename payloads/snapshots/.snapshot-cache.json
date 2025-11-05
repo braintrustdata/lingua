@@ -291,5 +291,89 @@
       "mixedContentComplexRequest/chat-completions/followup-response.json",
       "mixedContentComplexRequest/chat-completions/followup-response-streaming.json"
     ]
+  },
+  "anthropic:multiTurnRequest": {
+    "payloadHash": "23aa1450befde9eccd1175fe51dc883ec2b7a2b9189dd47256b5211e5b2f60fe",
+    "capturedAt": "2025-11-05T22:31:31.529Z",
+    "provider": "anthropic",
+    "name": "multiTurnRequest",
+    "files": [
+      "multiTurnRequest/anthropic/request.json",
+      "multiTurnRequest/anthropic/response.json",
+      "multiTurnRequest/anthropic/response-streaming.json",
+      "multiTurnRequest/anthropic/followup-request.json",
+      "multiTurnRequest/anthropic/followup-response.json",
+      "multiTurnRequest/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "anthropic:prefillRequest": {
+    "payloadHash": "b357d8b7c4c362feb4534da5ab73bccb05bb64e9e5773e2f533fc7430468be82",
+    "capturedAt": "2025-11-05T22:31:32.457Z",
+    "provider": "anthropic",
+    "name": "prefillRequest",
+    "files": [
+      "prefillRequest/anthropic/request.json",
+      "prefillRequest/anthropic/response.json",
+      "prefillRequest/anthropic/response-streaming.json",
+      "prefillRequest/anthropic/followup-request.json",
+      "prefillRequest/anthropic/followup-response.json",
+      "prefillRequest/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "anthropic:documentInputBase64Request": {
+    "payloadHash": "14a072e3ed256997b4d6e546c0af509d015583e5b34fa380e4a536d69af441be",
+    "capturedAt": "2025-11-05T22:31:36.504Z",
+    "provider": "anthropic",
+    "name": "documentInputBase64Request",
+    "files": [
+      "documentInputBase64Request/anthropic/request.json",
+      "documentInputBase64Request/anthropic/response.json",
+      "documentInputBase64Request/anthropic/response-streaming.json",
+      "documentInputBase64Request/anthropic/followup-request.json",
+      "documentInputBase64Request/anthropic/followup-response.json",
+      "documentInputBase64Request/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "anthropic:base64ImageRequest": {
+    "payloadHash": "ea95b0efa6efc577e2177dde5b8d08127d55fc9d14c596b1fac0f958c9003233",
+    "capturedAt": "2025-11-05T22:31:36.907Z",
+    "provider": "anthropic",
+    "name": "base64ImageRequest",
+    "files": [
+      "base64ImageRequest/anthropic/request.json",
+      "base64ImageRequest/anthropic/response.json",
+      "base64ImageRequest/anthropic/response-streaming.json",
+      "base64ImageRequest/anthropic/followup-request.json",
+      "base64ImageRequest/anthropic/followup-response.json",
+      "base64ImageRequest/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "anthropic:systemPromptRequest": {
+    "payloadHash": "329abcc60c042edc610aa538d15136c9f64c607ff7ea893bcede9c3fc1cfe8c6",
+    "capturedAt": "2025-11-05T22:31:39.810Z",
+    "provider": "anthropic",
+    "name": "systemPromptRequest",
+    "files": [
+      "systemPromptRequest/anthropic/request.json",
+      "systemPromptRequest/anthropic/response.json",
+      "systemPromptRequest/anthropic/response-streaming.json",
+      "systemPromptRequest/anthropic/followup-request.json",
+      "systemPromptRequest/anthropic/followup-response.json",
+      "systemPromptRequest/anthropic/followup-response-streaming.json"
+    ]
+  },
+  "anthropic:mixedContentComplexRequest": {
+    "payloadHash": "522d03f2dab137930ee206e1101f2eb01e4acde6109cb0aff6c57a8cf1d95dff",
+    "capturedAt": "2025-11-05T22:31:46.036Z",
+    "provider": "anthropic",
+    "name": "mixedContentComplexRequest",
+    "files": [
+      "mixedContentComplexRequest/anthropic/request.json",
+      "mixedContentComplexRequest/anthropic/response.json",
+      "mixedContentComplexRequest/anthropic/response-streaming.json",
+      "mixedContentComplexRequest/anthropic/followup-request.json",
+      "mixedContentComplexRequest/anthropic/followup-response.json",
+      "mixedContentComplexRequest/anthropic/followup-response-streaming.json"
+    ]
   }
 }

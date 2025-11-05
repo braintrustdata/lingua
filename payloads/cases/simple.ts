@@ -234,7 +234,17 @@ export const simpleCases: TestCaseCollection = {
       ],
       max_completion_tokens: 500,
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 500,
+      system: "You are a pirate. Always respond in pirate speak.",
+      messages: [
+        {
+          role: "user",
+          content: "Tell me about the weather.",
+        },
+      ],
+    },
   },
 
   multiTurnRequest: {
@@ -276,7 +286,24 @@ export const simpleCases: TestCaseCollection = {
       ],
       max_completion_tokens: 300,
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: "Hi, my name is Alice.",
+        },
+        {
+          role: "assistant",
+          content: "Hello Alice! Nice to meet you.",
+        },
+        {
+          role: "user",
+          content: "What did I just tell you my name was?",
+        },
+      ],
+    },
   },
 
   prefillRequest: {
@@ -310,7 +337,20 @@ export const simpleCases: TestCaseCollection = {
       ],
       max_completion_tokens: 300,
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: "Write a haiku about coding.",
+        },
+        {
+          role: "assistant",
+          content: "Here is a haiku:",
+        },
+      ],
+    },
   },
 
   reasoningWithOutput: {
