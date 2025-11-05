@@ -1,0 +1,211 @@
+{
+  "responses:temperatureVariation2Request": {
+    "payloadHash": "acb7532aad7d81a0a3471d8f5e1852158be31cd292e7851b58c8daf162cf3dac",
+    "capturedAt": "2025-11-05T18:43:45.991Z",
+    "provider": "responses",
+    "name": "temperatureVariation2Request",
+    "files": [
+      "temperatureVariation2Request/responses/request.json",
+      "temperatureVariation2Request/responses/error.json"
+    ]
+  },
+  "responses:temperatureVariation0Request": {
+    "payloadHash": "c852d5f1a3c4efefdf36365613f8daa2832a5d1bf450a3a052d58766740decb0",
+    "capturedAt": "2025-11-05T18:43:45.994Z",
+    "provider": "responses",
+    "name": "temperatureVariation0Request",
+    "files": [
+      "temperatureVariation0Request/responses/request.json",
+      "temperatureVariation0Request/responses/error.json"
+    ]
+  },
+  "responses:temperatureVariation1Request": {
+    "payloadHash": "7561b43259af504ae92e2fcc114fd131f7d8aac9a5ebf3a5159400cea3b4cd6f",
+    "capturedAt": "2025-11-05T18:43:46.066Z",
+    "provider": "responses",
+    "name": "temperatureVariation1Request",
+    "files": [
+      "temperatureVariation1Request/responses/request.json",
+      "temperatureVariation1Request/responses/error.json"
+    ]
+  },
+  "responses:systemPromptRequest": {
+    "payloadHash": "df2e9e853b0fdd67bc992413ac0eb87f45476a7143865a069aa906eb90e6eb13",
+    "capturedAt": "2025-11-05T21:40:38.795Z",
+    "provider": "responses",
+    "name": "systemPromptRequest",
+    "files": [
+      "systemPromptRequest/responses/request.json",
+      "systemPromptRequest/responses/response.json",
+      "systemPromptRequest/responses/response-streaming.json",
+      "systemPromptRequest/responses/followup-request.json",
+      "systemPromptRequest/responses/followup-response.json",
+      "systemPromptRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:documentInputBase64Request": {
+    "payloadHash": "bce9cf886154e160c3568d79a5da71b8ea15bea48ecd7b80d199d8f2f03119b0",
+    "capturedAt": "2025-11-05T21:36:26.965Z",
+    "provider": "responses",
+    "name": "documentInputBase64Request",
+    "files": [
+      "documentInputBase64Request/responses/request.json",
+      "documentInputBase64Request/responses/response.json",
+      "documentInputBase64Request/responses/response-streaming.json",
+      "documentInputBase64Request/responses/followup-request.json",
+      "documentInputBase64Request/responses/followup-response.json",
+      "documentInputBase64Request/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:prefillRequest": {
+    "payloadHash": "05495268ad633e369c65622fd7559306f5f2ad6e248d80a3e3bd9bb847d300e1",
+    "capturedAt": "2025-11-05T21:36:25.523Z",
+    "provider": "responses",
+    "name": "prefillRequest",
+    "files": [
+      "prefillRequest/responses/request.json",
+      "prefillRequest/responses/response.json",
+      "prefillRequest/responses/response-streaming.json",
+      "prefillRequest/responses/followup-request.json",
+      "prefillRequest/responses/followup-response.json",
+      "prefillRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:multiTurnRequest": {
+    "payloadHash": "cf22da572e990d3395029a994889a3ab0f518f16f5df16d8d57ea044a5258c16",
+    "capturedAt": "2025-11-05T21:36:26.205Z",
+    "provider": "responses",
+    "name": "multiTurnRequest",
+    "files": [
+      "multiTurnRequest/responses/request.json",
+      "multiTurnRequest/responses/response.json",
+      "multiTurnRequest/responses/response-streaming.json",
+      "multiTurnRequest/responses/followup-request.json",
+      "multiTurnRequest/responses/followup-response.json",
+      "multiTurnRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:reasoningRequestTruncated": {
+    "payloadHash": "27987a459b6414c5ad81f0403eb5f8c4c4d78d3eda0cd8d546b185720e7811d7",
+    "capturedAt": "2025-11-05T18:43:50.038Z",
+    "provider": "responses",
+    "name": "reasoningRequestTruncated",
+    "files": [
+      "reasoningRequestTruncated/responses/request.json",
+      "reasoningRequestTruncated/responses/response.json",
+      "reasoningRequestTruncated/responses/response-streaming.json"
+    ]
+  },
+  "responses:simpleRequest": {
+    "payloadHash": "5b1d089c0a824dfb9bb0670f6cfbcb817ce6252908c20ceb18cb914b97d87377",
+    "capturedAt": "2025-11-05T18:43:50.791Z",
+    "provider": "responses",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/responses/request.json",
+      "simpleRequest/responses/response.json",
+      "simpleRequest/responses/response-streaming.json",
+      "simpleRequest/responses/followup-request.json",
+      "simpleRequest/responses/followup-response.json",
+      "simpleRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:mixedContentComplexRequest": {
+    "payloadHash": "df1ca9b450b73d2e2c74db694d17ee3276419bf80500497262f3fd1aacb70b9a",
+    "capturedAt": "2025-11-05T21:40:56.298Z",
+    "provider": "responses",
+    "name": "mixedContentComplexRequest",
+    "files": [
+      "mixedContentComplexRequest/responses/request.json",
+      "mixedContentComplexRequest/responses/response.json",
+      "mixedContentComplexRequest/responses/response-streaming.json",
+      "mixedContentComplexRequest/responses/followup-request.json",
+      "mixedContentComplexRequest/responses/followup-response.json",
+      "mixedContentComplexRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:base64ImageRequest": {
+    "payloadHash": "9f57cd553c2528228cb6e47006a7bf775757f2434151a48f194064fe89d1005b",
+    "capturedAt": "2025-11-05T21:36:42.977Z",
+    "provider": "responses",
+    "name": "base64ImageRequest",
+    "files": [
+      "base64ImageRequest/responses/request.json",
+      "base64ImageRequest/responses/response.json",
+      "base64ImageRequest/responses/response-streaming.json",
+      "base64ImageRequest/responses/followup-request.json",
+      "base64ImageRequest/responses/followup-response.json",
+      "base64ImageRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:reasoningWithOutput": {
+    "payloadHash": "990d926000271a1be1e1d698eb9344eb5215479aa9946d6a36e4277b99066aee",
+    "capturedAt": "2025-11-05T18:43:54.461Z",
+    "provider": "responses",
+    "name": "reasoningWithOutput",
+    "files": [
+      "reasoningWithOutput/responses/request.json",
+      "reasoningWithOutput/responses/response.json",
+      "reasoningWithOutput/responses/response-streaming.json",
+      "reasoningWithOutput/responses/followup-request.json",
+      "reasoningWithOutput/responses/followup-response.json",
+      "reasoningWithOutput/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:multimodalRequest": {
+    "payloadHash": "cf21e8138cb36794c5f69f5d8048556176299d6e8170fb2126cd0950e75c2125",
+    "capturedAt": "2025-11-05T18:43:54.935Z",
+    "provider": "responses",
+    "name": "multimodalRequest",
+    "files": [
+      "multimodalRequest/responses/request.json",
+      "multimodalRequest/responses/response.json",
+      "multimodalRequest/responses/response-streaming.json",
+      "multimodalRequest/responses/followup-request.json",
+      "multimodalRequest/responses/followup-response.json",
+      "multimodalRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:toolCallRequest": {
+    "payloadHash": "5742d5f28d4733db0adf74a1ac5d80521b76972eb8102bcf0e7023b48d1f30fa",
+    "capturedAt": "2025-11-05T18:43:55.372Z",
+    "provider": "responses",
+    "name": "toolCallRequest",
+    "files": [
+      "toolCallRequest/responses/request.json",
+      "toolCallRequest/responses/response.json",
+      "toolCallRequest/responses/response-streaming.json",
+      "toolCallRequest/responses/followup-request.json",
+      "toolCallRequest/responses/followup-response.json",
+      "toolCallRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:reasoningRequest": {
+    "payloadHash": "3d9bf2ca6eb2e97141c96eadeb8424a66d44f6ce13f5eb1ae05a5903a6cd6680",
+    "capturedAt": "2025-11-05T18:45:17.569Z",
+    "provider": "responses",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/responses/request.json",
+      "reasoningRequest/responses/response.json",
+      "reasoningRequest/responses/response-streaming.json",
+      "reasoningRequest/responses/followup-request.json",
+      "reasoningRequest/responses/followup-response.json",
+      "reasoningRequest/responses/followup-response-streaming.json"
+    ]
+  },
+  "responses:complexReasoningRequest": {
+    "payloadHash": "7c8a2cac3f3840ef5801a9b8b02a3d8fec36651c89bb12da25078f3019185284",
+    "capturedAt": "2025-11-05T18:47:12.933Z",
+    "provider": "responses",
+    "name": "complexReasoningRequest",
+    "files": [
+      "complexReasoningRequest/responses/request.json",
+      "complexReasoningRequest/responses/response.json",
+      "complexReasoningRequest/responses/response-streaming.json",
+      "complexReasoningRequest/responses/followup-request.json",
+      "complexReasoningRequest/responses/followup-response.json",
+      "complexReasoningRequest/responses/followup-response-streaming.json"
+    ]
+  }
+}

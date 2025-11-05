@@ -1,0 +1,74 @@
+{
+  "id": "resp_03bc798fabffcfbb00690bc356f96481909f3c9e70b5d1fdd9",
+  "object": "response",
+  "created_at": 1762378583,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_03bc798fabffcfbb00690bc35a1a44819095d7124a55db686b",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_03bc798fabffcfbb00690bc35aa79c8190a9a9cfa98fb0ffe4",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": " predominantly blue. The scene features dark stormy blues, teal waves, and white highlights."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 1548,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 24,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 1572
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": " predominantly blue. The scene features dark stormy blues, teal waves, and white highlights."
+}

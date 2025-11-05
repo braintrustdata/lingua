@@ -1,0 +1,40 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "Write a haiku about coding."
+    },
+    {
+      "role": "assistant",
+      "content": "Here is a haiku:"
+    },
+    {
+      "id": "rs_0d8f4d68bc8e2c8800690bc355ff588194a46c34fd67aca1b9",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0d8f4d68bc8e2c8800690bc35617988194b643fa72033e7f40",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Lines glow in the night code,\nlogic breathes in quiet точь,\nbugs fade, dawn compiles."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_output_tokens": 300
+}

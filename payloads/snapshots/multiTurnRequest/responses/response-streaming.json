@@ -1,0 +1,320 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "id": "resp_06d826d421ae2faa00690bc35590b0819483e1f52fb2698ee0",
+      "object": "response",
+      "created_at": 1762378581,
+      "status": "in_progress",
+      "background": false,
+      "error": null,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "minimal",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "id": "resp_06d826d421ae2faa00690bc35590b0819483e1f52fb2698ee0",
+      "object": "response",
+      "created_at": 1762378581,
+      "status": "in_progress",
+      "background": false,
+      "error": null,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "minimal",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "id": "rs_06d826d421ae2faa00690bc35615a0819485f767f3d6fba820",
+      "type": "reasoning",
+      "summary": []
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 3,
+    "output_index": 0,
+    "item": {
+      "id": "rs_06d826d421ae2faa00690bc35615a0819485f767f3d6fba820",
+      "type": "reasoning",
+      "summary": []
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 4,
+    "output_index": 1,
+    "item": {
+      "id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "role": "assistant"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 5,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": "You",
+    "logprobs": [],
+    "obfuscation": "TRZA25Ysfv7A1"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " said",
+    "logprobs": [],
+    "obfuscation": "lmhIjLpLN7L"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " your",
+    "logprobs": [],
+    "obfuscation": "U7w2lr9z5mp"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " name",
+    "logprobs": [],
+    "obfuscation": "hHGjwxVVWUQ"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " is",
+    "logprobs": [],
+    "obfuscation": "ff9HzYN9zqeZQ"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": " Alice",
+    "logprobs": [],
+    "obfuscation": "cRxGNEJ5c6"
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "delta": ".",
+    "logprobs": [],
+    "obfuscation": "fAaGG66S97mgH9q"
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 13,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "text": "You said your name is Alice.",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 14,
+    "item_id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+    "output_index": 1,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "You said your name is Alice."
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 15,
+    "output_index": 1,
+    "item": {
+      "id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "You said your name is Alice."
+        }
+      ],
+      "role": "assistant"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 16,
+    "response": {
+      "id": "resp_06d826d421ae2faa00690bc35590b0819483e1f52fb2698ee0",
+      "object": "response",
+      "created_at": 1762378581,
+      "status": "completed",
+      "background": false,
+      "error": null,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [
+        {
+          "id": "rs_06d826d421ae2faa00690bc35615a0819485f767f3d6fba820",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "msg_06d826d421ae2faa00690bc356314081949568c8bf76850a1d",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "You said your name is Alice."
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "minimal",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 41,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 13,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 54
+      },
+      "user": null,
+      "metadata": {}
+    }
+  }
+]

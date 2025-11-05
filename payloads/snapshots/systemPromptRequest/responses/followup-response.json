@@ -1,0 +1,74 @@
+{
+  "id": "resp_09e9047b51f8b59d00690bc452f1848195839be7b001fbbbcd",
+  "object": "response",
+  "created_at": 1762378834,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 500,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_09e9047b51f8b59d00690bc4534d888195890d0a8cc2f17e56",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_09e9047b51f8b59d00690bc45368208195bbd453626f6cf778",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Arrr, ye be askin’ what to do next, matey? Here be a handful o’ steady steps to keep ye from walkin’ the plank:\n\n- Clarify yer aim: What be yer treasure? A goal, a task, or a problem to solve? Name it plain as the Jolly Roger.\n- Map it out: Break the voyage into small steps. Make a to-do list o’ 3–5 tasks, each with a rough ETA.\n- Weigh the weather: Consider risks, resources, and time. If a squall be brewin’, chart a safer course or delay.\n- Prioritize: Do the high-impact tasks first. If ye only have a wee bit o’ time, pick the one that’ll move the needle most.\n- Gather yer crew: Ask for help if ye need it. A stronger gang makes for quicker plunder—and less mutiny.\n- Check yer progress: Set a quick check-in to see how ye be doin’ and adjust course if needed.\n- Stay adaptable: Be ready to reroute if new info surfaces or winds change.\n\nIf ye tell me what ye’re workin’ on—be it a project, a decision, or a problem—I’ll chart a course with concrete next steps, arrr!"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 307,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 267,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 574
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Arrr, ye be askin’ what to do next, matey? Here be a handful o’ steady steps to keep ye from walkin’ the plank:\n\n- Clarify yer aim: What be yer treasure? A goal, a task, or a problem to solve? Name it plain as the Jolly Roger.\n- Map it out: Break the voyage into small steps. Make a to-do list o’ 3–5 tasks, each with a rough ETA.\n- Weigh the weather: Consider risks, resources, and time. If a squall be brewin’, chart a safer course or delay.\n- Prioritize: Do the high-impact tasks first. If ye only have a wee bit o’ time, pick the one that’ll move the needle most.\n- Gather yer crew: Ask for help if ye need it. A stronger gang makes for quicker plunder—and less mutiny.\n- Check yer progress: Set a quick check-in to see how ye be doin’ and adjust course if needed.\n- Stay adaptable: Be ready to reroute if new info surfaces or winds change.\n\nIf ye tell me what ye’re workin’ on—be it a project, a decision, or a problem—I’ll chart a course with concrete next steps, arrr!"
+}

@@ -1,0 +1,74 @@
+{
+  "id": "resp_0d8f4d68bc8e2c8800690bc356e3288194a03d1dd09e069f89",
+  "object": "response",
+  "created_at": 1762378582,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0d8f4d68bc8e2c8800690bc3574fc48194aa76cb86553c5d7e",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0d8f4d68bc8e2c8800690bc35769e48194949caa170e11a4e4",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here are a few options, depending on what you’re after:\n\n- If you want more poetry: I can craft another haiku about coding, or write a different form (tanka, sonnet, micro-poem).\n- If you want coding practice: share a language and a small problem, and I’ll give you a challenge with tips and a sample solution.\n- If you want feedback: paste a piece of code or a poem, and I’ll offer ideas for improvement.\n- If you want inspiration: I can suggest themes or prompts for your next coding project or poem.\n\nTell me which direction you’d prefer."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 63,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 131,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 194
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here are a few options, depending on what you’re after:\n\n- If you want more poetry: I can craft another haiku about coding, or write a different form (tanka, sonnet, micro-poem).\n- If you want coding practice: share a language and a small problem, and I’ll give you a challenge with tips and a sample solution.\n- If you want feedback: paste a piece of code or a poem, and I’ll offer ideas for improvement.\n- If you want inspiration: I can suggest themes or prompts for your next coding project or poem.\n\nTell me which direction you’d prefer."
+}

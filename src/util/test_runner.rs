@@ -105,19 +105,10 @@ where
             serde_json::to_string_pretty(&roundtripped_response).unwrap()
         );
 
-        // For response comparison, we need to handle different types differently
-        // Since diff_serializable expects slices, we'll serialize both to JSON and compare
-        let original_json = serde_json::to_value(&response_content)
-            .map_err(|e| format!("Failed to serialize original response: {}", e))?;
-        let roundtripped_json = serde_json::to_value(&roundtripped_response)
-            .map_err(|e| format!("Failed to serialize roundtripped response: {}", e))?;
-
-        if original_json != roundtripped_json {
-            return Err(format!(
-                "Response roundtrip conversion failed:\nOriginal: {}\nRoundtripped: {}",
-                serde_json::to_string_pretty(&original_json).unwrap(),
-                serde_json::to_string_pretty(&roundtripped_json).unwrap()
-            ));
+        // Compare response using the same colored diff as request roundtrip
+        let diff = diff_serializable(&[&response_content], &[&roundtripped_response], "response");
+        if !diff.starts_with("✅") {
+            return Err(format!("Response roundtrip conversion failed:\n{}", diff));
         }
 
         println!(

@@ -4,6 +4,7 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
 } from "./models";
+import { readFileAsBase64 } from "./utils";
 
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
@@ -114,124 +115,95 @@ export const advancedCases: TestCaseCollection = {
     },
   },
 
-  reasoningWithOutput: {
+  base64ImageRequest: {
     responses: {
       model: OPENAI_RESPONSES_MODEL,
-      reasoning: { effort: "low" },
+      reasoning: { effort: "minimal" },
       input: [
         {
           role: "user",
-          content: "What color is the sky?",
+          content: [
+            {
+              type: "input_image",
+              detail: "auto",
+              image_url: `data:image/png;base64,${readFileAsBase64("test-image.png")}`,
+            },
+            {
+              type: "input_text",
+              text: "What color is this image?",
+            },
+          ],
         },
       ],
+      max_output_tokens: 300,
     },
-    "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
-      messages: [
-        {
-          role: "user",
-          content: "What color is the sky?",
-        },
-      ],
-    },
-    anthropic: {
-      model: ANTHROPIC_MODEL,
-      max_tokens: 20000,
-      messages: [
-        {
-          role: "user",
-          content: "What color is the sky?",
-        },
-      ],
-    },
+    "chat-completions": null,
+    anthropic: null,
   },
 
-  toolCallRequest: {
-    "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
-      messages: [
-        {
-          role: "user",
-          content: "What's the weather like in San Francisco?",
-        },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "get_weather",
-            description: "Get the current weather for a location",
-            parameters: {
-              type: "object",
-              properties: {
-                location: {
-                  type: "string",
-                  description: "The city and state, e.g. San Francisco, CA",
-                },
-              },
-              required: ["location"],
-            },
-          },
-        },
-      ],
-      tool_choice: "auto",
-    },
-    anthropic: {
-      model: ANTHROPIC_MODEL,
-      max_tokens: 20000,
-      messages: [
-        {
-          role: "user",
-          content: "What's the weather like in San Francisco?",
-        },
-      ],
-      tools: [
-        {
-          name: "get_weather",
-          description: "Get the current weather for a location",
-          input_schema: {
-            type: "object",
-            properties: {
-              location: {
-                type: "string",
-                description: "The city and state, e.g. San Francisco, CA",
-              },
-            },
-            required: ["location"],
-          },
-        },
-      ],
-      tool_choice: {
-        type: "auto",
-      },
-    },
+  documentInputBase64Request: {
     responses: {
       model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "minimal" },
       input: [
         {
           role: "user",
-          content: "What's the weather like in San Francisco?",
-        },
-      ],
-      tools: [
-        {
-          type: "function",
-          name: "get_weather",
-          description: "Get the current weather for a location",
-          parameters: {
-            type: "object",
-            properties: {
-              location: {
-                type: "string",
-                description: "The city and state, e.g. San Francisco, CA",
-              },
+          content: [
+            {
+              type: "input_file",
+              file_data: `data:application/pdf;base64,${readFileAsBase64("test-document.pdf")}`,
+              filename: "test-document.pdf",
             },
-            required: ["location"],
-          },
-          strict: false,
+            {
+              type: "input_text",
+              text: "What is in this document?",
+            },
+          ],
         },
       ],
-      tool_choice: "auto",
+      max_output_tokens: 300,
     },
+    "chat-completions": null,
+    anthropic: null,
+  },
+
+  mixedContentComplexRequest: {
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "minimal" },
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "First, look at this image:",
+            },
+            {
+              type: "input_image",
+              detail: "auto",
+              image_url: `data:image/png;base64,${readFileAsBase64("test-image.png")}`,
+            },
+            {
+              type: "input_text",
+              text: "Then look at this one:",
+            },
+            {
+              type: "input_image",
+              detail: "auto",
+              image_url:
+                "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            },
+            {
+              type: "input_text",
+              text: "Now describe what you see and explain why it matters.",
+            },
+          ],
+        },
+      ],
+      max_output_tokens: 750,
+    },
+    "chat-completions": null,
+    anthropic: null,
   },
 };

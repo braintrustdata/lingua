@@ -1,0 +1,44 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi, my name is Alice."
+    },
+    {
+      "role": "assistant",
+      "content": "Hello Alice! Nice to meet you."
+    },
+    {
+      "role": "user",
+      "content": "What did I just tell you my name was?"
+    },
+    {
+      "id": "rs_047875f6e678ca3700690bc3560f808195817bf5ae9b9dd421",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_047875f6e678ca3700690bc356348c819588214ab147e4b8c4",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "You told me your name is Alice. Nice to meet you, Alice!"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_output_tokens": 300
+}

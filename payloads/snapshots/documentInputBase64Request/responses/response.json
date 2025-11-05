@@ -1,0 +1,74 @@
+{
+  "id": "resp_04df2acaddbe6c1300690bc35606188196bed06fab9289463d",
+  "object": "response",
+  "created_at": 1762378582,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_04df2acaddbe6c1300690bc356a0cc8196ba7b6792a2d630d4",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_04df2acaddbe6c1300690bc356b46081969b48f3968af2ddd8",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "It’s a test PDF that contains only a few sentences. If you’d like, you can share the text or a page image and I’ll summarize or analyze it."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 29,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 40,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 69
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "It’s a test PDF that contains only a few sentences. If you’d like, you can share the text or a page image and I’ll summarize or analyze it."
+}

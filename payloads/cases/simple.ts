@@ -202,4 +202,100 @@ export const simpleCases: TestCaseCollection = {
       ],
     },
   },
+
+  systemPromptRequest: {
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "minimal" },
+      input: [
+        {
+          role: "system",
+          content: "You are a pirate. Always respond in pirate speak.",
+        },
+        {
+          role: "user",
+          content: "Tell me about the weather.",
+        },
+      ],
+      max_output_tokens: 500,
+    },
+    "chat-completions": null,
+    anthropic: null,
+  },
+
+  multiTurnRequest: {
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "minimal" },
+      input: [
+        {
+          role: "user",
+          content: "Hi, my name is Alice.",
+        },
+        {
+          role: "assistant",
+          content: "Hello Alice! Nice to meet you.",
+        },
+        {
+          role: "user",
+          content: "What did I just tell you my name was?",
+        },
+      ],
+      max_output_tokens: 300,
+    },
+    "chat-completions": null,
+    anthropic: null,
+  },
+
+  prefillRequest: {
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "minimal" },
+      input: [
+        {
+          role: "user",
+          content: "Write a haiku about coding.",
+        },
+        {
+          role: "assistant",
+          content: "Here is a haiku:",
+        },
+      ],
+      max_output_tokens: 300,
+    },
+    "chat-completions": null,
+    anthropic: null,
+  },
+
+  reasoningWithOutput: {
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "low" },
+      input: [
+        {
+          role: "user",
+          content: "What color is the sky?",
+        },
+      ],
+    },
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What color is the sky?",
+        },
+      ],
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 20000,
+      messages: [
+        {
+          role: "user",
+          content: "What color is the sky?",
+        },
+      ],
+    },
+  },
 };

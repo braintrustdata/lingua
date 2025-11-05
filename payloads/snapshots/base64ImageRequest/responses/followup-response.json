@@ -1,0 +1,74 @@
+{
+  "id": "resp_03bc798fabffcfbb00690bc35e231881909c0d14c7e59f242c",
+  "object": "response",
+  "created_at": 1762378590,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_03bc798fabffcfbb00690bc36965e081909ae28c81d601e730",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_03bc798fabffcfbb00690bc3696ae081909054cf77dedb4a90",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "It depends on what you’re aiming for. A few options:\n- If you’re creating art: add contrast by tweaking lighting, or add a focal point (like a figure on deck) to draw the eye.\n- If you’re editing: try adjusting brightness/contrast and cool-toned color grading to enhance the blue/teal mood.\n- If you’re writing a story: use the stormy sea as a trigger—what happens to the crew, a stormy fate, a daring escape?\n- If you’re learning: analyze how color and composition create drama; notice the contrast between the dark clouds and bright waves.\n\nTell me your goal and I’ll give a tailored step-by-step."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 1582,
+    "input_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "output_tokens": 146,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 1728
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "It depends on what you’re aiming for. A few options:\n- If you’re creating art: add contrast by tweaking lighting, or add a focal point (like a figure on deck) to draw the eye.\n- If you’re editing: try adjusting brightness/contrast and cool-toned color grading to enhance the blue/teal mood.\n- If you’re writing a story: use the stormy sea as a trigger—what happens to the crew, a stormy fate, a daring escape?\n- If you’re learning: analyze how color and composition create drama; notice the contrast between the dark clouds and bright waves.\n\nTell me your goal and I’ll give a tailored step-by-step."
+}
