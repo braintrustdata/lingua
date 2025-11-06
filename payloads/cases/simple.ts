@@ -170,6 +170,7 @@ export const simpleCases: TestCaseCollection = {
               },
             },
             required: ["location"],
+            additionalProperties: false,
           },
         },
       ],
