@@ -32,9 +32,7 @@
     "build:types": "tsup",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
-    "test:run": "vitest run",
-    "test:integration": "dotenv -e .env -- vitest run tests/integration",
-    "test:integration:watch": "dotenv -e .env -- vitest tests/integration",
+    "test:run": "pnpm build && vitest run",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build"
   },
