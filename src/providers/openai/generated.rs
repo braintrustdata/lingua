@@ -1604,7 +1604,7 @@ pub enum ChatStreamResponseObject {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export_to = "openai/")]
+#[ts(export, export_to = "openai/")]
 pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,

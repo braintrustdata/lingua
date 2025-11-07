@@ -33,6 +33,11 @@ export * from "./generated/ToolResultResponsePart";
 export * from "./generated/UserContent";
 export * from "./generated/UserContentPart";
 
+// Re-export OpenAI provider types
+export * from "./generated/openai/CreateResponseClass";
+export * from "./generated/openai/Reasoning";
+export * from "./generated/openai/TextClass";
+
 // Main type aliases for convenience
 export type { Message } from "./generated/Message";
 
