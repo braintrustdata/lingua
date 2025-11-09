@@ -496,6 +496,50 @@ export function validateAnthropicResponse(
 }
 
 // ============================================================================
+// Tool conversions
+// ============================================================================
+
+/**
+ * Convert array of Anthropic tools to Lingua Tools
+ *
+ * @throws {ConversionError} If conversion fails
+ */
+export const anthropicToolsToLingua = createToLinguaConverter<any[]>(
+  () => getWasm().anthropic_tools_to_lingua,
+  "Anthropic"
+);
+
+/**
+ * Convert array of Lingua Tools to Anthropic tools
+ *
+ * @throws {ConversionError} If conversion fails
+ */
+export const linguaToolsToAnthropic = createFromLinguaConverter<any[], any[]>(
+  () => getWasm().lingua_tools_to_anthropic,
+  "Anthropic"
+);
+
+/**
+ * Convert array of OpenAI tools to Lingua Tools
+ *
+ * @throws {ConversionError} If conversion fails
+ */
+export const openaiToolsToLingua = createToLinguaConverter<any[]>(
+  () => getWasm().openai_tools_to_lingua,
+  "OpenAI"
+);
+
+/**
+ * Convert array of Lingua Tools to OpenAI tools
+ *
+ * @throws {ConversionError} If conversion fails
+ */
+export const linguaToolsToOpenAI = createFromLinguaConverter<any[], any[]>(
+  () => getWasm().lingua_tools_to_openai,
+  "OpenAI"
+);
+
+// ============================================================================
 // Type re-exports
 // ============================================================================
 
@@ -503,3 +547,4 @@ export type { Message } from "./generated/Message";
 export type { ChatCompletionRequestMessage } from "./generated/openai/ChatCompletionRequestMessage";
 export type { InputItem } from "./generated/openai/InputItem";
 export type { InputMessage } from "./generated/anthropic/InputMessage";
+export type { Tool } from "./generated/Tool";

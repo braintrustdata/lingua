@@ -32,9 +32,16 @@ export * from "./generated/ToolResultContentPart";
 export * from "./generated/ToolResultResponsePart";
 export * from "./generated/UserContent";
 export * from "./generated/UserContentPart";
+export * from "./generated/Tool";
+export * from "./generated/ClientTool";
+export * from "./generated/ProviderTool";
 
 // Main type aliases for convenience
 export type { Message } from "./generated/Message";
+export type { Tool } from "./generated/Tool";
+
+// Tool helper functions
+export { clientTool, providerTool, ProviderTools } from "./tools";
 
 // Version info
 export { VERSION } from "./version";

@@ -1,7 +1,8 @@
 use crate::providers::anthropic::generated;
 use crate::universal::{
-    convert::TryFromLLM, AssistantContent, AssistantContentPart, Message, TextContentPart,
-    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    convert::TryFromLLM, AssistantContent, AssistantContentPart, ClientTool, Message, ProviderTool,
+    TextContentPart, Tool, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
+    UserContentPart,
 };
 
 impl TryFromLLM<generated::InputMessage> for Message {
@@ -683,5 +684,337 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
         }
 
         Ok(content_blocks)
+    }
+}
+
+// ============================================================================
+// Tool Conversions
+// ============================================================================
+
+/// Convert Lingua Tool to Anthropic Tool
+impl TryFromLLM<Tool> for generated::Tool {
+    type Error = String;
+
+    fn try_from(tool: Tool) -> Result<Self, Self::Error> {
+        match tool {
+            Tool::Client(client_tool) => {
+                // Convert JSON Schema to Anthropic's InputSchema format
+                let schema_obj: serde_json::Map<String, serde_json::Value> =
+                    serde_json::from_value(client_tool.input_schema.clone()).map_err(|e| {
+                        format!("Invalid input_schema, must be a JSON object: {}", e)
+                    })?;
+
+                // Extract properties and required fields if present
+                let properties = schema_obj
+                    .get("properties")
+                    .and_then(|p| p.as_object())
+                    .cloned();
+
+                let required = schema_obj
+                    .get("required")
+                    .and_then(|r| r.as_array())
+                    .map(|arr| {
+                        arr.iter()
+                            .filter_map(|v| v.as_str().map(String::from))
+                            .collect()
+                    });
+
+                Ok(generated::Tool {
+                    name: client_tool.name,
+                    description: Some(client_tool.description),
+                    input_schema: Some(generated::InputSchema {
+                        properties,
+                        required,
+                        input_schema_type: generated::InputSchemaType::Object,
+                    }),
+                    tool_type: Some(generated::ToolType::Custom),
+                    // All provider-specific fields are None for client tools
+                    cache_control: None,
+                    max_characters: None,
+                    allowed_domains: None,
+                    blocked_domains: None,
+                    max_uses: None,
+                    user_location: None,
+                })
+            }
+            Tool::Provider(provider_tool) => {
+                // Map tool_type string to Anthropic's native tool types
+                let (
+                    tool_type,
+                    max_uses,
+                    allowed_domains,
+                    blocked_domains,
+                    user_location,
+                    max_characters,
+                ) = match provider_tool.tool_type.as_str() {
+                    "web_search_20250305" => {
+                        let config = provider_tool.config.unwrap_or(serde_json::json!({}));
+
+                        let max_uses = config.get("max_uses").and_then(|v| v.as_i64());
+
+                        let allowed_domains = config
+                            .get("allowed_domains")
+                            .and_then(|v| v.as_array())
+                            .map(|arr| {
+                                arr.iter()
+                                    .filter_map(|v| v.as_str().map(String::from))
+                                    .collect()
+                            });
+
+                        let blocked_domains = config
+                            .get("blocked_domains")
+                            .and_then(|v| v.as_array())
+                            .map(|arr| {
+                                arr.iter()
+                                    .filter_map(|v| v.as_str().map(String::from))
+                                    .collect()
+                            });
+
+                        let user_location = config
+                            .get("user_location")
+                            .and_then(|v| serde_json::from_value(v.clone()).ok());
+
+                        (
+                            generated::ToolType::WebSearch20250305,
+                            max_uses,
+                            allowed_domains,
+                            blocked_domains,
+                            user_location,
+                            None,
+                        )
+                    }
+                    "bash_20250124" => {
+                        let config = provider_tool.config.unwrap_or(serde_json::json!({}));
+                        let max_uses = config.get("max_uses").and_then(|v| v.as_i64());
+
+                        (
+                            generated::ToolType::Bash20250124,
+                            max_uses,
+                            None,
+                            None,
+                            None,
+                            None,
+                        )
+                    }
+                    "text_editor_20250124" => {
+                        let config = provider_tool.config.unwrap_or(serde_json::json!({}));
+                        let max_characters = config.get("max_characters").and_then(|v| v.as_i64());
+
+                        (
+                            generated::ToolType::TextEditor20250124,
+                            None,
+                            None,
+                            None,
+                            None,
+                            max_characters,
+                        )
+                    }
+                    "text_editor_20250429" => {
+                        let config = provider_tool.config.unwrap_or(serde_json::json!({}));
+                        let max_characters = config.get("max_characters").and_then(|v| v.as_i64());
+
+                        (
+                            generated::ToolType::TextEditor20250429,
+                            None,
+                            None,
+                            None,
+                            None,
+                            max_characters,
+                        )
+                    }
+                    "text_editor_20250728" => {
+                        let config = provider_tool.config.unwrap_or(serde_json::json!({}));
+                        let max_characters = config.get("max_characters").and_then(|v| v.as_i64());
+
+                        (
+                            generated::ToolType::TextEditor20250728,
+                            None,
+                            None,
+                            None,
+                            None,
+                            max_characters,
+                        )
+                    }
+                    unknown => {
+                        return Err(format!(
+                            "Anthropic doesn't support provider tool type: '{}'. \
+                                 Supported types: web_search_20250305, bash_20250124, \
+                                 text_editor_20250124, text_editor_20250429, text_editor_20250728",
+                            unknown
+                        ));
+                    }
+                };
+
+                Ok(generated::Tool {
+                    name: provider_tool
+                        .name
+                        .unwrap_or_else(|| provider_tool.tool_type.clone()),
+                    description: None,
+                    input_schema: None,
+                    tool_type: Some(tool_type),
+                    cache_control: None,
+                    max_characters,
+                    allowed_domains,
+                    blocked_domains,
+                    max_uses,
+                    user_location,
+                })
+            }
+        }
+    }
+}
+
+/// Convert Anthropic Tool to Lingua Tool
+impl TryFromLLM<generated::Tool> for Tool {
+    type Error = String;
+
+    fn try_from(tool: generated::Tool) -> Result<Self, Self::Error> {
+        match tool.tool_type {
+            Some(generated::ToolType::Custom) | None => {
+                // This is a client tool (custom function)
+                let description = tool.description.unwrap_or_default();
+
+                // Convert InputSchema back to JSON Schema Value
+                let input_schema = if let Some(schema) = tool.input_schema {
+                    let mut schema_obj = serde_json::Map::new();
+                    schema_obj.insert(
+                        "type".to_string(),
+                        serde_json::Value::String("object".to_string()),
+                    );
+
+                    if let Some(properties) = schema.properties {
+                        schema_obj.insert(
+                            "properties".to_string(),
+                            serde_json::Value::Object(properties),
+                        );
+                    }
+
+                    if let Some(required) = schema.required {
+                        schema_obj.insert(
+                            "required".to_string(),
+                            serde_json::Value::Array(
+                                required
+                                    .into_iter()
+                                    .map(serde_json::Value::String)
+                                    .collect(),
+                            ),
+                        );
+                    }
+
+                    serde_json::Value::Object(schema_obj)
+                } else {
+                    // Default to empty object schema
+                    serde_json::json!({
+                        "type": "object",
+                        "properties": {}
+                    })
+                };
+
+                Ok(Tool::Client(ClientTool {
+                    name: tool.name,
+                    description,
+                    input_schema,
+                    provider_options: None,
+                }))
+            }
+            Some(tool_type) => {
+                // This is a provider tool
+                let (type_str, mut config) = match tool_type {
+                    generated::ToolType::WebSearch20250305 => {
+                        let mut cfg = serde_json::Map::new();
+
+                        if let Some(max_uses) = tool.max_uses {
+                            cfg.insert(
+                                "max_uses".to_string(),
+                                serde_json::Value::Number(max_uses.into()),
+                            );
+                        }
+
+                        if let Some(allowed) = tool.allowed_domains {
+                            cfg.insert(
+                                "allowed_domains".to_string(),
+                                serde_json::Value::Array(
+                                    allowed.into_iter().map(serde_json::Value::String).collect(),
+                                ),
+                            );
+                        }
+
+                        if let Some(blocked) = tool.blocked_domains {
+                            cfg.insert(
+                                "blocked_domains".to_string(),
+                                serde_json::Value::Array(
+                                    blocked.into_iter().map(serde_json::Value::String).collect(),
+                                ),
+                            );
+                        }
+
+                        if let Some(location) = tool.user_location {
+                            if let Ok(location_value) = serde_json::to_value(location) {
+                                cfg.insert("user_location".to_string(), location_value);
+                            }
+                        }
+
+                        ("web_search_20250305", Some(serde_json::Value::Object(cfg)))
+                    }
+                    generated::ToolType::Bash20250124 => {
+                        let mut cfg = serde_json::Map::new();
+                        if let Some(max_uses) = tool.max_uses {
+                            cfg.insert(
+                                "max_uses".to_string(),
+                                serde_json::Value::Number(max_uses.into()),
+                            );
+                        }
+                        ("bash_20250124", Some(serde_json::Value::Object(cfg)))
+                    }
+                    generated::ToolType::TextEditor20250124 => {
+                        let mut cfg = serde_json::Map::new();
+                        if let Some(max_chars) = tool.max_characters {
+                            cfg.insert(
+                                "max_characters".to_string(),
+                                serde_json::Value::Number(max_chars.into()),
+                            );
+                        }
+                        ("text_editor_20250124", Some(serde_json::Value::Object(cfg)))
+                    }
+                    generated::ToolType::TextEditor20250429 => {
+                        let mut cfg = serde_json::Map::new();
+                        if let Some(max_chars) = tool.max_characters {
+                            cfg.insert(
+                                "max_characters".to_string(),
+                                serde_json::Value::Number(max_chars.into()),
+                            );
+                        }
+                        ("text_editor_20250429", Some(serde_json::Value::Object(cfg)))
+                    }
+                    generated::ToolType::TextEditor20250728 => {
+                        let mut cfg = serde_json::Map::new();
+                        if let Some(max_chars) = tool.max_characters {
+                            cfg.insert(
+                                "max_characters".to_string(),
+                                serde_json::Value::Number(max_chars.into()),
+                            );
+                        }
+                        ("text_editor_20250728", Some(serde_json::Value::Object(cfg)))
+                    }
+                    generated::ToolType::Custom => {
+                        // Already handled above
+                        unreachable!()
+                    }
+                };
+
+                // Remove config if it's empty
+                if let Some(serde_json::Value::Object(ref map)) = config {
+                    if map.is_empty() {
+                        config = None;
+                    }
+                }
+
+                Ok(Tool::Provider(ProviderTool {
+                    tool_type: type_str.to_string(),
+                    name: Some(tool.name),
+                    config,
+                }))
+            }
+        }
     }
 }
