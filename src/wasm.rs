@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 // Import our types and conversion traits
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::openai::generated as openai;
-use crate::universal::{convert::TryFromLLM, Message};
+use crate::universal::{convert::TryFromLLM, Message, Tool};
 
 fn convert_to_lingua<T, U>(value: JsValue) -> Result<JsValue, JsValue>
 where
@@ -84,6 +84,34 @@ pub fn anthropic_messages_to_lingua(value: JsValue) -> Result<JsValue, JsValue> 
 #[wasm_bindgen]
 pub fn lingua_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_lingua::<Vec<Message>, Vec<anthropic::InputMessage>>(value)
+}
+
+// ============================================================================
+// Tool conversions
+// ============================================================================
+
+/// Convert array of Anthropic tools to Lingua Tools
+#[wasm_bindgen]
+pub fn anthropic_tools_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_lingua::<Vec<anthropic::Tool>, Vec<Tool>>(value)
+}
+
+/// Convert array of Lingua Tools to Anthropic tools
+#[wasm_bindgen]
+pub fn lingua_tools_to_anthropic(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_lingua::<Vec<Tool>, Vec<anthropic::Tool>>(value)
+}
+
+/// Convert array of OpenAI tools to Lingua Tools
+#[wasm_bindgen]
+pub fn openai_tools_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_lingua::<Vec<openai::Tool>, Vec<Tool>>(value)
+}
+
+/// Convert array of Lingua Tools to OpenAI tools
+#[wasm_bindgen]
+pub fn lingua_tools_to_openai(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_lingua::<Vec<Tool>, Vec<openai::Tool>>(value)
 }
 
 // ============================================================================
