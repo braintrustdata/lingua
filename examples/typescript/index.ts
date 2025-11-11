@@ -15,6 +15,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import { centerText } from "./center-text";
 
 async function basicUsage() {
+  console.log("\n" + "═".repeat(COL_WIDTH));
+  console.log(centerText("📝 Simple Text Completion 📝", COL_WIDTH));
+  console.log("═".repeat(COL_WIDTH));
+
   // Write messages and tools in Lingua's universal format
   const messages: Message[] = [
     {
@@ -63,7 +67,7 @@ async function main() {
   }
 }
 
-const createOpenAiCompletion = async (messages: Message[]) => {
+const createOpenAiCompletion = async (messages: Message[], tools?: Tool[]) => {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const openaiMessages =
     linguaToChatCompletionsMessages<OpenAI.Chat.ChatCompletionMessageParam[]>(
@@ -72,12 +76,20 @@ const createOpenAiCompletion = async (messages: Message[]) => {
   const openAiResponse = await openai.chat.completions.create({
     model: "gpt-5-nano",
     messages: openaiMessages,
+    ...(tools && {
+      tools: linguaToolsToOpenAI(tools),
+      tool_choice: "required",
+    }),
+    reasoning_effort: "low",
   });
 
   return [openAiResponse.choices[0].message];
 };
 
-const createAnthropicCompletion = async (messages: Message[]) => {
+const createAnthropicCompletion = async (
+  messages: Message[],
+  tools?: Tool[]
+) => {
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const anthropicMessages =
     linguaToAnthropicMessages<Anthropic.MessageParam[]>(messages);
@@ -85,6 +97,12 @@ const createAnthropicCompletion = async (messages: Message[]) => {
     model: "claude-haiku-4-5-20251001",
     messages: anthropicMessages,
     max_tokens: 1000,
+    ...(tools && {
+      tools: linguaToolsToAnthropic(tools),
+      tool_choice: {
+        type: "any",
+      },
+    }),
   });
 
   return [anthropicResponse];
@@ -141,7 +159,10 @@ function evaluateGuess(guess: string, target: string): string {
   return result.join("");
 }
 
-function displayWordleBoard(gameState: WordleGameState): string {
+function displayWordleBoard(
+  gameState: WordleGameState,
+  maxGuesses: number
+): string {
   let board = "\n";
   board += "  ┌───────────────────┐\n";
 
@@ -150,7 +171,7 @@ function displayWordleBoard(gameState: WordleGameState): string {
   }
 
   // Show remaining empty rows
-  const remaining = gameState.maxGuesses - gameState.guesses.length;
+  const remaining = maxGuesses - gameState.guesses.length;
   for (let i = 0; i < remaining; i++) {
     board += "  │        . . . . .  │\n";
   }
@@ -161,18 +182,18 @@ function displayWordleBoard(gameState: WordleGameState): string {
 
 async function wordleSolverAgent() {
   const gameState: WordleGameState = {
-    targetWord: "PIZZA",
+    targetWord: "SAUCE",
     guesses: [],
     maxGuesses: 10,
   };
 
   console.log("\n" + "═".repeat(COL_WIDTH));
-  console.log(centerText("🎮 Wordle Solver Agent", COL_WIDTH));
+  console.log(centerText("🧩 Wordle Solver Agent 🧩", COL_WIDTH));
   console.log("═".repeat(COL_WIDTH));
+  console.log("\nTime to play Wordle 🤓");
   console.log(
-    "\nThe agent will strategically solve a Wordle puzzle using tool calls."
+    "\nWe'll use a multi-model agent loop that alternates between OpenAI and Anthropic each turn!\n"
   );
-  console.log("Watch as it reasons about each guess!\n");
 
   // Define the tool in Lingua's universal format
   const tools: Tool[] = [
@@ -199,77 +220,47 @@ async function wordleSolverAgent() {
       role: "user",
       content: `Let's play Wordle! You have ${gameState.maxGuesses} guesses to find a 5-letter word.
 
-Rules:
+You'll receive feedback on each guess in the form of a string of emojis:
 - 🟩 = correct letter in correct position
 - 🟨 = correct letter in wrong position
 - ⬜ = letter not in word
 
-Use the make_guess tool to make your guesses. Think strategically!`,
+* Remember that if a letter is green, you should lock it in place for all remaining guesses.
+* Just play the game, do not explain anything to me or provide any commentary.
+* Use the make_guess tool to make your guesses.
+* You must make a guess on each response!`,
     },
   ];
 
-  // Randomly choose provider for this game
-  const useOpenAI = Math.random() > 0.5;
-  const providerName = useOpenAI ? "OpenAI" : "Anthropic";
-
-  console.log(`🎲 Randomly selected provider: ${providerName}\n`);
-  console.log("💡 The same tools and messages work with ANY provider!\n");
-
   let turnCount = 0;
-  const maxTurns = 10; // Safety limit
+  const maxTurns = 20;
+  let guessesCount = 0;
+  const maxGuesses = 10;
 
-  while (
-    gameState.guesses.length < gameState.maxGuesses &&
-    turnCount < maxTurns
-  ) {
+  while (turnCount < maxTurns && guessesCount < maxGuesses) {
     turnCount++;
 
-    console.log(`\n${"─".repeat(COL_WIDTH)}`);
-    console.log(`Turn ${turnCount}:`);
+    // Alternate providers: OpenAI on odd turns, Anthropic on even turns
+    const providerName = turnCount % 2 === 1 ? "Anthropic" : "OpenAI";
 
-    // Call the LLM with tools
-    let response: Message[];
+    console.log(`Turn ${turnCount} (${providerName}):`);
 
-    if (useOpenAI) {
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const openaiMessages =
-        linguaToChatCompletionsMessages<
-          OpenAI.Chat.ChatCompletionMessageParam[]
-        >(messages);
-      const openaiTools = linguaToolsToOpenAI(tools);
+    // We'll maintain our chat thread in Lingua format, allowing us to switch providers seamlessly
+    const response =
+      providerName === "OpenAI"
+        ? chatCompletionsMessagesToLingua(
+            await createOpenAiCompletion(messages, tools)
+          )
+        : anthropicMessagesToLingua(
+            await createAnthropicCompletion(messages, tools)
+          );
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-5-mini",
-        messages: openaiMessages,
-        tools: openaiTools,
-        tool_choice: "auto",
-      });
+    const message = response[0]; // The helpers used above always return an array
 
-      response = chatCompletionsMessagesToLingua([
-        completion.choices[0].message,
-      ]);
-    } else {
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-      const anthropicMessages =
-        linguaToAnthropicMessages<Anthropic.MessageParam[]>(messages);
-      const anthropicTools = linguaToolsToAnthropic(tools);
-
-      const completion = await anthropic.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        messages: anthropicMessages,
-        tools: anthropicTools,
-        max_tokens: 1000,
-      });
-
-      response = anthropicMessagesToLingua([completion]);
-    }
-
-    messages.push(response[0]);
+    messages.push(message);
 
     // Check if the assistant wants to use a tool
-    const assistantMessage = response[0];
+    const assistantMessage = message;
     if (
       typeof assistantMessage.content !== "string" &&
       Array.isArray(assistantMessage.content)
@@ -297,7 +288,7 @@ Use the make_guess tool to make your guesses. Think strategically!`,
             args = toolCall.arguments;
           }
 
-          console.log(`\n🤔 Agent wants to guess: ${args.word.toUpperCase()}`);
+          console.log(`\n🤔 Agent's guess: ${args.word.toUpperCase()}`);
 
           // Execute the tool
           const guess = args.word.toUpperCase();
@@ -316,20 +307,21 @@ Use the make_guess tool to make your guesses. Think strategically!`,
                   tool_name: toolCall.tool_name,
                   output: {
                     error: `Invalid guess: "${args.word}" is not exactly 5 letters. Please provide a valid 5-letter word.`,
-                    guesses_remaining:
-                      gameState.maxGuesses - gameState.guesses.length,
+                    guesses_remaining: maxGuesses - guessesCount,
                   },
                 },
               ],
             });
+
             continue;
           }
 
+          guessesCount++; // Increment only after a valid guess
           const result = evaluateGuess(guess, gameState.targetWord);
           gameState.guesses.push({ guess, result });
 
           // Display board
-          console.log(displayWordleBoard(gameState));
+          console.log(displayWordleBoard(gameState, maxGuesses));
 
           // Add tool result to conversation
           messages.push({
@@ -342,9 +334,8 @@ Use the make_guess tool to make your guesses. Think strategically!`,
                 output: {
                   guess,
                   result,
-                  board: displayWordleBoard(gameState),
-                  guesses_remaining:
-                    gameState.maxGuesses - gameState.guesses.length,
+                  board: displayWordleBoard(gameState, maxGuesses),
+                  guesses_remaining: maxGuesses - guessesCount,
                 },
               },
             ],
@@ -355,18 +346,39 @@ Use the make_guess tool to make your guesses. Think strategically!`,
             console.log(
               `\n🎉 Solved in ${gameState.guesses.length} guess${gameState.guesses.length === 1 ? "" : "es"}!`
             );
-            console.log("═".repeat(COL_WIDTH));
+
             return;
           }
         }
       } else {
-        // No tool calls, agent might be done or confused
-        break;
+        // No valid tool calls found
+        // Have the agent try again
+        messages.push({
+          role: "user",
+          content:
+            "Please make sure you call the make_guess tool each time you respond!",
+        });
+        console.log(
+          "\n💬 No tool call found! Agent response:",
+          assistantMessage.content
+        );
+
+        continue;
       }
     } else {
       // Text-only response, no tool call
-      console.log("\n💬 Agent response:", assistantMessage.content);
-      break;
+      // Have the agent try again
+      messages.push({
+        role: "user",
+        content:
+          "Please make sure you call the make_guess tool each time you respond!",
+      });
+      console.log(
+        "\n💬 No tool call found! Agent response:",
+        assistantMessage.content
+      );
+
+      continue;
     }
   }
 
@@ -374,13 +386,13 @@ Use the make_guess tool to make your guesses. Think strategically!`,
     gameState.guesses[gameState.guesses.length - 1]?.result !== "🟩🟩🟩🟩🟩"
   ) {
     console.log(
-      `\n😅 Not solved in ${gameState.maxGuesses} guesses. The word was: ${gameState.targetWord}`
+      `\n😅 Not solved in ${maxGuesses} guesses. The word was: ${gameState.targetWord}`
     );
   }
 
   console.log("═".repeat(COL_WIDTH));
 }
 
-const COL_WIDTH = 80;
+const COL_WIDTH = 100;
 
 main().catch(console.error);
