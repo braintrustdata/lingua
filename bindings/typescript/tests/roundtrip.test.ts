@@ -505,18 +505,18 @@ describe("TypeScript Roundtrip Tests", () => {
   describe("Tool Roundtrip Tests", () => {
     describe("Client Tools", () => {
       test("OpenAI: Lingua -> OpenAI -> Lingua", () => {
-        const original = clientTool(
-          "get_weather",
-          "Get current weather for a location",
-          {
+        const original = clientTool({
+          name: "get_weather",
+          description: "Get current weather for a location",
+          input_schema: {
             type: "object",
             properties: {
               location: { type: "string" },
               units: { type: "string", enum: ["celsius", "fahrenheit"] },
             },
             required: ["location"],
-          }
-        );
+          },
+        });
 
         const openaiTools = linguaToolsToOpenAI([original]);
         const roundtripped = openaiToolsToLingua(openaiTools);
@@ -526,18 +526,18 @@ describe("TypeScript Roundtrip Tests", () => {
       });
 
       test("OpenAI: Client tool with strict mode", () => {
-        const original = clientTool(
-          "query_database",
-          "Query the database",
-          {
+        const original = clientTool({
+          name: "query_database",
+          description: "Query the database",
+          input_schema: {
             type: "object",
             properties: {
               query: { type: "string" },
             },
             required: ["query"],
           },
-          { strict: true }
-        );
+          provider_options: { strict: true },
+        });
 
         const openaiTools = linguaToolsToOpenAI([original]);
         const roundtripped = openaiToolsToLingua(openaiTools);
@@ -548,12 +548,16 @@ describe("TypeScript Roundtrip Tests", () => {
       });
 
       test("Anthropic: Lingua -> Anthropic -> Lingua", () => {
-        const original = clientTool("calculate", "Perform a calculation", {
-          type: "object",
-          properties: {
-            expression: { type: "string" },
+        const original = clientTool({
+          name: "calculate",
+          description: "Perform a calculation",
+          input_schema: {
+            type: "object",
+            properties: {
+              expression: { type: "string" },
+            },
+            required: ["expression"],
           },
-          required: ["expression"],
         });
 
         const anthropicTools = linguaToolsToAnthropic([original]);
@@ -565,12 +569,21 @@ describe("TypeScript Roundtrip Tests", () => {
 
       test("Multiple client tools roundtrip", () => {
         const tools = [
-          clientTool("tool1", "First tool", { type: "object", properties: {} }),
-          clientTool("tool2", "Second tool", {
-            type: "object",
-            properties: {},
+          clientTool({
+            name: "tool1",
+            description: "First tool",
+            input_schema: { type: "object", properties: {} },
           }),
-          clientTool("tool3", "Third tool", { type: "object", properties: {} }),
+          clientTool({
+            name: "tool2",
+            description: "Second tool",
+            input_schema: { type: "object", properties: {} },
+          }),
+          clientTool({
+            name: "tool3",
+            description: "Third tool",
+            input_schema: { type: "object", properties: {} },
+          }),
         ];
 
         const openaiTools = linguaToolsToOpenAI(tools);
@@ -684,14 +697,22 @@ describe("TypeScript Roundtrip Tests", () => {
     describe("Mixed Client and Provider Tools", () => {
       test("OpenAI: Mixed tools roundtrip", () => {
         const tools = [
-          clientTool("get_weather", "Get weather", {
-            type: "object",
-            properties: { location: { type: "string" } },
+          clientTool({
+            name: "get_weather",
+            description: "Get weather",
+            input_schema: {
+              type: "object",
+              properties: { location: { type: "string" } },
+            },
           }),
           ProviderTools.openai.codeInterpreter(),
-          clientTool("calculate", "Calculate", {
-            type: "object",
-            properties: { expression: { type: "string" } },
+          clientTool({
+            name: "calculate",
+            description: "Calculate",
+            input_schema: {
+              type: "object",
+              properties: { expression: { type: "string" } },
+            },
           }),
         ];
 
@@ -718,9 +739,13 @@ describe("TypeScript Roundtrip Tests", () => {
 
       test("Anthropic: Mixed tools roundtrip", () => {
         const tools = [
-          clientTool("search_db", "Search database", {
-            type: "object",
-            properties: { query: { type: "string" } },
+          clientTool({
+            name: "search_db",
+            description: "Search database",
+            input_schema: {
+              type: "object",
+              properties: { query: { type: "string" } },
+            },
           }),
           ProviderTools.anthropic.bash({ max_uses: 5 }),
           ProviderTools.anthropic.webSearch({ max_uses: 3 }),
@@ -770,17 +795,21 @@ describe("TypeScript Roundtrip Tests", () => {
 
     describe("JSON Value Serialization Edge Cases", () => {
       test("Input schema with various number types", () => {
-        const tool = clientTool("test_numbers", "Test number serialization", {
-          type: "object",
-          properties: {
-            positive_int: { type: "number", default: 42 },
-            negative_int: { type: "number", default: -10 },
-            zero: { type: "number", default: 0 },
-            float: { type: "number", default: 3.14159 },
-            negative_float: { type: "number", default: -2.5 },
-            large_number: { type: "number", default: 1000000 },
-            minimum: { type: "number", minimum: 0 },
-            maximum: { type: "number", maximum: 100 },
+        const tool = clientTool({
+          name: "test_numbers",
+          description: "Test number serialization",
+          input_schema: {
+            type: "object",
+            properties: {
+              positive_int: { type: "number", default: 42 },
+              negative_int: { type: "number", default: -10 },
+              zero: { type: "number", default: 0 },
+              float: { type: "number", default: 3.14159 },
+              negative_float: { type: "number", default: -2.5 },
+              large_number: { type: "number", default: 1000000 },
+              minimum: { type: "number", minimum: 0 },
+              maximum: { type: "number", maximum: 100 },
+            },
           },
         });
 
@@ -807,10 +836,10 @@ describe("TypeScript Roundtrip Tests", () => {
       });
 
       test("Input schema with nested objects and arrays", () => {
-        const tool = clientTool(
-          "complex_schema",
-          "Complex schema with nested structures",
-          {
+        const tool = clientTool({
+          name: "complex_schema",
+          description: "Complex schema with nested structures",
+          input_schema: {
             type: "object",
             properties: {
               config: {
@@ -826,8 +855,8 @@ describe("TypeScript Roundtrip Tests", () => {
                 default: [0.1, 0.5, 0.9],
               },
             },
-          }
-        );
+          },
+        });
 
         const anthropicTools = linguaToolsToAnthropic([tool]);
         const roundtripped = anthropicToolsToLingua(anthropicTools);
