@@ -24,10 +24,7 @@ fn test_client_tool_to_anthropic() {
         anthropic_tool.description,
         Some("Get current weather".to_string())
     );
-    assert_eq!(
-        anthropic_tool.tool_type,
-        Some(generated::ToolType::Custom)
-    );
+    assert_eq!(anthropic_tool.tool_type, Some(generated::ToolType::Custom));
     assert!(anthropic_tool.input_schema.is_some());
 }
 
