@@ -7,6 +7,16 @@ help: ## Show this help message
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
+generate-provider-types: ## Regenerate provider types from OpenAPI specs (usage: make generate-provider-types PROVIDER=openai)
+	@if [ -z "$(PROVIDER)" ]; then \
+		echo "Usage: make generate-provider-types PROVIDER=<provider>"; \
+		echo "Available providers: openai, anthropic, google, all"; \
+		echo "Example: make generate-provider-types PROVIDER=openai"; \
+		exit 1; \
+	fi
+	@echo "Regenerating $(PROVIDER) types from OpenAPI spec..."
+	@cargo run --bin generate-types -- $(PROVIDER)
+
 generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."
 	@cargo test export_bindings --lib --quiet
