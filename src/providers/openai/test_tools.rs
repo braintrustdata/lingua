@@ -111,10 +111,7 @@ fn test_code_interpreter_provider_tool() {
     let openai_tool: openai::Tool = TryFromLLM::try_from(lingua_tool).unwrap();
 
     assert_eq!(openai_tool.name, Some("my_interpreter".to_string()));
-    assert_eq!(
-        openai_tool.tool_type,
-        openai::ToolTypeEnum::CodeInterpreter
-    );
+    assert_eq!(openai_tool.tool_type, openai::ToolTypeEnum::CodeInterpreter);
 }
 
 #[test]
