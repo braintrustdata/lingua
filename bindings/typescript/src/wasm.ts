@@ -18,6 +18,12 @@ export {
   anthropicMessagesToLingua,
   linguaToAnthropicMessages,
 
+  // Tool conversions
+  anthropicToolsToLingua,
+  linguaToolsToAnthropic,
+  openaiToolsToLingua,
+  linguaToolsToOpenAI,
+
   // Processing functions
   deduplicateMessages,
   importMessagesFromSpans,

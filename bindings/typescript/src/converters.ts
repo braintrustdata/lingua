@@ -40,11 +40,21 @@ export class ConversionError extends Error {
 // ============================================================================
 
 /**
- * Convert Map objects to plain objects recursively.
- * This is needed because serde-wasm-bindgen serializes serde_json::Map to JS Map
- * instead of plain objects.
+ * Convert Map objects and serde_json wrappers to plain objects recursively.
+ * This is needed because serde-wasm-bindgen:
+ * 1. Serializes serde_json::Map to JS Map instead of plain objects
+ * 2. Wraps numbers in serde_json::Value with $serde_json::private::Number
  */
 function convertMapsToObjects(value: unknown): unknown {
+  // Unwrap serde_json::private::Number
+  if (
+    value !== null &&
+    typeof value === "object" &&
+    "$serde_json::private::Number" in value
+  ) {
+    return Number((value as any)["$serde_json::private::Number"]);
+  }
+
   if (value instanceof Map) {
     const obj: Record<string, unknown> = {};
     for (const [key, val] of value.entries()) {
