@@ -3296,6 +3296,9 @@ pub enum HostedToolType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct Tool {
+    /// For function tools, contains the function definition
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<FunctionObject>,
     /// Optional description of the custom tool, used to provide more context.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,

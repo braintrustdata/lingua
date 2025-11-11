@@ -11,6 +11,9 @@ pub mod generated;
 #[cfg(test)]
 pub mod test_anthropic;
 
+#[cfg(test)]
+mod test_tools;
+
 // Re-export key generated types (automated approach with proper request/response separation)
 // Temporarily disabled while testing generation
 /*

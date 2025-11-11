@@ -246,6 +246,102 @@ use lingua::translators::to_openai_format;
 use lingua::translators::to_bedrock_format_with_model;
 ```
 
+### TypeScript usage
+
+#### Converting messages between providers
+
+```typescript
+import {
+  linguaToAnthropicMessages,
+  chatCompletionsMessagesToLingua,
+  type Message
+} from "@braintrust/lingua";
+
+// Convert OpenAI messages to Lingua format
+const linguaMessages = chatCompletionsMessagesToLingua(openaiMessages);
+
+// Convert to Anthropic format
+const anthropicMessages = linguaToAnthropicMessages(linguaMessages);
+```
+
+#### Working with tools
+
+Lingua provides universal tool support that works across all providers:
+
+**Client tools** (executed by your application):
+
+```typescript
+import { clientTool } from "@braintrust/lingua";
+
+const weatherTool = clientTool(
+  "get_weather",
+  "Get current weather for a location",
+  {
+    type: "object",
+    properties: {
+      location: { type: "string" },
+      unit: { type: "string", enum: ["celsius", "fahrenheit"] }
+    },
+    required: ["location"]
+  }
+);
+```
+
+**Provider tools** (executed by the LLM provider):
+
+```typescript
+import { ProviderTools } from "@braintrust/lingua";
+
+const tools = [
+  // Anthropic web search
+  ProviderTools.anthropic.webSearch({
+    max_uses: 5,
+    allowed_domains: ["wikipedia.org"]
+  }),
+
+  // OpenAI computer use
+  ProviderTools.openai.computer({
+    display_width_px: 1920,
+    display_height_px: 1080
+  })
+];
+```
+
+**Converting tools to provider-specific format**:
+
+```typescript
+import { linguaToolsToOpenAI, linguaToolsToAnthropic } from "@braintrust/lingua";
+
+// Use with any provider
+const openaiTools = linguaToolsToOpenAI(tools);
+const anthropicTools = linguaToolsToAnthropic(tools);
+```
+
+**Mixed client and provider tools**:
+
+```typescript
+import { clientTool, ProviderTools } from "@braintrust/lingua";
+
+const tools = [
+  // Your custom function
+  clientTool(
+    "query_database",
+    "Execute a SQL query",
+    {
+      type: "object",
+      properties: {
+        query: { type: "string" }
+      },
+      required: ["query"]
+    },
+    { strict: true }  // OpenAI strict mode
+  ),
+
+  // Provider-native tool
+  ProviderTools.anthropic.webSearch({ max_uses: 3 })
+];
+```
+
 ## Status
 
 🚧 **In Development** - Currently building the foundational types and translator architecture.

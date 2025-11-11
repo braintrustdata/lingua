@@ -1529,8 +1529,17 @@ impl TryFromLLM<Tool> for openai::Tool {
                     .and_then(|opts| opts.get("strict"))
                     .and_then(|v| v.as_bool());
 
+                // Create the nested function object for Chat Completions API
+                let function = Some(openai::FunctionObject {
+                    name: client_tool.name.clone(),
+                    description: Some(client_tool.description.clone()),
+                    parameters: parameters.clone(),
+                    strict,
+                });
+
                 Ok(openai::Tool {
                     tool_type: openai::ToolTypeEnum::Function,
+                    function,
                     name: Some(client_tool.name),
                     description: Some(client_tool.description),
                     parameters,
@@ -1588,6 +1597,7 @@ impl TryFromLLM<Tool> for openai::Tool {
 
                         Ok(openai::Tool {
                             tool_type: openai::ToolTypeEnum::ComputerUsePreview,
+                            function: None,
                             name: provider_tool.name,
                             display_width,
                             display_height,
@@ -1626,6 +1636,7 @@ impl TryFromLLM<Tool> for openai::Tool {
                     }
                     "code_interpreter" => Ok(openai::Tool {
                         tool_type: openai::ToolTypeEnum::CodeInterpreter,
+                        function: None,
                         name: provider_tool.name,
                         container: provider_tool
                             .config
@@ -1675,6 +1686,7 @@ impl TryFromLLM<Tool> for openai::Tool {
 
                         Ok(openai::Tool {
                             tool_type,
+                            function: None,
                             name: provider_tool.name,
                             search_context_size: config
                                 .get("search_context_size")
