@@ -13,17 +13,12 @@ import type { Tool } from "./generated/Tool";
  * 2. Your application executes the function
  * 3. You return the result to the model
  *
- * @param name - Unique identifier for the tool
- * @param description - Detailed description of what the tool does (required for good LLM performance)
- * @param input_schema - JSON Schema defining the tool's input parameters
- * @param provider_options - Optional provider-specific options (e.g., { strict: true } for OpenAI)
- *
  * @example
  * ```typescript
- * const tool = clientTool(
- *   "get_weather",
- *   "Get current weather for a location",
- *   {
+ * const tool = clientTool({
+ *   name: "get_weather",
+ *   description: "Get current weather for a location",
+ *   input_schema: {
  *     type: "object",
  *     properties: {
  *       location: { type: "string" },
@@ -31,21 +26,21 @@ import type { Tool } from "./generated/Tool";
  *     },
  *     required: ["location"]
  *   }
- * );
+ * });
  * ```
  */
-export function clientTool(
-  name: string,
-  description: string,
-  input_schema: Record<string, any>,
-  provider_options?: Record<string, any>
-): Tool {
+export function clientTool(params: {
+  name: string;
+  description: string;
+  input_schema: Record<string, any>;
+  provider_options?: Record<string, any>;
+}): Tool {
   return {
     type: "function",
-    name,
-    description,
-    input_schema,
-    provider_options,
+    name: params.name,
+    description: params.description,
+    input_schema: params.input_schema,
+    provider_options: params.provider_options,
   };
 }
 

@@ -273,10 +273,10 @@ Lingua provides universal tool support that works across all providers:
 ```typescript
 import { clientTool } from "@braintrust/lingua";
 
-const weatherTool = clientTool(
-  "get_weather",
-  "Get current weather for a location",
-  {
+const weatherTool = clientTool({
+  name: "get_weather",
+  description: "Get current weather for a location",
+  input_schema: {
     type: "object",
     properties: {
       location: { type: "string" },
@@ -284,7 +284,7 @@ const weatherTool = clientTool(
     },
     required: ["location"]
   }
-);
+});
 ```
 
 **Provider tools** (executed by the LLM provider):
@@ -324,18 +324,18 @@ import { clientTool, ProviderTools } from "@braintrust/lingua";
 
 const tools = [
   // Your custom function
-  clientTool(
-    "query_database",
-    "Execute a SQL query",
-    {
+  clientTool({
+    name: "query_database",
+    description: "Execute a SQL query",
+    input_schema: {
       type: "object",
       properties: {
         query: { type: "string" }
       },
       required: ["query"]
     },
-    { strict: true }  // OpenAI strict mode
-  ),
+    provider_options: { strict: true }  // OpenAI strict mode
+  }),
 
   // Provider-native tool
   ProviderTools.anthropic.webSearch({ max_uses: 3 })

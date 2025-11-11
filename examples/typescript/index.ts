@@ -38,7 +38,12 @@ async function basicUsage() {
     ? chatCompletionsMessagesToLingua(await createOpenAiCompletion(messages))
     : anthropicMessagesToLingua(await createAnthropicCompletion(messages));
 
-  console.log("\n✅ Step 4: Response converted back to Lingua");
+  console.log("\n✅ Step 4: Response converted back to Lingua:");
+
+  const content = response[0].content;
+  console.log(
+    typeof content === "string" ? content : JSON.stringify(content, null, 2)
+  );
 
   // ✨ Proceed in Lingua format ✨
   return response;
@@ -49,6 +54,7 @@ async function main() {
   const hasAnthropicApiKey = !!process.env.ANTHROPIC_API_KEY;
 
   if (hasOpenAiApiKey && hasAnthropicApiKey) {
+    await basicUsage();
     await wordleSolverAgent();
   } else {
     console.log(
@@ -137,7 +143,7 @@ function evaluateGuess(guess: string, target: string): string {
 
 function displayWordleBoard(gameState: WordleGameState): string {
   let board = "\n";
-  board += "  ┌─────────────────┐\n";
+  board += "  ┌───────────────────┐\n";
 
   for (const feedback of gameState.guesses) {
     board += `  │ ${feedback.guess.toUpperCase()}  ${feedback.result} │\n`;
@@ -146,18 +152,18 @@ function displayWordleBoard(gameState: WordleGameState): string {
   // Show remaining empty rows
   const remaining = gameState.maxGuesses - gameState.guesses.length;
   for (let i = 0; i < remaining; i++) {
-    board += "  │ . . . . .       │\n";
+    board += "  │        . . . . .  │\n";
   }
 
-  board += "  └─────────────────┘\n";
+  board += "  └───────────────────┘\n";
   return board;
 }
 
 async function wordleSolverAgent() {
   const gameState: WordleGameState = {
-    targetWord: "CRANE",
+    targetWord: "PIZZA",
     guesses: [],
-    maxGuesses: 6,
+    maxGuesses: 10,
   };
 
   console.log("\n" + "═".repeat(COL_WIDTH));
@@ -170,10 +176,11 @@ async function wordleSolverAgent() {
 
   // Define the tool in Lingua's universal format
   const tools: Tool[] = [
-    clientTool(
-      "make_guess",
-      "Make a guess in the Wordle game. Must be a valid 5-letter word.",
-      {
+    clientTool({
+      name: "make_guess",
+      description:
+        "Solve the Wordle puzzle. Each guess *must* be a valid 5-letter word.",
+      input_schema: {
         type: "object",
         properties: {
           word: {
@@ -182,8 +189,8 @@ async function wordleSolverAgent() {
           },
         },
         required: ["word"],
-      }
-    ),
+      },
+    }),
   ];
 
   // Initialize conversation
@@ -202,7 +209,7 @@ Use the make_guess tool to make your guesses. Think strategically!`,
   ];
 
   // Randomly choose provider for this game
-  const useOpenAI = true; // Math.random() > 0.5;
+  const useOpenAI = Math.random() > 0.5;
   const providerName = useOpenAI ? "OpenAI" : "Anthropic";
 
   console.log(`🎲 Randomly selected provider: ${providerName}\n`);
@@ -294,8 +301,27 @@ Use the make_guess tool to make your guesses. Think strategically!`,
 
           // Execute the tool
           const guess = args.word.toUpperCase();
+
+          // Validate guess length
           if (guess.length !== 5) {
             console.log("❌ Invalid guess length!");
+
+            // Return error feedback without consuming a guess
+            messages.push({
+              role: "tool",
+              content: [
+                {
+                  type: "tool_result",
+                  tool_call_id: toolCall.tool_call_id,
+                  tool_name: toolCall.tool_name,
+                  output: {
+                    error: `Invalid guess: "${args.word}" is not exactly 5 letters. Please provide a valid 5-letter word.`,
+                    guesses_remaining:
+                      gameState.maxGuesses - gameState.guesses.length,
+                  },
+                },
+              ],
+            });
             continue;
           }
 
