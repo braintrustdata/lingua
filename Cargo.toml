@@ -25,7 +25,7 @@ python = ["dep:pyo3"]
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 # Use wrapper crate to isolate arbitrary_precision feature from downstream crates
-lingua_serde_json = { path = "serde_json" }
+big_serde_json = { path = "serde_json" }
 serde_yaml = "0.9"
 assert-json-diff = "2.0.2"
 ts-rs = { version = "11.0", features = ["serde-compat"] }

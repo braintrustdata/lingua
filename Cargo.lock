@@ -469,6 +469,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "big_serde_json"
+version = "0.1.0"
+dependencies = [
+ "serde_json 1.0.145",
+ "ts-rs",
+]
+
+[[package]]
 name = "bindgen"
 version = "0.69.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1328,8 +1336,8 @@ dependencies = [
  "anyhow",
  "assert-json-diff",
  "aws-sdk-bedrockruntime",
+ "big_serde_json",
  "env_logger",
- "lingua_serde_json",
  "log",
  "paste",
  "prost",
@@ -1349,14 +1357,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
-]
-
-[[package]]
-name = "lingua_serde_json"
-version = "0.1.0"
-dependencies = [
- "serde_json 1.0.145",
- "ts-rs",
 ]
 
 [[package]]

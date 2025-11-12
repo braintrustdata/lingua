@@ -1,9 +1,8 @@
 [package]
-name = "lingua_serde_json"
+name = "big_serde_json"
 version = "0.1.0"
 edition = "2021"
 description = "Wrapper for serde_json with arbitrary_precision feature"
-license = "MIT OR Apache-2.0"
 
 [dependencies]
 # This is a known issue with turning on `arbitrary_precision` (https://github.com/serde-rs/json/issues/1157)
