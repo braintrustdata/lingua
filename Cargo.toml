@@ -24,7 +24,8 @@ python = ["dep:pyo3"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0", features = ["arbitrary_precision"] }
+# Use wrapper crate to isolate arbitrary_precision feature from downstream crates
+lingua_serde_json = { path = "serde_json" }
 serde_yaml = "0.9"
 assert-json-diff = "2.0.2"
 ts-rs = { version = "11.0", features = ["serde-compat"] }
@@ -34,7 +35,6 @@ prost-build = "0.13"
 prost-types = "0.13"
 typify = "0.4"
 schemars = "0.8"
-schemafy = "0.6"
 aws-sdk-bedrockruntime = { version = "1.105.0", optional = true }
 serde_with = "3.14.1"
 wasm-bindgen = "0.2"

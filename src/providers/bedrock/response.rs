@@ -31,7 +31,7 @@ pub struct ConverseResponse {
     /// Additional model-specific response fields
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(skip)]
-    pub additional_model_response_fields: Option<serde_json::Value>,
+    pub additional_model_response_fields: Option<crate::serde_json::Value>,
 }
 
 /// Converse output containing the generated message
@@ -77,7 +77,7 @@ pub struct BedrockOutputToolUse {
 
     /// Input parameters for the tool
     #[ts(type = "any")]
-    pub input: serde_json::Value,
+    pub input: crate::serde_json::Value,
 }
 
 /// Reason why generation stopped
@@ -164,7 +164,7 @@ pub enum ConverseStreamResponse {
         /// Additional model-specific fields
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ts(skip)]
-        additional_model_response_fields: Option<serde_json::Value>,
+        additional_model_response_fields: Option<crate::serde_json::Value>,
     },
 
     /// Metadata about the stream

@@ -444,7 +444,7 @@ mod tests {
                 content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                     text: "test".to_string(),
                     provider_options: Some(crate::universal::ProviderOptions {
-                        options: serde_json::Map::new(),
+                        options: crate::serde_json::Map::new(),
                     }),
                 })]),
             },
@@ -463,8 +463,8 @@ mod tests {
                 text: "preserve me".to_string(),
                 provider_options: Some(crate::universal::ProviderOptions {
                     options: {
-                        let mut map = serde_json::Map::new();
-                        map.insert("custom".to_string(), serde_json::json!("value"));
+                        let mut map = crate::serde_json::Map::new();
+                        map.insert("custom".to_string(), crate::serde_json::json!("value"));
                         map
                     },
                 }),

@@ -37,7 +37,7 @@ pub fn validate_json<'a, T>(json: &'a str) -> Result<T, ValidationError>
 where
     T: Deserialize<'a>,
 {
-    serde_json::from_str::<T>(json)
+    crate::serde_json::from_str::<T>(json)
         .map_err(|e| ValidationError::DeserializationFailed(e.to_string()))
 }
 

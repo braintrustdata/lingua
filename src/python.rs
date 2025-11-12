@@ -18,7 +18,7 @@ where
         .extract::<String>()?;
 
     // Deserialize from JSON
-    serde_json::from_str(&json_str).map_err(|e| {
+    crate::serde_json::from_str(&json_str).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Failed to parse input: {}", e))
     })
 }
@@ -29,7 +29,7 @@ where
     T: Serialize,
 {
     // Serialize to JSON string
-    let json_str = serde_json::to_string(value).map_err(|e| {
+    let json_str = crate::serde_json::to_string(value).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Failed to serialize: {}", e))
     })?;
 

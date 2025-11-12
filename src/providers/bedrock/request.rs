@@ -38,7 +38,7 @@ pub struct ConverseRequest {
     /// Additional model-specific request fields
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(skip)]
-    pub additional_model_request_fields: Option<serde_json::Value>,
+    pub additional_model_request_fields: Option<crate::serde_json::Value>,
 
     /// Paths for additional model response fields to include
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -78,7 +78,7 @@ pub struct ConverseStreamRequest {
     /// Additional model-specific request fields
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(skip)]
-    pub additional_model_request_fields: Option<serde_json::Value>,
+    pub additional_model_request_fields: Option<crate::serde_json::Value>,
 
     /// Paths for additional model response fields to include
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -169,7 +169,7 @@ pub struct BedrockToolUseBlock {
 
     /// Input parameters for the tool
     #[ts(type = "any")]
-    pub input: serde_json::Value,
+    pub input: crate::serde_json::Value,
 }
 
 /// Tool result content block
@@ -198,7 +198,7 @@ pub enum BedrockToolResultContent {
     #[serde(rename = "json")]
     Json {
         #[ts(type = "any")]
-        json: serde_json::Value,
+        json: crate::serde_json::Value,
     },
 
     #[serde(rename = "image")]
@@ -284,7 +284,7 @@ pub struct BedrockToolSpec {
 pub struct BedrockToolInputSchema {
     /// JSON schema for tool input
     #[ts(type = "any")]
-    pub json: serde_json::Value,
+    pub json: crate::serde_json::Value,
 }
 
 /// Tool choice strategy

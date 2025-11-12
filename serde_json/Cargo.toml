@@ -1,0 +1,15 @@
+[package]
+name = "lingua_serde_json"
+version = "0.1.0"
+edition = "2021"
+description = "Wrapper for serde_json with arbitrary_precision feature"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+# This is a known issue with turning on `arbitrary_precision` (https://github.com/serde-rs/json/issues/1157)
+# If we use serde_json directly, Rust will deduplicate the package and force everything
+# (across crates) to use the same feature flags. So, we fork it and use the commit corresponding to:
+# v1.0.145
+# (https://github.com/serde-rs/json/commit/efa66e3a1d61459ab2d325f92ebe3acbd6ca18b1)
+serde_json = { package = "serde_json", git = "https://github.com/ankrgyl/serde-json.git", rev = "efa66e3a1d61459ab2d325f92ebe3acbd6ca18b1", features = ["arbitrary_precision"] }
+ts-rs = { version = "11.0", features = ["serde-compat"] }
