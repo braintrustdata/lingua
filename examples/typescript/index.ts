@@ -112,6 +112,175 @@ const createAnthropicCompletion = async (
 // Wordle Solver Agent
 // ============================================================================
 
+async function wordleSolverAgent() {
+  const gameState: WordleGameState = {
+    targetWord: "SAUCE",
+    guesses: [],
+    maxGuesses: 10,
+  };
+
+  console.log("\n" + "═".repeat(COL_WIDTH));
+  console.log(centerText("🧩 Wordle Solver Agent 🧩", COL_WIDTH));
+  console.log("═".repeat(COL_WIDTH));
+  console.log("\nTime to play Wordle 🤓");
+  console.log(
+    "\nWe'll use a multi-model agent loop that alternates between OpenAI and Anthropic each turn!\n"
+  );
+
+  const tools: Tool[] = [
+    clientTool({
+      name: "make_guess",
+      description:
+        "Solve the Wordle puzzle. Each guess *must* be a valid 5-letter word.",
+      input_schema: {
+        type: "object",
+        properties: {
+          word: {
+            type: "string",
+            description: "A 5-letter word guess",
+          },
+        },
+        required: ["word"],
+      },
+    }),
+  ];
+
+  const messages: Message[] = [
+    {
+      role: "user",
+      content: `Let's play Wordle! You have ${gameState.maxGuesses} guesses to find a 5-letter word.
+
+You'll receive feedback on each guess in the form of a string of emojis:
+- 🟩 = correct letter in correct position
+- 🟨 = correct letter in wrong position
+- ⬜ = letter not in word
+
+* Remember that if a letter is green, you should lock it in place for all remaining guesses.
+* Just play the game, do not explain anything to me or provide any commentary.
+* Use the make_guess tool to make your guesses.
+* You must make a guess on each response!`,
+    },
+  ];
+
+  let turnCount = 0;
+  const maxTurns = 20;
+  let guessesCount = 0;
+  const maxGuesses = 10;
+
+  while (turnCount < maxTurns && guessesCount < maxGuesses) {
+    turnCount++;
+
+    // Alternate providers: OpenAI on odd turns, Anthropic on even turns
+    const providerName = turnCount % 2 === 1 ? "Anthropic" : "OpenAI";
+
+    console.log(`Turn ${turnCount} (${providerName}):`);
+
+    // We'll maintain our chat thread in Lingua format, allowing us to switch providers seamlessly
+    const response =
+      providerName === "OpenAI"
+        ? chatCompletionsMessagesToLingua(
+            await createOpenAiCompletion(messages, tools)
+          )
+        : anthropicMessagesToLingua(
+            await createAnthropicCompletion(messages, tools)
+          );
+
+    const message = response[0]; // The helpers used above always return an array
+
+    messages.push(message);
+
+    // Check if the assistant wants to use a tool
+    const assistantMessage = message;
+    if (
+      typeof assistantMessage.content !== "string" &&
+      Array.isArray(assistantMessage.content)
+    ) {
+      const toolCalls = assistantMessage.content.filter(
+        (block) => block.type === "tool_call"
+      );
+
+      if (toolCalls.length > 0) {
+        // Process tool calls
+        for (const toolCall of toolCalls) {
+          let args: any;
+          if (
+            typeof toolCall.arguments === "object" &&
+            "type" in toolCall.arguments &&
+            toolCall.arguments.type === "valid"
+          ) {
+            args = toolCall.arguments.value;
+          } else {
+            throw new TypeError("❌ Invalid tool call arguments!");
+          }
+
+          console.log(`\n🤔 Agent's guess: ${args.word.toUpperCase()}`);
+
+          // Handle the tool call
+          const guess = args.word.toUpperCase();
+
+          if (guess.length !== 5) {
+            console.log("❌ Invalid guess length! Trying again...");
+
+            continue;
+          }
+
+          guessesCount++; // Increment only after a valid guess
+          const result = evaluateGuess(guess, gameState.targetWord);
+          gameState.guesses.push({ guess, result });
+
+          // Display board
+          console.log(displayWordleBoard(gameState, maxGuesses));
+
+          // Add tool result to conversation
+          messages.push({
+            role: "tool",
+            content: [
+              {
+                type: "tool_result",
+                tool_call_id: toolCall.tool_call_id,
+                tool_name: toolCall.tool_name,
+                output: {
+                  guess,
+                  result,
+                  board: displayWordleBoard(gameState, maxGuesses),
+                  guesses_remaining: maxGuesses - guessesCount,
+                },
+              },
+            ],
+          });
+
+          // Check if solved
+          if (result === "🟩🟩🟩🟩🟩") {
+            console.log(
+              `\n🎉 Solved in ${gameState.guesses.length} guess${gameState.guesses.length === 1 ? "" : "es"}!`
+            );
+
+            return;
+          }
+        }
+      } else {
+        // No valid tool calls found
+        console.log("❌ Malformed tool call! Trying again...");
+        continue;
+      }
+    } else {
+      // Text-only response, no tool call
+      console.log("❌ Agent did not call any tools! Trying again...");
+      continue;
+    }
+  }
+
+  if (
+    gameState.guesses[gameState.guesses.length - 1]?.result !== "🟩🟩🟩🟩🟩"
+  ) {
+    console.log(
+      `\n😅 Not solved in ${maxGuesses} guesses. The word was: ${gameState.targetWord}`
+    );
+  }
+
+  console.log("═".repeat(COL_WIDTH));
+}
+
 type WordleFeedback = {
   guess: string;
   result: string; // e.g., "🟩🟨⬜⬜🟩"
@@ -178,219 +347,6 @@ function displayWordleBoard(
 
   board += "  └───────────────────┘\n";
   return board;
-}
-
-async function wordleSolverAgent() {
-  const gameState: WordleGameState = {
-    targetWord: "SAUCE",
-    guesses: [],
-    maxGuesses: 10,
-  };
-
-  console.log("\n" + "═".repeat(COL_WIDTH));
-  console.log(centerText("🧩 Wordle Solver Agent 🧩", COL_WIDTH));
-  console.log("═".repeat(COL_WIDTH));
-  console.log("\nTime to play Wordle 🤓");
-  console.log(
-    "\nWe'll use a multi-model agent loop that alternates between OpenAI and Anthropic each turn!\n"
-  );
-
-  // Define the tool in Lingua's universal format
-  const tools: Tool[] = [
-    clientTool({
-      name: "make_guess",
-      description:
-        "Solve the Wordle puzzle. Each guess *must* be a valid 5-letter word.",
-      input_schema: {
-        type: "object",
-        properties: {
-          word: {
-            type: "string",
-            description: "A 5-letter word guess",
-          },
-        },
-        required: ["word"],
-      },
-    }),
-  ];
-
-  // Initialize conversation
-  const messages: Message[] = [
-    {
-      role: "user",
-      content: `Let's play Wordle! You have ${gameState.maxGuesses} guesses to find a 5-letter word.
-
-You'll receive feedback on each guess in the form of a string of emojis:
-- 🟩 = correct letter in correct position
-- 🟨 = correct letter in wrong position
-- ⬜ = letter not in word
-
-* Remember that if a letter is green, you should lock it in place for all remaining guesses.
-* Just play the game, do not explain anything to me or provide any commentary.
-* Use the make_guess tool to make your guesses.
-* You must make a guess on each response!`,
-    },
-  ];
-
-  let turnCount = 0;
-  const maxTurns = 20;
-  let guessesCount = 0;
-  const maxGuesses = 10;
-
-  while (turnCount < maxTurns && guessesCount < maxGuesses) {
-    turnCount++;
-
-    // Alternate providers: OpenAI on odd turns, Anthropic on even turns
-    const providerName = turnCount % 2 === 1 ? "Anthropic" : "OpenAI";
-
-    console.log(`Turn ${turnCount} (${providerName}):`);
-
-    // We'll maintain our chat thread in Lingua format, allowing us to switch providers seamlessly
-    const response =
-      providerName === "OpenAI"
-        ? chatCompletionsMessagesToLingua(
-            await createOpenAiCompletion(messages, tools)
-          )
-        : anthropicMessagesToLingua(
-            await createAnthropicCompletion(messages, tools)
-          );
-
-    const message = response[0]; // The helpers used above always return an array
-
-    messages.push(message);
-
-    // Check if the assistant wants to use a tool
-    const assistantMessage = message;
-    if (
-      typeof assistantMessage.content !== "string" &&
-      Array.isArray(assistantMessage.content)
-    ) {
-      const toolCalls = assistantMessage.content.filter(
-        (block) => block.type === "tool_call"
-      );
-
-      if (toolCalls.length > 0) {
-        // Process tool calls
-        for (const toolCall of toolCalls) {
-          if (toolCall.type !== "tool_call") continue;
-
-          // Parse arguments - handle both string and ToolCallArguments types
-          let args: any;
-          if (typeof toolCall.arguments === "string") {
-            args = JSON.parse(toolCall.arguments);
-          } else if (
-            typeof toolCall.arguments === "object" &&
-            "type" in toolCall.arguments &&
-            toolCall.arguments.type === "valid"
-          ) {
-            args = toolCall.arguments.value;
-          } else {
-            args = toolCall.arguments;
-          }
-
-          console.log(`\n🤔 Agent's guess: ${args.word.toUpperCase()}`);
-
-          // Execute the tool
-          const guess = args.word.toUpperCase();
-
-          // Validate guess length
-          if (guess.length !== 5) {
-            console.log("❌ Invalid guess length!");
-
-            // Return error feedback without consuming a guess
-            messages.push({
-              role: "tool",
-              content: [
-                {
-                  type: "tool_result",
-                  tool_call_id: toolCall.tool_call_id,
-                  tool_name: toolCall.tool_name,
-                  output: {
-                    error: `Invalid guess: "${args.word}" is not exactly 5 letters. Please provide a valid 5-letter word.`,
-                    guesses_remaining: maxGuesses - guessesCount,
-                  },
-                },
-              ],
-            });
-
-            continue;
-          }
-
-          guessesCount++; // Increment only after a valid guess
-          const result = evaluateGuess(guess, gameState.targetWord);
-          gameState.guesses.push({ guess, result });
-
-          // Display board
-          console.log(displayWordleBoard(gameState, maxGuesses));
-
-          // Add tool result to conversation
-          messages.push({
-            role: "tool",
-            content: [
-              {
-                type: "tool_result",
-                tool_call_id: toolCall.tool_call_id,
-                tool_name: toolCall.tool_name,
-                output: {
-                  guess,
-                  result,
-                  board: displayWordleBoard(gameState, maxGuesses),
-                  guesses_remaining: maxGuesses - guessesCount,
-                },
-              },
-            ],
-          });
-
-          // Check if solved
-          if (result === "🟩🟩🟩🟩🟩") {
-            console.log(
-              `\n🎉 Solved in ${gameState.guesses.length} guess${gameState.guesses.length === 1 ? "" : "es"}!`
-            );
-
-            return;
-          }
-        }
-      } else {
-        // No valid tool calls found
-        // Have the agent try again
-        messages.push({
-          role: "user",
-          content:
-            "Please make sure you call the make_guess tool each time you respond!",
-        });
-        console.log(
-          "\n💬 No tool call found! Agent response:",
-          assistantMessage.content
-        );
-
-        continue;
-      }
-    } else {
-      // Text-only response, no tool call
-      // Have the agent try again
-      messages.push({
-        role: "user",
-        content:
-          "Please make sure you call the make_guess tool each time you respond!",
-      });
-      console.log(
-        "\n💬 No tool call found! Agent response:",
-        assistantMessage.content
-      );
-
-      continue;
-    }
-  }
-
-  if (
-    gameState.guesses[gameState.guesses.length - 1]?.result !== "🟩🟩🟩🟩🟩"
-  ) {
-    console.log(
-      `\n😅 Not solved in ${maxGuesses} guesses. The word was: ${gameState.targetWord}`
-    );
-  }
-
-  console.log("═".repeat(COL_WIDTH));
 }
 
 const COL_WIDTH = 100;
