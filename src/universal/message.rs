@@ -1,3 +1,4 @@
+use crate::serde_json;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use ts_rs::TS;
@@ -41,7 +42,7 @@ pub enum UserContentPart {
     Text(TextContentPart),
     Image {
         #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
-        image: crate::serde_json::Value,
+        image: serde_json::Value,
         #[ts(optional)]
         media_type: Option<String>,
         #[ts(optional)]
@@ -49,7 +50,7 @@ pub enum UserContentPart {
     },
     File {
         #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
-        data: crate::serde_json::Value,
+        data: serde_json::Value,
         #[ts(optional)]
         filename: Option<String>,
         media_type: String,
@@ -75,7 +76,7 @@ pub enum AssistantContentPart {
     Text(TextContentPart),
     File {
         #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
-        data: crate::serde_json::Value,
+        data: serde_json::Value,
         #[ts(optional)]
         filename: Option<String>,
         media_type: String,
@@ -102,7 +103,7 @@ pub enum AssistantContentPart {
         tool_call_id: String,
         tool_name: String,
         #[ts(type = "unknown")]
-        output: crate::serde_json::Value,
+        output: serde_json::Value,
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
@@ -113,17 +114,14 @@ pub enum AssistantContentPart {
 #[ts(export, rename_all = "snake_case")]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ToolCallArguments {
-    Valid(
-        #[ts(type = "Record<string, unknown>")]
-        crate::serde_json::Map<String, crate::serde_json::Value>,
-    ),
+    Valid(#[ts(type = "Record<string, unknown>")] serde_json::Map<String, serde_json::Value>),
     Invalid(String),
 }
 
 impl From<String> for ToolCallArguments {
     fn from(s: String) -> Self {
-        match crate::serde_json::from_str(&s) {
-            Ok(crate::serde_json::Value::Object(map)) => ToolCallArguments::Valid(map),
+        match serde_json::from_str(&s) {
+            Ok(serde_json::Value::Object(map)) => ToolCallArguments::Valid(map),
             _ => ToolCallArguments::Invalid(s),
         }
     }
@@ -135,7 +133,7 @@ impl std::fmt::Display for ToolCallArguments {
             ToolCallArguments::Valid(map) => write!(
                 f,
                 "{}",
-                crate::serde_json::to_string(map).map_err(|_| std::fmt::Error)?
+                serde_json::to_string(map).map_err(|_| std::fmt::Error)?
             ),
             ToolCallArguments::Invalid(s) => write!(f, "{}", s),
         }
@@ -153,7 +151,7 @@ pub struct ToolResultContentPart {
     pub tool_call_id: String,
     pub tool_name: String,
     #[ts(type = "any")]
-    pub output: crate::serde_json::Value,
+    pub output: serde_json::Value,
     pub provider_options: Option<ProviderOptions>,
 }
 
@@ -190,7 +188,7 @@ pub enum SourceType {
 pub struct ProviderOptions {
     #[ts(type = "any")]
     #[serde(flatten)]
-    pub options: crate::serde_json::Map<String, crate::serde_json::Value>,
+    pub options: serde_json::Map<String, serde_json::Value>,
 }
 
 /// Provider metadata
@@ -200,7 +198,7 @@ pub struct ProviderOptions {
 pub struct ProviderMetadata {
     #[ts(type = "unknown")]
     #[serde(flatten)]
-    pub metadata: crate::serde_json::Map<String, crate::serde_json::Value>,
+    pub metadata: serde_json::Map<String, serde_json::Value>,
 }
 
 /// Source content part - matching AI SDK Source type
@@ -234,7 +232,7 @@ pub enum SourceContentPart {
 #[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct GeneratedFileContentPart {
     #[ts(type = "string | Uint8Array | ArrayBuffer | Buffer | URL")]
-    pub file: crate::serde_json::Value,
+    pub file: serde_json::Value,
     pub provider_metadata: Option<ProviderMetadata>,
 }
 
@@ -246,7 +244,7 @@ pub struct ToolCallContentPart {
     pub tool_call_id: String,
     pub tool_name: String,
     #[ts(type = "any")]
-    pub input: crate::serde_json::Value,
+    pub input: serde_json::Value,
     pub provider_executed: Option<bool>,
     pub provider_metadata: Option<ProviderMetadata>,
 }
@@ -259,7 +257,7 @@ pub struct ToolResultResponsePart {
     pub tool_call_id: String,
     pub tool_name: String,
     #[ts(type = "any")]
-    pub output: crate::serde_json::Value,
+    pub output: serde_json::Value,
     pub provider_metadata: Option<ProviderMetadata>,
 }
 

@@ -1,5 +1,5 @@
-// Re-export lingua_serde_json as serde_json so all code can use crate::serde_json:: transparently
-// while actually using our forked version with arbitrary_precision
+// Re-export lingua_serde_json as serde_json so all code can use serde_json:: after importing
+// `use crate::serde_json;`. This wrapper isolates the arbitrary_precision feature.
 pub use lingua_serde_json as serde_json;
 
 pub mod capabilities;

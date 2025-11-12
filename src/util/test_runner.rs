@@ -1,4 +1,6 @@
 #[cfg(test)]
+use crate::serde_json;
+#[cfg(test)]
 use crate::universal::Message;
 #[cfg(test)]
 use crate::util::testutil::TestCase;
@@ -32,10 +34,7 @@ where
 
     // Log conversion steps
     debug!("📄 Original: {} Messages", messages.len());
-    debug!(
-        "\n{}",
-        crate::serde_json::to_string_pretty(&messages).unwrap()
-    );
+    debug!("\n{}", serde_json::to_string_pretty(&messages).unwrap());
 
     debug!("🔄 Converting to universal format...");
 
@@ -45,7 +44,7 @@ where
     debug!("✓ Universal: {} Messages", universal_request.len());
     debug!(
         "\n{}",
-        crate::serde_json::to_string_pretty(&universal_request).unwrap()
+        serde_json::to_string_pretty(&universal_request).unwrap()
     );
 
     debug!("↩️  Converting back to provider format...");
@@ -53,10 +52,7 @@ where
     // Convert back to provider format
     let roundtripped = convert_from_universal(universal_request.clone())?;
 
-    debug!(
-        "\n{}",
-        crate::serde_json::to_string_pretty(&roundtripped).unwrap()
-    );
+    debug!("\n{}", serde_json::to_string_pretty(&roundtripped).unwrap());
 
     // Compare original and roundtripped messages
     let diff = diff_serializable(messages, &roundtripped, "messages");
@@ -78,13 +74,13 @@ where
         debug!(
             "📄 Response Original: {} items",
             // This is a generic debug message since we don't know the exact structure
-            crate::serde_json::to_string_pretty(&response_content)
+            serde_json::to_string_pretty(&response_content)
                 .map(|s| s.lines().count())
                 .unwrap_or(0)
         );
         debug!(
             "\n{}",
-            crate::serde_json::to_string_pretty(&response_content).unwrap()
+            serde_json::to_string_pretty(&response_content).unwrap()
         );
 
         debug!("🔄 Converting response to universal format...");
@@ -98,7 +94,7 @@ where
         );
         debug!(
             "\n{}",
-            crate::serde_json::to_string_pretty(&universal_response).unwrap()
+            serde_json::to_string_pretty(&universal_response).unwrap()
         );
 
         debug!("↩️  Converting response back to provider format...");
@@ -108,21 +104,21 @@ where
 
         debug!(
             "\n{}",
-            crate::serde_json::to_string_pretty(&roundtripped_response).unwrap()
+            serde_json::to_string_pretty(&roundtripped_response).unwrap()
         );
 
         // For response comparison, we need to handle different types differently
         // Since diff_serializable expects slices, we'll serialize both to JSON and compare
-        let original_json = crate::serde_json::to_value(&response_content)
+        let original_json = serde_json::to_value(&response_content)
             .map_err(|e| format!("Failed to serialize original response: {}", e))?;
-        let roundtripped_json = crate::serde_json::to_value(&roundtripped_response)
+        let roundtripped_json = serde_json::to_value(&roundtripped_response)
             .map_err(|e| format!("Failed to serialize roundtripped response: {}", e))?;
 
         if original_json != roundtripped_json {
             return Err(format!(
                 "Response roundtrip conversion failed:\nOriginal: {}\nRoundtripped: {}",
-                crate::serde_json::to_string_pretty(&original_json).unwrap(),
-                crate::serde_json::to_string_pretty(&roundtripped_json).unwrap()
+                serde_json::to_string_pretty(&original_json).unwrap(),
+                serde_json::to_string_pretty(&roundtripped_json).unwrap()
             ));
         }
 

@@ -1,4 +1,5 @@
 use crate::providers::openai::generated as openai;
+use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart,
@@ -126,7 +127,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
 
                     let output = input.output.unwrap_or_else(|| "".to_string());
 
-                    let output_value = crate::serde_json::Value::String(output);
+                    let output_value = serde_json::Value::String(output);
 
                     let tool_result = ToolResultContentPart {
                         tool_call_id,
@@ -216,10 +217,10 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
 
                 // Preserve detail in provider_options
                 let provider_options = if let Some(detail) = &value.detail {
-                    let mut options = crate::serde_json::Map::new();
+                    let mut options = serde_json::Map::new();
                     options.insert(
                         "detail".to_string(),
-                        crate::serde_json::to_value(detail).map_err(|e| {
+                        serde_json::to_value(detail).map_err(|e| {
                             ConvertError::JsonSerializationFailed {
                                 field: "detail".to_string(),
                                 error: e.to_string(),
@@ -232,7 +233,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 };
 
                 UserContentPart::Image {
-                    image: crate::serde_json::Value::String(image_url),
+                    image: serde_json::Value::String(image_url),
                     media_type: Some("image/jpeg".to_string()), // Default to JPEG, could be improved
                     provider_options,
                 }
@@ -319,7 +320,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                 ..
             } => {
                 let image_url = match image {
-                    crate::serde_json::Value::String(url) => url,
+                    serde_json::Value::String(url) => url,
                     _ => {
                         return Err(ConvertError::UnsupportedInputType {
                             type_info: format!("Image type must be string URL, got: {:?}", image),
@@ -331,7 +332,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                 let detail = provider_options
                     .as_ref()
                     .and_then(|opts| opts.options.get("detail"))
-                    .and_then(|detail_val| crate::serde_json::from_value(detail_val.clone()).ok());
+                    .and_then(|detail_val| serde_json::from_value(detail_val.clone()).ok());
 
                 openai::InputContent {
                     input_content_type: openai::InputItemContentListType::InputImage,
@@ -617,8 +618,8 @@ impl TryFromLLM<Message> for openai::InputItem {
                         ToolContentPart::ToolResult(tool_result) => {
                             // Convert tool result output to string for Refusal::String
                             let output_string = match &tool_result.output {
-                                crate::serde_json::Value::String(s) => s.clone(),
-                                other => crate::serde_json::to_string(other).map_err(|e| {
+                                serde_json::Value::String(s) => s.clone(),
+                                other => serde_json::to_string(other).map_err(|e| {
                                     ConvertError::JsonSerializationFailed {
                                         field: "tool_result_output".to_string(),
                                         error: e.to_string(),
@@ -1088,7 +1089,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                 let tool_result = ToolResultContentPart {
                     tool_call_id: tool_call_id.clone(),
                     tool_name: String::new(), // OpenAI doesn't provide tool name in tool messages
-                    output: crate::serde_json::Value::String(content_text),
+                    output: serde_json::Value::String(content_text),
                     provider_options: None,
                 };
 
@@ -1127,7 +1128,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 if let Some(image_url) = part.image_url {
                     // Convert ImageUrl to UserContentPart::Image
                     Ok(UserContentPart::Image {
-                        image: crate::serde_json::to_value(&image_url.url).map_err(|e| {
+                        image: serde_json::to_value(&image_url.url).map_err(|e| {
                             ConvertError::JsonSerializationFailed {
                                 field: "image_url".to_string(),
                                 error: e.to_string(),
@@ -1207,8 +1208,8 @@ impl TryFromLLM<Message> for openai::ChatCompletionRequestMessage {
 
                 // Convert output to string for OpenAI
                 let content_string = match &tool_result.output {
-                    crate::serde_json::Value::String(s) => s.clone(),
-                    other => crate::serde_json::to_string(other).map_err(|e| {
+                    serde_json::Value::String(s) => s.clone(),
+                    other => serde_json::to_string(other).map_err(|e| {
                         ConvertError::JsonSerializationFailed {
                             field: "tool_result_content".to_string(),
                             error: e.to_string(),
@@ -1269,7 +1270,7 @@ fn convert_user_content_part_to_chat_completion_part(
         } => {
             // Convert image to ImageUrl format
             let url = match image {
-                crate::serde_json::Value::String(url) => url,
+                serde_json::Value::String(url) => url,
                 _ => {
                     return Err(ConvertError::UnsupportedInputType {
                         type_info: format!(

@@ -1,3 +1,4 @@
+use crate::serde_json;
 use crate::serde_json::Value;
 use serde::Deserialize;
 use std::fs;
@@ -72,7 +73,7 @@ impl std::error::Error for TestDiscoveryError {}
 
 fn load_json_file<T: for<'de> Deserialize<'de>>(file_path: &Path) -> Result<T, TestDiscoveryError> {
     match fs::read_to_string(file_path) {
-        Ok(content) => crate::serde_json::from_str(&content).map_err(|e| TestDiscoveryError {
+        Ok(content) => serde_json::from_str(&content).map_err(|e| TestDiscoveryError {
             message: format!("Failed to parse JSON as target type: {}", e),
             path: Some(file_path.to_string_lossy().to_string()),
         }),
@@ -280,14 +281,12 @@ where
     // Convert both arrays to JSON Values
     let orig_values: Vec<Value> = original
         .iter()
-        .map(|item| crate::serde_json::to_value(item).expect("Failed to serialize original item"))
+        .map(|item| serde_json::to_value(item).expect("Failed to serialize original item"))
         .collect();
 
     let round_values: Vec<Value> = roundtripped
         .iter()
-        .map(|item| {
-            crate::serde_json::to_value(item).expect("Failed to serialize roundtripped item")
-        })
+        .map(|item| serde_json::to_value(item).expect("Failed to serialize roundtripped item"))
         .collect();
 
     let mut diff_output = String::new();
@@ -333,8 +332,8 @@ where
                     .unwrap();
 
                     // Create full JSON output with highlighted differences
-                    let original_json = crate::serde_json::to_string_pretty(o).unwrap();
-                    let roundtripped_json = crate::serde_json::to_string_pretty(r).unwrap();
+                    let original_json = serde_json::to_string_pretty(o).unwrap();
+                    let roundtripped_json = serde_json::to_string_pretty(r).unwrap();
 
                     let original_lines: Vec<&str> = original_json.lines().collect();
                     let roundtripped_lines: Vec<&str> = roundtripped_json.lines().collect();
@@ -374,7 +373,7 @@ where
                     i
                 )
                 .unwrap();
-                let json = crate::serde_json::to_string_pretty(o).unwrap();
+                let json = serde_json::to_string_pretty(o).unwrap();
                 for line in json.lines() {
                     writeln!(diff_output, "\x1b[31m  {}\x1b[0m", line).unwrap();
                 }
@@ -389,7 +388,7 @@ where
                     i
                 )
                 .unwrap();
-                let json = crate::serde_json::to_string_pretty(r).unwrap();
+                let json = serde_json::to_string_pretty(r).unwrap();
                 for line in json.lines() {
                     writeln!(diff_output, "\x1b[32m  {}\x1b[0m", line).unwrap();
                 }

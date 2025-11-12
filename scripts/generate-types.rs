@@ -13,9 +13,9 @@
 
 use std::path::Path;
 
-// When run as a binary through cargo, lingua_serde_json is available from the workspace
-// This allows the script to work with the lingua_serde_json wrapper crate
-extern crate lingua_serde_json;
+// Import serde_json from the lingua crate's re-export
+// This ensures we use the wrapper crate with arbitrary_precision
+use lingua::serde_json;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -70,7 +70,7 @@ fn generate_openai_types() {
 
     println!("🔍 Parsing YAML OpenAPI spec...");
 
-    let schema: lingua_serde_json::Value = match serde_yaml::from_str(&openai_spec) {
+    let schema: serde_json::Value = match serde_yaml::from_str(&openai_spec) {
         Ok(value) => value,
         Err(e) => {
             println!("❌ Failed to parse OpenAPI spec as YAML: {}", e);
@@ -112,7 +112,7 @@ fn generate_anthropic_types() {
 
     println!("🔍 Parsing JSON OpenAPI spec...");
 
-    let schema: lingua_serde_json::Value = match lingua_serde_json::from_str(&anthropic_spec) {
+    let schema: serde_json::Value = match serde_json::from_str(&anthropic_spec) {
         Ok(value) => value,
         Err(e) => {
             println!("❌ Failed to parse Anthropic OpenAPI spec as JSON: {}", e);
@@ -137,13 +137,11 @@ fn generate_openai_specific_types(openai_spec: &str) {
     println!("🏗️  Using quicktype for OpenAI type generation...");
 
     // Extract OpenAI OpenAPI spec
-    let full_spec: lingua_serde_json::Value =
+    let full_spec: serde_json::Value =
         serde_yaml::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
 
     // Generate types using quicktype approach
-    match generate_openai_types_with_quicktype(
-        &lingua_serde_json::to_string_pretty(&full_spec).unwrap(),
-    ) {
+    match generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec).unwrap()) {
         Ok(()) => {
             println!("✅ OpenAI types generated successfully with quicktype");
         }
@@ -163,7 +161,7 @@ fn generate_openai_types_with_quicktype(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🔍 Parsing OpenAI OpenAPI spec...");
 
-    let spec: lingua_serde_json::Value = lingua_serde_json::from_str(openapi_spec)?;
+    let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
 
     // Extract essential OpenAI schemas for chat completions
     let essential_schemas = create_essential_openai_schemas(&spec);
@@ -174,7 +172,7 @@ fn generate_openai_types_with_quicktype(
     let temp_schema_path = std::env::temp_dir().join("openai_schemas.json");
     std::fs::write(
         &temp_schema_path,
-        lingua_serde_json::to_string_pretty(&essential_schemas)?,
+        serde_json::to_string_pretty(&essential_schemas)?,
     )?;
 
     // Use quicktype to generate types
@@ -234,7 +232,7 @@ fn generate_openai_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_openai_schemas(spec: &lingua_serde_json::Value) -> lingua_serde_json::Value {
+fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Value {
     // Simplified approach: just specify input/output types, let dependency resolution handle the rest
     let chat_request_type = "CreateChatCompletionRequest";
     let chat_response_type = "CreateChatCompletionResponse";
@@ -242,14 +240,14 @@ fn create_essential_openai_schemas(spec: &lingua_serde_json::Value) -> lingua_se
     let responses_request_type = "CreateResponse";
     let responses_response_type = "Response";
 
-    let default_map = lingua_serde_json::Map::new();
+    let default_map = serde_json::Map::new();
     let all_schemas = spec
         .get("components")
         .and_then(|c| c.get("schemas"))
         .and_then(|s| s.as_object())
         .unwrap_or(&default_map);
 
-    let mut essential_schemas = lingua_serde_json::Map::new();
+    let mut essential_schemas = serde_json::Map::new();
     let mut processed = std::collections::HashSet::new();
 
     // Add chat completion types with their dependencies
@@ -287,13 +285,13 @@ fn create_essential_openai_schemas(spec: &lingua_serde_json::Value) -> lingua_se
     );
 
     // Fix all $ref paths to point to #/definitions/ instead of #/components/schemas/
-    let mut fixed_schemas = lingua_serde_json::Map::new();
+    let mut fixed_schemas = serde_json::Map::new();
     for (name, schema) in essential_schemas {
         fixed_schemas.insert(name, fix_openai_schema_refs(&schema));
     }
 
     // Create a clean root schema with separated input/output types for both APIs
-    let root_schema = lingua_serde_json::json!({
+    let root_schema = serde_json::json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "oneOf": [
@@ -323,8 +321,8 @@ fn create_essential_openai_schemas(spec: &lingua_serde_json::Value) -> lingua_se
 
 fn add_openai_schema_with_dependencies(
     type_name: &str,
-    all_schemas: &lingua_serde_json::Map<String, lingua_serde_json::Value>,
-    essential_schemas: &mut lingua_serde_json::Map<String, lingua_serde_json::Value>,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
     processed: &mut std::collections::HashSet<String>,
 ) {
     if processed.contains(type_name) {
@@ -351,10 +349,10 @@ fn add_openai_schema_with_dependencies(
     }
 }
 
-fn fix_openai_schema_refs(schema: &lingua_serde_json::Value) -> lingua_serde_json::Value {
+fn fix_openai_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
     match schema {
-        lingua_serde_json::Value::Object(obj) => {
-            let mut fixed_obj = lingua_serde_json::Map::new();
+        serde_json::Value::Object(obj) => {
+            let mut fixed_obj = serde_json::Map::new();
 
             for (key, value) in obj {
                 if key == "$ref" {
@@ -363,8 +361,7 @@ fn fix_openai_schema_refs(schema: &lingua_serde_json::Value) -> lingua_serde_jso
                         if ref_str.starts_with("#/components/schemas/") {
                             let new_ref =
                                 ref_str.replace("#/components/schemas/", "#/definitions/");
-                            fixed_obj
-                                .insert(key.clone(), lingua_serde_json::Value::String(new_ref));
+                            fixed_obj.insert(key.clone(), serde_json::Value::String(new_ref));
                         } else {
                             fixed_obj.insert(key.clone(), value.clone());
                         }
@@ -376,24 +373,21 @@ fn fix_openai_schema_refs(schema: &lingua_serde_json::Value) -> lingua_serde_jso
                 }
             }
 
-            lingua_serde_json::Value::Object(fixed_obj)
+            serde_json::Value::Object(fixed_obj)
         }
-        lingua_serde_json::Value::Array(arr) => {
-            let fixed_arr: Vec<lingua_serde_json::Value> =
+        serde_json::Value::Array(arr) => {
+            let fixed_arr: Vec<serde_json::Value> =
                 arr.iter().map(fix_openai_schema_refs).collect();
-            lingua_serde_json::Value::Array(fixed_arr)
+            serde_json::Value::Array(fixed_arr)
         }
         other => other.clone(),
     }
 }
 
 // Extract schema references helper function (used by both OpenAI and Anthropic)
-fn extract_schema_refs(
-    value: &lingua_serde_json::Value,
-    refs: &mut std::collections::HashSet<String>,
-) {
+fn extract_schema_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
     match value {
-        lingua_serde_json::Value::Object(obj) => {
+        serde_json::Value::Object(obj) => {
             // Check for $ref
             if let Some(ref_value) = obj.get("$ref") {
                 if let Some(ref_str) = ref_value.as_str() {
@@ -408,7 +402,7 @@ fn extract_schema_refs(
                 extract_schema_refs(v, refs);
             }
         }
-        lingua_serde_json::Value::Array(arr) => {
+        serde_json::Value::Array(arr) => {
             // Recurse into all array elements
             for item in arr {
                 extract_schema_refs(item, refs);
@@ -429,12 +423,12 @@ fn generate_anthropic_specific_types(anthropic_spec: &str) {
     println!("🏗️  Using quicktype for Anthropic type generation...");
 
     // Extract Anthropic OpenAPI spec
-    let full_spec: lingua_serde_json::Value = lingua_serde_json::from_str(anthropic_spec)
-        .expect("Failed to parse Anthropic OpenAPI spec");
+    let full_spec: serde_json::Value =
+        serde_json::from_str(anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
 
     // Generate types using quicktype approach
     match generate_anthropic_types_with_quicktype(
-        &lingua_serde_json::to_string_pretty(&full_spec).unwrap(),
+        &serde_json::to_string_pretty(&full_spec).unwrap(),
     ) {
         Ok(()) => {
             println!("✅ Anthropic types generated successfully with quicktype");
@@ -455,7 +449,7 @@ fn generate_anthropic_types_with_quicktype(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🔍 Parsing Anthropic OpenAPI spec...");
 
-    let spec: lingua_serde_json::Value = lingua_serde_json::from_str(openapi_spec)?;
+    let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
 
     // Extract essential Anthropic schemas for messages API
     let essential_schemas = create_essential_anthropic_schemas(&spec);
@@ -464,7 +458,7 @@ fn generate_anthropic_types_with_quicktype(
 
     // Create a temporary JSON schema file for quicktype
     let temp_schema_path = std::env::temp_dir().join("anthropic_schemas.json");
-    let schema_json = lingua_serde_json::to_string_pretty(&essential_schemas)?;
+    let schema_json = serde_json::to_string_pretty(&essential_schemas)?;
 
     std::fs::write(&temp_schema_path, &schema_json)?;
 
@@ -525,17 +519,15 @@ fn generate_anthropic_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_anthropic_schemas(spec: &lingua_serde_json::Value) -> lingua_serde_json::Value {
+fn create_essential_anthropic_schemas(spec: &serde_json::Value) -> serde_json::Value {
     // Automated approach: Preprocess schema to separate request/response types
     preprocess_anthropic_schema_for_separation(spec)
 }
 
-fn preprocess_anthropic_schema_for_separation(
-    spec: &lingua_serde_json::Value,
-) -> lingua_serde_json::Value {
+fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde_json::Value {
     println!("🔧 Preprocessing Anthropic schema for request/response separation...");
 
-    let default_map = lingua_serde_json::Map::new();
+    let default_map = serde_json::Map::new();
     let all_schemas = spec
         .get("components")
         .and_then(|c| c.get("schemas"))
@@ -551,7 +543,7 @@ fn preprocess_anthropic_schema_for_separation(
         response_schemas.len()
     );
 
-    let mut separated_schemas = lingua_serde_json::Map::new();
+    let mut separated_schemas = serde_json::Map::new();
 
     // Step 2: First recursively add all dependencies for the original schemas
     for schema_name in &request_schemas {
@@ -580,7 +572,7 @@ fn preprocess_anthropic_schema_for_separation(
 
     // Step 5: Create root schema with separated types
     // Use a different approach: create separate top-level object types to avoid merging
-    let root_schema = lingua_serde_json::json!({
+    let root_schema = serde_json::json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "oneOf": [
@@ -605,7 +597,7 @@ fn preprocess_anthropic_schema_for_separation(
     root_schema
 }
 
-fn analyze_anthropic_endpoints(spec: &lingua_serde_json::Value) -> (Vec<String>, Vec<String>) {
+fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
     let mut request_schemas = Vec::new();
     let mut response_schemas = Vec::new();
 
@@ -665,9 +657,7 @@ fn extract_schema_name_from_ref(ref_str: &str) -> Option<String> {
         .map(|last_slash| ref_str[last_slash + 1..].to_string())
 }
 
-fn remove_response_fields_from_schema(
-    schema: &lingua_serde_json::Value,
-) -> lingua_serde_json::Value {
+fn remove_response_fields_from_schema(schema: &serde_json::Value) -> serde_json::Value {
     let mut cleaned_schema = schema.clone();
 
     // Fields that should NOT be in request schemas
@@ -708,9 +698,7 @@ fn remove_response_fields_from_schema(
     cleaned_schema
 }
 
-fn remove_request_fields_from_schema(
-    schema: &lingua_serde_json::Value,
-) -> lingua_serde_json::Value {
+fn remove_request_fields_from_schema(schema: &serde_json::Value) -> serde_json::Value {
     let mut cleaned_schema = schema.clone();
 
     // Fields that should NOT be in response schemas
@@ -757,8 +745,8 @@ fn remove_request_fields_from_schema(
 
 fn add_dependencies_recursively(
     schema_name: &str,
-    all_schemas: &lingua_serde_json::Map<String, lingua_serde_json::Value>,
-    separated_schemas: &mut lingua_serde_json::Map<String, lingua_serde_json::Value>,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    separated_schemas: &mut serde_json::Map<String, serde_json::Value>,
 ) {
     // Skip if already processed
     if separated_schemas.contains_key(schema_name) {
@@ -780,10 +768,10 @@ fn add_dependencies_recursively(
     }
 }
 
-fn fix_anthropic_schema_refs(schema: &lingua_serde_json::Value) -> lingua_serde_json::Value {
+fn fix_anthropic_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
     match schema {
-        lingua_serde_json::Value::Object(obj) => {
-            let mut fixed_obj = lingua_serde_json::Map::new();
+        serde_json::Value::Object(obj) => {
+            let mut fixed_obj = serde_json::Map::new();
 
             for (key, value) in obj {
                 if key == "$ref" {
@@ -792,8 +780,7 @@ fn fix_anthropic_schema_refs(schema: &lingua_serde_json::Value) -> lingua_serde_
                         if ref_str.starts_with("#/components/schemas/") {
                             let new_ref =
                                 ref_str.replace("#/components/schemas/", "#/definitions/");
-                            fixed_obj
-                                .insert(key.clone(), lingua_serde_json::Value::String(new_ref));
+                            fixed_obj.insert(key.clone(), serde_json::Value::String(new_ref));
                         } else {
                             fixed_obj.insert(key.clone(), value.clone());
                         }
@@ -808,14 +795,14 @@ fn fix_anthropic_schema_refs(schema: &lingua_serde_json::Value) -> lingua_serde_
                         if obj.get("enum").is_some() {
                             fixed_obj.insert(
                                 key.clone(),
-                                lingua_serde_json::Value::String("string".to_string()),
+                                serde_json::Value::String("string".to_string()),
                             );
                         } else if obj.get("anyOf").is_some() || obj.get("oneOf").is_some() {
                             continue; // Skip null type for union types
                         } else {
                             fixed_obj.insert(
                                 key.clone(),
-                                lingua_serde_json::Value::String("object".to_string()),
+                                serde_json::Value::String("object".to_string()),
                             );
                         }
                     } else {
@@ -824,12 +811,12 @@ fn fix_anthropic_schema_refs(schema: &lingua_serde_json::Value) -> lingua_serde_
                 }
             }
 
-            lingua_serde_json::Value::Object(fixed_obj)
+            serde_json::Value::Object(fixed_obj)
         }
-        lingua_serde_json::Value::Array(arr) => {
-            let fixed_arr: Vec<lingua_serde_json::Value> =
+        serde_json::Value::Array(arr) => {
+            let fixed_arr: Vec<serde_json::Value> =
                 arr.iter().map(fix_anthropic_schema_refs).collect();
-            lingua_serde_json::Value::Array(fixed_arr)
+            serde_json::Value::Array(fixed_arr)
         }
         other => other.clone(),
     }
@@ -893,7 +880,7 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
 
     // Fix HashMap to serde_json::Map for proper JavaScript object serialization
     // This ensures that JSON objects serialize to plain JS objects {} instead of Maps
-    // After re-export, types use serde_json:: not lingua_serde_json::
+    // After re-export, types use serde_json:: not serde_json::
     // Note: We keep the outer Option but remove the inner Option since Map values are non-optional
     processed = processed.replace(
         "Option<HashMap<String, Option<serde_json::Value>>>",
@@ -911,9 +898,9 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     processed = processed.replace("use std::collections::HashMap;\n", "");
 
     // Fix specific type mappings that quicktype might miss - be very specific to avoid over-replacement
-    // Only replace lingua_serde_json::Value in error_code fields, not in general input/properties fields
+    // Only replace serde_json::Value in error_code fields, not in general input/properties fields
     processed = processed.replace(
-        "pub error_code: lingua_serde_json::Value",
+        "pub error_code: serde_json::Value",
         "pub error_code: WebSearchToolResultErrorCode",
     );
 
@@ -999,7 +986,7 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
 
     // Fix any specific type mappings that quicktype might miss for OpenAI
     // Fix call_id fields that quicktype incorrectly generates as serde_json::Value
-    // (after re-export, it's serde_json:: not lingua_serde_json::)
+    // (after re-export, it's serde_json:: not serde_json::)
     processed = processed.replace(
         "pub call_id: Option<serde_json::Value>,",
         "pub call_id: Option<String>,",
@@ -1119,9 +1106,9 @@ fn add_ts_type_annotations(content: &str) -> String {
             let has_ts_attr = prev_line.starts_with("#[ts(");
 
             // Determine if we need to add ts annotation
-            // Check the FULL line for lingua_serde_json::Value or serde_json::Value (handles complex generic types)
+            // Check the FULL line for serde_json::Value or serde_json::Value (handles complex generic types)
             let has_serde_json_value =
-                line.contains("lingua_serde_json::Value") || line.contains("serde_json::Value");
+                line.contains("serde_json::Value") || line.contains("serde_json::Value");
 
             // Special handling for HashMap/Map with serde_json::Value
             let has_hashmap_with_value =

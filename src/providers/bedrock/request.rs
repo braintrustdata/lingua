@@ -5,6 +5,7 @@ These types mirror the AWS Bedrock Converse API structure with full serde suppor
 for JSON serialization and compatibility with the Elmir format system.
 */
 
+use crate::serde_json;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use ts_rs::TS;
@@ -38,7 +39,7 @@ pub struct ConverseRequest {
     /// Additional model-specific request fields
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(skip)]
-    pub additional_model_request_fields: Option<crate::serde_json::Value>,
+    pub additional_model_request_fields: Option<serde_json::Value>,
 
     /// Paths for additional model response fields to include
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -78,7 +79,7 @@ pub struct ConverseStreamRequest {
     /// Additional model-specific request fields
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(skip)]
-    pub additional_model_request_fields: Option<crate::serde_json::Value>,
+    pub additional_model_request_fields: Option<serde_json::Value>,
 
     /// Paths for additional model response fields to include
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -169,7 +170,7 @@ pub struct BedrockToolUseBlock {
 
     /// Input parameters for the tool
     #[ts(type = "any")]
-    pub input: crate::serde_json::Value,
+    pub input: serde_json::Value,
 }
 
 /// Tool result content block
@@ -198,7 +199,7 @@ pub enum BedrockToolResultContent {
     #[serde(rename = "json")]
     Json {
         #[ts(type = "any")]
-        json: crate::serde_json::Value,
+        json: serde_json::Value,
     },
 
     #[serde(rename = "image")]
@@ -284,7 +285,7 @@ pub struct BedrockToolSpec {
 pub struct BedrockToolInputSchema {
     /// JSON schema for tool input
     #[ts(type = "any")]
-    pub json: crate::serde_json::Value,
+    pub json: serde_json::Value,
 }
 
 /// Tool choice strategy

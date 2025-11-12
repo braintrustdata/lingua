@@ -6,6 +6,9 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
+#[cfg(test)]
+use crate::serde_json;
+
 /// Computes a hash for a message based on its role and content.
 /// This is used for deduplication - messages with the same hash are considered duplicates.
 fn hash_message(msg: &Message) -> u64 {
@@ -444,7 +447,7 @@ mod tests {
                 content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                     text: "test".to_string(),
                     provider_options: Some(crate::universal::ProviderOptions {
-                        options: crate::serde_json::Map::new(),
+                        options: serde_json::Map::new(),
                     }),
                 })]),
             },
@@ -463,8 +466,8 @@ mod tests {
                 text: "preserve me".to_string(),
                 provider_options: Some(crate::universal::ProviderOptions {
                     options: {
-                        let mut map = crate::serde_json::Map::new();
-                        map.insert("custom".to_string(), crate::serde_json::json!("value"));
+                        let mut map = serde_json::Map::new();
+                        map.insert("custom".to_string(), serde_json::json!("value"));
                         map
                     },
                 }),

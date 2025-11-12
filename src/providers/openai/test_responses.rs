@@ -1,6 +1,7 @@
 use crate::providers::openai::generated::{
     CreateResponseClass, InputItem, Instructions, OutputItem, TheResponseObject,
 };
+use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{convert::TryFromLLM, Message};
 use crate::util::test_runner::run_roundtrip_test;
