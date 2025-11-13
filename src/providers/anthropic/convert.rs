@@ -1,4 +1,5 @@
 use crate::providers::anthropic::generated;
+use crate::serde_json;
 use crate::universal::{
     convert::TryFromLLM, AssistantContent, AssistantContentPart, Message, TextContentPart,
     ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 // Import our types and conversion traits
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::openai::generated as openai;
+use crate::serde_json;
 use crate::universal::{convert::TryFromLLM, Message};
 
 /// Convert Python object to Rust type via JSON

@@ -13,6 +13,10 @@
 
 use std::path::Path;
 
+// Import serde_json from the lingua crate's re-export
+// This ensures we use the wrapper crate with arbitrary_precision
+use lingua::serde_json;
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -818,6 +822,42 @@ fn fix_anthropic_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
     }
 }
 
+/// Ensures serde_json imports are present after the last use statement
+/// This handles the case where imports need to be added after header prepending
+fn ensure_serde_json_imports(content: &str) -> String {
+    // Check if imports already exist
+    if content.contains("use crate::serde_json;") {
+        return content.to_string();
+    }
+
+    let lines: Vec<&str> = content.lines().collect();
+    let mut new_lines = Vec::new();
+    let mut imports_added = false;
+
+    for (i, line) in lines.iter().enumerate() {
+        new_lines.push(line.to_string());
+
+        // Add serde_json imports after the last use statement
+        if !imports_added && line.starts_with("use ") && !line.contains("crate::serde_json") {
+            // Check if next line is also a use statement (not a comment or blank)
+            let next_is_use = lines
+                .get(i + 1)
+                .map(|l| l.trim_start().starts_with("use "))
+                .unwrap_or(false);
+
+            if !next_is_use {
+                // This is the last use statement, add serde_json module import
+                // Note: We only import the module, not Value specifically, to avoid name conflicts
+                // with provider-defined Value types
+                new_lines.push("use crate::serde_json;".to_string());
+                imports_added = true;
+            }
+        }
+    }
+
+    new_lines.join("\n")
+}
+
 fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String {
     let mut processed = quicktype_output.to_string();
 
@@ -839,6 +879,7 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
             if !next_is_use {
                 // This is the last use statement, add ts-rs import
                 new_lines.push("use ts_rs::TS;".to_string());
+                // Note: serde_json imports are added later by ensure_serde_json_imports()
                 ts_import_added = true;
             }
         }
@@ -850,6 +891,10 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
         "// Generated Anthropic types using quicktype\n// Essential types for Elmir Anthropic integration\n#![allow(non_camel_case_types)]\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
         processed
     );
+
+    // Ensure serde_json imports are present after the header
+    // This fixes the import location after header prepending
+    processed = ensure_serde_json_imports(&processed);
 
     // Add TS derive to all structs and enums
     processed = processed.replace(
@@ -939,6 +984,10 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "// Generated OpenAI types using quicktype\n// Essential types for Elmir OpenAI integration\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
         processed
     );
+
+    // Ensure serde_json imports are present after the header
+    // This fixes the import location after header prepending
+    processed = ensure_serde_json_imports(&processed);
 
     // Add TS derive to all structs and enums
     processed = processed.replace(
@@ -1247,27 +1296,8 @@ fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
     match config.compile_protos(proto_paths, &include_dirs) {
         Ok(()) => {
             println!("✅ Protobuf compilation successful");
-
-            // Read the generated mod.rs file
-            let mod_file_path = temp_dir.join("mod.rs");
-            match std::fs::read_to_string(&mod_file_path) {
-                Ok(mod_content) => {
-                    println!(
-                        "📋 Generated modules: {:?}",
-                        mod_content.lines().take(10).collect::<Vec<_>>()
-                    );
-
-                    // Create a combined output file with the essential types
-                    create_google_combined_output(&temp_dir);
-                }
-                Err(e) => {
-                    println!("❌ Failed to read generated mod.rs: {}", e);
-                    let _ = std::fs::write(
-                        "src/providers/google/generated.rs",
-                        "// Protobuf generation failed",
-                    );
-                }
-            }
+            // Create a combined output file with the essential types
+            create_google_combined_output(&temp_dir);
         }
         Err(e) => {
             println!("❌ Protobuf compilation failed: {}", e);
