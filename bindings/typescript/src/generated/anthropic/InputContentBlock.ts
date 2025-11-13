@@ -27,4 +27,4 @@ export type InputContentBlock = {
 /**
  * Create a cache control breakpoint at this content block.
  */
-cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: InputContentBlockType, source: Source | null, context: string | null, title: string | null, content: Content | null, signature: string | null, thinking: string | null, data: string | null, id: string | null, input: Record<string, any>, name: string | null, is_error: boolean | null, tool_use_id: string | null, };
+cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: InputContentBlockType, source: Source | null, context: string | null, title: string | null, content: Content | null, signature: string | null, thinking: string | null, data: string | null, id: string | null, input: any, name: string | null, is_error: boolean | null, tool_use_id: string | null, };
