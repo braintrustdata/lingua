@@ -302,7 +302,7 @@ pub struct InputContentBlock {
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    #[ts(type = "Record<string, any>")]
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -836,7 +836,7 @@ pub struct Tool {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct InputSchema {
-    #[ts(type = "Record<string, any>")]
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<serde_json::Map<String, serde_json::Value>>,
     pub required: Option<Vec<String>>,
@@ -1001,7 +1001,7 @@ pub struct ContentBlock {
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    #[ts(type = "Record<string, any>")]
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
