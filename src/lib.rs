@@ -14,3 +14,6 @@ pub mod wasm;
 
 #[cfg(feature = "python")]
 pub mod python;
+
+#[cfg(feature = "golang")]
+pub mod golang;

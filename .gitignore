@@ -12,3 +12,16 @@ dev-notes/
 .turbo
 .env
 .claude
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.test
+*.out
+coverage.html
+vendor/
+bindings/golang/.gocache/
+bindings/golang/.golangci-lint-cache/
+go.work
