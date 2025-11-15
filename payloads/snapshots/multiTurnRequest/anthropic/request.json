@@ -1,0 +1,18 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 300,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hi, my name is Alice."
+    },
+    {
+      "role": "assistant",
+      "content": "Hello Alice! Nice to meet you."
+    },
+    {
+      "role": "user",
+      "content": "What did I just tell you my name was?"
+    }
+  ]
+}

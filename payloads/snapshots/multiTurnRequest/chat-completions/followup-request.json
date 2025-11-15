@@ -1,0 +1,29 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning_effort": "low",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hi, my name is Alice."
+    },
+    {
+      "role": "assistant",
+      "content": "Hello Alice! Nice to meet you."
+    },
+    {
+      "role": "user",
+      "content": "What did I just tell you my name was?"
+    },
+    {
+      "role": "assistant",
+      "content": "You told me your name is Alice. Nice to meet you, Alice! Would you like me to call you Alice and remember it for this chat?",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_completion_tokens": 300
+}

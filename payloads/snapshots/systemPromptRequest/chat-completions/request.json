@@ -1,0 +1,15 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning_effort": "low",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a pirate. Always respond in pirate speak."
+    },
+    {
+      "role": "user",
+      "content": "Tell me about the weather."
+    }
+  ],
+  "max_completion_tokens": 500
+}

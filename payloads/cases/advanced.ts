@@ -4,6 +4,7 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
 } from "./models";
+import { readFileAsBase64 } from "./utils";
 
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
@@ -114,124 +115,142 @@ export const advancedCases: TestCaseCollection = {
     },
   },
 
-  reasoningWithOutput: {
+  base64ImageRequest: {
     responses: {
       model: OPENAI_RESPONSES_MODEL,
-      reasoning: { effort: "low" },
+      reasoning: { effort: "minimal" },
       input: [
         {
           role: "user",
-          content: "What color is the sky?",
+          content: [
+            {
+              type: "input_image",
+              detail: "auto",
+              image_url: `data:image/png;base64,${readFileAsBase64("test-image.png")}`,
+            },
+            {
+              type: "input_text",
+              text: "What color is this image?",
+            },
+          ],
         },
       ],
+      max_output_tokens: 300,
     },
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      reasoning_effort: "low",
       messages: [
         {
           role: "user",
-          content: "What color is the sky?",
+          content: [
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/png;base64,${readFileAsBase64("test-image.png")}`,
+              },
+            },
+            {
+              type: "text",
+              text: "What color is this image?",
+            },
+          ],
         },
       ],
+      max_completion_tokens: 300,
     },
     anthropic: {
       model: ANTHROPIC_MODEL,
-      max_tokens: 20000,
+      max_tokens: 300,
       messages: [
         {
           role: "user",
-          content: "What color is the sky?",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: readFileAsBase64("test-image.png"),
+              },
+            },
+            {
+              type: "text",
+              text: "What color is this image?",
+            },
+          ],
         },
       ],
     },
   },
 
-  toolCallRequest: {
-    "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
-      messages: [
-        {
-          role: "user",
-          content: "What's the weather like in San Francisco?",
-        },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "get_weather",
-            description: "Get the current weather for a location",
-            parameters: {
-              type: "object",
-              properties: {
-                location: {
-                  type: "string",
-                  description: "The city and state, e.g. San Francisco, CA",
-                },
-              },
-              required: ["location"],
-            },
-          },
-        },
-      ],
-      tool_choice: "auto",
-    },
-    anthropic: {
-      model: ANTHROPIC_MODEL,
-      max_tokens: 20000,
-      messages: [
-        {
-          role: "user",
-          content: "What's the weather like in San Francisco?",
-        },
-      ],
-      tools: [
-        {
-          name: "get_weather",
-          description: "Get the current weather for a location",
-          input_schema: {
-            type: "object",
-            properties: {
-              location: {
-                type: "string",
-                description: "The city and state, e.g. San Francisco, CA",
-              },
-            },
-            required: ["location"],
-          },
-        },
-      ],
-      tool_choice: {
-        type: "auto",
-      },
-    },
+  documentInputBase64Request: {
     responses: {
       model: OPENAI_RESPONSES_MODEL,
+      reasoning: { effort: "minimal" },
       input: [
         {
           role: "user",
-          content: "What's the weather like in San Francisco?",
+          content: [
+            {
+              type: "input_file",
+              file_data: `data:application/pdf;base64,${readFileAsBase64("test-document.pdf")}`,
+              filename: "test-document.pdf",
+            },
+            {
+              type: "input_text",
+              text: "What is in this document?",
+            },
+          ],
         },
       ],
-      tools: [
+      max_output_tokens: 300,
+    },
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      reasoning_effort: "low",
+      messages: [
         {
-          type: "function",
-          name: "get_weather",
-          description: "Get the current weather for a location",
-          parameters: {
-            type: "object",
-            properties: {
-              location: {
-                type: "string",
-                description: "The city and state, e.g. San Francisco, CA",
+          role: "user",
+          content: [
+            {
+              type: "file",
+              file: {
+                file_data: `data:application/pdf;base64,${readFileAsBase64("test-document.pdf")}`,
+                filename: "test-document.pdf",
               },
             },
-            required: ["location"],
-          },
-          strict: false,
+            {
+              type: "text",
+              text: "What is in this document?",
+            },
+          ],
         },
       ],
-      tool_choice: "auto",
+      max_completion_tokens: 300,
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "document",
+              source: {
+                type: "base64",
+                media_type: "application/pdf",
+                data: readFileAsBase64("test-document.pdf"),
+              },
+            },
+            {
+              type: "text",
+              text: "What is in this document?",
+            },
+          ],
+        },
+      ],
     },
   },
 };

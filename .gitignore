@@ -12,3 +12,4 @@ dev-notes/
 .turbo
 .env
 .claude
+*.snapshot-cache.json

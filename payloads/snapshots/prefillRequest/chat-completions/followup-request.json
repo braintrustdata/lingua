@@ -1,0 +1,25 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning_effort": "low",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Write a haiku about coding."
+    },
+    {
+      "role": "assistant",
+      "content": "Here is a haiku:"
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_completion_tokens": 300
+}

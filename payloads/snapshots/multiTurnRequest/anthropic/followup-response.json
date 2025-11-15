@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01N47iBgbu8ktFgNc8z98kq8",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That's a pretty open-ended question! What you should do next really depends on what you're looking to accomplish or what's on your mind. Here are a few possibilities:\n\n- If you have a specific task or project you're working on, you could continue with that\n- If you're looking for something productive, you might tackle items on your to-do list\n- If you want to learn something new, you could read, watch educational content, or explore a hobby\n- If you need to relax, you might take a break, go for a walk, or do something you enjoy\n- If you have questions or want to chat about something specific, I'm here to help with that too\n\nIs there something particular you're trying to decide between, or a specific area of your life you're thinking about?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 58,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 172,
+    "service_tier": "standard"
+  }
+}

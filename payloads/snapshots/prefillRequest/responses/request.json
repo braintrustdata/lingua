@@ -1,0 +1,17 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "Write a haiku about coding."
+    },
+    {
+      "role": "assistant",
+      "content": "Here is a haiku:"
+    }
+  ],
+  "max_output_tokens": 300
+}
