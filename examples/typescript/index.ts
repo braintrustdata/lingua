@@ -13,6 +13,8 @@ import {
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { centerText } from "./center-text";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 async function basicUsage() {
   console.log("\n" + "═".repeat(COL_WIDTH));
@@ -112,6 +114,13 @@ const createAnthropicCompletion = async (
 // Wordle Solver Agent
 // ============================================================================
 
+// Define the schema for the make_guess tool using Zod
+const makeGuessSchema = z.object({
+  word: z.string().describe("A 5-letter word guess"),
+});
+
+type MakeGuessArgs = z.infer<typeof makeGuessSchema>;
+
 async function wordleSolverAgent() {
   const gameState: WordleGameState = {
     targetWord: "SAUCE",
@@ -132,16 +141,7 @@ async function wordleSolverAgent() {
       name: "make_guess",
       description:
         "Solve the Wordle puzzle. Each guess *must* be a valid 5-letter word.",
-      input_schema: {
-        type: "object",
-        properties: {
-          word: {
-            type: "string",
-            description: "A 5-letter word guess",
-          },
-        },
-        required: ["word"],
-      },
+      input_schema: zodToJsonSchema(makeGuessSchema),
     }),
   ];
 
@@ -202,16 +202,17 @@ You'll receive feedback on each guess in the form of a string of emojis:
       if (toolCalls.length > 0) {
         // Process tool calls
         for (const toolCall of toolCalls) {
-          let args: any;
-          if (
-            typeof toolCall.arguments === "object" &&
-            "type" in toolCall.arguments &&
-            toolCall.arguments.type === "valid"
-          ) {
-            args = toolCall.arguments.value;
-          } else {
-            throw new TypeError("❌ Invalid tool call arguments!");
+          // Parse and validate arguments with Zod (we only have one tool, so no need to check the tool name)
+          const parseResult = makeGuessSchema.safeParse(
+            toolCall.arguments.value
+          );
+          if (!parseResult.success) {
+            console.log("❌ Invalid tool arguments! Trying again...");
+            console.log(parseResult.error.format());
+            continue;
           }
+
+          const args: MakeGuessArgs = parseResult.data;
 
           console.log(`\n🤔 Agent's guess: ${args.word.toUpperCase()}`);
 
@@ -239,12 +240,8 @@ You'll receive feedback on each guess in the form of a string of emojis:
                 type: "tool_result",
                 tool_call_id: toolCall.tool_call_id,
                 tool_name: toolCall.tool_name,
-                output: {
-                  guess,
-                  result,
-                  board: displayWordleBoard(gameState, maxGuesses),
-                  guesses_remaining: maxGuesses - guessesCount,
-                },
+                // Note that both providers receive the full convo, which is why this all works even tho we don't return the full board state here
+                output: result,
               },
             ],
           });

@@ -10,7 +10,7 @@ importers:
     devDependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.63.0
-        version: 0.63.1
+        version: 0.63.1(zod@3.25.76)
       '@types/node':
         specifier: ^22.9.0
         version: 22.18.6
@@ -19,7 +19,7 @@ importers:
         version: 10.0.0
       openai:
         specifier: ^5.22.0
-        version: 5.23.1
+        version: 5.23.1(zod@3.25.76)
       tsup:
         specifier: ^8.5.0
         version: 8.5.0(postcss@8.5.6)(tsx@4.20.6)(typescript@5.9.2)
@@ -34,13 +34,19 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.63.0
-        version: 0.63.1
+        version: 0.63.1(zod@3.25.76)
       '@braintrust/lingua':
         specifier: file:../../bindings/typescript
         version: link:../../bindings/typescript
       openai:
         specifier: ^5.22.0
-        version: 5.23.1
+        version: 5.23.1(zod@3.25.76)
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+      zod-to-json-schema:
+        specifier: ^3.24.6
+        version: 3.24.6(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^22.9.0
@@ -59,10 +65,10 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.63.0
-        version: 0.63.1
+        version: 0.63.1(zod@3.25.76)
       openai:
         specifier: ^5.22.0
-        version: 5.23.1
+        version: 5.23.1(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^22.9.0
@@ -1599,11 +1605,21 @@ packages:
     resolution: {integrity: sha512-AyeEbWOu/TAXdxlV9wmGcR0+yh2j3vYPGOECcIj2S7MkrLyC7ne+oye2BKTItt0ii2PHk4cDy+95+LshzbXnGg==}
     engines: {node: '>=12.20'}
 
+  zod-to-json-schema@3.24.6:
+    resolution: {integrity: sha512-h/z3PKvcTcTetyjl1fkj79MHNEjm+HpD6NXheWjzOekY7kV+lwDYnHw+ivHkijnCSMz1yJaWBD9vu/Fcmk+vEg==}
+    peerDependencies:
+      zod: ^3.24.1
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
 snapshots:
 
-  '@anthropic-ai/sdk@0.63.1':
+  '@anthropic-ai/sdk@0.63.1(zod@3.25.76)':
     dependencies:
       json-schema-to-ts: 3.1.1
+    optionalDependencies:
+      zod: 3.25.76
 
   '@babel/runtime@7.28.4': {}
 
@@ -2571,7 +2587,9 @@ snapshots:
     dependencies:
       mimic-fn: 4.0.0
 
-  openai@5.23.1: {}
+  openai@5.23.1(zod@3.25.76):
+    optionalDependencies:
+      zod: 3.25.76
 
   optionator@0.9.4:
     dependencies:
@@ -2963,3 +2981,9 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yocto-queue@1.2.1: {}
+
+  zod-to-json-schema@3.24.6(zod@3.25.76):
+    dependencies:
+      zod: 3.25.76
+
+  zod@3.25.76: {}
