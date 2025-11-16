@@ -510,7 +510,26 @@ export function validateAnthropicResponse(
 // ============================================================================
 
 /**
- * Convert array of Anthropic tools to Lingua Tools
+ * Convert array of Anthropic tools to Lingua format
+ *
+ * Converts Anthropic tool definitions (both Custom and provider-native tools
+ * like WebSearch, Bash, TextEditor) into Lingua's universal tool format.
+ *
+ * @param tools - Array of Anthropic tool objects
+ * @returns Array of Lingua Tool objects
+ *
+ * @example
+ * ```typescript
+ * const anthropicTools = [
+ *   {
+ *     type: "custom",
+ *     name: "get_weather",
+ *     description: "Get weather for a location",
+ *     input_schema: { type: "object", properties: { location: { type: "string" } } }
+ *   }
+ * ];
+ * const linguaTools = anthropicToolsToLingua(anthropicTools);
+ * ```
  *
  * @throws {ConversionError} If conversion fails
  */
@@ -520,9 +539,31 @@ export const anthropicToolsToLingua = createToLinguaConverter<any[]>(
 );
 
 /**
- * Convert array of Lingua Tools to Anthropic tools
+ * Convert array of Lingua Tools to Anthropic format
  *
- * @throws {ConversionError} If conversion fails
+ * Converts Lingua's universal tool format to Anthropic tool definitions.
+ * Client tools become Custom tools, and provider tools are mapped to Anthropic's
+ * native tools (web_search_20250305, bash_20250124, text_editor_*).
+ *
+ * @param tools - Array of Lingua Tool objects
+ * @returns Array of Anthropic tool objects
+ *
+ * @example
+ * ```typescript
+ * import { clientTool, ProviderTools, linguaToolsToAnthropic } from "@braintrust/lingua";
+ *
+ * const tools = [
+ *   clientTool({
+ *     name: "get_weather",
+ *     description: "Get weather for a location",
+ *     input_schema: { type: "object", properties: { location: { type: "string" } } }
+ *   }),
+ *   ProviderTools.anthropic.webSearch({ max_uses: 5 })
+ * ];
+ * const anthropicTools = linguaToolsToAnthropic(tools);
+ * ```
+ *
+ * @throws {ConversionError} If provider tool type is not supported by Anthropic
  */
 export const linguaToolsToAnthropic = createFromLinguaConverter<any[], any[]>(
   () => getWasm().lingua_tools_to_anthropic,
@@ -530,7 +571,28 @@ export const linguaToolsToAnthropic = createFromLinguaConverter<any[], any[]>(
 );
 
 /**
- * Convert array of OpenAI tools to Lingua Tools
+ * Convert array of OpenAI tools to Lingua format
+ *
+ * Converts OpenAI tool definitions (Function, ComputerUse, CodeInterpreter,
+ * WebSearch) into Lingua's universal tool format.
+ *
+ * @param tools - Array of OpenAI tool objects
+ * @returns Array of Lingua Tool objects
+ *
+ * @example
+ * ```typescript
+ * const openaiTools = [
+ *   {
+ *     type: "function",
+ *     function: {
+ *       name: "get_weather",
+ *       description: "Get weather",
+ *       parameters: { type: "object", properties: { location: { type: "string" } } }
+ *     }
+ *   }
+ * ];
+ * const linguaTools = openaiToolsToLingua(openaiTools);
+ * ```
  *
  * @throws {ConversionError} If conversion fails
  */
@@ -540,9 +602,32 @@ export const openaiToolsToLingua = createToLinguaConverter<any[]>(
 );
 
 /**
- * Convert array of Lingua Tools to OpenAI tools
+ * Convert array of Lingua Tools to OpenAI format
  *
- * @throws {ConversionError} If conversion fails
+ * Converts Lingua's universal tool format to OpenAI tool definitions.
+ * Client tools become Function tools, and provider tools are mapped to OpenAI's
+ * native tools (computer_use_preview, code_interpreter, web_search).
+ *
+ * @param tools - Array of Lingua Tool objects
+ * @returns Array of OpenAI tool objects
+ *
+ * @example
+ * ```typescript
+ * import { clientTool, ProviderTools, linguaToolsToOpenAI } from "@braintrust/lingua";
+ *
+ * const tools = [
+ *   clientTool({
+ *     name: "get_weather",
+ *     description: "Get weather for a location",
+ *     input_schema: { type: "object", properties: { location: { type: "string" } } },
+ *     provider_options: { strict: true }  // OpenAI strict mode
+ *   }),
+ *   ProviderTools.openai.computer({ display_width_px: 1920, display_height_px: 1080 })
+ * ];
+ * const openaiTools = linguaToolsToOpenAI(tools);
+ * ```
+ *
+ * @throws {ConversionError} If provider tool type is not supported by OpenAI
  */
 export const linguaToolsToOpenAI = createFromLinguaConverter<any[], any[]>(
   () => getWasm().lingua_tools_to_openai,
