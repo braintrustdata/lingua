@@ -2,8 +2,6 @@
 Unit tests for OpenAI request transformations.
 */
 
-#![cfg(test)]
-
 use std::{collections::HashMap, fs, path::PathBuf};
 
 use assert_json_diff::assert_json_eq;

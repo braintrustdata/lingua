@@ -62,10 +62,11 @@ pub enum TargetProvider {
     Other,
 }
 
-impl TargetProvider {
-    /// Parse a provider identifier into a [`TargetProvider`] variant.
-    pub fn from_str(provider: &str) -> Self {
-        match provider {
+impl std::str::FromStr for TargetProvider {
+    type Err = std::convert::Infallible;
+
+    fn from_str(provider: &str) -> Result<Self, Self::Err> {
+        Ok(match provider {
             "openai" => Self::OpenAI,
             "azure" => Self::Azure,
             "vertex" => Self::Vertex,
@@ -74,7 +75,7 @@ impl TargetProvider {
             "databricks" => Self::Databricks,
             "lepton" => Self::Lepton,
             _ => Self::Other,
-        }
+        })
     }
 }
 
@@ -228,7 +229,7 @@ impl<'a> OpenAIRequestTransformer<'a> {
                     .request
                     .tools
                     .as_ref()
-                    .map_or(false, |tools| !tools.is_empty())
+                    .is_some_and(|tools| !tools.is_empty())
                     || self.request.function_call.is_some()
                     || self.request.tool_choice.is_some()
                 {
