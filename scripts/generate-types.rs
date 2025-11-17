@@ -1021,15 +1021,15 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     //    - These variants have different fields - NOT all have a function field
     //    - Provider-specific tools like code_interpreter, web_search don't need it
     //
-    // WHY QUICKTYPE DOESN'T DISCOVER IT:
+    // QUICKTYPE BEHAVIOR:
     // During dependency resolution, quicktype pulls in BOTH schemas and tries to
     // merge them into a single universal struct. Since the generic Tool union
     // variants don't all have a `function` field, quicktype correctly omits it
     // from the merged struct to avoid type conflicts.
     //
-    // WHY THIS FIX IS CORRECT:
+    // WHY WE NEED THIS FIX:
     // 1. Lingua needs ONE universal Tool struct that works for all endpoints
-    // 2. Making `function` optional (Option<FunctionObject>) is semantically correct:
+    // 2. Including `function` as optional (Option<FunctionObject>) is semantically correct:
     //    - Function tools: function = Some(FunctionObject { ... })
     //    - Provider tools: function = None
     // 3. This matches how our converter works (see src/providers/openai/convert.rs)
