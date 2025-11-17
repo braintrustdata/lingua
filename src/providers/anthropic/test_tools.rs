@@ -53,7 +53,7 @@ fn test_client_tool_roundtrip() {
     if let (Tool::Client(orig), Tool::Client(rt)) = (&original, &round_trip) {
         assert_eq!(rt.name, orig.name);
         assert_eq!(rt.description, orig.description);
-        // Note: schema might not be identical due to serialization, but should be equivalent
+        assert_eq!(rt.input_schema, orig.input_schema);
     } else {
         panic!("Tool type changed during roundtrip");
     }
@@ -145,6 +145,7 @@ fn test_provider_tool_roundtrip() {
     if let (Tool::Provider(orig), Tool::Provider(rt)) = (&original, &round_trip) {
         assert_eq!(rt.tool_type, orig.tool_type);
         assert_eq!(rt.name, Some("search".to_string()));
+        assert_eq!(rt.config, orig.config);
     } else {
         panic!("Tool type changed during roundtrip");
     }
@@ -184,4 +185,17 @@ fn test_vec_conversion() {
     // Test Vec conversion
     let anthropic_tools: Vec<generated::Tool> = TryFromLLM::try_from(tools).unwrap();
     assert_eq!(anthropic_tools.len(), 2);
+
+    // Verify first tool (ClientTool)
+    assert_eq!(anthropic_tools[0].name, "tool1");
+    assert_eq!(anthropic_tools[0].description, Some("First tool".to_string()));
+    assert_eq!(anthropic_tools[0].tool_type, Some(generated::ToolType::Custom));
+    assert!(anthropic_tools[0].input_schema.is_some());
+
+    // Verify second tool (ProviderTool - Bash)
+    assert_eq!(anthropic_tools[1].name, "bash_20250124");
+    assert_eq!(
+        anthropic_tools[1].tool_type,
+        Some(generated::ToolType::Bash20250124)
+    );
 }

@@ -74,6 +74,7 @@ fn test_client_tool_roundtrip() {
     if let (Tool::Client(orig), Tool::Client(rt)) = (&original, &round_trip) {
         assert_eq!(rt.name, orig.name);
         assert_eq!(rt.description, orig.description);
+        assert_eq!(rt.input_schema, orig.input_schema);
     } else {
         panic!("Tool type changed during roundtrip");
     }
@@ -148,6 +149,7 @@ fn test_provider_tool_roundtrip() {
     if let (Tool::Provider(orig), Tool::Provider(rt)) = (&original, &round_trip) {
         assert_eq!(rt.tool_type, orig.tool_type);
         assert_eq!(rt.name, Some("computer".to_string()));
+        assert_eq!(rt.config, orig.config);
     } else {
         panic!("Tool type changed during roundtrip");
     }
@@ -190,4 +192,14 @@ fn test_vec_conversion() {
     // Test Vec conversion
     let openai_tools: Vec<openai::Tool> = TryFromLLM::try_from(tools).unwrap();
     assert_eq!(openai_tools.len(), 2);
+
+    // Verify first tool (ClientTool)
+    assert_eq!(openai_tools[0].name, Some("tool1".to_string()));
+    assert_eq!(openai_tools[0].description, Some("First tool".to_string()));
+    assert_eq!(openai_tools[0].tool_type, openai::ToolTypeEnum::Function);
+    assert!(openai_tools[0].parameters.is_some());
+
+    // Verify second tool (ProviderTool - Code Interpreter)
+    assert_eq!(openai_tools[1].name, None);
+    assert_eq!(openai_tools[1].tool_type, openai::ToolTypeEnum::CodeInterpreter);
 }
