@@ -40,12 +40,12 @@ export class ConversionError extends Error {
 // ============================================================================
 
 /**
- * Convert Map objects and serde_json wrappers to plain objects recursively.
- * This is needed because serde-wasm-bindgen:
- * 1. Serializes serde_json::Map to JS Map instead of plain objects
- * 2. Wraps numbers in serde_json::Value with $serde_json::private::Number
+ * Normalize serde-wasm-bindgen values to idiomatic JavaScript.
+ * This handles two serialization quirks:
+ * 1. serde_json::Map serializes to JS Map instead of plain objects
+ * 2. serde_json::Number gets wrapped with $serde_json::private::Number
  */
-function convertMapsToObjects(value: unknown): unknown {
+function normalizeSerdeWasmValues(value: unknown): unknown {
   // Unwrap serde_json::private::Number
   if (
     value !== null &&
@@ -58,19 +58,19 @@ function convertMapsToObjects(value: unknown): unknown {
   if (value instanceof Map) {
     const obj: Record<string, unknown> = {};
     for (const [key, val] of value.entries()) {
-      obj[key] = convertMapsToObjects(val);
+      obj[key] = normalizeSerdeWasmValues(val);
     }
     return obj;
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => convertMapsToObjects(item));
+    return value.map((item) => normalizeSerdeWasmValues(item));
   }
 
   if (value !== null && typeof value === "object") {
     const obj: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(value)) {
-      obj[key] = convertMapsToObjects(val);
+      obj[key] = normalizeSerdeWasmValues(val);
     }
     return obj;
   }
@@ -91,8 +91,8 @@ function createToLinguaConverter<TOutput extends Message | Message[]>(
   return (input: unknown): TOutput => {
     try {
       const result = wasmFn()(input);
-      // Convert any Map objects to plain objects
-      return convertMapsToObjects(result) as TOutput;
+      // Normalize serde-wasm-bindgen output (Maps → objects, wrapped numbers → plain numbers)
+      return normalizeSerdeWasmValues(result) as TOutput;
     } catch (error: unknown) {
       throw new ConversionError(
         `Failed to convert ${provider} message to Lingua`,
@@ -117,8 +117,8 @@ function createFromLinguaConverter<TInput extends Message | Message[], TOutput>(
   return <T = TOutput>(input: TInput): T => {
     try {
       const result = wasmFn()(input);
-      // Convert any Map objects to plain objects
-      return convertMapsToObjects(result) as T;
+      // Normalize serde-wasm-bindgen output (Maps → objects, wrapped numbers → plain numbers)
+      return normalizeSerdeWasmValues(result) as T;
     } catch (error: unknown) {
       throw new ConversionError(
         `Failed to convert Lingua to ${provider} format`,
@@ -296,8 +296,8 @@ export const linguaToAnthropicMessages = createFromLinguaConverter<
 export function deduplicateMessages(messages: Message[]): Message[] {
   try {
     const result = getWasm().deduplicate_messages(messages);
-    // Convert any Map objects to plain objects
-    return convertMapsToObjects(result) as Message[];
+    // Normalize serde-wasm-bindgen output (Maps → objects, wrapped numbers → plain numbers)
+    return normalizeSerdeWasmValues(result) as Message[];
   } catch (error: unknown) {
     throw new ConversionError(
       "Failed to deduplicate messages",
@@ -327,8 +327,8 @@ export function importMessagesFromSpans(
 ): Message[] {
   try {
     const result = getWasm().import_messages_from_spans(spans);
-    // Convert any Map objects to plain objects
-    return convertMapsToObjects(result) as Message[];
+    // Normalize serde-wasm-bindgen output (Maps → objects, wrapped numbers → plain numbers)
+    return normalizeSerdeWasmValues(result) as Message[];
   } catch (error: unknown) {
     throw new ConversionError(
       "Failed to import messages from spans",
@@ -354,8 +354,8 @@ export function importAndDeduplicateMessages(
 ): Message[] {
   try {
     const result = getWasm().import_and_deduplicate_messages(spans);
-    // Convert any Map objects to plain objects
-    return convertMapsToObjects(result) as Message[];
+    // Normalize serde-wasm-bindgen output (Maps → objects, wrapped numbers → plain numbers)
+    return normalizeSerdeWasmValues(result) as Message[];
   } catch (error: unknown) {
     throw new ConversionError(
       "Failed to import and deduplicate messages from spans",
