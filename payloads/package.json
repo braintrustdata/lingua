@@ -6,8 +6,8 @@
     "typecheck": "tsc --noEmit",
     "capture": "tsx scripts/capture.ts",
     "prune": "tsx scripts/prune.ts",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint \"./**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"./**/*.{ts,tsx}\" --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

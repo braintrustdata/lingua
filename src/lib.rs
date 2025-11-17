@@ -10,6 +10,8 @@ pub mod universal;
 pub mod util;
 pub mod validation;
 
+pub use providers::openai::transformations;
+
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 
