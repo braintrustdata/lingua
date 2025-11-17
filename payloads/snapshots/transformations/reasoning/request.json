@@ -1,0 +1,17 @@
+{
+  "model": "o1-mini",
+  "max_tokens": 256,
+  "temperature": 0.4,
+  "parallel_tool_calls": true,
+  "messages": [
+    {
+      "role": "system",
+      "content": "system instructions"
+    },
+    {
+      "role": "user",
+      "content": "hello"
+    }
+  ]
+}
+

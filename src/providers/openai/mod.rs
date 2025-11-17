@@ -8,12 +8,16 @@ OpenAI OpenAPI specification.
 
 pub mod convert;
 pub mod generated;
+pub mod transformations;
 
 #[cfg(test)]
 pub mod test_responses;
 
 #[cfg(test)]
 pub mod test_chat_completions;
+
+#[cfg(test)]
+pub mod test_transformations;
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{
