@@ -181,7 +181,6 @@ impl<'a> OpenAIRequestTransformer<'a> {
             self.request.max_completion_tokens = Some(max_tokens);
         }
 
-
         self.request.temperature = None;
         self.request.parallel_tool_calls = None;
 
