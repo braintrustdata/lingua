@@ -6,7 +6,7 @@ behavior. The transformations operate on generated OpenAI request types and
 prepare payloads for downstream providers.
 */
 
-use std::fmt;
+use std::{cell::Cell, fmt};
 
 use crate::{
     providers::openai::generated::{
@@ -99,12 +99,100 @@ impl<'a> Default for TransformationConfig<'a> {
     }
 }
 
+#[derive(Debug, Default)]
+struct TransformerState {
+    managed_structured_output: Cell<bool>,
+    use_responses_api: Cell<bool>,
+}
+
+impl TransformerState {
+    fn managed_structured_output(&self) -> bool {
+        self.managed_structured_output.get()
+    }
+
+    fn mark_managed_structured_output(&self) {
+        self.managed_structured_output.set(true);
+    }
+
+    fn use_responses_api(&self) -> bool {
+        self.use_responses_api.get()
+    }
+
+    #[allow(dead_code)]
+    fn set_use_responses_api(&self, value: bool) {
+        self.use_responses_api.set(value);
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TransformationStage {
+    ProviderRouting,
+    ProviderSanitization,
+    Reasoning,
+    MessageNormalization,
+    ResponseFormat,
+    StreamingOverrides,
+    ModelRouting,
+}
+
+impl TransformationStage {
+    fn ordered() -> &'static [Self] {
+        &[
+            Self::ProviderRouting,
+            Self::ProviderSanitization,
+            Self::Reasoning,
+            Self::MessageNormalization,
+            Self::ResponseFormat,
+            Self::StreamingOverrides,
+            Self::ModelRouting,
+        ]
+    }
+}
+
+struct CapabilityView<'a> {
+    request: &'a CreateChatCompletionRequestClass,
+}
+
+impl CapabilityView<'_> {
+    fn is_reasoning_model(&self) -> bool {
+        is_reasoning_model(self.request)
+    }
+
+    fn has_response_format(&self) -> bool {
+        self.request.response_format.is_some()
+    }
+}
+
+struct TransformationContext<'a, 'cfg> {
+    request: &'a mut CreateChatCompletionRequestClass,
+    config: &'a TransformationConfig<'cfg>,
+    state: &'a TransformerState,
+}
+
+impl TransformationContext<'_, '_> {
+    fn supports_native_structured_output(&self) -> bool {
+        supports_native_structured_output(self.request, self.config)
+    }
+
+    fn mark_managed_structured_output(&self) {
+        self.state.mark_managed_structured_output();
+    }
+}
+
+trait TransformationCapability: Sync {
+    fn stage(&self) -> TransformationStage;
+    fn applies(&self, view: &CapabilityView<'_>) -> bool {
+        let _ = view;
+        true
+    }
+    fn apply(&self, ctx: &mut TransformationContext<'_, '_>) -> TransformResult<()>;
+}
+
 /// Pipeline for applying OpenAI request transformations in a structured order.
 pub struct OpenAIRequestTransformer<'a> {
     request: &'a mut CreateChatCompletionRequestClass,
     config: TransformationConfig<'a>,
-    managed_structured_output: bool,
-    use_responses_api: bool,
+    state: TransformerState,
 }
 
 impl<'a> OpenAIRequestTransformer<'a> {
@@ -113,8 +201,7 @@ impl<'a> OpenAIRequestTransformer<'a> {
         Self {
             request,
             config: TransformationConfig::default(),
-            managed_structured_output: false,
-            use_responses_api: false,
+            state: TransformerState::default(),
         }
     }
 
@@ -144,48 +231,74 @@ impl<'a> OpenAIRequestTransformer<'a> {
 
     /// Execute the full transformation pipeline.
     pub fn transform(&mut self) -> TransformResult<()> {
-        self.apply_provider_routing_overrides()?;
-        self.apply_provider_sanitization()?;
-        self.apply_reasoning_model_transforms()?;
-        self.normalize_messages()?;
-        self.apply_response_format_transforms()?;
-        self.apply_streaming_overrides()?;
-        self.apply_model_routing()?;
+        for stage in TransformationStage::ordered() {
+            self.run_stage(*stage)?;
+        }
         Ok(())
     }
 
     /// Indicates whether structured output is being managed by Lingua.
     pub fn managed_structured_output(&self) -> bool {
-        self.managed_structured_output
+        self.state.managed_structured_output()
     }
 
     /// Indicates whether the request should be issued against the Responses API.
     pub fn use_responses_api(&self) -> bool {
-        self.use_responses_api
+        self.state.use_responses_api()
     }
 
-    fn apply_provider_routing_overrides(&mut self) -> TransformResult<()> {
-        Ok(())
-    }
+    fn run_stage(&mut self, stage: TransformationStage) -> TransformResult<()> {
+        for capability in capabilities()
+            .iter()
+            .filter(|capability| capability.stage() == stage)
+        {
+            let should_run = {
+                let view = CapabilityView {
+                    request: &*self.request,
+                };
+                capability.applies(&view)
+            };
 
-    fn apply_provider_sanitization(&mut self) -> TransformResult<()> {
-        Ok(())
-    }
+            if !should_run {
+                continue;
+            }
 
-    fn apply_reasoning_model_transforms(&mut self) -> TransformResult<()> {
-        if !self.is_reasoning_model() {
-            return Ok(());
+            let mut context = TransformationContext {
+                request: &mut *self.request,
+                config: &self.config,
+                state: &self.state,
+            };
+
+            capability.apply(&mut context)?;
         }
 
-        if let Some(max_tokens) = self.request.max_tokens.take() {
-            self.request.max_completion_tokens = Some(max_tokens);
+        Ok(())
+    }
+}
+
+struct ReasoningCapability;
+struct MessageNormalizationCapability;
+struct ResponseFormatCapability;
+
+impl TransformationCapability for ReasoningCapability {
+    fn stage(&self) -> TransformationStage {
+        TransformationStage::Reasoning
+    }
+
+    fn applies(&self, view: &CapabilityView<'_>) -> bool {
+        view.is_reasoning_model()
+    }
+
+    fn apply(&self, ctx: &mut TransformationContext<'_, '_>) -> TransformResult<()> {
+        if let Some(max_tokens) = ctx.request.max_tokens.take() {
+            ctx.request.max_completion_tokens = Some(max_tokens);
         }
 
-        self.request.temperature = None;
-        self.request.parallel_tool_calls = None;
+        ctx.request.temperature = None;
+        ctx.request.parallel_tool_calls = None;
 
-        if is_legacy_o1_model(&self.request.model) {
-            for message in &mut self.request.messages {
+        if is_legacy_o1_model(&ctx.request.model) {
+            for message in &mut ctx.request.messages {
                 if matches!(message.role, ChatCompletionRequestMessageRole::System) {
                     message.role = ChatCompletionRequestMessageRole::User;
                 }
@@ -194,9 +307,15 @@ impl<'a> OpenAIRequestTransformer<'a> {
 
         Ok(())
     }
+}
 
-    fn normalize_messages(&mut self) -> TransformResult<()> {
-        for message in &mut self.request.messages {
+impl TransformationCapability for MessageNormalizationCapability {
+    fn stage(&self) -> TransformationStage {
+        TransformationStage::MessageNormalization
+    }
+
+    fn apply(&self, ctx: &mut TransformationContext<'_, '_>) -> TransformResult<()> {
+        for message in &mut ctx.request.messages {
             if matches!(message.role, ChatCompletionRequestMessageRole::User) {
                 if let Some(ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) =
                     message.content.as_mut()
@@ -207,29 +326,40 @@ impl<'a> OpenAIRequestTransformer<'a> {
                 }
             }
         }
+
         Ok(())
     }
+}
 
-    fn apply_response_format_transforms(&mut self) -> TransformResult<()> {
-        let Some(response_format) = self.request.response_format.take() else {
+impl TransformationCapability for ResponseFormatCapability {
+    fn stage(&self) -> TransformationStage {
+        TransformationStage::ResponseFormat
+    }
+
+    fn applies(&self, view: &CapabilityView<'_>) -> bool {
+        view.has_response_format()
+    }
+
+    fn apply(&self, ctx: &mut TransformationContext<'_, '_>) -> TransformResult<()> {
+        let Some(response_format) = ctx.request.response_format.take() else {
             return Ok(());
         };
 
         match response_format.text_type {
             ResponseFormatType::Text => Ok(()),
             ResponseFormatType::JsonSchema => {
-                if self.supports_native_structured_output() {
-                    self.request.response_format = Some(response_format);
+                if ctx.supports_native_structured_output() {
+                    ctx.request.response_format = Some(response_format);
                     return Ok(());
                 }
 
-                if self
+                if ctx
                     .request
                     .tools
                     .as_ref()
                     .is_some_and(|tools| !tools.is_empty())
-                    || self.request.function_call.is_some()
-                    || self.request.tool_choice.is_some()
+                    || ctx.request.function_call.is_some()
+                    || ctx.request.tool_choice.is_some()
                 {
                     return Err(TransformError::Unsupported {
                         feature: "tools_with_structured_output".to_string(),
@@ -238,7 +368,7 @@ impl<'a> OpenAIRequestTransformer<'a> {
 
                 match response_format.json_schema {
                     Some(schema) => {
-                        self.request.tools = Some(vec![ToolElement {
+                        ctx.request.tools = Some(vec![ToolElement {
                             function: Some(FunctionObject {
                                 description: Some("Output the result in JSON format".to_string()),
                                 name: "json".to_string(),
@@ -249,7 +379,7 @@ impl<'a> OpenAIRequestTransformer<'a> {
                             custom: None,
                         }]);
 
-                        self.request.tool_choice =
+                        ctx.request.tool_choice =
                             Some(ChatCompletionToolChoiceOption::FunctionToolChoiceClass(
                                 FunctionToolChoiceClass {
                                     allowed_tools: None,
@@ -261,7 +391,7 @@ impl<'a> OpenAIRequestTransformer<'a> {
                                 },
                             ));
 
-                        self.managed_structured_output = true;
+                        ctx.mark_managed_structured_output();
                         Ok(())
                     }
                     None => Err(TransformError::InvalidValue {
@@ -270,34 +400,41 @@ impl<'a> OpenAIRequestTransformer<'a> {
                 }
             }
             ResponseFormatType::JsonObject => {
-                self.request.response_format = Some(response_format);
+                ctx.request.response_format = Some(response_format);
                 Ok(())
             }
         }
     }
+}
 
-    fn apply_streaming_overrides(&mut self) -> TransformResult<()> {
-        Ok(())
-    }
+static REASONING_CAPABILITY: ReasoningCapability = ReasoningCapability;
+static MESSAGE_NORMALIZATION_CAPABILITY: MessageNormalizationCapability =
+    MessageNormalizationCapability;
+static RESPONSE_FORMAT_CAPABILITY: ResponseFormatCapability = ResponseFormatCapability;
 
-    fn apply_model_routing(&mut self) -> TransformResult<()> {
-        Ok(())
-    }
+static CAPABILITIES: [&'static dyn TransformationCapability; 3] = [
+    &REASONING_CAPABILITY,
+    &MESSAGE_NORMALIZATION_CAPABILITY,
+    &RESPONSE_FORMAT_CAPABILITY,
+];
 
-    fn is_reasoning_model(&self) -> bool {
-        if self.request.reasoning_effort.is_some() {
-            return true;
-        }
-        is_reasoning_model_name(&self.request.model)
-    }
+fn capabilities() -> &'static [&'static dyn TransformationCapability] {
+    &CAPABILITIES
+}
 
-    fn supports_native_structured_output(&self) -> bool {
-        let model = self.request.model.to_ascii_lowercase();
-        model.starts_with("gpt")
-            || model.starts_with("o1")
-            || model.starts_with("o3")
-            || matches!(self.config.target_provider, TargetProvider::Fireworks)
-    }
+fn is_reasoning_model(request: &CreateChatCompletionRequestClass) -> bool {
+    request.reasoning_effort.is_some() || is_reasoning_model_name(&request.model)
+}
+
+fn supports_native_structured_output(
+    request: &CreateChatCompletionRequestClass,
+    config: &TransformationConfig<'_>,
+) -> bool {
+    let model = request.model.to_ascii_lowercase();
+    model.starts_with("gpt")
+        || model.starts_with("o1")
+        || model.starts_with("o3")
+        || matches!(config.target_provider, TargetProvider::Fireworks)
 }
 
 fn normalize_content_part(
@@ -384,8 +521,11 @@ impl fmt::Debug for OpenAIRequestTransformer<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("OpenAIRequestTransformer")
             .field("config", &self.config)
-            .field("managed_structured_output", &self.managed_structured_output)
-            .field("use_responses_api", &self.use_responses_api)
+            .field(
+                "managed_structured_output",
+                &self.state.managed_structured_output(),
+            )
+            .field("use_responses_api", &self.state.use_responses_api())
             .finish()
     }
 }
