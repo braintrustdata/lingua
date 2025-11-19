@@ -2,8 +2,8 @@ use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart,
-    ToolResultContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
+    ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use std::fmt;
 
@@ -245,10 +245,44 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 });
             }
             openai::InputItemContentListType::InputFile => {
-                // Handle file input if needed in the future
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: "InputFile content type".to_string(),
-                });
+                // Extract file data
+                let file_data =
+                    value
+                        .file_data
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: "file_data".to_string(),
+                        })?;
+
+                // Extract filename if available
+                let filename = value.filename;
+
+                // Parse media type from data URL (e.g., "data:application/pdf;base64,...")
+                let media_type = if file_data.starts_with("data:") {
+                    file_data
+                        .split(';')
+                        .next()
+                        .and_then(|part| part.strip_prefix("data:"))
+                        .unwrap_or("application/octet-stream")
+                        .to_string()
+                } else {
+                    "application/octet-stream".to_string()
+                };
+
+                // Determine if it's an image or other file based on MIME type
+                if media_type.starts_with("image/") {
+                    UserContentPart::Image {
+                        image: serde_json::Value::String(file_data),
+                        media_type: Some(media_type),
+                        provider_options: None,
+                    }
+                } else {
+                    UserContentPart::File {
+                        data: serde_json::Value::String(file_data),
+                        filename,
+                        media_type,
+                        provider_options: None,
+                    }
+                }
             }
             openai::InputItemContentListType::ReasoningText => {
                 // Handle reasoning text - treat as regular text for now
@@ -341,10 +375,22 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
-            _ => {
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: format!("UserContentPart variant: {:?}", part),
-                })
+            UserContentPart::File { data, filename, .. } => {
+                let file_data = match data {
+                    serde_json::Value::String(url) => url,
+                    _ => {
+                        return Err(ConvertError::UnsupportedInputType {
+                            type_info: format!("File data must be string URL, got: {:?}", data),
+                        })
+                    }
+                };
+
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputFile,
+                    file_data: Some(file_data),
+                    filename: filename.clone(),
+                    ..Default::default()
+                }
             }
         })
     }
@@ -514,8 +560,6 @@ impl TryFromLLM<Message> for openai::InputItem {
                         role: Some(openai::InputItemRole::Assistant),
                         content: Some(openai::InputItemContent::String(text)),
                         id,
-                        input_item_type: Some(openai::InputItemType::Message),
-                        status: Some(openai::FunctionCallItemStatus::Completed),
                         ..Default::default()
                     }),
                     AssistantContent::Array(parts) => {
@@ -763,6 +807,116 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
     }
 }
 
+/// Convert OpenAI OutputItem to universal Message (for parsing responses)
+impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
+    type Error = ConvertError;
+
+    fn try_from(outputs: Vec<openai::OutputItem>) -> Result<Self, Self::Error> {
+        let mut result = Vec::new();
+        for mut output in outputs {
+            match output.output_item_type {
+                Some(openai::OutputItemType::Reasoning) => {
+                    let mut summaries = vec![];
+                    let mut first = true;
+                    for summary in output.summary.unwrap_or_default() {
+                        summaries.push(AssistantContentPart::Reasoning {
+                            text: summary.text,
+                            encrypted_content: if first {
+                                first = false;
+                                output.encrypted_content.take()
+                            } else {
+                                None
+                            },
+                        });
+                    }
+
+                    if summaries.is_empty() {
+                        summaries.push(AssistantContentPart::Reasoning {
+                            text: "".to_string(),
+                            encrypted_content: output.encrypted_content.take(),
+                        });
+                    }
+
+                    result.push(Message::Assistant {
+                        content: AssistantContent::Array(summaries),
+                        id: output.id,
+                    });
+                }
+                Some(openai::OutputItemType::FunctionCall)
+                | Some(openai::OutputItemType::CustomToolCall) => {
+                    let tool_call_id =
+                        output
+                            .call_id
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call call_id".to_string(),
+                            })?;
+                    let tool_name =
+                        output
+                            .name
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call name".to_string(),
+                            })?;
+                    let arguments_str = output.arguments.unwrap_or("{}".to_string());
+
+                    let tool_call_part = AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name,
+                        arguments: arguments_str.into(),
+                        provider_options: None,
+                        provider_executed: None,
+                    };
+
+                    result.push(Message::Assistant {
+                        content: AssistantContent::Array(vec![tool_call_part]),
+                        id: output.id.clone(),
+                    });
+                }
+                _ => {
+                    // Regular message - convert content from OutputMessageContent array
+                    let content_vec =
+                        output
+                            .content
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "content".to_string(),
+                            })?;
+
+                    // Convert OutputMessageContent to AssistantContent
+                    let content = if content_vec.len() == 1
+                        && content_vec[0].output_message_content_type
+                            == openai::ContentType::OutputText
+                    {
+                        // Single text item - use string format
+                        AssistantContent::String(content_vec[0].text.clone().unwrap_or_default())
+                    } else {
+                        // Multiple items or non-text - use array format
+                        let parts: Result<Vec<AssistantContentPart>, _> = content_vec
+                            .into_iter()
+                            .map(|content_part| {
+                                Ok(AssistantContentPart::Text(TextContentPart {
+                                    text: content_part.text.ok_or_else(|| {
+                                        ConvertError::MissingRequiredField {
+                                            field: "text in output content".to_string(),
+                                        }
+                                    })?,
+                                    provider_options: None,
+                                }))
+                            })
+                            .collect();
+                        AssistantContent::Array(parts?)
+                    };
+
+                    result.push(Message::Assistant {
+                        content,
+                        id: output.id,
+                    });
+                }
+            }
+        }
+
+        Ok(result)
+    }
+}
+
 /// Convert universal Message to OpenAI OutputItem (for Responses API responses)
 impl TryFromLLM<Message> for openai::OutputItem {
     type Error = ConvertError;
@@ -782,36 +936,72 @@ impl TryFromLLM<Message> for openai::OutputItem {
                                 logprobs: Some(vec![]),
                                 refusal: None,
                             }]),
-                            output_item_type: None, // Don't add type field if original didn't have it
+                            output_item_type: Some(openai::OutputItemType::Message),
                             id,
                             status: Some(openai::FunctionCallItemStatus::Completed),
                             ..openai::OutputItem::default()
                         })
                     }
                     AssistantContent::Array(parts) => {
-                        // Check if this is a pure reasoning message
+                        // Check if this is a pure reasoning message (all parts are Reasoning)
+                        let all_reasoning = parts
+                            .iter()
+                            .all(|p| matches!(p, AssistantContentPart::Reasoning { .. }));
+
+                        if all_reasoning && !parts.is_empty() {
+                            // Convert all reasoning parts to summary_text items
+                            let summary_parts: Vec<openai::SummaryText> = parts
+                                .iter()
+                                .filter_map(|part| {
+                                    if let AssistantContentPart::Reasoning { text, .. } = part {
+                                        if !text.is_empty() {
+                                            Some(openai::SummaryText {
+                                                text: text.clone(),
+                                                summary_text_type: openai::SummaryType::SummaryText,
+                                            })
+                                        } else {
+                                            None
+                                        }
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .collect();
+
+                            return Ok(openai::OutputItem {
+                                role: None, // Reasoning items don't have roles
+                                content: None,
+                                output_item_type: Some(openai::OutputItemType::Reasoning),
+                                id,
+                                summary: Some(summary_parts),
+                                ..openai::OutputItem::default()
+                            });
+                        }
+
+                        // Check if this is a tool call message
                         if parts.len() == 1 {
-                            if let AssistantContentPart::Reasoning {
-                                text,
-                                encrypted_content: _,
+                            if let AssistantContentPart::ToolCall {
+                                tool_call_id,
+                                tool_name,
+                                arguments,
+                                ..
                             } = &parts[0]
                             {
-                                // Pure reasoning message - convert to reasoning OutputItem
-                                let summary_parts = if text.is_empty() {
-                                    vec![]
-                                } else {
-                                    vec![openai::SummaryText {
-                                        text: text.clone(),
-                                        summary_text_type: openai::SummaryType::SummaryText,
-                                    }]
+                                let args_str = match arguments {
+                                    ToolCallArguments::Valid(map) => serde_json::to_string(map)
+                                        .unwrap_or_else(|_| "{}".to_string()),
+                                    ToolCallArguments::Invalid(s) => s.clone(),
                                 };
 
                                 return Ok(openai::OutputItem {
-                                    role: None, // Reasoning items don't have roles
+                                    role: None,
                                     content: None,
-                                    output_item_type: Some(openai::OutputItemType::Reasoning),
+                                    output_item_type: Some(openai::OutputItemType::FunctionCall),
                                     id,
-                                    summary: Some(summary_parts),
+                                    call_id: Some(tool_call_id.clone()),
+                                    name: Some(tool_name.clone()),
+                                    arguments: Some(args_str),
+                                    status: Some(openai::FunctionCallItemStatus::Completed),
                                     ..openai::OutputItem::default()
                                 });
                             }
@@ -824,14 +1014,6 @@ impl TryFromLLM<Message> for openai::OutputItem {
                             .filter_map(|part| match part {
                                 AssistantContentPart::Text(text_part) => {
                                     Some(text_part.text.clone())
-                                }
-                                AssistantContentPart::ToolCall {
-                                    tool_name: _,
-                                    arguments: _,
-                                    ..
-                                } => {
-                                    // Create synthetic text for tool calls since OutputItem doesn't have proper tool call structure
-                                    todo!()
                                 }
                                 _ => None,
                             })
@@ -847,7 +1029,7 @@ impl TryFromLLM<Message> for openai::OutputItem {
                                 logprobs: Some(vec![]),
                                 refusal: None,
                             }]),
-                            output_item_type: None, // Don't add type field if original didn't have it
+                            output_item_type: Some(openai::OutputItemType::Message),
                             id,
                             status: Some(openai::FunctionCallItemStatus::Completed),
                             ..openai::OutputItem::default()
@@ -1143,6 +1325,57 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     })
                 }
             }
+            openai::PurpleType::File => {
+                if let Some(file) = part.file {
+                    // Convert File to UserContentPart::File
+                    // Priority: file_data over file_id
+                    let (data, media_type) = if let Some(file_data) = file.file_data {
+                        // Extract media type from data URL if present (e.g., "data:application/pdf;base64,...")
+                        let media_type = if file_data.starts_with("data:") {
+                            file_data
+                                .split(';')
+                                .next()
+                                .and_then(|s| s.strip_prefix("data:"))
+                                .unwrap_or("application/octet-stream")
+                                .to_string()
+                        } else {
+                            "application/octet-stream".to_string()
+                        };
+
+                        let data_value = serde_json::to_value(&file_data).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "file_data".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?;
+                        (data_value, media_type)
+                    } else if let Some(file_id) = file.file_id {
+                        let data_value = serde_json::to_value(&file_id).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "file_id".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?;
+                        // File IDs don't have media type info, use generic
+                        (data_value, "application/octet-stream".to_string())
+                    } else {
+                        return Err(ConvertError::MissingRequiredField {
+                            field: "file_data or file_id".to_string(),
+                        });
+                    };
+
+                    Ok(UserContentPart::File {
+                        data,
+                        filename: file.filename,
+                        media_type,
+                        provider_options: None,
+                    })
+                } else {
+                    Err(ConvertError::MissingRequiredField {
+                        field: "file".to_string(),
+                    })
+                }
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -1289,12 +1522,37 @@ fn convert_user_content_part_to_chat_completion_part(
                 refusal: None,
             })
         }
-        _ => Err(ConvertError::UnsupportedInputType {
-            type_info: format!(
-                "UserContentPart variant in ChatCompletion conversion: {:?}",
-                part
-            ),
-        }),
+        UserContentPart::File {
+            data,
+            filename,
+            media_type: _,
+            provider_options: _,
+        } => {
+            // Convert file data to File format
+            let file_data = match data {
+                serde_json::Value::String(data_str) => data_str,
+                _ => {
+                    return Err(ConvertError::UnsupportedInputType {
+                        type_info: format!(
+                            "File data must be string for ChatCompletion, got: {:?}",
+                            data
+                        ),
+                    })
+                }
+            };
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: None,
+                chat_completion_request_message_content_part_type: openai::PurpleType::File,
+                image_url: None,
+                input_audio: None,
+                file: Some(openai::File {
+                    file_data: Some(file_data),
+                    file_id: None,
+                    filename,
+                }),
+                refusal: None,
+            })
+        }
     }
 }
 

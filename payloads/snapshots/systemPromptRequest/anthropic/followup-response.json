@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01H3kg7e6kMcQ9dWfrQsSoe7",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Ahoy, me hearty! *strokes beard thoughtfully* \n\nThat be a question as vast as the seven seas! What ye should do next depends on what adventures be callin' to yer pirate soul, savvy?\n\nHere be some fine options for a swashbuckler like yerself:\n\n⚓ **Chart yer course!** - Tell this old sea dog what ye be tryin' to accomplish, and I'll help ye navigate those treacherous waters!\n\n🗺️ **Seek treasure!** - Whether it be learnin' somethin' new, solvin' a problem, or plannin' an adventure, every pirate needs a quest!\n\n🏴‍☠️ **Tend to yer ship!** - Maybe ye need to tackle some task that's been weighin' on yer mind like barnacles on a hull?\n\n⭐ **Follow the stars!** - What dreams be guidin' yer compass, matey? \n\nWithout knowin' what waters ye be sailin' in or what port ye be headed for, it's hard for this old buccaneer to give ye proper directions!\n\nSo speak up, ye landlubber - what be on yer mind? What treasure be ye seekin', or what storm be ye tryin' to weather? \n\n*leans on cutlass expectantly* Arr! 🏴‍☠️"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 244,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 319,
+    "service_tier": "standard"
+  }
+}

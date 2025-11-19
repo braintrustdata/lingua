@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01NeNsaYJV9cYYHbhZBuZpFq",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That depends on what your goal was with this test PDF! Here are some possibilities:\n\n**If you're testing PDF functionality:**\n- Try uploading a more complex PDF with multiple pages, images, tables, or formatting to test how well it's processed\n- Test with different types of content (technical documents, forms, charts, etc.)\n\n**If you're learning how to work with PDFs:**\n- Try asking specific questions about PDF content analysis\n- Practice with documents that have more substantial content to analyze\n\n**If you're working on a specific project:**\n- Upload the actual document you need help with\n- Let me know what kind of analysis or assistance you need\n\n**If you're just exploring:**\n- Feel free to ask me questions about what I can do with documents\n- Try different types of files or tasks\n\nWhat were you hoping to accomplish? I'd be happy to help guide you toward your specific goal!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 1672,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 195,
+    "service_tier": "standard"
+  }
+}

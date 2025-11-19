@@ -1,0 +1,27 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 300,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Write a haiku about coding."
+    },
+    {
+      "role": "assistant",
+      "content": "Here is a haiku:"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": " \n\nCode compiles at last—\nHours of debugging fade\nInto working art"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

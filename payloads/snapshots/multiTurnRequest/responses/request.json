@@ -1,0 +1,21 @@
+{
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi, my name is Alice."
+    },
+    {
+      "role": "assistant",
+      "content": "Hello Alice! Nice to meet you."
+    },
+    {
+      "role": "user",
+      "content": "What did I just tell you my name was?"
+    }
+  ],
+  "max_output_tokens": 300
+}
