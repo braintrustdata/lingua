@@ -6,6 +6,7 @@ that match the TypeScript SDK exactly, now automatically generated from the offi
 OpenAI OpenAPI specification.
 */
 
+pub mod capabilities;
 pub mod convert;
 pub mod generated;
 pub mod transformations;
