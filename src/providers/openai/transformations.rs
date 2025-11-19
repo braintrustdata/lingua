@@ -142,10 +142,23 @@ impl<'a> OpenAIRequestTransformer<'a> {
     pub fn transform(&mut self) -> TransformResult<()> {
         let capabilities = OpenAICapabilities::detect(self.request, self.config.target_provider);
 
+        // Apply reasoning model transformations
         if capabilities.requires_reasoning_transforms() {
             self.apply_reasoning_transforms(&capabilities)?;
         }
 
+        // Apply provider-specific field sanitization
+        self.apply_provider_sanitization(&capabilities)?;
+
+        // Apply model name normalization if needed
+        if capabilities.requires_model_normalization {
+            self.apply_model_normalization()?;
+        }
+
+        // Check for Responses API routing
+        self.check_responses_api_routing(&capabilities);
+
+        // Continue with existing transformations
         self.normalize_user_messages()?;
         self.apply_response_format(&capabilities)?;
 
@@ -263,6 +276,64 @@ impl<'a> OpenAIRequestTransformer<'a> {
                 self.request.response_format = Some(response_format);
                 Ok(())
             }
+        }
+    }
+
+    fn apply_provider_sanitization(
+        &mut self,
+        capabilities: &OpenAICapabilities,
+    ) -> TransformResult<()> {
+        // Remove stream_options for providers that don't support it
+        if !capabilities.supports_stream_options {
+            self.request.stream_options = None;
+        }
+
+        // Remove parallel_tool_calls for providers that don't support it
+        if !capabilities.supports_parallel_tools {
+            self.request.parallel_tool_calls = None;
+        }
+
+        // Remove seed field for Azure with API version
+        let has_api_version = self
+            .config
+            .provider_metadata
+            .as_ref()
+            .and_then(|meta| meta.get("api_version"))
+            .is_some();
+
+        if capabilities.should_remove_seed_for_azure(self.config.target_provider, has_api_version) {
+            self.request.seed = None;
+        }
+
+        Ok(())
+    }
+
+    fn apply_model_normalization(&mut self) -> TransformResult<()> {
+        // Normalize Vertex model names
+        if self.config.target_provider == TargetProvider::Vertex {
+            if self.request.model.starts_with("publishers/meta/models/") {
+                // Strip to "meta/..." format
+                self.request.model = self
+                    .request
+                    .model
+                    .strip_prefix("publishers/")
+                    .and_then(|s| s.strip_prefix("meta/models/"))
+                    .map(|s| format!("meta/{}", s))
+                    .unwrap_or_else(|| self.request.model.clone());
+            } else if let Some(stripped) = self.request.model.strip_prefix("publishers/") {
+                // Strip "publishers/X/models/Y" to "Y"
+                if let Some(model_part) = stripped.split("/models/").nth(1) {
+                    self.request.model = model_part.to_string();
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn check_responses_api_routing(&mut self, capabilities: &OpenAICapabilities) {
+        if capabilities.requires_responses_api {
+            self.state.use_responses_api = true;
         }
     }
 }

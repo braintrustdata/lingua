@@ -40,6 +40,13 @@ pub struct OpenAICapabilities {
     pub uses_reasoning_mode: bool,
     pub is_legacy_o1_model: bool,
     pub supports_native_structured_output: bool,
+
+    // Provider-specific limitations
+    pub supports_stream_options: bool,
+    pub supports_parallel_tools: bool,
+    pub supports_seed_field: bool,
+    pub requires_model_normalization: bool,
+    pub requires_responses_api: bool,
 }
 
 impl OpenAICapabilities {
@@ -51,15 +58,52 @@ impl OpenAICapabilities {
         let uses_reasoning_mode =
             request.reasoning_effort.is_some() || is_reasoning_model_name(&model);
 
+        // Check if model requires Responses API
+        let requires_responses_api = model.starts_with("o1-pro")
+            || model.starts_with("o3-pro")
+            || model.starts_with("gpt-5-pro")
+            || model.starts_with("gpt-5-codex");
+
+        // Provider-specific capability detection
+        let (
+            supports_stream_options,
+            supports_parallel_tools,
+            supports_seed_field,
+            requires_model_normalization,
+        ) = match target {
+            TargetProvider::Mistral => (false, false, true, false),
+            TargetProvider::Fireworks => (false, true, true, false),
+            TargetProvider::Databricks => (false, false, true, false),
+            TargetProvider::Azure => (true, false, true, false),
+            TargetProvider::Vertex => (true, true, true, true),
+            TargetProvider::OpenAI | TargetProvider::Lepton | TargetProvider::Other => {
+                (true, true, true, false)
+            }
+        };
+
         OpenAICapabilities {
             uses_reasoning_mode,
             is_legacy_o1_model: is_legacy_o1_model(&model),
             supports_native_structured_output: supports_native_structured_output(&model, target),
+            supports_stream_options,
+            supports_parallel_tools,
+            supports_seed_field,
+            requires_model_normalization,
+            requires_responses_api,
         }
     }
 
     pub fn requires_reasoning_transforms(&self) -> bool {
         self.uses_reasoning_mode
+    }
+
+    /// Check if seed field should be removed for Azure with API version
+    pub fn should_remove_seed_for_azure(
+        &self,
+        target: TargetProvider,
+        has_api_version: bool,
+    ) -> bool {
+        matches!(target, TargetProvider::Azure) && has_api_version
     }
 }
 
