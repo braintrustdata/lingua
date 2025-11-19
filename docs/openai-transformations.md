@@ -1,6 +1,24 @@
 <!-- Tracking document for OpenAI payload transformations migrated from proxy.ts -->
 # OpenAI payload transformations
 
+## Transformation boundaries
+
+Lingua now models two transformation layers:
+
+- **Lingua → Lingua (`src/universal/transform.rs`)**  
+  Handles provider-agnostic concerns such as system-message downgrades,
+  attachment fallbacks, tool message remapping, and text-length enforcement
+  based on the [`UniversalCapabilities`](../src/capabilities/universal.rs)
+  profile returned by `UniversalCapabilities::for_provider`.
+- **Lingua → Provider (`src/providers/openai/transformations.rs`)**  
+  Handles OpenAI-specific behavior such as reasoning model quirks,
+  message normalization that relies on OpenAI schema details, and response
+  format/tooling negotiations powered by `OpenAICapabilities`.
+
+Transformations listed below that touch OpenAI request semantics should now
+live exclusively in the provider layer; any cross-provider constraint should
+move to the universal transformer first.
+
 ## Status legend
 - Not started – logic still lives exclusively in `proxy.ts`
 - In progress – partially ported to Lingua
@@ -17,9 +35,9 @@
 | Remove `stream_options` for unsupported providers | `fetchOpenAI` 1975-1981 | Drop `stream_options` for Mistral, Fireworks, Databricks | `transformations::sanitize_stream_options` | Not started | Prevents provider errors |
 | Remove `parallel_tool_calls` for unsupported providers | `fetchOpenAI` 1983-1990 | Drop parallel tool calls for Mistral, Databricks, Azure | `transformations::sanitize_parallel_tool_calls` | Not started | Keeps compatibility with provider limits |
 | Delete `seed` in Azure Entra flow | `fetchOpenAI` 1995-1999 | Remove unsupported `seed` when Azure API version is set | `transformations::sanitize_seed_for_azure` | Not started | Required for Azure REST validation |
-| Reasoning model token handling | `fetchOpenAI` 2015-2024 | Map `max_tokens` → `max_completion_tokens` for reasoning models | `transformations::OpenAIRequestTransformer::apply_reasoning_model_transforms` | Complete | Applies when `modelProviderHasReasoning` matches |
-| Reasoning model temperature & tool cleanup | `fetchOpenAI` 2026-2028 | Drop `temperature` and `parallel_tool_calls` for reasoning models | `transformations::OpenAIRequestTransformer::apply_reasoning_model_transforms` | Complete | Avoids unsupported fields on o-series |
-| Old o1 system message downgrade | `fetchOpenAI` 2029-2039 | Convert `system` roles to `user` for legacy o1 models | `transformations::OpenAIRequestTransformer::apply_reasoning_model_transforms` | Complete | Scoped to `o1-preview`, `o1-mini`, `o1-preview-2024-09-12` |
+| Reasoning model token handling | `fetchOpenAI` 2015-2024 | Map `max_tokens` → `max_completion_tokens` for reasoning models | `transformations::OpenAIRequestTransformer::apply_reasoning_transforms` | Complete | Applies when `OpenAICapabilities::uses_reasoning_mode` matches |
+| Reasoning model temperature & tool cleanup | `fetchOpenAI` 2026-2028 | Drop `temperature` and `parallel_tool_calls` for reasoning models | `transformations::OpenAIRequestTransformer::apply_reasoning_transforms` | Complete | Avoids unsupported fields on o-series |
+| Old o1 system message downgrade | `fetchOpenAI` 2029-2039 | Convert `system` roles to `user` for legacy o1 models | `transformations::OpenAIRequestTransformer::apply_reasoning_transforms` | Complete | Scoped to `o1-preview`, `o1-mini`, `o1-preview-2024-09-12` |
 | Message content normalization | `fetchOpenAI` 2043-2045` + `providers/openai.ts` | Normalize multimodal content, strip `reasoning` field | `transformations::normalize_messages` | Complete | Remote media conversion deferred; base64 handling implemented |
 | Force fake streaming when provider lacks streaming | `fetchOpenAI` 2047-2055 | Route through fake stream helper when `supportsStreaming === false` | `transformations::apply_stream_fallback` | Not started | Should remain request-side decision |
 | Responses API auto-pivot for pro models | `fetchOpenAI` 2058-2068 | Send specific pro models via Responses API | `transformations::route_to_responses_api` | Not started | Applies to `o1-pro`, `o3-pro`, `gpt-5-pro`, `gpt-5-codex` |
