@@ -265,3 +265,196 @@ fn structured_output_snapshot_matches_expected() {
     let actual = crate::serde_json::to_value(&request).expect("serialize request");
     assert_json_eq!(expected, actual);
 }
+
+#[test]
+fn removes_stream_options_for_mistral() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request = build_request(json!({
+        "model": "mistral-large",
+        "messages": [
+            { "role": "user", "content": "hi" }
+        ],
+        "stream_options": {
+            "include_usage": true
+        }
+    }));
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Mistral)
+        .transform()
+        .expect("transform succeeds");
+
+    assert!(request.stream_options.is_none());
+}
+
+#[test]
+fn removes_parallel_tool_calls_for_azure() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request = build_request(json!({
+        "model": "gpt-4",
+        "messages": [
+            { "role": "user", "content": "hi" }
+        ],
+        "parallel_tool_calls": true
+    }));
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Azure)
+        .transform()
+        .expect("transform succeeds");
+
+    assert!(request.parallel_tool_calls.is_none());
+}
+
+#[test]
+fn removes_seed_for_azure_with_api_version() {
+    use crate::providers::openai::transformations::TargetProvider;
+    use crate::serde_json::Map;
+
+    let mut request = build_request(json!({
+        "model": "gpt-4",
+        "messages": [
+            { "role": "user", "content": "hi" }
+        ],
+        "seed": 42
+    }));
+
+    let mut metadata = Map::new();
+    metadata.insert("api_version".to_string(), json!("2023-07-01-preview"));
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Azure)
+        .with_provider_metadata(Some(&metadata))
+        .transform()
+        .expect("transform succeeds");
+
+    assert!(request.seed.is_none());
+}
+
+#[test]
+fn keeps_seed_for_azure_without_api_version() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request = build_request(json!({
+        "model": "gpt-4",
+        "messages": [
+            { "role": "user", "content": "hi" }
+        ],
+        "seed": 42
+    }));
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Azure)
+        .transform()
+        .expect("transform succeeds");
+
+    assert_eq!(request.seed, Some(42));
+}
+
+#[test]
+fn normalizes_vertex_model_names() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let test_cases = vec![
+        ("publishers/meta/models/llama-2-7b", "meta/llama-2-7b"),
+        ("publishers/google/models/gemini-pro", "gemini-pro"),
+        ("gemini-pro", "gemini-pro"),
+    ];
+
+    for (input_model, expected_model) in test_cases {
+        let mut request = build_request(json!({
+            "model": input_model,
+            "messages": [
+                { "role": "user", "content": "hi" }
+            ]
+        }));
+
+        OpenAIRequestTransformer::new(&mut request)
+            .with_target_provider(TargetProvider::Vertex)
+            .transform()
+            .expect("transform succeeds");
+
+        assert_eq!(
+            request.model, expected_model,
+            "Failed for input: {}",
+            input_model
+        );
+    }
+}
+
+#[test]
+fn detects_responses_api_for_pro_models() {
+    let pro_models = vec![
+        "o1-pro",
+        "o1-pro-2024",
+        "o3-pro",
+        "gpt-5-pro",
+        "gpt-5-codex",
+    ];
+
+    for model in pro_models {
+        let mut request = build_request(json!({
+            "model": model,
+            "messages": [
+                { "role": "user", "content": "hi" }
+            ]
+        }));
+
+        let mut transformer = OpenAIRequestTransformer::new(&mut request);
+        transformer.transform().expect("transform succeeds");
+
+        assert!(
+            transformer.use_responses_api(),
+            "Failed to detect Responses API for model: {}",
+            model
+        );
+    }
+}
+
+#[test]
+fn does_not_use_responses_api_for_regular_models() {
+    let regular_models = vec!["gpt-4", "gpt-3.5-turbo", "o1-preview"];
+
+    for model in regular_models {
+        let mut request = build_request(json!({
+            "model": model,
+            "messages": [
+                { "role": "user", "content": "hi" }
+            ]
+        }));
+
+        let mut transformer = OpenAIRequestTransformer::new(&mut request);
+        transformer.transform().expect("transform succeeds");
+
+        assert!(
+            !transformer.use_responses_api(),
+            "Should not use Responses API for model: {}",
+            model
+        );
+    }
+}
+
+#[test]
+fn combined_provider_transformations() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request = build_request(json!({
+        "model": "gpt-4",
+        "messages": [
+            { "role": "user", "content": "hi" }
+        ],
+        "stream_options": { "include_usage": true },
+        "parallel_tool_calls": true
+    }));
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Databricks)
+        .transform()
+        .expect("transform succeeds");
+
+    // Databricks doesn't support stream_options or parallel_tool_calls
+    assert!(request.stream_options.is_none());
+    assert!(request.parallel_tool_calls.is_none());
+}
