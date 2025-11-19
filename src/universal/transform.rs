@@ -34,7 +34,7 @@ impl<'a> UniversalTransformer<'a> {
         }
 
         if !self.capabilities.supports_tool_messages {
-            remap_tool_messages(self.messages);
+            remap_tool_messages(self.messages.as_mut_slice());
         }
 
         if let Some(limit) = self.capabilities.max_message_length {
@@ -112,7 +112,7 @@ fn sanitize_assistant_content(content: &mut AssistantContent) {
     }
 }
 
-fn remap_tool_messages(messages: &mut Vec<Message>) {
+fn remap_tool_messages(messages: &mut [Message]) {
     for message in messages.iter_mut() {
         if let Message::Tool { content } = message {
             let tool_summary = summarize_tool_content(content.as_slice());
