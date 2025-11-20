@@ -48,7 +48,7 @@ mod tests {
             |response: &AnthropicMessage| Ok(response.content.clone()),
             // Convert response to universal
             |response_content: &Vec<ContentBlock>| {
-                <Vec<Message> as TryFromLLM<&Vec<ContentBlock>>>::try_from(response_content)
+                <Vec<Message> as TryFromLLM<Vec<ContentBlock>>>::try_from(response_content.clone())
                     .map_err(|e| format!("Failed to convert response to universal format: {}", e))
             },
             // Convert universal to response
