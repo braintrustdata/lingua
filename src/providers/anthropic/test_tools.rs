@@ -19,13 +19,14 @@ fn test_client_tool_to_anthropic() {
 
     let anthropic_tool: generated::Tool = TryFromLLM::try_from(lingua_tool).unwrap();
 
-    assert_eq!(anthropic_tool.name, "get_weather");
-    assert_eq!(
-        anthropic_tool.description,
-        Some("Get current weather".to_string())
-    );
-    assert_eq!(anthropic_tool.tool_type, Some(generated::ToolType::Custom));
-    assert!(anthropic_tool.input_schema.is_some());
+    match anthropic_tool {
+        generated::Tool::Custom(custom) => {
+            assert_eq!(custom.name, "get_weather");
+            assert_eq!(custom.description, Some("Get current weather".to_string()));
+            assert!(custom.input_schema.properties.is_some());
+        }
+        other => panic!("Expected Custom tool, got {:?}", other),
+    }
 }
 
 #[test]
@@ -72,16 +73,17 @@ fn test_web_search_provider_tool() {
 
     let anthropic_tool: generated::Tool = TryFromLLM::try_from(lingua_tool).unwrap();
 
-    assert_eq!(anthropic_tool.name, "web_search_20250305");
-    assert_eq!(
-        anthropic_tool.tool_type,
-        Some(generated::ToolType::WebSearch20250305)
-    );
-    assert_eq!(anthropic_tool.max_uses, Some(5));
-    assert_eq!(
-        anthropic_tool.allowed_domains,
-        Some(vec!["wikipedia.org".to_string()])
-    );
+    match anthropic_tool {
+        generated::Tool::WebSearch20250305(search) => {
+            assert_eq!(search.name, "web_search_20250305");
+            assert_eq!(search.max_uses, Some(5));
+            assert_eq!(
+                search.allowed_domains,
+                Some(vec!["wikipedia.org".to_string()])
+            );
+        }
+        other => panic!("Expected WebSearch20250305, got {:?}", other),
+    }
 }
 
 #[test]
@@ -96,12 +98,12 @@ fn test_bash_provider_tool() {
 
     let anthropic_tool: generated::Tool = TryFromLLM::try_from(lingua_tool).unwrap();
 
-    assert_eq!(anthropic_tool.name, "my_bash");
-    assert_eq!(
-        anthropic_tool.tool_type,
-        Some(generated::ToolType::Bash20250124)
-    );
-    assert_eq!(anthropic_tool.max_uses, Some(10));
+    match anthropic_tool {
+        generated::Tool::Bash20250124(bash) => {
+            assert_eq!(bash.name, "my_bash");
+        }
+        other => panic!("Expected Bash20250124, got {:?}", other),
+    }
 }
 
 #[test]
@@ -116,12 +118,13 @@ fn test_text_editor_provider_tool() {
 
     let anthropic_tool: generated::Tool = TryFromLLM::try_from(lingua_tool).unwrap();
 
-    assert_eq!(anthropic_tool.name, "text_editor_20250728");
-    assert_eq!(
-        anthropic_tool.tool_type,
-        Some(generated::ToolType::TextEditor20250728)
-    );
-    assert_eq!(anthropic_tool.max_characters, Some(1000));
+    match anthropic_tool {
+        generated::Tool::TextEditor20250728(editor) => {
+            assert_eq!(editor.name, "text_editor_20250728");
+            assert_eq!(editor.max_characters, Some(1000));
+        }
+        other => panic!("Expected TextEditor20250728, got {:?}", other),
+    }
 }
 
 #[test]
@@ -160,10 +163,11 @@ fn test_unsupported_provider_tool_errors() {
     });
 
     let result: Result<generated::Tool, _> = TryFromLLM::try_from(lingua_tool);
-    assert!(result.is_err());
-    let error_msg = result.unwrap_err();
-    assert!(error_msg.contains("doesn't support"));
-    assert!(error_msg.contains("code_execution"));
+    assert!(result.is_ok());
+    match result.unwrap() {
+        generated::Tool::Unknown { tool_type, .. } => assert_eq!(tool_type, "code_execution"),
+        other => panic!("Expected Unknown tool, got {:?}", other),
+    }
 }
 
 #[test]
@@ -187,15 +191,17 @@ fn test_vec_conversion() {
     assert_eq!(anthropic_tools.len(), 2);
 
     // Verify first tool (ClientTool)
-    assert_eq!(anthropic_tools[0].name, "tool1");
-    assert_eq!(anthropic_tools[0].description, Some("First tool".to_string()));
-    assert_eq!(anthropic_tools[0].tool_type, Some(generated::ToolType::Custom));
-    assert!(anthropic_tools[0].input_schema.is_some());
+    match &anthropic_tools[0] {
+        generated::Tool::Custom(custom) => {
+            assert_eq!(custom.name, "tool1");
+            assert_eq!(custom.description, Some("First tool".to_string()));
+        }
+        other => panic!("Expected first tool to be Custom, got {:?}", other),
+    }
 
     // Verify second tool (ProviderTool - Bash)
-    assert_eq!(anthropic_tools[1].name, "bash_20250124");
-    assert_eq!(
-        anthropic_tools[1].tool_type,
-        Some(generated::ToolType::Bash20250124)
-    );
+    match &anthropic_tools[1] {
+        generated::Tool::Bash20250124(bash) => assert_eq!(bash.name, "bash_20250124"),
+        other => panic!("Expected second tool to be Bash20250124, got {:?}", other),
+    }
 }

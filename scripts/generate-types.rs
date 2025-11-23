@@ -11,6 +11,7 @@
 //! Usage: cargo run --bin generate-types -- [provider]
 //!        ./scripts/generate-types.rs [provider]
 
+use std::collections::HashSet;
 use std::path::Path;
 
 fn main() {
@@ -206,7 +207,15 @@ fn generate_openai_types_with_quicktype(
     let _ = std::fs::remove_file(&temp_schema_path);
 
     // Post-process the quicktype output
-    let processed_output = post_process_quicktype_output_for_openai(&quicktype_output);
+    let mut processed_output = post_process_quicktype_output_for_openai(&quicktype_output);
+
+    // Generate improved tool types and replace the flat Tool struct
+    if let Ok(tool_code) = generate_all_tool_code("openai", &spec) {
+        std::fs::write("tool_code_output.txt", &tool_code).ok();
+        processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
+    }
+    processed_output = finalize_openai_tool_fixups(processed_output);
+    processed_output = remove_duplicate_derives(&processed_output);
 
     let dest_path = "src/providers/openai/generated.rs";
 
@@ -226,6 +235,32 @@ fn generate_openai_types_with_quicktype(
     println!("📝 Generated OpenAI types to: {}", dest_path);
 
     Ok(())
+}
+
+fn finalize_openai_tool_fixups(mut processed: String) -> String {
+    processed = processed.replace(
+        "pub enum Type {\n    Function,\n}\n",
+        "pub enum Type {\n    Function,\n    ComputerUsePreview,\n    Mcp,\n    ImageGeneration,\n    LocalShell,\n}\n",
+    );
+    processed = processed.replace(
+        "pub enum Type {\r\n    Function,\r\n}\r\n",
+        "pub enum Type {\r\n    Function,\r\n    ComputerUsePreview,\r\n    Mcp,\r\n    ImageGeneration,\r\n    LocalShell,\r\n}\r\n",
+    );
+    processed = processed.replace("MCP(MCPTool)", "MCP(McpTool)");
+    processed = processed.replace("MCPTool", "McpTool");
+    processed = processed.replace(
+        "pub request_id: Option<serde_json::Value>,",
+        "#[ts(type = \"any\")]\n    pub request_id: Option<serde_json::Value>,",
+    );
+    processed = processed.replace(
+        "pub input_schema: HashMap<String, Option<serde_json::Value>>,",
+        "#[ts(type = \"any\")]\n    pub input_schema: HashMap<String, Option<serde_json::Value>>,",
+    );
+    processed = processed.replace(
+        "pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
+        "#[ts(type = \"any\")]\n    pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
+    );
+    processed
 }
 
 fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Value {
@@ -493,7 +528,14 @@ fn generate_anthropic_types_with_quicktype(
     let _ = std::fs::remove_file(&temp_schema_path);
 
     // Post-process the quicktype output
-    let processed_output = post_process_quicktype_output_for_anthropic(&quicktype_output);
+    let mut processed_output = post_process_quicktype_output_for_anthropic(&quicktype_output);
+
+    // Generate improved tool types and replace the flat Tool struct
+    if let Ok(tool_code) = generate_all_tool_code("anthropic", &spec) {
+        std::fs::write("tool_code_output.txt", &tool_code).ok();
+        processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
+    }
+    processed_output = remove_duplicate_derives(&processed_output);
 
     let dest_path = "src/providers/anthropic/generated.rs";
 
@@ -978,6 +1020,7 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "pub call_id: Option<serde_json::Value>,",
         "pub call_id: Option<String>,",
     );
+    processed = processed.replace("MCP(MCPTool),", "MCP(McpTool),");
 
     // Fix output field that quicktype incorrectly generates as Refusal instead of String
     // This is specific to function call outputs where output should be a plain string
@@ -1044,6 +1087,41 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
             "pub struct Tool {\n    /// For function tools, contains the function definition\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub function: Option<FunctionObject>,\n"
         );
     }
+
+    // Expand the generic Type enum to cover all tool variants and normalize MCP variant naming
+    if let Some(start) = processed.find("pub enum Type {") {
+        let mut brace_count = 0isize;
+        let mut end = None;
+        for (i, ch) in processed[start..].char_indices() {
+            if ch == '{' {
+                brace_count += 1;
+            } else if ch == '}' {
+                brace_count -= 1;
+                if brace_count == 0 {
+                    end = Some(start + i + 1);
+                    break;
+                }
+            }
+        }
+        if let Some(end_idx) = end {
+            let replacement = "pub enum Type {\n    Function,\n    ComputerUsePreview,\n    Mcp,\n    ImageGeneration,\n    LocalShell,\n}\n";
+            processed.replace_range(start..end_idx, replacement);
+        }
+    }
+    processed = processed.replace("MCP(MCPTool)", "MCP(McpTool)");
+    processed = processed.replace("MCPTool", "McpTool");
+    processed = processed.replace(
+        "pub request_id: Option<serde_json::Value>,",
+        "#[ts(type = \"any\")]\n    pub request_id: Option<serde_json::Value>,",
+    );
+    processed = processed.replace(
+        "pub input_schema: HashMap<String, Option<serde_json::Value>>,",
+        "#[ts(type = \"any\")]\n    pub input_schema: HashMap<String, Option<serde_json::Value>>,",
+    );
+    processed = processed.replace(
+        "pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
+        "#[ts(type = \"any\")]\n    pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
+    );
 
     processed
 }
@@ -1133,13 +1211,15 @@ fn add_ts_type_annotations(content: &str) -> String {
             // Check the FULL line for serde_json::Value (handles complex generic types)
             let needs_ts_annotation = line.contains("serde_json::Value");
 
-            if needs_ts_annotation && !has_ts_attr {
+            if needs_ts_annotation {
                 // Get the indentation level from the current line
                 let indent = line.len() - line.trim_start().len();
                 let ts_attr = format!("{}#[ts(type = \"any\")]", " ".repeat(indent));
 
-                // Add the ts attribute BEFORE the field line
-                result_lines.push(ts_attr);
+                // Add the ts attribute BEFORE the field line unless it's already present
+                if !has_ts_attr {
+                    result_lines.push(ts_attr);
+                }
             }
         }
 
@@ -1187,6 +1267,647 @@ fn add_serde_skip_if_none(content: &str) -> String {
     }
 
     result_lines.join("\n")
+}
+
+#[derive(Debug, Clone)]
+struct ToolSchemas {
+    provider_tools: Vec<ProviderToolSchema>,
+    client_tools: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+struct ProviderToolSchema {
+    schema_name: String,
+    tool_type: String,
+}
+
+fn extract_tool_schemas(provider: &str, spec: &serde_json::Value) -> ToolSchemas {
+    match provider {
+        "openai" => extract_openai_tool_schemas(spec),
+        "anthropic" => extract_anthropic_tool_schemas(spec),
+        _ => ToolSchemas {
+            provider_tools: Vec::new(),
+            client_tools: Vec::new(),
+        },
+    }
+}
+
+fn extract_openai_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
+    let mut provider_tools = Vec::new();
+    let mut client_tools = Vec::new();
+
+    let schemas = spec
+        .get("components")
+        .and_then(|c| c.get("schemas"))
+        .and_then(|s| s.as_object());
+
+    let Some(schemas) = schemas else {
+        return ToolSchemas {
+            provider_tools,
+            client_tools,
+        };
+    };
+
+    let Some(tool_schema) = schemas.get("Tool") else {
+        return ToolSchemas {
+            provider_tools,
+            client_tools,
+        };
+    };
+
+    if let Some(any_of) = tool_schema.get("anyOf").and_then(|a| a.as_array()) {
+        for ref_item in any_of {
+            if let Some(schema_ref) = ref_item.get("$ref").and_then(|r| r.as_str()) {
+                if let Some(schema_name) = schema_ref.split('/').last() {
+                    if let Some(schema_def) = schemas.get(schema_name) {
+                        let type_value = schema_def
+                            .get("properties")
+                            .and_then(|p| p.get("type"))
+                            .and_then(|t| t.get("enum"))
+                            .and_then(|e| e.get(0))
+                            .and_then(|v| v.as_str());
+
+                        if let Some(type_val) = type_value {
+                            if type_val == "function" || type_val == "custom" {
+                                client_tools.push(schema_name.to_string());
+                            } else {
+                                provider_tools.push(ProviderToolSchema {
+                                    schema_name: schema_name.to_string(),
+                                    tool_type: type_val.to_string(),
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ToolSchemas {
+        provider_tools,
+        client_tools,
+    }
+}
+
+fn extract_anthropic_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
+    let mut provider_tools = Vec::new();
+    let mut client_tools = Vec::new();
+
+    let schemas = spec
+        .get("components")
+        .and_then(|c| c.get("schemas"))
+        .and_then(|s| s.as_object());
+
+    let Some(schemas) = schemas else {
+        return ToolSchemas {
+            provider_tools,
+            client_tools,
+        };
+    };
+
+    for (schema_name, schema_def) in schemas {
+        // Skip beta tool schemas for now—they introduce generics/duplications and were noisy in generation
+        if schema_name.starts_with("Beta") {
+            continue;
+        }
+        let Some(props) = schema_def.get("properties").and_then(|p| p.as_object()) else {
+            continue;
+        };
+        let Some(type_prop) = props.get("type") else {
+            continue;
+        };
+
+        if let Some(const_val) = type_prop.get("const").and_then(|v| v.as_str()) {
+            if is_versioned_tool_type(const_val) {
+                provider_tools.push(ProviderToolSchema {
+                    schema_name: schema_name.clone(),
+                    tool_type: const_val.to_string(),
+                });
+            }
+            // Non-versioned const but looks like a client/custom tool
+            else if props.contains_key("input_schema") {
+                client_tools.push(schema_name.clone());
+            }
+        } else if props.contains_key("input_schema") {
+            client_tools.push(schema_name.clone());
+        }
+    }
+
+    ToolSchemas {
+        provider_tools,
+        client_tools,
+    }
+}
+
+fn is_versioned_tool_type(s: &str) -> bool {
+    s.len() > 9
+        && s.chars().rev().take(8).all(|c| c.is_ascii_digit())
+        && s.chars().rev().nth(8) == Some('_')
+}
+
+fn generate_all_tool_code(
+    provider: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let tool_schemas = extract_tool_schemas(provider, spec);
+
+    if tool_schemas.client_tools.is_empty() && tool_schemas.provider_tools.is_empty() {
+        return Ok(String::new());
+    }
+
+    let mut code_segments = Vec::new();
+    let tool_structs = generate_tool_structs(provider, &tool_schemas, spec)?;
+    code_segments.extend(tool_structs);
+
+    let tool_enum = generate_tool_enum(provider, &tool_schemas, spec);
+    code_segments.push(tool_enum);
+
+    Ok(code_segments.join("\n\n"))
+}
+
+fn generate_tool_structs(
+    provider: &str,
+    tool_schemas: &ToolSchemas,
+    spec: &serde_json::Value,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let mut generated_structs = Vec::new();
+    let mut seen = HashSet::new();
+
+    for client_schema in &tool_schemas.client_tools {
+        if let Ok(code) = generate_struct_from_schema(client_schema, spec, provider) {
+            for (mut name, mut block) in split_type_definitions(&code) {
+                if name == "Tool" {
+                    block = block.replace("struct Tool", "struct CustomTool");
+                    name = "CustomTool".to_string();
+                }
+                if seen.insert(name) {
+                    generated_structs.push(block);
+                }
+            }
+        }
+    }
+
+    for provider_tool in &tool_schemas.provider_tools {
+        if let Ok(code) = generate_struct_from_schema(&provider_tool.schema_name, spec, provider) {
+            for (name, block) in split_type_definitions(&code) {
+                if seen.insert(name) {
+                    generated_structs.push(block);
+                }
+            }
+        }
+    }
+
+    Ok(generated_structs)
+}
+
+fn generate_struct_from_schema(
+    schema_name: &str,
+    spec: &serde_json::Value,
+    provider: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let isolated_schema = extract_schema_with_dependencies(schema_name, spec)?;
+    let raw = run_quicktype_for_schema(&isolated_schema, schema_name)?;
+    let mut cleaned = extract_type_definitions(&raw);
+    cleaned = cleaned.replace(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]",
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
+    );
+    cleaned = add_export_path_to_all_ts_types(&cleaned, &format!("{}/", provider));
+    cleaned = add_serde_skip_if_none(&cleaned);
+    Ok(cleaned)
+}
+
+fn extract_schema_with_dependencies(
+    schema_name: &str,
+    spec: &serde_json::Value,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    let all_schemas = spec
+        .get("components")
+        .and_then(|c| c.get("schemas"))
+        .and_then(|s| s.as_object())
+        .ok_or("No components.schemas in spec")?;
+
+    let mut collected = serde_json::Map::new();
+    let mut visited = std::collections::HashSet::new();
+    add_schema_with_dependencies_generic(schema_name, all_schemas, &mut collected, &mut visited);
+
+    let root = serde_json::json!({
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "definitions": collected,
+        "$ref": format!("#/definitions/{}", schema_name),
+    });
+
+    Ok(root)
+}
+
+fn add_schema_with_dependencies_generic(
+    schema_name: &str,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    collected: &mut serde_json::Map<String, serde_json::Value>,
+    visited: &mut std::collections::HashSet<String>,
+) {
+    if !visited.insert(schema_name.to_string()) {
+        return;
+    }
+
+    let Some(schema) = all_schemas.get(schema_name) else {
+        return;
+    };
+
+    let fixed_schema = fix_generic_schema_refs(schema);
+    collected.insert(schema_name.to_string(), fixed_schema.clone());
+
+    let mut refs = std::collections::HashSet::new();
+    extract_schema_refs(&fixed_schema, &mut refs);
+
+    for ref_name in refs {
+        add_schema_with_dependencies_generic(&ref_name, all_schemas, collected, visited);
+    }
+}
+
+fn fix_generic_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
+    match schema {
+        serde_json::Value::Object(obj) => {
+            let mut fixed = serde_json::Map::new();
+            for (key, value) in obj {
+                if key == "$ref" {
+                    if let Some(ref_str) = value.as_str() {
+                        if ref_str.starts_with("#/components/schemas/") {
+                            fixed.insert(
+                                key.clone(),
+                                serde_json::Value::String(
+                                    ref_str.replace("#/components/schemas/", "#/definitions/"),
+                                ),
+                            );
+                        } else {
+                            fixed.insert(key.clone(), value.clone());
+                        }
+                    } else {
+                        fixed.insert(key.clone(), value.clone());
+                    }
+                } else {
+                    fixed.insert(key.clone(), fix_generic_schema_refs(value));
+                }
+            }
+            serde_json::Value::Object(fixed)
+        }
+        serde_json::Value::Array(arr) => {
+            let fixed_arr: Vec<serde_json::Value> =
+                arr.iter().map(fix_generic_schema_refs).collect();
+            serde_json::Value::Array(fixed_arr)
+        }
+        other => other.clone(),
+    }
+}
+
+fn run_quicktype_for_schema(
+    schema: &serde_json::Value,
+    top_level: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let temp_schema_path = std::env::temp_dir().join(format!("{}_tool_schema.json", top_level));
+    std::fs::write(&temp_schema_path, serde_json::to_string_pretty(schema)?)?;
+
+    let output = std::process::Command::new("quicktype")
+        .arg("--src-lang")
+        .arg("schema")
+        .arg("--lang")
+        .arg("rust")
+        .arg("--derive-debug")
+        .arg("--derive-clone")
+        .arg("--derive-partial-eq")
+        .arg("--visibility")
+        .arg("public")
+        .arg("--density")
+        .arg("dense")
+        .arg("--top-level")
+        .arg(top_level)
+        .arg(&temp_schema_path)
+        .output()?;
+
+    std::fs::remove_file(&temp_schema_path).ok();
+
+    if !output.status.success() {
+        return Err(format!(
+            "quicktype failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        )
+        .into());
+    }
+
+    Ok(String::from_utf8(output.stdout)?)
+}
+
+fn extract_type_definitions(quicktype_output: &str) -> String {
+    let mut started = false;
+    let mut lines = Vec::new();
+
+    for line in quicktype_output.lines() {
+        if !started && line.trim_start().starts_with("#[derive") {
+            started = true;
+        }
+
+        if started {
+            if line.starts_with("use ") {
+                continue;
+            }
+            lines.push(line.to_string());
+        }
+    }
+
+    lines.join("\n")
+}
+
+fn generate_tool_enum(
+    provider: &str,
+    tool_schemas: &ToolSchemas,
+    spec: &serde_json::Value,
+) -> String {
+    let mut enum_def = String::new();
+    enum_def.push_str("#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n");
+    enum_def.push_str("#[serde(tag = \"type\")]\n");
+    enum_def.push_str(&format!("#[ts(export_to = \"{}/\")]\n", provider));
+    enum_def.push_str("pub enum Tool {\n");
+
+    for client_schema in &tool_schemas.client_tools {
+        let type_value =
+            extract_type_const_value(client_schema, spec).unwrap_or_else(|| "custom".to_string());
+        let variant_name = schema_name_to_variant(client_schema);
+        let type_name = schema_name_to_rust_type(client_schema);
+        enum_def.push_str(&format!(
+            "    #[serde(rename = \"{}\")]\n    {}({}),\n\n",
+            type_value, variant_name, type_name
+        ));
+    }
+
+    for provider_tool in &tool_schemas.provider_tools {
+        let variant_name = schema_name_to_variant(&provider_tool.schema_name);
+        let type_name = schema_name_to_rust_type(&provider_tool.schema_name);
+        enum_def.push_str(&format!(
+            "    #[serde(rename = \"{}\")]\n    {}({}),\n\n",
+            provider_tool.tool_type, variant_name, type_name
+        ));
+    }
+
+    enum_def.push_str(
+        "    #[serde(untagged)]\n    Unknown {\n        #[serde(rename = \"type\")]\n        tool_type: String,\n        name: String,\n        #[ts(skip)]\n        #[serde(flatten)]\n        config: std::collections::HashMap<String, serde_json::Value>,\n    },\n",
+    );
+
+    enum_def.push_str("}\n");
+    enum_def
+}
+
+fn extract_type_const_value(schema_name: &str, spec: &serde_json::Value) -> Option<String> {
+    let schemas = spec
+        .get("components")
+        .and_then(|c| c.get("schemas"))
+        .and_then(|s| s.as_object())?;
+
+    let schema = schemas.get(schema_name)?;
+    let properties = schema.get("properties")?.as_object()?;
+    let type_prop = properties.get("type")?;
+
+    if let Some(const_val) = type_prop.get("const").and_then(|v| v.as_str()) {
+        return Some(const_val.to_string());
+    }
+
+    type_prop
+        .get("enum")
+        .and_then(|arr| arr.as_array())
+        .and_then(|arr| arr.first())
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+}
+
+fn schema_name_to_variant(schema_name: &str) -> String {
+    let base = schema_name.to_string();
+
+    if base == "Tool" || base == "BetaTool" {
+        return "Custom".to_string();
+    }
+
+    if let Some(idx) = base.rfind('_') {
+        let version = base[idx + 1..].to_string();
+        let name_part = base[..idx].replace("Tool", "");
+        return format!("{}{}", name_part, version);
+    }
+
+    base.replace("Tool", "")
+}
+
+fn schema_name_to_rust_type(schema_name: &str) -> String {
+    // Quicktype uses the schema name directly; normalize by stripping underscores and
+    // renaming the top-level Tool (custom) schema to avoid colliding with the enum name.
+    if schema_name == "Tool" {
+        return "CustomTool".to_string();
+    }
+    schema_name.replace('_', "")
+}
+
+fn replace_tool_struct_with_enum(existing: &str, tool_code: &str) -> String {
+    let filtered_tool_code = filter_tool_code_against_existing(tool_code, existing);
+    println!(
+        "🔧 Injecting tool enum/structs, filtered size: {}",
+        filtered_tool_code.len()
+    );
+    if let Some((attr_start, struct_end)) = find_tool_struct_span(existing) {
+        println!(
+            "🔧 Replacing Tool struct span: {}..{}",
+            attr_start, struct_end
+        );
+        let mut out = String::new();
+        out.push_str(&existing[..attr_start]);
+        out.push_str(filtered_tool_code.trim());
+        out.push('\n');
+        out.push_str(&existing[struct_end..]);
+        return fix_tool_name_types(out);
+    }
+
+    println!("⚠️  Tool struct not found; appending generated tool code");
+    let mut out = existing.to_string();
+    out.push('\n');
+    out.push_str(filtered_tool_code.trim());
+    fix_tool_name_types(out)
+}
+
+fn filter_tool_code_against_existing(tool_code: &str, existing: &str) -> String {
+    let existing_names: HashSet<String> = collect_type_names(existing).into_iter().collect();
+    let mut blocks = Vec::new();
+    let mut seen = HashSet::new();
+
+    for (name, block) in split_type_definitions(tool_code) {
+        if name == "Tool" || !existing_names.contains(&name) {
+            if seen.insert(name.clone()) {
+                blocks.push(block);
+            }
+        }
+    }
+
+    blocks.join("\n\n")
+}
+
+fn find_tool_struct_span(content: &str) -> Option<(usize, usize)> {
+    let struct_pos = content.find("pub struct Tool {")?;
+    let attr_start = content[..struct_pos]
+        .rfind("#[derive(")
+        .unwrap_or(struct_pos);
+
+    let mut brace_count = 0isize;
+    let mut found_open = false;
+    let mut end = None;
+
+    for (i, ch) in content[attr_start..].char_indices() {
+        if ch == '{' {
+            brace_count += 1;
+            found_open = true;
+        } else if ch == '}' {
+            brace_count -= 1;
+            if found_open && brace_count == 0 {
+                end = Some(attr_start + i + 1);
+                break;
+            }
+        }
+    }
+
+    end.map(|e| (attr_start, e))
+}
+
+fn fix_tool_name_types(mut content: String) -> String {
+    // Post-process the injected tool code to eliminate helper Name enums that quicktype emits
+    // for tool names. Anthropic tools all treat `name` as a string; keeping the enum caused
+    // type clashes and unused types, so we rewrite to String and drop the enum block entirely.
+    content = content.replace("pub name: Name,", "pub name: String,");
+    // Normalize quicktype's double-underscore type fields (e.g., web_search_tool_20250305__type)
+    content = content.replace("__type", "_type");
+    content = remove_duplicate_derives(&content);
+
+    if let Some(start) = content.find("pub enum Name {") {
+        let mut brace_count = 0isize;
+        let mut end = None;
+        for (i, ch) in content[start..].char_indices() {
+            if ch == '{' {
+                brace_count += 1;
+            } else if ch == '}' {
+                brace_count -= 1;
+                if brace_count == 0 {
+                    end = Some(start + i + 1);
+                    break;
+                }
+            }
+        }
+        if let Some(end_idx) = end {
+            // Also remove trailing newline
+            let mut end_trim = end_idx;
+            while end_trim < content.len()
+                && matches!(content.as_bytes().get(end_trim), Some(b'\n' | b'\r'))
+            {
+                end_trim += 1;
+            }
+            content.replace_range(start..end_trim, "");
+        }
+    }
+
+    content
+}
+
+fn remove_duplicate_derives(content: &str) -> String {
+    let mut out = Vec::new();
+    let mut derive_seen = false;
+
+    for line in content.lines() {
+        let trimmed = line.trim_start();
+
+        if trimmed.starts_with("pub struct ") || trimmed.starts_with("pub enum ") {
+            derive_seen = false;
+            out.push(line.to_string());
+            continue;
+        }
+
+        if trimmed.starts_with("#[derive(") {
+            if derive_seen {
+                continue;
+            }
+            derive_seen = true;
+            out.push(line.to_string());
+            continue;
+        }
+
+        out.push(line.to_string());
+    }
+
+    out.join("\n")
+}
+
+fn split_type_definitions(content: &str) -> Vec<(String, String)> {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut result = Vec::new();
+    let mut i = 0usize;
+
+    while i < lines.len() {
+        let line = lines[i].trim_start();
+        let is_struct = line.starts_with("pub struct ");
+        let is_enum = line.starts_with("pub enum ");
+
+        if is_struct || is_enum {
+            let mut start = i;
+            while start > 0 {
+                let prev = lines[start - 1].trim_start();
+                if prev.starts_with("#[") || prev.starts_with("///") {
+                    start -= 1;
+                } else if prev.is_empty() {
+                    start -= 1;
+                } else {
+                    break;
+                }
+            }
+
+            let def_line = lines[i];
+            let parts: Vec<&str> = def_line.split_whitespace().collect();
+            if parts.len() >= 3 {
+                let mut name = parts[2]
+                    .trim_end_matches('{')
+                    .trim_end_matches('<')
+                    .to_string();
+                if name.ends_with(',') {
+                    name.pop();
+                }
+
+                let mut depth = 0isize;
+                let mut end = i;
+                for j in i..lines.len() {
+                    for ch in lines[j].chars() {
+                        if ch == '{' {
+                            depth += 1;
+                        } else if ch == '}' {
+                            depth -= 1;
+                            if depth == 0 {
+                                end = j;
+                                break;
+                            }
+                        }
+                    }
+                    if depth == 0 && j >= i {
+                        end = j;
+                        break;
+                    }
+                }
+
+                let block = lines[start..=end].join("\n");
+                result.push((name, block));
+                i = end + 1;
+                continue;
+            }
+        }
+        i += 1;
+    }
+
+    result
+}
+
+fn collect_type_names(content: &str) -> Vec<String> {
+    split_type_definitions(content)
+        .into_iter()
+        .map(|(name, _)| name)
+        .collect()
 }
 
 fn generate_google_protobuf_types_from_git() {

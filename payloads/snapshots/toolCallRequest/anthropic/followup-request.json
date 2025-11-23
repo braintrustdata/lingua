@@ -36,6 +36,7 @@
   ],
   "tools": [
     {
+      "type": "custom",
       "name": "get_weather",
       "description": "Get the current weather for a location",
       "input_schema": {

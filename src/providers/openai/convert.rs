@@ -1505,8 +1505,6 @@ impl TryFromLLM<Tool> for openai::Tool {
     fn try_from(tool: Tool) -> Result<Self, Self::Error> {
         match tool {
             Tool::Client(client_tool) => {
-                // Convert JSON Schema to OpenAI's parameters format
-                // OpenAI expects a HashMap<String, Option<serde_json::Value>>
                 let parameters = match client_tool.input_schema {
                     serde_json::Value::Object(map) => {
                         let mut params = std::collections::HashMap::new();
@@ -1522,47 +1520,146 @@ impl TryFromLLM<Tool> for openai::Tool {
                     }
                 };
 
-                // Extract strict mode from provider_options if present
                 let strict = client_tool
                     .provider_options
                     .as_ref()
                     .and_then(|opts| opts.get("strict"))
                     .and_then(|v| v.as_bool());
 
-                // Create the nested function object for Chat Completions API
-                let function = Some(openai::FunctionObject {
-                    name: client_tool.name.clone(),
-                    description: Some(client_tool.description.clone()),
-                    parameters: parameters.clone(),
-                    strict,
-                });
-
-                Ok(openai::Tool {
-                    tool_type: openai::ToolTypeEnum::Function,
-                    function,
-                    name: Some(client_tool.name),
+                Ok(openai::Tool::Function(openai::FunctionTool {
+                    name: client_tool.name,
                     description: Some(client_tool.description),
                     parameters,
                     strict,
-                    // All other fields are None for function tools
-                    filters: None,
-                    max_num_results: None,
-                    ranking_options: None,
-                    vector_store_ids: None,
-                    display_height: None,
-                    display_width: None,
-                    environment: None,
-                    search_context_size: None,
-                    user_location: None,
-                    allowed_tools: None,
-                    authorization: None,
-                    connector_id: None,
-                    headers: None,
-                    require_approval: None,
-                    server_description: None,
-                    server_label: None,
-                    server_url: None,
-                    container: None,
+                    function_tool_type: openai::Type::Function,
+                }))
+            }
+            Tool::Provider(provider_tool) => match provider_tool.tool_type.as_str() {
+                "computer_use_preview" | "computer_20250124" => {
+                    let config = provider_tool
+                        .config
+                        .unwrap_or_else(|| serde_json::json!({}));
+                    let display_width = config
+                        .get("display_width_px")
+                        .or_else(|| config.get("display_width"))
+                        .and_then(|v| v.as_i64())
+                        .unwrap_or(1920);
+                    let display_height = config
+                        .get("display_height_px")
+                        .or_else(|| config.get("display_height"))
+                        .and_then(|v| v.as_i64())
+                        .unwrap_or(1080);
+                    let environment = config
+                        .get("environment")
+                        .and_then(|v| serde_json::from_value(v.clone()).ok())
+                        .unwrap_or(openai::ComputerEnvironment::Browser);
+
+                    Ok(openai::Tool::ComputerUsePreview(
+                        openai::ComputerUsePreviewTool {
+                            display_height,
+                            display_width,
+                            environment,
+                            computer_use_preview_tool_type: openai::Type::ComputerUsePreview,
+                        },
+                    ))
+                }
+                "code_interpreter" => {
+                    let container = provider_tool
+                        .config
+                        .and_then(|c| c.get("container").cloned())
+                        .and_then(|v| serde_json::from_value(v).ok())
+                        .unwrap_or(openai::Container::CodeInterpreterContainerAuto(
+                            openai::CodeInterpreterContainerAuto {
+                                file_ids: None,
+                                code_interpreter_container_auto_type:
+                                    openai::CodeInterpreterContainerAutoType::Auto,
+                            },
+                        ));
+
+                    Ok(openai::Tool::CodeInterpreter(openai::CodeInterpreterTool {
+                        container,
+                        code_interpreter_tool_type:
+                            openai::CodeInterpreterToolType::CodeInterpreter,
+                    }))
+                }
+                "web_search" | "web_search_2025_08_26" => {
+                    let tool_type = if provider_tool.tool_type == "web_search_2025_08_26" {
+                        openai::WebSearchToolType::WebSearch2025_08_26
+                    } else {
+                        openai::WebSearchToolType::WebSearch
+                    };
+                    let config = provider_tool
+                        .config
+                        .unwrap_or_else(|| serde_json::json!({}));
+
+                    Ok(openai::Tool::WebSearch(openai::WebSearchTool {
+                        filters: None,
+                        search_context_size: config
+                            .get("search_context_size")
+                            .and_then(|v| serde_json::from_value(v.clone()).ok()),
+                        web_search_tool_type: tool_type,
+                        user_location: config
+                            .get("user_location")
+                            .and_then(|v| serde_json::from_value(v.clone()).ok()),
+                    }))
+                }
+                "file_search" => {
+                    let config = provider_tool
+                        .config
+                        .unwrap_or_else(|| serde_json::json!({}));
+                    let vector_store_ids = config
+                        .get("vector_store_ids")
+                        .and_then(|v| v.as_array())
+                        .map(|arr| {
+                            arr.iter()
+                                .filter_map(|v| v.as_str().map(str::to_string))
+                                .collect()
+                        })
+                        .unwrap_or_default();
+                    let filters = config
+                        .get("filters")
+                        .and_then(|v| serde_json::from_value(v.clone()).ok());
+                    let ranking_options = config
+                        .get("ranking_options")
+                        .and_then(|v| serde_json::from_value(v.clone()).ok());
+                    let max_num_results = config.get("max_num_results").and_then(|v| v.as_i64());
+
+                    Ok(openai::Tool::FileSearch(openai::FileSearchTool {
+                        filters,
+                        max_num_results,
+                        ranking_options,
+                        file_search_tool_type: openai::FileSearchToolType::FileSearch,
+                        vector_store_ids,
+                    }))
+                }
+                "mcp" => {
+                    let config = provider_tool
+                        .config
+                        .unwrap_or_else(|| serde_json::json!({}));
+                    Ok(openai::Tool::MCP(openai::McpTool {
+                        server_label: provider_tool.name.unwrap_or_else(|| "mcp".to_string()),
+                        authorization: config
+                            .get("authorization")
+                            .and_then(|v| v.as_str())
+                            .map(str::to_string),
+                        connector_id: config
+                            .get("connector_id")
+                            .and_then(|v| serde_json::from_value(v.clone()).ok()),
+                        server_description: config
+                            .get("server_description")
+                            .and_then(|v| v.as_str())
+                            .map(str::to_string),
+                        server_url: config
+                            .get("server_url")
+                            .and_then(|v| v.as_str())
+                            .map(str::to_string),
+                        mcp_tool_type: openai::Type::Mcp,
+                        allowed_tools: None,
+                        headers: None,
+                        require_approval: None,
+                    }))
+                }
+                "image_generation" => Ok(openai::Tool::ImageGen(openai::ImageGenTool {
                     background: None,
                     input_fidelity: None,
                     input_image_mask: None,
@@ -1573,170 +1670,34 @@ impl TryFromLLM<Tool> for openai::Tool {
                     partial_images: None,
                     quality: None,
                     size: None,
-                    format: None,
-                })
-            }
-            Tool::Provider(provider_tool) => {
-                match provider_tool.tool_type.as_str() {
-                    "computer_use_preview" | "computer_20250124" => {
-                        let config = provider_tool.config.unwrap_or(serde_json::json!({}));
-
-                        let display_width = config
-                            .get("display_width_px")
-                            .or_else(|| config.get("display_width"))
-                            .and_then(|v| v.as_i64());
-
-                        let display_height = config
-                            .get("display_height_px")
-                            .or_else(|| config.get("display_height"))
-                            .and_then(|v| v.as_i64());
-
-                        let environment = config
-                            .get("environment")
-                            .and_then(|v| serde_json::from_value(v.clone()).ok());
-
-                        Ok(openai::Tool {
-                            tool_type: openai::ToolTypeEnum::ComputerUsePreview,
-                            function: None,
-                            name: provider_tool.name,
-                            display_width,
-                            display_height,
-                            environment,
-                            // All other fields None
-                            description: None,
-                            parameters: None,
-                            strict: None,
-                            filters: None,
-                            max_num_results: None,
-                            ranking_options: None,
-                            vector_store_ids: None,
-                            search_context_size: None,
-                            user_location: None,
-                            allowed_tools: None,
-                            authorization: None,
-                            connector_id: None,
-                            headers: None,
-                            require_approval: None,
-                            server_description: None,
-                            server_label: None,
-                            server_url: None,
-                            container: None,
-                            background: None,
-                            input_fidelity: None,
-                            input_image_mask: None,
-                            model: None,
-                            moderation: None,
-                            output_compression: None,
-                            output_format: None,
-                            partial_images: None,
-                            quality: None,
-                            size: None,
-                            format: None,
-                        })
-                    }
-                    "code_interpreter" => Ok(openai::Tool {
-                        tool_type: openai::ToolTypeEnum::CodeInterpreter,
-                        function: None,
-                        name: provider_tool.name,
-                        container: provider_tool
-                            .config
-                            .and_then(|c| c.get("container").cloned())
-                            .and_then(|v| serde_json::from_value(v).ok()),
-                        // All other fields None
-                        description: None,
-                        parameters: None,
-                        strict: None,
-                        filters: None,
-                        max_num_results: None,
-                        ranking_options: None,
-                        vector_store_ids: None,
-                        display_height: None,
-                        display_width: None,
-                        environment: None,
+                    image_gen_tool_type: openai::Type::ImageGeneration,
+                })),
+                "local_shell" => Ok(openai::Tool::LocalShell(openai::LocalShellTool {
+                    local_shell_tool_type: openai::Type::LocalShell,
+                })),
+                "web_search_preview" => Ok(openai::Tool::WebSearchPreview(
+                    openai::WebSearchPreviewTool {
                         search_context_size: None,
                         user_location: None,
-                        allowed_tools: None,
-                        authorization: None,
-                        connector_id: None,
-                        headers: None,
-                        require_approval: None,
-                        server_description: None,
-                        server_label: None,
-                        server_url: None,
-                        background: None,
-                        input_fidelity: None,
-                        input_image_mask: None,
-                        model: None,
-                        moderation: None,
-                        output_compression: None,
-                        output_format: None,
-                        partial_images: None,
-                        quality: None,
-                        size: None,
-                        format: None,
-                    }),
-                    "web_search" | "web_search_2025_08_26" => {
-                        let tool_type = if provider_tool.tool_type == "web_search_2025_08_26" {
-                            openai::ToolTypeEnum::WebSearch2025_08_26
-                        } else {
-                            openai::ToolTypeEnum::WebSearch
-                        };
-
-                        let config = provider_tool.config.unwrap_or(serde_json::json!({}));
-
-                        Ok(openai::Tool {
-                            tool_type,
-                            function: None,
-                            name: provider_tool.name,
-                            search_context_size: config
-                                .get("search_context_size")
-                                .and_then(|v| serde_json::from_value(v.clone()).ok()),
-                            user_location: config
-                                .get("user_location")
-                                .and_then(|v| serde_json::from_value(v.clone()).ok()),
-                            // All other fields None
-                            description: None,
-                            parameters: None,
-                            strict: None,
-                            filters: None,
-                            max_num_results: None,
-                            ranking_options: None,
-                            vector_store_ids: None,
-                            display_height: None,
-                            display_width: None,
-                            environment: None,
-                            allowed_tools: None,
-                            authorization: None,
-                            connector_id: None,
-                            headers: None,
-                            require_approval: None,
-                            server_description: None,
-                            server_label: None,
-                            server_url: None,
-                            container: None,
-                            background: None,
-                            input_fidelity: None,
-                            input_image_mask: None,
-                            model: None,
-                            moderation: None,
-                            output_compression: None,
-                            output_format: None,
-                            partial_images: None,
-                            quality: None,
-                            size: None,
-                            format: None,
+                        web_search_preview_tool_type:
+                            openai::WebSearchPreviewToolType::WebSearchPreview,
+                    },
+                )),
+                unknown => Ok(openai::Tool::Unknown {
+                    tool_type: unknown.to_string(),
+                    name: provider_tool.name.unwrap_or_else(|| unknown.to_string()),
+                    config: provider_tool
+                        .config
+                        .and_then(|c| {
+                            c.as_object().map(|map| {
+                                map.iter()
+                                    .map(|(k, v)| (k.clone(), v.clone()))
+                                    .collect::<std::collections::HashMap<_, _>>()
+                            })
                         })
-                    }
-                    unknown => Err(ConvertError::UnsupportedInputType {
-                        type_info: format!(
-                            "OpenAI doesn't support provider tool type: '{}'. \
-                             Supported types: computer_use_preview, computer_20250124, \
-                             code_interpreter, web_search, web_search_2025_08_26",
-                            unknown
-                        ),
-                    }),
-                }
-            }
+                        .unwrap_or_default(),
+                }),
+            },
         }
     }
 }
@@ -1746,114 +1707,73 @@ impl TryFromLLM<openai::Tool> for Tool {
     type Error = ConvertError;
 
     fn try_from(tool: openai::Tool) -> Result<Self, Self::Error> {
-        match tool.tool_type {
-            openai::ToolTypeEnum::Function | openai::ToolTypeEnum::Custom => {
-                // This is a client tool
-                let name = tool
-                    .name
-                    .ok_or_else(|| ConvertError::MissingRequiredField {
-                        field: "name".to_string(),
-                    })?;
-
-                let description = tool.description.unwrap_or_default();
-
-                // Convert parameters HashMap back to JSON Schema Value
-                let input_schema = if let Some(params) = tool.parameters {
-                    let mut schema_map = serde_json::Map::new();
+        match tool {
+            openai::Tool::Function(function) => {
+                let mut schema_map = serde_json::Map::new();
+                if let Some(params) = function.parameters {
                     for (key, value) in params {
                         if let Some(v) = value {
                             schema_map.insert(key, v);
                         }
                     }
-                    serde_json::Value::Object(schema_map)
-                } else {
-                    serde_json::json!({
-                        "type": "object",
-                        "properties": {}
-                    })
-                };
-
-                // Store strict mode in provider_options if present
-                let provider_options = tool.strict.map(|strict| {
-                    serde_json::json!({
-                        "strict": strict
-                    })
-                });
-
+                }
                 Ok(Tool::Client(ClientTool {
-                    name,
-                    description,
-                    input_schema,
-                    provider_options,
+                    name: function.name,
+                    description: function.description.unwrap_or_default(),
+                    input_schema: serde_json::Value::Object(schema_map),
+                    provider_options: function
+                        .strict
+                        .map(|strict| serde_json::json!({ "strict": strict })),
                 }))
             }
-            openai::ToolTypeEnum::ComputerUsePreview => {
+            openai::Tool::Custom(custom) => Ok(Tool::Provider(ProviderTool {
+                tool_type: "custom".to_string(),
+                name: Some(custom.name),
+                config: None,
+            })),
+            openai::Tool::ComputerUsePreview(computer) => {
                 let mut config = serde_json::Map::new();
-
-                if let Some(width) = tool.display_width {
-                    config.insert(
-                        "display_width_px".to_string(),
-                        serde_json::Value::Number(width.into()),
-                    );
-                }
-
-                if let Some(height) = tool.display_height {
-                    config.insert(
-                        "display_height_px".to_string(),
-                        serde_json::Value::Number(height.into()),
-                    );
-                }
-
-                if let Some(env) = tool.environment {
-                    if let Ok(env_value) = serde_json::to_value(env) {
-                        config.insert("environment".to_string(), env_value);
-                    }
+                config.insert(
+                    "display_width_px".to_string(),
+                    serde_json::Value::Number(computer.display_width.into()),
+                );
+                config.insert(
+                    "display_height_px".to_string(),
+                    serde_json::Value::Number(computer.display_height.into()),
+                );
+                if let Ok(env) = serde_json::to_value(computer.environment) {
+                    config.insert("environment".to_string(), env);
                 }
 
                 Ok(Tool::Provider(ProviderTool {
                     tool_type: "computer_use_preview".to_string(),
-                    name: tool.name,
-                    config: if config.is_empty() {
-                        None
-                    } else {
-                        Some(serde_json::Value::Object(config))
-                    },
+                    name: None,
+                    config: Some(serde_json::Value::Object(config)),
                 }))
             }
-            openai::ToolTypeEnum::CodeInterpreter => {
-                let config = tool
-                    .container
-                    .and_then(|c| serde_json::to_value(c).ok())
-                    .map(|container_value| {
-                        serde_json::json!({
-                            "container": container_value
-                        })
-                    });
-
+            openai::Tool::CodeInterpreter(code) => {
+                let config = serde_json::json!({ "container": code.container });
                 Ok(Tool::Provider(ProviderTool {
                     tool_type: "code_interpreter".to_string(),
-                    name: tool.name,
-                    config,
+                    name: None,
+                    config: Some(config),
                 }))
             }
-            openai::ToolTypeEnum::WebSearch => {
+            openai::Tool::WebSearch(search) => {
                 let mut config = serde_json::Map::new();
-
-                if let Some(context_size) = tool.search_context_size {
-                    if let Ok(value) = serde_json::to_value(context_size) {
-                        config.insert("search_context_size".to_string(), value);
+                if let Some(context_size) = search.search_context_size {
+                    if let Ok(v) = serde_json::to_value(context_size) {
+                        config.insert("search_context_size".to_string(), v);
                     }
                 }
-
-                if let Some(location) = tool.user_location {
-                    if let Ok(value) = serde_json::to_value(location) {
-                        config.insert("user_location".to_string(), value);
+                if let Some(location) = search.user_location {
+                    if let Ok(v) = serde_json::to_value(location) {
+                        config.insert("user_location".to_string(), v);
                     }
                 }
-
                 Ok(Tool::Provider(ProviderTool {
                     tool_type: "web_search".to_string(),
-                    name: tool.name,
+                    name: None,
                     config: if config.is_empty() {
                         None
                     } else {
@@ -1861,24 +1781,16 @@ impl TryFromLLM<openai::Tool> for Tool {
                     },
                 }))
             }
-            openai::ToolTypeEnum::WebSearch2025_08_26 => {
+            openai::Tool::WebSearchPreview(search) => {
                 let mut config = serde_json::Map::new();
-
-                if let Some(context_size) = tool.search_context_size {
-                    if let Ok(value) = serde_json::to_value(context_size) {
-                        config.insert("search_context_size".to_string(), value);
+                if let Some(loc) = search.user_location {
+                    if let Ok(v) = serde_json::to_value(loc) {
+                        config.insert("user_location".to_string(), v);
                     }
                 }
-
-                if let Some(location) = tool.user_location {
-                    if let Ok(value) = serde_json::to_value(location) {
-                        config.insert("user_location".to_string(), value);
-                    }
-                }
-
                 Ok(Tool::Provider(ProviderTool {
-                    tool_type: "web_search_2025_08_26".to_string(),
-                    name: tool.name,
+                    tool_type: "web_search_preview".to_string(),
+                    name: None,
                     config: if config.is_empty() {
                         None
                     } else {
@@ -1886,15 +1798,95 @@ impl TryFromLLM<openai::Tool> for Tool {
                     },
                 }))
             }
-            _ => {
-                // For other tool types, convert generically as provider tools
-                // This handles FileSearch, ImageGeneration, LocalShell, Mcp, WebSearchPreview, etc.
-                let tool_type_str = format!("{:?}", tool.tool_type).to_lowercase();
-
+            openai::Tool::FileSearch(file_search) => {
+                let mut config = serde_json::Map::new();
+                config.insert(
+                    "vector_store_ids".to_string(),
+                    serde_json::Value::Array(
+                        file_search
+                            .vector_store_ids
+                            .into_iter()
+                            .map(serde_json::Value::String)
+                            .collect(),
+                    ),
+                );
+                if let Some(max) = file_search.max_num_results {
+                    config.insert(
+                        "max_num_results".to_string(),
+                        serde_json::Value::Number(max.into()),
+                    );
+                }
+                if let Some(filters) = file_search.filters {
+                    if let Ok(v) = serde_json::to_value(filters) {
+                        config.insert("filters".to_string(), v);
+                    }
+                }
+                if let Some(ranking) = file_search.ranking_options {
+                    if let Ok(v) = serde_json::to_value(ranking) {
+                        config.insert("ranking_options".to_string(), v);
+                    }
+                }
                 Ok(Tool::Provider(ProviderTool {
-                    tool_type: tool_type_str,
-                    name: tool.name,
-                    config: None, // We don't know the structure for unsupported types
+                    tool_type: "file_search".to_string(),
+                    name: None,
+                    config: Some(serde_json::Value::Object(config)),
+                }))
+            }
+            openai::Tool::MCP(mcp) => {
+                let mut config = serde_json::Map::new();
+                if let Some(auth) = mcp.authorization {
+                    config.insert("authorization".to_string(), serde_json::Value::String(auth));
+                }
+                if let Some(connector) = mcp.connector_id {
+                    if let Ok(v) = serde_json::to_value(connector) {
+                        config.insert("connector_id".to_string(), v);
+                    }
+                }
+                if let Some(desc) = mcp.server_description {
+                    config.insert(
+                        "server_description".to_string(),
+                        serde_json::Value::String(desc),
+                    );
+                }
+                if let Some(url) = mcp.server_url {
+                    config.insert("server_url".to_string(), serde_json::Value::String(url));
+                }
+                Ok(Tool::Provider(ProviderTool {
+                    tool_type: "mcp".to_string(),
+                    name: Some(mcp.server_label),
+                    config: if config.is_empty() {
+                        None
+                    } else {
+                        Some(serde_json::Value::Object(config))
+                    },
+                }))
+            }
+            openai::Tool::ImageGen(_) => Ok(Tool::Provider(ProviderTool {
+                tool_type: "image_generation".to_string(),
+                name: None,
+                config: None,
+            })),
+            openai::Tool::LocalShell(_) => Ok(Tool::Provider(ProviderTool {
+                tool_type: "local_shell".to_string(),
+                name: None,
+                config: None,
+            })),
+            openai::Tool::Unknown {
+                tool_type,
+                name,
+                config,
+            } => {
+                let config = if config.is_empty() {
+                    None
+                } else {
+                    Some(serde_json::Value::Object(
+                        config.into_iter().collect::<serde_json::Map<_, _>>(),
+                    ))
+                };
+                Ok(Tool::Provider(ProviderTool {
+                    tool_type,
+                    name: Some(name),
+                    config,
                 }))
             }
         }

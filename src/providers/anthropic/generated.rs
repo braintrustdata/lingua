@@ -25,7 +25,6 @@ use ts_rs::TS;
 pub struct AnthropicSchemas {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request: Option<CreateMessageParams>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub response: Option<Message>,
 }
 
@@ -111,7 +110,6 @@ pub struct CreateMessageParams {
     ///
     /// Anthropic offers different levels of service for your API requests. See
     /// [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierEnum>,
     /// Custom text sequences that will cause the model to stop generating.
     ///
@@ -122,19 +120,16 @@ pub struct CreateMessageParams {
     /// can use the `stop_sequences` parameter. If the model encounters one of the custom
     /// sequences, the response `stop_reason` value will be `"stop_sequence"` and the response
     /// `stop_sequence` value will contain the matched stop sequence.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_sequences: Option<Vec<String>>,
     /// Whether to incrementally stream the response using server-sent events.
     ///
     /// See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for details.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     /// System prompt.
     ///
     /// A system prompt is a way of providing context and instructions to Claude, such as
     /// specifying a particular goal or role. See our [guide to system
     /// prompts](https://docs.anthropic.com/en/docs/system-prompts).
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<System>,
     /// Amount of randomness injected into the response.
     ///
@@ -142,11 +137,8 @@ pub struct CreateMessageParams {
     /// analytical / multiple choice, and closer to `1.0` for creative and generative tasks.
     ///
     /// Note that even with `temperature` of `0.0`, the results will not be fully deterministic.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<Thinking>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_choice: Option<ToolChoice>,
     /// Definitions of tools that the model may use.
     ///
@@ -221,7 +213,6 @@ pub struct CreateMessageParams {
     /// output.
     ///
     /// See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
     /// Only sample from the top K options for each subsequent token.
     ///
@@ -229,7 +220,6 @@ pub struct CreateMessageParams {
     /// here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
     ///
     /// Recommended for advanced use cases only. You usually only need to use `temperature`.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub top_k: Option<i64>,
     /// Use nucleus sampling.
     ///
@@ -239,7 +229,6 @@ pub struct CreateMessageParams {
     /// `top_p`, but not both.
     ///
     /// Recommended for advanced use cases only. You usually only need to use `temperature`.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f64>,
 }
 
@@ -280,35 +269,22 @@ pub struct InputContentBlock {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Citations>,
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub input_content_block_type: InputContentBlockType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<Source>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Content>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[ts(type = "any")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_error: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_use_id: Option<String>,
 }
 
@@ -364,30 +340,19 @@ pub struct RequestLocationCitation {
     pub cited_text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub document_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub document_title: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_char_index: Option<i64>,
     pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
     pub request_location_citation_type: CitationType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_page_number: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_page_number: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_block_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_block_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_index: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub search_result_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
 }
 
@@ -437,24 +402,16 @@ pub struct Block {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Citations>,
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub block_type: WebSearchToolResultBlockItemType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<Source>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Vec<RequestTextBlock>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_content: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub page_age: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 }
 
@@ -478,7 +435,6 @@ pub struct RequestTextBlock {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Vec<RequestLocationCitation>>,
     pub text: String,
     #[serde(rename = "type")]
@@ -508,9 +464,7 @@ pub struct SourceSource {
     pub media_type: Option<FluffyMediaType>,
     #[serde(rename = "type")]
     pub source_type: FluffyType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<SourceContent>,
 }
 
@@ -531,12 +485,10 @@ pub struct ContentBlockSourceContentItem {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Vec<RequestLocationCitation>>,
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<SourceSourceClass>,
 }
 
@@ -556,7 +508,6 @@ pub struct SourceSourceClass {
     pub media_type: Option<PurpleMediaType>,
     #[serde(rename = "type")]
     pub source_type: PurpleType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 }
 
@@ -783,7 +734,7 @@ pub enum ToolChoiceType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct Tool {
+pub struct CustomTool {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
@@ -793,39 +744,185 @@ pub struct Tool {
     /// has about what the tool is and how to use it, the better it will perform. You can use
     /// natural language descriptions to reinforce important aspects of the tool input JSON
     /// schema.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
     ///
     /// This defines the shape of the `input` that your tool accepts and that the model will
     /// produce.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub input_schema: Option<InputSchema>,
+    pub input_schema: InputSchema,
     /// Name of the tool.
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
     #[serde(rename = "type")]
+    pub tool_type: Option<TypeEnum>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum TypeEnum {
+    Custom,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BashTool20250124 {
+    /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_type: Option<ToolType>,
+    pub cache_control: Option<CacheControlEphemeral>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    #[serde(rename = "type")]
+    pub bash_tool_20250124_type: BashTool20250124_Type,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum BashTool20250124_Type {
+    #[serde(rename = "bash_20250124")]
+    Bash20250124,
+}
+
+/// Name of the tool.
+///
+/// This is how the tool will be called by the model and in `tool_use` blocks.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub struct TextEditor20250124 {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    #[serde(rename = "type")]
+    pub text_editor_20250124_type: TextEditor20250124_Type,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum TextEditor20250124_Type {
+    #[serde(rename = "text_editor_20250124")]
+    TextEditor20250124,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct TextEditor20250429 {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    #[serde(rename = "type")]
+    pub text_editor_20250429_type: TextEditor20250429_Type,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum TextEditor20250429_Type {
+    #[serde(rename = "text_editor_20250429")]
+    TextEditor20250429,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct TextEditor20250728 {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
     /// Maximum number of characters to display when viewing a file. If not specified, defaults
     /// to displaying the full file.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_characters: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    #[serde(rename = "type")]
+    pub text_editor_20250728_type: TextEditor20250728_Type,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum TextEditor20250728_Type {
+    #[serde(rename = "text_editor_20250728")]
+    TextEditor20250728,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct WebSearchTool20250305 {
     /// If provided, only these domains will be included in results. Cannot be used alongside
     /// `blocked_domains`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_domains: Option<Vec<String>>,
     /// If provided, these domains will never appear in results. Cannot be used alongside
     /// `allowed_domains`.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_domains: Option<Vec<String>>,
+    /// Create a cache control breakpoint at this content block.
+    pub cache_control: Option<CacheControlEphemeral>,
     /// Maximum number of times the tool can be used in the API request.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_uses: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    #[serde(rename = "type")]
+    pub web_search_tool_20250305_type: WebSearchTool20250305_Type,
     /// Parameters for the user's location. Used to provide more relevant search results.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub user_location: Option<UserLocation>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum WebSearchTool20250305_Type {
+    #[serde(rename = "web_search_20250305")]
+    WebSearch20250305,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type")]
+#[ts(export_to = "anthropic/")]
+pub enum Tool {
+    #[serde(rename = "custom")]
+    Custom(CustomTool),
+
+    #[serde(rename = "bash_20250124")]
+    Bash20250124(BashTool20250124),
+
+    #[serde(rename = "text_editor_20250124")]
+    TextEditor20250124(TextEditor20250124),
+
+    #[serde(rename = "text_editor_20250429")]
+    TextEditor20250429(TextEditor20250429),
+
+    #[serde(rename = "text_editor_20250728")]
+    TextEditor20250728(TextEditor20250728),
+
+    #[serde(rename = "web_search_20250305")]
+    WebSearch20250305(WebSearchTool20250305),
+
+    #[serde(untagged)]
+    Unknown {
+        #[serde(rename = "type")]
+        tool_type: String,
+        name: String,
+        #[ts(skip)]
+        #[serde(flatten)]
+        config: std::collections::HashMap<String, serde_json::Value>,
+    },
 }
 
 /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
@@ -875,10 +972,8 @@ pub struct UserLocation {
     pub city: Option<String>,
     /// The two letter [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of
     /// the user.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub country: Option<String>,
     /// The region of the user.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub region: Option<String>,
     /// The [IANA timezone](https://nodatime.org/TimeZones) of the user.
     pub timezone: Option<String>,
@@ -954,7 +1049,6 @@ pub struct Message {
     /// Which custom stop sequence was generated, if any.
     ///
     /// This value will be a non-null string if one of your custom stop sequences was generated.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_sequence: Option<String>,
     /// Object type.
     ///
@@ -992,22 +1086,14 @@ pub struct ContentBlock {
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub content_block_type: ContentBlockType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[ts(type = "any")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<ContentBlockContent>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_use_id: Option<String>,
 }
 
@@ -1017,32 +1103,20 @@ pub struct ResponseLocationCitation {
     pub cited_text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub document_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub document_title: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_char_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub file_id: Option<String>,
     pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
     pub response_location_citation_type: CitationType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_page_number: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_page_number: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_block_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_block_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_index: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub search_result_index: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
 }
 
@@ -1159,20 +1233,16 @@ pub struct Usage {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_creation: Option<CacheCreation>,
     /// The number of input tokens used to create the cache entry.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_creation_input_tokens: Option<i64>,
     /// The number of input tokens read from the cache.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_read_input_tokens: Option<i64>,
     /// The number of input tokens which were used.
     pub input_tokens: i64,
     /// The number of output tokens which were used.
     pub output_tokens: i64,
     /// The number of server tool requests.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub server_tool_use: Option<ServerToolUsage>,
     /// If the request used the priority, standard, or batch tier.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierServiceTier>,
 }
 
