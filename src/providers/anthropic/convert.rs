@@ -709,7 +709,7 @@ impl TryFromLLM<Tool> for generated::Tool {
                     .and_then(|p| p.as_object())
                     .cloned();
 
-                let required = schema_obj
+                let required: Option<Vec<String>> = schema_obj
                     .get("required")
                     .and_then(|r| r.as_array())
                     .map(|arr| {
@@ -718,16 +718,28 @@ impl TryFromLLM<Tool> for generated::Tool {
                             .collect()
                     });
 
+                // Build input_schema as JSON Value (our generated types use serde_json::Value
+                // for complex nested types to avoid dependency on specific type definitions)
+                let mut input_schema_obj = serde_json::Map::new();
+                input_schema_obj.insert("type".to_string(), serde_json::json!("object"));
+                if let Some(props) = properties {
+                    input_schema_obj
+                        .insert("properties".to_string(), serde_json::Value::Object(props));
+                }
+                if let Some(req) = required {
+                    input_schema_obj.insert(
+                        "required".to_string(),
+                        serde_json::Value::Array(
+                            req.into_iter().map(serde_json::Value::String).collect(),
+                        ),
+                    );
+                }
+
                 Ok(generated::Tool::Custom(generated::CustomTool {
                     name: client_tool.name,
                     description: Some(client_tool.description),
-                    input_schema: generated::InputSchema {
-                        properties,
-                        required,
-                        input_schema_type: generated::InputSchemaType::Object,
-                    },
+                    input_schema: serde_json::Value::Object(input_schema_obj),
                     cache_control: None,
-                    tool_type: Some(generated::TypeEnum::Custom),
                 }))
             }
             Tool::Provider(provider_tool) => {
@@ -767,8 +779,6 @@ impl TryFromLLM<Tool> for generated::Tool {
                                 allowed_domains,
                                 blocked_domains,
                                 cache_control: None,
-                                web_search_tool_20250305_type:
-                                    generated::WebSearchTool20250305_Type::WebSearch20250305,
                                 user_location,
                             },
                         ))
@@ -780,7 +790,6 @@ impl TryFromLLM<Tool> for generated::Tool {
                                 .clone()
                                 .unwrap_or_else(|| provider_tool.tool_type.clone()),
                             cache_control: None,
-                            bash_tool_20250124_type: generated::BashTool20250124_Type::Bash20250124,
                         }))
                     }
                     "text_editor_20250124" => Ok(generated::Tool::TextEditor20250124(
@@ -790,8 +799,6 @@ impl TryFromLLM<Tool> for generated::Tool {
                                 .clone()
                                 .unwrap_or_else(|| provider_tool.tool_type.clone()),
                             cache_control: None,
-                            text_editor_20250124_type:
-                                generated::TextEditor20250124_Type::TextEditor20250124,
                         },
                     )),
                     "text_editor_20250429" => Ok(generated::Tool::TextEditor20250429(
@@ -801,8 +808,6 @@ impl TryFromLLM<Tool> for generated::Tool {
                                 .clone()
                                 .unwrap_or_else(|| provider_tool.tool_type.clone()),
                             cache_control: None,
-                            text_editor_20250429_type:
-                                generated::TextEditor20250429_Type::TextEditor20250429,
                         },
                     )),
                     "text_editor_20250728" => {
@@ -815,8 +820,6 @@ impl TryFromLLM<Tool> for generated::Tool {
                                     .unwrap_or_else(|| provider_tool.tool_type.clone()),
                                 cache_control: None,
                                 max_characters,
-                                text_editor_20250728_type:
-                                    generated::TextEditor20250728_Type::TextEditor20250728,
                             },
                         ))
                     }
@@ -841,36 +844,11 @@ impl TryFromLLM<generated::Tool> for Tool {
     fn try_from(tool: generated::Tool) -> Result<Self, Self::Error> {
         match tool {
             generated::Tool::Custom(custom) => {
-                // Convert InputSchema back to JSON Schema Value
-                let mut schema_obj = serde_json::Map::new();
-                schema_obj.insert(
-                    "type".to_string(),
-                    serde_json::Value::String("object".to_string()),
-                );
-
-                if let Some(properties) = custom.input_schema.properties {
-                    schema_obj.insert(
-                        "properties".to_string(),
-                        serde_json::Value::Object(properties),
-                    );
-                }
-
-                if let Some(required) = custom.input_schema.required {
-                    schema_obj.insert(
-                        "required".to_string(),
-                        serde_json::Value::Array(
-                            required
-                                .into_iter()
-                                .map(serde_json::Value::String)
-                                .collect(),
-                        ),
-                    );
-                }
-
+                // input_schema is now serde_json::Value, use it directly
                 Ok(Tool::Client(ClientTool {
                     name: custom.name,
                     description: custom.description.unwrap_or_default(),
-                    input_schema: serde_json::Value::Object(schema_obj),
+                    input_schema: custom.input_schema,
                     provider_options: None,
                 }))
             }

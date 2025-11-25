@@ -23,7 +23,8 @@ fn test_client_tool_to_anthropic() {
         generated::Tool::Custom(custom) => {
             assert_eq!(custom.name, "get_weather");
             assert_eq!(custom.description, Some("Get current weather".to_string()));
-            assert!(custom.input_schema.properties.is_some());
+            // input_schema is now serde_json::Value, access properties through JSON methods
+            assert!(custom.input_schema.get("properties").is_some());
         }
         other => panic!("Expected Custom tool, got {:?}", other),
     }

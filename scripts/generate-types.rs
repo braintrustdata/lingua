@@ -211,7 +211,6 @@ fn generate_openai_types_with_quicktype(
 
     // Generate improved tool types and replace the flat Tool struct
     if let Ok(tool_code) = generate_all_tool_code("openai", &spec) {
-        std::fs::write("tool_code_output.txt", &tool_code).ok();
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
     processed_output = finalize_openai_tool_fixups(processed_output);
@@ -532,10 +531,12 @@ fn generate_anthropic_types_with_quicktype(
 
     // Generate improved tool types and replace the flat Tool struct
     if let Ok(tool_code) = generate_all_tool_code("anthropic", &spec) {
-        std::fs::write("tool_code_output.txt", &tool_code).ok();
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
     processed_output = remove_duplicate_derives(&processed_output);
+
+    // Remove any duplicate adjacent attribute lines that may have been introduced
+    processed_output = remove_duplicate_adjacent_attributes(&processed_output);
 
     let dest_path = "src/providers/anthropic/generated.rs";
 
@@ -591,6 +592,17 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
 
+    // Include tool schemas and their dependencies so we can build a synthetic tool union
+    let tool_schemas = extract_tool_schemas("anthropic", spec);
+    for tool in tool_schemas
+        .provider_tools
+        .iter()
+        .map(|t| t.schema_name.as_str())
+        .chain(tool_schemas.client_tools.iter().map(String::as_str))
+    {
+        add_dependencies_recursively(tool, all_schemas, &mut separated_schemas);
+    }
+
     // All other types will be included automatically through dependency resolution
 
     // Step 3: Now clean the main request/response schemas to remove conflicting fields
@@ -631,6 +643,50 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         ],
         "definitions": separated_schemas
     });
+
+    inject_anthropic_tool_union(root_schema, &tool_schemas)
+}
+
+fn inject_anthropic_tool_union(
+    mut root_schema: serde_json::Value,
+    tool_schemas: &ToolSchemas,
+) -> serde_json::Value {
+    let definitions = root_schema
+        .get_mut("definitions")
+        .and_then(|d| d.as_object_mut());
+
+    let Some(defs) = definitions else {
+        return root_schema;
+    };
+
+    let mut refs = Vec::new();
+
+    for client in &tool_schemas.client_tools {
+        if client == "Tool" {
+            continue;
+        }
+        refs.push(serde_json::json!({"$ref": format!("#/definitions/{}", client)}));
+    }
+    for provider in &tool_schemas.provider_tools {
+        if provider.schema_name == "Tool" {
+            continue;
+        }
+        refs.push(serde_json::json!({"$ref": format!("#/definitions/{}", provider.schema_name)}));
+    }
+
+    if refs.is_empty() {
+        return root_schema;
+    }
+
+    let tool_union = serde_json::json!({
+        "title": "Tool",
+        "oneOf": refs,
+        "discriminator": {
+            "propertyName": "type"
+        }
+    });
+
+    defs.insert("Tool".to_string(), tool_union);
 
     root_schema
 }
@@ -946,7 +1002,52 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
 
+    // Remove any duplicate adjacent attribute lines
+    processed = remove_duplicate_adjacent_attributes(&processed);
+
     processed
+}
+
+/// Remove duplicate attribute lines within attribute blocks (between #[derive] and type definition)
+fn remove_duplicate_adjacent_attributes(content: &str) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut result_lines = Vec::new();
+    let mut in_attr_block = false;
+    let mut seen_attrs: HashSet<String> = HashSet::new();
+
+    for line in lines {
+        let trimmed = line.trim();
+
+        // Start tracking attributes when we see #[derive]
+        if trimmed.starts_with("#[derive(") {
+            in_attr_block = true;
+            seen_attrs.clear();
+            result_lines.push(line.to_string());
+            continue;
+        }
+
+        // End attribute block when we see pub struct/enum
+        if trimmed.starts_with("pub struct ") || trimmed.starts_with("pub enum ") {
+            in_attr_block = false;
+            seen_attrs.clear();
+            result_lines.push(line.to_string());
+            continue;
+        }
+
+        // Within attribute block, deduplicate attributes
+        if in_attr_block && trimmed.starts_with("#[") {
+            // Use the trimmed line as the key (ignoring whitespace differences)
+            if seen_attrs.contains(trimmed) {
+                // Skip duplicate attribute
+                continue;
+            }
+            seen_attrs.insert(trimmed.to_string());
+        }
+
+        result_lines.push(line.to_string());
+    }
+
+    result_lines.join("\n")
 }
 
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
@@ -1123,6 +1224,9 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[ts(type = \"any\")]\n    pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
     );
 
+    // Remove any duplicate adjacent attribute lines
+    processed = remove_duplicate_adjacent_attributes(&processed);
+
     processed
 }
 
@@ -1131,19 +1235,29 @@ fn add_export_path_to_all_ts_types(content: &str, export_path: &str) -> String {
     let lines: Vec<&str> = content.lines().collect();
     let mut result_lines = Vec::new();
     let mut pending_export_to: Option<&str> = None;
+    let mut has_ts_export_to = false;
 
     for line in lines {
         // Step 1: Check if this line has #[derive(..., TS)]
         if line.contains("#[derive(") && line.contains("TS") {
             pending_export_to = Some(export_path);
+            has_ts_export_to = false; // Reset for new type
+        }
+
+        // Step 2: Check if there's already a ts(export_to) attribute
+        if line.contains("#[ts(export_to") || line.contains("#[ts(export,") {
+            has_ts_export_to = true;
         }
 
         // Step 3: Check if we hit a type definition
         if line.starts_with("pub struct ") || line.starts_with("pub enum ") {
             if let Some(path) = pending_export_to.take() {
-                // Step 4: Append export_to before appending line
-                result_lines.push(format!("#[ts(export_to = \"{}\")]", path));
+                // Step 4: Only add export_to if not already present
+                if !has_ts_export_to {
+                    result_lines.push(format!("#[ts(export_to = \"{}\")]", path));
+                }
             }
+            has_ts_export_to = false; // Reset for next type
         }
 
         result_lines.push(line.to_string());
@@ -1405,6 +1519,191 @@ fn is_versioned_tool_type(s: &str) -> bool {
         && s.chars().rev().nth(8) == Some('_')
 }
 
+// =============================================================================
+// Template-based Tool Struct Generation
+// =============================================================================
+//
+// Instead of using quicktype (which requires extensive post-processing),
+// we generate tool structs directly from schema analysis. Tool schemas are
+// simple flat objects with primitive fields, making direct codegen cleaner.
+
+/// Convert a schema type to its Rust equivalent
+fn schema_type_to_rust(
+    prop_schema: &serde_json::Value,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+) -> String {
+    // Handle $ref by using serde_json::Value - this avoids dependency on types
+    // that may or may not be generated by the main quicktype pass.
+    // The types will still serialize/deserialize correctly with serde.
+    if prop_schema.get("$ref").is_some() {
+        return "serde_json::Value".to_string();
+    }
+
+    // Handle anyOf/oneOf - usually means nullable or union, use Value for flexibility
+    if prop_schema.get("anyOf").is_some() || prop_schema.get("oneOf").is_some() {
+        // Check if it's a simple nullable type (anyOf with null)
+        if let Some(any_of) = prop_schema.get("anyOf").and_then(|a| a.as_array()) {
+            let non_null: Vec<_> = any_of
+                .iter()
+                .filter(|v| v.get("type").and_then(|t| t.as_str()) != Some("null"))
+                .collect();
+            if non_null.len() == 1 {
+                return schema_type_to_rust(non_null[0], all_schemas);
+            }
+        }
+        return "serde_json::Value".to_string();
+    }
+
+    // Handle const/enum - typically a single-value enum for type discriminators
+    if prop_schema.get("const").is_some() || prop_schema.get("enum").is_some() {
+        return "String".to_string();
+    }
+
+    match prop_schema.get("type").and_then(|t| t.as_str()) {
+        Some("string") => "String".to_string(),
+        Some("integer") => "i64".to_string(),
+        Some("number") => "f64".to_string(),
+        Some("boolean") => "bool".to_string(),
+        Some("array") => {
+            let item_type = prop_schema
+                .get("items")
+                .map(|i| schema_type_to_rust(i, all_schemas))
+                .unwrap_or_else(|| "serde_json::Value".to_string());
+            format!("Vec<{}>", item_type)
+        }
+        Some("object") => {
+            // Check if it has specific properties (structured object) or is freeform
+            if prop_schema.get("properties").is_some() {
+                // This is a nested object with known structure - use Value for now
+                // Could generate inline struct, but adds complexity
+                "serde_json::Value".to_string()
+            } else {
+                // Freeform object
+                "serde_json::Map<String, serde_json::Value>".to_string()
+            }
+        }
+        Some("null") => "()".to_string(),
+        _ => "serde_json::Value".to_string(),
+    }
+}
+
+/// Convert a property name to a valid Rust field name (snake_case)
+fn to_rust_field_name(name: &str) -> String {
+    // Handle reserved words
+    let reserved = [
+        "type", "ref", "self", "super", "crate", "mod", "use", "fn", "impl", "trait",
+    ];
+
+    let snake = to_snake_case(name);
+
+    if reserved.contains(&snake.as_str()) {
+        format!("r#{}", snake)
+    } else {
+        snake
+    }
+}
+
+/// Convert camelCase or PascalCase to snake_case
+fn to_snake_case(s: &str) -> String {
+    let mut result = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() {
+            if i > 0 {
+                result.push('_');
+            }
+            result.push(c.to_lowercase().next().unwrap());
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
+/// Generate a tool struct directly from its schema (no quicktype)
+fn generate_tool_struct_direct(
+    schema_name: &str,
+    schema: &serde_json::Value,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    provider: &str,
+) -> String {
+    let rust_name = schema_name_to_rust_type(schema_name);
+
+    let mut output = String::new();
+
+    // Extract description if available
+    if let Some(desc) = schema.get("description").and_then(|d| d.as_str()) {
+        for line in desc.lines() {
+            output.push_str(&format!("/// {}\n", line));
+        }
+    }
+
+    // Add derives
+    output.push_str("#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n");
+    output.push_str(&format!("#[ts(export_to = \"{}/\")]\n", provider));
+    output.push_str(&format!("pub struct {} {{\n", rust_name));
+
+    // Get properties and required fields
+    let props = schema.get("properties").and_then(|p| p.as_object());
+
+    let required: HashSet<String> = schema
+        .get("required")
+        .and_then(|r| r.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .map(String::from)
+                .collect()
+        })
+        .unwrap_or_default();
+
+    if let Some(properties) = props {
+        for (prop_name, prop_schema) in properties {
+            // Skip the "type" field - it's handled by serde tag on the enum
+            if prop_name == "type" {
+                continue;
+            }
+
+            let field_name = to_rust_field_name(prop_name);
+            let rust_type = schema_type_to_rust(prop_schema, all_schemas);
+            let is_required = required.contains(prop_name);
+
+            // Add field documentation if available
+            if let Some(desc) = prop_schema.get("description").and_then(|d| d.as_str()) {
+                for line in desc.lines() {
+                    output.push_str(&format!("    /// {}\n", line));
+                }
+            }
+
+            // Handle serde rename if field name differs from property name
+            let needs_rename = field_name != *prop_name && !field_name.starts_with("r#");
+
+            if !is_required {
+                output.push_str("    #[serde(skip_serializing_if = \"Option::is_none\")]\n");
+            }
+
+            if needs_rename {
+                output.push_str(&format!("    #[serde(rename = \"{}\")]\n", prop_name));
+            }
+
+            // Add ts(type = "any") for serde_json::Value fields
+            if rust_type == "serde_json::Value"
+                || rust_type == "serde_json::Map<String, serde_json::Value>"
+            {
+                output.push_str("    #[ts(type = \"any\")]\n");
+            }
+
+            if is_required {
+                output.push_str(&format!("    pub {}: {},\n", field_name, rust_type));
+            } else {
+                output.push_str(&format!("    pub {}: Option<{}>,\n", field_name, rust_type));
+            }
+        }
+    }
+
+    output.push_str("}\n");
+    output
+}
+
 fn generate_all_tool_code(
     provider: &str,
     spec: &serde_json::Value,
@@ -1430,191 +1729,55 @@ fn generate_tool_structs(
     tool_schemas: &ToolSchemas,
     spec: &serde_json::Value,
 ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-    let mut generated_structs = Vec::new();
-    let mut seen = HashSet::new();
-
-    for client_schema in &tool_schemas.client_tools {
-        if let Ok(code) = generate_struct_from_schema(client_schema, spec, provider) {
-            for (mut name, mut block) in split_type_definitions(&code) {
-                if name == "Tool" {
-                    block = block.replace("struct Tool", "struct CustomTool");
-                    name = "CustomTool".to_string();
-                }
-                if seen.insert(name) {
-                    generated_structs.push(block);
-                }
-            }
-        }
-    }
-
-    for provider_tool in &tool_schemas.provider_tools {
-        if let Ok(code) = generate_struct_from_schema(&provider_tool.schema_name, spec, provider) {
-            for (name, block) in split_type_definitions(&code) {
-                if seen.insert(name) {
-                    generated_structs.push(block);
-                }
-            }
-        }
-    }
-
-    Ok(generated_structs)
-}
-
-fn generate_struct_from_schema(
-    schema_name: &str,
-    spec: &serde_json::Value,
-    provider: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
-    let isolated_schema = extract_schema_with_dependencies(schema_name, spec)?;
-    let raw = run_quicktype_for_schema(&isolated_schema, schema_name)?;
-    let mut cleaned = extract_type_definitions(&raw);
-    cleaned = cleaned.replace(
-        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]",
-        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
-    );
-    cleaned = add_export_path_to_all_ts_types(&cleaned, &format!("{}/", provider));
-    cleaned = add_serde_skip_if_none(&cleaned);
-    Ok(cleaned)
-}
-
-fn extract_schema_with_dependencies(
-    schema_name: &str,
-    spec: &serde_json::Value,
-) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     let all_schemas = spec
         .get("components")
         .and_then(|c| c.get("schemas"))
         .and_then(|s| s.as_object())
         .ok_or("No components.schemas in spec")?;
 
-    let mut collected = serde_json::Map::new();
-    let mut visited = std::collections::HashSet::new();
-    add_schema_with_dependencies_generic(schema_name, all_schemas, &mut collected, &mut visited);
+    let mut generated_structs = Vec::new();
+    let mut seen = HashSet::new();
 
-    let root = serde_json::json!({
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "definitions": collected,
-        "$ref": format!("#/definitions/{}", schema_name),
-    });
+    // Generate client tool structs (e.g., CustomTool)
+    for client_schema in &tool_schemas.client_tools {
+        // Get the actual schema name to use for generation
+        let gen_name = if client_schema == "Tool" {
+            "CustomTool"
+        } else {
+            client_schema
+        };
 
-    Ok(root)
-}
+        if let Some(schema) = all_schemas.get(client_schema) {
+            if seen.insert(gen_name.to_string()) {
+                // Generate the struct with potentially renamed name
+                let mut code =
+                    generate_tool_struct_direct(client_schema, schema, all_schemas, provider);
 
-fn add_schema_with_dependencies_generic(
-    schema_name: &str,
-    all_schemas: &serde_json::Map<String, serde_json::Value>,
-    collected: &mut serde_json::Map<String, serde_json::Value>,
-    visited: &mut std::collections::HashSet<String>,
-) {
-    if !visited.insert(schema_name.to_string()) {
-        return;
-    }
-
-    let Some(schema) = all_schemas.get(schema_name) else {
-        return;
-    };
-
-    let fixed_schema = fix_generic_schema_refs(schema);
-    collected.insert(schema_name.to_string(), fixed_schema.clone());
-
-    let mut refs = std::collections::HashSet::new();
-    extract_schema_refs(&fixed_schema, &mut refs);
-
-    for ref_name in refs {
-        add_schema_with_dependencies_generic(&ref_name, all_schemas, collected, visited);
-    }
-}
-
-fn fix_generic_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
-    match schema {
-        serde_json::Value::Object(obj) => {
-            let mut fixed = serde_json::Map::new();
-            for (key, value) in obj {
-                if key == "$ref" {
-                    if let Some(ref_str) = value.as_str() {
-                        if ref_str.starts_with("#/components/schemas/") {
-                            fixed.insert(
-                                key.clone(),
-                                serde_json::Value::String(
-                                    ref_str.replace("#/components/schemas/", "#/definitions/"),
-                                ),
-                            );
-                        } else {
-                            fixed.insert(key.clone(), value.clone());
-                        }
-                    } else {
-                        fixed.insert(key.clone(), value.clone());
-                    }
-                } else {
-                    fixed.insert(key.clone(), fix_generic_schema_refs(value));
+                // Rename Tool -> CustomTool if needed
+                if client_schema == "Tool" {
+                    code = code.replace("pub struct Tool {", "pub struct CustomTool {");
                 }
+
+                generated_structs.push(code);
             }
-            serde_json::Value::Object(fixed)
         }
-        serde_json::Value::Array(arr) => {
-            let fixed_arr: Vec<serde_json::Value> =
-                arr.iter().map(fix_generic_schema_refs).collect();
-            serde_json::Value::Array(fixed_arr)
-        }
-        other => other.clone(),
-    }
-}
-
-fn run_quicktype_for_schema(
-    schema: &serde_json::Value,
-    top_level: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
-    let temp_schema_path = std::env::temp_dir().join(format!("{}_tool_schema.json", top_level));
-    std::fs::write(&temp_schema_path, serde_json::to_string_pretty(schema)?)?;
-
-    let output = std::process::Command::new("quicktype")
-        .arg("--src-lang")
-        .arg("schema")
-        .arg("--lang")
-        .arg("rust")
-        .arg("--derive-debug")
-        .arg("--derive-clone")
-        .arg("--derive-partial-eq")
-        .arg("--visibility")
-        .arg("public")
-        .arg("--density")
-        .arg("dense")
-        .arg("--top-level")
-        .arg(top_level)
-        .arg(&temp_schema_path)
-        .output()?;
-
-    std::fs::remove_file(&temp_schema_path).ok();
-
-    if !output.status.success() {
-        return Err(format!(
-            "quicktype failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        )
-        .into());
     }
 
-    Ok(String::from_utf8(output.stdout)?)
-}
+    // Generate provider tool structs (e.g., WebSearchTool20250305, BashTool20250124)
+    for provider_tool in &tool_schemas.provider_tools {
+        let schema_name = &provider_tool.schema_name;
 
-fn extract_type_definitions(quicktype_output: &str) -> String {
-    let mut started = false;
-    let mut lines = Vec::new();
+        if let Some(schema) = all_schemas.get(schema_name) {
+            let rust_name = schema_name_to_rust_type(schema_name);
 
-    for line in quicktype_output.lines() {
-        if !started && line.trim_start().starts_with("#[derive") {
-            started = true;
-        }
-
-        if started {
-            if line.starts_with("use ") {
-                continue;
+            if seen.insert(rust_name.clone()) {
+                let code = generate_tool_struct_direct(schema_name, schema, all_schemas, provider);
+                generated_structs.push(code);
             }
-            lines.push(line.to_string());
         }
     }
 
-    lines.join("\n")
+    Ok(generated_structs)
 }
 
 fn generate_tool_enum(
@@ -1705,15 +1868,7 @@ fn schema_name_to_rust_type(schema_name: &str) -> String {
 
 fn replace_tool_struct_with_enum(existing: &str, tool_code: &str) -> String {
     let filtered_tool_code = filter_tool_code_against_existing(tool_code, existing);
-    println!(
-        "🔧 Injecting tool enum/structs, filtered size: {}",
-        filtered_tool_code.len()
-    );
     if let Some((attr_start, struct_end)) = find_tool_struct_span(existing) {
-        println!(
-            "🔧 Replacing Tool struct span: {}..{}",
-            attr_start, struct_end
-        );
         let mut out = String::new();
         out.push_str(&existing[..attr_start]);
         out.push_str(filtered_tool_code.trim());
@@ -1722,7 +1877,6 @@ fn replace_tool_struct_with_enum(existing: &str, tool_code: &str) -> String {
         return fix_tool_name_types(out);
     }
 
-    println!("⚠️  Tool struct not found; appending generated tool code");
     let mut out = existing.to_string();
     out.push('\n');
     out.push_str(filtered_tool_code.trim());

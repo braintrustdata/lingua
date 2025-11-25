@@ -3301,6 +3301,7 @@ pub enum HostedToolType {
 ///
 /// This tool searches the web for relevant results to use in a response. Learn more about
 /// the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+/// Defines a function in your own code the model can choose to call. Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct FunctionTool {
@@ -3308,28 +3309,13 @@ pub struct FunctionTool {
     pub description: Option<String>,
     /// The name of the function to call.
     pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "any")]
-    pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub strict: Option<bool>,
-    /// The type of the function tool. Always `function`.
-    #[serde(rename = "type")]
-    pub function_tool_type: Type,
+    pub parameters: serde_json::Map<String, serde_json::Value>,
+    pub strict: bool,
 }
 
-/// The type of the function tool. Always `function`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum Type {
-    Function,
-    ComputerUsePreview,
-    Mcp,
-    ImageGeneration,
-    LocalShell,
-}
-
+/// A custom tool that processes input using a specified format. Learn more about
+/// [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct CustomTool {
@@ -3338,71 +3324,31 @@ pub struct CustomTool {
     pub description: Option<String>,
     /// The input format for the custom tool. Default is unconstrained text.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub format: Option<Format>,
+    #[ts(type = "any")]
+    pub format: Option<serde_json::Value>,
     /// The name of the custom tool, used to identify it in tool calls.
     pub name: String,
-    /// The type of the custom tool. Always `custom`.
-    #[serde(rename = "type")]
-    pub custom_tool_type: CustomToolType,
 }
 
-/// The type of the custom tool. Always `custom`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum CustomToolType {
-    Custom,
-}
-
-/// The input format for the custom tool. Default is unconstrained text.
-///
-///
-/// Unconstrained free-form text.
-///
-/// A grammar defined by the user.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export_to = "openai/")]
-pub struct Format {
-    /// Unconstrained text format. Always `text`.
-    ///
-    /// Grammar format. Always `grammar`.
-    #[serde(rename = "type")]
-    pub format_type: FormatType,
-    /// The grammar definition.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub definition: Option<String>,
-    /// The syntax of the grammar definition. One of `lark` or `regex`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub syntax: Option<Syntax>,
-}
-
+/// A tool that searches for relevant content from uploaded files. Learn more about the [file search tool](https://platform.openai.com/docs/guides/tools-file-search).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct FileSearchTool {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub filters: Option<CompFilter>,
+    #[ts(type = "any")]
+    pub filters: Option<serde_json::Value>,
     /// The maximum number of results to return. This number should be between 1 and 50 inclusive.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_num_results: Option<i64>,
     /// Ranking options for search.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ranking_options: Option<RankingOptions>,
-    /// The type of the file search tool. Always `file_search`.
-    #[serde(rename = "type")]
-    pub file_search_tool_type: FileSearchToolType,
+    #[ts(type = "any")]
+    pub ranking_options: Option<serde_json::Value>,
     /// The IDs of the vector stores to search.
     pub vector_store_ids: Vec<String>,
 }
 
-/// The type of the file search tool. Always `file_search`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum FileSearchToolType {
-    #[serde(rename = "file_search")]
-    FileSearch,
-}
-
+/// A tool that controls a virtual computer. Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct ComputerUsePreviewTool {
@@ -3411,89 +3357,34 @@ pub struct ComputerUsePreviewTool {
     /// The width of the computer display.
     pub display_width: i64,
     /// The type of computer environment to control.
-    pub environment: ComputerEnvironment,
-    /// The type of the computer use tool. Always `computer_use_preview`.
-    #[serde(rename = "type")]
-    pub computer_use_preview_tool_type: Type,
+    #[ts(type = "any")]
+    pub environment: serde_json::Value,
 }
 
+/// Search the Internet for sources related to the prompt. Learn more about the
+/// [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct WebSearchTool {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub filters: Option<Filters>,
-    /// High level guidance for the amount of context window space to use for the search. One of
-    /// `low`, `medium`, or `high`. `medium` is the default.
+    #[ts(type = "any")]
+    pub filters: Option<serde_json::Value>,
+    /// High level guidance for the amount of context window space to use for the search. One of `low`, `medium`, or `high`. `medium` is the default.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub search_context_size: Option<SearchContextSize>,
-    /// The type of the web search tool. One of `web_search` or `web_search_2025_08_26`.
-    #[serde(rename = "type")]
-    pub web_search_tool_type: WebSearchToolType,
+    pub search_context_size: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_location: Option<WebSearchApproximateLocation>,
+    #[ts(type = "any")]
+    pub user_location: Option<serde_json::Value>,
 }
 
-/// Filters for the search.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export_to = "openai/")]
-pub struct Filters {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_domains: Option<Vec<String>>,
-}
-
-/// High level guidance for the amount of context window space to use for the search. One of
-/// `low`, `medium`, or `high`. `medium` is the default.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum SearchContextSize {
-    High,
-    Low,
-    Medium,
-}
-
-/// The approximate location of the user.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export_to = "openai/")]
-pub struct WebSearchApproximateLocation {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub city: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub country: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub region: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timezone: Option<String>,
-    /// The type of location approximation. Always `approximate`.
-    #[serde(rename = "type")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub web_search_approximate_location_type: Option<WebSearchApproximateLocationType>,
-}
-
-/// The type of location approximation. Always `approximate`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum WebSearchApproximateLocationType {
-    Approximate,
-}
-
-/// The type of the web search tool. One of `web_search` or `web_search_2025_08_26`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum WebSearchToolType {
-    #[serde(rename = "web_search")]
-    WebSearch,
-    #[serde(rename = "web_search_2025_08_26")]
-    WebSearch2025_08_26,
-}
-
+/// Give the model access to additional tools via remote Model Context Protocol
+/// (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct McpTool {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_tools: Option<AllowedTools>,
+    #[ts(type = "any")]
+    pub allowed_tools: Option<serde_json::Value>,
     /// An OAuth access token that can be used with a remote MCP server, either
     /// with a custom MCP server URL or a service connector. Your application
     /// must handle the OAuth authorization flow and provide the token here.
@@ -3514,11 +3405,13 @@ pub struct McpTool {
     /// - Outlook Email: `connector_outlookemail`
     /// - SharePoint: `connector_sharepoint`
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub connector_id: Option<ConnectorId>,
+    pub connector_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub headers: Option<HashMap<String, String>>,
+    #[ts(type = "any")]
+    pub headers: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub require_approval: Option<RequireApproval>,
+    #[ts(type = "any")]
+    pub require_approval: Option<serde_json::Value>,
     /// Optional description of the MCP server, used to provide more context.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_description: Option<String>,
@@ -3528,114 +3421,76 @@ pub struct McpTool {
     /// provided.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_url: Option<String>,
-    /// The type of the MCP tool. Always `mcp`.
-    #[serde(rename = "type")]
-    pub mcp_tool_type: Type,
 }
 
+/// A tool that runs Python code to help generate a response to a prompt.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct CodeInterpreterTool {
     /// The code interpreter container. Can be a container ID or an object that
     /// specifies uploaded file IDs to make available to your code.
-    pub container: Container,
-    /// The type of the code interpreter tool. Always `code_interpreter`.
-    #[serde(rename = "type")]
-    pub code_interpreter_tool_type: CodeInterpreterToolType,
+    #[ts(type = "any")]
+    pub container: serde_json::Value,
 }
 
-/// The type of the code interpreter tool. Always `code_interpreter`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum CodeInterpreterToolType {
-    #[serde(rename = "code_interpreter")]
-    CodeInterpreter,
-}
-
+/// A tool that generates images using a model like `gpt-image-1`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct ImageGenTool {
     /// Background type for the generated image. One of `transparent`,
     /// `opaque`, or `auto`. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub background: Option<Background>,
+    pub background: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub input_fidelity: Option<ImageInputFidelity>,
+    #[ts(type = "any")]
+    pub input_fidelity: Option<serde_json::Value>,
     /// Optional mask for inpainting. Contains `image_url`
     /// (string, optional) and `file_id` (string, optional).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub input_image_mask: Option<InputImageMask>,
+    #[ts(type = "any")]
+    pub input_image_mask: Option<serde_json::Value>,
     /// The image generation model to use. Default: `gpt-image-1`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub model: Option<Model>,
+    pub model: Option<String>,
     /// Moderation level for the generated image. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub moderation: Option<Moderation>,
+    pub moderation: Option<String>,
     /// Compression level for the output image. Default: 100.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub output_compression: Option<i64>,
     /// The output format of the generated image. One of `png`, `webp`, or
     /// `jpeg`. Default: `png`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub output_format: Option<OutputFormat>,
+    pub output_format: Option<String>,
     /// Number of partial images to generate in streaming mode, from 0 (default value) to 3.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub partial_images: Option<i64>,
     /// The quality of the generated image. One of `low`, `medium`, `high`,
     /// or `auto`. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub quality: Option<Quality>,
+    pub quality: Option<String>,
     /// The size of the generated image. One of `1024x1024`, `1024x1536`,
     /// `1536x1024`, or `auto`. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<Size>,
-    /// The type of the image generation tool. Always `image_generation`.
-    #[serde(rename = "type")]
-    pub image_gen_tool_type: Type,
+    pub size: Option<String>,
 }
 
+/// A tool that allows the model to execute shell commands in a local environment.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-pub struct LocalShellTool {
-    /// The type of the local shell tool. Always `local_shell`.
-    #[serde(rename = "type")]
-    pub local_shell_tool_type: Type,
-}
+pub struct LocalShellTool {}
 
+/// This tool searches the web for relevant results to use in a response. Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct WebSearchPreviewTool {
-    /// High level guidance for the amount of context window space to use for the search. One of
-    /// `low`, `medium`, or `high`. `medium` is the default.
+    /// High level guidance for the amount of context window space to use for the search. One of `low`, `medium`, or `high`. `medium` is the default.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub search_context_size: Option<SearchContextSize>,
-    /// The type of the web search tool. One of `web_search_preview` or
-    /// `web_search_preview_2025_03_11`.
-    #[serde(rename = "type")]
-    pub web_search_preview_tool_type: WebSearchPreviewToolType,
+    #[ts(type = "any")]
+    pub search_context_size: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_location: Option<ApproximateLocation>,
-}
-
-/// The type of location approximation. Always `approximate`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum ApproximateLocationType {
-    Approximate,
-}
-
-/// The type of the web search tool. One of `web_search_preview` or
-/// `web_search_preview_2025_03_11`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum WebSearchPreviewToolType {
-    #[serde(rename = "web_search_preview")]
-    WebSearchPreview,
-    #[serde(rename = "web_search_preview_2025_03_11")]
-    WebSearchPreview2025_03_11,
+    #[ts(type = "any")]
+    pub user_location: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
