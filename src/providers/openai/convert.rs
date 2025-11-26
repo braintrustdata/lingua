@@ -1506,13 +1506,7 @@ impl TryFromLLM<Tool> for openai::Tool {
         match tool {
             Tool::Client(client_tool) => {
                 let parameters = match client_tool.input_schema {
-                    serde_json::Value::Object(map) => {
-                        let mut params = std::collections::HashMap::new();
-                        for (key, value) in map {
-                            params.insert(key, Some(value));
-                        }
-                        Some(params)
-                    }
+                    serde_json::Value::Object(map) => map,
                     _ => {
                         return Err(ConvertError::ContentConversionFailed {
                             reason: "input_schema must be a JSON object".to_string(),
@@ -1524,14 +1518,14 @@ impl TryFromLLM<Tool> for openai::Tool {
                     .provider_options
                     .as_ref()
                     .and_then(|opts| opts.get("strict"))
-                    .and_then(|v| v.as_bool());
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
 
                 Ok(openai::Tool::Function(openai::FunctionTool {
                     name: client_tool.name,
                     description: Some(client_tool.description),
                     parameters,
                     strict,
-                    function_tool_type: openai::Type::Function,
                 }))
             }
             Tool::Provider(provider_tool) => match provider_tool.tool_type.as_str() {
@@ -1551,15 +1545,14 @@ impl TryFromLLM<Tool> for openai::Tool {
                         .unwrap_or(1080);
                     let environment = config
                         .get("environment")
-                        .and_then(|v| serde_json::from_value(v.clone()).ok())
-                        .unwrap_or(openai::ComputerEnvironment::Browser);
+                        .cloned()
+                        .unwrap_or_else(|| serde_json::json!("browser"));
 
                     Ok(openai::Tool::ComputerUsePreview(
                         openai::ComputerUsePreviewTool {
                             display_height,
                             display_width,
                             environment,
-                            computer_use_preview_tool_type: openai::Type::ComputerUsePreview,
                         },
                     ))
                 }
@@ -1567,27 +1560,13 @@ impl TryFromLLM<Tool> for openai::Tool {
                     let container = provider_tool
                         .config
                         .and_then(|c| c.get("container").cloned())
-                        .and_then(|v| serde_json::from_value(v).ok())
-                        .unwrap_or(openai::Container::CodeInterpreterContainerAuto(
-                            openai::CodeInterpreterContainerAuto {
-                                file_ids: None,
-                                code_interpreter_container_auto_type:
-                                    openai::CodeInterpreterContainerAutoType::Auto,
-                            },
-                        ));
+                        .unwrap_or_else(|| serde_json::json!({"type": "auto"}));
 
                     Ok(openai::Tool::CodeInterpreter(openai::CodeInterpreterTool {
                         container,
-                        code_interpreter_tool_type:
-                            openai::CodeInterpreterToolType::CodeInterpreter,
                     }))
                 }
                 "web_search" | "web_search_2025_08_26" => {
-                    let tool_type = if provider_tool.tool_type == "web_search_2025_08_26" {
-                        openai::WebSearchToolType::WebSearch2025_08_26
-                    } else {
-                        openai::WebSearchToolType::WebSearch
-                    };
                     let config = provider_tool
                         .config
                         .unwrap_or_else(|| serde_json::json!({}));
@@ -1596,11 +1575,9 @@ impl TryFromLLM<Tool> for openai::Tool {
                         filters: None,
                         search_context_size: config
                             .get("search_context_size")
-                            .and_then(|v| serde_json::from_value(v.clone()).ok()),
-                        web_search_tool_type: tool_type,
-                        user_location: config
-                            .get("user_location")
-                            .and_then(|v| serde_json::from_value(v.clone()).ok()),
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string()),
+                        user_location: config.get("user_location").cloned(),
                     }))
                 }
                 "file_search" => {
@@ -1628,7 +1605,6 @@ impl TryFromLLM<Tool> for openai::Tool {
                         filters,
                         max_num_results,
                         ranking_options,
-                        file_search_tool_type: openai::FileSearchToolType::FileSearch,
                         vector_store_ids,
                     }))
                 }
@@ -1644,7 +1620,8 @@ impl TryFromLLM<Tool> for openai::Tool {
                             .map(str::to_string),
                         connector_id: config
                             .get("connector_id")
-                            .and_then(|v| serde_json::from_value(v.clone()).ok()),
+                            .and_then(|v| v.as_str())
+                            .map(str::to_string),
                         server_description: config
                             .get("server_description")
                             .and_then(|v| v.as_str())
@@ -1653,7 +1630,6 @@ impl TryFromLLM<Tool> for openai::Tool {
                             .get("server_url")
                             .and_then(|v| v.as_str())
                             .map(str::to_string),
-                        mcp_tool_type: openai::Type::Mcp,
                         allowed_tools: None,
                         headers: None,
                         require_approval: None,
@@ -1670,17 +1646,12 @@ impl TryFromLLM<Tool> for openai::Tool {
                     partial_images: None,
                     quality: None,
                     size: None,
-                    image_gen_tool_type: openai::Type::ImageGeneration,
                 })),
-                "local_shell" => Ok(openai::Tool::LocalShell(openai::LocalShellTool {
-                    local_shell_tool_type: openai::Type::LocalShell,
-                })),
+                "local_shell" => Ok(openai::Tool::LocalShell(openai::LocalShellTool {})),
                 "web_search_preview" => Ok(openai::Tool::WebSearchPreview(
                     openai::WebSearchPreviewTool {
                         search_context_size: None,
                         user_location: None,
-                        web_search_preview_tool_type:
-                            openai::WebSearchPreviewToolType::WebSearchPreview,
                     },
                 )),
                 unknown => Ok(openai::Tool::Unknown {
@@ -1708,24 +1679,16 @@ impl TryFromLLM<openai::Tool> for Tool {
 
     fn try_from(tool: openai::Tool) -> Result<Self, Self::Error> {
         match tool {
-            openai::Tool::Function(function) => {
-                let mut schema_map = serde_json::Map::new();
-                if let Some(params) = function.parameters {
-                    for (key, value) in params {
-                        if let Some(v) = value {
-                            schema_map.insert(key, v);
-                        }
-                    }
-                }
-                Ok(Tool::Client(ClientTool {
-                    name: function.name,
-                    description: function.description.unwrap_or_default(),
-                    input_schema: serde_json::Value::Object(schema_map),
-                    provider_options: function
-                        .strict
-                        .map(|strict| serde_json::json!({ "strict": strict })),
-                }))
-            }
+            openai::Tool::Function(function) => Ok(Tool::Client(ClientTool {
+                name: function.name,
+                description: function.description.unwrap_or_default(),
+                input_schema: serde_json::Value::Object(function.parameters),
+                provider_options: if function.strict {
+                    Some(serde_json::json!({ "strict": true }))
+                } else {
+                    None
+                },
+            })),
             openai::Tool::Custom(custom) => Ok(Tool::Provider(ProviderTool {
                 tool_type: "custom".to_string(),
                 name: Some(custom.name),
@@ -1887,6 +1850,114 @@ impl TryFromLLM<openai::Tool> for Tool {
                     tool_type,
                     name: Some(name),
                     config,
+                }))
+            }
+        }
+    }
+}
+
+// ============================================================================
+// ToolElement Conversions (for Chat Completions API)
+// ============================================================================
+//
+// ToolElement is the correct type for OpenAI's Chat Completions API.
+// It uses a nested structure: { "type": "function", "function": {...} }
+// which is different from the flat discriminated union used by other APIs.
+
+/// Convert Lingua Tool to OpenAI ToolElement (for Chat Completions API)
+impl TryFromLLM<Tool> for openai::ToolElement {
+    type Error = ConvertError;
+
+    fn try_from(tool: Tool) -> Result<Self, Self::Error> {
+        match tool {
+            Tool::Client(client_tool) => {
+                let parameters = match client_tool.input_schema {
+                    serde_json::Value::Object(map) => {
+                        let mut params = std::collections::HashMap::new();
+                        for (key, value) in map {
+                            params.insert(key, Some(value));
+                        }
+                        Some(params)
+                    }
+                    _ => {
+                        return Err(ConvertError::ContentConversionFailed {
+                            reason: "input_schema must be a JSON object".to_string(),
+                        });
+                    }
+                };
+
+                let strict = client_tool
+                    .provider_options
+                    .as_ref()
+                    .and_then(|opts| opts.get("strict"))
+                    .and_then(|v| v.as_bool());
+
+                Ok(openai::ToolElement {
+                    tool_type: openai::ToolType::Function,
+                    function: Some(openai::FunctionObject {
+                        name: client_tool.name,
+                        description: Some(client_tool.description),
+                        parameters,
+                        strict,
+                    }),
+                    custom: None,
+                })
+            }
+            Tool::Provider(provider_tool) => {
+                // Chat Completions API only supports function tools.
+                // Provider tools (web_search, computer_use, etc.) should use different APIs
+                // or be passed via specific fields (like web_search_options).
+                Err(ConvertError::ContentConversionFailed {
+                    reason: format!(
+                        "Provider tool '{}' cannot be converted to ToolElement. \
+                         Chat Completions API only supports function tools. \
+                         Use Tool enum for other APIs or pass provider tools via specific options.",
+                        provider_tool.tool_type
+                    ),
+                })
+            }
+        }
+    }
+}
+
+/// Convert OpenAI ToolElement to Lingua Tool
+impl TryFromLLM<openai::ToolElement> for Tool {
+    type Error = ConvertError;
+
+    fn try_from(tool: openai::ToolElement) -> Result<Self, Self::Error> {
+        match tool.tool_type {
+            openai::ToolType::Function => {
+                let function = tool.function.ok_or(ConvertError::MissingRequiredField {
+                    field: "function".to_string(),
+                })?;
+
+                let mut schema_map = serde_json::Map::new();
+                if let Some(params) = function.parameters {
+                    for (key, value) in params {
+                        if let Some(v) = value {
+                            schema_map.insert(key, v);
+                        }
+                    }
+                }
+
+                Ok(Tool::Client(ClientTool {
+                    name: function.name,
+                    description: function.description.unwrap_or_default(),
+                    input_schema: serde_json::Value::Object(schema_map),
+                    provider_options: function
+                        .strict
+                        .map(|strict| serde_json::json!({ "strict": strict })),
+                }))
+            }
+            openai::ToolType::Custom => {
+                let custom = tool.custom.ok_or(ConvertError::MissingRequiredField {
+                    field: "custom".to_string(),
+                })?;
+
+                Ok(Tool::Provider(ProviderTool {
+                    tool_type: "custom".to_string(),
+                    name: Some(custom.name),
+                    config: None,
                 }))
             }
         }

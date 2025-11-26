@@ -210,6 +210,8 @@ fn generate_openai_types_with_quicktype(
     let mut processed_output = post_process_quicktype_output_for_openai(&quicktype_output);
 
     // Generate improved tool types and replace the flat Tool struct
+    // NOTE: The Tool enum is for internal ergonomics only. For the actual API,
+    // use ToolElement which has the correct nested structure for chat completions.
     if let Ok(tool_code) = generate_all_tool_code("openai", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }

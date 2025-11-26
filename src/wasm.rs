@@ -102,15 +102,27 @@ pub fn lingua_tools_to_anthropic(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_lingua::<Vec<Tool>, Vec<anthropic::Tool>>(value)
 }
 
-/// Convert array of OpenAI tools to Lingua Tools
+/// Convert array of OpenAI Chat Completions tools to Lingua Tools
 #[wasm_bindgen]
 pub fn openai_tools_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_lingua::<Vec<openai::ToolElement>, Vec<Tool>>(value)
+}
+
+/// Convert array of Lingua Tools to OpenAI Chat Completions tools
+#[wasm_bindgen]
+pub fn lingua_tools_to_openai(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_lingua::<Vec<Tool>, Vec<openai::ToolElement>>(value)
+}
+
+/// Convert array of OpenAI Responses API tools to Lingua Tools
+#[wasm_bindgen]
+pub fn responses_tools_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
     convert_to_lingua::<Vec<openai::Tool>, Vec<Tool>>(value)
 }
 
-/// Convert array of Lingua Tools to OpenAI tools
+/// Convert array of Lingua Tools to OpenAI Responses API tools
 #[wasm_bindgen]
-pub fn lingua_tools_to_openai(value: JsValue) -> Result<JsValue, JsValue> {
+pub fn lingua_to_responses_tools(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_lingua::<Vec<Tool>, Vec<openai::Tool>>(value)
 }
 

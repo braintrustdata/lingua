@@ -14,13 +14,9 @@ import {
   validateAnthropicRequest,
   validateAnthropicResponse,
 } from "../src";
-import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
-import type { ChatCompletion } from "openai/resources/chat/completions";
-import type { MessageCreateParams } from "@anthropic-ai/sdk/resources/messages";
-import type { Message } from "@anthropic-ai/sdk/resources/messages";
-
-// Test payloads for each provider - typed with SDK types for correctness
-const OPENAI_REQUEST_DATA: ChatCompletionCreateParamsNonStreaming = {
+// Test payloads - plain objects for WASM validation testing
+// (not using SDK types since they evolve and add required fields over time)
+const OPENAI_REQUEST_DATA = {
   model: "gpt-4",
   messages: [
     {
@@ -31,7 +27,7 @@ const OPENAI_REQUEST_DATA: ChatCompletionCreateParamsNonStreaming = {
 };
 const OPENAI_REQUEST = JSON.stringify(OPENAI_REQUEST_DATA);
 
-const OPENAI_RESPONSE_DATA: ChatCompletion = {
+const OPENAI_RESPONSE_DATA = {
   id: "chatcmpl-123",
   object: "chat.completion",
   created: 1677652288,
@@ -55,7 +51,7 @@ const OPENAI_RESPONSE_DATA: ChatCompletion = {
 };
 const OPENAI_RESPONSE = JSON.stringify(OPENAI_RESPONSE_DATA);
 
-const ANTHROPIC_REQUEST_DATA: MessageCreateParams = {
+const ANTHROPIC_REQUEST_DATA = {
   model: "claude-3-5-sonnet-20241022",
   messages: [
     {
@@ -72,7 +68,7 @@ const ANTHROPIC_REQUEST_DATA: MessageCreateParams = {
 };
 const ANTHROPIC_REQUEST = JSON.stringify(ANTHROPIC_REQUEST_DATA);
 
-const ANTHROPIC_RESPONSE_DATA: Message = {
+const ANTHROPIC_RESPONSE_DATA = {
   id: "msg_123",
   type: "message",
   role: "assistant",
@@ -98,7 +94,7 @@ describe("OpenAI Chat Completions Validation", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data).toBeDefined();
-      expect(result.data.model).toBe("gpt-4");
+      expect((result.data as { model: string }).model).toBe("gpt-4");
     }
   });
 
@@ -211,9 +207,10 @@ describe("Cross-provider validation", () => {
     const result = validateChatCompletionsRequest(OPENAI_REQUEST);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data).toBeDefined();
-      expect(result.data.model).toBe("gpt-4");
-      expect(result.data.messages).toHaveLength(1);
+      const data = result.data as { model: string; messages: unknown[] };
+      expect(data).toBeDefined();
+      expect(data.model).toBe("gpt-4");
+      expect(data.messages).toHaveLength(1);
     }
   });
 
