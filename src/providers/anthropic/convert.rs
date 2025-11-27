@@ -692,7 +692,6 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
 // ============================================================================
 
 /// Convert Lingua Tool to Anthropic Tool
-
 impl TryFromLLM<Tool> for generated::Tool {
     type Error = String;
 

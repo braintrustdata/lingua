@@ -1612,7 +1612,7 @@ impl TryFromLLM<Tool> for openai::Tool {
                     let config = provider_tool
                         .config
                         .unwrap_or_else(|| serde_json::json!({}));
-                    Ok(openai::Tool::MCP(openai::McpTool {
+                    Ok(openai::Tool::MCP(openai::MCPTool {
                         server_label: provider_tool.name.unwrap_or_else(|| "mcp".to_string()),
                         authorization: config
                             .get("authorization")

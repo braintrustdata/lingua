@@ -215,7 +215,6 @@ fn generate_openai_types_with_quicktype(
     if let Ok(tool_code) = generate_all_tool_code("openai", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
-    processed_output = finalize_openai_tool_fixups(processed_output);
     processed_output = remove_duplicate_derives(&processed_output);
 
     let dest_path = "src/providers/openai/generated.rs";
@@ -236,32 +235,6 @@ fn generate_openai_types_with_quicktype(
     println!("📝 Generated OpenAI types to: {}", dest_path);
 
     Ok(())
-}
-
-fn finalize_openai_tool_fixups(mut processed: String) -> String {
-    processed = processed.replace(
-        "pub enum Type {\n    Function,\n}\n",
-        "pub enum Type {\n    Function,\n    ComputerUsePreview,\n    Mcp,\n    ImageGeneration,\n    LocalShell,\n}\n",
-    );
-    processed = processed.replace(
-        "pub enum Type {\r\n    Function,\r\n}\r\n",
-        "pub enum Type {\r\n    Function,\r\n    ComputerUsePreview,\r\n    Mcp,\r\n    ImageGeneration,\r\n    LocalShell,\r\n}\r\n",
-    );
-    processed = processed.replace("MCP(MCPTool)", "MCP(McpTool)");
-    processed = processed.replace("MCPTool", "McpTool");
-    processed = processed.replace(
-        "pub request_id: Option<serde_json::Value>,",
-        "#[ts(type = \"any\")]\n    pub request_id: Option<serde_json::Value>,",
-    );
-    processed = processed.replace(
-        "pub input_schema: HashMap<String, Option<serde_json::Value>>,",
-        "#[ts(type = \"any\")]\n    pub input_schema: HashMap<String, Option<serde_json::Value>>,",
-    );
-    processed = processed.replace(
-        "pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
-        "#[ts(type = \"any\")]\n    pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
-    );
-    processed
 }
 
 fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Value {
@@ -1123,7 +1096,6 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "pub call_id: Option<serde_json::Value>,",
         "pub call_id: Option<String>,",
     );
-    processed = processed.replace("MCP(MCPTool),", "MCP(McpTool),");
 
     // Fix output field that quicktype incorrectly generates as Refusal instead of String
     // This is specific to function call outputs where output should be a plain string
@@ -1211,20 +1183,6 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
             processed.replace_range(start..end_idx, replacement);
         }
     }
-    processed = processed.replace("MCP(MCPTool)", "MCP(McpTool)");
-    processed = processed.replace("MCPTool", "McpTool");
-    processed = processed.replace(
-        "pub request_id: Option<serde_json::Value>,",
-        "#[ts(type = \"any\")]\n    pub request_id: Option<serde_json::Value>,",
-    );
-    processed = processed.replace(
-        "pub input_schema: HashMap<String, Option<serde_json::Value>>,",
-        "#[ts(type = \"any\")]\n    pub input_schema: HashMap<String, Option<serde_json::Value>>,",
-    );
-    processed = processed.replace(
-        "pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
-        "#[ts(type = \"any\")]\n    pub parameters: Option<HashMap<String, Option<serde_json::Value>>>,",
-    );
 
     // Remove any duplicate adjacent attribute lines
     processed = remove_duplicate_adjacent_attributes(&processed);

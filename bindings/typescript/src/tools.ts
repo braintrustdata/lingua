@@ -104,9 +104,12 @@ export const ProviderTools = {
 
     /**
      * Anthropic bash shell tool
+     *
+     * Note: The bash tool only supports `name` and `cache_control` parameters.
+     * Unlike web_search, it does not support max_uses.
      */
-    bash: (config?: { max_uses?: number }): Tool =>
-      providerTool("bash_20250124", { config }),
+    bash: (options?: { name?: string }): Tool =>
+      providerTool("bash_20250124", { name: options?.name }),
 
     /**
      * Anthropic text editor tool (2025-01-24 version)

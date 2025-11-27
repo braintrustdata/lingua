@@ -613,8 +613,10 @@ describe("TypeScript Roundtrip Tests", () => {
       });
 
       test("Code interpreter tool roundtrip", () => {
-        const original = providerTool("code_interpreter", {
-          name: "my_interpreter",
+        // Note: OpenAI's code_interpreter tool doesn't have a name field
+        // It only has a container configuration
+        const original = ProviderTools.openai.codeInterpreter({
+          container: { type: "auto" },
         });
 
         const openaiTools = linguaToolsToOpenAI([original]);
@@ -624,7 +626,7 @@ describe("TypeScript Roundtrip Tests", () => {
         const tool = roundtripped[0] as any;
         expect(tool.type).toBe("provider");
         expect(tool.tool_type).toBe("code_interpreter");
-        expect(tool.name).toBe("my_interpreter");
+        expect(tool.config?.container).toEqual({ type: "auto" });
       });
 
       test("Web search tool roundtrip", () => {
@@ -662,10 +664,8 @@ describe("TypeScript Roundtrip Tests", () => {
       });
 
       test("Bash tool roundtrip", () => {
-        const original = providerTool("bash_20250124", {
-          name: "my_bash",
-          config: { max_uses: 10 },
-        });
+        // Note: bash tool only supports name parameter (not max_uses like web_search)
+        const original = ProviderTools.anthropic.bash({ name: "my_bash" });
 
         const anthropicTools = linguaToolsToAnthropic([original]);
         const roundtripped = anthropicToolsToLingua(anthropicTools);
@@ -675,7 +675,6 @@ describe("TypeScript Roundtrip Tests", () => {
         expect(tool.type).toBe("provider");
         expect(tool.tool_type).toBe("bash_20250124");
         expect(tool.name).toBe("my_bash");
-        expect(tool.config?.max_uses).toBe(10);
       });
 
       test("Text editor tool roundtrip", () => {
@@ -747,7 +746,7 @@ describe("TypeScript Roundtrip Tests", () => {
               properties: { query: { type: "string" } },
             },
           }),
-          ProviderTools.anthropic.bash({ max_uses: 5 }),
+          ProviderTools.anthropic.bash(),
           ProviderTools.anthropic.webSearch({ max_uses: 3 }),
         ];
 
@@ -773,23 +772,29 @@ describe("TypeScript Roundtrip Tests", () => {
       });
     });
 
-    describe("Error Handling", () => {
-      test("Unsupported provider tool for OpenAI", () => {
+    describe("Unknown Tool Handling", () => {
+      test("Unsupported provider tool for OpenAI maps to Unknown", () => {
         const anthropicBashTool = ProviderTools.anthropic.bash();
 
-        // bash_20250124 is not supported by OpenAI
-        expect(() => {
-          linguaToolsToOpenAI([anthropicBashTool]);
-        }).toThrow();
+        // bash_20250124 is not natively supported by OpenAI, but maps to Unknown
+        // for forward compatibility
+        const openaiTools = linguaToolsToOpenAI([anthropicBashTool]);
+
+        expect(openaiTools).toHaveLength(1);
+        // The tool should be serialized as Unknown type with the original tool_type
+        expect(openaiTools[0]).toHaveProperty("type", "bash_20250124");
       });
 
-      test("Unsupported provider tool for Anthropic", () => {
+      test("Unsupported provider tool for Anthropic maps to Unknown", () => {
         const openaiComputerTool = ProviderTools.openai.computer();
 
-        // computer_use_preview is not supported by Anthropic
-        expect(() => {
-          linguaToolsToAnthropic([openaiComputerTool]);
-        }).toThrow();
+        // computer_use_preview is not natively supported by Anthropic, but maps to Unknown
+        // for forward compatibility
+        const anthropicTools = linguaToolsToAnthropic([openaiComputerTool]);
+
+        expect(anthropicTools).toHaveLength(1);
+        // The tool should be serialized as Unknown type with the original tool_type
+        expect(anthropicTools[0]).toHaveProperty("type", "computer_use_preview");
       });
     });
 
