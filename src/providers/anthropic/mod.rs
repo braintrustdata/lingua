@@ -6,10 +6,14 @@ generated from the OpenAPI specification using quicktype.
 */
 
 pub mod convert;
+pub mod detect;
 pub mod generated;
 
 #[cfg(test)]
 pub mod test_anthropic;
+
+// Re-export detection functions
+pub use detect::{detect_payload_format, is_anthropic_format, DetectionError, PayloadFormat};
 
 // Re-export key generated types (automated approach with proper request/response separation)
 // Temporarily disabled while testing generation

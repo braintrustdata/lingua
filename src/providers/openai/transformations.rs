@@ -61,7 +61,7 @@ pub struct TransformationConfig<'a> {
     pub supports_streaming: Option<bool>,
 }
 
-impl<'a> Default for TransformationConfig<'a> {
+impl Default for TransformationConfig<'_> {
     fn default() -> Self {
         Self {
             target_provider: TargetProvider::OpenAI,
