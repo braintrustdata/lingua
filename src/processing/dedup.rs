@@ -6,6 +6,9 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
+#[cfg(test)]
+use crate::serde_json;
+
 /// Computes a hash for a message based on its role and content.
 /// This is used for deduplication - messages with the same hash are considered duplicates.
 fn hash_message(msg: &Message) -> u64 {

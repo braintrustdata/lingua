@@ -1,5 +1,6 @@
 use crate::error::ConvertError;
 use crate::providers::openai::generated as openai;
+use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart,

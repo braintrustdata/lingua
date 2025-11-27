@@ -17,9 +17,12 @@
 //     let model: anthropic_schemas = serde_json::from_str(&json).unwrap();
 // }
 
+use crate::serde_json;
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct AnthropicSchemas {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request: Option<CreateMessageParams>,
@@ -27,7 +30,8 @@ pub struct AnthropicSchemas {
     pub response: Option<Message>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct CreateMessageParams {
     /// The maximum number of tokens to generate before stopping.
     ///
@@ -240,14 +244,16 @@ pub struct CreateMessageParams {
     pub top_p: Option<f64>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "anthropic/")]
 pub struct InputMessage {
     pub content: MessageContent,
     pub role: MessageRole,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "anthropic/")]
 pub enum MessageContent {
     InputContentBlockArray(Vec<InputContentBlock>),
     String(String),
@@ -269,7 +275,8 @@ pub enum MessageContent {
 /// A block indicating a tool use by the model.
 ///
 /// A block specifying the results of a tool use by the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct InputContentBlock {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -295,6 +302,7 @@ pub struct InputContentBlock {
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -305,7 +313,8 @@ pub struct InputContentBlock {
     pub tool_use_id: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct CacheControlEphemeral {
     /// The time-to-live for the cache control breakpoint.
     ///
@@ -319,8 +328,9 @@ pub struct CacheControlEphemeral {
     pub cache_control_ephemeral_type: CacheControlEphemeralType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum CacheControlEphemeralType {
     Ephemeral,
 }
@@ -332,7 +342,8 @@ pub enum CacheControlEphemeralType {
 /// - `1h`: 1 hour
 ///
 /// Defaults to `5m`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub enum Ttl {
     #[serde(rename = "1h")]
     The1H,
@@ -340,14 +351,16 @@ pub enum Ttl {
     The5M,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "anthropic/")]
 pub enum Citations {
     RequestCitationsConfig(RequestCitationsConfig),
     RequestLocationCitationArray(Vec<RequestLocationCitation>),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct RequestLocationCitation {
     pub cited_text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -379,8 +392,9 @@ pub struct RequestLocationCitation {
     pub source: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum CitationType {
     #[serde(rename = "char_location")]
     CharLocation,
@@ -394,14 +408,16 @@ pub enum CitationType {
     WebSearchResultLocation,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct RequestCitationsConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "anthropic/")]
 pub enum Content {
     BlockArray(Vec<Block>),
     RequestWebSearchToolResultError(RequestWebSearchToolResultError),
@@ -416,7 +432,8 @@ pub enum Content {
 ///
 /// Document content, either specified directly as base64 data, as text, or as a reference
 /// via a URL.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct Block {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -442,8 +459,9 @@ pub struct Block {
     pub url: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum WebSearchToolResultBlockItemType {
     Document,
     Image,
@@ -455,7 +473,8 @@ pub enum WebSearchToolResultBlockItemType {
 }
 
 /// Regular text content.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct RequestTextBlock {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -467,20 +486,23 @@ pub struct RequestTextBlock {
     pub request_text_block_type: SystemType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum SystemType {
     Text,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "anthropic/")]
 pub enum Source {
     SourceSource(SourceSource),
     String(String),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct SourceSource {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
@@ -493,8 +515,9 @@ pub struct SourceSource {
     pub content: Option<SourceContent>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "anthropic/")]
 pub enum SourceContent {
     ContentBlockSourceContentItemArray(Vec<ContentBlockSourceContentItem>),
     String(String),
@@ -503,7 +526,8 @@ pub enum SourceContent {
 /// Regular text content.
 ///
 /// Image content specified directly as base64 data or as a reference via a URL.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct ContentBlockSourceContentItem {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -517,14 +541,16 @@ pub struct ContentBlockSourceContentItem {
     pub source: Option<SourceSourceClass>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ContentBlockSourceContentItemType {
     Image,
     Text,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct SourceSourceClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
@@ -535,7 +561,8 @@ pub struct SourceSourceClass {
     pub url: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub enum PurpleMediaType {
     #[serde(rename = "image/gif")]
     ImageGif,
@@ -547,14 +574,16 @@ pub enum PurpleMediaType {
     ImageWebp,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum PurpleType {
     Base64,
     Url,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub enum FluffyMediaType {
     #[serde(rename = "application/pdf")]
     ApplicationPdf,
@@ -570,8 +599,9 @@ pub enum FluffyMediaType {
     TextPlain,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum FluffyType {
     Base64,
     Content,
@@ -579,15 +609,17 @@ pub enum FluffyType {
     Url,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct RequestWebSearchToolResultError {
     pub error_code: WebSearchToolResultErrorCode,
     #[serde(rename = "type")]
     pub request_web_search_tool_result_error_type: RequestWebSearchToolResultErrorType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum WebSearchToolResultErrorCode {
     #[serde(rename = "invalid_tool_input")]
     InvalidToolInput,
@@ -600,15 +632,17 @@ pub enum WebSearchToolResultErrorCode {
     Unavailable,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum RequestWebSearchToolResultErrorType {
     #[serde(rename = "web_search_tool_result_error")]
     WebSearchToolResultError,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum InputContentBlockType {
     Document,
     Image,
@@ -628,15 +662,17 @@ pub enum InputContentBlockType {
     WebSearchToolResult,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum MessageRole {
     Assistant,
     User,
 }
 
 /// An object describing metadata about the request.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct Metadata {
     /// An external identifier for the user who is associated with the request.
     ///
@@ -652,8 +688,9 @@ pub struct Metadata {
 ///
 /// Anthropic offers different levels of service for your API requests. See
 /// [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ServiceTierEnum {
     Auto,
     #[serde(rename = "standard_only")]
@@ -665,8 +702,9 @@ pub enum ServiceTierEnum {
 /// A system prompt is a way of providing context and instructions to Claude, such as
 /// specifying a particular goal or role. See our [guide to system
 /// prompts](https://docs.anthropic.com/en/docs/system-prompts).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "anthropic/")]
 pub enum System {
     RequestTextBlockArray(Vec<RequestTextBlock>),
     String(String),
@@ -681,7 +719,8 @@ pub enum System {
 /// See [extended
 /// thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking) for
 /// details.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct Thinking {
     /// Determines how many tokens Claude can use for its internal reasoning process. Larger
     /// budgets can enable more thorough analysis for complex problems, improving response
@@ -697,8 +736,9 @@ pub struct Thinking {
     pub thinking_type: ThinkingType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ThinkingType {
     Disabled,
     Enabled,
@@ -714,7 +754,8 @@ pub enum ThinkingType {
 /// The model will use the specified tool with `tool_choice.name`.
 ///
 /// The model will not be allowed to use tools.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct ToolChoice {
     /// Whether to disable parallel tool use.
     ///
@@ -731,8 +772,9 @@ pub struct ToolChoice {
     pub name: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ToolChoiceType {
     Any,
     Auto,
@@ -740,7 +782,8 @@ pub enum ToolChoiceType {
     Tool,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct Tool {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -790,8 +833,10 @@ pub struct Tool {
 ///
 /// This defines the shape of the `input` that your tool accepts and that the model will
 /// produce.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct InputSchema {
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<serde_json::Map<String, serde_json::Value>>,
     pub required: Option<Vec<String>>,
@@ -799,14 +844,16 @@ pub struct InputSchema {
     pub input_schema_type: InputSchemaType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum InputSchemaType {
     Object,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ToolType {
     #[serde(rename = "bash_20250124")]
     Bash20250124,
@@ -821,7 +868,8 @@ pub enum ToolType {
     WebSearch20250305,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct UserLocation {
     /// The city of the user.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -839,13 +887,15 @@ pub struct UserLocation {
     pub user_location_type: UserLocationType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum UserLocationType {
     Approximate,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct Message {
     /// Content generated by the model.
     ///
@@ -930,7 +980,8 @@ pub struct Message {
     pub usage: Usage,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct ContentBlock {
     /// Citations supporting the text block.
     ///
@@ -950,6 +1001,7 @@ pub struct ContentBlock {
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+    #[ts(type = "any")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -960,7 +1012,8 @@ pub struct ContentBlock {
     pub tool_use_id: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct ResponseLocationCitation {
     pub cited_text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -994,14 +1047,16 @@ pub struct ResponseLocationCitation {
     pub source: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
+#[ts(export_to = "anthropic/")]
 pub enum ContentBlockContent {
     ResponseWebSearchResultBlockArray(Vec<ResponseWebSearchResultBlock>),
     ResponseWebSearchToolResultError(ResponseWebSearchToolResultError),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct ResponseWebSearchResultBlock {
     pub encrypted_content: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1012,22 +1067,25 @@ pub struct ResponseWebSearchResultBlock {
     pub url: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ContentType {
     #[serde(rename = "web_search_result")]
     WebSearchResult,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct ResponseWebSearchToolResultError {
     pub error_code: WebSearchToolResultErrorCode,
     #[serde(rename = "type")]
     pub response_web_search_tool_result_error_type: RequestWebSearchToolResultErrorType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ContentBlockType {
     #[serde(rename = "redacted_thinking")]
     RedactedThinking,
@@ -1044,8 +1102,9 @@ pub enum ContentBlockType {
 /// Object type.
 ///
 /// For Messages, this is always `"message"`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ResponseType {
     Message,
 }
@@ -1053,14 +1112,16 @@ pub enum ResponseType {
 /// Conversational role of the generated message.
 ///
 /// This will always be `"assistant"`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ResponseRole {
     Assistant,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum StopReason {
     #[serde(rename = "end_turn")]
     EndTurn,
@@ -1092,7 +1153,8 @@ pub enum StopReason {
 ///
 /// Total input tokens in a request is the summation of `input_tokens`,
 /// `cache_creation_input_tokens`, and `cache_read_input_tokens`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct Usage {
     /// Breakdown of cached tokens by TTL
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1115,7 +1177,8 @@ pub struct Usage {
     pub service_tier: Option<ServiceTierServiceTier>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct CacheCreation {
     /// The number of input tokens used to create the 1 hour cache entry.
     #[serde(rename = "ephemeral_1h_input_tokens")]
@@ -1125,14 +1188,16 @@ pub struct CacheCreation {
     pub ephemeral_5_m_input_tokens: i64,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct ServerToolUsage {
     /// The number of web search tool requests.
     pub web_search_requests: i64,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
 pub enum ServiceTierServiceTier {
     Batch,
     Priority,

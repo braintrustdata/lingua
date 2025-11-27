@@ -1,10 +1,11 @@
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::openai::generated as openai;
+use crate::serde_json;
+use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::Message;
 use crate::universal::{AssistantContent, TextContentPart, UserContent, UserContentPart};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents a minimal span structure with input/output fields
 #[derive(Debug, Clone, Serialize, Deserialize)]
