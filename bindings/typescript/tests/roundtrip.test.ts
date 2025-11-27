@@ -23,6 +23,8 @@ import {
   openaiToolsToLingua,
   linguaToolsToAnthropic,
   anthropicToolsToLingua,
+  linguaToResponsesTools,
+  responsesToolsToLingua,
   clientTool,
   providerTool,
   ProviderTools,
@@ -594,15 +596,19 @@ describe("TypeScript Roundtrip Tests", () => {
       });
     });
 
-    describe("Provider Tools - OpenAI", () => {
+    describe("Provider Tools - OpenAI (Responses API)", () => {
+      // Provider tools are only supported in OpenAI's Responses API, not Chat Completions.
+      // Chat Completions API only supports function tools.
+      // Use linguaToResponsesTools/responsesToolsToLingua for provider tools.
+
       test("Computer use tool roundtrip", () => {
         const original = ProviderTools.openai.computer({
           display_width_px: 1920,
           display_height_px: 1080,
         });
 
-        const openaiTools = linguaToolsToOpenAI([original]);
-        const roundtripped = openaiToolsToLingua(openaiTools);
+        const responsesTools = linguaToResponsesTools([original]);
+        const roundtripped = responsesToolsToLingua(responsesTools);
 
         expect(roundtripped).toHaveLength(1);
         const tool = roundtripped[0] as any;
@@ -619,8 +625,8 @@ describe("TypeScript Roundtrip Tests", () => {
           container: { type: "auto" },
         });
 
-        const openaiTools = linguaToolsToOpenAI([original]);
-        const roundtripped = openaiToolsToLingua(openaiTools);
+        const responsesTools = linguaToResponsesTools([original]);
+        const roundtripped = responsesToolsToLingua(responsesTools);
 
         expect(roundtripped).toHaveLength(1);
         const tool = roundtripped[0] as any;
@@ -632,8 +638,8 @@ describe("TypeScript Roundtrip Tests", () => {
       test("Web search tool roundtrip", () => {
         const original = ProviderTools.openai.webSearch();
 
-        const openaiTools = linguaToolsToOpenAI([original]);
-        const roundtripped = openaiToolsToLingua(openaiTools);
+        const responsesTools = linguaToResponsesTools([original]);
+        const roundtripped = responsesToolsToLingua(responsesTools);
 
         expect(roundtripped).toHaveLength(1);
         const tool = roundtripped[0] as any;
@@ -694,7 +700,9 @@ describe("TypeScript Roundtrip Tests", () => {
     });
 
     describe("Mixed Client and Provider Tools", () => {
-      test("OpenAI: Mixed tools roundtrip", () => {
+      // Note: Mixed tools with provider tools require Responses API for OpenAI.
+      // Chat Completions API only supports function tools.
+      test("OpenAI Responses: Mixed tools roundtrip", () => {
         const tools = [
           clientTool({
             name: "get_weather",
@@ -715,8 +723,8 @@ describe("TypeScript Roundtrip Tests", () => {
           }),
         ];
 
-        const openaiTools = linguaToolsToOpenAI(tools);
-        const roundtripped = openaiToolsToLingua(openaiTools);
+        const responsesTools = linguaToResponsesTools(tools);
+        const roundtripped = responsesToolsToLingua(responsesTools);
 
         expect(roundtripped).toHaveLength(3);
 
@@ -773,16 +781,16 @@ describe("TypeScript Roundtrip Tests", () => {
     });
 
     describe("Unknown Tool Handling", () => {
-      test("Unsupported provider tool for OpenAI maps to Unknown", () => {
+      test("Unsupported provider tool for OpenAI Responses maps to Unknown", () => {
         const anthropicBashTool = ProviderTools.anthropic.bash();
 
         // bash_20250124 is not natively supported by OpenAI, but maps to Unknown
-        // for forward compatibility
-        const openaiTools = linguaToolsToOpenAI([anthropicBashTool]);
+        // for forward compatibility (using Responses API since Chat Completions only supports functions)
+        const responsesTools = linguaToResponsesTools([anthropicBashTool]);
 
-        expect(openaiTools).toHaveLength(1);
+        expect(responsesTools).toHaveLength(1);
         // The tool should be serialized as Unknown type with the original tool_type
-        expect(openaiTools[0]).toHaveProperty("type", "bash_20250124");
+        expect(responsesTools[0]).toHaveProperty("type", "bash_20250124");
       });
 
       test("Unsupported provider tool for Anthropic maps to Unknown", () => {
@@ -882,6 +890,7 @@ describe("TypeScript Roundtrip Tests", () => {
 
       test("Provider tool configs with numbers", () => {
         // Test actual provider tools to ensure their configs serialize correctly
+        // Using Responses API for OpenAI since Chat Completions only supports functions
         const computerTool = ProviderTools.openai.computer({
           display_width_px: 1920,
           display_height_px: 1080,
@@ -890,10 +899,10 @@ describe("TypeScript Roundtrip Tests", () => {
           max_uses: 5,
         });
 
-        const openaiTools = linguaToolsToOpenAI([computerTool]);
+        const responsesTools = linguaToResponsesTools([computerTool]);
         const anthropicTools = linguaToolsToAnthropic([webSearchTool]);
 
-        const rtOpenai = openaiToolsToLingua(openaiTools)[0] as any;
+        const rtOpenai = responsesToolsToLingua(responsesTools)[0] as any;
         const rtAnthropic = anthropicToolsToLingua(anthropicTools)[0] as any;
 
         // Verify config numbers are properly deserialized

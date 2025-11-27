@@ -23,6 +23,8 @@ export {
   linguaToolsToAnthropic,
   openaiToolsToLingua,
   linguaToolsToOpenAI,
+  responsesToolsToLingua,
+  linguaToResponsesTools,
 
   // Processing functions
   deduplicateMessages,

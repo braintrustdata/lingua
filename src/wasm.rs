@@ -102,20 +102,23 @@ pub fn lingua_tools_to_anthropic(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_lingua::<Vec<Tool>, Vec<anthropic::Tool>>(value)
 }
 
-/// Convert array of OpenAI tools to Lingua Tools
+/// Convert array of OpenAI Chat Completions tools to Lingua Tools
 ///
-/// Supports both function tools (client tools) and provider tools (web_search, computer_use, etc.)
+/// Expects ToolElement format with nested `function` object as returned by Chat Completions API.
+/// Note: Only function tools are supported (Chat Completions API doesn't return provider tools).
 #[wasm_bindgen]
 pub fn openai_tools_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_to_lingua::<Vec<openai::Tool>, Vec<Tool>>(value)
+    convert_to_lingua::<Vec<openai::ToolElement>, Vec<Tool>>(value)
 }
 
-/// Convert array of Lingua Tools to OpenAI tools
+/// Convert array of Lingua Tools to OpenAI Chat Completions tools
 ///
-/// Supports both function tools (client tools) and provider tools (web_search, computer_use, etc.)
+/// Uses ToolElement format with nested `function` object as required by Chat Completions API.
+/// Note: Only function tools (client tools) are supported. Provider tools should be passed
+/// via specific options like `web_search_options`.
 #[wasm_bindgen]
 pub fn lingua_tools_to_openai(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_from_lingua::<Vec<Tool>, Vec<openai::Tool>>(value)
+    convert_from_lingua::<Vec<Tool>, Vec<openai::ToolElement>>(value)
 }
 
 /// Convert array of OpenAI Responses API tools to Lingua Tools

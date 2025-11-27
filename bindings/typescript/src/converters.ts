@@ -602,18 +602,18 @@ export const openaiToolsToLingua = createToLinguaConverter<any[]>(
 );
 
 /**
- * Convert array of Lingua Tools to OpenAI format
+ * Convert array of Lingua Tools to OpenAI Chat Completions format
  *
- * Converts Lingua's universal tool format to OpenAI tool definitions.
- * Client tools become Function tools, and provider tools are mapped to OpenAI's
- * native tools (computer_use_preview, code_interpreter, web_search).
+ * Converts Lingua's universal tool format to OpenAI Chat Completions tool definitions.
+ * Only client tools (function tools) are supported - use linguaToResponsesTools for
+ * provider tools like computer_use, code_interpreter, or web_search.
  *
- * @param tools - Array of Lingua Tool objects
- * @returns Array of OpenAI tool objects
+ * @param tools - Array of Lingua Tool objects (client tools only)
+ * @returns Array of OpenAI Chat Completions tool objects with nested `function` field
  *
  * @example
  * ```typescript
- * import { clientTool, ProviderTools, linguaToolsToOpenAI } from "@braintrust/lingua";
+ * import { clientTool, linguaToolsToOpenAI } from "@braintrust/lingua";
  *
  * const tools = [
  *   clientTool({
@@ -621,17 +621,73 @@ export const openaiToolsToLingua = createToLinguaConverter<any[]>(
  *     description: "Get weather for a location",
  *     input_schema: { type: "object", properties: { location: { type: "string" } } },
  *     provider_options: { strict: true }  // OpenAI strict mode
- *   }),
- *   ProviderTools.openai.computer({ display_width_px: 1920, display_height_px: 1080 })
+ *   })
  * ];
  * const openaiTools = linguaToolsToOpenAI(tools);
+ * // Result: [{ type: "function", function: { name: "get_weather", ... } }]
  * ```
  *
- * @throws {ConversionError} If provider tool type is not supported by OpenAI
+ * @throws {ConversionError} If provider tools are passed (use linguaToResponsesTools instead)
  */
 export const linguaToolsToOpenAI = createFromLinguaConverter<any[], any[]>(
   () => getWasm().lingua_tools_to_openai,
   "OpenAI"
+);
+
+/**
+ * Convert array of OpenAI Responses API tools to Lingua Tools
+ *
+ * Converts OpenAI Responses API tool definitions to Lingua's universal format.
+ * Supports both function tools and provider tools (computer_use, code_interpreter, web_search).
+ *
+ * @param tools - Array of OpenAI Responses API tool objects
+ * @returns Array of Lingua Tool objects
+ *
+ * @example
+ * ```typescript
+ * const responsesTools = [
+ *   { type: "function", name: "get_weather", description: "Get weather", parameters: {} },
+ *   { type: "computer_use_preview", display_width: 1920, display_height: 1080 }
+ * ];
+ * const linguaTools = responsesToolsToLingua(responsesTools);
+ * ```
+ *
+ * @throws {ConversionError} If conversion fails
+ */
+export const responsesToolsToLingua = createToLinguaConverter<any[]>(
+  () => getWasm().responses_tools_to_lingua,
+  "OpenAI Responses"
+);
+
+/**
+ * Convert array of Lingua Tools to OpenAI Responses API format
+ *
+ * Converts Lingua's universal tool format to OpenAI Responses API tool definitions.
+ * Supports both client tools (function tools) and provider tools (computer_use, code_interpreter, web_search).
+ *
+ * @param tools - Array of Lingua Tool objects
+ * @returns Array of OpenAI Responses API tool objects
+ *
+ * @example
+ * ```typescript
+ * import { clientTool, ProviderTools, linguaToResponsesTools } from "@braintrust/lingua";
+ *
+ * const tools = [
+ *   clientTool({
+ *     name: "get_weather",
+ *     description: "Get weather for a location",
+ *     input_schema: { type: "object", properties: { location: { type: "string" } } }
+ *   }),
+ *   ProviderTools.openai.computer({ display_width_px: 1920, display_height_px: 1080 })
+ * ];
+ * const responsesTools = linguaToResponsesTools(tools);
+ * ```
+ *
+ * @throws {ConversionError} If provider tool type is not supported by OpenAI
+ */
+export const linguaToResponsesTools = createFromLinguaConverter<any[], any[]>(
+  () => getWasm().lingua_to_responses_tools,
+  "OpenAI Responses"
 );
 
 // ============================================================================
