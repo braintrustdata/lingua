@@ -517,9 +517,6 @@ fn generate_anthropic_types_with_quicktype(
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
 
-    // Remove any duplicate adjacent attribute lines that may have been introduced
-    processed_output = remove_duplicate_adjacent_attributes(&processed_output);
-
     let dest_path = "src/providers/anthropic/generated.rs";
 
     // Create directory if needed
@@ -928,52 +925,7 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
 
-    // Remove any duplicate adjacent attribute lines
-    processed = remove_duplicate_adjacent_attributes(&processed);
-
     processed
-}
-
-/// Remove duplicate attribute lines within attribute blocks (between #[derive] and type definition)
-fn remove_duplicate_adjacent_attributes(content: &str) -> String {
-    let lines: Vec<&str> = content.lines().collect();
-    let mut result_lines = Vec::new();
-    let mut in_attr_block = false;
-    let mut seen_attrs: HashSet<String> = HashSet::new();
-
-    for line in lines {
-        let trimmed = line.trim();
-
-        // Start tracking attributes when we see #[derive]
-        if trimmed.starts_with("#[derive(") {
-            in_attr_block = true;
-            seen_attrs.clear();
-            result_lines.push(line.to_string());
-            continue;
-        }
-
-        // End attribute block when we see pub struct/enum
-        if trimmed.starts_with("pub struct ") || trimmed.starts_with("pub enum ") {
-            in_attr_block = false;
-            seen_attrs.clear();
-            result_lines.push(line.to_string());
-            continue;
-        }
-
-        // Within attribute block, deduplicate attributes
-        if in_attr_block && trimmed.starts_with("#[") {
-            // Use the trimmed line as the key (ignoring whitespace differences)
-            if seen_attrs.contains(trimmed) {
-                // Skip duplicate attribute
-                continue;
-            }
-            seen_attrs.insert(trimmed.to_string());
-        }
-
-        result_lines.push(line.to_string());
-    }
-
-    result_lines.join("\n")
 }
 
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
@@ -1071,9 +1023,6 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "pub output_item_type: OutputItemType,",
         "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
     );
-
-    // Remove any duplicate adjacent attribute lines
-    processed = remove_duplicate_adjacent_attributes(&processed);
 
     processed
 }
