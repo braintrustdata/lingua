@@ -3,6 +3,7 @@
 pub use big_serde_json as serde_json;
 
 pub mod capabilities;
+pub mod error;
 pub mod processing;
 pub mod providers;
 pub mod universal;
