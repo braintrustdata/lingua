@@ -1,0 +1,70 @@
+version: "2"
+
+run:
+  timeout: 2m
+  tests: true
+  modules-download-mode: readonly
+ 
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - dupl
+    - errorlint
+    - forcetypeassert
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gosec
+    - misspell
+    - nestif
+    - nolintlint
+    - prealloc
+    - revive
+    - thelper
+    - unconvert
+    - unparam
+    - usetesting
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+    govet:
+      enable-all: true
+
+    gocyclo:
+      min-complexity: 15
+
+    gocognit:
+      min-complexity: 20
+
+    nestif:
+      min-complexity: 5
+
+    gocritic:
+      enable-all: true
+
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: line-length-limit
+          arguments:
+            - 125
+        - name: package-directory-mismatch
+          disabled: true
+        - name: add-constant
+          disabled: true
+        - name: cognitive-complexity
+          arguments: [10]
+        - name: exported
+          arguments:
+            - checkPrivateReceivers
+            - sayRepetitiveInsteadOfStutters
+formatters:
+  enable:
+    - gofmt
+    - goimports
