@@ -1121,69 +1121,6 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
     );
 
-    // ============================================================================
-    // Fix Tool struct to include function field for ChatCompletionTool compatibility
-    // ============================================================================
-    //
-    // PROBLEM:
-    // OpenAI's OpenAPI spec has TWO different tool schemas:
-    //
-    // 1. ChatCompletionTool (used by chat.completions.create):
-    //    - Has a REQUIRED `function` field containing a FunctionObject
-    //    - Only supports type: "function"
-    //    - Used for user-defined function tools
-    //
-    // 2. Generic Tool union (used by Assistants API and other endpoints):
-    //    - A discriminated union of 10+ tool types (FunctionTool, FileSearchTool,
-    //      ComputerUsePreviewTool, WebSearchTool, MCPTool, CodeInterpreterTool, etc.)
-    //    - These variants have different fields - NOT all have a function field
-    //    - Provider-specific tools like code_interpreter, web_search don't need it
-    //
-    // QUICKTYPE BEHAVIOR:
-    // During dependency resolution, quicktype pulls in BOTH schemas and tries to
-    // merge them into a single universal struct. Since the generic Tool union
-    // variants don't all have a `function` field, quicktype correctly omits it
-    // from the merged struct to avoid type conflicts.
-    //
-    // WHY WE NEED THIS FIX:
-    // 1. Lingua needs ONE universal Tool struct that works for all endpoints
-    // 2. Including `function` as optional (Option<FunctionObject>) is semantically correct:
-    //    - Function tools: function = Some(FunctionObject { ... })
-    //    - Provider tools: function = None
-    // 3. This matches how our converter works (see src/providers/openai/convert.rs)
-    // 4. Alternative approaches would break Lingua's provider-agnostic design:
-    //    - Separate types per variant → users must know which OpenAI API they're calling
-    //
-    // See: src/providers/openai/convert.rs for function tool and provider tool conversion logic
-    // ============================================================================
-    if processed.contains("pub struct Tool {") {
-        processed = processed.replace(
-            "pub struct Tool {\n",
-            "pub struct Tool {\n    /// For function tools, contains the function definition\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub function: Option<FunctionObject>,\n"
-        );
-    }
-
-    // Expand the generic Type enum to cover all tool variants and normalize MCP variant naming
-    if let Some(start) = processed.find("pub enum Type {") {
-        let mut brace_count = 0isize;
-        let mut end = None;
-        for (i, ch) in processed[start..].char_indices() {
-            if ch == '{' {
-                brace_count += 1;
-            } else if ch == '}' {
-                brace_count -= 1;
-                if brace_count == 0 {
-                    end = Some(start + i + 1);
-                    break;
-                }
-            }
-        }
-        if let Some(end_idx) = end {
-            let replacement = "pub enum Type {\n    Function,\n    ComputerUsePreview,\n    Mcp,\n    ImageGeneration,\n    LocalShell,\n}\n";
-            processed.replace_range(start..end_idx, replacement);
-        }
-    }
-
     // Remove any duplicate adjacent attribute lines
     processed = remove_duplicate_adjacent_attributes(&processed);
 

@@ -135,7 +135,7 @@ This ensures fixes are permanent and survive regeneration cycles.
 
 ## Useful commands
 
-Always generate provider types from specs via the `generate-provider-types` Makefile target, eg `make generate-provider-types PROVIDER=openai`.
+Always generate provider types from specs via the `generate-provider-types` Makefile target, e.g. `make generate-provider-types PROVIDER=openai`.
 See the Makefile for other useful targets you can run.
 
 ## Common gotchas

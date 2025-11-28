@@ -129,7 +129,7 @@ cases, generate snapshots, and make the necessary changes.
 
 ### LLM API pipeline
 
-OpenAI and Anthropic do not have Rust SDKs, but they do publish OpenAPI specs, so we fetch those and use `quicktype` (with a few hacks) to generate Rust types. These types generally work but do not have really great discriminated unions (like they do in Typescript). Google has protobufs, which we are able to convert to Rust types, and Bedrock actually publishes a Rust SDK. (We currently target quicktype 23.2.6, the latest published via npm.)
+OpenAI and Anthropic do not have Rust SDKs, but they do publish OpenAPI specs, so we fetch those and use `quicktype` (with a few hacks) to generate Rust types. These types generally work but do not have really great discriminated unions (like they do in Typescript). Google has protobufs, which we are able to convert to Rust types, and Bedrock actually publishes a Rust SDK.
 
 ## Testing Strategy
 
