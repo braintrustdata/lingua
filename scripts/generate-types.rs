@@ -16,8 +16,7 @@ use std::path::Path;
 
 // Import tool generation helpers from our inline module
 use tool_generator::{
-    extract_tool_schemas, generate_all_tool_code, remove_duplicate_derives,
-    replace_tool_struct_with_enum, ToolSchemas,
+    generate_all_tool_code, remove_duplicate_derives, replace_tool_struct_with_enum,
 };
 
 fn main() {
@@ -215,9 +214,11 @@ fn generate_openai_types_with_quicktype(
     // Post-process the quicktype output
     let mut processed_output = post_process_quicktype_output_for_openai(&quicktype_output);
 
-    // Generate improved tool types and replace the flat Tool struct
-    // NOTE: The Tool enum is for internal ergonomics only. For the actual API,
-    // use ToolElement which has the correct nested structure for chat completions.
+    // Quicktype generates a flat `pub struct Tool` with all fields optional, but the
+    // OpenAPI spec defines Tool as a discriminated union (anyOf with a "type" tag).
+    // We replace quicktype's struct with a proper Rust enum using #[serde(tag = "type")]
+    // so each tool variant (function, web_search, code_interpreter, etc.) serializes
+    // correctly with its specific fields.
     if let Ok(tool_code) = generate_all_tool_code("openai", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
@@ -510,7 +511,11 @@ fn generate_anthropic_types_with_quicktype(
     // Post-process the quicktype output
     let mut processed_output = post_process_quicktype_output_for_anthropic(&quicktype_output);
 
-    // Generate improved tool types and replace the flat Tool struct
+    // Quicktype generates a flat `pub struct Tool` with all fields optional, but the
+    // OpenAPI spec defines Tool as a discriminated union (oneOf with a "type" tag).
+    // We replace quicktype's struct with a proper Rust enum using #[serde(tag = "type")]
+    // so each tool variant (custom, computer, text_editor, etc.) serializes correctly
+    // with its specific fields.
     if let Ok(tool_code) = generate_all_tool_code("anthropic", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
@@ -565,26 +570,14 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
 
     let mut separated_schemas = serde_json::Map::new();
 
-    // Step 2: First recursively add all dependencies for the original schemas
+    // Step 2: Recursively add all dependencies for the original schemas.
+    // Tool schemas will be pulled in automatically via $ref links from CreateMessageParams.
     for schema_name in &request_schemas {
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
     for schema_name in &response_schemas {
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
-
-    // Include tool schemas and their dependencies so we can build a synthetic tool union
-    let tool_schemas = extract_tool_schemas("anthropic", spec);
-    for tool in tool_schemas
-        .provider_tools
-        .iter()
-        .map(|t| t.schema_name.as_str())
-        .chain(tool_schemas.client_tools.iter().map(String::as_str))
-    {
-        add_dependencies_recursively(tool, all_schemas, &mut separated_schemas);
-    }
-
-    // All other types will be included automatically through dependency resolution
 
     // Step 3: Now clean the main request/response schemas to remove conflicting fields
     for schema_name in &request_schemas {
@@ -624,50 +617,6 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         ],
         "definitions": separated_schemas
     });
-
-    inject_anthropic_tool_union(root_schema, &tool_schemas)
-}
-
-fn inject_anthropic_tool_union(
-    mut root_schema: serde_json::Value,
-    tool_schemas: &ToolSchemas,
-) -> serde_json::Value {
-    let definitions = root_schema
-        .get_mut("definitions")
-        .and_then(|d| d.as_object_mut());
-
-    let Some(defs) = definitions else {
-        return root_schema;
-    };
-
-    let mut refs = Vec::new();
-
-    for client in &tool_schemas.client_tools {
-        if client == "Tool" {
-            continue;
-        }
-        refs.push(serde_json::json!({"$ref": format!("#/definitions/{}", client)}));
-    }
-    for provider in &tool_schemas.provider_tools {
-        if provider.schema_name == "Tool" {
-            continue;
-        }
-        refs.push(serde_json::json!({"$ref": format!("#/definitions/{}", provider.schema_name)}));
-    }
-
-    if refs.is_empty() {
-        return root_schema;
-    }
-
-    let tool_union = serde_json::json!({
-        "title": "Tool",
-        "oneOf": refs,
-        "discriminator": {
-            "propertyName": "type"
-        }
-    });
-
-    defs.insert("Tool".to_string(), tool_union);
 
     root_schema
 }

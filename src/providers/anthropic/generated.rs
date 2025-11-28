@@ -918,15 +918,35 @@ pub enum Tool {
     },
 }
 
-/// Name of the tool.
+/// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
 ///
-/// This is how the tool will be called by the model and in `tool_use` blocks.
+/// This defines the shape of the `input` that your tool accepts and that the model will
+/// produce.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct InputSchema {
+    #[ts(type = "any")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<serde_json::Map<String, serde_json::Value>>,
+    pub required: Option<Vec<String>>,
+    #[serde(rename = "type")]
+    pub input_schema_type: InputSchemaType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum InputSchemaType {
+    Object,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
 pub enum ToolType {
     #[serde(rename = "bash_20250124")]
     Bash20250124,
+    Custom,
     #[serde(rename = "text_editor_20250124")]
     TextEditor20250124,
     #[serde(rename = "text_editor_20250429")]
