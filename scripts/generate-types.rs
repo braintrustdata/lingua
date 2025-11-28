@@ -15,9 +15,7 @@ use std::collections::HashSet;
 use std::path::Path;
 
 // Import tool generation helpers from our inline module
-use tool_generator::{
-    generate_all_tool_code, remove_duplicate_derives, replace_tool_struct_with_enum,
-};
+use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -222,7 +220,6 @@ fn generate_openai_types_with_quicktype(
     if let Ok(tool_code) = generate_all_tool_code("openai", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
-    processed_output = remove_duplicate_derives(&processed_output);
 
     let dest_path = "src/providers/openai/generated.rs";
 
@@ -519,7 +516,6 @@ fn generate_anthropic_types_with_quicktype(
     if let Ok(tool_code) = generate_all_tool_code("anthropic", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
-    processed_output = remove_duplicate_derives(&processed_output);
 
     // Remove any duplicate adjacent attribute lines that may have been introduced
     processed_output = remove_duplicate_adjacent_attributes(&processed_output);
@@ -1598,34 +1594,6 @@ mod tool_generator {
         fix_tool_name_types(out)
     }
 
-    pub fn remove_duplicate_derives(content: &str) -> String {
-        let mut out = Vec::new();
-        let mut derive_seen = false;
-
-        for line in content.lines() {
-            let trimmed = line.trim_start();
-
-            if trimmed.starts_with("pub struct ") || trimmed.starts_with("pub enum ") {
-                derive_seen = false;
-                out.push(line.to_string());
-                continue;
-            }
-
-            if trimmed.starts_with("#[derive(") {
-                if derive_seen {
-                    continue;
-                }
-                derive_seen = true;
-                out.push(line.to_string());
-                continue;
-            }
-
-            out.push(line.to_string());
-        }
-
-        out.join("\n")
-    }
-
     // -------------------------------------------------------------------------
     // Extraction functions
     // -------------------------------------------------------------------------
@@ -1991,7 +1959,6 @@ mod tool_generator {
         content = content.replace("pub name: Name,", "pub name: String,");
         // Normalize quicktype's double-underscore type fields (e.g., web_search_tool_20250305__type)
         content = content.replace("__type", "_type");
-        content = remove_duplicate_derives(&content);
 
         if let Some(start) = content.find("pub enum Name {") {
             let mut brace_count = 0isize;
