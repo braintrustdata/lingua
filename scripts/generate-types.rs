@@ -1650,10 +1650,6 @@ mod tool_generator {
                         tool_type: const_val.to_string(),
                     });
                 }
-                // Non-versioned const but looks like a client/custom tool
-                else if props.contains_key("input_schema") {
-                    client_tools.push(schema_name.clone());
-                }
             } else if props.contains_key("input_schema") {
                 client_tools.push(schema_name.clone());
             }
