@@ -11,7 +11,6 @@
 //! Usage: cargo run --bin generate-types -- [provider]
 //!        ./scripts/generate-types.rs [provider]
 
-use std::collections::HashSet;
 use std::path::Path;
 
 // Import tool generation helpers from our inline module
@@ -1494,7 +1493,7 @@ mod tool_generator {
     use super::schema_converter::{schema_type_to_rust, to_rust_field_name};
     use std::collections::HashSet;
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, Default)]
     pub struct ToolSchemas {
         pub provider_tools: Vec<ProviderToolSchema>,
         pub client_tools: Vec<String>,
@@ -1504,6 +1503,33 @@ mod tool_generator {
     pub struct ProviderToolSchema {
         pub schema_name: String,
         pub tool_type: String,
+    }
+
+    /// Helper to extract components.schemas from an OpenAPI spec
+    fn get_schemas(
+        spec: &serde_json::Value,
+    ) -> Option<&serde_json::Map<String, serde_json::Value>> {
+        spec.get("components")
+            .and_then(|c| c.get("schemas"))
+            .and_then(|s| s.as_object())
+    }
+
+    /// Find the position after the closing brace that matches the opening brace at `open_pos`
+    fn find_closing_brace(content: &str, open_pos: usize) -> Option<usize> {
+        let mut depth = 0isize;
+        for (i, ch) in content[open_pos..].char_indices() {
+            match ch {
+                '{' => depth += 1,
+                '}' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        return Some(open_pos + i + 1);
+                    }
+                }
+                _ => {}
+            }
+        }
+        None
     }
 
     pub fn generate_all_tool_code(
@@ -1551,85 +1577,63 @@ mod tool_generator {
         match provider {
             "openai" => extract_openai_tool_schemas(spec),
             "anthropic" => extract_anthropic_tool_schemas(spec),
-            _ => ToolSchemas {
-                provider_tools: Vec::new(),
-                client_tools: Vec::new(),
-            },
+            _ => ToolSchemas::default(),
         }
     }
 
     fn extract_openai_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
-        let mut provider_tools = Vec::new();
-        let mut client_tools = Vec::new();
-
-        let schemas = spec
-            .get("components")
-            .and_then(|c| c.get("schemas"))
-            .and_then(|s| s.as_object());
-
-        let Some(schemas) = schemas else {
-            return ToolSchemas {
-                provider_tools,
-                client_tools,
-            };
+        let Some(schemas) = get_schemas(spec) else {
+            return ToolSchemas::default();
         };
-
         let Some(tool_schema) = schemas.get("Tool") else {
-            return ToolSchemas {
-                provider_tools,
-                client_tools,
-            };
+            return ToolSchemas::default();
+        };
+        let Some(any_of) = tool_schema.get("anyOf").and_then(|a| a.as_array()) else {
+            return ToolSchemas::default();
         };
 
-        if let Some(any_of) = tool_schema.get("anyOf").and_then(|a| a.as_array()) {
-            for ref_item in any_of {
-                if let Some(schema_ref) = ref_item.get("$ref").and_then(|r| r.as_str()) {
-                    if let Some(schema_name) = schema_ref.split('/').last() {
-                        if let Some(schema_def) = schemas.get(schema_name) {
-                            let type_value = schema_def
-                                .get("properties")
-                                .and_then(|p| p.get("type"))
-                                .and_then(|t| t.get("enum"))
-                                .and_then(|e| e.get(0))
-                                .and_then(|v| v.as_str());
+        let mut result = ToolSchemas::default();
 
-                            if let Some(type_val) = type_value {
-                                if type_val == "function" || type_val == "custom" {
-                                    client_tools.push(schema_name.to_string());
-                                } else {
-                                    provider_tools.push(ProviderToolSchema {
-                                        schema_name: schema_name.to_string(),
-                                        tool_type: type_val.to_string(),
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
+        for ref_item in any_of {
+            let Some(schema_ref) = ref_item.get("$ref").and_then(|r| r.as_str()) else {
+                continue;
+            };
+            let Some(schema_name) = schema_ref.split('/').last() else {
+                continue;
+            };
+            let Some(schema_def) = schemas.get(schema_name) else {
+                continue;
+            };
+            let Some(type_val) = schema_def
+                .get("properties")
+                .and_then(|p| p.get("type"))
+                .and_then(|t| t.get("enum"))
+                .and_then(|e| e.as_array())
+                .and_then(|arr| arr.first())
+                .and_then(|v| v.as_str())
+            else {
+                continue;
+            };
+
+            if type_val == "function" || type_val == "custom" {
+                result.client_tools.push(schema_name.to_string());
+            } else {
+                result.provider_tools.push(ProviderToolSchema {
+                    schema_name: schema_name.to_string(),
+                    tool_type: type_val.to_string(),
+                });
             }
         }
 
-        ToolSchemas {
-            provider_tools,
-            client_tools,
-        }
+        result
     }
 
     fn extract_anthropic_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
-        let mut provider_tools = Vec::new();
-        let mut client_tools = Vec::new();
-
-        let schemas = spec
-            .get("components")
-            .and_then(|c| c.get("schemas"))
-            .and_then(|s| s.as_object());
-
-        let Some(schemas) = schemas else {
-            return ToolSchemas {
-                provider_tools,
-                client_tools,
-            };
+        let Some(schemas) = get_schemas(spec) else {
+            return ToolSchemas::default();
         };
+
+        let mut result = ToolSchemas::default();
 
         for (schema_name, schema_def) in schemas {
             // Skip beta tool schemas for now—they introduce generics/duplications and were noisy in generation
@@ -1645,20 +1649,17 @@ mod tool_generator {
 
             if let Some(const_val) = type_prop.get("const").and_then(|v| v.as_str()) {
                 if is_versioned_tool_type(const_val) {
-                    provider_tools.push(ProviderToolSchema {
+                    result.provider_tools.push(ProviderToolSchema {
                         schema_name: schema_name.clone(),
                         tool_type: const_val.to_string(),
                     });
                 }
             } else if props.contains_key("input_schema") {
-                client_tools.push(schema_name.clone());
+                result.client_tools.push(schema_name.clone());
             }
         }
 
-        ToolSchemas {
-            provider_tools,
-            client_tools,
-        }
+        result
     }
 
     fn is_versioned_tool_type(s: &str) -> bool {
@@ -1676,11 +1677,7 @@ mod tool_generator {
         tool_schemas: &ToolSchemas,
         spec: &serde_json::Value,
     ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-        let all_schemas = spec
-            .get("components")
-            .and_then(|c| c.get("schemas"))
-            .and_then(|s| s.as_object())
-            .ok_or("No components.schemas in spec")?;
+        let all_schemas = get_schemas(spec).ok_or("No components.schemas in spec")?;
 
         let mut generated_structs = Vec::new();
         let mut seen = HashSet::new();
@@ -1856,7 +1853,10 @@ mod tool_generator {
     // -------------------------------------------------------------------------
 
     fn filter_tool_code_against_existing(tool_code: &str, existing: &str) -> String {
-        let existing_names: HashSet<String> = collect_type_names(existing).into_iter().collect();
+        let existing_names: HashSet<String> = split_type_definitions(existing)
+            .into_iter()
+            .map(|(name, _)| name)
+            .collect();
         let mut blocks = Vec::new();
         let mut seen = HashSet::new();
 
@@ -1876,25 +1876,8 @@ mod tool_generator {
         let attr_start = content[..struct_pos]
             .rfind("#[derive(")
             .unwrap_or(struct_pos);
-
-        let mut brace_count = 0isize;
-        let mut found_open = false;
-        let mut end = None;
-
-        for (i, ch) in content[attr_start..].char_indices() {
-            if ch == '{' {
-                brace_count += 1;
-                found_open = true;
-            } else if ch == '}' {
-                brace_count -= 1;
-                if found_open && brace_count == 0 {
-                    end = Some(attr_start + i + 1);
-                    break;
-                }
-            }
-        }
-
-        end.map(|e| (attr_start, e))
+        let end = find_closing_brace(content, attr_start)?;
+        Some((attr_start, end))
     }
 
     fn fix_tool_name_types(mut content: String) -> String {
@@ -1906,20 +1889,7 @@ mod tool_generator {
         content = content.replace("__type", "_type");
 
         if let Some(start) = content.find("pub enum Name {") {
-            let mut brace_count = 0isize;
-            let mut end = None;
-            for (i, ch) in content[start..].char_indices() {
-                if ch == '{' {
-                    brace_count += 1;
-                } else if ch == '}' {
-                    brace_count -= 1;
-                    if brace_count == 0 {
-                        end = Some(start + i + 1);
-                        break;
-                    }
-                }
-            }
-            if let Some(end_idx) = end {
+            if let Some(end_idx) = find_closing_brace(&content, start) {
                 // Also remove trailing newline
                 let mut end_trim = end_idx;
                 while end_trim < content.len()
@@ -1948,41 +1918,34 @@ mod tool_generator {
     }
 
     fn schema_name_to_variant(schema_name: &str) -> String {
-        let base = schema_name.to_string();
-
-        if base == "Tool" || base == "BetaTool" {
+        if schema_name == "Tool" || schema_name == "BetaTool" {
             return "Custom".to_string();
         }
 
-        if let Some(idx) = base.rfind('_') {
-            let version = base[idx + 1..].to_string();
-            let name_part = base[..idx].replace("Tool", "");
+        if let Some(idx) = schema_name.rfind('_') {
+            let version = &schema_name[idx + 1..];
+            let name_part = schema_name[..idx].replace("Tool", "");
             return format!("{}{}", name_part, version);
         }
 
-        base.replace("Tool", "")
+        schema_name.replace("Tool", "")
     }
 
     fn extract_type_const_value(schema_name: &str, spec: &serde_json::Value) -> Option<String> {
-        let schemas = spec
-            .get("components")
-            .and_then(|c| c.get("schemas"))
-            .and_then(|s| s.as_object())?;
-
+        let schemas = get_schemas(spec)?;
         let schema = schemas.get(schema_name)?;
-        let properties = schema.get("properties")?.as_object()?;
-        let type_prop = properties.get("type")?;
-
-        if let Some(const_val) = type_prop.get("const").and_then(|v| v.as_str()) {
-            return Some(const_val.to_string());
-        }
+        let type_prop = schema.get("properties")?.as_object()?.get("type")?;
 
         type_prop
-            .get("enum")
-            .and_then(|arr| arr.as_array())
-            .and_then(|arr| arr.first())
+            .get("const")
+            .or_else(|| {
+                type_prop
+                    .get("enum")
+                    .and_then(|arr| arr.as_array())
+                    .and_then(|arr| arr.first())
+            })
             .and_then(|v| v.as_str())
-            .map(|s| s.to_string())
+            .map(String::from)
     }
 
     fn split_type_definitions(content: &str) -> Vec<(String, String)> {
@@ -2049,13 +2012,6 @@ mod tool_generator {
         }
 
         result
-    }
-
-    fn collect_type_names(content: &str) -> Vec<String> {
-        split_type_definitions(content)
-            .into_iter()
-            .map(|(name, _)| name)
-            .collect()
     }
 } // end mod tool_generator
 
