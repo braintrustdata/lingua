@@ -1636,7 +1636,7 @@ mod tool_generator {
         let mut result = ToolSchemas::default();
 
         for (schema_name, schema_def) in schemas {
-            // Skip beta tool schemas for now—they introduce generics/duplications and were noisy in generation
+            // Skip beta tools for now - Lingua does not (yet) support Anthropic beta features
             if schema_name.starts_with("Beta") {
                 continue;
             }
