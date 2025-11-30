@@ -784,49 +784,129 @@ pub enum ToolChoiceType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct Tool {
+pub struct CustomTool {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<CacheControlEphemeral>,
+    #[ts(type = "any")]
+    pub cache_control: Option<serde_json::Value>,
     /// Description of what this tool does.
     ///
-    /// Tool descriptions should be as detailed as possible. The more information that the model
-    /// has about what the tool is and how to use it, the better it will perform. You can use
-    /// natural language descriptions to reinforce important aspects of the tool input JSON
-    /// schema.
+    /// Tool descriptions should be as detailed as possible. The more information that the model has about what the tool is and how to use it, the better it will perform. You can use natural language descriptions to reinforce important aspects of the tool input JSON schema.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
     ///
-    /// This defines the shape of the `input` that your tool accepts and that the model will
-    /// produce.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub input_schema: Option<InputSchema>,
+    /// This defines the shape of the `input` that your tool accepts and that the model will produce.
+    #[ts(type = "any")]
+    pub input_schema: serde_json::Value,
     /// Name of the tool.
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
-    #[serde(rename = "type")]
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BashTool20250124 {
+    /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_type: Option<ToolType>,
-    /// Maximum number of characters to display when viewing a file. If not specified, defaults
-    /// to displaying the full file.
+    #[ts(type = "any")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct TextEditor20250124 {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "any")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct TextEditor20250429 {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "any")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct TextEditor20250728 {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "any")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Maximum number of characters to display when viewing a file. If not specified, defaults to displaying the full file.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_characters: Option<i64>,
-    /// If provided, only these domains will be included in results. Cannot be used alongside
-    /// `blocked_domains`.
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct WebSearchTool20250305 {
+    /// If provided, only these domains will be included in results. Cannot be used alongside `blocked_domains`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_domains: Option<Vec<String>>,
-    /// If provided, these domains will never appear in results. Cannot be used alongside
-    /// `allowed_domains`.
+    /// If provided, these domains will never appear in results. Cannot be used alongside `allowed_domains`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_domains: Option<Vec<String>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "any")]
+    pub cache_control: Option<serde_json::Value>,
     /// Maximum number of times the tool can be used in the API request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_uses: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
     /// Parameters for the user's location. Used to provide more relevant search results.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_location: Option<UserLocation>,
+    #[ts(type = "any")]
+    pub user_location: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type")]
+#[ts(export_to = "anthropic/")]
+pub enum Tool {
+    #[serde(rename = "bash_20250124")]
+    Bash20250124(BashTool20250124),
+
+    #[serde(rename = "text_editor_20250124")]
+    TextEditor20250124(TextEditor20250124),
+
+    #[serde(rename = "text_editor_20250429")]
+    TextEditor20250429(TextEditor20250429),
+
+    #[serde(rename = "text_editor_20250728")]
+    TextEditor20250728(TextEditor20250728),
+
+    #[serde(rename = "web_search_20250305")]
+    WebSearch20250305(WebSearchTool20250305),
+
+    #[serde(untagged)]
+    Custom(CustomTool),
 }
 
 /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
