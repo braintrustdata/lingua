@@ -1,4 +1,6 @@
 #[cfg(test)]
+use crate::serde_json;
+#[cfg(test)]
 use crate::universal::Message;
 #[cfg(test)]
 use crate::util::testutil::TestCase;

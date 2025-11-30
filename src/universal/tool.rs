@@ -9,6 +9,7 @@ This module provides a unified representation that can be converted to/from
 provider-specific formats using the `TryFromLLM` trait.
 */
 
+use crate::serde_json;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use ts_rs::TS;

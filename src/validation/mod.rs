@@ -19,6 +19,7 @@ pub mod bedrock;
 
 mod cross_provider_tests;
 
+use crate::serde_json;
 use serde::Deserialize;
 use thiserror::Error;
 

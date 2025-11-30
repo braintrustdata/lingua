@@ -16,6 +16,7 @@
 //     let model: openai_schemas = serde_json::from_str(&json).unwrap();
 // }
 
+use crate::serde_json;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use ts_rs::TS;

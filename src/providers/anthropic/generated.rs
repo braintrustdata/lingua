@@ -17,6 +17,7 @@
 //     let model: anthropic_schemas = serde_json::from_str(&json).unwrap();
 // }
 
+use crate::serde_json;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 

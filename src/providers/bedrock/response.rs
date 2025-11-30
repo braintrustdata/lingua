@@ -5,6 +5,7 @@ These types mirror the AWS Bedrock Converse API response structure with full ser
 for JSON serialization and compatibility with the Elmir format system.
 */
 
+use crate::serde_json;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 

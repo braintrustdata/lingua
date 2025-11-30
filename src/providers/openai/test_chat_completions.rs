@@ -2,10 +2,10 @@ use crate::providers::openai::generated::{
     ChatCompletionRequestMessage, ChatCompletionResponseMessage, CreateChatCompletionRequestClass,
     CreateChatCompletionResponse,
 };
+use crate::serde_json::Value;
 use crate::universal::{convert::TryFromLLM, Message};
 use crate::util::test_runner::run_roundtrip_test;
 use crate::util::testutil::{discover_test_cases_typed, Provider, TestCase};
-use serde_json::Value;
 
 pub type OpenAIChatCompletionsTestCase =
     TestCase<CreateChatCompletionRequestClass, CreateChatCompletionResponse, Value>;
