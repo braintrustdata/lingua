@@ -840,14 +840,12 @@ impl TryFromLLM<Tool> for generated::Tool {
                             },
                         ))
                     }
-                    unknown => Ok(generated::Tool::Unknown {
-                        tool_type: unknown.to_string(),
-                        name: provider_tool.name.unwrap_or_else(|| unknown.to_string()),
-                        config: config
-                            .as_object()
-                            .map(|map| map.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
-                            .unwrap_or_default(),
-                    }),
+                    unknown => Err(format!(
+                        "Unsupported Anthropic provider tool type: '{}'. Supported types are: \
+                         bash_20250124, text_editor_20250124, text_editor_20250429, \
+                         text_editor_20250728, web_search_20250305",
+                        unknown
+                    )),
                 }
             }
         }
@@ -948,28 +946,6 @@ impl TryFromLLM<generated::Tool> for Tool {
                 Ok(Tool::Provider(ProviderTool {
                     tool_type: "web_search_20250305".to_string(),
                     name: Some(search.name),
-                    config,
-                }))
-            }
-            generated::Tool::Unknown {
-                tool_type,
-                name,
-                config,
-            } => {
-                let mut cfg = serde_json::Map::new();
-                for (k, v) in config {
-                    cfg.insert(k, v);
-                }
-
-                let config = if cfg.is_empty() {
-                    None
-                } else {
-                    Some(serde_json::Value::Object(cfg))
-                };
-
-                Ok(Tool::Provider(ProviderTool {
-                    tool_type,
-                    name: Some(name),
                     config,
                 }))
             }

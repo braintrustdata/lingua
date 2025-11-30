@@ -1652,19 +1652,13 @@ impl TryFromLLM<Tool> for openai::Tool {
                         user_location: None,
                     },
                 )),
-                unknown => Ok(openai::Tool::Unknown {
-                    tool_type: unknown.to_string(),
-                    name: provider_tool.name.unwrap_or_else(|| unknown.to_string()),
-                    config: provider_tool
-                        .config
-                        .and_then(|c| {
-                            c.as_object().map(|map| {
-                                map.iter()
-                                    .map(|(k, v)| (k.clone(), v.clone()))
-                                    .collect::<std::collections::HashMap<_, _>>()
-                            })
-                        })
-                        .unwrap_or_default(),
+                unknown => Err(ConvertError::UnsupportedInputType {
+                    type_info: format!(
+                        "Unsupported OpenAI provider tool type: '{}'. Supported types are: \
+                         computer_use_preview, code_interpreter, web_search, file_search, mcp, \
+                         image_generation, local_shell, web_search_preview",
+                        unknown
+                    ),
                 }),
             },
         }
@@ -1690,7 +1684,7 @@ impl TryFromLLM<openai::Tool> for Tool {
             openai::Tool::Custom(custom) => Ok(Tool::Provider(ProviderTool {
                 tool_type: "custom".to_string(),
                 name: Some(custom.name),
-                config: None,
+                config: custom.format,
             })),
             openai::Tool::ComputerUsePreview(computer) => {
                 let mut config = serde_json::Map::new();
@@ -1832,24 +1826,6 @@ impl TryFromLLM<openai::Tool> for Tool {
                 name: None,
                 config: None,
             })),
-            openai::Tool::Unknown {
-                tool_type,
-                name,
-                config,
-            } => {
-                let config = if config.is_empty() {
-                    None
-                } else {
-                    Some(serde_json::Value::Object(
-                        config.into_iter().collect::<serde_json::Map<_, _>>(),
-                    ))
-                };
-                Ok(Tool::Provider(ProviderTool {
-                    tool_type,
-                    name: Some(name),
-                    config,
-                }))
-            }
         }
     }
 }

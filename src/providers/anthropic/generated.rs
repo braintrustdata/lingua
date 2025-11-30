@@ -890,9 +890,6 @@ pub struct WebSearchTool20250305 {
 #[serde(tag = "type")]
 #[ts(export_to = "anthropic/")]
 pub enum Tool {
-    #[serde(rename = "custom")]
-    Custom(CustomTool),
-
     #[serde(rename = "bash_20250124")]
     Bash20250124(BashTool20250124),
 
@@ -909,14 +906,7 @@ pub enum Tool {
     WebSearch20250305(WebSearchTool20250305),
 
     #[serde(untagged)]
-    Unknown {
-        #[serde(rename = "type")]
-        tool_type: String,
-        name: String,
-        #[ts(skip)]
-        #[serde(flatten)]
-        config: std::collections::HashMap<String, serde_json::Value>,
-    },
+    Custom(CustomTool),
 }
 
 /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.

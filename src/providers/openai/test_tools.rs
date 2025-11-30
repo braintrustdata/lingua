@@ -185,7 +185,14 @@ fn test_unsupported_provider_tool_errors() {
     });
 
     let result: Result<openai::Tool, _> = TryFromLLM::try_from(lingua_tool);
-    assert!(result.is_ok());
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("Unsupported OpenAI provider tool type"),
+        "Expected unsupported tool error, got: {}",
+        err
+    );
 }
 
 #[test]

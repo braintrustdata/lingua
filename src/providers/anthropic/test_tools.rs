@@ -165,11 +165,13 @@ fn test_unsupported_provider_tool_errors() {
     });
 
     let result: Result<generated::Tool, _> = TryFromLLM::try_from(lingua_tool);
-    assert!(result.is_ok());
-    match result.unwrap() {
-        generated::Tool::Unknown { tool_type, .. } => assert_eq!(tool_type, "code_execution"),
-        other => panic!("Expected Unknown tool, got {:?}", other),
-    }
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("Unsupported Anthropic provider tool type"),
+        "Expected unsupported tool error, got: {}",
+        err
+    );
 }
 
 #[test]

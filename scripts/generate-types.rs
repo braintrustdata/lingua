@@ -1768,7 +1768,7 @@ mod tool_generator {
     fn generate_tool_enum(
         provider: &str,
         tool_schemas: &ToolSchemas,
-        spec: &serde_json::Value,
+        _spec: &serde_json::Value,
     ) -> String {
         let mut enum_def = String::new();
         enum_def.push_str("#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n");
@@ -1776,17 +1776,11 @@ mod tool_generator {
         enum_def.push_str(&format!("#[ts(export_to = \"{}/\")]\n", provider));
         enum_def.push_str("pub enum Tool {\n");
 
-        for client_schema in &tool_schemas.client_tools {
-            let type_value = extract_type_const_value(client_schema, spec)
-                .unwrap_or_else(|| "custom".to_string());
-            let variant_name = schema_name_to_variant(client_schema);
-            let type_name = schema_name_to_rust_type(client_schema);
-            enum_def.push_str(&format!(
-                "    #[serde(rename = \"{}\")]\n    {}({}),\n\n",
-                type_value, variant_name, type_name
-            ));
-        }
-
+        // Provider tools (bash, text_editor, web_search, etc.) come first and use tagged
+        // deserialization via #[serde(rename = "...")]. The enum-level #[serde(tag = "type")]
+        // tells serde to look for a "type" field in the JSON to determine which variant to use.
+        // When JSON contains {"type": "bash_20250124", ...}, serde matches the "type" value
+        // against each variant's rename and deserializes into the matching one.
         for provider_tool in &tool_schemas.provider_tools {
             let variant_name = schema_name_to_variant(&provider_tool.schema_name);
             let type_name = schema_name_to_rust_type(&provider_tool.schema_name);
@@ -1796,9 +1790,22 @@ mod tool_generator {
             ));
         }
 
-        enum_def.push_str(
-        "    #[serde(untagged)]\n    Unknown {\n        #[serde(rename = \"type\")]\n        tool_type: String,\n        name: String,\n        #[ts(skip)]\n        #[serde(flatten)]\n        config: std::collections::HashMap<String, serde_json::Value>,\n    },\n",
-    );
+        // Client tools (Custom) use #[serde(untagged)] which makes them a fallback. When serde
+        // can't match any tagged variant (either because "type" is missing or has an unknown
+        // value), it tries untagged variants in order, attempting to deserialize the JSON
+        // directly into the variant's inner type based on structure alone. This is essential
+        // because Anthropic's API doesn't require a "type" field for custom tools - a tool like
+        // {"name": "get_weather", "input_schema": {...}} has no "type" but should deserialize
+        // as Tool::Custom. Order matters: provider tools must come first so they match when
+        // "type" is present, with Custom last as the catch-all fallback.
+        for client_schema in &tool_schemas.client_tools {
+            let variant_name = schema_name_to_variant(client_schema);
+            let type_name = schema_name_to_rust_type(client_schema);
+            enum_def.push_str(&format!(
+                "    #[serde(untagged)]\n    {}({}),\n\n",
+                variant_name, type_name
+            ));
+        }
 
         enum_def.push_str("}\n");
         enum_def
@@ -1969,23 +1976,6 @@ mod tool_generator {
         }
 
         schema_name.replace("Tool", "")
-    }
-
-    fn extract_type_const_value(schema_name: &str, spec: &serde_json::Value) -> Option<String> {
-        let schemas = get_schemas(spec)?;
-        let schema = schemas.get(schema_name)?;
-        let type_prop = schema.get("properties")?.as_object()?.get("type")?;
-
-        type_prop
-            .get("const")
-            .or_else(|| {
-                type_prop
-                    .get("enum")
-                    .and_then(|arr| arr.as_array())
-                    .and_then(|arr| arr.first())
-            })
-            .and_then(|v| v.as_str())
-            .map(String::from)
     }
 
     fn split_type_definitions(content: &str) -> Vec<(String, String)> {

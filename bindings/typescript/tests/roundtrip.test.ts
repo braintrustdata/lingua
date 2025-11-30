@@ -780,29 +780,23 @@ describe("TypeScript Roundtrip Tests", () => {
       });
     });
 
-    describe("Unknown Tool Handling", () => {
-      test("Unsupported provider tool for OpenAI Responses maps to Unknown", () => {
+    describe("Unsupported Tool Handling", () => {
+      test("Unsupported provider tool for OpenAI Responses throws error", () => {
         const anthropicBashTool = ProviderTools.anthropic.bash();
 
-        // bash_20250124 is not natively supported by OpenAI, but maps to Unknown
-        // for forward compatibility (using Responses API since Chat Completions only supports functions)
-        const responsesTools = linguaToResponsesTools([anthropicBashTool]);
-
-        expect(responsesTools).toHaveLength(1);
-        // The tool should be serialized as Unknown type with the original tool_type
-        expect(responsesTools[0]).toHaveProperty("type", "bash_20250124");
+        // bash_20250124 is not natively supported by OpenAI, should throw
+        expect(() => linguaToResponsesTools([anthropicBashTool])).toThrow(
+          /Failed to convert Lingua to OpenAI Responses format/
+        );
       });
 
-      test("Unsupported provider tool for Anthropic maps to Unknown", () => {
+      test("Unsupported provider tool for Anthropic throws error", () => {
         const openaiComputerTool = ProviderTools.openai.computer();
 
-        // computer_use_preview is not natively supported by Anthropic, but maps to Unknown
-        // for forward compatibility
-        const anthropicTools = linguaToolsToAnthropic([openaiComputerTool]);
-
-        expect(anthropicTools).toHaveLength(1);
-        // The tool should be serialized as Unknown type with the original tool_type
-        expect(anthropicTools[0]).toHaveProperty("type", "computer_use_preview");
+        // computer_use_preview is not natively supported by Anthropic, should throw
+        expect(() => linguaToolsToAnthropic([openaiComputerTool])).toThrow(
+          /Failed to convert Lingua to Anthropic format/
+        );
       });
     });
 

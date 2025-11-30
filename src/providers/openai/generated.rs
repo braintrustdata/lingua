@@ -3490,12 +3490,6 @@ pub struct WebSearchPreviewTool {
 #[serde(tag = "type")]
 #[ts(export_to = "openai/")]
 pub enum Tool {
-    #[serde(rename = "function")]
-    Function(FunctionTool),
-
-    #[serde(rename = "custom")]
-    Custom(CustomTool),
-
     #[serde(rename = "file_search")]
     FileSearch(FileSearchTool),
 
@@ -3521,14 +3515,10 @@ pub enum Tool {
     WebSearchPreview(WebSearchPreviewTool),
 
     #[serde(untagged)]
-    Unknown {
-        #[serde(rename = "type")]
-        tool_type: String,
-        name: String,
-        #[ts(skip)]
-        #[serde(flatten)]
-        config: std::collections::HashMap<String, serde_json::Value>,
-    },
+    Function(FunctionTool),
+
+    #[serde(untagged)]
+    Custom(CustomTool),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
