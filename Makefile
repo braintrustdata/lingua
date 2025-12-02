@@ -1,4 +1,4 @@
-.PHONY: all typescript python test clean help generate-types install-hooks install-wasm-tools setup
+.PHONY: all typescript python test clean help generate-types install-hooks install-wasm-tools setup clippy
 
 all: typescript python ## Build all bindings
 
@@ -56,6 +56,10 @@ fmt: ## Format all code
 	cargo fmt
 	@echo "Formatting TypeScript code..."
 	cd bindings/typescript && pnpm run lint
+
+clippy: ## Run clippy with warnings as errors
+	@echo "Running clippy..."
+	cargo clippy --all-targets --all-features -- -D warnings
 
 install-hooks: ## Install git pre-commit hooks
 	@echo "Installing git hooks..."

@@ -12,6 +12,13 @@ pub mod validation;
 
 pub use providers::openai::transformations;
 
+// Re-export key types for external use
+pub use capabilities::ProviderFormat;
+pub use processing::{
+    parse, parse_from_str, BedrockPayload, DetectedPayload, DetectionError, GooglePayload,
+    TypedPayload,
+};
+
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 

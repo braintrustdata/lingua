@@ -8,7 +8,7 @@ Anthropic-compatible format, distinguishing it from OpenAI format.
 use crate::providers::anthropic::generated::{
     CreateMessageParams, InputContentBlockType, MessageRole,
 };
-use crate::serde_json;
+use crate::serde_json::{self, Value};
 use thiserror::Error;
 
 /// Error type for payload detection
@@ -172,6 +172,92 @@ pub fn detect_payload_format(payload: &str) -> Result<PayloadFormat, DetectionEr
     }
 
     Ok(PayloadFormat::Unknown)
+}
+
+/// Fast heuristic check if payload is in Anthropic format.
+///
+/// This function uses structural heuristics on a parsed JSON value,
+/// without attempting full deserialization. Use this for quick format
+/// detection in routing scenarios.
+///
+/// Indicators:
+/// - Has "max_tokens" (required in Anthropic, optional in OpenAI)
+/// - Messages use only "user" and "assistant" roles (no "system" in messages)
+/// - System prompt is a top-level field
+/// - Content blocks use snake_case types: "tool_use", "tool_result"
+///
+/// # Examples
+///
+/// ```rust
+/// use lingua::serde_json::json;
+/// use lingua::providers::anthropic::detect::is_anthropic_format_heuristic;
+///
+/// let anthropic_payload = json!({
+///     "model": "claude-3-5-sonnet-20241022",
+///     "messages": [{"role": "user", "content": "Hello"}],
+///     "max_tokens": 1024
+/// });
+///
+/// assert!(is_anthropic_format_heuristic(&anthropic_payload));
+/// ```
+pub fn is_anthropic_format_heuristic(payload: &Value) -> bool {
+    // Check for max_tokens (required in Anthropic)
+    let has_max_tokens = payload.get("max_tokens").is_some();
+
+    // Check for Anthropic-specific content block types
+    if let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) {
+        for msg in messages {
+            if let Some(content) = msg.get("content") {
+                // Check for array content with Anthropic-specific types
+                if let Some(blocks) = content.as_array() {
+                    for block in blocks {
+                        let block_type = block.get("type").and_then(|v| v.as_str());
+                        match block_type {
+                            // Anthropic-specific types
+                            Some("tool_use")
+                            | Some("tool_result")
+                            | Some("thinking")
+                            | Some("redacted_thinking")
+                            | Some("document")
+                            | Some("search_result") => {
+                                return true;
+                            }
+                            // Image block with "source" is Anthropic (OpenAI uses "image_url")
+                            Some("image") if block.get("source").is_some() => {
+                                return true;
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+
+            // Check for system role in messages - if present, it's likely NOT Anthropic
+            // (Anthropic has system as top-level, not in messages)
+            if msg.get("role").and_then(|v| v.as_str()) == Some("system") {
+                return false;
+            }
+        }
+    }
+
+    // If has max_tokens and top-level system, likely Anthropic
+    if has_max_tokens && payload.get("system").is_some() {
+        return true;
+    }
+
+    // max_tokens with messages array and no system role in messages
+    if has_max_tokens {
+        if let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) {
+            let has_system_in_messages = messages
+                .iter()
+                .any(|m| m.get("role").and_then(|v| v.as_str()) == Some("system"));
+            if !has_system_in_messages {
+                return true;
+            }
+        }
+    }
+
+    false
 }
 
 #[cfg(test)]
