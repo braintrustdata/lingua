@@ -1,58 +1,68 @@
 /*!
 Shared Lingua-level capability profiles.
+
+This module defines capabilities that control universal transformations
+applied to messages before converting to provider-specific formats.
 */
 
-/// Capabilities that impact Lingua → Lingua transformations before converting to a
-/// provider-specific format.
-#[derive(Debug, Clone)]
+/// Capabilities that control universal message transformations.
+///
+/// These capabilities determine which preprocessing steps are applied
+/// to messages before they are converted to provider-specific formats.
+#[derive(Debug, Clone, Default)]
 pub struct UniversalCapabilities {
-    /// Whether the downstream provider can receive dedicated `system` role messages.
-    pub supports_system_messages: bool,
-    /// Whether raw file attachments (binary payloads) are supported.
-    pub supports_file_attachments: bool,
-    /// Whether tool-specific messages (tool role) are supported directly.
-    pub supports_tool_messages: bool,
-    /// Whether arbitrary multimodal content (images/audio/video) is supported.
-    pub supports_multimodal: bool,
-    /// Optional character limit per text segment. Text exceeding the limit will
-    /// be truncated before conversion.
-    pub max_message_length: Option<usize>,
-}
-
-impl Default for UniversalCapabilities {
-    fn default() -> Self {
-        Self {
-            supports_system_messages: true,
-            supports_file_attachments: true,
-            supports_tool_messages: true,
-            supports_multimodal: true,
-            max_message_length: None,
-        }
-    }
+    /// Whether consecutive messages of the same role should be merged.
+    /// Required for: Anthropic, Google, Bedrock. Not for: OpenAI.
+    pub requires_message_flattening: bool,
+    /// Whether system messages should be extracted to a separate parameter.
+    /// Required for: Anthropic, Google, Bedrock. Not for: OpenAI.
+    pub system_messages_separate: bool,
 }
 
 impl UniversalCapabilities {
-    /// Convenience helper that returns capabilities for a known provider slug.
+    /// Returns capabilities for a known provider.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use lingua::capabilities::universal::UniversalCapabilities;
+    ///
+    /// let caps = UniversalCapabilities::for_provider("anthropic");
+    /// assert!(caps.requires_message_flattening);
+    /// assert!(caps.system_messages_separate);
+    ///
+    /// let caps = UniversalCapabilities::for_provider("openai");
+    /// assert!(!caps.requires_message_flattening);
+    /// assert!(!caps.system_messages_separate);
+    /// ```
     pub fn for_provider(provider: &str) -> Self {
         match provider {
-            // OpenAI-style APIs accept the full Lingua surface area.
-            "openai" | "fireworks" | "azure" => Self::default(),
-            // Anthropic does not allow system messages and has narrower multimodal support.
-            "anthropic" => Self {
-                supports_system_messages: false,
-                supports_file_attachments: false,
-                supports_tool_messages: false,
-                supports_multimodal: false,
-                max_message_length: Some(4096),
-            },
-            // Fallback: be conservative.
-            _ => Self {
-                supports_system_messages: false,
-                supports_file_attachments: false,
-                supports_tool_messages: false,
-                supports_multimodal: false,
-                max_message_length: Some(2048),
-            },
+            // OpenAI-compatible providers handle messages inline
+            "openai" | "azure" | "fireworks" | "mistral" | "databricks" | "lepton" | "cerebras" => {
+                Self::openai_compatible()
+            }
+            // These providers require message flattening and separate system messages
+            "anthropic" | "google" | "bedrock" | "vertex" => Self::requires_preprocessing(),
+            // Conservative default: apply preprocessing
+            _ => Self::requires_preprocessing(),
+        }
+    }
+
+    /// Capabilities for OpenAI-compatible providers.
+    /// No preprocessing needed - messages can be sent as-is.
+    fn openai_compatible() -> Self {
+        Self {
+            requires_message_flattening: false,
+            system_messages_separate: false,
+        }
+    }
+
+    /// Capabilities for providers that require message preprocessing.
+    /// These providers need consecutive messages merged and system messages extracted.
+    fn requires_preprocessing() -> Self {
+        Self {
+            requires_message_flattening: true,
+            system_messages_separate: true,
         }
     }
 }

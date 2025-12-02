@@ -14,10 +14,14 @@ use crate::{
         AllowedToolsFunction, ChatCompletionRequestMessageContent,
         ChatCompletionRequestMessageContentPart, ChatCompletionRequestMessageRole,
         ChatCompletionToolChoiceOption, CreateChatCompletionRequestClass, File, FunctionObject,
-        FunctionToolChoiceClass, FunctionToolChoiceType, PurpleType, ResponseFormatType,
+        FunctionToolChoiceClass, FunctionToolChoiceType, ImageUrl, PurpleType, ResponseFormatType,
         ToolElement, ToolType,
     },
     serde_json::{Map, Value},
+    util::media::{
+        fetch_url_to_base64, is_localhost_url, media_block_to_url, parse_base64_data_url,
+        parse_file_metadata_from_url,
+    },
 };
 
 pub use crate::providers::openai::capabilities::TargetProvider;
@@ -138,7 +142,10 @@ impl<'a> OpenAIRequestTransformer<'a> {
         self
     }
 
-    /// Execute the full transformation pipeline.
+    /// Execute the full transformation pipeline (synchronous version).
+    ///
+    /// This version does not fetch localhost or PDF URLs. Use `transform_async`
+    /// if you need URL fetching support.
     pub fn transform(&mut self) -> TransformResult<()> {
         let capabilities = OpenAICapabilities::detect(self.request, self.config.target_provider);
 
@@ -158,8 +165,39 @@ impl<'a> OpenAIRequestTransformer<'a> {
         // Check for Responses API routing
         self.check_responses_api_routing(&capabilities);
 
-        // Continue with existing transformations
-        self.normalize_user_messages()?;
+        // Continue with existing transformations (synchronous)
+        self.normalize_user_messages_sync()?;
+        self.apply_response_format(&capabilities)?;
+
+        Ok(())
+    }
+
+    /// Execute the full transformation pipeline (asynchronous version).
+    ///
+    /// This version fetches localhost URLs and PDF URLs, converting them to
+    /// inline base64 data URLs. This mirrors the proxy's behavior in
+    /// `normalizeOpenAIContent`.
+    pub async fn transform_async(&mut self) -> TransformResult<()> {
+        let capabilities = OpenAICapabilities::detect(self.request, self.config.target_provider);
+
+        // Apply reasoning model transformations
+        if capabilities.requires_reasoning_transforms() {
+            self.apply_reasoning_transforms(&capabilities)?;
+        }
+
+        // Apply provider-specific field sanitization
+        self.apply_provider_sanitization(&capabilities)?;
+
+        // Apply model name normalization if needed
+        if capabilities.requires_model_normalization {
+            self.apply_model_normalization()?;
+        }
+
+        // Check for Responses API routing
+        self.check_responses_api_routing(&capabilities);
+
+        // Continue with existing transformations (async for URL fetching)
+        self.normalize_user_messages_async().await?;
         self.apply_response_format(&capabilities)?;
 
         Ok(())
@@ -197,14 +235,44 @@ impl<'a> OpenAIRequestTransformer<'a> {
         Ok(())
     }
 
-    fn normalize_user_messages(&mut self) -> TransformResult<()> {
+    fn normalize_user_messages_sync(&mut self) -> TransformResult<()> {
+        // NOTE: The proxy removes `reasoning` fields from messages:
+        //   if ("reasoning" in message) { delete message.reasoning; }
+        // In Rust, this is handled automatically by the type system - since
+        // `ChatCompletionRequestMessage` doesn't have a `reasoning` field,
+        // any such field in input JSON is dropped during deserialization
+        // and won't be serialized back out.
+
         for message in &mut self.request.messages {
             if matches!(message.role, ChatCompletionRequestMessageRole::User) {
                 if let Some(ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) =
                     message.content.as_mut()
                 {
                     for part in parts.iter_mut() {
-                        normalize_content_part(part)?;
+                        normalize_content_part_sync(part)?;
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn normalize_user_messages_async(&mut self) -> TransformResult<()> {
+        // NOTE: The proxy removes `reasoning` fields from messages:
+        //   if ("reasoning" in message) { delete message.reasoning; }
+        // In Rust, this is handled automatically by the type system - since
+        // `ChatCompletionRequestMessage` doesn't have a `reasoning` field,
+        // any such field in input JSON is dropped during deserialization
+        // and won't be serialized back out.
+
+        for message in &mut self.request.messages {
+            if matches!(message.role, ChatCompletionRequestMessageRole::User) {
+                if let Some(ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) =
+                    message.content.as_mut()
+                {
+                    for part in parts.iter_mut() {
+                        normalize_content_part_async(part).await?;
                     }
                 }
             }
@@ -338,16 +406,22 @@ impl<'a> OpenAIRequestTransformer<'a> {
     }
 }
 
-fn normalize_content_part(
+// =============================================================================
+// Synchronous content normalization (no URL fetching)
+// =============================================================================
+
+fn normalize_content_part_sync(
     part: &mut ChatCompletionRequestMessageContentPart,
 ) -> TransformResult<()> {
     match part.chat_completion_request_message_content_part_type {
-        PurpleType::ImageUrl => normalize_image_part(part),
+        PurpleType::ImageUrl => normalize_image_part_sync(part),
         _ => Ok(()),
     }
 }
 
-fn normalize_image_part(part: &mut ChatCompletionRequestMessageContentPart) -> TransformResult<()> {
+fn normalize_image_part_sync(
+    part: &mut ChatCompletionRequestMessageContentPart,
+) -> TransformResult<()> {
     let Some(image_url_value) = part
         .image_url
         .as_ref()
@@ -356,14 +430,114 @@ fn normalize_image_part(part: &mut ChatCompletionRequestMessageContentPart) -> T
         return Ok(());
     };
 
-    if let Some(data_url) = DataUrl::parse(&image_url_value) {
+    // Handle base64 data URLs - convert non-images to file type
+    if let Some(data_url) = parse_base64_data_url(&image_url_value) {
         if !data_url.media_type.starts_with("image/") {
-            convert_image_part_to_file(part, image_url_value.clone(), data_url.media_type);
+            convert_image_part_to_file(part, image_url_value.clone(), &data_url.media_type);
         }
     }
 
     Ok(())
 }
+
+// =============================================================================
+// Asynchronous content normalization (with URL fetching)
+// =============================================================================
+
+async fn normalize_content_part_async(
+    part: &mut ChatCompletionRequestMessageContentPart,
+) -> TransformResult<()> {
+    match part.chat_completion_request_message_content_part_type {
+        PurpleType::ImageUrl => normalize_image_part_async(part).await,
+        _ => Ok(()),
+    }
+}
+
+/// Maximum media size for URL fetching (20 MB, matching proxy)
+const MAX_MEDIA_BYTES: usize = 20 * 1024 * 1024;
+
+async fn normalize_image_part_async(
+    part: &mut ChatCompletionRequestMessageContentPart,
+) -> TransformResult<()> {
+    let Some(image_url_value) = part
+        .image_url
+        .as_ref()
+        .map(|image_url| image_url.url.clone())
+    else {
+        return Ok(());
+    };
+
+    // Handle base64 data URLs - convert non-images to file type
+    if let Some(data_url) = parse_base64_data_url(&image_url_value) {
+        if !data_url.media_type.starts_with("image/") {
+            convert_image_part_to_file(part, image_url_value.clone(), &data_url.media_type);
+        }
+        return Ok(());
+    }
+
+    // Check if this is a PDF URL that should be fetched and converted to file
+    // Mirrors proxy: parseFileMetadataFromUrl + .pdf extension or content-type check
+    if let Some(metadata) = parse_file_metadata_from_url(&image_url_value) {
+        let is_pdf = metadata.filename.ends_with(".pdf")
+            || metadata.content_type.as_deref() == Some("application/pdf");
+
+        if is_pdf {
+            // Fetch PDF and convert to file type
+            match fetch_url_to_base64(
+                &image_url_value,
+                Some(&["application/pdf"]),
+                Some(MAX_MEDIA_BYTES),
+            )
+            .await
+            {
+                Ok(media_block) => {
+                    let data_url = media_block_to_url(&media_block);
+                    part.chat_completion_request_message_content_part_type = PurpleType::File;
+                    part.image_url = None;
+                    part.file = Some(File {
+                        file_data: Some(data_url),
+                        file_id: None,
+                        filename: Some(metadata.filename),
+                    });
+                    return Ok(());
+                }
+                Err(e) => {
+                    // Log but don't fail - let OpenAI handle the URL
+                    #[cfg(debug_assertions)]
+                    eprintln!("Warning: Failed to fetch PDF URL: {}", e);
+                    let _ = e; // silence unused warning in release
+                }
+            }
+        }
+    }
+
+    // Check if this is a localhost URL that should be fetched
+    // Mirrors proxy: http://127.0.0.1 or http://localhost
+    if is_localhost_url(&image_url_value) {
+        match fetch_url_to_base64(&image_url_value, None, Some(MAX_MEDIA_BYTES)).await {
+            Ok(media_block) => {
+                let data_url = media_block_to_url(&media_block);
+                part.image_url = Some(ImageUrl {
+                    url: data_url,
+                    detail: part.image_url.as_ref().and_then(|u| u.detail.clone()),
+                });
+                return Ok(());
+            }
+            Err(e) => {
+                // Log but don't fail - localhost URLs might not be accessible
+                #[cfg(debug_assertions)]
+                eprintln!("Warning: Failed to fetch localhost URL: {}", e);
+                let _ = e; // silence unused warning in release
+            }
+        }
+    }
+
+    Ok(())
+}
+
+// =============================================================================
+// Shared utilities
+// =============================================================================
 
 fn convert_image_part_to_file(
     part: &mut ChatCompletionRequestMessageContentPart,
@@ -381,28 +555,6 @@ fn convert_image_part_to_file(
             "file_from_base64".to_string()
         }),
     });
-}
-
-struct DataUrl<'a> {
-    media_type: &'a str,
-}
-
-impl<'a> DataUrl<'a> {
-    fn parse(input: &'a str) -> Option<Self> {
-        if !input.starts_with("data:") {
-            return None;
-        }
-        let without_prefix = &input["data:".len()..];
-        let (meta, payload) = without_prefix.split_once(',')?;
-        if payload.is_empty() {
-            return None;
-        }
-        let (media_type, encoding) = meta.split_once(';')?;
-        if encoding != "base64" {
-            return None;
-        }
-        Some(Self { media_type })
-    }
 }
 
 impl fmt::Debug for OpenAIRequestTransformer<'_> {
