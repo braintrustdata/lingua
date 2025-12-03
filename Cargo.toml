@@ -17,6 +17,7 @@ wasm-opt = false
 [features]
 default = ["openai", "anthropic", "google"]
 openai = []
+mistral = ["openai"]  # Mistral uses OpenAI-compatible format
 anthropic = []
 google = []
 bedrock = ["dep:aws-sdk-bedrockruntime"]

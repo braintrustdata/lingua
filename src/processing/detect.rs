@@ -36,7 +36,7 @@ use crate::providers::anthropic::AnthropicDetector;
 use crate::providers::bedrock::ConverseDetector;
 #[cfg(feature = "google")]
 use crate::providers::google::GoogleDetector;
-#[cfg(feature = "openai")]
+#[cfg(feature = "mistral")]
 use crate::providers::mistral::MistralDetector;
 #[cfg(feature = "openai")]
 use crate::providers::openai::OpenAIDetector;
@@ -54,6 +54,8 @@ pub use crate::providers::google::GooglePayload;
 /// 2. Add it to this list with appropriate feature gates
 fn detectors() -> &'static [&'static dyn FormatDetector] {
     static DETECTORS: OnceLock<Vec<&'static dyn FormatDetector>> = OnceLock::new();
+    // Allow vec_init_then_push: conditional compilation makes vec![] macro unusable here
+    #[allow(clippy::vec_init_then_push)]
     DETECTORS.get_or_init(|| {
         let mut v: Vec<&dyn FormatDetector> = vec![];
 
@@ -67,11 +69,11 @@ fn detectors() -> &'static [&'static dyn FormatDetector] {
         #[cfg(feature = "anthropic")]
         v.push(&AnthropicDetector);
 
+        #[cfg(feature = "mistral")]
+        v.push(&MistralDetector);
+
         #[cfg(feature = "openai")]
-        {
-            v.push(&MistralDetector);
-            v.push(&OpenAIDetector);
-        }
+        v.push(&OpenAIDetector);
 
         // Sort by priority (highest first)
         v.sort_by_key(|b| std::cmp::Reverse(b.priority()));
@@ -151,7 +153,7 @@ pub enum TypedPayload {
     #[cfg(feature = "bedrock")]
     Converse(BedrockPayload),
     /// Mistral AI request (uses OpenAI-compatible format)
-    #[cfg(feature = "openai")]
+    #[cfg(feature = "mistral")]
     Mistral(CreateChatCompletionRequestClass),
     /// Unknown format - raw JSON preserved for manual handling
     Unknown(Value),
@@ -169,7 +171,7 @@ impl TypedPayload {
             TypedPayload::Google(_) => ProviderFormat::Google,
             #[cfg(feature = "bedrock")]
             TypedPayload::Converse(_) => ProviderFormat::Converse,
-            #[cfg(feature = "openai")]
+            #[cfg(feature = "mistral")]
             TypedPayload::Mistral(_) => ProviderFormat::Mistral,
             TypedPayload::Unknown(_) => ProviderFormat::Unknown,
         }
@@ -186,7 +188,7 @@ impl TypedPayload {
             TypedPayload::Google(payload) => payload.model.as_deref(),
             #[cfg(feature = "bedrock")]
             TypedPayload::Converse(payload) => payload.model_id.as_deref(),
-            #[cfg(feature = "openai")]
+            #[cfg(feature = "mistral")]
             TypedPayload::Mistral(req) => Some(&req.model),
             TypedPayload::Unknown(v) => v.get("model").and_then(|m| m.as_str()),
         }
@@ -207,7 +209,7 @@ impl TypedPayload {
             TypedPayload::Google(payload) => Ok(payload.into_value()),
             #[cfg(feature = "bedrock")]
             TypedPayload::Converse(payload) => Ok(payload.into_value()),
-            #[cfg(feature = "openai")]
+            #[cfg(feature = "mistral")]
             TypedPayload::Mistral(req) => {
                 serde_json::to_value(req).map_err(|e| DetectionError::InvalidPayload(e.to_string()))
             }
@@ -282,7 +284,7 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
             // Bedrock uses AWS SDK types, so we wrap the validated JSON
             Ok(TypedPayload::Converse(BedrockPayload::new(payload.clone())))
         }
-        #[cfg(feature = "openai")]
+        #[cfg(feature = "mistral")]
         ProviderFormat::Mistral => {
             // Mistral uses OpenAI-compatible format
             let req: CreateChatCompletionRequestClass = serde_json::from_value(payload.clone())
@@ -504,7 +506,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "openai")]
+    #[cfg(feature = "mistral")]
     fn test_detect_mistral_format() {
         let payload = serde_json::json!({
             "model": "mistral-large-latest",
@@ -592,7 +594,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "openai")]
+    #[cfg(feature = "mistral")]
     fn test_parse_mistral() {
         let payload = serde_json::json!({
             "model": "mistral-large-latest",

@@ -11,8 +11,7 @@ pub mod bedrock;
 #[cfg(feature = "google")]
 pub mod google;
 
-/// Mistral uses OpenAI-compatible format, so it requires the openai feature
-#[cfg(feature = "openai")]
+#[cfg(feature = "mistral")]
 pub mod mistral;
 
 #[cfg(feature = "openai")]
