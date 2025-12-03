@@ -1,0 +1,10 @@
+{
+  "model": "publishers/google/models/gemini-1.5-pro",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello"
+    }
+  ]
+}
+

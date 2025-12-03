@@ -122,19 +122,21 @@ impl DetectedPayload {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use lingua::{parse, TypedPayload};
+/// ```
+/// use lingua::processing::detect::{parse, TypedPayload};
+/// use lingua::serde_json::json;
 ///
-/// match parse(&payload)? {
+/// let payload = json!({
+///     "model": "gpt-4o",
+///     "messages": [{"role": "user", "content": "Hello"}]
+/// });
+///
+/// match parse(&payload).unwrap() {
 ///     TypedPayload::OpenAI(req) => {
 ///         // req is CreateChatCompletionRequestClass - fully typed
 ///         println!("OpenAI model: {}", req.model);
 ///     }
-///     TypedPayload::Anthropic(req) => {
-///         // req is CreateMessageParams - fully typed
-///         println!("Anthropic max_tokens: {}", req.max_tokens);
-///     }
-///     // Compiler enforces handling all variants
+///     // Handle other variants
 ///     _ => {}
 /// }
 /// ```
@@ -240,15 +242,17 @@ impl TypedPayload {
 ///
 /// # Example
 ///
-/// ```ignore
-/// let payload = serde_json::json!({
+/// ```
+/// use lingua::processing::detect::{parse, TypedPayload};
+/// use lingua::serde_json::json;
+///
+/// let payload = json!({
 ///     "model": "gpt-4o",
 ///     "messages": [{"role": "user", "content": "Hello"}]
 /// });
 ///
-/// match parse(&payload)? {
+/// match parse(&payload).unwrap() {
 ///     TypedPayload::OpenAI(req) => println!("Model: {}", req.model),
-///     TypedPayload::Anthropic(req) => println!("Max tokens: {}", req.max_tokens),
 ///     _ => println!("Other format"),
 /// }
 /// ```

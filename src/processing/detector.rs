@@ -31,21 +31,21 @@ use crate::serde_json::Value;
 ///
 /// # Example
 ///
-/// ```ignore
-/// use lingua::processing::FormatDetector;
+/// ```
+/// use lingua::processing::detector::FormatDetector;
 /// use lingua::capabilities::ProviderFormat;
 /// use lingua::serde_json::Value;
 ///
-/// pub struct MyProviderDetector;
+/// pub struct CustomDetector;
 ///
-/// impl FormatDetector for MyProviderDetector {
+/// impl FormatDetector for CustomDetector {
 ///     fn format(&self) -> ProviderFormat {
-///         ProviderFormat::MyProvider
+///         ProviderFormat::OpenAI
 ///     }
 ///
 ///     fn detect(&self, payload: &Value) -> bool {
 ///         // Check for provider-specific fields
-///         payload.get("my_specific_field").is_some()
+///         payload.get("custom_field").is_some()
 ///     }
 ///
 ///     fn priority(&self) -> u8 {

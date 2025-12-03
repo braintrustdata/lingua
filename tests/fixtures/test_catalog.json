@@ -1,0 +1,19 @@
+{
+  "gpt-4o": {
+    "format": "openai",
+    "flavor": "chat"
+  },
+  "claude-3-5-sonnet-latest": {
+    "format": "anthropic",
+    "flavor": "chat"
+  },
+  "gemini-2.0-flash": {
+    "format": "google",
+    "flavor": "chat"
+  },
+  "mistral-large-latest": {
+    "format": "mistral",
+    "flavor": "chat"
+  }
+}
+

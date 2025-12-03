@@ -458,3 +458,162 @@ fn combined_provider_transformations() {
     assert!(request.stream_options.is_none());
     assert!(request.parallel_tool_calls.is_none());
 }
+
+// =============================================================================
+// Snapshot-based transformation tests
+// =============================================================================
+
+#[test]
+fn structured_output_native_snapshot_matches_expected() {
+    let mut request =
+        load_request_snapshot("transformations/structured_output_native/request.json");
+    let expected = load_snapshot_value("transformations/structured_output_native/expected.json");
+
+    let mut transformer = OpenAIRequestTransformer::new(&mut request);
+    transformer.transform().expect("transform succeeds");
+
+    // gpt-4o supports native structured output - should NOT convert to managed tool
+    assert!(!transformer.managed_structured_output());
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
+
+#[test]
+fn pdf_normalization_snapshot_matches_expected() {
+    let mut request = load_request_snapshot("transformations/pdf_normalization/request.json");
+    let expected = load_snapshot_value("transformations/pdf_normalization/expected.json");
+
+    OpenAIRequestTransformer::new(&mut request)
+        .transform()
+        .expect("transform succeeds");
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
+
+#[test]
+fn provider_sanitization_mistral_snapshot_matches_expected() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request =
+        load_request_snapshot("transformations/provider_sanitization_mistral/request.json");
+    let expected =
+        load_snapshot_value("transformations/provider_sanitization_mistral/expected.json");
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Mistral)
+        .transform()
+        .expect("transform succeeds");
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
+
+#[test]
+fn provider_sanitization_azure_snapshot_matches_expected() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request =
+        load_request_snapshot("transformations/provider_sanitization_azure/request.json");
+    let expected = load_snapshot_value("transformations/provider_sanitization_azure/expected.json");
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Azure)
+        .transform()
+        .expect("transform succeeds");
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
+
+#[test]
+fn provider_sanitization_azure_seed_snapshot_matches_expected() {
+    use crate::providers::openai::transformations::TargetProvider;
+    use crate::serde_json::Map;
+
+    let mut request =
+        load_request_snapshot("transformations/provider_sanitization_azure_seed/request.json");
+    let expected =
+        load_snapshot_value("transformations/provider_sanitization_azure_seed/expected.json");
+
+    let mut metadata = Map::new();
+    metadata.insert("api_version".to_string(), json!("2023-07-01-preview"));
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Azure)
+        .with_provider_metadata(Some(&metadata))
+        .transform()
+        .expect("transform succeeds");
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
+
+#[test]
+fn provider_sanitization_databricks_snapshot_matches_expected() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request =
+        load_request_snapshot("transformations/provider_sanitization_databricks/request.json");
+    let expected =
+        load_snapshot_value("transformations/provider_sanitization_databricks/expected.json");
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Databricks)
+        .transform()
+        .expect("transform succeeds");
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
+
+#[test]
+fn provider_sanitization_fireworks_snapshot_matches_expected() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request =
+        load_request_snapshot("transformations/provider_sanitization_fireworks/request.json");
+    let expected =
+        load_snapshot_value("transformations/provider_sanitization_fireworks/expected.json");
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Fireworks)
+        .transform()
+        .expect("transform succeeds");
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
+
+#[test]
+fn vertex_model_normalization_snapshot_matches_expected() {
+    use crate::providers::openai::transformations::TargetProvider;
+
+    let mut request =
+        load_request_snapshot("transformations/vertex_model_normalization/request.json");
+    let expected = load_snapshot_value("transformations/vertex_model_normalization/expected.json");
+
+    OpenAIRequestTransformer::new(&mut request)
+        .with_target_provider(TargetProvider::Vertex)
+        .transform()
+        .expect("transform succeeds");
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
+
+#[test]
+fn responses_api_routing_snapshot_matches_expected() {
+    let mut request = load_request_snapshot("transformations/responses_api_routing/request.json");
+    let expected = load_snapshot_value("transformations/responses_api_routing/expected.json");
+
+    let mut transformer = OpenAIRequestTransformer::new(&mut request);
+    transformer.transform().expect("transform succeeds");
+
+    // o1-pro requires Responses API routing
+    assert!(transformer.use_responses_api());
+
+    let actual = crate::serde_json::to_value(&request).expect("serialize request");
+    assert_json_eq!(expected, actual);
+}
