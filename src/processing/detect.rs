@@ -134,22 +134,14 @@ pub struct DetectedPayload {
     pub model: Option<String>,
     /// Whether the format was determined by catalog lookup (true) or heuristics (false)
     pub from_catalog: bool,
-    /// Confidence level of the detection (1.0 = certain, 0.0 = guess)
-    pub confidence: f32,
 }
 
 impl DetectedPayload {
-    fn new(
-        format: ProviderFormat,
-        model: Option<String>,
-        from_catalog: bool,
-        confidence: f32,
-    ) -> Self {
+    fn new(format: ProviderFormat, model: Option<String>, from_catalog: bool) -> Self {
         Self {
             format,
             model,
             from_catalog,
-            confidence,
         }
     }
 }
@@ -347,12 +339,7 @@ fn detect_format(payload: &Value, strict: bool) -> Result<DetectedPayload, Detec
     // 1. Try model catalog first (if model field exists)
     if let Some(ref model_name) = model {
         if let Some(format) = catalog_lookup(model_name) {
-            return Ok(DetectedPayload::new(
-                format,
-                model.clone(),
-                true,
-                1.0, // Catalog lookup is authoritative
-            ));
+            return Ok(DetectedPayload::new(format, model.clone(), true));
         }
     }
 
@@ -403,12 +390,7 @@ fn detect_from_content(
     // Iterate through detectors in priority order (already sorted)
     for detector in detectors() {
         if detector.detect(payload) {
-            return Ok(DetectedPayload::new(
-                detector.format(),
-                model,
-                false,
-                detector.confidence(),
-            ));
+            return Ok(DetectedPayload::new(detector.format(), model, false));
         }
     }
 
@@ -417,12 +399,7 @@ fn detect_from_content(
         Err(DetectionError::UnableToDetermine)
     } else {
         // Default to OpenAI as the most common format
-        Ok(DetectedPayload::new(
-            ProviderFormat::OpenAI,
-            model,
-            false,
-            0.5, // Low confidence - just a default
-        ))
+        Ok(DetectedPayload::new(ProviderFormat::OpenAI, model, false))
     }
 }
 
@@ -565,7 +542,6 @@ mod tests {
 
         let result = detect_format(&payload, false).unwrap();
         assert_eq!(result.format, ProviderFormat::OpenAI);
-        assert!(result.confidence < 0.6);
     }
 
     #[test]

@@ -294,10 +294,6 @@ impl FormatDetector for MyProviderDetector {
     fn priority(&self) -> u8 {
         75 // Higher = checked first. Use 90-100 for very distinctive formats
     }
-
-    fn confidence(&self) -> f32 {
-        0.85 // Confidence when detected (0.0-1.0)
-    }
 }
 
 pub fn is_my_provider_format(payload: &Value) -> bool {

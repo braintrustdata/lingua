@@ -29,10 +29,6 @@ impl FormatDetector for ConverseDetector {
     fn priority(&self) -> u8 {
         95 // Highest priority - very distinctive format
     }
-
-    fn confidence(&self) -> f32 {
-        0.95
-    }
 }
 
 /// Check if payload is in Bedrock Converse format.
@@ -177,6 +173,5 @@ mod tests {
         let detector = ConverseDetector;
         assert_eq!(detector.format(), ProviderFormat::Converse);
         assert_eq!(detector.priority(), 95);
-        assert!((detector.confidence() - 0.95).abs() < f32::EPSILON);
     }
 }

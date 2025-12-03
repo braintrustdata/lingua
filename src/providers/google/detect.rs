@@ -30,10 +30,6 @@ impl FormatDetector for GoogleDetector {
     fn priority(&self) -> u8 {
         90 // High priority - very distinctive structure
     }
-
-    fn confidence(&self) -> f32 {
-        0.90
-    }
 }
 
 /// Check if payload is in Google format.
@@ -146,6 +142,5 @@ mod tests {
         let detector = GoogleDetector;
         assert_eq!(detector.format(), ProviderFormat::Google);
         assert_eq!(detector.priority(), 90);
-        assert!((detector.confidence() - 0.90).abs() < f32::EPSILON);
     }
 }

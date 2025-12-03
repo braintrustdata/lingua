@@ -34,10 +34,6 @@ impl FormatDetector for AnthropicDetector {
     fn priority(&self) -> u8 {
         80 // High priority - distinctive format
     }
-
-    fn confidence(&self) -> f32 {
-        0.85
-    }
 }
 
 /// Error type for payload detection
@@ -412,6 +408,5 @@ mod tests {
         let detector = AnthropicDetector;
         assert_eq!(detector.format(), ProviderFormat::Anthropic);
         assert_eq!(detector.priority(), 80);
-        assert!((detector.confidence() - 0.85).abs() < f32::EPSILON);
     }
 }

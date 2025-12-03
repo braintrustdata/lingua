@@ -28,10 +28,6 @@ impl FormatDetector for MistralDetector {
     fn priority(&self) -> u8 {
         70 // Check before OpenAI since Mistral is OpenAI-compatible
     }
-
-    fn confidence(&self) -> f32 {
-        0.80
-    }
 }
 
 /// Check if payload is in Mistral format.
@@ -140,6 +136,5 @@ mod tests {
         let detector = MistralDetector;
         assert_eq!(detector.format(), ProviderFormat::Mistral);
         assert_eq!(detector.priority(), 70);
-        assert!((detector.confidence() - 0.80).abs() < f32::EPSILON);
     }
 }

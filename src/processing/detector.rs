@@ -51,10 +51,6 @@ use crate::serde_json::Value;
 ///     fn priority(&self) -> u8 {
 ///         75 // Checked after highly distinctive formats
 ///     }
-///
-///     fn confidence(&self) -> f32 {
-///         0.85 // High confidence when detected
-///     }
 /// }
 /// ```
 pub trait FormatDetector: Send + Sync {
@@ -78,12 +74,4 @@ pub trait FormatDetector: Send + Sync {
     /// - 50-69: Common with some signals
     /// - 30-49: Fallback/permissive
     fn priority(&self) -> u8;
-
-    /// Returns the confidence level when this format is detected (0.0-1.0).
-    ///
-    /// - 1.0: Certain (e.g., catalog lookup)
-    /// - 0.8-0.99: High confidence (distinctive signals)
-    /// - 0.5-0.79: Medium confidence (some signals)
-    /// - Below 0.5: Low confidence (mostly a guess)
-    fn confidence(&self) -> f32;
 }

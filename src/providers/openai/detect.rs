@@ -29,10 +29,6 @@ impl FormatDetector for OpenAIDetector {
     fn priority(&self) -> u8 {
         50 // Lowest priority - fallback format
     }
-
-    fn confidence(&self) -> f32 {
-        0.75
-    }
 }
 
 /// Check if payload is in OpenAI format.
@@ -154,6 +150,5 @@ mod tests {
         let detector = OpenAIDetector;
         assert_eq!(detector.format(), ProviderFormat::OpenAI);
         assert_eq!(detector.priority(), 50);
-        assert!((detector.confidence() - 0.75).abs() < f32::EPSILON);
     }
 }
