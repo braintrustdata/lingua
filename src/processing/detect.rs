@@ -41,6 +41,12 @@ use crate::providers::mistral::MistralDetector;
 #[cfg(feature = "openai")]
 use crate::providers::openai::OpenAIDetector;
 
+// Import payload wrappers from provider modules
+#[cfg(feature = "bedrock")]
+pub use crate::providers::bedrock::BedrockPayload;
+#[cfg(feature = "google")]
+pub use crate::providers::google::GooglePayload;
+
 /// Returns all registered detectors, sorted by priority (highest first).
 ///
 /// This is the central registry for format detectors. When adding a new provider:
@@ -71,45 +77,6 @@ fn detectors() -> &'static [&'static dyn FormatDetector] {
         v.sort_by_key(|b| std::cmp::Reverse(b.priority()));
         v
     })
-}
-
-/// Wrapper for Google AI payloads (protobuf types, wrapped as JSON).
-#[derive(Debug, Clone)]
-pub struct GooglePayload {
-    pub raw: Value,
-    pub model: Option<String>,
-}
-
-impl GooglePayload {
-    pub fn new(raw: Value) -> Self {
-        let model = raw.get("model").and_then(|v| v.as_str()).map(String::from);
-        Self { raw, model }
-    }
-
-    pub fn into_value(self) -> Value {
-        self.raw
-    }
-}
-
-/// Wrapper for Bedrock Converse payloads (AWS SDK types, wrapped as JSON).
-#[derive(Debug, Clone)]
-pub struct BedrockPayload {
-    pub raw: Value,
-    pub model_id: Option<String>,
-}
-
-impl BedrockPayload {
-    pub fn new(raw: Value) -> Self {
-        let model_id = raw
-            .get("modelId")
-            .and_then(|v| v.as_str())
-            .map(String::from);
-        Self { raw, model_id }
-    }
-
-    pub fn into_value(self) -> Value {
-        self.raw
-    }
 }
 
 /// Errors that can occur during payload detection
@@ -172,14 +139,19 @@ impl DetectedPayload {
 #[derive(Debug, Clone)]
 pub enum TypedPayload {
     /// OpenAI Chat Completions API request
+    #[cfg(feature = "openai")]
     OpenAI(CreateChatCompletionRequestClass),
     /// Anthropic Messages API request
+    #[cfg(feature = "anthropic")]
     Anthropic(CreateMessageParams),
     /// Google AI / Gemini GenerateContent API request (wrapped due to protobuf types)
+    #[cfg(feature = "google")]
     Google(GooglePayload),
     /// AWS Bedrock Converse API request (wrapped for simpler API)
+    #[cfg(feature = "bedrock")]
     Converse(BedrockPayload),
     /// Mistral AI request (uses OpenAI-compatible format)
+    #[cfg(feature = "openai")]
     Mistral(CreateChatCompletionRequestClass),
     /// Unknown format - raw JSON preserved for manual handling
     Unknown(Value),
@@ -189,10 +161,15 @@ impl TypedPayload {
     /// Returns the provider format for this payload.
     pub fn format(&self) -> ProviderFormat {
         match self {
+            #[cfg(feature = "openai")]
             TypedPayload::OpenAI(_) => ProviderFormat::OpenAI,
+            #[cfg(feature = "anthropic")]
             TypedPayload::Anthropic(_) => ProviderFormat::Anthropic,
+            #[cfg(feature = "google")]
             TypedPayload::Google(_) => ProviderFormat::Google,
+            #[cfg(feature = "bedrock")]
             TypedPayload::Converse(_) => ProviderFormat::Converse,
+            #[cfg(feature = "openai")]
             TypedPayload::Mistral(_) => ProviderFormat::Mistral,
             TypedPayload::Unknown(_) => ProviderFormat::Unknown,
         }
@@ -201,10 +178,15 @@ impl TypedPayload {
     /// Extracts the model name from the payload, if present.
     pub fn model(&self) -> Option<&str> {
         match self {
+            #[cfg(feature = "openai")]
             TypedPayload::OpenAI(req) => Some(&req.model),
+            #[cfg(feature = "anthropic")]
             TypedPayload::Anthropic(req) => Some(&req.model),
+            #[cfg(feature = "google")]
             TypedPayload::Google(payload) => payload.model.as_deref(),
+            #[cfg(feature = "bedrock")]
             TypedPayload::Converse(payload) => payload.model_id.as_deref(),
+            #[cfg(feature = "openai")]
             TypedPayload::Mistral(req) => Some(&req.model),
             TypedPayload::Unknown(v) => v.get("model").and_then(|m| m.as_str()),
         }
@@ -213,14 +195,19 @@ impl TypedPayload {
     /// Serializes the payload back to a JSON Value.
     pub fn into_value(self) -> Result<Value, DetectionError> {
         match self {
+            #[cfg(feature = "openai")]
             TypedPayload::OpenAI(req) => {
                 serde_json::to_value(req).map_err(|e| DetectionError::InvalidPayload(e.to_string()))
             }
+            #[cfg(feature = "anthropic")]
             TypedPayload::Anthropic(req) => {
                 serde_json::to_value(req).map_err(|e| DetectionError::InvalidPayload(e.to_string()))
             }
+            #[cfg(feature = "google")]
             TypedPayload::Google(payload) => Ok(payload.into_value()),
+            #[cfg(feature = "bedrock")]
             TypedPayload::Converse(payload) => Ok(payload.into_value()),
+            #[cfg(feature = "openai")]
             TypedPayload::Mistral(req) => {
                 serde_json::to_value(req).map_err(|e| DetectionError::InvalidPayload(e.to_string()))
             }
@@ -269,6 +256,7 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
 
     // Then parse into the appropriate type
     match detected.format {
+        #[cfg(feature = "openai")]
         ProviderFormat::OpenAI => {
             let req: CreateChatCompletionRequestClass = serde_json::from_value(payload.clone())
                 .map_err(|e| {
@@ -276,6 +264,7 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
                 })?;
             Ok(TypedPayload::OpenAI(req))
         }
+        #[cfg(feature = "anthropic")]
         ProviderFormat::Anthropic => {
             let req: CreateMessageParams =
                 serde_json::from_value(payload.clone()).map_err(|e| {
@@ -283,14 +272,17 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
                 })?;
             Ok(TypedPayload::Anthropic(req))
         }
+        #[cfg(feature = "google")]
         ProviderFormat::Google => {
             // Google uses protobuf types without serde, so we wrap the validated JSON
             Ok(TypedPayload::Google(GooglePayload::new(payload.clone())))
         }
+        #[cfg(feature = "bedrock")]
         ProviderFormat::Converse => {
             // Bedrock uses AWS SDK types, so we wrap the validated JSON
             Ok(TypedPayload::Converse(BedrockPayload::new(payload.clone())))
         }
+        #[cfg(feature = "openai")]
         ProviderFormat::Mistral => {
             // Mistral uses OpenAI-compatible format
             let req: CreateChatCompletionRequestClass = serde_json::from_value(payload.clone())
@@ -303,6 +295,9 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
             // Unknown format - preserve raw JSON
             Ok(TypedPayload::Unknown(payload.clone()))
         }
+        // When features are disabled, fall back to Unknown
+        #[allow(unreachable_patterns)]
+        _ => Ok(TypedPayload::Unknown(payload.clone())),
     }
 }
 

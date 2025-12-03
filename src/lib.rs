@@ -14,10 +14,13 @@ pub use providers::openai::transformations;
 
 // Re-export key types for external use
 pub use capabilities::ProviderFormat;
-pub use processing::{
-    parse, parse_from_str, BedrockPayload, DetectedPayload, DetectionError, GooglePayload,
-    TypedPayload,
-};
+pub use processing::{parse, parse_from_str, DetectedPayload, DetectionError, TypedPayload};
+
+// Re-export payload wrappers (feature-gated)
+#[cfg(feature = "bedrock")]
+pub use processing::BedrockPayload;
+#[cfg(feature = "google")]
+pub use processing::GooglePayload;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;

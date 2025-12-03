@@ -316,7 +316,35 @@ fn detectors() -> &'static [&'static dyn FormatDetector] {
 
 ### Step 4: Add `TypedPayload` variant (if needed)
 
-If your provider has strongly-typed request types, add a variant to `TypedPayload` in `src/processing/detect.rs` and update the `parse()` function.
+If your provider has strongly-typed request types, add a feature-gated variant to `TypedPayload` in `src/processing/detect.rs`:
+
+```rust
+#[derive(Debug, Clone)]
+pub enum TypedPayload {
+    // ... existing variants ...
+    #[cfg(feature = "myprovider")]
+    MyProvider(MyProviderRequest),
+}
+```
+
+Also add `#[cfg(feature = "myprovider")]` to all match arms referencing your variant in `format()`, `model()`, `into_value()`, and update `parse()`.
+
+**For providers without serde support** (e.g., protobuf or AWS SDK types), define a payload wrapper in your provider module:
+
+```rust
+// src/providers/myprovider/mod.rs
+pub struct MyProviderPayload {
+    pub raw: Value,
+    pub model: Option<String>,
+}
+```
+
+Then import it in `detect.rs`:
+
+```rust
+#[cfg(feature = "myprovider")]
+pub use crate::providers::myprovider::MyProviderPayload;
+```
 
 ### Priority Guidelines
 
