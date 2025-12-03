@@ -2,7 +2,6 @@
 Provider format enum - the authoritative source of truth for provider formats.
 
 This enum represents the different LLM provider API formats that lingua can handle.
-It is used by both lingua and downstream crates like braintrust-llm-router.
 */
 
 use serde::{Deserialize, Serialize};
@@ -27,8 +26,6 @@ pub enum ProviderFormat {
     Mistral,
     /// AWS Bedrock Converse API format
     Converse,
-    /// JavaScript/TypeScript SDK format (used for Braintrust SDK)
-    Js,
     /// Unknown or undetectable format
     #[default]
     Unknown,
@@ -43,7 +40,6 @@ impl ProviderFormat {
             ProviderFormat::Google => "google",
             ProviderFormat::Mistral => "mistral",
             ProviderFormat::Converse => "converse",
-            ProviderFormat::Js => "js",
             ProviderFormat::Unknown => "unknown",
         }
     }
@@ -70,7 +66,6 @@ impl std::str::FromStr for ProviderFormat {
             "google" => Ok(ProviderFormat::Google),
             "mistral" => Ok(ProviderFormat::Mistral),
             "converse" | "bedrock" => Ok(ProviderFormat::Converse),
-            "js" => Ok(ProviderFormat::Js),
             _ => Ok(ProviderFormat::Unknown),
         }
     }
@@ -98,7 +93,6 @@ mod tests {
             ProviderFormat::Google,
             ProviderFormat::Mistral,
             ProviderFormat::Converse,
-            ProviderFormat::Js,
             ProviderFormat::Unknown,
         ];
 

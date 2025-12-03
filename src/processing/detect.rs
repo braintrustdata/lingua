@@ -285,8 +285,8 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
                 })?;
             Ok(TypedPayload::Mistral(req))
         }
-        ProviderFormat::Js | ProviderFormat::Unknown => {
-            // Unknown or JS format - preserve raw JSON
+        ProviderFormat::Unknown => {
+            // Unknown format - preserve raw JSON
             Ok(TypedPayload::Unknown(payload.clone()))
         }
     }
