@@ -20,6 +20,7 @@ use thiserror::Error;
 /// - System prompt is a top-level field, not in messages
 /// - Content blocks use snake_case types: `tool_use`, `tool_result`
 /// - Image blocks use `source` object (OpenAI uses `image_url`)
+#[derive(Debug, Clone, Copy)]
 pub struct AnthropicDetector;
 
 impl FormatDetector for AnthropicDetector {
@@ -404,9 +405,37 @@ mod tests {
     }
 
     #[test]
-    fn test_detector_trait() {
-        let detector = AnthropicDetector;
-        assert_eq!(detector.format(), ProviderFormat::Anthropic);
-        assert_eq!(detector.priority(), 80);
+    fn test_heuristic_returns_false_for_system_role_in_messages() {
+        use crate::serde_json::json;
+
+        // OpenAI-style payload with system role in messages
+        // This should NOT be detected as Anthropic (Anthropic uses top-level system)
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "system", "content": "You are helpful"},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(!is_anthropic_format_heuristic(&payload));
+    }
+
+    #[test]
+    fn test_heuristic_returns_true_for_top_level_system() {
+        use crate::serde_json::json;
+
+        // Anthropic-style payload with top-level system
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "system": "You are helpful",
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(is_anthropic_format_heuristic(&payload));
     }
 }

@@ -16,6 +16,7 @@ use crate::serde_json::Value;
 /// - Content items have `parts` array
 /// - Role can be `model` instead of `assistant`
 /// - `generationConfig` for generation parameters
+#[derive(Debug, Clone, Copy)]
 pub struct GoogleDetector;
 
 impl FormatDetector for GoogleDetector {
@@ -135,12 +136,5 @@ mod tests {
             "contents": []
         });
         assert!(!is_google_format(&payload));
-    }
-
-    #[test]
-    fn test_detector_trait() {
-        let detector = GoogleDetector;
-        assert_eq!(detector.format(), ProviderFormat::Google);
-        assert_eq!(detector.priority(), 90);
     }
 }

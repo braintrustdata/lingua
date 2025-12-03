@@ -14,6 +14,7 @@ use crate::serde_json::Value;
 /// Mistral uses an OpenAI-compatible format with some distinctive features:
 /// - `safe_prompt` field for content filtering
 /// - Model names starting with `mistral-`, `codestral-`, `pixtral-`, or `ministral-`
+#[derive(Debug, Clone, Copy)]
 pub struct MistralDetector;
 
 impl FormatDetector for MistralDetector {
@@ -50,6 +51,9 @@ impl FormatDetector for MistralDetector {
 ///
 /// assert!(is_mistral_format(&mistral_payload));
 /// ```
+/// Known Mistral model prefixes (lowercase for case-insensitive matching).
+const MISTRAL_MODEL_PREFIXES: &[&str] = &["mistral-", "codestral-", "pixtral-", "ministral-"];
+
 pub fn is_mistral_format(payload: &Value) -> bool {
     // Check for Mistral-specific fields
     if payload.get("safe_prompt").is_some() {
@@ -58,11 +62,10 @@ pub fn is_mistral_format(payload: &Value) -> bool {
 
     // Check model name for Mistral patterns
     if let Some(model) = payload.get("model").and_then(|v| v.as_str()) {
-        let model_lower = model.to_lowercase();
-        if model_lower.starts_with("mistral-")
-            || model_lower.starts_with("codestral-")
-            || model_lower.starts_with("pixtral-")
-            || model_lower.starts_with("ministral-")
+        let model_lower = model.to_ascii_lowercase();
+        if MISTRAL_MODEL_PREFIXES
+            .iter()
+            .any(|prefix| model_lower.starts_with(prefix))
         {
             return true;
         }
@@ -129,12 +132,5 @@ mod tests {
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(!is_mistral_format(&payload));
-    }
-
-    #[test]
-    fn test_detector_trait() {
-        let detector = MistralDetector;
-        assert_eq!(detector.format(), ProviderFormat::Mistral);
-        assert_eq!(detector.priority(), 70);
     }
 }

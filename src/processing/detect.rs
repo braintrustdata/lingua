@@ -713,4 +713,48 @@ mod tests {
             _ => panic!("Expected OpenAI payload"),
         }
     }
+
+    /// Integration test: full pipeline from detection through transformation to serialization.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_full_pipeline_detect_transform_serialize() {
+        use crate::providers::openai::transformations::{OpenAIRequestTransformer, TargetProvider};
+
+        // 1. Start with a raw OpenAI payload requiring transformation
+        let input = serde_json::json!({
+            "model": "gpt-4o",
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ],
+            "stream_options": {"include_usage": true},
+            "parallel_tool_calls": true
+        });
+
+        // 2. Detect and parse
+        let typed = parse(&input).unwrap();
+        assert_eq!(typed.format(), ProviderFormat::OpenAI);
+
+        // 3. Extract typed request and transform for Mistral
+        match typed {
+            TypedPayload::OpenAI(mut req) => {
+                // Mistral doesn't support stream_options or parallel_tool_calls
+                OpenAIRequestTransformer::new(&mut req)
+                    .with_target_provider(TargetProvider::Mistral)
+                    .transform()
+                    .expect("transform succeeds");
+
+                // 4. Verify transformations applied
+                assert!(req.stream_options.is_none());
+                assert!(req.parallel_tool_calls.is_none());
+                assert_eq!(req.model, "gpt-4o");
+                assert_eq!(req.messages.len(), 1);
+
+                // 5. Serialize back to JSON
+                let output = serde_json::to_value(&req).expect("serialize succeeds");
+                assert!(output.get("stream_options").is_none());
+                assert!(output.get("parallel_tool_calls").is_none());
+            }
+            _ => panic!("Expected OpenAI payload"),
+        }
+    }
 }

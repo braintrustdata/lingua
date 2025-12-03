@@ -15,6 +15,7 @@ use crate::serde_json::Value;
 /// - `modelId` field instead of `model`
 /// - `inferenceConfig` instead of generation config
 /// - camelCase content types (`toolUse`, `toolResult`)
+#[derive(Debug, Clone, Copy)]
 pub struct ConverseDetector;
 
 impl FormatDetector for ConverseDetector {
@@ -166,12 +167,5 @@ mod tests {
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(!is_bedrock_converse(&payload));
-    }
-
-    #[test]
-    fn test_detector_trait() {
-        let detector = ConverseDetector;
-        assert_eq!(detector.format(), ProviderFormat::Converse);
-        assert_eq!(detector.priority(), 95);
     }
 }

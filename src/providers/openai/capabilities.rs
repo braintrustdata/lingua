@@ -107,22 +107,29 @@ impl OpenAICapabilities {
     }
 }
 
+/// Model prefixes that support native structured output.
+const STRUCTURED_OUTPUT_PREFIXES: &[&str] = &["gpt", "o1", "o3"];
+
+/// Model prefixes that indicate reasoning models.
+const REASONING_MODEL_PREFIXES: &[&str] = &["o1", "o2", "o3", "o4", "gpt-5"];
+
+/// Legacy o1 models that need special handling.
+const LEGACY_O1_MODELS: &[&str] = &["o1-preview", "o1-mini", "o1-preview-2024-09-12"];
+
 fn supports_native_structured_output(model: &str, target: TargetProvider) -> bool {
-    model.starts_with("gpt")
-        || model.starts_with("o1")
-        || model.starts_with("o3")
+    STRUCTURED_OUTPUT_PREFIXES
+        .iter()
+        .any(|prefix| model.starts_with(prefix))
         || matches!(target, TargetProvider::Fireworks)
 }
 
 fn is_reasoning_model_name(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
-    lower.starts_with("o1")
-        || lower.starts_with("o2")
-        || lower.starts_with("o3")
-        || lower.starts_with("o4")
-        || lower.starts_with("gpt-5")
+    REASONING_MODEL_PREFIXES
+        .iter()
+        .any(|prefix| lower.starts_with(prefix))
 }
 
 fn is_legacy_o1_model(model: &str) -> bool {
-    matches!(model, "o1-preview" | "o1-mini" | "o1-preview-2024-09-12")
+    LEGACY_O1_MODELS.contains(&model)
 }

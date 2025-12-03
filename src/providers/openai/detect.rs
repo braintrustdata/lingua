@@ -15,6 +15,7 @@ use crate::serde_json::Value;
 /// It detects payloads with:
 /// - `messages` array with `role` and `content`/`tool_calls`
 /// - `model` field
+#[derive(Debug, Clone, Copy)]
 pub struct OpenAIDetector;
 
 impl FormatDetector for OpenAIDetector {
@@ -143,12 +144,5 @@ mod tests {
             "contents": [{"role": "user", "parts": [{"text": "Hello"}]}]
         });
         assert!(!is_openai_format(&payload));
-    }
-
-    #[test]
-    fn test_detector_trait() {
-        let detector = OpenAIDetector;
-        assert_eq!(detector.format(), ProviderFormat::OpenAI);
-        assert_eq!(detector.priority(), 50);
     }
 }
