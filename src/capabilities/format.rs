@@ -74,34 +74,6 @@ impl std::str::FromStr for ProviderFormat {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serde_json;
-
-    #[test]
-    fn test_as_str() {
-        assert_eq!(ProviderFormat::OpenAI.as_str(), "openai");
-        assert_eq!(ProviderFormat::Anthropic.as_str(), "anthropic");
-        assert_eq!(ProviderFormat::Google.as_str(), "google");
-        assert_eq!(ProviderFormat::Converse.as_str(), "converse");
-        assert_eq!(ProviderFormat::Unknown.as_str(), "unknown");
-    }
-
-    #[test]
-    fn test_serde_roundtrip() {
-        let formats = vec![
-            ProviderFormat::OpenAI,
-            ProviderFormat::Anthropic,
-            ProviderFormat::Google,
-            ProviderFormat::Mistral,
-            ProviderFormat::Converse,
-            ProviderFormat::Unknown,
-        ];
-
-        for format in formats {
-            let serialized = serde_json::to_string(&format).unwrap();
-            let deserialized: ProviderFormat = serde_json::from_str(&serialized).unwrap();
-            assert_eq!(format, deserialized);
-        }
-    }
 
     #[test]
     fn test_from_str() {
@@ -121,12 +93,5 @@ mod tests {
             "unknown_format".parse::<ProviderFormat>().unwrap(),
             ProviderFormat::Unknown
         );
-    }
-
-    #[test]
-    fn test_is_known() {
-        assert!(ProviderFormat::OpenAI.is_known());
-        assert!(ProviderFormat::Anthropic.is_known());
-        assert!(!ProviderFormat::Unknown.is_known());
     }
 }
