@@ -5,7 +5,36 @@ This module provides functions to detect if a payload is in
 Google AI (Generative Language API) format.
 */
 
+use crate::capabilities::ProviderFormat;
+use crate::processing::FormatDetector;
 use crate::serde_json::Value;
+
+/// Detector for Google AI / Gemini format.
+///
+/// Google's GenerateContent API has distinctive features:
+/// - `contents` array instead of `messages`
+/// - Content items have `parts` array
+/// - Role can be `model` instead of `assistant`
+/// - `generationConfig` for generation parameters
+pub struct GoogleDetector;
+
+impl FormatDetector for GoogleDetector {
+    fn format(&self) -> ProviderFormat {
+        ProviderFormat::Google
+    }
+
+    fn detect(&self, payload: &Value) -> bool {
+        is_google_format(payload)
+    }
+
+    fn priority(&self) -> u8 {
+        90 // High priority - very distinctive structure
+    }
+
+    fn confidence(&self) -> f32 {
+        0.90
+    }
+}
 
 /// Check if payload is in Google format.
 ///
@@ -110,5 +139,13 @@ mod tests {
             "contents": []
         });
         assert!(!is_google_format(&payload));
+    }
+
+    #[test]
+    fn test_detector_trait() {
+        let detector = GoogleDetector;
+        assert_eq!(detector.format(), ProviderFormat::Google);
+        assert_eq!(detector.priority(), 90);
+        assert!((detector.confidence() - 0.90).abs() < f32::EPSILON);
     }
 }

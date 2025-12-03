@@ -5,7 +5,35 @@ This module provides functions to detect if a payload is in
 OpenAI chat completion format.
 */
 
+use crate::capabilities::ProviderFormat;
+use crate::processing::FormatDetector;
 use crate::serde_json::Value;
+
+/// Detector for OpenAI Chat Completions API format.
+///
+/// OpenAI format is the most permissive and serves as a fallback.
+/// It detects payloads with:
+/// - `messages` array with `role` and `content`/`tool_calls`
+/// - `model` field
+pub struct OpenAIDetector;
+
+impl FormatDetector for OpenAIDetector {
+    fn format(&self) -> ProviderFormat {
+        ProviderFormat::OpenAI
+    }
+
+    fn detect(&self, payload: &Value) -> bool {
+        is_openai_format(payload)
+    }
+
+    fn priority(&self) -> u8 {
+        50 // Lowest priority - fallback format
+    }
+
+    fn confidence(&self) -> f32 {
+        0.75
+    }
+}
 
 /// Check if payload is in OpenAI format.
 ///
@@ -119,5 +147,13 @@ mod tests {
             "contents": [{"role": "user", "parts": [{"text": "Hello"}]}]
         });
         assert!(!is_openai_format(&payload));
+    }
+
+    #[test]
+    fn test_detector_trait() {
+        let detector = OpenAIDetector;
+        assert_eq!(detector.format(), ProviderFormat::OpenAI);
+        assert_eq!(detector.priority(), 50);
+        assert!((detector.confidence() - 0.75).abs() < f32::EPSILON);
     }
 }

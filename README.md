@@ -252,6 +252,87 @@ use lingua::translators::to_bedrock_format_with_model;
 
 - [ ] Support parsing streaming responses and combining streaming messages into a single response.
 
+## Adding a Provider
+
+Lingua uses a plugin-style architecture for provider format detection. To add a new provider:
+
+### Step 1: Add to `ProviderFormat` enum
+
+In `src/capabilities/format.rs`, add your provider variant:
+
+```rust
+pub enum ProviderFormat {
+    // ... existing variants ...
+    MyProvider,
+}
+```
+
+Update the `as_str()`, `is_known()`, and `FromStr` implementations accordingly.
+
+### Step 2: Create provider module with detector
+
+Create `src/providers/myprovider/mod.rs` and `src/providers/myprovider/detect.rs`:
+
+```rust
+// src/providers/myprovider/detect.rs
+use crate::capabilities::ProviderFormat;
+use crate::processing::FormatDetector;
+use crate::serde_json::Value;
+
+pub struct MyProviderDetector;
+
+impl FormatDetector for MyProviderDetector {
+    fn format(&self) -> ProviderFormat {
+        ProviderFormat::MyProvider
+    }
+
+    fn detect(&self, payload: &Value) -> bool {
+        // Check for provider-specific fields
+        payload.get("my_specific_field").is_some()
+    }
+
+    fn priority(&self) -> u8 {
+        75 // Higher = checked first. Use 90-100 for very distinctive formats
+    }
+
+    fn confidence(&self) -> f32 {
+        0.85 // Confidence when detected (0.0-1.0)
+    }
+}
+
+pub fn is_my_provider_format(payload: &Value) -> bool {
+    // Your heuristic detection logic
+}
+```
+
+### Step 3: Register the detector
+
+In `src/processing/detect.rs`, add your detector to the registry:
+
+```rust
+fn detectors() -> &'static [&'static dyn FormatDetector] {
+    // ...
+    #[cfg(feature = "myprovider")]
+    v.push(&myprovider::MyProviderDetector);
+    // ...
+}
+```
+
+### Step 4: Add `TypedPayload` variant (if needed)
+
+If your provider has strongly-typed request types, add a variant to `TypedPayload` in `src/processing/detect.rs` and update the `parse()` function.
+
+### Priority Guidelines
+
+Detection priority determines the order in which formats are checked:
+
+| Priority | Description | Examples |
+|----------|-------------|----------|
+| 90-100 | Highly distinctive formats with unique field names | Bedrock (`modelId`), Google (`contents/parts`) |
+| 70-89 | Distinctive formats with specific structure | Anthropic (`max_tokens` required) |
+| 50-69 | Common formats with some signals | Mistral (model name prefix) |
+| 30-49 | Fallback/permissive formats | OpenAI (most permissive) |
+
 ## Contributing
 
 This project aims to support the entire ecosystem of LLM providers. Contributions for new providers, capability detection improvements, and format enhancements are welcome.

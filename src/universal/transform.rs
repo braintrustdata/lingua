@@ -274,7 +274,7 @@ mod tests {
 
     #[test]
     fn test_no_modification_when_not_called() {
-        let messages = vec![
+        let messages = [
             Message::User {
                 content: UserContent::String("Hello".into()),
             },
@@ -289,7 +289,7 @@ mod tests {
 
     #[test]
     fn test_system_messages_preserved_when_not_extracted() {
-        let messages = vec![
+        let messages = [
             Message::System {
                 content: UserContent::String("System".into()),
             },

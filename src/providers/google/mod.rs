@@ -4,6 +4,8 @@
 pub mod detect;
 pub mod generated;
 
+pub use detect::GoogleDetector;
+
 use crate::serde_json::Value;
 
 // Re-export the most commonly used Google AI types for convenience

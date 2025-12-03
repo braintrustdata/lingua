@@ -21,6 +21,9 @@ pub mod test_chat_completions;
 #[cfg(test)]
 pub mod test_transformations;
 
+// Re-export detector
+pub use detect::OpenAIDetector;
+
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{
     ChatCompletionRequestMessage,

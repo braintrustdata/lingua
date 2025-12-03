@@ -5,11 +5,40 @@ This module provides functions to detect if a payload is already in
 Anthropic-compatible format, distinguishing it from OpenAI format.
 */
 
+use crate::capabilities::ProviderFormat;
+use crate::processing::FormatDetector;
 use crate::providers::anthropic::generated::{
     CreateMessageParams, InputContentBlockType, MessageRole,
 };
 use crate::serde_json::{self, Value};
 use thiserror::Error;
+
+/// Detector for Anthropic Messages API format.
+///
+/// Anthropic has distinctive features:
+/// - `max_tokens` is required (optional in OpenAI)
+/// - System prompt is a top-level field, not in messages
+/// - Content blocks use snake_case types: `tool_use`, `tool_result`
+/// - Image blocks use `source` object (OpenAI uses `image_url`)
+pub struct AnthropicDetector;
+
+impl FormatDetector for AnthropicDetector {
+    fn format(&self) -> ProviderFormat {
+        ProviderFormat::Anthropic
+    }
+
+    fn detect(&self, payload: &Value) -> bool {
+        is_anthropic_format_heuristic(payload)
+    }
+
+    fn priority(&self) -> u8 {
+        80 // High priority - distinctive format
+    }
+
+    fn confidence(&self) -> f32 {
+        0.85
+    }
+}
 
 /// Error type for payload detection
 #[derive(Debug, Error)]
@@ -376,5 +405,13 @@ mod tests {
 
         // This will fail deserialization because max_tokens is required
         assert!(is_anthropic_format(payload).is_err());
+    }
+
+    #[test]
+    fn test_detector_trait() {
+        let detector = AnthropicDetector;
+        assert_eq!(detector.format(), ProviderFormat::Anthropic);
+        assert_eq!(detector.priority(), 80);
+        assert!((detector.confidence() - 0.85).abs() < f32::EPSILON);
     }
 }

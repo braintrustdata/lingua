@@ -3,27 +3,75 @@ Unified payload detection API.
 
 This module provides format detection for incoming request payloads by:
 1. First checking the model catalog (if available via MODEL_CATALOG_PATH env var)
-2. Falling back to content-based heuristics if catalog lookup fails
+2. Falling back to content-based heuristics using registered detectors
 
-The detection order for heuristics:
-1. **Converse (Bedrock)** - `model_id` field, camelCase content types
-2. **Anthropic** - `max_tokens` required, roles only `user`/`assistant`
-3. **Google** - `contents[].parts[]` structure, role `"model"`
-4. **Mistral** - Similar to OpenAI but with Mistral-specific fields
-5. **OpenAI** - Default fallback
+Detectors are checked in priority order (highest first):
+- **Converse (Bedrock)** - priority 95: `modelId` field, camelCase content types
+- **Google** - priority 90: `contents[].parts[]` structure, role `"model"`
+- **Anthropic** - priority 80: `max_tokens` required, roles only `user`/`assistant`
+- **Mistral** - priority 70: Similar to OpenAI but with Mistral-specific fields
+- **OpenAI** - priority 50: Default fallback
+
+To add a new provider, implement `FormatDetector` in your provider module
+and register it in the `detectors()` function below.
 */
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::catalog::catalog_lookup;
+use crate::processing::FormatDetector;
 use crate::serde_json::{self, Value};
+use std::sync::OnceLock;
 use thiserror::Error;
 
 // Provider type imports for TypedPayload
+#[cfg(feature = "anthropic")]
 use crate::providers::anthropic::generated::CreateMessageParams;
+#[cfg(feature = "openai")]
 use crate::providers::openai::generated::CreateChatCompletionRequestClass;
 
-// Provider-specific detection function (Anthropic is always available)
-use crate::providers::anthropic::is_anthropic_format_heuristic;
+// Import detectors from provider modules
+#[cfg(feature = "anthropic")]
+use crate::providers::anthropic::AnthropicDetector;
+#[cfg(feature = "bedrock")]
+use crate::providers::bedrock::ConverseDetector;
+#[cfg(feature = "google")]
+use crate::providers::google::GoogleDetector;
+#[cfg(feature = "openai")]
+use crate::providers::mistral::MistralDetector;
+#[cfg(feature = "openai")]
+use crate::providers::openai::OpenAIDetector;
+
+/// Returns all registered detectors, sorted by priority (highest first).
+///
+/// This is the central registry for format detectors. When adding a new provider:
+/// 1. Implement `FormatDetector` in your provider module
+/// 2. Add it to this list with appropriate feature gates
+fn detectors() -> &'static [&'static dyn FormatDetector] {
+    static DETECTORS: OnceLock<Vec<&'static dyn FormatDetector>> = OnceLock::new();
+    DETECTORS.get_or_init(|| {
+        let mut v: Vec<&dyn FormatDetector> = vec![];
+
+        // Add detectors based on enabled features
+        #[cfg(feature = "bedrock")]
+        v.push(&ConverseDetector);
+
+        #[cfg(feature = "google")]
+        v.push(&GoogleDetector);
+
+        #[cfg(feature = "anthropic")]
+        v.push(&AnthropicDetector);
+
+        #[cfg(feature = "openai")]
+        {
+            v.push(&MistralDetector);
+            v.push(&OpenAIDetector);
+        }
+
+        // Sort by priority (highest first)
+        v.sort_by_key(|b| std::cmp::Reverse(b.priority()));
+        v
+    })
+}
 
 /// Wrapper for Google AI payloads (protobuf types, wrapped as JSON).
 #[derive(Debug, Clone)]
@@ -342,62 +390,26 @@ fn extract_model_name(payload: &Value) -> Option<String> {
     None
 }
 
-/// Detect format using content-based heuristics.
+/// Detect format using content-based heuristics via registered detectors.
 ///
-/// This function analyzes the structure of the payload to determine its format.
+/// This function iterates through all registered detectors in priority order
+/// and returns the first match. If no detector matches and strict mode is off,
+/// defaults to OpenAI format.
 fn detect_from_content(
     payload: &Value,
     model: Option<String>,
     strict: bool,
 ) -> Result<DetectedPayload, DetectionError> {
-    // Check for Bedrock Converse format first (most distinctive)
-    if is_bedrock_converse(payload) {
-        return Ok(DetectedPayload::new(
-            ProviderFormat::Converse,
-            model,
-            false,
-            0.95,
-        ));
-    }
-
-    // Check for Google format (contents/parts structure)
-    if is_google_format(payload) {
-        return Ok(DetectedPayload::new(
-            ProviderFormat::Google,
-            model,
-            false,
-            0.9,
-        ));
-    }
-
-    // Check for Anthropic format (max_tokens required, specific structure)
-    if is_anthropic_format_heuristic(payload) {
-        return Ok(DetectedPayload::new(
-            ProviderFormat::Anthropic,
-            model,
-            false,
-            0.85,
-        ));
-    }
-
-    // Check for Mistral-specific features
-    if is_mistral_format(payload) {
-        return Ok(DetectedPayload::new(
-            ProviderFormat::Mistral,
-            model,
-            false,
-            0.8,
-        ));
-    }
-
-    // Check for OpenAI format (or OpenAI-compatible)
-    if is_openai_format(payload) {
-        return Ok(DetectedPayload::new(
-            ProviderFormat::OpenAI,
-            model,
-            false,
-            0.75,
-        ));
+    // Iterate through detectors in priority order (already sorted)
+    for detector in detectors() {
+        if detector.detect(payload) {
+            return Ok(DetectedPayload::new(
+                detector.format(),
+                model,
+                false,
+                detector.confidence(),
+            ));
+        }
     }
 
     // No format detected
@@ -414,101 +426,12 @@ fn detect_from_content(
     }
 }
 
-/// Check if payload is in Bedrock Converse format.
-///
-/// Indicators:
-/// - Has "modelId" field instead of "model"
-/// - Uses camelCase content types ("toolUse", "toolResult")
-/// - Has "inferenceConfig" instead of "generation_config"
-fn is_bedrock_converse(payload: &Value) -> bool {
-    // Primary indicator: modelId field
-    if payload.get("modelId").is_some() {
-        return true;
-    }
-
-    // Secondary indicator: inferenceConfig
-    if payload.get("inferenceConfig").is_some() {
-        return true;
-    }
-
-    // Check for Converse-style message structure
-    if let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) {
-        for msg in messages {
-            if let Some(content) = msg.get("content").and_then(|v| v.as_array()) {
-                for block in content {
-                    // Converse uses camelCase: "toolUse", "toolResult"
-                    if block.get("toolUse").is_some() || block.get("toolResult").is_some() {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-
-    false
-}
-
-/// Check if payload is in Mistral format.
-///
-/// Indicators:
-/// - Similar to OpenAI but with Mistral-specific fields
-/// - May have "safe_prompt" field
-/// - Model name starts with "mistral-" or "codestral-" or "pixtral-"
-fn is_mistral_format(payload: &Value) -> bool {
-    // Check for Mistral-specific fields
-    if payload.get("safe_prompt").is_some() {
-        return true;
-    }
-
-    // Check model name for Mistral patterns
-    if let Some(model) = payload.get("model").and_then(|v| v.as_str()) {
-        let model_lower = model.to_lowercase();
-        if model_lower.starts_with("mistral-")
-            || model_lower.starts_with("codestral-")
-            || model_lower.starts_with("pixtral-")
-            || model_lower.starts_with("ministral-")
-        {
-            return true;
-        }
-    }
-
-    false
-}
-
-/// Check if payload is in Google format (contents/parts structure).
-fn is_google_format(payload: &Value) -> bool {
-    if let Some(contents) = payload.get("contents").and_then(|v| v.as_array()) {
-        if !contents.is_empty() && contents[0].get("parts").is_some() {
-            return true;
-        }
-        for content in contents {
-            if content.get("role").and_then(|v| v.as_str()) == Some("model") {
-                return true;
-            }
-        }
-    }
-    payload.get("generationConfig").is_some()
-}
-
-/// Check if payload is in OpenAI format (messages array with model field).
-fn is_openai_format(payload: &Value) -> bool {
-    let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) else {
-        return false;
-    };
-    if messages.is_empty() || payload.get("model").is_none() {
-        return false;
-    }
-    messages.iter().all(|msg| {
-        msg.get("role").is_some()
-            && (msg.get("content").is_some() || msg.get("tool_calls").is_some())
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_detect_openai_format() {
         let payload = serde_json::json!({
             "model": "gpt-4o",
@@ -525,6 +448,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "anthropic")]
     fn test_detect_anthropic_format() {
         let payload = serde_json::json!({
             "model": "claude-3-5-sonnet-20241022",
@@ -540,6 +464,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "anthropic")]
     fn test_detect_anthropic_with_tool_use() {
         let payload = serde_json::json!({
             "model": "claude-3-5-sonnet-20241022",
@@ -564,6 +489,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "google")]
     fn test_detect_google_format() {
         let payload = serde_json::json!({
             "contents": [
@@ -582,6 +508,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "bedrock")]
     fn test_detect_bedrock_converse() {
         let payload = serde_json::json!({
             "modelId": "anthropic.claude-3-sonnet-20240229-v1:0",
@@ -605,6 +532,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_detect_mistral_format() {
         let payload = serde_json::json!({
             "model": "mistral-large-latest",
@@ -629,6 +557,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_non_strict_defaults_to_openai() {
         let payload = serde_json::json!({
             "unknown_field": "value"
@@ -640,6 +569,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_detect_format_from_str() {
         let payload = r#"{"model": "gpt-4", "messages": [{"role": "user", "content": "Hi"}]}"#;
         let result = detect_format_from_str(payload, false).unwrap();
@@ -656,6 +586,7 @@ mod tests {
     // TypedPayload tests
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_parse_openai() {
         let payload = serde_json::json!({
             "model": "gpt-4o",
@@ -673,6 +604,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "anthropic")]
     fn test_parse_anthropic() {
         let payload = serde_json::json!({
             "model": "claude-3-5-sonnet-20241022",
@@ -689,6 +621,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_parse_mistral() {
         let payload = serde_json::json!({
             "model": "mistral-large-latest",
@@ -705,6 +638,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_parse_unknown() {
         let payload = serde_json::json!({
             "some_unknown_field": "value",
@@ -727,6 +661,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_parse_into_value() {
         let payload = serde_json::json!({
             "model": "gpt-4o",
@@ -747,6 +682,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_parse_from_str() {
         let payload = r#"{"model": "gpt-4", "messages": [{"role": "user", "content": "Hi"}]}"#;
         let result = parse_from_str(payload).unwrap();
@@ -755,6 +691,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "anthropic")]
     fn test_parse_anthropic_with_typed_access() {
         let payload = serde_json::json!({
             "model": "claude-3-5-sonnet-20241022",
@@ -779,6 +716,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
     fn test_parse_openai_with_typed_access() {
         let payload = serde_json::json!({
             "model": "gpt-4o",
