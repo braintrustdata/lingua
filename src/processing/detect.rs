@@ -22,73 +22,47 @@ use thiserror::Error;
 use crate::providers::anthropic::generated::CreateMessageParams;
 use crate::providers::openai::generated::CreateChatCompletionRequestClass;
 
-// Provider-specific detection functions
+// Provider-specific detection function (Anthropic is always available)
 use crate::providers::anthropic::is_anthropic_format_heuristic;
-#[cfg(feature = "google")]
-use crate::providers::google::detect::is_google_format;
-#[cfg(feature = "openai")]
-use crate::providers::openai::detect::is_openai_format;
 
-// Re-export wrapper types from provider modules when features are enabled,
-// otherwise define them locally to keep the API consistent.
-#[cfg(feature = "bedrock")]
-pub use crate::providers::bedrock::BedrockPayload;
-#[cfg(feature = "google")]
-pub use crate::providers::google::GooglePayload;
+/// Wrapper for Google AI payloads (protobuf types, wrapped as JSON).
+#[derive(Debug, Clone)]
+pub struct GooglePayload {
+    pub raw: Value,
+    pub model: Option<String>,
+}
 
-// Fallback definitions when features are not enabled
-#[cfg(not(feature = "google"))]
-mod google_fallback {
-    use crate::serde_json::Value;
-
-    /// Wrapper for Google AI payloads (fallback when google feature disabled).
-    #[derive(Debug, Clone)]
-    pub struct GooglePayload {
-        pub raw: Value,
-        pub model: Option<String>,
+impl GooglePayload {
+    pub fn new(raw: Value) -> Self {
+        let model = raw.get("model").and_then(|v| v.as_str()).map(String::from);
+        Self { raw, model }
     }
 
-    impl GooglePayload {
-        pub fn new(raw: Value) -> Self {
-            let model = raw.get("model").and_then(|v| v.as_str()).map(String::from);
-            Self { raw, model }
-        }
-
-        pub fn into_value(self) -> Value {
-            self.raw
-        }
+    pub fn into_value(self) -> Value {
+        self.raw
     }
 }
-#[cfg(not(feature = "google"))]
-pub use google_fallback::GooglePayload;
 
-#[cfg(not(feature = "bedrock"))]
-mod bedrock_fallback {
-    use crate::serde_json::Value;
+/// Wrapper for Bedrock Converse payloads (AWS SDK types, wrapped as JSON).
+#[derive(Debug, Clone)]
+pub struct BedrockPayload {
+    pub raw: Value,
+    pub model_id: Option<String>,
+}
 
-    /// Wrapper for Bedrock payloads (fallback when bedrock feature disabled).
-    #[derive(Debug, Clone)]
-    pub struct BedrockPayload {
-        pub raw: Value,
-        pub model_id: Option<String>,
+impl BedrockPayload {
+    pub fn new(raw: Value) -> Self {
+        let model_id = raw
+            .get("modelId")
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        Self { raw, model_id }
     }
 
-    impl BedrockPayload {
-        pub fn new(raw: Value) -> Self {
-            let model_id = raw
-                .get("modelId")
-                .and_then(|v| v.as_str())
-                .map(String::from);
-            Self { raw, model_id }
-        }
-
-        pub fn into_value(self) -> Value {
-            self.raw
-        }
+    pub fn into_value(self) -> Value {
+        self.raw
     }
 }
-#[cfg(not(feature = "bedrock"))]
-pub use bedrock_fallback::BedrockPayload;
 
 /// Errors that can occur during payload detection
 #[derive(Debug, Error)]
@@ -501,49 +475,33 @@ fn is_mistral_format(payload: &Value) -> bool {
     false
 }
 
-// Fallback detection when google feature is disabled
-#[cfg(not(feature = "google"))]
+/// Check if payload is in Google format (contents/parts structure).
 fn is_google_format(payload: &Value) -> bool {
-    // Primary indicator: "contents" array with "parts" structure
     if let Some(contents) = payload.get("contents").and_then(|v| v.as_array()) {
-        if !contents.is_empty() {
-            if contents[0].get("parts").is_some() {
-                return true;
-            }
+        if !contents.is_empty() && contents[0].get("parts").is_some() {
+            return true;
         }
-    }
-    if payload.get("generationConfig").is_some() {
-        return true;
-    }
-    if let Some(contents) = payload.get("contents").and_then(|v| v.as_array()) {
         for content in contents {
             if content.get("role").and_then(|v| v.as_str()) == Some("model") {
                 return true;
             }
         }
     }
-    false
+    payload.get("generationConfig").is_some()
 }
 
-// Fallback detection when openai feature is disabled
-#[cfg(not(feature = "openai"))]
+/// Check if payload is in OpenAI format (messages array with model field).
 fn is_openai_format(payload: &Value) -> bool {
-    let has_messages = payload
-        .get("messages")
-        .and_then(|v| v.as_array())
-        .map(|arr| !arr.is_empty())
-        .unwrap_or(false);
-    let has_model = payload.get("model").is_some();
-    if has_messages {
-        if let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) {
-            let valid_messages = messages.iter().all(|msg| {
-                msg.get("role").is_some()
-                    && (msg.get("content").is_some() || msg.get("tool_calls").is_some())
-            });
-            return valid_messages && has_model;
-        }
+    let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) else {
+        return false;
+    };
+    if messages.is_empty() || payload.get("model").is_none() {
+        return false;
     }
-    false
+    messages.iter().all(|msg| {
+        msg.get("role").is_some()
+            && (msg.get("content").is_some() || msg.get("tool_calls").is_some())
+    })
 }
 
 #[cfg(test)]
