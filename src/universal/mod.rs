@@ -15,4 +15,4 @@ pub mod transform;
 
 // Re-export main types for convenience
 pub use message::*;
-pub use transform::{TransformResult, UniversalTransformer};
+pub use transform::{extract_system_messages, flatten_consecutive_messages};

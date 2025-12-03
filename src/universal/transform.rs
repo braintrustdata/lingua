@@ -8,123 +8,106 @@ providers, mirroring the proxy's behavior:
   (needed for Anthropic, Google, Bedrock)
 - **System message extraction**: Extract system messages to a separate parameter
   (needed for Anthropic, Google, Bedrock)
+
+# Example
+
+```
+use lingua::universal::{Message, UserContent, extract_system_messages, flatten_consecutive_messages};
+
+let mut messages = vec![
+    Message::System { content: UserContent::String("You are helpful".into()) },
+    Message::User { content: UserContent::String("Hello".into()) },
+    Message::User { content: UserContent::String("World".into()) },
+];
+
+// Extract system messages (for providers that need them separate)
+let system = extract_system_messages(&mut messages);
+assert_eq!(system.len(), 1);
+
+// Flatten consecutive messages of the same role
+flatten_consecutive_messages(&mut messages);
+assert_eq!(messages.len(), 1);
+```
 */
 
-use crate::capabilities::universal::UniversalCapabilities;
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContent, UserContent,
     UserContentPart,
 };
 
-/// Result of applying universal transformations.
-#[derive(Debug, Default)]
-pub struct TransformResult {
-    /// System messages extracted from the message list.
-    /// These should be passed to the provider's system parameter.
-    pub system_messages: Vec<UserContent>,
-}
-
-/// Applies universal transformations to messages before provider conversion.
+/// Extract system messages from the message list.
 ///
-/// This transformer handles transformations that are common across multiple
-/// providers, reducing duplication in provider-specific converters.
+/// Removes all `Message::System` variants and returns their content.
+/// This is needed for providers like Anthropic, Google, and Bedrock
+/// where system messages are passed as a separate parameter.
 ///
 /// # Example
 ///
 /// ```
-/// use lingua::universal::{Message, UserContent, UniversalTransformer};
-/// use lingua::capabilities::universal::UniversalCapabilities;
+/// use lingua::universal::{Message, UserContent, extract_system_messages};
 ///
 /// let mut messages = vec![
-///     Message::System { content: UserContent::String("You are helpful".into()) },
+///     Message::System { content: UserContent::String("System prompt".into()) },
 ///     Message::User { content: UserContent::String("Hello".into()) },
 /// ];
 ///
-/// let caps = UniversalCapabilities::for_provider("anthropic");
-/// let mut transformer = UniversalTransformer::new(&mut messages, caps);
-/// let result = transformer.transform();
-///
-/// // System messages are extracted
-/// assert_eq!(result.system_messages.len(), 1);
-/// // Only user message remains
-/// assert_eq!(messages.len(), 1);
+/// let system = extract_system_messages(&mut messages);
+/// assert_eq!(system.len(), 1);
+/// assert_eq!(messages.len(), 1); // Only user message remains
 /// ```
-pub struct UniversalTransformer<'a> {
-    messages: &'a mut Vec<Message>,
-    capabilities: UniversalCapabilities,
+pub fn extract_system_messages(messages: &mut Vec<Message>) -> Vec<UserContent> {
+    let mut system_contents = Vec::new();
+    messages.retain(|msg| {
+        if let Message::System { content } = msg {
+            system_contents.push(content.clone());
+            false
+        } else {
+            true
+        }
+    });
+    system_contents
 }
 
-impl<'a> UniversalTransformer<'a> {
-    /// Create a transformer for a mutable vector of messages.
-    pub fn new(messages: &'a mut Vec<Message>, capabilities: UniversalCapabilities) -> Self {
-        Self {
-            messages,
-            capabilities,
-        }
+/// Merge consecutive messages of the same role.
+///
+/// This is needed for providers like Anthropic, Google, and Bedrock
+/// that don't allow consecutive messages of the same role.
+///
+/// For example:
+/// - User("Hello") + User("World") → User(["Hello", "World"])
+/// - Assistant("Hi") + Assistant("there") → Assistant(["Hi", "there"])
+///
+/// # Example
+///
+/// ```
+/// use lingua::universal::{Message, UserContent, flatten_consecutive_messages};
+///
+/// let mut messages = vec![
+///     Message::User { content: UserContent::String("Hello".into()) },
+///     Message::User { content: UserContent::String("World".into()) },
+/// ];
+///
+/// flatten_consecutive_messages(&mut messages);
+/// assert_eq!(messages.len(), 1); // Merged into single user message
+/// ```
+pub fn flatten_consecutive_messages(messages: &mut Vec<Message>) {
+    if messages.is_empty() {
+        return;
     }
 
-    /// Apply all transformations based on capabilities.
-    ///
-    /// Returns extracted system messages (if `system_messages_separate` is true).
-    pub fn transform(&mut self) -> TransformResult {
-        let system_messages = if self.capabilities.system_messages_separate {
-            self.extract_system_messages()
-        } else {
-            vec![]
-        };
+    let mut result: Vec<Message> = Vec::with_capacity(messages.len());
 
-        if self.capabilities.requires_message_flattening {
-            self.flatten_consecutive_messages();
-        }
-
-        TransformResult { system_messages }
-    }
-
-    /// Extract system messages from the message list.
-    ///
-    /// Removes all `Message::System` variants and returns their content.
-    /// This mirrors the proxy's behavior for Anthropic, Google, and Bedrock
-    /// where system messages are passed as a separate parameter.
-    fn extract_system_messages(&mut self) -> Vec<UserContent> {
-        let mut system_contents = Vec::new();
-        self.messages.retain(|msg| {
-            if let Message::System { content } = msg {
-                system_contents.push(content.clone());
-                false
-            } else {
-                true
+    for msg in messages.drain(..) {
+        if let Some(last) = result.last_mut() {
+            if can_merge(last, &msg) {
+                merge_messages(last, msg);
+                continue;
             }
-        });
-        system_contents
+        }
+        result.push(msg);
     }
 
-    /// Merge consecutive messages of the same role.
-    ///
-    /// This mirrors the proxy's `flattenAnthropicMessages()`, `flattenMessages()`,
-    /// and the inline flattening in `openAIMessagesToGoogleMessages()`.
-    ///
-    /// For example:
-    /// - User("Hello") + User("World") → User(["Hello", "World"])
-    /// - Assistant("Hi") + Assistant("there") → Assistant(["Hi", "there"])
-    fn flatten_consecutive_messages(&mut self) {
-        if self.messages.is_empty() {
-            return;
-        }
-
-        let mut result: Vec<Message> = Vec::with_capacity(self.messages.len());
-
-        for msg in self.messages.drain(..) {
-            if let Some(last) = result.last_mut() {
-                if can_merge(last, &msg) {
-                    merge_messages(last, msg);
-                    continue;
-                }
-            }
-            result.push(msg);
-        }
-
-        *self.messages = result;
-    }
+    *messages = result;
 }
 
 /// Check if two messages can be merged (same role).
@@ -231,11 +214,9 @@ mod tests {
             },
         ];
 
-        let caps = UniversalCapabilities::for_provider("anthropic");
-        let mut transformer = UniversalTransformer::new(&mut messages, caps);
-        let result = transformer.transform();
+        let system = extract_system_messages(&mut messages);
 
-        assert_eq!(result.system_messages.len(), 2);
+        assert_eq!(system.len(), 2);
         assert_eq!(messages.len(), 1);
         assert!(matches!(messages[0], Message::User { .. }));
     }
@@ -251,9 +232,7 @@ mod tests {
             },
         ];
 
-        let caps = UniversalCapabilities::for_provider("anthropic");
-        let mut transformer = UniversalTransformer::new(&mut messages, caps);
-        transformer.transform();
+        flatten_consecutive_messages(&mut messages);
 
         assert_eq!(messages.len(), 1);
         if let Message::User {
@@ -279,9 +258,7 @@ mod tests {
             },
         ];
 
-        let caps = UniversalCapabilities::for_provider("anthropic");
-        let mut transformer = UniversalTransformer::new(&mut messages, caps);
-        transformer.transform();
+        flatten_consecutive_messages(&mut messages);
 
         assert_eq!(messages.len(), 1);
         if let Message::Assistant {
@@ -296,8 +273,8 @@ mod tests {
     }
 
     #[test]
-    fn test_no_flattening_for_openai() {
-        let mut messages = vec![
+    fn test_no_modification_when_not_called() {
+        let messages = vec![
             Message::User {
                 content: UserContent::String("Hello".into()),
             },
@@ -306,17 +283,13 @@ mod tests {
             },
         ];
 
-        let caps = UniversalCapabilities::for_provider("openai");
-        let mut transformer = UniversalTransformer::new(&mut messages, caps);
-        transformer.transform();
-
-        // Should NOT be flattened for OpenAI
+        // If we don't call flatten_consecutive_messages, messages stay as-is
         assert_eq!(messages.len(), 2);
     }
 
     #[test]
-    fn test_no_system_extraction_for_openai() {
-        let mut messages = vec![
+    fn test_system_messages_preserved_when_not_extracted() {
+        let messages = vec![
             Message::System {
                 content: UserContent::String("System".into()),
             },
@@ -325,13 +298,9 @@ mod tests {
             },
         ];
 
-        let caps = UniversalCapabilities::for_provider("openai");
-        let mut transformer = UniversalTransformer::new(&mut messages, caps);
-        let result = transformer.transform();
-
-        // System messages should NOT be extracted for OpenAI
-        assert!(result.system_messages.is_empty());
+        // If we don't call extract_system_messages, system messages stay in place
         assert_eq!(messages.len(), 2);
+        assert!(matches!(messages[0], Message::System { .. }));
     }
 
     #[test]
@@ -352,9 +321,7 @@ mod tests {
             },
         ];
 
-        let caps = UniversalCapabilities::for_provider("anthropic");
-        let mut transformer = UniversalTransformer::new(&mut messages, caps);
-        transformer.transform();
+        flatten_consecutive_messages(&mut messages);
 
         // [User1, User2] -> [User], [Assistant] -> [Assistant], [User3] -> [User]
         assert_eq!(messages.len(), 3);
@@ -387,9 +354,7 @@ mod tests {
             },
         ];
 
-        let caps = UniversalCapabilities::for_provider("anthropic");
-        let mut transformer = UniversalTransformer::new(&mut messages, caps);
-        transformer.transform();
+        flatten_consecutive_messages(&mut messages);
 
         assert_eq!(messages.len(), 1);
         if let Message::Tool { content } = &messages[0] {
@@ -397,5 +362,30 @@ mod tests {
         } else {
             panic!("Expected Tool message");
         }
+    }
+
+    #[test]
+    fn test_combined_extract_and_flatten() {
+        // Test the typical flow for providers like Anthropic
+        let mut messages = vec![
+            Message::System {
+                content: UserContent::String("You are helpful".into()),
+            },
+            Message::User {
+                content: UserContent::String("Hello".into()),
+            },
+            Message::User {
+                content: UserContent::String("World".into()),
+            },
+        ];
+
+        // Step 1: Extract system messages
+        let system = extract_system_messages(&mut messages);
+        assert_eq!(system.len(), 1);
+
+        // Step 2: Flatten consecutive messages
+        flatten_consecutive_messages(&mut messages);
+        assert_eq!(messages.len(), 1);
+        assert!(matches!(messages[0], Message::User { .. }));
     }
 }
