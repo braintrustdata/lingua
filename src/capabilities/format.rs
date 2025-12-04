@@ -28,6 +28,7 @@ pub enum ProviderFormat {
     Converse,
     /// Unknown or undetectable format
     #[default]
+    #[serde(other)]
     Unknown,
 }
 
