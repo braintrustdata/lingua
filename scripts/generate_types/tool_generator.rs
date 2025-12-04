@@ -75,13 +75,13 @@ pub fn replace_tool_struct_with_enum(existing: &str, tool_code: &str) -> String 
         out.push_str(filtered_tool_code.trim());
         out.push('\n');
         out.push_str(&existing[struct_end..]);
-        return fix_tool_name_types(out);
+        return out;
     }
 
     let mut out = existing.to_string();
     out.push('\n');
     out.push_str(filtered_tool_code.trim());
-    fix_tool_name_types(out)
+    out
 }
 
 // -------------------------------------------------------------------------
@@ -397,30 +397,6 @@ fn find_tool_struct_span(content: &str) -> Option<(usize, usize)> {
         .unwrap_or(struct_pos);
     let end = find_closing_brace(content, attr_start)?;
     Some((attr_start, end))
-}
-
-fn fix_tool_name_types(mut content: String) -> String {
-    // Post-process the injected tool code to eliminate helper Name enums that quicktype emits
-    // for tool names. Anthropic tools all treat `name` as a string; keeping the enum caused
-    // type clashes and unused types, so we rewrite to String and drop the enum block entirely.
-    content = content.replace("pub name: Name,", "pub name: String,");
-    // Normalize quicktype's double-underscore type fields (e.g., web_search_tool_20250305__type)
-    content = content.replace("__type", "_type");
-
-    if let Some(start) = content.find("pub enum Name {") {
-        if let Some(end_idx) = find_closing_brace(&content, start) {
-            // Also remove trailing newline
-            let mut end_trim = end_idx;
-            while end_trim < content.len()
-                && matches!(content.as_bytes().get(end_trim), Some(b'\n' | b'\r'))
-            {
-                end_trim += 1;
-            }
-            content.replace_range(start..end_trim, "");
-        }
-    }
-
-    content
 }
 
 // -------------------------------------------------------------------------
