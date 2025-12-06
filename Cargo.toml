@@ -53,7 +53,7 @@ env_logger = "0.11"
 
 [[bin]]
 name = "generate-types"
-path = "scripts/generate-types.rs"
+path = "scripts/generate_types/main.rs"
 
 [lib]
 name = "lingua"
