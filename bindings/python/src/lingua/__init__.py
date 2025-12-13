@@ -29,6 +29,10 @@ from lingua._lingua import (
     validate_openai_response as _validate_openai_response,
     validate_anthropic_request as _validate_anthropic_request,
     validate_anthropic_response as _validate_anthropic_response,
+    # Processing functions
+    deduplicate_messages as _deduplicate_messages,
+    import_messages_from_spans as _import_messages_from_spans,
+    import_and_deduplicate_messages as _import_and_deduplicate_messages,
 )
 
 
@@ -282,6 +286,78 @@ def validate_openai_response(json_str: str) -> Any:
 
 
 # ============================================================================
+# Processing functions
+# ============================================================================
+
+def deduplicate_messages(messages: list) -> list:
+    """
+    Deduplicate messages based on role and content.
+
+    Removes consecutive duplicate messages that have the same role and content,
+    keeping the first occurrence.
+
+    Args:
+        messages: List of Lingua Message objects
+
+    Returns:
+        List of deduplicated Lingua Message objects
+
+    Raises:
+        ConversionError: If processing fails
+    """
+    try:
+        return _deduplicate_messages(messages)
+    except Exception as e:
+        raise ConversionError(f"Failed to deduplicate messages: {e}") from e
+
+
+def import_messages_from_spans(spans: list) -> list:
+    """
+    Import messages from a list of spans.
+
+    Processes spans and extracts messages from their input/output fields,
+    attempting to convert them from various provider formats (OpenAI Chat Completions,
+    OpenAI Responses API, Anthropic) to the Lingua universal format.
+
+    Each span should be a dict with optional 'input' and 'output' fields.
+
+    Args:
+        spans: List of span dicts with optional 'input' and 'output' fields
+
+    Returns:
+        List of Lingua Message objects extracted from the spans
+
+    Raises:
+        ConversionError: If processing fails
+    """
+    try:
+        return _import_messages_from_spans(spans)
+    except Exception as e:
+        raise ConversionError(f"Failed to import messages from spans: {e}") from e
+
+
+def import_and_deduplicate_messages(spans: list) -> list:
+    """
+    Import and deduplicate messages from spans in a single operation.
+
+    Combines import_messages_from_spans and deduplicate_messages for convenience.
+
+    Args:
+        spans: List of span dicts with optional 'input' and 'output' fields
+
+    Returns:
+        List of deduplicated Lingua Message objects
+
+    Raises:
+        ConversionError: If processing fails
+    """
+    try:
+        return _import_and_deduplicate_messages(spans)
+    except Exception as e:
+        raise ConversionError(f"Failed to import and deduplicate messages: {e}") from e
+
+
+# ============================================================================
 # Anthropic validation
 # ============================================================================
 
@@ -336,6 +412,11 @@ __all__ = [
     # Anthropic conversions
     "anthropic_messages_to_lingua",
     "lingua_to_anthropic_messages",
+
+    # Processing functions
+    "deduplicate_messages",
+    "import_messages_from_spans",
+    "import_and_deduplicate_messages",
 
     # Chat Completions validation
     "validate_chat_completions_request",
