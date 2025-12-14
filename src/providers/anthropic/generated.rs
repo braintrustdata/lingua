@@ -302,7 +302,7 @@ pub struct InputContentBlock {
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -787,7 +787,7 @@ pub enum ToolChoiceType {
 pub struct CustomTool {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
     /// Description of what this tool does.
     ///
@@ -797,7 +797,7 @@ pub struct CustomTool {
     /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
     ///
     /// This defines the shape of the `input` that your tool accepts and that the model will produce.
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub input_schema: serde_json::Value,
     /// Name of the tool.
     ///
@@ -810,7 +810,7 @@ pub struct CustomTool {
 pub struct BashTool20250124 {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
     /// Name of the tool.
     ///
@@ -823,7 +823,7 @@ pub struct BashTool20250124 {
 pub struct TextEditor20250124 {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
     /// Name of the tool.
     ///
@@ -836,7 +836,7 @@ pub struct TextEditor20250124 {
 pub struct TextEditor20250429 {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
     /// Name of the tool.
     ///
@@ -849,7 +849,7 @@ pub struct TextEditor20250429 {
 pub struct TextEditor20250728 {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
     /// Maximum number of characters to display when viewing a file. If not specified, defaults to displaying the full file.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -871,7 +871,7 @@ pub struct WebSearchTool20250305 {
     pub blocked_domains: Option<Vec<String>>,
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
     /// Maximum number of times the tool can be used in the API request.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -882,7 +882,7 @@ pub struct WebSearchTool20250305 {
     pub name: String,
     /// Parameters for the user's location. Used to provide more relevant search results.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     pub user_location: Option<serde_json::Value>,
 }
 
@@ -916,7 +916,7 @@ pub enum Tool {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct InputSchema {
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<serde_json::Map<String, serde_json::Value>>,
     pub required: Option<Vec<String>>,
@@ -1081,7 +1081,7 @@ pub struct ContentBlock {
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    #[ts(type = "any")]
+    #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -350,11 +350,11 @@ fn generate_tool_struct_direct(
                 output.push_str(&format!("    #[serde(rename = \"{}\")]\n", prop_name));
             }
 
-            // Add ts(type = "any") for serde_json::Value fields
+            // Add ts(type = "unknown") for serde_json::Value fields
             if rust_type == "serde_json::Value"
                 || rust_type == "serde_json::Map<String, serde_json::Value>"
             {
-                output.push_str("    #[ts(type = \"any\")]\n");
+                output.push_str("    #[ts(type = \"unknown\")]\n");
             }
 
             if is_required {

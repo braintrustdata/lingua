@@ -1165,7 +1165,7 @@ fn add_ts_type_annotations(content: &str) -> String {
             if needs_ts_annotation {
                 // Get the indentation level from the current line
                 let indent = line.len() - line.trim_start().len();
-                let ts_attr = format!("{}#[ts(type = \"any\")]", " ".repeat(indent));
+                let ts_attr = format!("{}#[ts(type = \"unknown\")]", " ".repeat(indent));
 
                 // Add the ts attribute BEFORE the field line unless it's already present
                 if !has_ts_attr {
