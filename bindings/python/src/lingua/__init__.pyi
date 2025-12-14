@@ -32,6 +32,14 @@ def anthropic_messages_to_lingua(messages: list) -> list: ...
 def lingua_to_anthropic_messages(messages: list) -> list: ...
 
 # ============================================================================
+# Processing functions
+# ============================================================================
+
+def deduplicate_messages(messages: list) -> list: ...
+def import_messages_from_spans(spans: list) -> list: ...
+def import_and_deduplicate_messages(spans: list) -> list: ...
+
+# ============================================================================
 # OpenAI validation
 # ============================================================================
 
@@ -57,6 +65,9 @@ __all__ = [
     "lingua_to_responses_messages",
     "anthropic_messages_to_lingua",
     "lingua_to_anthropic_messages",
+    "deduplicate_messages",
+    "import_messages_from_spans",
+    "import_and_deduplicate_messages",
     "validate_openai_request",
     "validate_openai_response",
     "validate_anthropic_request",
