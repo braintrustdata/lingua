@@ -1,4 +1,4 @@
-.PHONY: all typescript python test clean help generate-types install-hooks install-wasm-tools setup
+.PHONY: all typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup
 
 all: typescript python ## Build all bindings
 
@@ -16,6 +16,12 @@ generate-provider-types: ## Regenerate provider types from OpenAPI specs (usage:
 	fi
 	@echo "Regenerating $(PROVIDER) types from OpenAPI spec..."
 	@cargo run --bin generate-types -- $(PROVIDER)
+
+generate-all-providers: ## Regenerate types for all providers (anthropic, openai, google)
+	@echo "Regenerating all provider types..."
+	./pipelines/generate-provider-types.sh anthropic
+	./pipelines/generate-provider-types.sh openai
+	./pipelines/generate-provider-types.sh google
 
 generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."
