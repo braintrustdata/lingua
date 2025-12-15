@@ -102,7 +102,10 @@ fn convert_google_part_to_assistant_content(
     // Check for text content
     if let Some(text) = part.get("text").and_then(Value::as_str) {
         // Check if this is a "thought" part (reasoning)
-        let is_thought = part.get("thought").and_then(Value::as_bool).unwrap_or(false);
+        let is_thought = part
+            .get("thought")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
 
         if is_thought {
             return Ok(Some(AssistantContentPart::Reasoning {
@@ -140,10 +143,8 @@ fn convert_google_part_to_assistant_content(
         let arguments = match args {
             Value::Object(map) => {
                 // Convert serde_json::Map to the format expected by ToolCallArguments
-                let converted: serde_json::Map<String, serde_json::Value> = map
-                    .into_iter()
-                    .map(|(k, v)| (k, v))
-                    .collect();
+                let converted: serde_json::Map<String, serde_json::Value> =
+                    map.into_iter().map(|(k, v)| (k, v)).collect();
                 ToolCallArguments::Valid(converted)
             }
             _ => ToolCallArguments::Invalid(args.to_string()),
@@ -331,4 +332,3 @@ mod tests {
         }
     }
 }
-
