@@ -8,9 +8,11 @@ This module provides format detection for incoming request payloads by:
 Detectors are checked in priority order (highest first):
 - **Converse (Bedrock)** - priority 95: `modelId` field, camelCase content types
 - **Google** - priority 90: `contents[].parts[]` structure, role `"model"`
-- **Anthropic** - priority 80: `max_tokens` required, roles only `user`/`assistant`
 - **Mistral** - priority 70: Similar to OpenAI but with Mistral-specific fields
 - **OpenAI** - priority 50: Default fallback
+
+Note: Anthropic format detection uses strict validation via `is_anthropic_format()`
+rather than heuristics, and is handled separately in the request builder.
 
 To add a new provider, implement `FormatDetector` in your provider module
 and register it in the `detectors()` function below.
@@ -30,8 +32,6 @@ use crate::providers::anthropic::generated::CreateMessageParams;
 use crate::providers::openai::generated::CreateChatCompletionRequestClass;
 
 // Import detectors from provider modules
-#[cfg(feature = "anthropic")]
-use crate::providers::anthropic::AnthropicDetector;
 #[cfg(feature = "bedrock")]
 use crate::providers::bedrock::ConverseDetector;
 #[cfg(feature = "google")]
@@ -65,9 +65,6 @@ fn detectors() -> &'static [&'static dyn FormatDetector] {
 
         #[cfg(feature = "google")]
         v.push(&GoogleDetector);
-
-        #[cfg(feature = "anthropic")]
-        v.push(&AnthropicDetector);
 
         #[cfg(feature = "mistral")]
         v.push(&MistralDetector);
@@ -416,47 +413,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "anthropic")]
-    fn test_detect_anthropic_format() {
-        let payload = serde_json::json!({
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 1024,
-            "messages": [
-                {"role": "user", "content": "Hello"}
-            ]
-        });
-
-        let result = detect_format(&payload, false).unwrap();
-        assert_eq!(result.format, ProviderFormat::Anthropic);
-        assert_eq!(result.model, Some("claude-3-5-sonnet-20241022".to_string()));
-    }
-
-    #[test]
-    #[cfg(feature = "anthropic")]
-    fn test_detect_anthropic_with_tool_use() {
-        let payload = serde_json::json!({
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 1024,
-            "messages": [
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "tool_use",
-                            "id": "toolu_123",
-                            "name": "get_weather",
-                            "input": {"location": "SF"}
-                        }
-                    ]
-                }
-            ]
-        });
-
-        let result = detect_format(&payload, false).unwrap();
-        assert_eq!(result.format, ProviderFormat::Anthropic);
-    }
-
-    #[test]
     #[cfg(feature = "google")]
     fn test_detect_google_format() {
         let payload = serde_json::json!({
@@ -572,23 +528,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "anthropic")]
-    fn test_parse_anthropic() {
-        let payload = serde_json::json!({
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 1024,
-            "messages": [
-                {"role": "user", "content": "Hello"}
-            ]
-        });
-
-        let result = parse(&payload).unwrap();
-        assert!(matches!(result, TypedPayload::Anthropic(_)));
-        assert_eq!(result.format(), ProviderFormat::Anthropic);
-        assert_eq!(result.model(), Some("claude-3-5-sonnet-20241022"));
-    }
-
-    #[test]
     #[cfg(feature = "mistral")]
     fn test_parse_mistral() {
         let payload = serde_json::json!({
@@ -656,31 +595,6 @@ mod tests {
         let result = parse_from_str(payload).unwrap();
         assert!(matches!(result, TypedPayload::OpenAI(_)));
         assert_eq!(result.format(), ProviderFormat::OpenAI);
-    }
-
-    #[test]
-    #[cfg(feature = "anthropic")]
-    fn test_parse_anthropic_with_typed_access() {
-        let payload = serde_json::json!({
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 2048,
-            "messages": [
-                {"role": "user", "content": "Hello"}
-            ]
-        });
-
-        let result = parse(&payload).unwrap();
-
-        // Demonstrate type-safe access
-        match result {
-            TypedPayload::Anthropic(req) => {
-                // Compile-time typed access to Anthropic fields
-                assert_eq!(req.model, "claude-3-5-sonnet-20241022");
-                assert_eq!(req.max_tokens, 2048);
-                assert_eq!(req.messages.len(), 1);
-            }
-            _ => panic!("Expected Anthropic payload"),
-        }
     }
 
     #[test]
