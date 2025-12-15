@@ -33,18 +33,6 @@ pub enum ProviderFormat {
 }
 
 impl ProviderFormat {
-    /// Returns the lowercase string representation of the format.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            ProviderFormat::OpenAI => "openai",
-            ProviderFormat::Anthropic => "anthropic",
-            ProviderFormat::Google => "google",
-            ProviderFormat::Mistral => "mistral",
-            ProviderFormat::Converse => "converse",
-            ProviderFormat::Unknown => "unknown",
-        }
-    }
-
     /// Returns true if this format is a known, supported format.
     pub fn is_known(&self) -> bool {
         !matches!(self, ProviderFormat::Unknown)
@@ -53,7 +41,15 @@ impl ProviderFormat {
 
 impl std::fmt::Display for ProviderFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_str())
+        let s = match self {
+            ProviderFormat::OpenAI => "openai",
+            ProviderFormat::Anthropic => "anthropic",
+            ProviderFormat::Google => "google",
+            ProviderFormat::Mistral => "mistral",
+            ProviderFormat::Converse => "converse",
+            ProviderFormat::Unknown => "unknown",
+        };
+        write!(f, "{}", s)
     }
 }
 
