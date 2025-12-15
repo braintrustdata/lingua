@@ -1,9 +1,11 @@
 // Google AI Generative Language API types
 // Generated from official protobuf files
 
+pub mod convert;
 pub mod detect;
 pub mod generated;
 
+pub use convert::{google_response_to_messages, GoogleResponseJson};
 pub use detect::GoogleDetector;
 
 use crate::serde_json::Value;

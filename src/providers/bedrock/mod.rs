@@ -5,6 +5,7 @@ This module contains type definitions for Amazon Bedrock's Converse API
 using the official AWS SDK types for maximum compatibility.
 */
 
+pub mod convert;
 pub mod detect;
 pub mod request;
 pub mod response;
@@ -17,6 +18,7 @@ pub use aws_sdk_bedrockruntime::types::{
 };
 
 // Re-export our custom request/response wrappers
+pub use convert::{bedrock_response_to_messages, BedrockResponseJson};
 pub use detect::ConverseDetector;
 pub use request::{ConverseRequest, ConverseStreamRequest};
 pub use response::{ConverseResponse, ConverseStreamResponse};
