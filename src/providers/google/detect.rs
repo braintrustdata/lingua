@@ -88,6 +88,10 @@ mod tests {
     use super::*;
     use crate::serde_json::json;
 
+    // Note: Google types are protobuf-generated (prost) without serde support,
+    // so we use raw JSON for tests. The protobuf types (GenerateContentRequest, Content, Part)
+    // cannot be easily serialized to JSON. This is a known limitation documented in mod.rs.
+
     #[test]
     fn test_google_format_with_contents_and_parts() {
         let payload = json!({

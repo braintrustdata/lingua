@@ -82,47 +82,198 @@ pub fn is_openai_format(payload: &Value) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serde_json::json;
+    use crate::providers::openai::generated::{
+        ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
+        ChatCompletionRequestMessageRole, CreateChatCompletionRequestClass, PurpleFunction,
+        ToolCall, ToolType,
+    };
+    use crate::serde_json::{self, json};
 
     #[test]
     fn test_openai_format_basic() {
-        let payload = json!({
-            "model": "gpt-4",
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
+        let request = CreateChatCompletionRequestClass {
+            model: "gpt-4".to_string(),
+            messages: vec![ChatCompletionRequestMessage {
+                role: ChatCompletionRequestMessageRole::User,
+                content: Some(ChatCompletionRequestMessageContent::String(
+                    "Hello".to_string(),
+                )),
+                name: None,
+                audio: None,
+                function_call: None,
+                refusal: None,
+                tool_calls: None,
+                tool_call_id: None,
+            }],
+            metadata: None,
+            prompt_cache_key: None,
+            safety_identifier: None,
+            service_tier: None,
+            temperature: None,
+            top_logprobs: None,
+            top_p: None,
+            user: None,
+            audio: None,
+            frequency_penalty: None,
+            function_call: None,
+            functions: None,
+            logit_bias: None,
+            logprobs: None,
+            max_completion_tokens: None,
+            max_tokens: None,
+            modalities: None,
+            n: None,
+            parallel_tool_calls: None,
+            prediction: None,
+            presence_penalty: None,
+            reasoning_effort: None,
+            response_format: None,
+            seed: None,
+            stop: None,
+            store: None,
+            stream: None,
+            stream_options: None,
+            tool_choice: None,
+            tools: None,
+            verbosity: None,
+            web_search_options: None,
+        };
+
+        let payload = serde_json::to_value(&request).unwrap();
         assert!(is_openai_format(&payload));
     }
 
     #[test]
     fn test_openai_format_with_system() {
-        let payload = json!({
-            "model": "gpt-4",
-            "messages": [
-                {"role": "system", "content": "You are helpful"},
-                {"role": "user", "content": "Hello"}
-            ]
-        });
+        let request = CreateChatCompletionRequestClass {
+            model: "gpt-4".to_string(),
+            messages: vec![
+                ChatCompletionRequestMessage {
+                    role: ChatCompletionRequestMessageRole::System,
+                    content: Some(ChatCompletionRequestMessageContent::String(
+                        "You are helpful".to_string(),
+                    )),
+                    name: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                },
+                ChatCompletionRequestMessage {
+                    role: ChatCompletionRequestMessageRole::User,
+                    content: Some(ChatCompletionRequestMessageContent::String(
+                        "Hello".to_string(),
+                    )),
+                    name: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                },
+            ],
+            metadata: None,
+            prompt_cache_key: None,
+            safety_identifier: None,
+            service_tier: None,
+            temperature: None,
+            top_logprobs: None,
+            top_p: None,
+            user: None,
+            audio: None,
+            frequency_penalty: None,
+            function_call: None,
+            functions: None,
+            logit_bias: None,
+            logprobs: None,
+            max_completion_tokens: None,
+            max_tokens: None,
+            modalities: None,
+            n: None,
+            parallel_tool_calls: None,
+            prediction: None,
+            presence_penalty: None,
+            reasoning_effort: None,
+            response_format: None,
+            seed: None,
+            stop: None,
+            store: None,
+            stream: None,
+            stream_options: None,
+            tool_choice: None,
+            tools: None,
+            verbosity: None,
+            web_search_options: None,
+        };
+
+        let payload = serde_json::to_value(&request).unwrap();
         assert!(is_openai_format(&payload));
     }
 
     #[test]
     fn test_openai_format_with_tool_calls() {
-        let payload = json!({
-            "model": "gpt-4",
-            "messages": [{
-                "role": "assistant",
-                "tool_calls": [{
-                    "id": "call_123",
-                    "type": "function",
-                    "function": {"name": "get_weather", "arguments": "{}"}
-                }]
-            }]
-        });
+        let request = CreateChatCompletionRequestClass {
+            model: "gpt-4".to_string(),
+            messages: vec![ChatCompletionRequestMessage {
+                role: ChatCompletionRequestMessageRole::Assistant,
+                content: None,
+                name: None,
+                audio: None,
+                function_call: None,
+                refusal: None,
+                tool_calls: Some(vec![ToolCall {
+                    id: "call_123".to_string(),
+                    tool_call_type: ToolType::Function,
+                    function: Some(PurpleFunction {
+                        name: "get_weather".to_string(),
+                        arguments: "{}".to_string(),
+                    }),
+                    custom: None,
+                }]),
+                tool_call_id: None,
+            }],
+            metadata: None,
+            prompt_cache_key: None,
+            safety_identifier: None,
+            service_tier: None,
+            temperature: None,
+            top_logprobs: None,
+            top_p: None,
+            user: None,
+            audio: None,
+            frequency_penalty: None,
+            function_call: None,
+            functions: None,
+            logit_bias: None,
+            logprobs: None,
+            max_completion_tokens: None,
+            max_tokens: None,
+            modalities: None,
+            n: None,
+            parallel_tool_calls: None,
+            prediction: None,
+            presence_penalty: None,
+            reasoning_effort: None,
+            response_format: None,
+            seed: None,
+            stop: None,
+            store: None,
+            stream: None,
+            stream_options: None,
+            tool_choice: None,
+            tools: None,
+            verbosity: None,
+            web_search_options: None,
+        };
+
+        let payload = serde_json::to_value(&request).unwrap();
         assert!(is_openai_format(&payload));
     }
 
     #[test]
     fn test_not_openai_format_no_model() {
+        // Raw JSON for invalid payloads to ensure detection rejects them
         let payload = json!({
             "messages": [{"role": "user", "content": "Hello"}]
         });
@@ -131,6 +282,7 @@ mod tests {
 
     #[test]
     fn test_not_openai_format_empty_messages() {
+        // Raw JSON for invalid payloads to ensure detection rejects them
         let payload = json!({
             "model": "gpt-4",
             "messages": []
@@ -140,6 +292,7 @@ mod tests {
 
     #[test]
     fn test_not_openai_format_google() {
+        // Raw JSON for non-OpenAI formats to ensure detection rejects them
         let payload = json!({
             "contents": [{"role": "user", "parts": [{"text": "Hello"}]}]
         });

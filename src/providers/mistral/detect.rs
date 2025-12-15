@@ -77,60 +77,104 @@ pub fn is_mistral_format(payload: &Value) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serde_json::json;
+    use crate::providers::openai::generated::{
+        ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
+        ChatCompletionRequestMessageRole, CreateChatCompletionRequestClass,
+    };
+    use crate::serde_json::{self, json};
+
+    fn create_openai_request(model: &str) -> CreateChatCompletionRequestClass {
+        CreateChatCompletionRequestClass {
+            model: model.to_string(),
+            messages: vec![ChatCompletionRequestMessage {
+                role: ChatCompletionRequestMessageRole::User,
+                content: Some(ChatCompletionRequestMessageContent::String(
+                    "Hello".to_string(),
+                )),
+                name: None,
+                audio: None,
+                function_call: None,
+                refusal: None,
+                tool_calls: None,
+                tool_call_id: None,
+            }],
+            metadata: None,
+            prompt_cache_key: None,
+            safety_identifier: None,
+            service_tier: None,
+            temperature: None,
+            top_logprobs: None,
+            top_p: None,
+            user: None,
+            audio: None,
+            frequency_penalty: None,
+            function_call: None,
+            functions: None,
+            logit_bias: None,
+            logprobs: None,
+            max_completion_tokens: None,
+            max_tokens: None,
+            modalities: None,
+            n: None,
+            parallel_tool_calls: None,
+            prediction: None,
+            presence_penalty: None,
+            reasoning_effort: None,
+            response_format: None,
+            seed: None,
+            stop: None,
+            store: None,
+            stream: None,
+            stream_options: None,
+            tool_choice: None,
+            tools: None,
+            verbosity: None,
+            web_search_options: None,
+        }
+    }
 
     #[test]
     fn test_mistral_format_with_safe_prompt() {
-        let payload = json!({
-            "model": "some-model",
-            "messages": [{"role": "user", "content": "Hello"}],
-            "safe_prompt": true
-        });
+        // safe_prompt is a Mistral-specific field not in OpenAI types,
+        // so we construct the JSON manually and add the field
+        let request = create_openai_request("some-model");
+        let mut payload = serde_json::to_value(&request).unwrap();
+        payload["safe_prompt"] = json!(true);
         assert!(is_mistral_format(&payload));
     }
 
     #[test]
     fn test_mistral_format_with_model_prefix() {
-        let payload = json!({
-            "model": "mistral-large-latest",
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
+        let request = create_openai_request("mistral-large-latest");
+        let payload = serde_json::to_value(&request).unwrap();
         assert!(is_mistral_format(&payload));
     }
 
     #[test]
     fn test_mistral_format_codestral() {
-        let payload = json!({
-            "model": "codestral-latest",
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
+        let request = create_openai_request("codestral-latest");
+        let payload = serde_json::to_value(&request).unwrap();
         assert!(is_mistral_format(&payload));
     }
 
     #[test]
     fn test_mistral_format_pixtral() {
-        let payload = json!({
-            "model": "pixtral-12b-2024-09-11",
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
+        let request = create_openai_request("pixtral-12b-2024-09-11");
+        let payload = serde_json::to_value(&request).unwrap();
         assert!(is_mistral_format(&payload));
     }
 
     #[test]
     fn test_mistral_format_ministral() {
-        let payload = json!({
-            "model": "ministral-8b-latest",
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
+        let request = create_openai_request("ministral-8b-latest");
+        let payload = serde_json::to_value(&request).unwrap();
         assert!(is_mistral_format(&payload));
     }
 
     #[test]
     fn test_not_mistral_format_openai() {
-        let payload = json!({
-            "model": "gpt-4",
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
+        let request = create_openai_request("gpt-4");
+        let payload = serde_json::to_value(&request).unwrap();
         assert!(!is_mistral_format(&payload));
     }
 }
