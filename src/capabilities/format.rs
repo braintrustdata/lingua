@@ -87,7 +87,9 @@ mod tests {
             ProviderFormat::Converse
         );
         assert_eq!(
-            "unknown_format".parse::<ProviderFormat>().unwrap_or_default(),
+            "unknown_format"
+                .parse::<ProviderFormat>()
+                .unwrap_or_default(),
             ProviderFormat::Unknown
         );
     }
