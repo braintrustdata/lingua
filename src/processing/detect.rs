@@ -348,16 +348,6 @@ fn detect_format(payload: &Value, strict: bool) -> Result<DetectedPayload, Detec
     detect_from_content(payload, model, strict)
 }
 
-/// Detect format from a JSON string.
-///
-/// Internal convenience wrapper that parses the JSON first.
-#[cfg(test)]
-fn detect_format_from_str(payload: &str, strict: bool) -> Result<DetectedPayload, DetectionError> {
-    let value: Value = serde_json::from_str(payload)
-        .map_err(|e| DetectionError::JsonParseFailed(e.to_string()))?;
-    detect_format(&value, strict)
-}
-
 /// Extract the model name from a payload.
 ///
 /// Different providers use different field names:
@@ -548,16 +538,17 @@ mod tests {
     #[test]
     #[cfg(feature = "openai")]
     fn test_detect_format_from_str() {
-        let payload = r#"{"model": "gpt-4", "messages": [{"role": "user", "content": "Hi"}]}"#;
-        let result = detect_format_from_str(payload, false).unwrap();
+        let payload =
+            serde_json::json!({"model": "gpt-4", "messages": [{"role": "user", "content": "Hi"}]});
+        let result = detect_format(&payload, false).unwrap();
         assert_eq!(result.format, ProviderFormat::OpenAI);
     }
 
     #[test]
     fn test_detect_format_from_str_invalid_json() {
         let payload = r#"{"invalid json"#;
-        let result = detect_format_from_str(payload, false);
-        assert!(matches!(result, Err(DetectionError::JsonParseFailed(_))));
+        let result: Result<Value, _> = serde_json::from_str(payload);
+        assert!(result.is_err());
     }
 
     // TypedPayload tests
