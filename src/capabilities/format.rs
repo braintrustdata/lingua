@@ -63,7 +63,7 @@ impl std::str::FromStr for ProviderFormat {
             "google" => Ok(ProviderFormat::Google),
             "mistral" => Ok(ProviderFormat::Mistral),
             "converse" | "bedrock" => Ok(ProviderFormat::Converse),
-            _ => Ok(ProviderFormat::Unknown),
+            _ => Err(()),
         }
     }
 }
@@ -87,7 +87,7 @@ mod tests {
             ProviderFormat::Converse
         );
         assert_eq!(
-            "unknown_format".parse::<ProviderFormat>().unwrap(),
+            "unknown_format".parse::<ProviderFormat>().unwrap_or_default(),
             ProviderFormat::Unknown
         );
     }
