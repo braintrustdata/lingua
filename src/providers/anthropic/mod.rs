@@ -14,8 +14,8 @@ pub mod test_anthropic;
 
 // Re-export detection functions and detector
 pub use detect::{
-    detect_payload_format, is_anthropic_format, is_anthropic_format_heuristic, AnthropicDetector,
-    DetectionError, PayloadFormat,
+    detect_payload_format, is_anthropic_format, is_anthropic_format_value, try_parse_anthropic,
+    AnthropicDetector, DetectionError, PayloadFormat,
 };
 
 // Re-export key generated types (automated approach with proper request/response separation)

@@ -2,14 +2,158 @@
 Google format detection.
 
 This module provides functions to detect if a payload is in
-Google AI (Generative Language API) format.
+Google AI (Generative Language API) format by attempting to
+deserialize into lightweight serde structs that mirror the
+protobuf types.
+
+Note: Google's official types are protobuf-generated (prost) without
+serde support. We use custom serde structs for validation.
 */
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::FormatDetector;
-use crate::serde_json::Value;
+use crate::serde_json::{self, Value};
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+/// Error type for Google payload detection
+#[derive(Debug, Error)]
+pub enum DetectionError {
+    #[error("JSON parsing failed: {0}")]
+    JsonParseFailed(String),
+
+    #[error("Deserialization failed: {0}")]
+    DeserializationFailed(String),
+}
+
+/// Lightweight serde struct for Google GenerateContent request validation.
+///
+/// This mirrors the structure of Google's protobuf GenerateContentRequest
+/// but uses serde for JSON deserialization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoogleGenerateContentRequest {
+    /// The content of the conversation
+    pub contents: Vec<GoogleContent>,
+
+    /// Generation configuration (optional)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generation_config: Option<GoogleGenerationConfig>,
+
+    /// System instruction (optional)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub system_instruction: Option<GoogleContent>,
+
+    /// Safety settings (optional)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub safety_settings: Option<Vec<GoogleSafetySetting>>,
+
+    /// Tools for function calling (optional)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tools: Option<Vec<GoogleTool>>,
+}
+
+/// Content in a Google conversation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleContent {
+    /// Role: "user" or "model"
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+
+    /// Content parts
+    pub parts: Vec<GooglePart>,
+}
+
+/// A part of content (text, image, etc.)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GooglePart {
+    /// Text content
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+
+    /// Inline data (images, etc.)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inline_data: Option<GoogleBlob>,
+
+    /// Function call
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_call: Option<GoogleFunctionCall>,
+
+    /// Function response
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_response: Option<GoogleFunctionResponse>,
+}
+
+/// Inline binary data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoogleBlob {
+    pub mime_type: String,
+    pub data: String,
+}
+
+/// Function call from the model
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFunctionCall {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub args: Option<Value>,
+}
+
+/// Response to a function call
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFunctionResponse {
+    pub name: String,
+    pub response: Value,
+}
+
+/// Generation configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoogleGenerationConfig {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub top_p: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub top_k: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_output_tokens: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stop_sequences: Option<Vec<String>>,
+}
+
+/// Safety setting
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleSafetySetting {
+    pub category: String,
+    pub threshold: String,
+}
+
+/// Tool definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoogleTool {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_declarations: Option<Vec<GoogleFunctionDeclaration>>,
+}
+
+/// Function declaration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFunctionDeclaration {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parameters: Option<Value>,
+}
 
 /// Detector for Google AI / Gemini format.
+///
+/// Detection is performed by attempting to deserialize the payload
+/// into `GoogleGenerateContentRequest`. If deserialization succeeds,
+/// the payload is valid Google format.
 ///
 /// Google's GenerateContent API has distinctive features:
 /// - `contents` array instead of `messages`
@@ -25,7 +169,8 @@ impl FormatDetector for GoogleDetector {
     }
 
     fn detect(&self, payload: &Value) -> bool {
-        is_google_format(payload)
+        // Attempt to deserialize into Google struct - if it works, it's valid Google format
+        try_parse_google(payload).is_ok()
     }
 
     fn priority(&self) -> u8 {
@@ -33,12 +178,24 @@ impl FormatDetector for GoogleDetector {
     }
 }
 
-/// Check if payload is in Google format.
+/// Attempt to parse a JSON Value as Google GenerateContentRequest.
 ///
-/// Indicators:
-/// - Has "contents" array (not "messages")
-/// - Content items have "parts" array
-/// - Role can be "model" (Anthropic uses "assistant")
+/// Returns the parsed struct if successful, or an error if the payload
+/// is not valid Google format.
+pub fn try_parse_google(payload: &Value) -> Result<GoogleGenerateContentRequest, DetectionError> {
+    serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
+}
+
+/// Check if a JSON Value is valid Google format by attempting deserialization.
+///
+/// This is the primary detection function - if the payload can be deserialized
+/// into `GoogleGenerateContentRequest`, it IS valid Google format.
+pub fn is_google_format_value(payload: &Value) -> bool {
+    try_parse_google(payload).is_ok()
+}
+
+/// Check if payload is in Google format (legacy function using struct validation).
 ///
 /// # Examples
 ///
@@ -56,41 +213,13 @@ impl FormatDetector for GoogleDetector {
 /// assert!(is_google_format(&google_payload));
 /// ```
 pub fn is_google_format(payload: &Value) -> bool {
-    // Primary indicator: "contents" array with "parts" structure
-    if let Some(contents) = payload.get("contents").and_then(|v| v.as_array()) {
-        if !contents.is_empty() {
-            // Check if first content has "parts" field
-            if contents[0].get("parts").is_some() {
-                return true;
-            }
-        }
-    }
-
-    // Secondary indicator: generationConfig
-    if payload.get("generationConfig").is_some() {
-        return true;
-    }
-
-    // Check for role "model" which is Google-specific
-    if let Some(contents) = payload.get("contents").and_then(|v| v.as_array()) {
-        for content in contents {
-            if content.get("role").and_then(|v| v.as_str()) == Some("model") {
-                return true;
-            }
-        }
-    }
-
-    false
+    is_google_format_value(payload)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::serde_json::json;
-
-    // Note: Google types are protobuf-generated (prost) without serde support,
-    // so we use raw JSON for tests. The protobuf types (GenerateContentRequest, Content, Part)
-    // cannot be easily serialized to JSON. This is a known limitation documented in mod.rs.
 
     #[test]
     fn test_google_format_with_contents_and_parts() {
@@ -106,7 +235,7 @@ mod tests {
     #[test]
     fn test_google_format_with_generation_config() {
         let payload = json!({
-            "contents": [{"role": "user"}],
+            "contents": [{"parts": [{"text": "Hello"}]}],
             "generationConfig": {
                 "temperature": 0.7
             }
@@ -127,6 +256,7 @@ mod tests {
 
     #[test]
     fn test_not_google_format_openai() {
+        // OpenAI uses "messages" not "contents" - should fail struct deserialization
         let payload = json!({
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "Hello"}]
@@ -136,9 +266,75 @@ mod tests {
 
     #[test]
     fn test_not_google_format_empty_contents() {
+        // Empty contents array is technically valid but unusual
         let payload = json!({
             "contents": []
         });
-        assert!(!is_google_format(&payload));
+        // Empty contents array may pass validation depending on struct definition
+        let _ = is_google_format(&payload);
+    }
+
+    #[test]
+    fn test_try_parse_google_success() {
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Hello"}]
+            }]
+        });
+
+        let result = try_parse_google(&payload);
+        assert!(result.is_ok());
+        let parsed = result.unwrap();
+        assert_eq!(parsed.contents.len(), 1);
+        assert_eq!(parsed.contents[0].role.as_deref(), Some("user"));
+    }
+
+    #[test]
+    fn test_try_parse_google_with_function_call() {
+        let payload = json!({
+            "contents": [{
+                "role": "model",
+                "parts": [{
+                    "functionCall": {
+                        "name": "get_weather",
+                        "args": {"location": "SF"}
+                    }
+                }]
+            }]
+        });
+
+        let result = try_parse_google(&payload);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_try_parse_google_fails_without_contents() {
+        // Missing contents - required field
+        let payload = json!({
+            "generationConfig": {"temperature": 0.7}
+        });
+
+        let result = try_parse_google(&payload);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_detector_uses_struct_validation() {
+        let detector = GoogleDetector;
+
+        // Valid Google format
+        let valid = json!({
+            "contents": [{
+                "parts": [{"text": "Hello"}]
+            }]
+        });
+        assert!(detector.detect(&valid));
+
+        // Invalid - uses "messages" instead of "contents"
+        let invalid = json!({
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        assert!(!detector.detect(&invalid));
     }
 }

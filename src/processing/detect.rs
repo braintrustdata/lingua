@@ -142,21 +142,21 @@ impl DetectedPayload {
 /// ```
 #[derive(Debug, Clone)]
 pub enum TypedPayload {
-    /// OpenAI Chat Completions API request
+    /// OpenAI Chat Completions API request (boxed to reduce enum size)
     #[cfg(feature = "openai")]
-    OpenAI(CreateChatCompletionRequestClass),
-    /// Anthropic Messages API request
+    OpenAI(Box<CreateChatCompletionRequestClass>),
+    /// Anthropic Messages API request (boxed to reduce enum size)
     #[cfg(feature = "anthropic")]
-    Anthropic(CreateMessageParams),
+    Anthropic(Box<CreateMessageParams>),
     /// Google AI / Gemini GenerateContent API request (wrapped due to protobuf types)
     #[cfg(feature = "google")]
     Google(GooglePayload),
     /// AWS Bedrock Converse API request (wrapped for simpler API)
     #[cfg(feature = "bedrock")]
     Converse(BedrockPayload),
-    /// Mistral AI request (uses OpenAI-compatible format)
+    /// Mistral AI request (uses OpenAI-compatible format, boxed to reduce enum size)
     #[cfg(feature = "mistral")]
-    Mistral(CreateChatCompletionRequestClass),
+    Mistral(Box<CreateChatCompletionRequestClass>),
     /// Unknown format - raw JSON preserved for manual handling
     Unknown(Value),
 }
@@ -268,7 +268,7 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
                 .map_err(|e| {
                     DetectionError::InvalidPayload(format!("OpenAI parse error: {}", e))
                 })?;
-            Ok(TypedPayload::OpenAI(req))
+            Ok(TypedPayload::OpenAI(Box::new(req)))
         }
         #[cfg(feature = "anthropic")]
         ProviderFormat::Anthropic => {
@@ -276,7 +276,7 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
                 serde_json::from_value(payload.clone()).map_err(|e| {
                     DetectionError::InvalidPayload(format!("Anthropic parse error: {}", e))
                 })?;
-            Ok(TypedPayload::Anthropic(req))
+            Ok(TypedPayload::Anthropic(Box::new(req)))
         }
         #[cfg(feature = "google")]
         ProviderFormat::Google => {
@@ -295,7 +295,7 @@ pub fn parse(payload: &Value) -> Result<TypedPayload, DetectionError> {
                 .map_err(|e| {
                     DetectionError::InvalidPayload(format!("Mistral parse error: {}", e))
                 })?;
-            Ok(TypedPayload::Mistral(req))
+            Ok(TypedPayload::Mistral(Box::new(req)))
         }
         ProviderFormat::Unknown => {
             // Unknown format - preserve raw JSON

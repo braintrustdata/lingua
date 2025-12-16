@@ -11,4 +11,8 @@ same structure.
 
 pub mod detect;
 
-pub use detect::MistralDetector;
+// Re-export detection functions and detector
+pub use detect::{
+    is_mistral_format, is_mistral_format_value, try_parse_mistral, DetectionError,
+    MistralChatRequest, MistralDetector,
+};

@@ -2,14 +2,31 @@
 Bedrock Converse format detection.
 
 This module provides functions to detect if a payload is in
-AWS Bedrock Converse API format.
+AWS Bedrock Converse API format by attempting to deserialize
+into the Bedrock struct types.
 */
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::FormatDetector;
-use crate::serde_json::Value;
+use crate::providers::bedrock::request::ConverseRequest;
+use crate::serde_json::{self, Value};
+use thiserror::Error;
+
+/// Error type for Bedrock payload detection
+#[derive(Debug, Error)]
+pub enum DetectionError {
+    #[error("JSON parsing failed: {0}")]
+    JsonParseFailed(String),
+
+    #[error("Deserialization failed: {0}")]
+    DeserializationFailed(String),
+}
 
 /// Detector for AWS Bedrock Converse API format.
+///
+/// Detection is performed by attempting to deserialize the payload
+/// into `ConverseRequest`. If deserialization succeeds, the payload
+/// is valid Bedrock Converse format.
 ///
 /// Bedrock Converse has very distinctive features:
 /// - `modelId` field instead of `model`
@@ -24,20 +41,33 @@ impl FormatDetector for ConverseDetector {
     }
 
     fn detect(&self, payload: &Value) -> bool {
-        is_bedrock_converse(payload)
+        // Attempt to deserialize into Bedrock struct - if it works, it's valid Bedrock format
+        try_parse_bedrock(payload).is_ok()
     }
 
     fn priority(&self) -> u8 {
-        95 // Highest priority - very distinctive format
+        95 // Highest priority - very distinctive format with modelId
     }
 }
 
-/// Check if payload is in Bedrock Converse format.
+/// Attempt to parse a JSON Value as Bedrock ConverseRequest.
 ///
-/// Indicators:
-/// - Has `modelId` field instead of `model`
-/// - Uses camelCase content types (`toolUse`, `toolResult`)
-/// - Has `inferenceConfig` instead of `generation_config`
+/// Returns the parsed struct if successful, or an error if the payload
+/// is not valid Bedrock Converse format.
+pub fn try_parse_bedrock(payload: &Value) -> Result<ConverseRequest, DetectionError> {
+    serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
+}
+
+/// Check if a JSON Value is valid Bedrock Converse format by attempting deserialization.
+///
+/// This is the primary detection function - if the payload can be deserialized
+/// into `ConverseRequest`, it IS valid Bedrock Converse format.
+pub fn is_bedrock_converse_value(payload: &Value) -> bool {
+    try_parse_bedrock(payload).is_ok()
+}
+
+/// Check if payload is in Bedrock Converse format (legacy function using struct validation).
 ///
 /// # Examples
 ///
@@ -59,31 +89,7 @@ impl FormatDetector for ConverseDetector {
 /// assert!(is_bedrock_converse(&bedrock_payload));
 /// ```
 pub fn is_bedrock_converse(payload: &Value) -> bool {
-    // Primary indicator: modelId field
-    if payload.get("modelId").is_some() {
-        return true;
-    }
-
-    // Secondary indicator: inferenceConfig
-    if payload.get("inferenceConfig").is_some() {
-        return true;
-    }
-
-    // Check for Converse-style message structure
-    if let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) {
-        for msg in messages {
-            if let Some(content) = msg.get("content").and_then(|v| v.as_array()) {
-                for block in content {
-                    // Converse uses camelCase: "toolUse", "toolResult"
-                    if block.get("toolUse").is_some() || block.get("toolResult").is_some() {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-
-    false
+    is_bedrock_converse_value(payload)
 }
 
 #[cfg(test)]
@@ -205,7 +211,7 @@ mod tests {
 
     #[test]
     fn test_not_bedrock_openai_format() {
-        // Raw JSON for non-Bedrock formats to ensure detection rejects them
+        // OpenAI format uses "model" not "modelId" - should fail struct deserialization
         let payload = json!({
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "Hello"}]
@@ -215,12 +221,64 @@ mod tests {
 
     #[test]
     fn test_not_bedrock_anthropic_format() {
-        // Raw JSON for non-Bedrock formats to ensure detection rejects them
+        // Anthropic format uses "model" not "modelId" - should fail struct deserialization
         let payload = json!({
             "model": "claude-3-5-sonnet",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(!is_bedrock_converse(&payload));
+    }
+
+    #[test]
+    fn test_try_parse_bedrock_success() {
+        let payload = json!({
+            "modelId": "anthropic.claude-3-sonnet-20240229-v1:0",
+            "messages": [{
+                "role": "user",
+                "content": [{"text": "Hello"}]
+            }]
+        });
+
+        let result = try_parse_bedrock(&payload);
+        assert!(result.is_ok());
+        let parsed = result.unwrap();
+        assert_eq!(parsed.model_id, "anthropic.claude-3-sonnet-20240229-v1:0");
+    }
+
+    #[test]
+    fn test_try_parse_bedrock_fails_without_model_id() {
+        // Missing modelId - required field
+        let payload = json!({
+            "messages": [{
+                "role": "user",
+                "content": [{"text": "Hello"}]
+            }]
+        });
+
+        let result = try_parse_bedrock(&payload);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_detector_uses_struct_validation() {
+        let detector = ConverseDetector;
+
+        // Valid Bedrock format
+        let valid = json!({
+            "modelId": "anthropic.claude-3-sonnet",
+            "messages": [{
+                "role": "user",
+                "content": [{"text": "Hello"}]
+            }]
+        });
+        assert!(detector.detect(&valid));
+
+        // Invalid - uses "model" instead of "modelId"
+        let invalid = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        assert!(!detector.detect(&invalid));
     }
 }

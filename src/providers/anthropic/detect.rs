@@ -2,18 +2,22 @@
 Anthropic format detection.
 
 This module provides functions to detect if a payload is already in
-Anthropic-compatible format, distinguishing it from OpenAI format.
+Anthropic-compatible format by attempting to deserialize into the
+Anthropic struct types. This replaces heuristic-based detection with
+actual struct validation.
 */
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::FormatDetector;
-use crate::providers::anthropic::generated::{
-    CreateMessageParams, InputContentBlockType, MessageRole,
-};
+use crate::providers::anthropic::generated::CreateMessageParams;
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
 /// Detector for Anthropic Messages API format.
+///
+/// Detection is performed by attempting to deserialize the payload
+/// into `CreateMessageParams`. If deserialization succeeds, the payload
+/// is valid Anthropic format.
 ///
 /// Anthropic has distinctive features:
 /// - `max_tokens` is required (optional in OpenAI)
@@ -29,12 +33,22 @@ impl FormatDetector for AnthropicDetector {
     }
 
     fn detect(&self, payload: &Value) -> bool {
-        is_anthropic_format_heuristic(payload)
+        // Attempt to deserialize into Anthropic struct - if it works, it's valid Anthropic format
+        try_parse_anthropic(payload).is_ok()
     }
 
     fn priority(&self) -> u8 {
         80 // High priority - distinctive format
     }
+}
+
+/// Attempt to parse a JSON Value as Anthropic CreateMessageParams.
+///
+/// Returns the parsed struct if successful, or an error if the payload
+/// is not valid Anthropic format.
+pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
+    serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
 
 /// Error type for payload detection
@@ -47,10 +61,10 @@ pub enum DetectionError {
     DeserializationFailed(String),
 }
 
-/// Detects if a JSON payload is in Anthropic format.
+/// Detects if a JSON payload string is in Anthropic format.
 ///
 /// This function attempts to deserialize the payload as an Anthropic
-/// `CreateMessageParams` and validates Anthropic-specific characteristics.
+/// `CreateMessageParams`. If deserialization succeeds, the payload is valid.
 ///
 /// # Arguments
 ///
@@ -59,8 +73,8 @@ pub enum DetectionError {
 /// # Returns
 ///
 /// * `Ok(true)` - Payload is valid Anthropic format
-/// * `Ok(false)` - Payload is not Anthropic format (likely OpenAI or other)
-/// * `Err(DetectionError)` - JSON parsing or validation error
+/// * `Ok(false)` - Payload is not Anthropic format (deserialization failed)
+/// * `Err(DetectionError)` - JSON parsing error (not deserialization failure)
 ///
 /// # Examples
 ///
@@ -76,78 +90,20 @@ pub enum DetectionError {
 /// assert!(is_anthropic_format(anthropic_payload).unwrap());
 /// ```
 pub fn is_anthropic_format(payload: &str) -> Result<bool, DetectionError> {
-    // First, try to deserialize as Anthropic format
-    let request: CreateMessageParams = serde_json::from_str(payload)
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+    // Parse JSON string first
+    let value: Value = serde_json::from_str(payload)
+        .map_err(|e| DetectionError::JsonParseFailed(e.to_string()))?;
 
-    // Validate Anthropic-specific characteristics
-    validate_anthropic_characteristics(&request)
+    // Try to deserialize as Anthropic format
+    Ok(try_parse_anthropic(&value).is_ok())
 }
 
-/// Validates that a deserialized request has Anthropic-specific characteristics.
-fn validate_anthropic_characteristics(
-    request: &CreateMessageParams,
-) -> Result<bool, DetectionError> {
-    // Check 1: max_tokens is required in Anthropic (validated by deserialization)
-    // If we got here, max_tokens is present
-
-    // Check 2: All message roles must be "user" or "assistant" only
-    // Anthropic doesn't have "system" or "tool" roles in messages
-    for message in &request.messages {
-        match message.role {
-            MessageRole::User | MessageRole::Assistant => {
-                // Valid Anthropic roles
-            }
-        }
-
-        // Check 3: Content structure uses Anthropic-specific block types
-        use crate::providers::anthropic::generated::MessageContent;
-        match &message.content {
-            MessageContent::String(_) => {
-                // String content is valid for both, need to check other signals
-            }
-            MessageContent::InputContentBlockArray(blocks) => {
-                for block in blocks {
-                    match block.input_content_block_type {
-                        InputContentBlockType::ToolUse
-                        | InputContentBlockType::ToolResult
-                        | InputContentBlockType::Thinking
-                        | InputContentBlockType::RedactedThinking
-                        | InputContentBlockType::Document
-                        | InputContentBlockType::SearchResult
-                        | InputContentBlockType::ServerToolUse
-                        | InputContentBlockType::WebSearchToolResult => {
-                            // These are Anthropic-specific types that don't exist in OpenAI
-                            return Ok(true);
-                        }
-                        InputContentBlockType::Text | InputContentBlockType::Image => {
-                            // These exist in both formats, check image structure
-                            if let Some(source) = &block.source {
-                                // Anthropic uses "source" object with "type": "base64"
-                                // OpenAI uses "image_url" object (which wouldn't deserialize here)
-                                use crate::providers::anthropic::generated::Source;
-                                if matches!(source, Source::SourceSource(_)) {
-                                    // This is Anthropic image format
-                                    return Ok(true);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // If we got here, the payload deserialized as Anthropic format
-    // but doesn't have strong Anthropic-specific signals
-    // Check for negative signals (OpenAI-specific features that would fail deserialization)
-
-    // Since it successfully deserialized as CreateMessageParams, it's likely Anthropic
-    // The main distinguishing factor is that OpenAI formats would fail to deserialize
-    // due to different structure (e.g., "system" role messages, "tool" role messages,
-    // different content block structure)
-
-    Ok(true)
+/// Check if a JSON Value is valid Anthropic format by attempting deserialization.
+///
+/// This is the primary detection function - if the payload can be deserialized
+/// into `CreateMessageParams`, it IS valid Anthropic format.
+pub fn is_anthropic_format_value(payload: &Value) -> bool {
+    try_parse_anthropic(payload).is_ok()
 }
 
 /// More detailed format detection that distinguishes between Anthropic and OpenAI formats.
@@ -161,7 +117,7 @@ pub enum PayloadFormat {
     Unknown,
 }
 
-/// Detects the payload format with more detailed information.
+/// Detects the payload format by attempting deserialization.
 ///
 /// This function attempts to deserialize the payload as both Anthropic and OpenAI
 /// formats to determine which format it matches.
@@ -177,113 +133,26 @@ pub enum PayloadFormat {
 /// * `Ok(PayloadFormat::Unknown)` - Payload doesn't match either format
 /// * `Err(DetectionError)` - JSON parsing error
 pub fn detect_payload_format(payload: &str) -> Result<PayloadFormat, DetectionError> {
-    // Try Anthropic first
-    let is_anthropic = match serde_json::from_str::<CreateMessageParams>(payload) {
-        Ok(request) => validate_anthropic_characteristics(&request)?,
-        Err(_) => false,
-    };
+    // Parse to Value first
+    let value: Value = serde_json::from_str(payload)
+        .map_err(|e| DetectionError::JsonParseFailed(e.to_string()))?;
 
-    if is_anthropic {
+    // Try Anthropic first (it's more specific due to required max_tokens)
+    if try_parse_anthropic(&value).is_ok() {
         return Ok(PayloadFormat::Anthropic);
     }
 
     // Try OpenAI format
     #[cfg(feature = "openai")]
     {
-        use crate::providers::openai::generated::OpenaiSchemas;
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
 
-        if serde_json::from_str::<OpenaiSchemas>(payload).is_ok() {
+        if serde_json::from_value::<CreateChatCompletionRequestClass>(value).is_ok() {
             return Ok(PayloadFormat::OpenAI);
         }
     }
 
     Ok(PayloadFormat::Unknown)
-}
-
-/// Fast heuristic check if payload is in Anthropic format.
-///
-/// This function uses structural heuristics on a parsed JSON value,
-/// without attempting full deserialization. Use this for quick format
-/// detection in routing scenarios.
-///
-/// Indicators:
-/// - Has "max_tokens" (required in Anthropic, optional in OpenAI)
-/// - Messages use only "user" and "assistant" roles (no "system" in messages)
-/// - System prompt is a top-level field
-/// - Content blocks use snake_case types: "tool_use", "tool_result"
-///
-/// # Examples
-///
-/// ```rust
-/// use lingua::serde_json::json;
-/// use lingua::providers::anthropic::detect::is_anthropic_format_heuristic;
-///
-/// let anthropic_payload = json!({
-///     "model": "claude-3-5-sonnet-20241022",
-///     "messages": [{"role": "user", "content": "Hello"}],
-///     "max_tokens": 1024
-/// });
-///
-/// assert!(is_anthropic_format_heuristic(&anthropic_payload));
-/// ```
-pub fn is_anthropic_format_heuristic(payload: &Value) -> bool {
-    // Check for max_tokens (required in Anthropic)
-    let has_max_tokens = payload.get("max_tokens").is_some();
-
-    // Check for Anthropic-specific content block types
-    if let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) {
-        for msg in messages {
-            if let Some(content) = msg.get("content") {
-                // Check for array content with Anthropic-specific types
-                if let Some(blocks) = content.as_array() {
-                    for block in blocks {
-                        let block_type = block.get("type").and_then(|v| v.as_str());
-                        match block_type {
-                            // Anthropic-specific types
-                            Some("tool_use")
-                            | Some("tool_result")
-                            | Some("thinking")
-                            | Some("redacted_thinking")
-                            | Some("document")
-                            | Some("search_result") => {
-                                return true;
-                            }
-                            // Image block with "source" is Anthropic (OpenAI uses "image_url")
-                            Some("image") if block.get("source").is_some() => {
-                                return true;
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-            }
-
-            // Check for system role in messages - if present, it's likely NOT Anthropic
-            // (Anthropic has system as top-level, not in messages)
-            if msg.get("role").and_then(|v| v.as_str()) == Some("system") {
-                return false;
-            }
-        }
-    }
-
-    // If has max_tokens and top-level system, likely Anthropic
-    if has_max_tokens && payload.get("system").is_some() {
-        return true;
-    }
-
-    // max_tokens with messages array and no system role in messages
-    if has_max_tokens {
-        if let Some(messages) = payload.get("messages").and_then(|v| v.as_array()) {
-            let has_system_in_messages = messages
-                .iter()
-                .any(|m| m.get("role").and_then(|v| v.as_str()) == Some("system"));
-            if !has_system_in_messages {
-                return true;
-            }
-        }
-    }
-
-    false
 }
 
 #[cfg(test)]
@@ -389,7 +258,7 @@ mod tests {
     #[test]
     fn test_is_anthropic_format_missing_max_tokens() {
         // max_tokens is required in CreateMessageParams
-        // This should fail deserialization
+        // This should return Ok(false) - deserialization fails but JSON is valid
         let payload = r#"{
             "model": "claude-3-5-sonnet-20241022",
             "messages": [
@@ -400,34 +269,49 @@ mod tests {
             ]
         }"#;
 
-        // This will fail deserialization because max_tokens is required
-        assert!(is_anthropic_format(payload).is_err());
+        // Deserialization fails because max_tokens is required, so returns Ok(false)
+        assert!(!is_anthropic_format(payload).unwrap());
     }
 
     #[test]
-    fn test_heuristic_returns_false_for_system_role_in_messages() {
+    fn test_try_parse_anthropic_success() {
         use crate::serde_json::json;
 
-        // OpenAI-style payload with system role in messages
-        // This should NOT be detected as Anthropic (Anthropic uses top-level system)
         let payload = json!({
             "model": "claude-3-5-sonnet-20241022",
             "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(try_parse_anthropic(&payload).is_ok());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_fails_for_openai_format() {
+        use crate::serde_json::json;
+
+        // OpenAI-style payload with system role in messages - won't parse as Anthropic
+        // because Anthropic's MessageRole enum only has User and Assistant
+        let payload = json!({
+            "model": "gpt-4",
             "messages": [
                 {"role": "system", "content": "You are helpful"},
                 {"role": "user", "content": "Hello"}
             ]
         });
 
-        assert!(!is_anthropic_format_heuristic(&payload));
+        // This should fail because "system" is not a valid Anthropic role
+        assert!(try_parse_anthropic(&payload).is_err());
     }
 
     #[test]
-    fn test_heuristic_returns_true_for_top_level_system() {
+    fn test_is_anthropic_format_value() {
         use crate::serde_json::json;
 
-        // Anthropic-style payload with top-level system
-        let payload = json!({
+        // Valid Anthropic payload
+        let anthropic_payload = json!({
             "model": "claude-3-5-sonnet-20241022",
             "max_tokens": 1024,
             "system": "You are helpful",
@@ -436,6 +320,38 @@ mod tests {
             ]
         });
 
-        assert!(is_anthropic_format_heuristic(&payload));
+        assert!(is_anthropic_format_value(&anthropic_payload));
+
+        // Invalid - missing max_tokens
+        let invalid_payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(!is_anthropic_format_value(&invalid_payload));
+    }
+
+    #[test]
+    fn test_detector_uses_struct_validation() {
+        use crate::serde_json::json;
+
+        let detector = AnthropicDetector;
+
+        // Valid Anthropic format
+        let valid = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        assert!(detector.detect(&valid));
+
+        // Invalid - no max_tokens
+        let invalid = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        assert!(!detector.detect(&invalid));
     }
 }
