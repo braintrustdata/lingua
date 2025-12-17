@@ -13,16 +13,9 @@ pub mod validation;
 // Re-export key types for external use
 pub use capabilities::ProviderFormat;
 pub use processing::{
-    from_universal, is_valid_for_format, parse, parse_from_str, to_universal,
-    validate_or_transform, DetectedPayload, DetectionError, TransformError, TransformResult,
-    TypedPayload,
+    from_universal, is_valid_for_format, to_universal, validate_or_transform, TransformError,
+    TransformResult,
 };
-
-// Re-export payload wrappers (feature-gated)
-#[cfg(feature = "bedrock")]
-pub use processing::BedrockPayload;
-#[cfg(feature = "google")]
-pub use processing::GooglePayload;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
