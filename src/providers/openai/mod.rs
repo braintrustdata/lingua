@@ -22,9 +22,7 @@ pub mod test_chat_completions;
 pub mod test_transformations;
 
 // Re-export detection functions and detector
-pub use detect::{
-    is_openai_format, is_openai_format_value, try_parse_openai, DetectionError, OpenAIDetector,
-};
+pub use detect::{try_parse_openai, DetectionError, OpenAIDetector};
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{

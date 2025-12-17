@@ -21,8 +21,13 @@ use crate::providers::anthropic::try_parse_anthropic;
 use crate::providers::bedrock::try_parse_bedrock;
 #[cfg(feature = "google")]
 use crate::providers::google::try_parse_google;
+#[cfg(feature = "mistral")]
+use crate::providers::mistral::MistralDetector;
 #[cfg(feature = "openai")]
 use crate::providers::openai::try_parse_openai;
+
+#[cfg(feature = "mistral")]
+use crate::processing::FormatDetector;
 
 /// Error type for transformation operations
 #[derive(Debug, Error)]
@@ -158,7 +163,7 @@ pub fn is_valid_for_format(payload: &Value, format: ProviderFormat) -> bool {
         #[cfg(feature = "mistral")]
         ProviderFormat::Mistral => {
             // Mistral needs both valid structure AND Mistral indicators
-            crate::providers::mistral::detect::is_mistral_format_value(payload)
+            MistralDetector.detect(payload)
         }
 
         ProviderFormat::Unknown => false,
@@ -196,7 +201,7 @@ fn detect_source_format(payload: &Value) -> Result<ProviderFormat, TransformErro
     }
 
     #[cfg(feature = "mistral")]
-    if crate::providers::mistral::detect::is_mistral_format_value(payload) {
+    if MistralDetector.detect(payload) {
         return Ok(ProviderFormat::Mistral);
     }
 

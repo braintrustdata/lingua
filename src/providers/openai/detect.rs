@@ -15,9 +15,6 @@ use thiserror::Error;
 /// Error type for OpenAI payload detection
 #[derive(Debug, Error)]
 pub enum DetectionError {
-    #[error("JSON parsing failed: {0}")]
-    JsonParseFailed(String),
-
     #[error("Deserialization failed: {0}")]
     DeserializationFailed(String),
 }
@@ -51,38 +48,25 @@ impl FormatDetector for OpenAIDetector {
 ///
 /// Returns the parsed struct if successful, or an error if the payload
 /// is not valid OpenAI format.
-pub fn try_parse_openai(
-    payload: &Value,
-) -> Result<CreateChatCompletionRequestClass, DetectionError> {
-    serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
-}
-
-/// Check if a JSON Value is valid OpenAI format by attempting deserialization.
-///
-/// This is the primary detection function - if the payload can be deserialized
-/// into `CreateChatCompletionRequestClass`, it IS valid OpenAI format.
-pub fn is_openai_format_value(payload: &Value) -> bool {
-    try_parse_openai(payload).is_ok()
-}
-
-/// Check if payload is in OpenAI format (legacy function using struct validation).
 ///
 /// # Examples
 ///
 /// ```rust
 /// use lingua::serde_json::json;
-/// use lingua::providers::openai::detect::is_openai_format;
+/// use lingua::providers::openai::detect::try_parse_openai;
 ///
 /// let openai_payload = json!({
 ///     "model": "gpt-4",
 ///     "messages": [{"role": "user", "content": "Hello"}]
 /// });
 ///
-/// assert!(is_openai_format(&openai_payload));
+/// assert!(try_parse_openai(&openai_payload).is_ok());
 /// ```
-pub fn is_openai_format(payload: &Value) -> bool {
-    is_openai_format_value(payload)
+pub fn try_parse_openai(
+    payload: &Value,
+) -> Result<CreateChatCompletionRequestClass, DetectionError> {
+    serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
 
 #[cfg(test)]
@@ -96,7 +80,7 @@ mod tests {
     use crate::serde_json::{self, json};
 
     #[test]
-    fn test_openai_format_basic() {
+    fn test_try_parse_openai_basic() {
         let request = CreateChatCompletionRequestClass {
             model: "gpt-4".to_string(),
             messages: vec![ChatCompletionRequestMessage {
@@ -146,11 +130,11 @@ mod tests {
         };
 
         let payload = serde_json::to_value(&request).unwrap();
-        assert!(is_openai_format(&payload));
+        assert!(try_parse_openai(&payload).is_ok());
     }
 
     #[test]
-    fn test_openai_format_with_system() {
+    fn test_try_parse_openai_with_system() {
         let request = CreateChatCompletionRequestClass {
             model: "gpt-4".to_string(),
             messages: vec![
@@ -214,11 +198,11 @@ mod tests {
         };
 
         let payload = serde_json::to_value(&request).unwrap();
-        assert!(is_openai_format(&payload));
+        assert!(try_parse_openai(&payload).is_ok());
     }
 
     #[test]
-    fn test_openai_format_with_tool_calls() {
+    fn test_try_parse_openai_with_tool_calls() {
         let request = CreateChatCompletionRequestClass {
             model: "gpt-4".to_string(),
             messages: vec![ChatCompletionRequestMessage {
@@ -274,20 +258,20 @@ mod tests {
         };
 
         let payload = serde_json::to_value(&request).unwrap();
-        assert!(is_openai_format(&payload));
+        assert!(try_parse_openai(&payload).is_ok());
     }
 
     #[test]
-    fn test_not_openai_format_no_model() {
+    fn test_try_parse_openai_fails_no_model() {
         // Missing model field - should fail struct deserialization
         let payload = json!({
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(!is_openai_format(&payload));
+        assert!(try_parse_openai(&payload).is_err());
     }
 
     #[test]
-    fn test_not_openai_format_empty_messages() {
+    fn test_try_parse_openai_empty_messages() {
         // Empty messages - should fail struct deserialization
         let payload = json!({
             "model": "gpt-4",
@@ -295,18 +279,18 @@ mod tests {
         });
         // Note: OpenAI struct allows empty messages array, so this may pass
         // The actual validation depends on struct definition
-        let result = is_openai_format(&payload);
+        let result = try_parse_openai(&payload);
         // Just verify it doesn't panic - behavior depends on struct definition
         let _ = result;
     }
 
     #[test]
-    fn test_not_openai_format_google() {
+    fn test_try_parse_openai_fails_for_google() {
         // Google format - should fail OpenAI struct deserialization
         let payload = json!({
             "contents": [{"role": "user", "parts": [{"text": "Hello"}]}]
         });
-        assert!(!is_openai_format(&payload));
+        assert!(try_parse_openai(&payload).is_err());
     }
 
     #[test]
@@ -323,7 +307,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_parse_openai_fails_for_anthropic() {
+    fn test_try_parse_openai_permissive_for_anthropic() {
         // Anthropic format with max_tokens but no system role in messages
         let payload = json!({
             "model": "claude-3-5-sonnet",

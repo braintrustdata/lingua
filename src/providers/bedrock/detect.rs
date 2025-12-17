@@ -15,9 +15,6 @@ use thiserror::Error;
 /// Error type for Bedrock payload detection
 #[derive(Debug, Error)]
 pub enum DetectionError {
-    #[error("JSON parsing failed: {0}")]
-    JsonParseFailed(String),
-
     #[error("Deserialization failed: {0}")]
     DeserializationFailed(String),
 }
@@ -54,26 +51,12 @@ impl FormatDetector for ConverseDetector {
 ///
 /// Returns the parsed struct if successful, or an error if the payload
 /// is not valid Bedrock Converse format.
-pub fn try_parse_bedrock(payload: &Value) -> Result<ConverseRequest, DetectionError> {
-    serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
-}
-
-/// Check if a JSON Value is valid Bedrock Converse format by attempting deserialization.
-///
-/// This is the primary detection function - if the payload can be deserialized
-/// into `ConverseRequest`, it IS valid Bedrock Converse format.
-pub fn is_bedrock_converse_value(payload: &Value) -> bool {
-    try_parse_bedrock(payload).is_ok()
-}
-
-/// Check if payload is in Bedrock Converse format (legacy function using struct validation).
 ///
 /// # Examples
 ///
 /// ```rust
 /// use lingua::serde_json::json;
-/// use lingua::providers::bedrock::detect::is_bedrock_converse;
+/// use lingua::providers::bedrock::detect::try_parse_bedrock;
 ///
 /// let bedrock_payload = json!({
 ///     "modelId": "anthropic.claude-3-sonnet-20240229-v1:0",
@@ -86,10 +69,11 @@ pub fn is_bedrock_converse_value(payload: &Value) -> bool {
 ///     }
 /// });
 ///
-/// assert!(is_bedrock_converse(&bedrock_payload));
+/// assert!(try_parse_bedrock(&bedrock_payload).is_ok());
 /// ```
-pub fn is_bedrock_converse(payload: &Value) -> bool {
-    is_bedrock_converse_value(payload)
+pub fn try_parse_bedrock(payload: &Value) -> Result<ConverseRequest, DetectionError> {
+    serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
 
 #[cfg(test)]
@@ -103,7 +87,7 @@ mod tests {
     use crate::serde_json::{self, json};
 
     #[test]
-    fn test_bedrock_converse_with_model_id() {
+    fn test_try_parse_bedrock_with_model_id() {
         let request = ConverseRequest {
             model_id: "anthropic.claude-3-sonnet-20240229-v1:0".to_string(),
             messages: vec![BedrockMessage {
@@ -122,11 +106,11 @@ mod tests {
         };
 
         let payload = serde_json::to_value(&request).unwrap();
-        assert!(is_bedrock_converse(&payload));
+        assert!(try_parse_bedrock(&payload).is_ok());
     }
 
     #[test]
-    fn test_bedrock_converse_with_inference_config() {
+    fn test_try_parse_bedrock_with_inference_config() {
         let request = ConverseRequest {
             model_id: "anthropic.claude-3-sonnet-20240229-v1:0".to_string(),
             messages: vec![BedrockMessage {
@@ -150,11 +134,11 @@ mod tests {
         };
 
         let payload = serde_json::to_value(&request).unwrap();
-        assert!(is_bedrock_converse(&payload));
+        assert!(try_parse_bedrock(&payload).is_ok());
     }
 
     #[test]
-    fn test_bedrock_converse_with_tool_use() {
+    fn test_try_parse_bedrock_with_tool_use() {
         let request = ConverseRequest {
             model_id: "anthropic.claude-3-sonnet-20240229-v1:0".to_string(),
             messages: vec![BedrockMessage {
@@ -177,11 +161,11 @@ mod tests {
         };
 
         let payload = serde_json::to_value(&request).unwrap();
-        assert!(is_bedrock_converse(&payload));
+        assert!(try_parse_bedrock(&payload).is_ok());
     }
 
     #[test]
-    fn test_bedrock_converse_with_tool_result() {
+    fn test_try_parse_bedrock_with_tool_result() {
         let request = ConverseRequest {
             model_id: "anthropic.claude-3-sonnet-20240229-v1:0".to_string(),
             messages: vec![BedrockMessage {
@@ -206,28 +190,28 @@ mod tests {
         };
 
         let payload = serde_json::to_value(&request).unwrap();
-        assert!(is_bedrock_converse(&payload));
+        assert!(try_parse_bedrock(&payload).is_ok());
     }
 
     #[test]
-    fn test_not_bedrock_openai_format() {
+    fn test_try_parse_bedrock_fails_for_openai_format() {
         // OpenAI format uses "model" not "modelId" - should fail struct deserialization
         let payload = json!({
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(!is_bedrock_converse(&payload));
+        assert!(try_parse_bedrock(&payload).is_err());
     }
 
     #[test]
-    fn test_not_bedrock_anthropic_format() {
+    fn test_try_parse_bedrock_fails_for_anthropic_format() {
         // Anthropic format uses "model" not "modelId" - should fail struct deserialization
         let payload = json!({
             "model": "claude-3-5-sonnet",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(!is_bedrock_converse(&payload));
+        assert!(try_parse_bedrock(&payload).is_err());
     }
 
     #[test]

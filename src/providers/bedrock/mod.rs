@@ -18,10 +18,7 @@ pub use aws_sdk_bedrockruntime::types::{
 };
 
 // Re-export detection functions and detector
-pub use detect::{
-    is_bedrock_converse, is_bedrock_converse_value, try_parse_bedrock, ConverseDetector,
-    DetectionError,
-};
+pub use detect::{try_parse_bedrock, ConverseDetector, DetectionError};
 
 // Re-export conversion functions
 pub use convert::{bedrock_to_universal, universal_to_bedrock};

@@ -12,7 +12,6 @@ Mistral-specific features.
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::FormatDetector;
-use crate::providers::openai::generated::CreateChatCompletionRequestClass;
 use crate::serde_json::{self, Value};
 use serde::Deserialize;
 use thiserror::Error;
@@ -20,9 +19,6 @@ use thiserror::Error;
 /// Error type for Mistral payload detection
 #[derive(Debug, Error)]
 pub enum DetectionError {
-    #[error("JSON parsing failed: {0}")]
-    JsonParseFailed(String),
-
     #[error("Deserialization failed: {0}")]
     DeserializationFailed(String),
 }
@@ -124,35 +120,15 @@ fn has_mistral_indicators(payload: &Value) -> bool {
 ///
 /// Returns the parsed struct if successful, or an error if the payload
 /// is not valid Mistral format.
-pub fn try_parse_mistral(payload: &Value) -> Result<MistralChatRequest, DetectionError> {
-    serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
-}
-
-/// Attempt to parse as OpenAI format (Mistral is OpenAI-compatible).
-pub fn try_parse_as_openai(
-    payload: &Value,
-) -> Result<CreateChatCompletionRequestClass, DetectionError> {
-    serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
-}
-
-/// Check if a JSON Value is valid Mistral format.
 ///
-/// This checks that the payload:
-/// 1. Has Mistral-specific indicators (safe_prompt or model name)
-/// 2. Can be parsed as a valid chat request
-pub fn is_mistral_format_value(payload: &Value) -> bool {
-    has_mistral_indicators(payload) && try_parse_mistral(payload).is_ok()
-}
-
-/// Check if payload is in Mistral format (legacy function).
+/// Note: For full Mistral format detection, also check `has_mistral_indicators()`
+/// or use `MistralDetector::detect()` which combines both checks.
 ///
 /// # Examples
 ///
 /// ```rust
 /// use lingua::serde_json::json;
-/// use lingua::providers::mistral::detect::is_mistral_format;
+/// use lingua::providers::mistral::detect::try_parse_mistral;
 ///
 /// let mistral_payload = json!({
 ///     "model": "mistral-large-latest",
@@ -160,10 +136,11 @@ pub fn is_mistral_format_value(payload: &Value) -> bool {
 ///     "safe_prompt": true
 /// });
 ///
-/// assert!(is_mistral_format(&mistral_payload));
+/// assert!(try_parse_mistral(&mistral_payload).is_ok());
 /// ```
-pub fn is_mistral_format(payload: &Value) -> bool {
-    is_mistral_format_value(payload)
+pub fn try_parse_mistral(payload: &Value) -> Result<MistralChatRequest, DetectionError> {
+    serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
 
 #[cfg(test)]
@@ -172,59 +149,65 @@ mod tests {
     use crate::serde_json::json;
 
     #[test]
-    fn test_mistral_format_with_safe_prompt() {
+    fn test_detector_with_safe_prompt() {
+        let detector = MistralDetector;
         let payload = json!({
             "model": "some-model",
             "messages": [{"role": "user", "content": "Hello"}],
             "safe_prompt": true
         });
-        assert!(is_mistral_format(&payload));
+        assert!(detector.detect(&payload));
     }
 
     #[test]
-    fn test_mistral_format_with_model_prefix() {
+    fn test_detector_with_model_prefix() {
+        let detector = MistralDetector;
         let payload = json!({
             "model": "mistral-large-latest",
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(is_mistral_format(&payload));
+        assert!(detector.detect(&payload));
     }
 
     #[test]
-    fn test_mistral_format_codestral() {
+    fn test_detector_codestral() {
+        let detector = MistralDetector;
         let payload = json!({
             "model": "codestral-latest",
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(is_mistral_format(&payload));
+        assert!(detector.detect(&payload));
     }
 
     #[test]
-    fn test_mistral_format_pixtral() {
+    fn test_detector_pixtral() {
+        let detector = MistralDetector;
         let payload = json!({
             "model": "pixtral-12b-2024-09-11",
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(is_mistral_format(&payload));
+        assert!(detector.detect(&payload));
     }
 
     #[test]
-    fn test_mistral_format_ministral() {
+    fn test_detector_ministral() {
+        let detector = MistralDetector;
         let payload = json!({
             "model": "ministral-8b-latest",
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(is_mistral_format(&payload));
+        assert!(detector.detect(&payload));
     }
 
     #[test]
-    fn test_not_mistral_format_openai() {
+    fn test_detector_rejects_openai() {
+        let detector = MistralDetector;
         // OpenAI model name without Mistral indicators
         let payload = json!({
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(!is_mistral_format(&payload));
+        assert!(!detector.detect(&payload));
     }
 
     #[test]
@@ -283,12 +266,13 @@ mod tests {
 
     #[test]
     fn test_mistral_indicators_required() {
+        let detector = MistralDetector;
         // Even with valid structure, needs Mistral indicators
         let payload = json!({
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(!has_mistral_indicators(&payload));
-        assert!(!is_mistral_format(&payload));
+        assert!(!detector.detect(&payload));
     }
 }

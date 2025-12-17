@@ -19,9 +19,6 @@ use thiserror::Error;
 /// Error type for Google payload detection
 #[derive(Debug, Error)]
 pub enum DetectionError {
-    #[error("JSON parsing failed: {0}")]
-    JsonParseFailed(String),
-
     #[error("Deserialization failed: {0}")]
     DeserializationFailed(String),
 }
@@ -182,26 +179,12 @@ impl FormatDetector for GoogleDetector {
 ///
 /// Returns the parsed struct if successful, or an error if the payload
 /// is not valid Google format.
-pub fn try_parse_google(payload: &Value) -> Result<GoogleGenerateContentRequest, DetectionError> {
-    serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
-}
-
-/// Check if a JSON Value is valid Google format by attempting deserialization.
-///
-/// This is the primary detection function - if the payload can be deserialized
-/// into `GoogleGenerateContentRequest`, it IS valid Google format.
-pub fn is_google_format_value(payload: &Value) -> bool {
-    try_parse_google(payload).is_ok()
-}
-
-/// Check if payload is in Google format (legacy function using struct validation).
 ///
 /// # Examples
 ///
 /// ```rust
 /// use lingua::serde_json::json;
-/// use lingua::providers::google::detect::is_google_format;
+/// use lingua::providers::google::detect::try_parse_google;
 ///
 /// let google_payload = json!({
 ///     "contents": [{
@@ -210,10 +193,11 @@ pub fn is_google_format_value(payload: &Value) -> bool {
 ///     }]
 /// });
 ///
-/// assert!(is_google_format(&google_payload));
+/// assert!(try_parse_google(&google_payload).is_ok());
 /// ```
-pub fn is_google_format(payload: &Value) -> bool {
-    is_google_format_value(payload)
+pub fn try_parse_google(payload: &Value) -> Result<GoogleGenerateContentRequest, DetectionError> {
+    serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
 
 #[cfg(test)]
@@ -222,56 +206,56 @@ mod tests {
     use crate::serde_json::json;
 
     #[test]
-    fn test_google_format_with_contents_and_parts() {
+    fn test_try_parse_google_with_contents_and_parts() {
         let payload = json!({
             "contents": [{
                 "role": "user",
                 "parts": [{"text": "Hello"}]
             }]
         });
-        assert!(is_google_format(&payload));
+        assert!(try_parse_google(&payload).is_ok());
     }
 
     #[test]
-    fn test_google_format_with_generation_config() {
+    fn test_try_parse_google_with_generation_config() {
         let payload = json!({
             "contents": [{"parts": [{"text": "Hello"}]}],
             "generationConfig": {
                 "temperature": 0.7
             }
         });
-        assert!(is_google_format(&payload));
+        assert!(try_parse_google(&payload).is_ok());
     }
 
     #[test]
-    fn test_google_format_with_model_role() {
+    fn test_try_parse_google_with_model_role() {
         let payload = json!({
             "contents": [
                 {"role": "user", "parts": [{"text": "Hello"}]},
                 {"role": "model", "parts": [{"text": "Hi there!"}]}
             ]
         });
-        assert!(is_google_format(&payload));
+        assert!(try_parse_google(&payload).is_ok());
     }
 
     #[test]
-    fn test_not_google_format_openai() {
+    fn test_try_parse_google_fails_for_openai() {
         // OpenAI uses "messages" not "contents" - should fail struct deserialization
         let payload = json!({
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(!is_google_format(&payload));
+        assert!(try_parse_google(&payload).is_err());
     }
 
     #[test]
-    fn test_not_google_format_empty_contents() {
+    fn test_try_parse_google_empty_contents() {
         // Empty contents array is technically valid but unusual
         let payload = json!({
             "contents": []
         });
         // Empty contents array may pass validation depending on struct definition
-        let _ = is_google_format(&payload);
+        let _ = try_parse_google(&payload);
     }
 
     #[test]
