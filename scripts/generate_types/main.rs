@@ -1,21 +1,16 @@
-#!/usr/bin/env cargo +nightly -Zscript
-//! ```cargo
-//! [dependencies]
-//! serde_json = "1.0"
-//! serde_yaml = "0.9"
-//! prost-build = "0.13"
-//! ```
-
-//! Standalone type generation script for Elmir providers
+//! Standalone type generation script for Lingua providers
 //!
 //! Usage: cargo run --bin generate-types -- [provider]
-//!        ./scripts/generate-types.rs [provider]
 
 use std::path::Path;
 
 // Import serde_json from the lingua crate's re-export
 // This ensures we use the wrapper crate with arbitrary_precision
 use lingua::serde_json;
+use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
+
+mod schema_converter;
+mod tool_generator;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -184,7 +179,6 @@ fn generate_openai_types_with_quicktype(
         .arg("--derive-debug")
         .arg("--derive-clone")
         .arg("--derive-partial-eq")
-        .arg("--derive-default")
         .arg("--visibility")
         .arg("public")
         .arg("--density")
@@ -211,7 +205,16 @@ fn generate_openai_types_with_quicktype(
     let _ = std::fs::remove_file(&temp_schema_path);
 
     // Post-process the quicktype output
-    let processed_output = post_process_quicktype_output_for_openai(&quicktype_output);
+    let mut processed_output = post_process_quicktype_output_for_openai(&quicktype_output);
+
+    // Quicktype generates a flat `pub struct Tool` with all fields optional, but the
+    // OpenAPI spec defines Tool as a discriminated union (anyOf with a "type" tag).
+    // We replace quicktype's struct with a proper Rust enum using #[serde(tag = "type")]
+    // so each tool variant (function, web_search, code_interpreter, etc.) serializes
+    // correctly with its specific fields.
+    if let Ok(tool_code) = generate_all_tool_code("openai", &spec) {
+        processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
+    }
 
     let dest_path = "src/providers/openai/generated.rs";
 
@@ -472,7 +475,6 @@ fn generate_anthropic_types_with_quicktype(
         .arg("--derive-debug")
         .arg("--derive-clone")
         .arg("--derive-partial-eq")
-        .arg("--derive-default")
         .arg("--visibility")
         .arg("public")
         .arg("--density")
@@ -499,7 +501,16 @@ fn generate_anthropic_types_with_quicktype(
     let _ = std::fs::remove_file(&temp_schema_path);
 
     // Post-process the quicktype output
-    let processed_output = post_process_quicktype_output_for_anthropic(&quicktype_output);
+    let mut processed_output = post_process_quicktype_output_for_anthropic(&quicktype_output);
+
+    // Quicktype generates a flat `pub struct Tool` with all fields optional, but the
+    // OpenAPI spec defines Tool as a discriminated union (oneOf with a "type" tag).
+    // We replace quicktype's struct with a proper Rust enum using #[serde(tag = "type")]
+    // so each tool variant (custom, computer, text_editor, etc.) serializes correctly
+    // with its specific fields.
+    if let Ok(tool_code) = generate_all_tool_code("anthropic", &spec) {
+        processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
+    }
 
     let dest_path = "src/providers/anthropic/generated.rs";
 
@@ -547,15 +558,14 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
 
     let mut separated_schemas = serde_json::Map::new();
 
-    // Step 2: First recursively add all dependencies for the original schemas
+    // Step 2: Recursively add all dependencies for the original schemas.
+    // Tool schemas will be pulled in automatically via $ref links from CreateMessageParams.
     for schema_name in &request_schemas {
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
     for schema_name in &response_schemas {
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
-
-    // All other types will be included automatically through dependency resolution
 
     // Step 3: Now clean the main request/response schemas to remove conflicting fields
     for schema_name in &request_schemas {
@@ -1062,19 +1072,29 @@ fn add_export_path_to_all_ts_types(content: &str, export_path: &str) -> String {
     let lines: Vec<&str> = content.lines().collect();
     let mut result_lines = Vec::new();
     let mut pending_export_to: Option<&str> = None;
+    let mut has_ts_export_to = false;
 
     for line in lines {
         // Step 1: Check if this line has #[derive(..., TS)]
         if line.contains("#[derive(") && line.contains("TS") {
             pending_export_to = Some(export_path);
+            has_ts_export_to = false; // Reset for new type
+        }
+
+        // Step 2: Check if there's already a ts(export_to) attribute
+        if line.contains("#[ts(export_to") || line.contains("#[ts(export,") {
+            has_ts_export_to = true;
         }
 
         // Step 3: Check if we hit a type definition
         if line.starts_with("pub struct ") || line.starts_with("pub enum ") {
             if let Some(path) = pending_export_to.take() {
-                // Step 4: Append export_to before appending line
-                result_lines.push(format!("#[ts(export_to = \"{}\")]", path));
+                // Step 4: Only add export_to if not already present
+                if !has_ts_export_to {
+                    result_lines.push(format!("#[ts(export_to = \"{}\")]", path));
+                }
             }
+            has_ts_export_to = false; // Reset for next type
         }
 
         result_lines.push(line.to_string());
@@ -1142,13 +1162,15 @@ fn add_ts_type_annotations(content: &str) -> String {
             // Check the FULL line for serde_json::Value (handles complex generic types)
             let needs_ts_annotation = line.contains("serde_json::Value");
 
-            if needs_ts_annotation && !has_ts_attr {
+            if needs_ts_annotation {
                 // Get the indentation level from the current line
                 let indent = line.len() - line.trim_start().len();
-                let ts_attr = format!("{}#[ts(type = \"any\")]", " ".repeat(indent));
+                let ts_attr = format!("{}#[ts(type = \"unknown\")]", " ".repeat(indent));
 
-                // Add the ts attribute BEFORE the field line
-                result_lines.push(ts_attr);
+                // Add the ts attribute BEFORE the field line unless it's already present
+                if !has_ts_attr {
+                    result_lines.push(ts_attr);
+                }
             }
         }
 

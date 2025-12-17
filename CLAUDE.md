@@ -103,7 +103,7 @@ Files named `generated.rs` are automatically generated and will be overwritten:
 **ANY MANUAL CHANGES TO THESE FILES WILL BE PERMANENTLY LOST ON NEXT REGENERATION**
 
 **If you need to fix issues in generated files:**
-1. ✅ **DO**: Edit the generation logic in `scripts/generate-types.rs`
+1. ✅ **DO**: Edit the generation logic in `scripts/generate_types/main.rs`
 2. ✅ **DO**: Add fixes to the `fix_google_type_references()` or similar functions
 3. ✅ **DO**: Regenerate using `cargo run --bin generate-types <provider>`
 4. ❌ **DON'T**: Edit the generated files directly - your changes will be lost!
@@ -117,7 +117,7 @@ Files named `generated.rs` are automatically generated and will be overwritten:
 
 **Example of proper fix approach:**
 ```rust
-// In scripts/generate-types.rs, in fix_google_type_references():
+// In scripts/generate_types/main.rs, in fix_google_type_references():
 fn fix_google_type_references(content: String) -> String {
     let mut fixed = content;
     

@@ -1,4 +1,4 @@
-.PHONY: all typescript python test clean help generate-types install-hooks install-wasm-tools setup clippy
+.PHONY: all typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup clippy
 
 all: typescript python ## Build all bindings
 
@@ -6,6 +6,22 @@ help: ## Show this help message
 	@echo "Lingua Build Targets:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+generate-provider-types: ## Regenerate provider types from OpenAPI specs (usage: make generate-provider-types PROVIDER=openai)
+	@if [ -z "$(PROVIDER)" ]; then \
+		echo "Usage: make generate-provider-types PROVIDER=<provider>"; \
+		echo "Available providers: openai, anthropic, google, all"; \
+		echo "Example: make generate-provider-types PROVIDER=openai"; \
+		exit 1; \
+	fi
+	@echo "Regenerating $(PROVIDER) types from OpenAPI spec..."
+	@cargo run --bin generate-types -- $(PROVIDER)
+
+generate-all-providers: ## Regenerate types for all providers (anthropic, openai, google)
+	@echo "Regenerating all provider types..."
+	./pipelines/generate-provider-types.sh anthropic
+	./pipelines/generate-provider-types.sh openai
+	./pipelines/generate-provider-types.sh google
 
 generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."

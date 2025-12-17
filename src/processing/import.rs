@@ -22,13 +22,20 @@ pub struct Span {
 /// Returns early to avoid expensive deserialization attempts on non-message data
 fn has_message_structure(data: &Value) -> bool {
     match data {
-        // Check if it's an array where first element has "role" field
+        // Check if it's an array where first element has "role" field or is a choice object
         Value::Array(arr) => {
             if arr.is_empty() {
                 return false;
             }
             if let Some(Value::Object(first)) = arr.first() {
-                return first.contains_key("role");
+                // Direct message format: has "role" field
+                if first.contains_key("role") {
+                    return true;
+                }
+                // Chat completions response choices format: has "message" field with role inside
+                if let Some(Value::Object(msg)) = first.get("message") {
+                    return msg.contains_key("role");
+                }
             }
             false
         }
@@ -100,6 +107,14 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     if let Some(lenient_messages) = try_lenient_message_parsing(data) {
         if !lenient_messages.is_empty() {
             return lenient_messages;
+        }
+    }
+
+    // Try parsing as choices array (Chat Completions response format)
+    // This handles [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
+    if let Some(choices_messages) = try_choices_array_parsing(data) {
+        if !choices_messages.is_empty() {
+            return choices_messages;
         }
     }
 
@@ -216,6 +231,45 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
     }
 }
 
+/// Parse choices array from Chat Completions response format
+///
+/// This handles the output format: [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
+/// Extracts messages from the "message" field of each choice object.
+fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
+    let arr = data.as_array()?;
+    let mut messages = Vec::new();
+
+    for item in arr {
+        let obj = item.as_object()?;
+
+        // Check if this looks like a choice object (has "message" or "finish_reason")
+        // Note: has_message_structure only checks the first element, so we need to validate
+        // each element here to ensure the entire array is a valid choices array
+        if !obj.contains_key("message") && !obj.contains_key("finish_reason") {
+            return None; // Not a choices array
+        }
+
+        // Extract the message from the choice
+        if let Some(message_value) = obj.get("message") {
+            // The message is a single object, wrap in array for try_converting_to_messages
+            let wrapped = Value::Array(vec![message_value.clone()]);
+            let nested_messages = try_converting_to_messages(&wrapped);
+            if nested_messages.is_empty() {
+                // If element has "message" but we couldn't parse it, this is malformed
+                return None;
+            } else {
+                messages.extend(nested_messages);
+            }
+        }
+    }
+
+    if messages.is_empty() {
+        None
+    } else {
+        Some(messages)
+    }
+}
+
 /// Import messages from a list of spans
 ///
 /// This function processes spans and extracts messages from their input/output fields,
@@ -280,5 +334,28 @@ mod tests {
         };
         let messages = import_messages_from_spans(vec![span]);
         assert_eq!(messages.len(), 2);
+    }
+
+    #[test]
+    fn test_import_spans_with_choices_array_output() {
+        let span = Span {
+            input: Some(serde_json::json!([
+                {"role": "user", "content": "Hello"}
+            ])),
+            output: Some(serde_json::json!([
+                {
+                    "finish_reason": "stop",
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                        "content": "Hi there!",
+                        "role": "assistant"
+                    }
+                }
+            ])),
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 2); // 1 from input, 1 from output
     }
 }
