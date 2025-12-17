@@ -11,7 +11,8 @@ pub use detect::{parse, parse_from_str, DetectedPayload, DetectionError, TypedPa
 pub use detector::FormatDetector;
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
 pub use transform::{
-    from_universal, is_valid_for_format, validate_or_transform, TransformError, TransformResult,
+    from_universal, is_valid_for_format, to_universal, validate_or_transform, TransformError,
+    TransformResult,
 };
 
 // Re-export payload wrappers from provider modules (feature-gated)

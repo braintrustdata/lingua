@@ -214,7 +214,20 @@ fn detect_source_format(payload: &Value) -> Result<ProviderFormat, TransformErro
 }
 
 /// Convert a payload from its source format to universal message format.
-fn to_universal(
+///
+/// This function detects the provider format of the input payload and converts
+/// its messages to lingua's universal Message format.
+///
+/// # Arguments
+///
+/// * `payload` - The JSON payload in the source format
+/// * `source_format` - The provider format of the payload
+///
+/// # Returns
+///
+/// * `Ok(Vec<Message>)` - Universal messages extracted from the payload
+/// * `Err(TransformError)` - If parsing or conversion fails
+pub fn to_universal(
     payload: &Value,
     source_format: ProviderFormat,
 ) -> Result<Vec<Message>, TransformError> {

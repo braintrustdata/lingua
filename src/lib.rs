@@ -13,8 +13,9 @@ pub mod validation;
 // Re-export key types for external use
 pub use capabilities::ProviderFormat;
 pub use processing::{
-    from_universal, is_valid_for_format, parse, parse_from_str, validate_or_transform,
-    DetectedPayload, DetectionError, TransformError, TransformResult, TypedPayload,
+    from_universal, is_valid_for_format, parse, parse_from_str, to_universal,
+    validate_or_transform, DetectedPayload, DetectionError, TransformError, TransformResult,
+    TypedPayload,
 };
 
 // Re-export payload wrappers (feature-gated)
