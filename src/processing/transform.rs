@@ -273,7 +273,21 @@ fn to_universal(
 }
 
 /// Convert universal messages to a specific target format.
-fn from_universal(
+///
+/// This is the main entry point for converting lingua's universal Message format
+/// to any supported provider format. The function dispatches to the appropriate
+/// TryFromLLM implementation based on the target format.
+///
+/// # Arguments
+///
+/// * `messages` - Slice of universal Message objects to convert
+/// * `target_format` - The target provider format (OpenAI, Anthropic, Google, etc.)
+///
+/// # Returns
+///
+/// * `Ok(Value)` - JSON value containing the converted messages in target format
+/// * `Err(TransformError)` - If conversion or serialization fails
+pub fn from_universal(
     messages: &[Message],
     target_format: ProviderFormat,
 ) -> Result<Value, TransformError> {

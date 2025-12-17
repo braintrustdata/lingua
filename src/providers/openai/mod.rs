@@ -24,6 +24,9 @@ pub mod test_transformations;
 // Re-export detection functions and detector
 pub use detect::{try_parse_openai, DetectionError, OpenAIDetector};
 
+// Re-export conversion functions
+pub use convert::universal_to_responses_input;
+
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{
     ChatCompletionRequestMessage,
