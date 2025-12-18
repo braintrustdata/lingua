@@ -230,13 +230,25 @@ fn build_request_payload(
         result.insert("model".into(), model.clone());
     }
 
-    // Insert transformed messages with the appropriate key for the target format
-    let messages_key = match target_format {
-        ProviderFormat::Google => "contents",
-        ProviderFormat::Converse => "messages",
-        _ => "messages",
-    };
-    result.insert(messages_key.into(), transformed_messages);
+    // Handle Anthropic's special format: from_universal returns {messages, system}
+    if target_format == ProviderFormat::Anthropic {
+        if let Some(obj) = transformed_messages.as_object() {
+            if let Some(messages) = obj.get("messages") {
+                result.insert("messages".into(), messages.clone());
+            }
+            if let Some(system) = obj.get("system") {
+                result.insert("system".into(), system.clone());
+            }
+        }
+    } else {
+        // Standard format: transformed_messages is just the messages array
+        let messages_key = match target_format {
+            ProviderFormat::Google => "contents",
+            ProviderFormat::Converse => "messages",
+            _ => "messages",
+        };
+        result.insert(messages_key.into(), transformed_messages);
+    }
 
     // Copy common parameters that are format-agnostic
     let common_params = [
@@ -258,6 +270,12 @@ fn build_request_payload(
 
     for param in common_params {
         if let Some(value) = source.get(param) {
+            // Skip stream parameters for Google (uses endpoint-based streaming)
+            if target_format == ProviderFormat::Google
+                && (param == "stream" || param == "stream_options")
+            {
+                continue;
+            }
             // Handle parameter name mapping for different formats
             let target_key = map_param_name(param, target_format);
             result.insert(target_key.into(), value.clone());
@@ -458,13 +476,40 @@ pub fn from_universal(
         ProviderFormat::Anthropic => {
             use crate::providers::anthropic::generated::InputMessage;
             use crate::universal::convert::TryFromLLM;
+            use crate::universal::message::UserContent;
+            use crate::universal::transform::extract_system_messages;
 
+            // Clone and extract system messages (Anthropic uses separate `system` param)
+            let mut msgs = messages.to_vec();
+            let system_contents = extract_system_messages(&mut msgs);
+
+            // Convert remaining messages (may be empty if only system messages were present)
             let anthropic_messages: Vec<InputMessage> =
-                <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(messages.to_vec())
+                <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
                     .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
 
-            serde_json::to_value(anthropic_messages)
-                .map_err(|e| TransformError::SerializationFailed(e.to_string()))
+            // Build result with both messages and system
+            let mut result = Map::new();
+            result.insert(
+                "messages".into(),
+                serde_json::to_value(anthropic_messages)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
+
+            if !system_contents.is_empty() {
+                // Convert system contents to Anthropic format (concatenate text)
+                let system_text: String = system_contents
+                    .iter()
+                    .filter_map(|c| match c {
+                        UserContent::String(s) => Some(s.as_str()),
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n\n");
+                result.insert("system".into(), Value::String(system_text));
+            }
+
+            Ok(Value::Object(result))
         }
 
         #[cfg(feature = "google")]
