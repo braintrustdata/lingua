@@ -11,7 +11,8 @@ This replaces heuristic-based detection with struct-based validation.
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::serde_json::{self, Value};
+use crate::processing::defaults::apply_provider_defaults;
+use crate::serde_json::{self, Map, Value};
 use crate::universal::message::Message;
 use thiserror::Error;
 
@@ -143,6 +144,139 @@ pub fn validate_or_transform(
         payload: transformed,
         source_format,
     })
+}
+
+/// Transform a full request payload to the target format with provider defaults applied.
+///
+/// Unlike `validate_or_transform` which only transforms messages, this function
+/// handles the complete request including model parameters. It applies provider-specific
+/// defaults (e.g., `max_tokens` for Anthropic) only when transformation is needed.
+///
+/// Returns `TransformResult::PassThrough` when the payload is already valid for the
+/// target format - in this case, use the original payload as-is with zero overhead.
+///
+/// # Arguments
+///
+/// * `payload` - The incoming JSON payload (full request)
+/// * `target_format` - The target provider format
+///
+/// # Returns
+///
+/// * `Ok(TransformResult::PassThrough)` - Payload is already valid, use original as-is
+/// * `Ok(TransformResult::Transformed { payload, source_format })` - Transformed with defaults
+/// * `Err(TransformError)` - If transformation fails
+///
+/// # Examples
+///
+/// ```
+/// use lingua::processing::transform::{transform_request, TransformResult};
+/// use lingua::capabilities::ProviderFormat;
+/// use lingua::serde_json::json;
+///
+/// // OpenAI request without max_tokens
+/// let openai_payload = json!({
+///     "model": "gpt-4",
+///     "messages": [{"role": "user", "content": "Hello"}]
+/// });
+///
+/// // Transform to Anthropic - max_tokens will be added with default value
+/// let result = transform_request(&openai_payload, ProviderFormat::Anthropic).unwrap();
+/// let final_payload = result.payload_or_original(openai_payload);
+/// ```
+pub fn transform_request(
+    payload: &Value,
+    target_format: ProviderFormat,
+) -> Result<TransformResult, TransformError> {
+    // Step 1: Validate or transform the messages
+    let transform_result = validate_or_transform(payload, target_format)?;
+
+    match transform_result {
+        TransformResult::PassThrough => {
+            // Payload is already valid for target format - zero overhead, use original as-is
+            Ok(TransformResult::PassThrough)
+        }
+        TransformResult::Transformed {
+            payload: transformed_messages,
+            source_format,
+        } => {
+            // Build a new request with transformed messages and copied parameters
+            let mut full_payload =
+                build_request_payload(payload, transformed_messages, target_format)?;
+
+            // Apply provider-specific defaults (only for transformed payloads)
+            apply_provider_defaults(&mut full_payload, target_format);
+
+            Ok(TransformResult::Transformed {
+                payload: full_payload,
+                source_format,
+            })
+        }
+    }
+}
+
+/// Build a full request payload from transformed messages and source parameters.
+///
+/// This copies over common parameters from the source payload and inserts
+/// the transformed messages.
+fn build_request_payload(
+    source: &Value,
+    transformed_messages: Value,
+    target_format: ProviderFormat,
+) -> Result<Value, TransformError> {
+    let mut result = Map::new();
+
+    // Copy model if present
+    if let Some(model) = source.get("model") {
+        result.insert("model".into(), model.clone());
+    }
+
+    // Insert transformed messages with the appropriate key for the target format
+    let messages_key = match target_format {
+        ProviderFormat::Google => "contents",
+        ProviderFormat::Converse => "messages",
+        _ => "messages",
+    };
+    result.insert(messages_key.into(), transformed_messages);
+
+    // Copy common parameters that are format-agnostic
+    let common_params = [
+        "temperature",
+        "top_p",
+        "top_k",
+        "max_tokens",
+        "max_completion_tokens",
+        "stop",
+        "stream",
+        "seed",
+        "presence_penalty",
+        "frequency_penalty",
+        "tools",
+        "tool_choice",
+        "response_format",
+        "system",
+    ];
+
+    for param in common_params {
+        if let Some(value) = source.get(param) {
+            // Handle parameter name mapping for different formats
+            let target_key = map_param_name(param, target_format);
+            result.insert(target_key.into(), value.clone());
+        }
+    }
+
+    Ok(Value::Object(result))
+}
+
+/// Map parameter names between formats.
+///
+/// Some parameters have different names in different provider APIs.
+fn map_param_name(param: &str, target_format: ProviderFormat) -> &str {
+    match (param, target_format) {
+        // Google uses maxOutputTokens instead of max_tokens
+        ("max_tokens", ProviderFormat::Google) => "maxOutputTokens",
+        // Default: keep the same name
+        _ => param,
+    }
 }
 
 /// Check if a payload is valid for a specific format by attempting deserialization.
@@ -477,5 +611,103 @@ mod tests {
 
         let result = detect_source_format(&payload);
         assert!(result.is_err());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_adds_anthropic_max_tokens() {
+        // OpenAI request without max_tokens
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+
+        let result = transform_request(&payload, ProviderFormat::Anthropic).unwrap();
+
+        // Should be transformed (not pass-through) since source is OpenAI
+        assert!(!result.is_pass_through());
+
+        let final_payload = result.payload_or_original(payload);
+
+        // Should have max_tokens added with default value (4096)
+        assert_eq!(
+            final_payload.get("max_tokens").and_then(|v| v.as_i64()),
+            Some(4096)
+        );
+        // Should have messages transformed
+        assert!(final_payload.get("messages").is_some());
+        // Should have model preserved
+        assert_eq!(
+            final_payload.get("model").and_then(|v| v.as_str()),
+            Some("gpt-4")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_preserves_existing_max_tokens() {
+        // OpenAI request with max_tokens
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "max_tokens": 8192
+        });
+
+        let result = transform_request(&payload, ProviderFormat::Anthropic).unwrap();
+        let final_payload = result.payload_or_original(payload);
+
+        // Should preserve the existing max_tokens value
+        assert_eq!(
+            final_payload.get("max_tokens").and_then(|v| v.as_i64()),
+            Some(8192)
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_transform_request_passthrough_returns_passthrough() {
+        // Valid Anthropic request - should pass through with zero overhead
+        let payload = json!({
+            "model": "claude-3-5-sonnet",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+
+        let result = transform_request(&payload, ProviderFormat::Anthropic).unwrap();
+
+        // Should be pass-through since payload is already valid Anthropic format
+        assert!(result.is_pass_through());
+
+        // Using payload_or_original returns the original payload as-is
+        let final_payload = result.payload_or_original(payload.clone());
+        assert_eq!(final_payload, payload);
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_copies_common_params() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "stream": true
+        });
+
+        let result = transform_request(&payload, ProviderFormat::Anthropic).unwrap();
+        let final_payload = result.payload_or_original(payload);
+
+        assert_eq!(
+            final_payload.get("temperature").and_then(|v| v.as_f64()),
+            Some(0.7)
+        );
+        assert_eq!(
+            final_payload.get("top_p").and_then(|v| v.as_f64()),
+            Some(0.9)
+        );
+        assert_eq!(
+            final_payload.get("stream").and_then(|v| v.as_bool()),
+            Some(true)
+        );
     }
 }

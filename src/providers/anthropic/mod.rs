@@ -6,6 +6,7 @@ generated from the OpenAPI specification using quicktype.
 */
 
 pub mod convert;
+pub mod defaults;
 pub mod detect;
 pub mod generated;
 
@@ -14,6 +15,9 @@ pub mod test_anthropic;
 
 // Re-export detection functions and detector
 pub use detect::{try_parse_anthropic, AnthropicDetector, DetectionError};
+
+// Re-export defaults
+pub use defaults::{AnthropicDefaults, DEFAULT_MAX_TOKENS};
 
 // Re-export key generated types (automated approach with proper request/response separation)
 // Temporarily disabled while testing generation
