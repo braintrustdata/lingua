@@ -2,33 +2,12 @@
   "name": "@braintrust/lingua",
   "version": "0.1.0",
   "description": "TypeScript bindings for Lingua - Universal message format for LLM APIs",
-  "module": "dist/index.mjs",
-  "browser": "dist/index.browser.mjs",
-  "types": "dist/index.d.mts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.mts",
-      "browser": "./dist/index.browser.mjs",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
-    },
-    "./node": {
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
-    },
-    "./browser": {
-      "types": "./dist/index.browser.d.mts",
-      "import": "./dist/index.browser.mjs",
-      "default": "./dist/index.browser.mjs"
-    },
-    "./browser/lingua_bg.wasm": "./dist/wasm-web/lingua_bg.wasm"
-  },
   "scripts": {
-    "build": "pnpm run build:wasm && pnpm run build:types",
-    "build:wasm": "pnpm run build:wasm:node && pnpm run build:wasm:web",
-    "build:wasm:node": "cd ../.. && cargo build --lib --target wasm32-unknown-unknown --profile wasm && wasm-bindgen target/wasm32-unknown-unknown/wasm/lingua.wasm --out-dir bindings/typescript/wasm --typescript --target experimental-nodejs-module && (command -v wasm-opt >/dev/null 2>&1 && wasm-opt -Oz bindings/typescript/wasm/lingua_bg.wasm -o bindings/typescript/wasm/lingua_bg.wasm || echo 'wasm-opt not found, skipping optimization')",
-    "build:wasm:web": "cd ../.. && cargo build --lib --target wasm32-unknown-unknown --profile wasm && wasm-bindgen target/wasm32-unknown-unknown/wasm/lingua.wasm --out-dir bindings/typescript/wasm-web --typescript --target web && (command -v wasm-opt >/dev/null 2>&1 && wasm-opt -Oz bindings/typescript/wasm-web/lingua_bg.wasm -o bindings/typescript/wasm-web/lingua_bg.wasm || echo 'wasm-opt not found, skipping optimization')",
+    "build": "rm -rf dist && pnpm run build:wasm && pnpm run build:types",
+    "build:wasm": "pnpm run build:wasm:bundler && pnpm run build:wasm:nodejs && pnpm run build:wasm:web",
+    "build:wasm:bundler": "cd ../.. && wasm-pack build --target bundler --release --out-dir bindings/typescript/dist/bundler --no-pack",
+    "build:wasm:nodejs": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/dist/nodejs --no-pack",
+    "build:wasm:web": "cd ../.. && wasm-pack build --target web --release --out-dir bindings/typescript/dist/web --no-pack",
     "build:types": "tsup",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
@@ -37,10 +16,42 @@
     "prepublishOnly": "pnpm run build"
   },
   "files": [
-    "dist",
-    "src",
-    "wasm",
-    "wasm-web"
+    "dist/bundler/lingua_bg.wasm",
+    "dist/bundler/lingua.js",
+    "dist/bundler/lingua_bg.js",
+    "dist/bundler/lingua.d.ts",
+    "dist/nodejs/lingua_bg.wasm",
+    "dist/nodejs/lingua.js",
+    "dist/nodejs/lingua.d.ts",
+    "dist/web/lingua_bg.wasm",
+    "dist/web/lingua.js",
+    "dist/web/lingua_bg.js",
+    "dist/web/lingua.d.ts",
+    "dist/types",
+    "src"
+  ],
+  "main": "dist/nodejs/lingua.js",
+  "module": "dist/bundler/lingua.js",
+  "browser": "dist/web/lingua.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "node": "./dist/nodejs/lingua.js",
+      "import": "./dist/bundler/lingua.js",
+      "default": "./dist/nodejs/lingua.js"
+    },
+    "./browser": {
+      "types": "./dist/types/index.browser.d.ts",
+      "import": "./dist/web/lingua.js",
+      "default": "./dist/web/lingua.js"
+    },
+    "./browser/lingua_bg.wasm": "./dist/web/lingua_bg.wasm"
+  },
+  "sideEffects": [
+    "./dist/bundler/lingua.js",
+    "./dist/nodejs/lingua.js",
+    "./dist/web/lingua.js"
   ],
   "keywords": [
     "llm",

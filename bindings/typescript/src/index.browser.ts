@@ -4,10 +4,10 @@
  * Universal message format for LLMs
  */
 
-import initWasm, * as wasmModule from '../wasm-web/lingua.js';
-import type { InitInput } from '../wasm-web/lingua.js';
+import initWasm, * as wasmModule from "../dist/web/lingua.js";
+import type { InitInput } from "../dist/web/lingua.js";
 
-import { ensureOnce, getWasm, setWasm } from './wasm-runtime';
+import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
 
 /**
  * Initialize the Lingua WASM module for browser use.
@@ -26,16 +26,16 @@ import { ensureOnce, getWasm, setWasm } from './wasm-runtime';
  *
  * @example
  * // Load from CDN
- * await init('https://unpkg.com/@braintrust/lingua/wasm-web/lingua_bg.wasm');
+ * await init('https://unpkg.com/@braintrust/lingua/dist/web/lingua_bg.wasm');
  *
  * @example
  * // Load from bundled asset with Vite/Webpack
  * await init(new URL('./lingua_bg.wasm', import.meta.url));
  */
-export async function init(module: InitInput): Promise<void> {
+export async function init(module?: InitInput): Promise<void> {
   await ensureOnce(async () => {
     await initWasm(module);
-    const exports = wasmModule as unknown as typeof import('../wasm/lingua.js');
+    const exports = wasmModule as unknown as typeof import("../dist/nodejs/lingua.js");
     setWasm(exports);
     return exports;
   });
@@ -45,29 +45,29 @@ export default init;
 export type { InitInput };
 export { ensureOnce, getWasm };
 
-export * from './wasm';
+export * from "./wasm";
 
 // Re-export all generated types
-export * from './generated/Message';
-export * from './generated/AssistantContent';
-export * from './generated/AssistantContentPart';
-export * from './generated/GeneratedFileContentPart';
-export * from './generated/ProviderMetadata';
-export * from './generated/ProviderOptions';
-export * from './generated/SourceContentPart';
-export * from './generated/SourceType';
-export * from './generated/TextContentPart';
-export * from './generated/ToolCallArguments';
-export * from './generated/ToolCallContentPart';
-export * from './generated/ToolContentPart';
-export * from './generated/ToolErrorContentPart';
-export * from './generated/ToolResultContentPart';
-export * from './generated/ToolResultResponsePart';
-export * from './generated/UserContent';
-export * from './generated/UserContentPart';
+export * from "./generated/Message";
+export * from "./generated/AssistantContent";
+export * from "./generated/AssistantContentPart";
+export * from "./generated/GeneratedFileContentPart";
+export * from "./generated/ProviderMetadata";
+export * from "./generated/ProviderOptions";
+export * from "./generated/SourceContentPart";
+export * from "./generated/SourceType";
+export * from "./generated/TextContentPart";
+export * from "./generated/ToolCallArguments";
+export * from "./generated/ToolCallContentPart";
+export * from "./generated/ToolContentPart";
+export * from "./generated/ToolErrorContentPart";
+export * from "./generated/ToolResultContentPart";
+export * from "./generated/ToolResultResponsePart";
+export * from "./generated/UserContent";
+export * from "./generated/UserContentPart";
 
 // Main type aliases for convenience
-export type { Message } from './generated/Message';
+export type { Message } from "./generated/Message";
 
 // Version info
-export { VERSION } from './version';
+export { VERSION } from "./version";
