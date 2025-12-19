@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "description": "TypeScript bindings for Lingua - Universal message format for LLM APIs",
   "scripts": {
-    "build": "rm -rf dist && pnpm run build:wasm && pnpm run build:types",
+    "build": "rm -rf dist && pnpm run build:wasm && pnpm run build:ts",
     "build:wasm": "pnpm run build:wasm:bundler && pnpm run build:wasm:nodejs && pnpm run build:wasm:web",
-    "build:wasm:bundler": "cd ../.. && wasm-pack build --target bundler --release --out-dir bindings/typescript/dist/bundler --no-pack",
-    "build:wasm:nodejs": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/dist/nodejs --no-pack",
-    "build:wasm:web": "cd ../.. && wasm-pack build --target web --release --out-dir bindings/typescript/dist/web --no-pack",
-    "build:types": "tsup",
+    "build:wasm:bundler": "cd ../.. && wasm-pack build --target bundler --release --out-dir bindings/typescript/dist/wasm/bundler --no-pack",
+    "build:wasm:nodejs": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/dist/wasm/nodejs --no-pack",
+    "build:wasm:web": "cd ../.. && wasm-pack build --target web --release --out-dir bindings/typescript/dist/wasm/web --no-pack",
+    "build:ts": "tsup",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "pnpm build && vitest run",
@@ -16,42 +16,29 @@
     "prepublishOnly": "pnpm run build"
   },
   "files": [
-    "dist/bundler/lingua_bg.wasm",
-    "dist/bundler/lingua.js",
-    "dist/bundler/lingua_bg.js",
-    "dist/bundler/lingua.d.ts",
-    "dist/nodejs/lingua_bg.wasm",
-    "dist/nodejs/lingua.js",
-    "dist/nodejs/lingua.d.ts",
-    "dist/web/lingua_bg.wasm",
-    "dist/web/lingua.js",
-    "dist/web/lingua_bg.js",
-    "dist/web/lingua.d.ts",
-    "dist/types",
-    "src"
+    "dist"
   ],
-  "main": "dist/nodejs/lingua.js",
-  "module": "dist/bundler/lingua.js",
-  "browser": "dist/web/lingua.js",
-  "types": "dist/types/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "browser": "dist/index.browser.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "node": "./dist/nodejs/lingua.js",
-      "import": "./dist/bundler/lingua.js",
-      "default": "./dist/nodejs/lingua.js"
+      "types": "./dist/index.d.ts",
+      "node": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./browser": {
-      "types": "./dist/types/index.browser.d.ts",
-      "import": "./dist/web/lingua.js",
-      "default": "./dist/web/lingua.js"
+      "types": "./dist/index.browser.d.ts",
+      "import": "./dist/index.browser.js",
+      "default": "./dist/index.browser.js"
     },
-    "./browser/lingua_bg.wasm": "./dist/web/lingua_bg.wasm"
+    "./browser/lingua_bg.wasm": "./dist/wasm/web/lingua_bg.wasm"
   },
   "sideEffects": [
-    "./dist/bundler/lingua.js",
-    "./dist/nodejs/lingua.js",
-    "./dist/web/lingua.js"
+    "./dist/index.js",
+    "./dist/index.browser.js"
   ],
   "keywords": [
     "llm",

@@ -15,7 +15,7 @@ let serverPort: number = 0;
 
 function startWasmServer(): Promise<number> {
   return new Promise((resolve, reject) => {
-    const wasmPath = path.join(__dirname, "../wasm-web/lingua_bg.wasm");
+    const wasmPath = path.join(__dirname, "../dist/wasm/web/lingua_bg.wasm");
     const wasmContent = fs.readFileSync(wasmPath);
 
     server = http.createServer((req, res) => {
@@ -112,7 +112,7 @@ describe("Browser exports", () => {
       "../src/index.browser"
     );
 
-    const wasmPath = path.join(__dirname, "../wasm-web/lingua_bg.wasm");
+    const wasmPath = path.join(__dirname, "../dist/wasm/web/lingua_bg.wasm");
     const wasmBuffer = fs.readFileSync(wasmPath);
 
     await init(wasmBuffer);

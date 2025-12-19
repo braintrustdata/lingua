@@ -4,7 +4,7 @@
  * Universal message format for LLMs
  */
 
-import * as wasm from "../dist/nodejs/lingua.js";
+import * as wasm from "../dist/wasm/nodejs/lingua.js";
 
 import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
 

@@ -4,8 +4,8 @@
  * Universal message format for LLMs
  */
 
-import initWasm, * as wasmModule from "../dist/web/lingua.js";
-import type { InitInput } from "../dist/web/lingua.js";
+import initWasm, * as wasmModule from "../dist/wasm/web/lingua.js";
+import type { InitInput } from "../dist/wasm/web/lingua.js";
 
 import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
 
@@ -26,7 +26,7 @@ import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
  *
  * @example
  * // Load from CDN
- * await init('https://unpkg.com/@braintrust/lingua/dist/web/lingua_bg.wasm');
+ * await init('https://unpkg.com/@braintrust/lingua/dist/wasm/web/lingua_bg.wasm');
  *
  * @example
  * // Load from bundled asset with Vite/Webpack
@@ -35,7 +35,7 @@ import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
 export async function init(module?: InitInput): Promise<void> {
   await ensureOnce(async () => {
     await initWasm(module);
-    const exports = wasmModule as unknown as typeof import("../dist/nodejs/lingua.js");
+    const exports = wasmModule as unknown as typeof import("../dist/wasm/nodejs/lingua.js");
     setWasm(exports);
     return exports;
   });

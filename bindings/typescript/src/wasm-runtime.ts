@@ -1,4 +1,4 @@
-type WasmModule = typeof import("../dist/nodejs/lingua.js");
+type WasmModule = typeof import("../dist/wasm/nodejs/lingua.js");
 
 let wasmInstance: WasmModule | null = null;
 let initialization: Promise<void> | null = null;

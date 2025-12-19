@@ -11,7 +11,7 @@ import { describe, test, expect, beforeAll } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 
-const distPath = path.join(__dirname, "../../dist/index.mjs");
+const distPath = path.join(__dirname, "../../dist/index.js");
 const packageRoot = path.join(__dirname, "../..");
 const packageJsonPath = path.join(packageRoot, "package.json");
 
@@ -27,10 +27,10 @@ describe("Node.js Build Integration", () => {
   describe("Build Output Verification", () => {
     test("all Node.js build artifacts exist", () => {
       const requiredFiles = [
-        "dist/index.mjs",
-        "dist/index.d.mts",
-        "dist/index.mjs.map",
-        "dist/wasm-node/lingua_bg.wasm",
+        "dist/index.js",
+        "dist/index.d.ts",
+        "dist/wasm/nodejs/lingua_bg.wasm",
+        "dist/wasm/nodejs/lingua.js",
       ];
 
       for (const file of requiredFiles) {
@@ -45,21 +45,16 @@ describe("Node.js Build Integration", () => {
       const content = fs.readFileSync(packageJsonPath, "utf-8");
       const pkg = JSON.parse(content);
 
-      // Check exports exist
       expect(pkg.exports).toBeDefined();
       expect(pkg.exports["."]).toBeDefined();
-      expect(pkg.exports["./node"]).toBeDefined();
 
-      // Check default export points correctly
-      const defaultExport =
-        pkg.exports["."].import || pkg.exports["."].default;
-      expect(defaultExport).toContain("dist/index.mjs");
-      expect(fs.existsSync(path.join(packageRoot, defaultExport))).toBe(true);
+      const nodeExport =
+        pkg.exports["."].node || pkg.exports["."].default;
+      expect(nodeExport).toContain("dist/index.js");
+      expect(fs.existsSync(path.join(packageRoot, nodeExport))).toBe(true);
 
-      // Check types
       const typesPath = pkg.exports["."].types || pkg.types;
       expect(typesPath).toBeDefined();
-      expect(typesPath).toContain(".d.mts");
       expect(fs.existsSync(path.join(packageRoot, typesPath))).toBe(true);
     });
   });

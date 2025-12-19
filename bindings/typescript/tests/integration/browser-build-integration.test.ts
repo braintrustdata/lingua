@@ -12,8 +12,8 @@ import { describe, test, expect, beforeAll, afterEach } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 
-const browserDistPath = path.join(__dirname, "../../dist/index.browser.mjs");
-const wasmPath = path.join(__dirname, "../../dist/wasm-web/lingua_bg.wasm");
+const browserDistPath = path.join(__dirname, "../../dist/index.browser.js");
+const wasmPath = path.join(__dirname, "../../dist/wasm/web/lingua_bg.wasm");
 const packageRoot = path.join(__dirname, "../..");
 const packageJsonPath = path.join(packageRoot, "package.json");
 
@@ -34,10 +34,11 @@ describe("Browser Build Integration", () => {
   describe("Build Output Verification", () => {
     test("all browser build artifacts exist", () => {
       const requiredFiles = [
-        "dist/index.browser.mjs",
-        "dist/index.browser.d.mts",
-        "dist/index.browser.mjs.map",
-        "dist/wasm-web/lingua_bg.wasm",
+        "dist/index.browser.js",
+        "dist/index.browser.d.ts",
+        "dist/wasm/web/lingua_bg.wasm",
+        "dist/wasm/web/lingua.js",
+        "dist/wasm/web/lingua_bg.js",
       ];
 
       for (const file of requiredFiles) {
@@ -64,7 +65,7 @@ describe("Browser Build Integration", () => {
 
       const browserExport =
         pkg.exports["./browser"].import || pkg.exports["./browser"].default;
-      expect(browserExport).toContain("dist/index.browser.mjs");
+      expect(browserExport).toContain("dist/index.browser.js");
       expect(fs.existsSync(path.join(packageRoot, browserExport))).toBe(true);
 
       const wasmExport = pkg.exports["./browser/lingua_bg.wasm"];
@@ -73,7 +74,6 @@ describe("Browser Build Integration", () => {
 
       const typesPath = pkg.exports["./browser"].types;
       expect(typesPath).toBeDefined();
-      expect(typesPath).toContain(".d.mts");
       expect(fs.existsSync(path.join(packageRoot, typesPath))).toBe(true);
     });
   });
