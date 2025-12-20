@@ -77,13 +77,13 @@ install-hooks: ## Install git pre-commit hooks
 	@echo "Installing git hooks..."
 	./scripts/install-hooks.sh
 
-install-wasm-tools: ## Install WASM build tools (wasm32-unknown-unknown target, wasm-bindgen-cli)
+install-wasm-tools: ## Install WASM build tools (wasm32-unknown-unknown target, wasm-pack)
 	@echo "Installing WASM build tools..."
 	@rustup target add wasm32-unknown-unknown
-	@if ! command -v wasm-bindgen >/dev/null 2>&1; then \
-		cargo install wasm-bindgen-cli@0.2.100; \
+	@if ! command -v wasm-pack >/dev/null 2>&1; then \
+		cargo install wasm-pack; \
 	else \
-		echo "✅ wasm-bindgen already installed"; \
+		echo "✅ wasm-pack already installed"; \
 	fi
 
 install-dependencies: ## Install dependencies
