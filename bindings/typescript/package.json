@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "description": "TypeScript bindings for Lingua - Universal message format for LLM APIs",
   "scripts": {
-    "build": "rm -rf dist && pnpm run build:wasm && pnpm run build:ts",
-    "build:wasm": "pnpm run build:wasm:bundler && pnpm run build:wasm:nodejs && pnpm run build:wasm:web",
-    "build:wasm:bundler": "cd ../.. && wasm-pack build --target bundler --release --out-dir bindings/typescript/dist/wasm/bundler --no-pack",
-    "build:wasm:nodejs": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/dist/wasm/nodejs --no-pack",
-    "build:wasm:web": "cd ../.. && wasm-pack build --target web --release --out-dir bindings/typescript/dist/wasm/web --no-pack",
+    "build": "rm -rf dist && pnpm run build:wasm && pnpm run build:ts && pnpm run build:copy-wasm",
+    "build:wasm": "pnpm run build:wasm:bundler && pnpm run build:wasm:nodejs",
+    "build:wasm:bundler": "cd ../.. && wasm-pack build --target bundler --release --out-dir bindings/typescript/wasm/bundler --no-pack",
+    "build:wasm:nodejs": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm/nodejs --no-pack",
     "build:ts": "tsup",
+    "build:copy-wasm": "mkdir -p dist/wasm && cp -r wasm/bundler dist/wasm/ && cp -r wasm/nodejs dist/wasm/",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "pnpm build && vitest run",
@@ -16,7 +16,8 @@
     "prepublishOnly": "pnpm run build"
   },
   "files": [
-    "dist"
+    "dist",
+    "wasm"
   ],
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -34,7 +35,7 @@
       "import": "./dist/index.browser.js",
       "default": "./dist/index.browser.js"
     },
-    "./browser/lingua_bg.wasm": "./dist/wasm/web/lingua_bg.wasm"
+    "./browser/lingua_bg.wasm": "./wasm/bundler/lingua_bg.wasm"
   },
   "sideEffects": [
     "./dist/index.js",
@@ -56,6 +57,8 @@
     "openai": "^5.22.0",
     "tsup": "^8.5.0",
     "typescript": "^5.6.3",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.5.0",
     "vitest": "^1.3.1"
   },
   "peerDependencies": {

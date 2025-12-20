@@ -29,8 +29,8 @@ describe("Node.js Build Integration", () => {
       const requiredFiles = [
         "dist/index.js",
         "dist/index.d.mts",
-        "dist/wasm/nodejs/lingua_bg.wasm",
-        "dist/wasm/nodejs/lingua.js",
+        "wasm/nodejs/lingua_bg.wasm",
+        "wasm/nodejs/lingua.js",
       ];
 
       for (const file of requiredFiles) {

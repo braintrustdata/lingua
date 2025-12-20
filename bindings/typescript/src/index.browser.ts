@@ -1,48 +1,34 @@
 /**
- * Lingua TypeScript Bindings for Browser
+ * Lingua TypeScript Bindings for Browser (Bundler)
  *
  * Universal message format for LLMs
+ *
+ * This entry point is designed for bundlers like webpack/Next.js that can
+ * handle WASM imports natively. The WASM module is automatically initialized.
  */
 
-import initWasm, * as wasmModule from "../dist/wasm/web/lingua.js";
-import type { InitInput } from "../dist/wasm/web/lingua.js";
+import * as wasm from "../wasm/bundler/lingua.js";
 
 import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
 
+// Auto-initialize like the Node.js build
+setWasm(wasm);
+
 /**
- * Initialize the Lingua WASM module for browser use.
+ * Initialize the Lingua WASM module.
  *
- * Must be called before using any conversion or validation functions.
- * Safe to call multiple times - initialization only happens once.
- *
- * @param module - Optional WASM module source. Can be:
- *   - **String URL**: `'https://cdn.example.com/lingua_bg.wasm'`
- *   - **URL object**: `new URL('./lingua_bg.wasm', import.meta.url)`
- *   - **Response**: `await fetch('/wasm/lingua_bg.wasm')`
- *   - **BufferSource**: ArrayBuffer or TypedArray
- *   - **WebAssembly.Module**: Pre-compiled WASM module
+ * Note: When using a bundler (webpack, Next.js, Vite), the WASM module is
+ * automatically initialized at import time. This function is provided for
+ * API compatibility and resolves immediately.
  *
  * @returns Promise that resolves when initialization is complete
- *
- * @example
- * // Load from CDN
- * await init('https://unpkg.com/@braintrust/lingua/dist/wasm/web/lingua_bg.wasm');
- *
- * @example
- * // Load from bundled asset with Vite/Webpack
- * await init(new URL('./lingua_bg.wasm', import.meta.url));
  */
-export async function init(module?: InitInput): Promise<void> {
-  await ensureOnce(async () => {
-    await initWasm(module);
-    const exports = wasmModule as unknown as typeof import("../dist/wasm/nodejs/lingua.js");
-    setWasm(exports);
-    return exports;
-  });
+export async function init(): Promise<void> {
+  // Already initialized by bundler - this is a no-op for compatibility
+  return Promise.resolve();
 }
 
 export default init;
-export type { InitInput };
 export { ensureOnce, getWasm };
 
 export * from "./wasm";

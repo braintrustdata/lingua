@@ -13,7 +13,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 const browserDistPath = path.join(__dirname, "../../dist/index.browser.js");
-const wasmPath = path.join(__dirname, "../../dist/wasm/web/lingua_bg.wasm");
+const wasmPath = path.join(__dirname, "../../wasm/bundler/lingua_bg.wasm");
 const packageRoot = path.join(__dirname, "../..");
 const packageJsonPath = path.join(packageRoot, "package.json");
 
@@ -36,8 +36,9 @@ describe("Browser Build Integration", () => {
       const requiredFiles = [
         "dist/index.browser.js",
         "dist/index.browser.d.mts",
-        "dist/wasm/web/lingua_bg.wasm",
-        "dist/wasm/web/lingua.js",
+        "wasm/bundler/lingua_bg.wasm",
+        "wasm/bundler/lingua.js",
+        "wasm/bundler/lingua_bg.js",
       ];
 
       for (const file of requiredFiles) {

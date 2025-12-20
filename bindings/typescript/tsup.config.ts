@@ -12,7 +12,7 @@ export default defineConfig([
     splitting: false,
     sourcemap: true,
     clean: false,
-    external: [/^\.\.\/dist\/wasm\//],
+    external: [/^\.\.\/wasm\//],
   },
   {
     entry: {
@@ -25,6 +25,6 @@ export default defineConfig([
     splitting: false,
     sourcemap: true,
     clean: false,
-    external: [/^\.\.\/dist\/wasm\//],
+    external: [/^\.\.\/wasm\//],
   },
 ]);
