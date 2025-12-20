@@ -35,10 +35,9 @@ describe("Browser Build Integration", () => {
     test("all browser build artifacts exist", () => {
       const requiredFiles = [
         "dist/index.browser.js",
-        "dist/index.browser.d.ts",
+        "dist/index.browser.d.mts",
         "dist/wasm/web/lingua_bg.wasm",
         "dist/wasm/web/lingua.js",
-        "dist/wasm/web/lingua_bg.js",
       ];
 
       for (const file of requiredFiles) {

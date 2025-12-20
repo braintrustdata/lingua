@@ -28,7 +28,7 @@ describe("Node.js Build Integration", () => {
     test("all Node.js build artifacts exist", () => {
       const requiredFiles = [
         "dist/index.js",
-        "dist/index.d.ts",
+        "dist/index.d.mts",
         "dist/wasm/nodejs/lingua_bg.wasm",
         "dist/wasm/nodejs/lingua.js",
       ];
