@@ -65,9 +65,22 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         return Vec::new();
     }
 
+    // If data is a single message object (not an array), wrap it in an array for parsing
+    let wrapped;
+    let data_to_parse = if let Value::Object(obj) = data {
+        if obj.contains_key("role") {
+            wrapped = Value::Array(vec![data.clone()]);
+            &wrapped
+        } else {
+            data
+        }
+    } else {
+        data
+    };
+
     // Try Chat Completions format (most common)
     if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::ChatCompletionRequestMessage>>(data.clone())
+        serde_json::from_value::<Vec<openai::ChatCompletionRequestMessage>>(data_to_parse.clone())
     {
         if let Ok(messages) = <Vec<Message> as TryFromLLM<
             Vec<openai::ChatCompletionRequestMessage>,
@@ -80,7 +93,9 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     }
 
     // Try Responses API format
-    if let Ok(provider_messages) = serde_json::from_value::<Vec<openai::InputItem>>(data.clone()) {
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<openai::InputItem>>(data_to_parse.clone())
+    {
         if let Ok(messages) =
             <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
         {
@@ -92,7 +107,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
 
     // Try Anthropic format
     if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<anthropic::InputMessage>>(data.clone())
+        serde_json::from_value::<Vec<anthropic::InputMessage>>(data_to_parse.clone())
     {
         if let Ok(messages) =
             <Vec<Message> as TryFromLLM<Vec<anthropic::InputMessage>>>::try_from(provider_messages)
@@ -104,7 +119,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     }
 
     // Try lenient parsing for non-standard message formats
-    if let Some(lenient_messages) = try_lenient_message_parsing(data) {
+    if let Some(lenient_messages) = try_lenient_message_parsing(data_to_parse) {
         if !lenient_messages.is_empty() {
             return lenient_messages;
         }
@@ -112,7 +127,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
 
     // Try parsing as choices array (Chat Completions response format)
     // This handles [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
-    if let Some(choices_messages) = try_choices_array_parsing(data) {
+    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse) {
         if !choices_messages.is_empty() {
             return choices_messages;
         }
@@ -357,5 +372,93 @@ mod tests {
         };
         let messages = import_messages_from_spans(vec![span]);
         assert_eq!(messages.len(), 2); // 1 from input, 1 from output
+    }
+
+    #[test]
+    fn test_import_spans_with_single_message_object() {
+        let span = Span {
+            input: Some(serde_json::json!([
+                {"role": "user", "content": "Hello"}
+            ])),
+            output: Some(serde_json::json!({
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Hi there!",
+                        "citations": null
+                    }
+                ]
+            })),
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 2); // 1 from input, 1 from output
+    }
+
+    #[test]
+    fn test_import_anthropic_tool_message_with_choice_output() {
+        // Mirrors "complex anthropic example" from TypeScript tests
+        let span = Span {
+            input: Some(serde_json::json!([
+                {
+                    "content": [
+                        {
+                            "cache_control": {
+                                "type": "ephemeral"
+                            },
+                            "text": "results:\n  ",
+                            "type": "text"
+                        }
+                    ],
+                    "role": "tool",
+                    "tool_call_id": "call_uZG3WxdNadqhidWK9milQNxR"
+                }
+            ])),
+            output: Some(serde_json::json!([
+                {
+                    "finish_reason": "stop",
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                        "content": "The scorer still returns",
+                        "role": "assistant"
+                    }
+                }
+            ])),
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 2); // 1 tool message from input, 1 assistant from output
+    }
+
+    #[test]
+    fn test_import_single_anthropic_message_with_citations() {
+        // Mirrors "complex anthropic example 2" from TypeScript tests
+        let span = Span {
+            input: Some(serde_json::json!([
+                {
+                    "content": "How do I create a custom scorer?",
+                    "role": "user"
+                },
+                {
+                    "content": "You are a helpful assistant.",
+                    "role": "system"
+                }
+            ])),
+            output: Some(serde_json::json!({
+                "content": [
+                    {
+                        "citations": null,
+                        "text": "A dataset record in Braintrust has the following fields...",
+                        "type": "text"
+                    }
+                ],
+                "role": "assistant"
+            })),
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 3); // 2 from input, 1 from output
     }
 }
