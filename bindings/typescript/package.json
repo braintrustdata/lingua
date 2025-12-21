@@ -4,11 +4,12 @@
   "description": "TypeScript bindings for Lingua - Universal message format for LLM APIs",
   "scripts": {
     "build": "rm -rf dist && pnpm run build:wasm && pnpm run build:ts && pnpm run build:copy-wasm",
-    "build:wasm": "pnpm run build:wasm:bundler && pnpm run build:wasm:nodejs",
+    "build:wasm": "pnpm run build:wasm:bundler && pnpm run build:wasm:nodejs && pnpm run build:wasm:web",
     "build:wasm:bundler": "cd ../.. && wasm-pack build --target bundler --release --out-dir bindings/typescript/wasm/bundler --no-pack",
     "build:wasm:nodejs": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm/nodejs --no-pack",
+    "build:wasm:web": "cd ../.. && wasm-pack build --target web --release --out-dir bindings/typescript/wasm/web --no-pack",
     "build:ts": "tsup",
-    "build:copy-wasm": "mkdir -p dist/wasm && cp -r wasm/bundler dist/wasm/ && cp -r wasm/nodejs dist/wasm/",
+    "build:copy-wasm": "mkdir -p dist/wasm && cp -r wasm/bundler dist/wasm/ && cp -r wasm/nodejs dist/wasm/ && cp -r wasm/web dist/wasm/",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "pnpm build && vitest run",
@@ -35,7 +36,7 @@
       "import": "./dist/index.browser.js",
       "default": "./dist/index.browser.js"
     },
-    "./browser/lingua_bg.wasm": "./wasm/bundler/lingua_bg.wasm"
+    "./browser/lingua_bg.wasm": "./wasm/web/lingua_bg.wasm"
   },
   "sideEffects": [
     "./dist/index.js",
