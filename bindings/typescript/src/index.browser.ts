@@ -1,39 +1,21 @@
 /**
- * Lingua TypeScript Bindings for Browser (Web)
+ * Lingua TypeScript Bindings (Browser)
  *
  * Universal message format for LLMs
  *
- * This entry point uses the web target which fetches WASM from a URL,
- * making it compatible with Next.js SSR and other server-side scenarios.
+ * Call init(url) with the WASM URL before using.
  */
 
-import initWasm, * as wasmModule from "../wasm/web/lingua.js";
-import type { InitInput } from "../wasm/web/lingua.js";
+import initWasm, * as wasmModule from "@braintrust/lingua-wasm/browser";
+import type { InitInput } from "@braintrust/lingua-wasm/browser";
 
 import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
 
-/**
- * Initialize the Lingua WASM module.
- *
- * Must be called before using any Lingua functions. Safe to call multiple
- * times - initialization only happens once.
- *
- * @param module - Optional WASM module source. Can be:
- *   - **String URL**: `'/wasm/lingua.wasm'`
- *   - **URL object**: `new URL('./lingua_bg.wasm', import.meta.url)`
- *   - **Response**: `await fetch('/wasm/lingua_bg.wasm')`
- *   - **BufferSource**: ArrayBuffer or TypedArray
- *   - **WebAssembly.Module**: Pre-compiled WASM module
- *   - **undefined**: Auto-detect using import.meta.url (may not work in all bundlers)
- *
- * @returns Promise that resolves when initialization is complete
- */
-export async function init(module?: InitInput): Promise<void> {
+export async function init(module: InitInput): Promise<void> {
   return ensureOnce(async () => {
     await initWasm(module);
-    const exports = wasmModule as unknown as typeof import("../wasm/web/lingua.js");
-    setWasm(exports);
-    return exports;
+    setWasm(wasmModule as unknown as typeof wasmModule);
+    return wasmModule;
   });
 }
 

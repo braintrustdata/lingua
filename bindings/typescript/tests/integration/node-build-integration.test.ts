@@ -11,7 +11,7 @@ import { describe, test, expect, beforeAll } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 
-const distPath = path.join(__dirname, "../../dist/index.js");
+const distPath = path.join(__dirname, "../../dist/index.mjs");
 const packageRoot = path.join(__dirname, "../..");
 const packageJsonPath = path.join(packageRoot, "package.json");
 
@@ -27,10 +27,8 @@ describe("Node.js Build Integration", () => {
   describe("Build Output Verification", () => {
     test("all Node.js build artifacts exist", () => {
       const requiredFiles = [
-        "dist/index.js",
+        "dist/index.mjs",
         "dist/index.d.mts",
-        "wasm/nodejs/lingua_bg.wasm",
-        "wasm/nodejs/lingua.js",
       ];
 
       for (const file of requiredFiles) {
@@ -49,8 +47,8 @@ describe("Node.js Build Integration", () => {
       expect(pkg.exports["."]).toBeDefined();
 
       const nodeExport =
-        pkg.exports["."].node || pkg.exports["."].default;
-      expect(nodeExport).toContain("dist/index.js");
+        pkg.exports["."].import || pkg.exports["."].default;
+      expect(nodeExport).toContain("dist/index.mjs");
       expect(fs.existsSync(path.join(packageRoot, nodeExport))).toBe(true);
 
       const typesPath = pkg.exports["."].types || pkg.types;

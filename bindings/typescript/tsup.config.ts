@@ -7,12 +7,10 @@ export default defineConfig([
     },
     format: ["esm"],
     outDir: "dist",
-    outExtension: () => ({ js: ".js" }),
     dts: true,
     splitting: false,
     sourcemap: true,
-    clean: false,
-    external: [/^\.\.\/wasm\//],
+    clean: true,
   },
   {
     entry: {
@@ -20,11 +18,9 @@ export default defineConfig([
     },
     format: ["esm"],
     outDir: "dist",
-    outExtension: () => ({ js: ".js" }),
     dts: true,
     splitting: false,
     sourcemap: true,
     clean: false,
-    external: [/^\.\.\/wasm\//],
   },
 ]);
