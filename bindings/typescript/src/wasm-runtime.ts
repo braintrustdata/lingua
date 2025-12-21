@@ -1,4 +1,4 @@
-type WasmModule = typeof import("../wasm/nodejs/lingua.js");
+type WasmModule = typeof import("@braintrust/lingua-wasm");
 
 let wasmInstance: WasmModule | null = null;
 let initialization: Promise<void> | null = null;
