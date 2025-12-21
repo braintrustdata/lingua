@@ -12,8 +12,8 @@ import { describe, test, expect, beforeAll, afterEach } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 
-const browserDistPath = path.join(__dirname, "../../dist/index.browser.js");
-const wasmPath = path.join(__dirname, "../../wasm/bundler/lingua_bg.wasm");
+const browserDistPath = path.join(__dirname, "../../dist/index.browser.mjs");
+const wasmPath = path.join(__dirname, "../../../lingua-wasm/web/lingua_bg.wasm");
 const packageRoot = path.join(__dirname, "../..");
 const packageJsonPath = path.join(packageRoot, "package.json");
 
@@ -25,7 +25,7 @@ beforeAll(() => {
   }
   if (!fs.existsSync(wasmPath)) {
     throw new Error(
-      `Browser WASM not found at ${wasmPath}. Run 'pnpm build' first.`
+      `Browser WASM not found at ${wasmPath}. Run 'pnpm build' in lingua-wasm first.`
     );
   }
 });
@@ -34,11 +34,8 @@ describe("Browser Build Integration", () => {
   describe("Build Output Verification", () => {
     test("all browser build artifacts exist", () => {
       const requiredFiles = [
-        "dist/index.browser.js",
+        "dist/index.browser.mjs",
         "dist/index.browser.d.mts",
-        "wasm/bundler/lingua_bg.wasm",
-        "wasm/bundler/lingua.js",
-        "wasm/bundler/lingua_bg.js",
       ];
 
       for (const file of requiredFiles) {
@@ -65,12 +62,8 @@ describe("Browser Build Integration", () => {
 
       const browserExport =
         pkg.exports["./browser"].import || pkg.exports["./browser"].default;
-      expect(browserExport).toContain("dist/index.browser.js");
+      expect(browserExport).toContain("dist/index.browser.mjs");
       expect(fs.existsSync(path.join(packageRoot, browserExport))).toBe(true);
-
-      const wasmExport = pkg.exports["./browser/lingua_bg.wasm"];
-      expect(wasmExport).toBeDefined();
-      expect(fs.existsSync(path.join(packageRoot, wasmExport))).toBe(true);
 
       const typesPath = pkg.exports["./browser"].types;
       expect(typesPath).toBeDefined();

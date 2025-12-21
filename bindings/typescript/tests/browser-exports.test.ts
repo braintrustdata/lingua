@@ -2,12 +2,21 @@
  * Browser Exports Test
  *
  * Validates that the browser entry point exports all expected functionality.
- * With the bundler target, WASM is auto-initialized at import time.
+ * With the web target, init(url) must be called with explicit WASM path.
  */
 
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, beforeAll, afterEach } from "vitest";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+const wasmPath = join(__dirname, "../../lingua-wasm/web/lingua_bg.wasm");
 
 describe("Browser exports", () => {
+  afterEach(async () => {
+    const { resetWasmForTests } = await import("../src/wasm-runtime");
+    resetWasmForTests();
+  });
+
   test("should export default init function", async () => {
     const exports = await import("../src/index.browser");
 
@@ -54,10 +63,13 @@ describe("Browser exports", () => {
     expect(exports.ConversionError.prototype).toBeInstanceOf(Error);
   });
 
-  test("should auto-initialize WASM and work without manual init()", async () => {
-    const { chatCompletionsMessagesToLingua } = await import(
+  test("should work after init() with WASM buffer", async () => {
+    const { init, chatCompletionsMessagesToLingua } = await import(
       "../src/index.browser"
     );
+
+    const wasmBuffer = readFileSync(wasmPath);
+    await init(wasmBuffer);
 
     const simpleMessages = [
       {
@@ -73,13 +85,16 @@ describe("Browser exports", () => {
     expect(result[0].role).toBe("user");
   });
 
-  test("init() should be a no-op that resolves immediately", async () => {
+  test("init() can be called multiple times safely", async () => {
     const { init, chatCompletionsMessagesToLingua } = await import(
       "../src/index.browser"
     );
 
-    // init() should complete without error (it's a no-op for bundler target)
-    await init();
+    const wasmBuffer = readFileSync(wasmPath);
+    
+    // Multiple init calls should be safe
+    await init(wasmBuffer);
+    await init(wasmBuffer);
 
     // Functions should still work
     const result = chatCompletionsMessagesToLingua([
