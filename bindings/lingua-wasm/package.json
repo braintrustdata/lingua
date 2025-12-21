@@ -19,6 +19,11 @@
       "import": "./nodejs/lingua.js",
       "default": "./nodejs/lingua.js"
     },
+    "./nodejs": {
+      "types": "./nodejs/lingua.d.ts",
+      "import": "./nodejs/lingua.js",
+      "default": "./nodejs/lingua.js"
+    },
     "./browser": {
       "types": "./web/lingua.d.ts",
       "import": "./web/lingua.js",
