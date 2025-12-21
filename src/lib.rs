@@ -14,7 +14,7 @@ pub mod validation;
 pub use capabilities::ProviderFormat;
 pub use processing::{
     apply_provider_defaults, from_universal, is_valid_for_format, to_universal, transform_request,
-    validate_or_transform, RequestDefaults, TransformError, TransformResult,
+    transform_response, validate_or_transform, RequestDefaults, TransformError, TransformResult,
 };
 
 #[cfg(target_arch = "wasm32")]

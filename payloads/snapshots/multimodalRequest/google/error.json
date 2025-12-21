@@ -1,0 +1,3 @@
+{
+  "error": "ApiError: {\"error\":{\"message\":\"{\\n  \\\"error\\\": {\\n    \\\"code\\\": 400,\\n    \\\"message\\\": \\\"Unable to process input image. Please retry or report in https://developers.generativeai.google/guide/troubleshooting\\\",\\n    \\\"status\\\": \\\"INVALID_ARGUMENT\\\"\\n  }\\n}\\n\",\"code\":400,\"status\":\"Bad Request\"}}"
+}

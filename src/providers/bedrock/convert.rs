@@ -11,6 +11,7 @@ use crate::providers::bedrock::request::{
     BedrockImageSource, BedrockMessage, BedrockToolResultBlock, BedrockToolResultContent,
     BedrockToolUseBlock, ConverseRequest,
 };
+use crate::providers::bedrock::response::{BedrockOutputContentBlock, BedrockOutputMessage};
 use crate::serde_json::{self, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
@@ -276,6 +277,110 @@ pub fn universal_to_bedrock(messages: &[Message]) -> Result<Value, ConvertError>
         field: "messages".to_string(),
         error: e.to_string(),
     })
+}
+
+// ============================================================================
+// BedrockOutputMessage (Response) -> Universal Message
+// ============================================================================
+
+impl TryFromLLM<BedrockOutputMessage> for Message {
+    type Error = ConvertError;
+
+    fn try_from(msg: BedrockOutputMessage) -> Result<Self, Self::Error> {
+        // Output messages are always from the assistant
+        let mut content_parts = Vec::new();
+
+        for block in msg.content {
+            match block {
+                BedrockOutputContentBlock::Text { text } => {
+                    content_parts.push(AssistantContentPart::Text(TextContentPart {
+                        text,
+                        provider_options: None,
+                    }));
+                }
+                BedrockOutputContentBlock::ToolUse { tool_use } => {
+                    content_parts.push(AssistantContentPart::ToolCall {
+                        tool_call_id: tool_use.tool_use_id,
+                        tool_name: tool_use.name,
+                        arguments: ToolCallArguments::from(
+                            serde_json::to_string(&tool_use.input).unwrap_or_default(),
+                        ),
+                        provider_options: None,
+                        provider_executed: None,
+                    });
+                }
+            }
+        }
+
+        if content_parts.is_empty() {
+            content_parts.push(AssistantContentPart::Text(TextContentPart {
+                text: String::new(),
+                provider_options: None,
+            }));
+        }
+
+        Ok(Message::Assistant {
+            content: AssistantContent::Array(content_parts),
+            id: None,
+        })
+    }
+}
+
+// ============================================================================
+// Universal Message -> BedrockOutputMessage (Response)
+// ============================================================================
+
+impl TryFromLLM<Message> for BedrockOutputMessage {
+    type Error = ConvertError;
+
+    fn try_from(message: Message) -> Result<Self, Self::Error> {
+        match message {
+            Message::Assistant { content, .. } => {
+                let blocks = match content {
+                    AssistantContent::String(s) => {
+                        vec![BedrockOutputContentBlock::Text { text: s }]
+                    }
+                    AssistantContent::Array(parts) => parts
+                        .into_iter()
+                        .filter_map(|p| match p {
+                            AssistantContentPart::Text(t) => {
+                                Some(BedrockOutputContentBlock::Text { text: t.text })
+                            }
+                            AssistantContentPart::ToolCall {
+                                tool_call_id,
+                                tool_name,
+                                arguments,
+                                ..
+                            } => {
+                                use crate::providers::bedrock::response::BedrockOutputToolUse;
+                                let input: Value = match arguments {
+                                    ToolCallArguments::Valid(map) => serde_json::to_value(map)
+                                        .unwrap_or(Value::Object(Default::default())),
+                                    ToolCallArguments::Invalid(s) => serde_json::from_str(&s)
+                                        .unwrap_or(Value::Object(Default::default())),
+                                };
+                                Some(BedrockOutputContentBlock::ToolUse {
+                                    tool_use: BedrockOutputToolUse {
+                                        tool_use_id: tool_call_id,
+                                        name: tool_name,
+                                        input,
+                                    },
+                                })
+                            }
+                            _ => None,
+                        })
+                        .collect(),
+                };
+                Ok(BedrockOutputMessage {
+                    role: "assistant".to_string(),
+                    content: blocks,
+                })
+            }
+            _ => Err(ConvertError::UnsupportedContentType(
+                "Only Assistant messages can be converted to BedrockOutputMessage".to_string(),
+            )),
+        }
+    }
 }
 
 #[cfg(test)]

@@ -1,0 +1,194 @@
+{
+  "google:multimodalRequest": {
+    "payloadHash": "40f06a9cbe9592bb6aa266bebec8e562d9c8edb236564cd271cdc2c46eb2e3bf",
+    "capturedAt": "2025-12-21T13:15:37.149Z",
+    "provider": "google",
+    "name": "multimodalRequest",
+    "files": [
+      "multimodalRequest/google/request.json",
+      "multimodalRequest/google/response.json",
+      "multimodalRequest/google/response-streaming.json",
+      "multimodalRequest/google/followup-request.json",
+      "multimodalRequest/google/followup-response.json",
+      "multimodalRequest/google/followup-response-streaming.json"
+    ]
+  },
+  "google:reasoningRequestTruncated": {
+    "payloadHash": "b8d9360fd749c5e8f698b6e5c122879b39fe46aac5678727cda9d46d15915c0e",
+    "capturedAt": "2025-12-21T13:11:58.753Z",
+    "provider": "google",
+    "name": "reasoningRequestTruncated",
+    "files": [
+      "reasoningRequestTruncated/google/request.json",
+      "reasoningRequestTruncated/google/response.json",
+      "reasoningRequestTruncated/google/response-streaming.json",
+      "reasoningRequestTruncated/google/followup-request.json",
+      "reasoningRequestTruncated/google/followup-response.json",
+      "reasoningRequestTruncated/google/followup-response-streaming.json"
+    ]
+  },
+  "google:toolCallRequest": {
+    "payloadHash": "332b85eeab39b7506561bdcf487798ca986fd5d408676ca1a38b93fdc9e30789",
+    "capturedAt": "2025-12-21T13:11:59.685Z",
+    "provider": "google",
+    "name": "toolCallRequest",
+    "files": [
+      "toolCallRequest/google/request.json",
+      "toolCallRequest/google/response.json",
+      "toolCallRequest/google/response-streaming.json",
+      "toolCallRequest/google/followup-request.json",
+      "toolCallRequest/google/followup-response.json",
+      "toolCallRequest/google/followup-response-streaming.json"
+    ]
+  },
+  "google:simpleRequest": {
+    "payloadHash": "bd6967ffdb0d0caaec53b983bb6e67fc7903db7e828ac1638c5e929d4f6638b8",
+    "capturedAt": "2025-12-21T13:12:03.685Z",
+    "provider": "google",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/google/request.json",
+      "simpleRequest/google/response.json",
+      "simpleRequest/google/response-streaming.json",
+      "simpleRequest/google/followup-request.json",
+      "simpleRequest/google/followup-response.json",
+      "simpleRequest/google/followup-response-streaming.json"
+    ]
+  },
+  "google:reasoningRequest": {
+    "payloadHash": "d4bd82974ab4c44ad23a11d2dbac972d82764e44c2592d7ed987a76c4464921c",
+    "capturedAt": "2025-12-21T13:12:07.868Z",
+    "provider": "google",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/google/request.json",
+      "reasoningRequest/google/response.json",
+      "reasoningRequest/google/response-streaming.json",
+      "reasoningRequest/google/followup-request.json",
+      "reasoningRequest/google/followup-response.json",
+      "reasoningRequest/google/followup-response-streaming.json"
+    ]
+  },
+  "google:reasoningWithOutput": {
+    "payloadHash": "2d35c44d48060a52712c3a44dd2dc03bfef1eeb4a5368bcf2a3ea63acc506b8e",
+    "capturedAt": "2025-12-21T13:12:10.524Z",
+    "provider": "google",
+    "name": "reasoningWithOutput",
+    "files": [
+      "reasoningWithOutput/google/request.json",
+      "reasoningWithOutput/google/response.json",
+      "reasoningWithOutput/google/response-streaming.json",
+      "reasoningWithOutput/google/followup-request.json",
+      "reasoningWithOutput/google/followup-response.json",
+      "reasoningWithOutput/google/followup-response-streaming.json"
+    ]
+  },
+  "google:complexReasoningRequest": {
+    "payloadHash": "2a8f4d696314adbf3ecc82dd99e3e8ef9ced24b0a74cbfeb0037f15beaa7283b",
+    "capturedAt": "2025-12-21T13:12:29.238Z",
+    "provider": "google",
+    "name": "complexReasoningRequest",
+    "files": [
+      "complexReasoningRequest/google/request.json",
+      "complexReasoningRequest/google/response.json",
+      "complexReasoningRequest/google/response-streaming.json",
+      "complexReasoningRequest/google/followup-request.json",
+      "complexReasoningRequest/google/followup-response.json",
+      "complexReasoningRequest/google/followup-response-streaming.json"
+    ]
+  },
+  "bedrock:simpleRequest": {
+    "payloadHash": "3ff04195f9acac4b7a24ddce33a540be59dc9d2ac5f1e5736fb4d65f60605527",
+    "capturedAt": "2025-12-21T14:23:26.020Z",
+    "provider": "bedrock",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/bedrock/request.json",
+      "simpleRequest/bedrock/response.json",
+      "simpleRequest/bedrock/response-streaming.json",
+      "simpleRequest/bedrock/followup-request.json",
+      "simpleRequest/bedrock/followup-response.json",
+      "simpleRequest/bedrock/followup-response-streaming.json"
+    ]
+  },
+  "bedrock:multimodalRequest": {
+    "payloadHash": "55860b820fe1517023b3a78ad31c82020cf123ff104d1c601a0638b78dbe4b56",
+    "capturedAt": "2025-12-21T14:23:23.980Z",
+    "provider": "bedrock",
+    "name": "multimodalRequest",
+    "files": [
+      "multimodalRequest/bedrock/request.json",
+      "multimodalRequest/bedrock/error.json"
+    ]
+  },
+  "bedrock:toolCallRequest": {
+    "payloadHash": "7774f7eb8fd789278c1a25a9fd478311f0665b2333870a73c926ace96364c20e",
+    "capturedAt": "2025-12-21T14:23:26.944Z",
+    "provider": "bedrock",
+    "name": "toolCallRequest",
+    "files": [
+      "toolCallRequest/bedrock/request.json",
+      "toolCallRequest/bedrock/response.json",
+      "toolCallRequest/bedrock/response-streaming.json",
+      "toolCallRequest/bedrock/followup-request.json",
+      "toolCallRequest/bedrock/followup-response.json",
+      "toolCallRequest/bedrock/followup-response-streaming.json"
+    ]
+  },
+  "bedrock:reasoningRequestTruncated": {
+    "payloadHash": "0cfea2d6f49296d0843e2c213a074061df06d0b4ed92a1bf1aacb1931d9642ff",
+    "capturedAt": "2025-12-21T14:23:27.001Z",
+    "provider": "bedrock",
+    "name": "reasoningRequestTruncated",
+    "files": [
+      "reasoningRequestTruncated/bedrock/request.json",
+      "reasoningRequestTruncated/bedrock/response.json",
+      "reasoningRequestTruncated/bedrock/response-streaming.json",
+      "reasoningRequestTruncated/bedrock/followup-request.json",
+      "reasoningRequestTruncated/bedrock/followup-response.json",
+      "reasoningRequestTruncated/bedrock/followup-response-streaming.json"
+    ]
+  },
+  "bedrock:reasoningWithOutput": {
+    "payloadHash": "9a19b9ee8103344320e00eceab5e8ba08b097aa3870560394c1bbbeb4b150e01",
+    "capturedAt": "2025-12-21T14:23:27.602Z",
+    "provider": "bedrock",
+    "name": "reasoningWithOutput",
+    "files": [
+      "reasoningWithOutput/bedrock/request.json",
+      "reasoningWithOutput/bedrock/response.json",
+      "reasoningWithOutput/bedrock/response-streaming.json",
+      "reasoningWithOutput/bedrock/followup-request.json",
+      "reasoningWithOutput/bedrock/followup-response.json",
+      "reasoningWithOutput/bedrock/followup-response-streaming.json"
+    ]
+  },
+  "bedrock:reasoningRequest": {
+    "payloadHash": "32cda0209751e516b0c34808c44c983057d716e8aae0a6d952fff1ecedb77e4c",
+    "capturedAt": "2025-12-21T14:23:28.356Z",
+    "provider": "bedrock",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/bedrock/request.json",
+      "reasoningRequest/bedrock/response.json",
+      "reasoningRequest/bedrock/response-streaming.json",
+      "reasoningRequest/bedrock/followup-request.json",
+      "reasoningRequest/bedrock/followup-response.json",
+      "reasoningRequest/bedrock/followup-response-streaming.json"
+    ]
+  },
+  "bedrock:complexReasoningRequest": {
+    "payloadHash": "122168042ac457b0669b829af0e0efe5cde845af7d140c1119fbabc175a771c6",
+    "capturedAt": "2025-12-21T14:23:34.371Z",
+    "provider": "bedrock",
+    "name": "complexReasoningRequest",
+    "files": [
+      "complexReasoningRequest/bedrock/request.json",
+      "complexReasoningRequest/bedrock/response.json",
+      "complexReasoningRequest/bedrock/response-streaming.json",
+      "complexReasoningRequest/bedrock/followup-request.json",
+      "complexReasoningRequest/bedrock/followup-response.json",
+      "complexReasoningRequest/bedrock/followup-response-streaming.json"
+    ]
+  }
+}

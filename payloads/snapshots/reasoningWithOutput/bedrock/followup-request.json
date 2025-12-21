@@ -1,0 +1,29 @@
+{
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "What color is the sky?"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The sky is typically **blue** during the day due to Rayleigh scattering, which causes shorter blue wavelengths of light to scatter more than longer red wavelengths.\n\nHowever, the sky can appear different colors depending on conditions:\n- **Orange/red** at sunset and sunrise\n- **Gray or white** on cloudy days\n- **Deep blue or purple** at high altitudes or in space\n- **Various colors** during twilight"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ]
+}

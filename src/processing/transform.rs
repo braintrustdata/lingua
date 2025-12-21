@@ -14,6 +14,7 @@ use crate::capabilities::ProviderFormat;
 use crate::processing::defaults::apply_provider_defaults;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::message::Message;
+use serde::Deserialize;
 use thiserror::Error;
 
 #[cfg(feature = "anthropic")]
@@ -29,6 +30,53 @@ use crate::providers::openai::try_parse_openai;
 
 #[cfg(feature = "mistral")]
 use crate::processing::FormatDetector;
+
+// ============================================================================
+// Response envelope types for detection
+// ============================================================================
+
+/// OpenAI chat completion response envelope (for detection)
+#[derive(Debug, Clone, Deserialize)]
+struct OpenAIResponseEnvelope {
+    choices: Vec<OpenAIResponseChoice>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct OpenAIResponseChoice {
+    message: Value,
+}
+
+/// Google GenerateContent response envelope (for detection)
+#[derive(Debug, Clone, Deserialize)]
+struct GoogleResponseEnvelope {
+    candidates: Vec<GoogleResponseCandidate>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct GoogleResponseCandidate {
+    content: Value,
+}
+
+/// Anthropic Message response envelope (for detection)
+#[derive(Debug, Clone, Deserialize)]
+struct AnthropicResponseEnvelope {
+    content: Vec<Value>,
+    #[serde(rename = "type")]
+    response_type: Option<String>,
+}
+
+/// Bedrock Converse response envelope (for detection)
+#[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)] // Fields are read via serde deserialization
+struct BedrockResponseEnvelope {
+    output: BedrockResponseOutput,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)] // Fields are read via serde deserialization
+struct BedrockResponseOutput {
+    message: Value,
+}
 
 /// Error type for transformation operations
 #[derive(Debug, Error)]
@@ -536,6 +584,314 @@ pub fn from_universal(
 
             serde_json::to_value(bedrock_messages)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))
+        }
+
+        _ => Err(TransformError::UnsupportedTargetFormat(target_format)),
+    }
+}
+
+// ============================================================================
+// Response transformation
+// ============================================================================
+
+/// Transform a response payload from one format to another.
+///
+/// This extracts the message(s) from the source response envelope, converts
+/// them via the universal Message format, and builds a new response envelope
+/// in the target format.
+///
+/// # Arguments
+///
+/// * `response` - The source response JSON payload
+/// * `target_format` - The target provider format
+///
+/// # Returns
+///
+/// * `Ok(TransformResult::PassThrough)` - Response is already valid for target format
+/// * `Ok(TransformResult::Transformed { payload, source_format })` - Transformed response
+/// * `Err(TransformError)` - If transformation fails
+///
+/// # Examples
+///
+/// ```
+/// use lingua::processing::transform::transform_response;
+/// use lingua::capabilities::ProviderFormat;
+/// use lingua::serde_json::json;
+///
+/// // Google response
+/// let google_response = json!({
+///     "candidates": [{
+///         "content": {
+///             "role": "model",
+///             "parts": [{"text": "Hello!"}]
+///         }
+///     }]
+/// });
+///
+/// // Transform to OpenAI format
+/// let result = transform_response(&google_response, ProviderFormat::OpenAI).unwrap();
+/// ```
+pub fn transform_response(
+    response: &Value,
+    target_format: ProviderFormat,
+) -> Result<TransformResult, TransformError> {
+    // Step 1: Detect source format
+    let source_format = detect_response_format(response)?;
+
+    // Step 2: If source matches target, pass through
+    if source_format == target_format {
+        return Ok(TransformResult::PassThrough);
+    }
+
+    // Step 3: Extract message(s) from source response envelope
+    let universal_messages = response_to_universal(response, source_format)?;
+
+    // Step 4: Build target response envelope
+    let transformed = build_response_envelope(&universal_messages, target_format)?;
+
+    Ok(TransformResult::Transformed {
+        payload: transformed,
+        source_format,
+    })
+}
+
+/// Detect the format of a response payload.
+fn detect_response_format(response: &Value) -> Result<ProviderFormat, TransformError> {
+    // Try each format in priority order (most specific first)
+
+    // Bedrock: has output.message structure
+    if serde_json::from_value::<BedrockResponseEnvelope>(response.clone()).is_ok() {
+        return Ok(ProviderFormat::Converse);
+    }
+
+    // Google: has candidates[].content structure
+    if serde_json::from_value::<GoogleResponseEnvelope>(response.clone()).is_ok() {
+        return Ok(ProviderFormat::Google);
+    }
+
+    // Anthropic: has content[] array and type="message"
+    if let Ok(envelope) = serde_json::from_value::<AnthropicResponseEnvelope>(response.clone()) {
+        if envelope.response_type.as_deref() == Some("message") {
+            return Ok(ProviderFormat::Anthropic);
+        }
+    }
+
+    // OpenAI: has choices[].message structure
+    if serde_json::from_value::<OpenAIResponseEnvelope>(response.clone()).is_ok() {
+        return Ok(ProviderFormat::OpenAI);
+    }
+
+    Err(TransformError::UnableToDetectFormat)
+}
+
+/// Extract universal messages from a response envelope.
+fn response_to_universal(
+    response: &Value,
+    source_format: ProviderFormat,
+) -> Result<Vec<Message>, TransformError> {
+    match source_format {
+        #[cfg(feature = "openai")]
+        ProviderFormat::OpenAI => {
+            use crate::providers::openai::generated::ChatCompletionResponseMessage;
+            use crate::universal::convert::TryFromLLM;
+
+            let envelope: OpenAIResponseEnvelope = serde_json::from_value(response.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+            let mut messages = Vec::new();
+            for choice in envelope.choices {
+                let response_msg: ChatCompletionResponseMessage =
+                    serde_json::from_value(choice.message)
+                        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+                let universal = <Message as TryFromLLM<&ChatCompletionResponseMessage>>::try_from(
+                    &response_msg,
+                )
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+                messages.push(universal);
+            }
+            Ok(messages)
+        }
+
+        #[cfg(feature = "google")]
+        ProviderFormat::Google => {
+            use crate::providers::google::detect::GoogleContent;
+            use crate::universal::convert::TryFromLLM;
+
+            let envelope: GoogleResponseEnvelope = serde_json::from_value(response.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+            let mut messages = Vec::new();
+            for candidate in envelope.candidates {
+                let content: GoogleContent = serde_json::from_value(candidate.content)
+                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+                let universal = <Message as TryFromLLM<GoogleContent>>::try_from(content)
+                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+                messages.push(universal);
+            }
+            Ok(messages)
+        }
+
+        #[cfg(feature = "anthropic")]
+        ProviderFormat::Anthropic => {
+            use crate::providers::anthropic::generated::ContentBlock;
+            use crate::universal::convert::TryFromLLM;
+
+            let envelope: AnthropicResponseEnvelope = serde_json::from_value(response.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+            let content_blocks: Vec<ContentBlock> = envelope
+                .content
+                .into_iter()
+                .map(|v| {
+                    serde_json::from_value(v)
+                        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+
+            <Vec<Message> as TryFromLLM<Vec<ContentBlock>>>::try_from(content_blocks)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+        }
+
+        #[cfg(feature = "bedrock")]
+        ProviderFormat::Converse => {
+            use crate::providers::bedrock::response::BedrockOutputMessage;
+            use crate::universal::convert::TryFromLLM;
+
+            let envelope: BedrockResponseEnvelope = serde_json::from_value(response.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+            let output_msg: BedrockOutputMessage = serde_json::from_value(envelope.output.message)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+            let universal = <Message as TryFromLLM<BedrockOutputMessage>>::try_from(output_msg)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+            Ok(vec![universal])
+        }
+
+        _ => Err(TransformError::UnsupportedSourceFormat(source_format)),
+    }
+}
+
+/// Build a response envelope in the target format from universal messages.
+fn build_response_envelope(
+    messages: &[Message],
+    target_format: ProviderFormat,
+) -> Result<Value, TransformError> {
+    match target_format {
+        #[cfg(feature = "openai")]
+        ProviderFormat::OpenAI => {
+            use crate::providers::openai::generated::ChatCompletionResponseMessage;
+            use crate::universal::convert::TryFromLLM;
+
+            let choices: Vec<Value> = messages
+                .iter()
+                .enumerate()
+                .map(|(i, msg)| {
+                    let response_msg =
+                        <ChatCompletionResponseMessage as TryFromLLM<&Message>>::try_from(msg)
+                            .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+
+                    let message_value = serde_json::to_value(&response_msg)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+
+                    Ok(serde_json::json!({
+                        "index": i,
+                        "message": message_value,
+                        "finish_reason": "stop"
+                    }))
+                })
+                .collect::<Result<Vec<_>, TransformError>>()?;
+
+            Ok(serde_json::json!({
+                "id": "transformed",
+                "object": "chat.completion",
+                "created": 0,
+                "model": "transformed",
+                "choices": choices
+            }))
+        }
+
+        #[cfg(feature = "google")]
+        ProviderFormat::Google => {
+            use crate::providers::google::detect::GoogleContent;
+            use crate::universal::convert::TryFromLLM;
+
+            let candidates: Vec<Value> = messages
+                .iter()
+                .enumerate()
+                .map(|(i, msg)| {
+                    let content = <GoogleContent as TryFromLLM<Message>>::try_from(msg.clone())
+                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+
+                    let content_value = serde_json::to_value(&content)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+
+                    Ok(serde_json::json!({
+                        "index": i,
+                        "content": content_value,
+                        "finishReason": "STOP"
+                    }))
+                })
+                .collect::<Result<Vec<_>, TransformError>>()?;
+
+            Ok(serde_json::json!({
+                "candidates": candidates
+            }))
+        }
+
+        #[cfg(feature = "anthropic")]
+        ProviderFormat::Anthropic => {
+            use crate::providers::anthropic::generated::ContentBlock;
+            use crate::universal::convert::TryFromLLM;
+
+            let content_blocks =
+                <Vec<ContentBlock> as TryFromLLM<Vec<Message>>>::try_from(messages.to_vec())
+                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+
+            let content_value = serde_json::to_value(&content_blocks)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+
+            Ok(serde_json::json!({
+                "id": "transformed",
+                "type": "message",
+                "role": "assistant",
+                "content": content_value,
+                "model": "transformed",
+                "stop_reason": "end_turn"
+            }))
+        }
+
+        #[cfg(feature = "bedrock")]
+        ProviderFormat::Converse => {
+            use crate::providers::bedrock::response::BedrockOutputMessage;
+            use crate::universal::convert::TryFromLLM;
+
+            // Take the first message for the response
+            let msg = messages.first().ok_or_else(|| {
+                TransformError::FromUniversalFailed("No messages to transform".to_string())
+            })?;
+
+            let output_msg = <BedrockOutputMessage as TryFromLLM<Message>>::try_from(msg.clone())
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+
+            let message_value = serde_json::to_value(&output_msg)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+
+            Ok(serde_json::json!({
+                "output": {
+                    "message": message_value
+                },
+                "stopReason": "end_turn",
+                "usage": {
+                    "inputTokens": 0,
+                    "outputTokens": 0,
+                    "totalTokens": 0
+                },
+                "metrics": {
+                    "latencyMs": 0
+                }
+            }))
         }
 
         _ => Err(TransformError::UnsupportedTargetFormat(target_format)),

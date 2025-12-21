@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "That depends on what you want to do next! Here are some common options:\n\n## If you want to **continue learning**:\n- Practice with another average speed problem\n- Learn about other motion concepts (acceleration, velocity, relative speed)\n- Explore distance/time/speed relationships\n\n## If you want to **apply this knowledge**:\n- Use it for real trip planning (calculate average speeds on your routes)\n- Solve other physics problems\n- Study for a test or class\n\n## If you want to **try something different**:\n- Ask about a completely different topic\n- Get help with homework or another subject\n- Work through another word problem\n\n**What interests you most?** I'm happy to help with whatever you'd like to tackle next!"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 293,
+    "outputTokens": 164,
+    "totalTokens": 457,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 2148
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "cc82fdb8-eefe-4eff-8c35-10061db5beb3",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

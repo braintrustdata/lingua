@@ -1,0 +1,21 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What do you see in this image?"
+        },
+        {
+          "fileData": {
+            "mimeType": "image/jpeg",
+            "fileUri": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+          }
+        }
+      ]
+    }
+  ],
+  "config": {
+    "maxOutputTokens": 300
+  }
+}

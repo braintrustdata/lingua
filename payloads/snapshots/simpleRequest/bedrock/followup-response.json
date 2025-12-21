@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "That depends on what you're interested in! Here are some options:\n\n- **Continue learning** - Ask me about French history, culture, geography, or anything else you're curious about\n- **New topic** - Switch to a completely different subject\n- **Get practical help** - I can assist with writing, analysis, coding, math, planning, or many other tasks\n- **Have a conversation** - Just chat about whatever's on your mind\n\nWhat would you like to do?"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 33,
+    "outputTokens": 104,
+    "totalTokens": 137,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1500
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "8c7ccf57-d503-406f-8a36-dbf53d3bef7e",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
