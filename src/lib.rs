@@ -10,6 +10,13 @@ pub mod universal;
 pub mod util;
 pub mod validation;
 
+// Re-export key types for external use
+pub use capabilities::ProviderFormat;
+pub use processing::{
+    apply_provider_defaults, from_universal, is_valid_for_format, to_universal, transform_request,
+    validate_or_transform, RequestDefaults, TransformError, TransformResult,
+};
+
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 

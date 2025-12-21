@@ -11,5 +11,8 @@ pub mod bedrock;
 #[cfg(feature = "google")]
 pub mod google;
 
+#[cfg(feature = "mistral")]
+pub mod mistral;
+
 #[cfg(feature = "openai")]
 pub mod openai;

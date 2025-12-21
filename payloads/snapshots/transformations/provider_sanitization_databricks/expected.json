@@ -1,0 +1,11 @@
+{
+  "model": "databricks-meta-llama-3-70b-instruct",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello"
+    }
+  ],
+  "temperature": 0.7
+}
+

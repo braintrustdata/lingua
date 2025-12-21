@@ -252,6 +252,10 @@ use lingua::translators::to_bedrock_format_with_model;
 
 - [ ] Support parsing streaming responses and combining streaming messages into a single response.
 
+## Adding a Provider
+
+See [docs/ADDING_PROVIDERS.md](docs/ADDING_PROVIDERS.md) for instructions on adding support for a new LLM provider format.
+
 ## Contributing
 
 This project aims to support the entire ecosystem of LLM providers. Contributions for new providers, capability detection improvements, and format enhancements are welcome.

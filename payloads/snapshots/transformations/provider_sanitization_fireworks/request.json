@@ -1,0 +1,15 @@
+{
+  "model": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello"
+    }
+  ],
+  "stream_options": {
+    "include_usage": true
+  },
+  "parallel_tool_calls": true,
+  "temperature": 0.7
+}
+

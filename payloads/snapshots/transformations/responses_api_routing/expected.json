@@ -1,0 +1,11 @@
+{
+  "model": "o1-pro",
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Solve this complex problem"
+    }
+  ]
+}
+

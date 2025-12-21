@@ -1,0 +1,14 @@
+{
+  "model": "gpt-4",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "stream_options": {
+    "include_usage": true
+  }
+}
+

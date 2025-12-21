@@ -11,6 +11,7 @@ use ts_rs::TS;
 
 /// Main Converse API response
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct ConverseResponse {
     /// The model's response output
@@ -57,17 +58,21 @@ pub struct BedrockOutputMessage {
 /// Output content block types
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 // #[ts(export, export_to = "bindings/typescript/")]
-#[serde(tag = "type")]
+#[serde(untagged)]
 pub enum BedrockOutputContentBlock {
-    #[serde(rename = "text")]
-    Text { text: String },
+    Text {
+        text: String,
+    },
 
-    #[serde(rename = "toolUse")]
-    ToolUse { tool_use: BedrockOutputToolUse },
+    ToolUse {
+        #[serde(rename = "toolUse")]
+        tool_use: BedrockOutputToolUse,
+    },
 }
 
 /// Tool use in output
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockOutputToolUse {
     /// Unique identifier for the tool use
@@ -100,6 +105,7 @@ pub enum BedrockStopReason {
 
 /// Token usage statistics
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockTokenUsage {
     /// Number of input tokens
@@ -114,6 +120,7 @@ pub struct BedrockTokenUsage {
 
 /// Performance metrics for the request
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockConverseMetrics {
     /// Latency in milliseconds
@@ -122,6 +129,7 @@ pub struct BedrockConverseMetrics {
 
 /// Streaming Converse API response event
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum ConverseStreamResponse {
@@ -180,6 +188,7 @@ pub enum ConverseStreamResponse {
 
 /// Content block start event details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 #[serde(tag = "type")]
 pub enum BedrockContentBlockStart {
@@ -201,6 +210,7 @@ pub enum BedrockContentBlockDelta {
 
 /// Trace information for debugging and monitoring
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockConverseTrace {
     /// Unique identifier for the trace
@@ -214,6 +224,7 @@ pub struct BedrockConverseTrace {
 
 /// Guardrail trace information
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockGuardrailTrace {
     /// Action taken by the guardrail
@@ -231,6 +242,7 @@ pub struct BedrockGuardrailTrace {
 
 /// Individual guardrail assessment
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockGuardrailAssessment {
     /// Content policy assessment
@@ -276,6 +288,7 @@ pub struct BedrockContentFilter {
 
 /// Sensitive information policy assessment
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockSensitiveInformationPolicyAssessment {
     /// PII entities detected
@@ -289,6 +302,7 @@ pub struct BedrockSensitiveInformationPolicyAssessment {
 
 /// PII entity details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockPIIEntity {
     /// Entity type
@@ -305,6 +319,7 @@ pub struct BedrockPIIEntity {
 
 /// Regex match details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockRegexMatch {
     /// Regex name
@@ -329,6 +344,7 @@ pub struct BedrockTopicPolicyAssessment {
 
 /// Topic details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockTopic {
     /// Topic name
@@ -344,6 +360,7 @@ pub struct BedrockTopic {
 
 /// Word policy assessment
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockWordPolicyAssessment {
     /// Custom words that were detected
@@ -357,6 +374,7 @@ pub struct BedrockWordPolicyAssessment {
 
 /// Custom word details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockCustomWord {
     /// Match text
@@ -369,6 +387,7 @@ pub struct BedrockCustomWord {
 
 /// Managed word list details
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockManagedWordList {
     /// Match text
