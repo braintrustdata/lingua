@@ -3,13 +3,7 @@
   "version": "0.1.0",
   "description": "TypeScript bindings for Lingua - Universal message format for LLM APIs",
   "scripts": {
-    "build": "rm -rf dist && pnpm run build:wasm && pnpm run build:ts && pnpm run build:copy-wasm",
-    "build:wasm": "pnpm run build:wasm:bundler && pnpm run build:wasm:nodejs && pnpm run build:wasm:web",
-    "build:wasm:bundler": "cd ../.. && wasm-pack build --target bundler --release --out-dir bindings/typescript/wasm/bundler --no-pack",
-    "build:wasm:nodejs": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/typescript/wasm/nodejs --no-pack",
-    "build:wasm:web": "cd ../.. && wasm-pack build --target web --release --out-dir bindings/typescript/wasm/web --no-pack",
-    "build:ts": "tsup",
-    "build:copy-wasm": "mkdir -p dist/wasm && cp -r wasm/bundler dist/wasm/ && cp -r wasm/nodejs dist/wasm/ && cp -r wasm/web dist/wasm/",
+    "build": "rm -rf dist && tsup",
     "generate": "cd ../.. && cargo test --features ts-rs/export",
     "test": "vitest",
     "test:run": "pnpm build && vitest run",
@@ -17,30 +11,32 @@
     "prepublishOnly": "pnpm run build"
   },
   "files": [
-    "dist",
-    "wasm"
+    "dist"
   ],
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "browser": "dist/index.browser.js",
+  "module": "dist/index.mjs",
+  "browser": "dist/index.browser.mjs",
   "types": "dist/index.d.mts",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
-      "node": "./dist/index.js",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
+      "browser": "./dist/index.browser.mjs",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./node": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
     },
     "./browser": {
       "types": "./dist/index.browser.d.mts",
-      "import": "./dist/index.browser.js",
-      "default": "./dist/index.browser.js"
-    },
-    "./browser/lingua_bg.wasm": "./wasm/web/lingua_bg.wasm"
+      "import": "./dist/index.browser.mjs",
+      "default": "./dist/index.browser.mjs"
+    }
   },
   "sideEffects": [
-    "./dist/index.js",
-    "./dist/index.browser.js"
+    "./dist/index.mjs",
+    "./dist/index.browser.mjs"
   ],
   "keywords": [
     "llm",
@@ -51,6 +47,9 @@
     "bindings"
   ],
   "license": "MIT",
+  "dependencies": {
+    "@braintrust/lingua-wasm": "workspace:*"
+  },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.63.0",
     "@types/node": "^22.9.0",
