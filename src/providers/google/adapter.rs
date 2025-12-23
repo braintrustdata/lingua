@@ -18,7 +18,8 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalUsage,
+    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChunk,
+    UniversalStreamChoice, UniversalUsage,
 };
 
 /// Known request fields for Google GenerateContent API.
@@ -285,6 +286,164 @@ impl ProviderAdapter for GoogleAdapter {
             FinishReason::ContentFilter => "SAFETY".to_string(),
             FinishReason::Other(s) => s.clone(),
         })
+    }
+
+    // =========================================================================
+    // Streaming response handling
+    // =========================================================================
+
+    fn detect_stream_response(&self, payload: &Value) -> bool {
+        // Google streaming uses the same format as non-streaming (candidates array)
+        // The response_to_universal detection already handles this
+        self.detect_response(payload)
+    }
+
+    fn stream_to_universal(
+        &self,
+        payload: &Value,
+    ) -> Result<Option<UniversalStreamChunk>, TransformError> {
+        let candidates = payload
+            .get("candidates")
+            .and_then(Value::as_array)
+            .ok_or_else(|| TransformError::ToUniversalFailed("missing candidates".to_string()))?;
+
+        let mut choices = Vec::new();
+
+        for candidate in candidates {
+            let index = candidate.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+
+            // Extract text from content.parts
+            let text: String = candidate
+                .get("content")
+                .and_then(|c| c.get("parts"))
+                .and_then(Value::as_array)
+                .map(|parts| {
+                    parts
+                        .iter()
+                        .filter_map(|p| p.get("text").and_then(Value::as_str))
+                        .collect::<Vec<_>>()
+                        .join("")
+                })
+                .unwrap_or_default();
+
+            // Map finish reason
+            let finish_reason =
+                candidate
+                    .get("finishReason")
+                    .and_then(Value::as_str)
+                    .map(|r| match r {
+                        "STOP" => "stop".to_string(),
+                        "MAX_TOKENS" => "length".to_string(),
+                        "SAFETY" | "RECITATION" | "OTHER" => "stop".to_string(),
+                        other => other.to_lowercase(),
+                    });
+
+            choices.push(UniversalStreamChoice {
+                index,
+                delta: Some(serde_json::json!({
+                    "role": "assistant",
+                    "content": text
+                })),
+                finish_reason,
+            });
+        }
+
+        // Extract usage from usageMetadata
+        let usage = payload.get("usageMetadata").map(|u| UniversalUsage {
+            input_tokens: u.get("promptTokenCount").and_then(Value::as_i64),
+            output_tokens: u.get("candidatesTokenCount").and_then(Value::as_i64),
+        });
+
+        let model = payload
+            .get("modelVersion")
+            .and_then(Value::as_str)
+            .map(String::from);
+
+        let id = payload
+            .get("responseId")
+            .and_then(Value::as_str)
+            .map(String::from);
+
+        Ok(Some(UniversalStreamChunk::new(id, model, choices, None, usage)))
+    }
+
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Value, TransformError> {
+        if chunk.is_keep_alive() {
+            // Google doesn't have a keep-alive event, return empty candidates
+            return Ok(serde_json::json!({
+                "candidates": []
+            }));
+        }
+
+        let candidates: Vec<Value> = chunk
+            .choices
+            .iter()
+            .map(|c| {
+                // Extract text content from delta
+                let text = c
+                    .delta
+                    .as_ref()
+                    .and_then(|d| d.get("content"))
+                    .and_then(Value::as_str)
+                    .unwrap_or("");
+
+                // Map finish reason to Google format
+                let finish_reason = c.finish_reason.as_ref().map(|r| match r.as_str() {
+                    "stop" => "STOP",
+                    "length" => "MAX_TOKENS",
+                    "tool_calls" => "TOOL_CALLS",
+                    "content_filter" => "SAFETY",
+                    other => other,
+                });
+
+                let mut candidate = serde_json::json!({
+                    "index": c.index,
+                    "content": {
+                        "parts": [{"text": text}],
+                        "role": "model"
+                    }
+                });
+
+                if let Some(reason) = finish_reason {
+                    candidate
+                        .as_object_mut()
+                        .unwrap()
+                        .insert("finishReason".into(), Value::String(reason.to_string()));
+                }
+
+                candidate
+            })
+            .collect();
+
+        let mut obj = serde_json::json!({
+            "candidates": candidates
+        });
+
+        let obj_map = obj.as_object_mut().unwrap();
+
+        if let Some(ref id) = chunk.id {
+            obj_map.insert("responseId".into(), Value::String(id.clone()));
+        }
+        if let Some(ref model) = chunk.model {
+            obj_map.insert("modelVersion".into(), Value::String(model.clone()));
+        }
+        if let Some(ref usage) = chunk.usage {
+            let input = usage.input_tokens.unwrap_or(0);
+            let output = usage.output_tokens.unwrap_or(0);
+            obj_map.insert(
+                "usageMetadata".into(),
+                serde_json::json!({
+                    "promptTokenCount": input,
+                    "candidatesTokenCount": output,
+                    "totalTokenCount": input + output
+                }),
+            );
+        }
+
+        Ok(obj)
     }
 }
 

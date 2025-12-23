@@ -40,7 +40,7 @@ pub fn try_parse_myprovider(payload: &Value) -> Result<MyProviderRequest, serde_
 
 ## Step 3: Implement `ProviderAdapter`
 
-The `ProviderAdapter` trait has 11 required methods organized into 3 categories:
+The `ProviderAdapter` trait has 14 methods organized into 4 categories:
 
 | Category | Method | Purpose |
 |----------|--------|---------|
@@ -55,6 +55,11 @@ The `ProviderAdapter` trait has 11 required methods organized into 3 categories:
 | | `response_to_universal()` | Converts provider response → `UniversalResponse` |
 | | `response_from_universal()` | Converts `UniversalResponse` → provider response |
 | | `map_finish_reason()` | Maps `FinishReason` enum to provider's string value |
+| Streaming | `detect_stream_response()` | Returns `true` if payload matches this provider's streaming format |
+| | `stream_to_universal()` | Converts provider streaming chunk → `UniversalStreamChunk` |
+| | `stream_from_universal()` | Converts `UniversalStreamChunk` → provider streaming chunk |
+
+**Note:** The streaming methods have default implementations that return `false` for detection and `StreamingNotImplemented` error for conversions. Implement them if your provider supports streaming responses.
 
 Create `src/providers/myprovider/adapter.rs`:
 
@@ -69,6 +74,7 @@ use crate::universal::message::Message;
 use crate::universal::request_response::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalUsage,
 };
+use crate::universal::{UniversalStreamChunk, UniversalStreamChoice};
 
 /// Known request fields - fields not in this list go into `extras`.
 const MYPROVIDER_KNOWN_KEYS: &[&str] = &[
@@ -241,6 +247,81 @@ impl ProviderAdapter for MyProviderAdapter {
             FinishReason::ContentFilter => "content_filter".to_string(),
             FinishReason::Other(s) => s.clone(),
         })
+    }
+
+    // ============= Streaming methods (optional but recommended) =============
+
+    fn detect_stream_response(&self, payload: &Value) -> bool {
+        // Detect streaming chunk format
+        // e.g., OpenAI has object="chat.completion.chunk"
+        // Anthropic has type="content_block_delta"
+        payload.get("my_stream_marker").is_some()
+    }
+
+    fn stream_to_universal(
+        &self,
+        payload: &Value,
+    ) -> Result<Option<UniversalStreamChunk>, TransformError> {
+        // Handle different streaming event types
+        let event_type = payload.get("type").and_then(Value::as_str).unwrap_or("");
+
+        match event_type {
+            "content_delta" => {
+                // Extract text delta
+                let text = payload
+                    .get("delta")
+                    .and_then(|d| d.get("text"))
+                    .and_then(Value::as_str)
+                    .unwrap_or("");
+
+                Ok(Some(UniversalStreamChunk::text_delta(0, text)))
+            }
+            "message_stop" => {
+                // Final event with finish reason
+                let reason = payload
+                    .get("stop_reason")
+                    .and_then(Value::as_str)
+                    .unwrap_or("stop");
+                Ok(Some(UniversalStreamChunk::finish(0, reason)))
+            }
+            "ping" | "message_start" => {
+                // Keep-alive events - acknowledge but don't forward
+                Ok(Some(UniversalStreamChunk::keep_alive()))
+            }
+            _ => Ok(None), // Unknown events
+        }
+    }
+
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Value, TransformError> {
+        // Handle keep-alive chunks
+        if chunk.is_keep_alive() {
+            return Ok(serde_json::json!({"type": "ping"}));
+        }
+
+        // Convert universal chunk to provider format
+        if let Some(choice) = chunk.choices.first() {
+            if let Some(reason) = &choice.finish_reason {
+                // Final chunk
+                return Ok(serde_json::json!({
+                    "type": "message_stop",
+                    "stop_reason": reason
+                }));
+            }
+
+            // Content delta
+            if let Some(delta) = &choice.delta {
+                let content = delta.get("content").and_then(Value::as_str).unwrap_or("");
+                return Ok(serde_json::json!({
+                    "type": "content_delta",
+                    "delta": {"text": content}
+                }));
+            }
+        }
+
+        Ok(serde_json::json!({}))
     }
 }
 ```
@@ -424,6 +505,65 @@ mod tests {
         assert_eq!(adapter.map_finish_reason(Some(&FinishReason::Length)), Some("max_tokens".to_string()));
         assert_eq!(adapter.map_finish_reason(Some(&FinishReason::ToolCalls)), Some("tool_use".to_string()));
         assert_eq!(adapter.map_finish_reason(None), None);
+    }
+
+    // ============= Streaming tests =============
+
+    #[test]
+    fn test_myprovider_detect_stream_response() {
+        let adapter = MyProviderAdapter;
+
+        // Should detect streaming chunks
+        let chunk = json!({"type": "content_delta", "delta": {"text": "Hi"}});
+        assert!(adapter.detect_stream_response(&chunk));
+
+        // Should not detect non-streaming responses
+        let response = json!({"output": {"role": "assistant", "content": "Hello"}});
+        assert!(!adapter.detect_stream_response(&response));
+    }
+
+    #[test]
+    fn test_myprovider_stream_to_universal() {
+        let adapter = MyProviderAdapter;
+
+        // Content delta
+        let chunk = json!({"type": "content_delta", "delta": {"text": "Hello"}});
+        let universal = adapter.stream_to_universal(&chunk).unwrap().unwrap();
+        assert!(!universal.is_keep_alive());
+        assert_eq!(universal.choices.len(), 1);
+
+        // Keep-alive event
+        let ping = json!({"type": "ping"});
+        let universal = adapter.stream_to_universal(&ping).unwrap().unwrap();
+        assert!(universal.is_keep_alive());
+
+        // Final chunk
+        let final_chunk = json!({"type": "message_stop", "stop_reason": "stop"});
+        let universal = adapter.stream_to_universal(&final_chunk).unwrap().unwrap();
+        assert_eq!(universal.choices[0].finish_reason, Some("stop".to_string()));
+    }
+
+    #[test]
+    fn test_myprovider_stream_from_universal() {
+        use crate::universal::UniversalStreamChunk;
+        let adapter = MyProviderAdapter;
+
+        // Text delta
+        let chunk = UniversalStreamChunk::text_delta(0, "Hello");
+        let provider = adapter.stream_from_universal(&chunk).unwrap();
+        assert_eq!(provider["type"], "content_delta");
+        assert_eq!(provider["delta"]["text"], "Hello");
+
+        // Finish chunk
+        let finish = UniversalStreamChunk::finish(0, "stop");
+        let provider = adapter.stream_from_universal(&finish).unwrap();
+        assert_eq!(provider["type"], "message_stop");
+        assert_eq!(provider["stop_reason"], "stop");
+
+        // Keep-alive
+        let keepalive = UniversalStreamChunk::keep_alive();
+        let provider = adapter.stream_from_universal(&keepalive).unwrap();
+        assert_eq!(provider["type"], "ping");
     }
 }
 ```
