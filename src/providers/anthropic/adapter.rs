@@ -1,0 +1,327 @@
+/*!
+Anthropic provider adapter for Messages API.
+
+Anthropic's Messages API has some unique requirements:
+- `max_tokens` is required (we use a default of 4096)
+- System messages use a separate `system` parameter, not in `messages` array
+*/
+
+use crate::capabilities::ProviderFormat;
+use crate::processing::adapters::{
+    collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value,
+    ProviderAdapter,
+};
+use crate::processing::transform::TransformError;
+use crate::providers::anthropic::generated::{ContentBlock, CreateMessageParams, InputMessage};
+use crate::providers::anthropic::try_parse_anthropic;
+use crate::serde_json::{self, Map, Value};
+use crate::universal::convert::TryFromLLM;
+use crate::universal::message::{Message, UserContent};
+use crate::universal::{
+    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalUsage,
+};
+use crate::universal::transform::extract_system_messages;
+
+/// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
+pub const DEFAULT_MAX_TOKENS: i64 = 4096;
+
+/// Known request fields for Anthropic Messages API.
+/// Fields not in this list go into `extras`.
+const ANTHROPIC_KNOWN_KEYS: &[&str] = &[
+    "model",
+    "messages",
+    "system",
+    "max_tokens",
+    "temperature",
+    "top_p",
+    "top_k",
+    "stop_sequences",
+    "stream",
+    "metadata",
+    "tools",
+    "tool_choice",
+];
+
+/// Adapter for Anthropic Messages API.
+pub struct AnthropicAdapter;
+
+impl ProviderAdapter for AnthropicAdapter {
+    fn format(&self) -> ProviderFormat {
+        ProviderFormat::Anthropic
+    }
+
+    fn directory_name(&self) -> &'static str {
+        "anthropic"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Anthropic"
+    }
+
+    fn detect_request(&self, payload: &Value) -> bool {
+        try_parse_anthropic(payload).is_ok()
+    }
+
+    fn request_to_universal(&self, payload: &Value) -> Result<UniversalRequest, TransformError> {
+        let request: CreateMessageParams = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(request.messages)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        // Anthropic uses stop_sequences instead of stop
+        let stop = payload
+            .get("stop_sequences")
+            .cloned();
+
+        let params = UniversalParams {
+            temperature: request.temperature,
+            top_p: request.top_p,
+            top_k: request.top_k,
+            max_tokens: Some(request.max_tokens),
+            stop,
+            tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
+            tool_choice: request.tool_choice.and_then(|t| serde_json::to_value(t).ok()),
+            response_format: None, // Anthropic doesn't use response_format
+            seed: None, // Anthropic doesn't support seed
+            presence_penalty: None, // Anthropic doesn't support these
+            frequency_penalty: None,
+            stream: request.stream,
+        };
+
+        Ok(UniversalRequest {
+            model: Some(request.model),
+            messages,
+            params,
+            extras: collect_extras(payload, ANTHROPIC_KNOWN_KEYS),
+        })
+    }
+
+    fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
+        let model = req.model.as_ref().ok_or(TransformError::ValidationFailed {
+            target: ProviderFormat::Anthropic,
+            reason: "missing model".to_string(),
+        })?;
+
+        // Clone messages and extract system messages (Anthropic uses separate `system` param)
+        let mut msgs = req.messages.clone();
+        let system_contents = extract_system_messages(&mut msgs);
+
+        // Convert remaining messages
+        let anthropic_messages: Vec<InputMessage> =
+            <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+
+        let mut obj = Map::new();
+        obj.insert("model".into(), Value::String(model.clone()));
+        obj.insert(
+            "messages".into(),
+            serde_json::to_value(anthropic_messages)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+        );
+
+        // Add system message if present
+        if !system_contents.is_empty() {
+            let system_text: String = system_contents
+                .iter()
+                .filter_map(|c| match c {
+                    UserContent::String(s) => Some(s.as_str()),
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+                .join("\n\n");
+            obj.insert("system".into(), Value::String(system_text));
+        }
+
+        // max_tokens is required for Anthropic - use the value from params or default
+        let max_tokens = req.params.max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
+        obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
+
+        // Insert other params
+        insert_opt_f64(&mut obj, "temperature", req.params.temperature);
+        insert_opt_f64(&mut obj, "top_p", req.params.top_p);
+        insert_opt_i64(&mut obj, "top_k", req.params.top_k);
+
+        // Anthropic uses stop_sequences instead of stop
+        if let Some(stop) = &req.params.stop {
+            obj.insert("stop_sequences".into(), stop.clone());
+        }
+
+        insert_opt_value(&mut obj, "tools", req.params.tools.clone());
+        insert_opt_value(&mut obj, "tool_choice", req.params.tool_choice.clone());
+        insert_opt_bool(&mut obj, "stream", req.params.stream);
+
+        // Merge extras
+        for (k, v) in &req.extras {
+            obj.insert(k.clone(), v.clone());
+        }
+
+        Ok(Value::Object(obj))
+    }
+
+    fn apply_defaults(&self, req: &mut UniversalRequest) {
+        // Anthropic requires max_tokens - set default if not provided
+        if req.params.max_tokens.is_none() {
+            req.params.max_tokens = Some(DEFAULT_MAX_TOKENS);
+        }
+    }
+
+    fn detect_response(&self, payload: &Value) -> bool {
+        // Anthropic response has content[] array and type="message"
+        payload.get("content").and_then(Value::as_array).is_some()
+            && payload
+                .get("type")
+                .and_then(Value::as_str)
+                .is_some_and(|t| t == "message")
+    }
+
+    fn response_to_universal(&self, payload: &Value) -> Result<UniversalResponse, TransformError> {
+        let content = payload
+            .get("content")
+            .and_then(Value::as_array)
+            .ok_or_else(|| TransformError::ToUniversalFailed("missing content".to_string()))?;
+
+        let content_blocks: Vec<ContentBlock> = content
+            .iter()
+            .map(|v| {
+                serde_json::from_value(v.clone())
+                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<ContentBlock>>>::try_from(content_blocks)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        let finish_reason = payload
+            .get("stop_reason")
+            .and_then(Value::as_str)
+            .map(FinishReason::from_str);
+
+        let usage = payload.get("usage").map(|u| UniversalUsage {
+            input_tokens: u.get("input_tokens").and_then(Value::as_i64),
+            output_tokens: u.get("output_tokens").and_then(Value::as_i64),
+        });
+
+        Ok(UniversalResponse {
+            model: payload
+                .get("model")
+                .and_then(Value::as_str)
+                .map(String::from),
+            messages,
+            usage,
+            finish_reason,
+            extras: Map::new(),
+        })
+    }
+
+    fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError> {
+        let content_blocks =
+            <Vec<ContentBlock> as TryFromLLM<Vec<Message>>>::try_from(resp.messages.clone())
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+
+        let content_value = serde_json::to_value(&content_blocks)
+            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+
+        let stop_reason = self
+            .map_finish_reason(resp.finish_reason.as_ref())
+            .unwrap_or_else(|| "end_turn".to_string());
+
+        let mut obj = serde_json::json!({
+            "id": resp.extras.get("id").and_then(Value::as_str).unwrap_or("transformed"),
+            "type": "message",
+            "role": "assistant",
+            "content": content_value,
+            "model": resp.model.as_deref().unwrap_or("transformed"),
+            "stop_reason": stop_reason
+        });
+
+        if let Some(usage) = &resp.usage {
+            obj.as_object_mut().unwrap().insert(
+                "usage".into(),
+                serde_json::json!({
+                    "input_tokens": usage.input_tokens.unwrap_or(0),
+                    "output_tokens": usage.output_tokens.unwrap_or(0)
+                }),
+            );
+        }
+
+        Ok(obj)
+    }
+
+    fn map_finish_reason(&self, reason: Option<&FinishReason>) -> Option<String> {
+        reason.map(|r| match r {
+            FinishReason::Stop => "end_turn".to_string(),
+            FinishReason::Length => "max_tokens".to_string(),
+            FinishReason::ToolCalls => "tool_use".to_string(),
+            FinishReason::ContentFilter => "content_filter".to_string(),
+            FinishReason::Other(s) => s.clone(),
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::serde_json::json;
+
+    #[test]
+    fn test_anthropic_detect_request() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_anthropic_passthrough() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+
+        let universal = adapter.request_to_universal(&payload).unwrap();
+        assert_eq!(universal.model, Some("claude-3-5-sonnet-20241022".to_string()));
+        assert_eq!(universal.params.max_tokens, Some(1024));
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(reconstructed.get("model").unwrap(), "claude-3-5-sonnet-20241022");
+        assert_eq!(reconstructed.get("max_tokens").unwrap(), 1024);
+    }
+
+    #[test]
+    fn test_anthropic_apply_defaults() {
+        let adapter = AnthropicAdapter;
+        let mut req = UniversalRequest {
+            model: Some("claude-3-5-sonnet-20241022".to_string()),
+            messages: vec![],
+            params: UniversalParams::default(),
+            extras: Map::new(),
+        };
+
+        assert!(req.params.max_tokens.is_none());
+        adapter.apply_defaults(&mut req);
+        assert_eq!(req.params.max_tokens, Some(DEFAULT_MAX_TOKENS));
+    }
+
+    #[test]
+    fn test_anthropic_preserves_existing_max_tokens() {
+        let adapter = AnthropicAdapter;
+        let mut req = UniversalRequest {
+            model: Some("claude-3-5-sonnet-20241022".to_string()),
+            messages: vec![],
+            params: UniversalParams {
+                max_tokens: Some(8192),
+                ..Default::default()
+            },
+            extras: Map::new(),
+        };
+
+        adapter.apply_defaults(&mut req);
+        assert_eq!(req.params.max_tokens, Some(8192));
+    }
+}

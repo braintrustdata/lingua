@@ -10,8 +10,6 @@ Note: Google's official types are protobuf-generated (prost) without
 serde support. We use custom serde structs for validation.
 */
 
-use crate::capabilities::ProviderFormat;
-use crate::processing::FormatDetector;
 use crate::serde_json::{self, Value};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -146,35 +144,6 @@ pub struct GoogleFunctionDeclaration {
     pub parameters: Option<Value>,
 }
 
-/// Detector for Google AI / Gemini format.
-///
-/// Detection is performed by attempting to deserialize the payload
-/// into `GoogleGenerateContentRequest`. If deserialization succeeds,
-/// the payload is valid Google format.
-///
-/// Google's GenerateContent API has distinctive features:
-/// - `contents` array instead of `messages`
-/// - Content items have `parts` array
-/// - Role can be `model` instead of `assistant`
-/// - `generationConfig` for generation parameters
-#[derive(Debug, Clone, Copy)]
-pub struct GoogleDetector;
-
-impl FormatDetector for GoogleDetector {
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::Google
-    }
-
-    fn detect(&self, payload: &Value) -> bool {
-        // Attempt to deserialize into Google struct - if it works, it's valid Google format
-        try_parse_google(payload).is_ok()
-    }
-
-    fn priority(&self) -> u8 {
-        90 // High priority - very distinctive structure
-    }
-}
-
 /// Attempt to parse a JSON Value as Google GenerateContentRequest.
 ///
 /// Returns the parsed struct if successful, or an error if the payload
@@ -301,24 +270,5 @@ mod tests {
 
         let result = try_parse_google(&payload);
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_detector_uses_struct_validation() {
-        let detector = GoogleDetector;
-
-        // Valid Google format
-        let valid = json!({
-            "contents": [{
-                "parts": [{"text": "Hello"}]
-            }]
-        });
-        assert!(detector.detect(&valid));
-
-        // Invalid - uses "messages" instead of "contents"
-        let invalid = json!({
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
-        assert!(!detector.detect(&invalid));
     }
 }

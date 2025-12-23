@@ -1,16 +1,15 @@
+pub mod adapters;
 pub mod dedup;
-pub mod defaults;
-pub mod detect;
-pub mod detector;
 pub mod import;
 pub mod transform;
 
+pub use adapters::{
+    adapter_for_format, adapters, collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64,
+    insert_opt_string, insert_opt_value, ProviderAdapter,
+};
 pub use dedup::deduplicate_messages;
-pub use defaults::{apply_provider_defaults, get_defaults_for_format, RequestDefaults};
-pub use detect::DetectionError;
-pub use detector::FormatDetector;
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
 pub use transform::{
-    from_universal, is_valid_for_format, to_universal, transform_request, validate_or_transform,
+    is_valid_for_format, transform_request, transform_response, validate_or_transform,
     TransformError, TransformResult,
 };

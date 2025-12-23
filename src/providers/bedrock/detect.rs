@@ -6,8 +6,6 @@ AWS Bedrock Converse API format by attempting to deserialize
 into the Bedrock struct types.
 */
 
-use crate::capabilities::ProviderFormat;
-use crate::processing::FormatDetector;
 use crate::providers::bedrock::request::ConverseRequest;
 use crate::serde_json::{self, Value};
 use thiserror::Error;
@@ -17,34 +15,6 @@ use thiserror::Error;
 pub enum DetectionError {
     #[error("Deserialization failed: {0}")]
     DeserializationFailed(String),
-}
-
-/// Detector for AWS Bedrock Converse API format.
-///
-/// Detection is performed by attempting to deserialize the payload
-/// into `ConverseRequest`. If deserialization succeeds, the payload
-/// is valid Bedrock Converse format.
-///
-/// Bedrock Converse has very distinctive features:
-/// - `modelId` field instead of `model`
-/// - `inferenceConfig` instead of generation config
-/// - camelCase content types (`toolUse`, `toolResult`)
-#[derive(Debug, Clone, Copy)]
-pub struct ConverseDetector;
-
-impl FormatDetector for ConverseDetector {
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::Converse
-    }
-
-    fn detect(&self, payload: &Value) -> bool {
-        // Attempt to deserialize into Bedrock struct - if it works, it's valid Bedrock format
-        try_parse_bedrock(payload).is_ok()
-    }
-
-    fn priority(&self) -> u8 {
-        95 // Highest priority - very distinctive format with modelId
-    }
 }
 
 /// Attempt to parse a JSON Value as Bedrock ConverseRequest.
@@ -242,27 +212,5 @@ mod tests {
 
         let result = try_parse_bedrock(&payload);
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_detector_uses_struct_validation() {
-        let detector = ConverseDetector;
-
-        // Valid Bedrock format
-        let valid = json!({
-            "modelId": "anthropic.claude-3-sonnet",
-            "messages": [{
-                "role": "user",
-                "content": [{"text": "Hello"}]
-            }]
-        });
-        assert!(detector.detect(&valid));
-
-        // Invalid - uses "model" instead of "modelId"
-        let invalid = json!({
-            "model": "gpt-4",
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
-        assert!(!detector.detect(&invalid));
     }
 }
