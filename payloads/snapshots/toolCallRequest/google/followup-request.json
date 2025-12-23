@@ -1,0 +1,51 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What's the weather like in San Francisco?"
+        }
+      ]
+    },
+    {
+      "parts": [
+        {
+          "text": "I need to know which state San Francisco is in.",
+          "thoughtSignature": "CpQDAXLI2nycZHzmwtbR1O0II6PzWoBs+ZkmPt7RS4c2JQ/GFJ8cz3U103KezG75qcvOf+Gny2dpm2aHuL9c35lpiiNZahNH42sZTxD4ntsuOrzOI+cg/GoTyypYBLvAss222NvlErwnAKh11nS/y4MKDbyRuD9QQKxKl20D4MjiXreI9RLFv9F4zRU8egMUwGxuGavgv50J47XVJniB/00pCeQzAJP9YRawHd9bN0NWomkgdwg5X3Ra6WnG22sJuf35GVIgFkfzXnT9YCSAtJx2hrmn0wLi0olVjexhJnNquxdqvo4rFxCXQgFi1Jrqp3n5C6nZ/8v57AZM9o5B3UKheUeLLBFcVorB4ZdJ7U0ZioPr6QJlex+g6NN84+2GpcXMUb/5LV48sAjQZGoI8xjmNXInm3wHKZfsqD+vXYXiKmA8ue6joVqh6fZ5aa5p36DplLwXfkFcsPSzaZP0D+yfyLY6kEBhTowoqlK1AU7wEngyE/Cfbb4YBvv1F+tkWje65SfOvd28MngWMMe52LhSjVk7jBM="
+        }
+      ],
+      "role": "model"
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get the current weather for a location",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "location": {
+                "type": "STRING",
+                "description": "The city and state, e.g. San Francisco, CA"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

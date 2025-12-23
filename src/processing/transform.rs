@@ -267,24 +267,18 @@ fn detect_source_format(payload: &Value) -> Result<ProviderFormat, TransformErro
 /// use lingua::capabilities::ProviderFormat;
 /// use lingua::serde_json::json;
 ///
-/// // OpenAI response
-/// let openai_response = json!({
-///     "id": "chatcmpl-123",
-///     "object": "chat.completion",
-///     "model": "gpt-4",
-///     "choices": [{
-///         "index": 0,
-///         "message": {
-///             "role": "assistant",
-///             "content": "Hello!"
-///         },
-///         "finish_reason": "stop"
-///     }],
-///     "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}
+/// // Google response
+/// let google_response = json!({
+///     "candidates": [{
+///         "content": {
+///             "role": "model",
+///             "parts": [{"text": "Hello!"}]
+///         }
+///     }]
 /// });
 ///
-/// // Transform to Anthropic format
-/// let result = transform_response(&openai_response, ProviderFormat::Anthropic).unwrap();
+/// // Transform to OpenAI format
+/// let result = transform_response(&google_response, ProviderFormat::OpenAI).unwrap();
 /// ```
 pub fn transform_response(
     response: &Value,
@@ -374,7 +368,6 @@ mod tests {
 
     #[test]
     #[cfg(feature = "google")]
-    #[ignore = "GoogleAdapter not registered yet"]
     fn test_validate_google_passthrough() {
         let payload = json!({
             "contents": [{

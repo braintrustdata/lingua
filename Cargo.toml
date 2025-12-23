@@ -69,7 +69,7 @@ path = "scripts/generate_types/main.rs"
 [[bin]]
 name = "coverage-report"
 path = "src/bin/coverage-report/main.rs"
-required-features = ["openai", "anthropic"]
+required-features = ["openai", "anthropic", "google", "bedrock"]
 
 [lib]
 name = "lingua"

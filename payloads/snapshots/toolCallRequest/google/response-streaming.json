@@ -1,0 +1,53 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_weather",
+                "args": {
+                  "location": "San Francisco, CA"
+                }
+              },
+              "thoughtSignature": "CiQBcsjafLpjXzdrfX6/TW5aZ93PbKQUx6Yr3C5ovooPZQXF5kEKawFyyNp808QOQLd3k8RgqUO3LLqceJwIUjxdjBKMz6yt9flS/+Zo6+XsPXNm+96jeg6TOZ6WnTS1uZrkJftiTLZdhVxS5fkvbXZ082kFUtC7GARgHR1GwOq+2BV8LjLcKSjpubG0VgyAVG2aCpACAXLI2nyOiofAE8ACDYCqlLlNeRrmSIkrZPS6qpYTOgEW/NqN2k5CPfnn5XW+ubVQUiqCAOaqLwd6/F3Im2uJqarf/Vc5N0dcwz7PQPhDvKmhwjKUiJog4czvVz7VLV4FXrZZ539Iq2Bv/rreHXDSERIw5TCvM58TQXcTo8xcD4v13lH5kz4zm3FdYRCDvN7gxf7UW20DGU4TeIwHQ7ELDyBoES25KtJfAfS2/TN1f7qzDWvdT7YD/yJ+qcaVtaQgMfJXr2ZZ0gjWQpBR8nQJVHm3okIbYCLEapgsE1idgjhmGXlFuE/WbCJKSU6GAV0h06mWUNgMcIp9sv1pgR2kd2OktST09q2bZU6t9YKamIsKIwFyyNp8JdTRCA9Vh/DwwhHbO79fOJZnZT/eNUzYD4fAVxyg"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHadHaFuOzjrEPsYao4Ac",
+    "usageMetadata": {
+      "promptTokenCount": 62,
+      "candidatesTokenCount": 18,
+      "totalTokenCount": 150,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 62
+        }
+      ],
+      "thoughtsTokenCount": 70
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:57 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=743",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  }
+]

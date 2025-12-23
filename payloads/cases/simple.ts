@@ -1,3 +1,4 @@
+import { Type } from "@google/genai";
 import { TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -39,6 +40,15 @@ export const simpleCases: TestCaseCollection = {
         {
           role: "user",
           content: "What is the capital of France?",
+        },
+      ],
+    },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What is the capital of France?" }],
         },
       ],
     },
@@ -85,6 +95,19 @@ export const simpleCases: TestCaseCollection = {
           role: "user",
           content:
             "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+    },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+            },
+          ],
         },
       ],
     },
@@ -139,6 +162,22 @@ export const simpleCases: TestCaseCollection = {
             "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
+    },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+            },
+          ],
+        },
+      ],
+      config: {
+        maxOutputTokens: 100,
+      },
     },
 
     bedrock: {
@@ -240,6 +279,35 @@ export const simpleCases: TestCaseCollection = {
             },
             required: ["location"],
           },
+        },
+      ],
+    },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What's the weather like in San Francisco?" }],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get the current weather for a location",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  location: {
+                    type: Type.STRING,
+                    description: "The city and state, e.g. San Francisco, CA",
+                  },
+                },
+                required: ["location"],
+              },
+            },
+          ],
         },
       ],
     },

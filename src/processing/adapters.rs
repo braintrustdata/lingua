@@ -153,24 +153,26 @@ pub fn insert_opt_string(obj: &mut Map<String, Value>, key: &str, value: Option<
 /// Get all registered adapters in detection priority order.
 ///
 /// Priority order (most specific first):
-/// 1. Anthropic (requires max_tokens, has specific structure)
-/// 2. Bedrock Converse (uses modelId, has inferenceConfig)
-/// 3. Responses (OpenAI Responses API - specific input/output structure)
-/// 4. OpenAI (most permissive, fallback)
+/// 1. Responses API (has unique `input` field)
+/// 2. OpenAI (most permissive, fallback)
+/// 3. Anthropic
+/// 4. Google
+/// 5. Bedrock (has unique `modelId` field)
 pub fn adapters() -> Vec<Box<dyn ProviderAdapter>> {
     let mut list: Vec<Box<dyn ProviderAdapter>> = Vec::new();
 
     // Note: Order matters for detection - more specific formats first
-    #[cfg(feature = "anthropic")]
-    list.push(Box::new(crate::providers::anthropic::AnthropicAdapter));
+    #[cfg(feature = "openai")]
+    list.push(Box::new(crate::providers::openai::ResponsesAdapter));
 
-    // Bedrock uses modelId which is distinct
     #[cfg(feature = "bedrock")]
     list.push(Box::new(crate::providers::bedrock::BedrockAdapter));
 
-    // Responses must come before OpenAI since it's more specific
-    #[cfg(feature = "openai")]
-    list.push(Box::new(crate::providers::openai::ResponsesAdapter));
+    #[cfg(feature = "google")]
+    list.push(Box::new(crate::providers::google::GoogleAdapter));
+
+    #[cfg(feature = "anthropic")]
+    list.push(Box::new(crate::providers::anthropic::AnthropicAdapter));
 
     #[cfg(feature = "openai")]
     list.push(Box::new(crate::providers::openai::OpenAIAdapter));
