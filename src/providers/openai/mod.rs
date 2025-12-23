@@ -13,8 +13,8 @@ pub mod detect;
 pub mod generated;
 pub mod transformations;
 
-// Re-export adapter
-pub use adapter::OpenAIAdapter;
+// Re-export adapters
+pub use adapter::{OpenAIAdapter, ResponsesAdapter};
 
 #[cfg(test)]
 pub mod test_responses;
@@ -25,8 +25,11 @@ pub mod test_chat_completions;
 #[cfg(test)]
 pub mod test_transformations;
 
-// Re-export detection function
-pub use detect::{try_parse_openai, DetectionError};
+// Re-export detection functions
+pub use detect::{try_parse_openai, try_parse_responses, DetectionError};
+
+// Re-export conversion functions
+pub use convert::universal_to_responses_input;
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{

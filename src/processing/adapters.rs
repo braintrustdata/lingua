@@ -154,13 +154,18 @@ pub fn insert_opt_string(obj: &mut Map<String, Value>, key: &str, value: Option<
 ///
 /// Priority order (most specific first):
 /// 1. Anthropic (requires max_tokens, has specific structure)
-/// 2. OpenAI (most permissive, fallback)
+/// 2. Responses (OpenAI Responses API - specific input/output structure)
+/// 3. OpenAI (most permissive, fallback)
 pub fn adapters() -> Vec<Box<dyn ProviderAdapter>> {
     let mut list: Vec<Box<dyn ProviderAdapter>> = Vec::new();
 
     // Note: Order matters for detection - more specific formats first
     #[cfg(feature = "anthropic")]
     list.push(Box::new(crate::providers::anthropic::AnthropicAdapter));
+
+    // Responses must come before OpenAI since it's more specific
+    #[cfg(feature = "openai")]
+    list.push(Box::new(crate::providers::openai::ResponsesAdapter));
 
     #[cfg(feature = "openai")]
     list.push(Box::new(crate::providers::openai::OpenAIAdapter));
