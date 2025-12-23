@@ -6,11 +6,15 @@ that match the TypeScript SDK exactly, now automatically generated from the offi
 OpenAI OpenAPI specification.
 */
 
+pub mod adapter;
 pub mod capabilities;
 pub mod convert;
 pub mod detect;
 pub mod generated;
 pub mod transformations;
+
+// Re-export adapter
+pub use adapter::OpenAIAdapter;
 
 #[cfg(test)]
 pub mod test_responses;
@@ -21,11 +25,8 @@ pub mod test_chat_completions;
 #[cfg(test)]
 pub mod test_transformations;
 
-// Re-export detection functions and detector
-pub use detect::{try_parse_openai, DetectionError, OpenAIDetector};
-
-// Re-export conversion functions
-pub use convert::universal_to_responses_input;
+// Re-export detection function
+pub use detect::{try_parse_openai, DetectionError};
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{

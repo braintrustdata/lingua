@@ -15,8 +15,8 @@ pub use aws_sdk_bedrockruntime::types::{
     ContentBlock, ConversationRole, Message, SystemContentBlock,
 };
 
-// Re-export detection functions and detector
-pub use detect::{try_parse_bedrock, ConverseDetector, DetectionError};
+// Re-export detection functions
+pub use detect::{try_parse_bedrock, DetectionError};
 
 // Re-export conversion functions
 pub use convert::{bedrock_to_universal, universal_to_bedrock};

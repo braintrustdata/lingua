@@ -5,8 +5,8 @@ pub mod convert;
 pub mod detect;
 pub mod generated;
 
-// Re-export detection functions and detector
-pub use detect::{try_parse_google, DetectionError, GoogleDetector, GoogleGenerateContentRequest};
+// Re-export detection functions
+pub use detect::{try_parse_google, DetectionError, GoogleGenerateContentRequest};
 
 // Re-export conversion functions
 pub use convert::{google_to_universal, universal_to_google};

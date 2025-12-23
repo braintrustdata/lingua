@@ -6,9 +6,7 @@ OpenAI chat completion format by attempting to deserialize into
 the OpenAI struct types.
 */
 
-use crate::capabilities::ProviderFormat;
-use crate::processing::FormatDetector;
-use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+use crate::providers::openai::generated::{CreateChatCompletionRequestClass, CreateResponseClass};
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
@@ -17,31 +15,6 @@ use thiserror::Error;
 pub enum DetectionError {
     #[error("Deserialization failed: {0}")]
     DeserializationFailed(String),
-}
-
-/// Detector for OpenAI Chat Completions API format.
-///
-/// Detection is performed by attempting to deserialize the payload
-/// into `CreateChatCompletionRequestClass`. If deserialization succeeds,
-/// the payload is valid OpenAI format.
-///
-/// OpenAI format is the most permissive and serves as a fallback.
-#[derive(Debug, Clone, Copy)]
-pub struct OpenAIDetector;
-
-impl FormatDetector for OpenAIDetector {
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::OpenAI
-    }
-
-    fn detect(&self, payload: &Value) -> bool {
-        // Attempt to deserialize into OpenAI struct - if it works, it's valid OpenAI format
-        try_parse_openai(payload).is_ok()
-    }
-
-    fn priority(&self) -> u8 {
-        50 // Lowest priority - fallback format (most permissive)
-    }
 }
 
 /// Attempt to parse a JSON Value as OpenAI CreateChatCompletionRequestClass.
@@ -65,6 +38,32 @@ impl FormatDetector for OpenAIDetector {
 pub fn try_parse_openai(
     payload: &Value,
 ) -> Result<CreateChatCompletionRequestClass, DetectionError> {
+    serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
+}
+
+/// Attempt to parse a JSON Value as OpenAI Responses API CreateResponseClass.
+///
+/// Returns the parsed struct if successful, or an error if the payload
+/// is not valid Responses API format.
+///
+/// The key distinguishing feature is the `input` field (array of InputItem or string)
+/// instead of the `messages` field used by Chat Completions.
+pub fn try_parse_responses(payload: &Value) -> Result<CreateResponseClass, DetectionError> {
+    // First check for Responses-specific indicators
+    // Responses API uses "input" field (not "messages" like Chat Completions)
+    let has_input = payload.get("input").is_some();
+
+    // Also check it doesn't have Chat Completions indicators
+    let has_messages = payload.get("messages").is_some();
+
+    if !has_input || has_messages {
+        return Err(DetectionError::DeserializationFailed(
+            "Not a Responses API payload: missing 'input' field or has 'messages' field"
+                .to_string(),
+        ));
+    }
+
     serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
@@ -322,21 +321,4 @@ mod tests {
         let _ = result;
     }
 
-    #[test]
-    fn test_detector_uses_struct_validation() {
-        let detector = OpenAIDetector;
-
-        // Valid OpenAI format
-        let valid = json!({
-            "model": "gpt-4",
-            "messages": [{"role": "user", "content": "Hello"}]
-        });
-        assert!(detector.detect(&valid));
-
-        // Invalid - no messages
-        let invalid = json!({
-            "model": "gpt-4"
-        });
-        assert!(!detector.detect(&invalid));
-    }
 }
