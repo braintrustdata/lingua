@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The sky typically appears **blue** during the day. This happens because of a phenomenon called Rayleigh scattering, where shorter blue wavelengths of sunlight scatter more in Earth's atmosphere than longer red wavelengths.\n\nHowever, the sky can appear different colors depending on conditions:\n- **Orange or red** during sunrise and sunset\n- **Gray or white** on cloudy days\n- **Deep blue or purple** at high altitudes\n- **Black** at night (in space, the sky is always black)"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 13,
+    "outputTokens": 115,
+    "totalTokens": 128,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1822
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "920c64fe-dc25-4f01-939e-9a09f794a11c",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

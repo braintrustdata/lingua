@@ -1,0 +1,37 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "The capital of France is Paris."
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "end_turn"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 14,
+        "outputTokens": 10,
+        "totalTokens": 24
+      },
+      "metrics": {
+        "latencyMs": 1687
+      }
+    }
+  }
+]

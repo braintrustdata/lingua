@@ -389,7 +389,6 @@ mod tests {
 
     #[test]
     #[cfg(feature = "bedrock")]
-    #[ignore = "BedrockAdapter not registered yet"]
     fn test_validate_bedrock_passthrough() {
         let payload = json!({
             "modelId": "anthropic.claude-3-sonnet",

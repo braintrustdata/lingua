@@ -154,14 +154,19 @@ pub fn insert_opt_string(obj: &mut Map<String, Value>, key: &str, value: Option<
 ///
 /// Priority order (most specific first):
 /// 1. Anthropic (requires max_tokens, has specific structure)
-/// 2. Responses (OpenAI Responses API - specific input/output structure)
-/// 3. OpenAI (most permissive, fallback)
+/// 2. Bedrock Converse (uses modelId, has inferenceConfig)
+/// 3. Responses (OpenAI Responses API - specific input/output structure)
+/// 4. OpenAI (most permissive, fallback)
 pub fn adapters() -> Vec<Box<dyn ProviderAdapter>> {
     let mut list: Vec<Box<dyn ProviderAdapter>> = Vec::new();
 
     // Note: Order matters for detection - more specific formats first
     #[cfg(feature = "anthropic")]
     list.push(Box::new(crate::providers::anthropic::AnthropicAdapter));
+
+    // Bedrock uses modelId which is distinct
+    #[cfg(feature = "bedrock")]
+    list.push(Box::new(crate::providers::bedrock::BedrockAdapter));
 
     // Responses must come before OpenAI since it's more specific
     #[cfg(feature = "openai")]

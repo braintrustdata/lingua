@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "That depends on what you'd like to do! Here are some options:\n\n1. **Practice similar problems** - Try calculating average speed with different speeds and times to reinforce the concept\n\n2. **Explore related concepts** - Learn about:\n   - Distance = Speed × Time problems\n   - Acceleration and deceleration\n   - Relative speed (two objects moving)\n\n3. **Real-world applications** - Apply this to:\n   - Planning a road trip\n   - Analyzing commute times\n   - Comparing travel routes\n\n4. **More complex scenarios** - Try problems with:\n   - More than 2 segments\n   - Finding missing values (e.g., \"what speed for 1 hour to reach avg of 70 mph?\")\n\n5. **Move to a different topic** - Work on something entirely new\n\n**What interests you most?** Let me know and I can help you work through it!"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 295,
+    "outputTokens": 206,
+    "totalTokens": 501,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 2452
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "d4b2a4a1-bd05-4868-a75d-6b38a5c85252",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

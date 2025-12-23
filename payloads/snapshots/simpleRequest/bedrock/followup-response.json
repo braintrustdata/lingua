@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "That depends on what you're interested in! Here are some common options:\n\n- **Learn more** - Ask me about Paris, France, or any other topic you're curious about\n- **Continue a conversation** - Tell me what you'd like to discuss or work on\n- **Get help with a task** - I can assist with writing, analysis, coding, math, and much more\n- **Ask a different question** - Anything else on your mind?\n\nWhat would be most helpful for you?"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 33,
+    "outputTokens": 109,
+    "totalTokens": 142,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1625
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "a6e208da-7ba4-4f64-ae25-ba4506cddcd2",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
