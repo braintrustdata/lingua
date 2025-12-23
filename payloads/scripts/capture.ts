@@ -9,6 +9,7 @@ import { saveAllFiles } from "./file-manager";
 import { openaiExecutor } from "./providers/openai";
 import { openaiResponsesExecutor } from "./providers/openai-responses";
 import { anthropicExecutor } from "./providers/anthropic";
+import { googleExecutor } from "./providers/google";
 import { bedrockExecutor } from "./providers/bedrock";
 import { ProviderExecutor } from "./types";
 
@@ -17,6 +18,7 @@ const allProviders = [
   { ...openaiExecutor, name: "chat-completions" },
   openaiResponsesExecutor,
   anthropicExecutor,
+  googleExecutor,
   bedrockExecutor,
 ] as const;
 

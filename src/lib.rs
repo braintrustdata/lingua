@@ -13,8 +13,8 @@ pub mod validation;
 // Re-export key types for external use
 pub use capabilities::ProviderFormat;
 pub use processing::{
-    adapter_for_format, adapters, is_valid_for_format, transform_request, transform_response,
-    validate_or_transform, ProviderAdapter, TransformError, TransformResult,
+    is_valid_for_format, transform_request, transform_response, validate_or_transform,
+    ProviderAdapter, TransformError, TransformResult,
 };
 
 #[cfg(target_arch = "wasm32")]

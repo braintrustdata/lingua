@@ -1,3 +1,4 @@
+import { Type } from "@google/genai";
 import { TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -78,6 +79,27 @@ export const advancedCases: TestCaseCollection = {
       ],
     },
 
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "What do you see in this image?" },
+            {
+              fileData: {
+                mimeType: "image/jpeg",
+                fileUri:
+                  "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+              },
+            },
+          ],
+        },
+      ],
+      config: {
+        maxOutputTokens: 300,
+      },
+    },
+
     bedrock: {
       modelId: BEDROCK_MODEL,
       messages: [
@@ -140,6 +162,22 @@ export const advancedCases: TestCaseCollection = {
       ],
     },
 
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+            },
+          ],
+        },
+      ],
+      config: {
+        maxOutputTokens: 20_000,
+      },
+    },
+
     bedrock: {
       modelId: BEDROCK_MODEL,
       messages: [
@@ -185,6 +223,15 @@ export const advancedCases: TestCaseCollection = {
         {
           role: "user",
           content: "What color is the sky?",
+        },
+      ],
+    },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What color is the sky?" }],
         },
       ],
     },
@@ -286,6 +333,35 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
       tool_choice: "auto",
+    },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What's the weather like in San Francisco?" }],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get the current weather for a location",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  location: {
+                    type: Type.STRING,
+                    description: "The city and state, e.g. San Francisco, CA",
+                  },
+                },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
     },
 
     bedrock: {

@@ -1,9 +1,13 @@
 // Google AI Generative Language API types
 // Generated from official protobuf files
 
+pub mod adapter;
 pub mod convert;
 pub mod detect;
 pub mod generated;
+
+// Re-export adapter
+pub use adapter::GoogleAdapter;
 
 // Re-export detection functions
 pub use detect::{try_parse_google, DetectionError, GoogleGenerateContentRequest};
