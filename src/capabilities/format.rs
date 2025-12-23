@@ -26,6 +26,8 @@ pub enum ProviderFormat {
     Mistral,
     /// AWS Bedrock Converse API format
     Converse,
+    /// OpenAI Responses API format (for reasoning models like o1-pro, o3)
+    Responses,
     /// Unknown or undetectable format
     #[default]
     #[serde(other)]
@@ -47,6 +49,7 @@ impl std::fmt::Display for ProviderFormat {
             ProviderFormat::Google => "google",
             ProviderFormat::Mistral => "mistral",
             ProviderFormat::Converse => "converse",
+            ProviderFormat::Responses => "responses",
             ProviderFormat::Unknown => "unknown",
         };
         write!(f, "{}", s)
@@ -63,6 +66,7 @@ impl std::str::FromStr for ProviderFormat {
             "google" => Ok(ProviderFormat::Google),
             "mistral" => Ok(ProviderFormat::Mistral),
             "converse" | "bedrock" => Ok(ProviderFormat::Converse),
+            "responses" => Ok(ProviderFormat::Responses),
             _ => Err(()),
         }
     }
