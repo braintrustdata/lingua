@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The capital of France is Paris."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 14,
+    "outputTokens": 10,
+    "totalTokens": 24,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1118
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "ea8de8ab-e094-4b22-b225-6007ec9f2103",
+    "attempts": 2,
+    "totalRetryDelay": 473
+  }
+}

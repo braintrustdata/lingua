@@ -44,7 +44,7 @@ jobs:
 
       - name: Generate coverage report
         run: |
-          cargo run --bin coverage-report > coverage_report.md
+          cargo run --bin coverage-report --features bedrock > coverage_report.md
         # This job is informational only - it always succeeds
         # Click into the job summary to see the actual coverage report
 

@@ -5,10 +5,14 @@ This module contains type definitions for Amazon Bedrock's Converse API
 using the official AWS SDK types for maximum compatibility.
 */
 
+pub mod adapter;
 pub mod convert;
 pub mod detect;
 pub mod request;
 pub mod response;
+
+// Re-export adapter
+pub use adapter::BedrockAdapter;
 
 // Re-export commonly used AWS SDK types (note: these don't have Serde by default)
 pub use aws_sdk_bedrockruntime::types::{

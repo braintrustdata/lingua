@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "# Calculating Average Speed\n\n**Step 1: Find the distance for each segment**\n\nFirst segment:\n- Speed × Time = Distance\n- 60 mph × 2 hours = **120 miles**\n\nSecond segment:\n- 80 mph × 1 hour = **80 miles**\n\n**Step 2: Find total distance**\n- 120 + 80 = **200 miles**\n\n**Step 3: Find total"
+        }
+      ]
+    }
+  },
+  "stopReason": "max_tokens",
+  "usage": {
+    "inputTokens": 45,
+    "outputTokens": 100,
+    "totalTokens": 145,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1491
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "074813eb-3385-419a-bac2-a772204ac074",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
