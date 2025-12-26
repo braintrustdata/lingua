@@ -6,7 +6,9 @@ use std::collections::HashMap;
 
 use lingua::capabilities::ProviderFormat;
 use lingua::processing::adapters::ProviderAdapter;
-use lingua::processing::transform::{transform_request, transform_response, transform_stream_chunk};
+use lingua::processing::transform::{
+    transform_request, transform_response, transform_stream_chunk,
+};
 use lingua::serde_json::Value;
 
 use crate::discovery::{discover_test_cases, load_payload};
@@ -280,8 +282,9 @@ pub fn run_all_tests(
                 }
 
                 // Test streaming response transformation
-                let stream_pair_result =
-                    streaming_results.get_mut(&(source_idx, target_idx)).unwrap();
+                let stream_pair_result = streaming_results
+                    .get_mut(&(source_idx, target_idx))
+                    .unwrap();
 
                 let streaming_result = test_streaming_transformation(
                     test_case,

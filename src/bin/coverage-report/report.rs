@@ -94,8 +94,11 @@ pub fn generate_report(
     report.push_str(&resp_table);
 
     report.push('\n');
-    let (stream_table, stream_stats, stream_failures) =
-        generate_table(streaming_results, adapters, "Streaming Response Transformations");
+    let (stream_table, stream_stats, stream_failures) = generate_table(
+        streaming_results,
+        adapters,
+        "Streaming Response Transformations",
+    );
     report.push_str(&stream_table);
 
     let total_passed = req_stats.passed + resp_stats.passed + stream_stats.passed;
