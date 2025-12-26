@@ -10,6 +10,8 @@ pub use adapters::{
 pub use dedup::deduplicate_messages;
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
 pub use transform::{
-    is_valid_for_format, transform_request, transform_response, validate_or_transform,
-    TransformError, TransformResult,
+    apply_provider_defaults, from_universal_request, from_universal_response, is_valid_for_format,
+    parse_stream_event, sanitize_payload, to_universal_request, to_universal_response,
+    transform_request, transform_response, transform_stream_chunk, validate_or_transform,
+    ParsedStreamEvent, TransformError, TransformResult,
 };

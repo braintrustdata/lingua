@@ -56,6 +56,7 @@ pub struct GoogleContent {
     pub role: Option<String>,
 
     /// Content parts
+    #[serde(default)]
     pub parts: Vec<GooglePart>,
 }
 
@@ -271,5 +272,4 @@ mod tests {
         let result = try_parse_google(&payload);
         assert!(result.is_err());
     }
-
 }

@@ -186,7 +186,7 @@ impl ProviderAdapter for MyProviderAdapter {
         let finish_reason = payload
             .get("stop_reason")
             .and_then(Value::as_str)
-            .map(FinishReason::from_str);
+            .map(|s| s.parse().unwrap());
 
         // Extract usage info
         let usage = payload.get("usage").map(|u| UniversalUsage {

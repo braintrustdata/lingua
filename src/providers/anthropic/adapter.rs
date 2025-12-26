@@ -17,11 +17,11 @@ use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent};
-use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChunk,
-    UniversalStreamChoice, UniversalUsage,
-};
 use crate::universal::transform::extract_system_messages;
+use crate::universal::{
+    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalUsage,
+};
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
@@ -71,9 +71,7 @@ impl ProviderAdapter for AnthropicAdapter {
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         // Anthropic uses stop_sequences instead of stop
-        let stop = payload
-            .get("stop_sequences")
-            .cloned();
+        let stop = payload.get("stop_sequences").cloned();
 
         let params = UniversalParams {
             temperature: request.temperature,
@@ -82,9 +80,11 @@ impl ProviderAdapter for AnthropicAdapter {
             max_tokens: Some(request.max_tokens),
             stop,
             tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
-            tool_choice: request.tool_choice.and_then(|t| serde_json::to_value(t).ok()),
-            response_format: None, // Anthropic doesn't use response_format
-            seed: None, // Anthropic doesn't support seed
+            tool_choice: request
+                .tool_choice
+                .and_then(|t| serde_json::to_value(t).ok()),
+            response_format: None,  // Anthropic doesn't use response_format
+            seed: None,             // Anthropic doesn't support seed
             presence_penalty: None, // Anthropic doesn't support these
             frequency_penalty: None,
             stream: request.stream,
@@ -152,9 +152,13 @@ impl ProviderAdapter for AnthropicAdapter {
         insert_opt_value(&mut obj, "tool_choice", req.params.tool_choice.clone());
         insert_opt_bool(&mut obj, "stream", req.params.stream);
 
-        // Merge extras
+        // Merge extras - only include Anthropic-known fields
+        // This filters out OpenAI-specific fields like stream_options that would cause
+        // Anthropic to reject the request with "extra inputs are not permitted"
         for (k, v) in &req.extras {
-            obj.insert(k.clone(), v.clone());
+            if ANTHROPIC_KNOWN_KEYS.contains(&k.as_str()) {
+                obj.insert(k.clone(), v.clone());
+            }
         }
 
         Ok(Value::Object(obj))
@@ -196,11 +200,15 @@ impl ProviderAdapter for AnthropicAdapter {
         let finish_reason = payload
             .get("stop_reason")
             .and_then(Value::as_str)
-            .map(FinishReason::from_str);
+            .map(|s| s.parse().unwrap());
 
         let usage = payload.get("usage").map(|u| UniversalUsage {
-            input_tokens: u.get("input_tokens").and_then(Value::as_i64),
-            output_tokens: u.get("output_tokens").and_then(Value::as_i64),
+            prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
+            completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
+            prompt_cached_tokens: u.get("cache_read_input_tokens").and_then(Value::as_i64),
+            prompt_cache_creation_tokens: u
+                .get("cache_creation_input_tokens")
+                .and_then(Value::as_i64),
         });
 
         Ok(UniversalResponse {
@@ -240,8 +248,8 @@ impl ProviderAdapter for AnthropicAdapter {
             obj.as_object_mut().unwrap().insert(
                 "usage".into(),
                 serde_json::json!({
-                    "input_tokens": usage.input_tokens.unwrap_or(0),
-                    "output_tokens": usage.output_tokens.unwrap_or(0)
+                    "input_tokens": usage.prompt_tokens.unwrap_or(0),
+                    "output_tokens": usage.completion_tokens.unwrap_or(0)
                 }),
             );
         }
@@ -339,8 +347,12 @@ impl ProviderAdapter for AnthropicAdapter {
                 });
 
                 let usage = payload.get("usage").map(|u| UniversalUsage {
-                    input_tokens: u.get("input_tokens").and_then(Value::as_i64),
-                    output_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                    prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
+                    completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                    prompt_cached_tokens: u.get("cache_read_input_tokens").and_then(Value::as_i64),
+                    prompt_cache_creation_tokens: u
+                        .get("cache_creation_input_tokens")
+                        .and_then(Value::as_i64),
                 });
 
                 if finish_reason.is_some() || usage.is_some() {
@@ -371,10 +383,18 @@ impl ProviderAdapter for AnthropicAdapter {
                     .and_then(|m| m.get("id"))
                     .and_then(Value::as_str)
                     .map(String::from);
-                let usage = message.and_then(|m| m.get("usage")).map(|u| UniversalUsage {
-                    input_tokens: u.get("input_tokens").and_then(Value::as_i64),
-                    output_tokens: u.get("output_tokens").and_then(Value::as_i64),
-                });
+                let usage = message
+                    .and_then(|m| m.get("usage"))
+                    .map(|u| UniversalUsage {
+                        prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
+                        completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                        prompt_cached_tokens: u
+                            .get("cache_read_input_tokens")
+                            .and_then(Value::as_i64),
+                        prompt_cache_creation_tokens: u
+                            .get("cache_creation_input_tokens")
+                            .and_then(Value::as_i64),
+                    });
 
                 // Return chunk with metadata but mark as role initialization
                 Ok(Some(UniversalStreamChunk::new(
@@ -390,7 +410,12 @@ impl ProviderAdapter for AnthropicAdapter {
                 )))
             }
 
-            "message_stop" | "content_block_start" | "content_block_stop" | "ping" => {
+            "message_stop" => {
+                // Terminal event - don't emit any chunk
+                Ok(None)
+            }
+
+            "content_block_start" | "content_block_stop" | "ping" => {
                 // Metadata events - return keep-alive
                 Ok(Some(UniversalStreamChunk::keep_alive()))
             }
@@ -402,10 +427,7 @@ impl ProviderAdapter for AnthropicAdapter {
         }
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Value, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         if chunk.is_keep_alive() {
             // Return a ping event for keep-alive
             return Ok(serde_json::json!({"type": "ping"}));
@@ -439,8 +461,8 @@ impl ProviderAdapter for AnthropicAdapter {
                 obj.as_object_mut().unwrap().insert(
                     "usage".into(),
                     serde_json::json!({
-                        "input_tokens": usage.input_tokens.unwrap_or(0),
-                        "output_tokens": usage.output_tokens.unwrap_or(0)
+                        "input_tokens": usage.prompt_tokens.unwrap_or(0),
+                        "output_tokens": usage.completion_tokens.unwrap_or(0)
                     }),
                 );
             }
@@ -514,11 +536,17 @@ mod tests {
         });
 
         let universal = adapter.request_to_universal(&payload).unwrap();
-        assert_eq!(universal.model, Some("claude-3-5-sonnet-20241022".to_string()));
+        assert_eq!(
+            universal.model,
+            Some("claude-3-5-sonnet-20241022".to_string())
+        );
         assert_eq!(universal.params.max_tokens, Some(1024));
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        assert_eq!(reconstructed.get("model").unwrap(), "claude-3-5-sonnet-20241022");
+        assert_eq!(
+            reconstructed.get("model").unwrap(),
+            "claude-3-5-sonnet-20241022"
+        );
         assert_eq!(reconstructed.get("max_tokens").unwrap(), 1024);
     }
 

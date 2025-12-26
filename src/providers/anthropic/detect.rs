@@ -188,5 +188,4 @@ mod tests {
 
         assert!(try_parse_anthropic(&invalid_payload).is_err());
     }
-
 }

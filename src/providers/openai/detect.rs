@@ -320,5 +320,4 @@ mod tests {
         // Note: Due to OpenAI's permissive schema, this may pass
         let _ = result;
     }
-
 }

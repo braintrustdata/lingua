@@ -163,12 +163,18 @@ impl Serialize for UniversalUsage {
         S: serde::Serializer,
     {
         use serde::ser::SerializeStruct;
-        let mut state = serializer.serialize_struct("UniversalUsage", 2)?;
-        if let Some(input) = self.input_tokens {
-            state.serialize_field("input_tokens", &input)?;
+        let mut state = serializer.serialize_struct("UniversalUsage", 4)?;
+        if let Some(prompt) = self.prompt_tokens {
+            state.serialize_field("prompt_tokens", &prompt)?;
         }
-        if let Some(output) = self.output_tokens {
-            state.serialize_field("output_tokens", &output)?;
+        if let Some(completion) = self.completion_tokens {
+            state.serialize_field("completion_tokens", &completion)?;
+        }
+        if let Some(cached) = self.prompt_cached_tokens {
+            state.serialize_field("prompt_cached_tokens", &cached)?;
+        }
+        if let Some(cache_creation) = self.prompt_cache_creation_tokens {
+            state.serialize_field("prompt_cache_creation_tokens", &cache_creation)?;
         }
         state.end()
     }
@@ -181,13 +187,17 @@ impl<'de> Deserialize<'de> for UniversalUsage {
     {
         #[derive(Deserialize)]
         struct Helper {
-            input_tokens: Option<i64>,
-            output_tokens: Option<i64>,
+            prompt_tokens: Option<i64>,
+            completion_tokens: Option<i64>,
+            prompt_cached_tokens: Option<i64>,
+            prompt_cache_creation_tokens: Option<i64>,
         }
         let helper = Helper::deserialize(deserializer)?;
         Ok(UniversalUsage {
-            input_tokens: helper.input_tokens,
-            output_tokens: helper.output_tokens,
+            prompt_tokens: helper.prompt_tokens,
+            completion_tokens: helper.completion_tokens,
+            prompt_cached_tokens: helper.prompt_cached_tokens,
+            prompt_cache_creation_tokens: helper.prompt_cache_creation_tokens,
         })
     }
 }
@@ -220,10 +230,7 @@ mod tests {
         let chunk = UniversalStreamChunk::finish(0, "stop");
         assert!(!chunk.is_keep_alive());
         assert_eq!(chunk.choices.len(), 1);
-        assert_eq!(
-            chunk.choices[0].finish_reason,
-            Some("stop".to_string())
-        );
+        assert_eq!(chunk.choices[0].finish_reason, Some("stop".to_string()));
     }
 
     #[test]

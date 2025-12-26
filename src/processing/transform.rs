@@ -11,8 +11,9 @@ This replaces heuristic-based detection with struct-based validation.
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::adapters;
+use crate::processing::adapters::{adapter_for_format, adapters};
 use crate::serde_json::Value;
+use crate::universal::{UniversalRequest, UniversalResponse};
 use thiserror::Error;
 
 /// Error type for transformation operations
@@ -58,6 +59,8 @@ pub enum TransformResult {
         payload: Value,
         /// The detected source format
         source_format: ProviderFormat,
+        /// The intermediate universal request representation (only populated for request transformations)
+        universal: Option<Box<UniversalRequest>>,
     },
 }
 
@@ -69,6 +72,14 @@ impl TransformResult {
 
     /// Get the transformed payload, or return the original if pass-through
     pub fn payload_or_original(self, original: Value) -> Value {
+        match self {
+            TransformResult::PassThrough => original,
+            TransformResult::Transformed { payload, .. } => payload,
+        }
+    }
+
+    /// Get a reference to the transformed payload, or return the original if pass-through
+    pub fn payload_or_original_ref<'a>(&'a self, original: &'a Value) -> &'a Value {
         match self {
             TransformResult::PassThrough => original,
             TransformResult::Transformed { payload, .. } => payload,
@@ -140,6 +151,7 @@ pub fn validate_or_transform(
     Ok(TransformResult::Transformed {
         payload: transformed,
         source_format,
+        universal: Some(Box::new(universal)),
     })
 }
 
@@ -182,7 +194,7 @@ pub fn validate_or_transform(
 /// let final_payload = result.payload_or_original(openai_payload);
 /// ```
 pub fn transform_request(
-    payload: &Value,
+    payload: &Value, // take own values.
     target_format: ProviderFormat,
     model: Option<&str>,
 ) -> Result<TransformResult, TransformError> {
@@ -221,6 +233,7 @@ pub fn transform_request(
     Ok(TransformResult::Transformed {
         payload: transformed,
         source_format,
+        universal: Some(Box::new(universal)),
     })
 }
 
@@ -308,12 +321,13 @@ pub fn transform_response(
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
     // Step 4: Convert: source -> universal -> target
-    let universal = source_adapter.response_to_universal(response)?;
-    let transformed = target_adapter.response_from_universal(&universal)?;
+    let universal_resp = source_adapter.response_to_universal(response)?;
+    let transformed = target_adapter.response_from_universal(&universal_resp)?;
 
     Ok(TransformResult::Transformed {
         payload: transformed,
         source_format,
+        universal: None, // Response transformations don't populate universal request
     })
 }
 
@@ -360,15 +374,16 @@ pub fn transform_stream_chunk(
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
     // Step 4: Convert: source -> universal -> target
-    let universal = source_adapter.stream_to_universal(chunk)?;
+    let stream_universal = source_adapter.stream_to_universal(chunk)?;
 
-    match universal {
+    match stream_universal {
         Some(universal_chunk) => {
             // Transform to target format
             let transformed = target_adapter.stream_from_universal(&universal_chunk)?;
             Ok(TransformResult::Transformed {
                 payload: transformed,
                 source_format,
+                universal: None, // Stream transformations don't populate universal request
             })
         }
         None => {
@@ -376,6 +391,7 @@ pub fn transform_stream_chunk(
             Ok(TransformResult::Transformed {
                 payload: crate::serde_json::json!({}),
                 source_format,
+                universal: None,
             })
         }
     }
@@ -416,6 +432,297 @@ pub fn detect_stream_source_format(chunk: &Value) -> Result<ProviderFormat, Tran
         .ok_or(TransformError::UnableToDetectFormat)
 }
 
+// ============================================================================
+// Stream event parsing (for router integration)
+// ============================================================================
+
+use crate::universal::UniversalStreamChunk;
+
+/// Result of parsing a streaming event.
+///
+/// Contains the transformed payload, metadata about the event, and the universal
+/// representation for further processing.
+#[derive(Debug, Clone)]
+pub struct ParsedStreamEvent {
+    /// The payload to forward (original if pass-through, transformed otherwise)
+    pub payload: Value,
+    /// The detected source format
+    pub source_format: ProviderFormat,
+    /// The target format requested
+    pub target_format: ProviderFormat,
+    /// The universal representation of the stream chunk (if transformation occurred)
+    pub universal: Option<UniversalStreamChunk>,
+    /// Whether this is a keep-alive event (no content, just maintains connection)
+    pub is_keep_alive: bool,
+    /// Whether this event contains a finish_reason (indicates end of generation)
+    pub is_final: bool,
+}
+
+/// Parse a streaming event, transforming if needed and extracting metadata.
+///
+/// This is the main entry point for the router to process streaming events. It:
+/// 1. Detects the source format of the stream chunk
+/// 2. Transforms to target format if needed (pass-through if formats match)
+/// 3. Extracts metadata like keep_alive and finish_reason
+///
+/// # Arguments
+///
+/// * `chunk` - The streaming chunk JSON payload
+/// * `source_format` - The expected source format (from the provider being called)
+/// * `target_format` - The target format to transform to
+///
+/// # Returns
+///
+/// A `ParsedStreamEvent` containing the payload and metadata.
+///
+/// # Examples
+///
+/// ```
+/// use lingua::processing::transform::parse_stream_event;
+/// use lingua::capabilities::ProviderFormat;
+/// use lingua::serde_json::json;
+///
+/// // OpenAI streaming chunk
+/// let chunk = json!({
+///     "id": "chatcmpl-123",
+///     "choices": [{
+///         "index": 0,
+///         "delta": {"content": "Hello"},
+///         "finish_reason": null
+///     }]
+/// });
+///
+/// let result = parse_stream_event(&chunk, ProviderFormat::OpenAI, ProviderFormat::OpenAI);
+/// ```
+pub fn parse_stream_event(
+    chunk: &Value,
+    source_format: ProviderFormat,
+    target_format: ProviderFormat,
+) -> Result<ParsedStreamEvent, TransformError> {
+    // Step 1: Get adapters
+    let source_adapter = adapters()
+        .into_iter()
+        .find(|a| a.format() == source_format)
+        .ok_or(TransformError::UnsupportedSourceFormat(source_format))?;
+
+    // Step 2: Convert to universal
+    let universal_opt = source_adapter.stream_to_universal(chunk)?;
+
+    // Step 3: Extract metadata from universal chunk
+    let (is_keep_alive, is_final) = match &universal_opt {
+        Some(universal) => {
+            let is_keep_alive = universal.is_keep_alive();
+            let is_final = universal.choices.iter().any(|c| c.finish_reason.is_some());
+            (is_keep_alive, is_final)
+        }
+        None => (true, false), // None means terminal/keep-alive event
+    };
+
+    // Step 4: Transform if needed
+    if source_format == target_format {
+        // Pass-through
+        return Ok(ParsedStreamEvent {
+            payload: chunk.clone(),
+            source_format,
+            target_format,
+            universal: universal_opt,
+            is_keep_alive,
+            is_final,
+        });
+    }
+
+    // Step 5: Get target adapter and transform
+    let target_adapter = adapters()
+        .into_iter()
+        .find(|a| a.format() == target_format)
+        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+
+    let payload = match &universal_opt {
+        Some(universal) => target_adapter.stream_from_universal(universal)?,
+        None => crate::serde_json::json!({}),
+    };
+
+    Ok(ParsedStreamEvent {
+        payload,
+        source_format,
+        target_format,
+        universal: universal_opt,
+        is_keep_alive,
+        is_final,
+    })
+}
+
+// ============================================================================
+// Helper APIs for direct adapter access
+// ============================================================================
+
+/// Convert a request payload to UniversalRequest using the specified format's adapter.
+///
+/// This is useful when you need to access the universal representation directly
+/// without transforming to another format.
+///
+/// # Arguments
+///
+/// * `payload` - The request payload in the specified format
+/// * `format` - The format of the payload
+///
+/// # Returns
+///
+/// The universal request representation, or an error if conversion fails.
+pub fn to_universal_request(
+    payload: &Value,
+    format: ProviderFormat,
+) -> Result<UniversalRequest, TransformError> {
+    let adapter =
+        adapter_for_format(format).ok_or(TransformError::UnsupportedSourceFormat(format))?;
+    adapter.request_to_universal(payload)
+}
+
+/// Convert a UniversalRequest to a provider-specific payload.
+///
+/// This is useful when you have a universal request and need to convert it
+/// to a specific provider format.
+///
+/// # Arguments
+///
+/// * `universal` - The universal request to convert
+/// * `format` - The target provider format
+///
+/// # Returns
+///
+/// The provider-specific payload, or an error if conversion fails.
+pub fn from_universal_request(
+    universal: &UniversalRequest,
+    format: ProviderFormat,
+) -> Result<Value, TransformError> {
+    let adapter =
+        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
+    adapter.request_from_universal(universal)
+}
+
+/// Convert a response payload to UniversalResponse using the specified format's adapter.
+///
+/// # Arguments
+///
+/// * `payload` - The response payload in the specified format
+/// * `format` - The format of the payload
+///
+/// # Returns
+///
+/// The universal response representation, or an error if conversion fails.
+pub fn to_universal_response(
+    payload: &Value,
+    format: ProviderFormat,
+) -> Result<UniversalResponse, TransformError> {
+    let adapter =
+        adapter_for_format(format).ok_or(TransformError::UnsupportedSourceFormat(format))?;
+    adapter.response_to_universal(payload)
+}
+
+/// Convert a UniversalResponse to a provider-specific payload.
+///
+/// # Arguments
+///
+/// * `universal` - The universal response to convert
+/// * `format` - The target provider format
+///
+/// # Returns
+///
+/// The provider-specific payload, or an error if conversion fails.
+pub fn from_universal_response(
+    universal: &UniversalResponse,
+    format: ProviderFormat,
+) -> Result<Value, TransformError> {
+    let adapter =
+        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
+    adapter.response_from_universal(universal)
+}
+
+/// Apply provider-specific defaults to a request payload in-place.
+///
+/// This converts the payload to universal format, applies the target provider's
+/// defaults (e.g., Anthropic's required max_tokens), and converts back.
+///
+/// # Arguments
+///
+/// * `payload` - The request payload to modify
+/// * `format` - The target provider format whose defaults should be applied
+///
+/// # Returns
+///
+/// Ok(()) on success, or an error if conversion fails.
+pub fn apply_provider_defaults(
+    payload: &mut Value,
+    format: ProviderFormat,
+) -> Result<(), TransformError> {
+    let adapter =
+        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
+
+    // Detect source format to parse the payload
+    let source_format = detect_source_format(payload)?;
+    let source_adapter = adapter_for_format(source_format)
+        .ok_or(TransformError::UnsupportedSourceFormat(source_format))?;
+
+    // Convert to universal, apply defaults, convert back to source format
+    let mut universal = source_adapter.request_to_universal(payload)?;
+    adapter.apply_defaults(&mut universal);
+    *payload = source_adapter.request_from_universal(&universal)?;
+
+    Ok(())
+}
+
+/// Sanitize a payload for a target format by parsing and re-serializing.
+///
+/// This strips unknown fields that strict providers (like Anthropic) would reject.
+/// Use this for pass-through payloads that might contain fields from other formats
+/// (e.g., OpenAI's `stream_options` which Anthropic doesn't support).
+///
+/// # Arguments
+///
+/// * `payload` - The request payload to sanitize
+/// * `format` - The target provider format
+///
+/// # Returns
+///
+/// The sanitized payload with only known fields, or an error if parsing fails.
+///
+/// # Examples
+///
+/// ```
+/// use lingua::processing::transform::sanitize_payload;
+/// use lingua::capabilities::ProviderFormat;
+/// use lingua::serde_json::json;
+///
+/// // Anthropic payload with unknown `stream_options` field
+/// let payload = json!({
+///     "model": "claude-3-5-sonnet",
+///     "max_tokens": 1024,
+///     "messages": [{"role": "user", "content": "Hello"}],
+///     "stream_options": {"include_usage": true}  // OpenAI-specific, unknown to Anthropic
+/// });
+///
+/// // Sanitize for Anthropic - stream_options will be stripped
+/// let sanitized = sanitize_payload(&payload, ProviderFormat::Anthropic).unwrap();
+/// assert!(sanitized.get("stream_options").is_none());
+/// ```
+pub fn sanitize_payload(payload: &Value, format: ProviderFormat) -> Result<Value, TransformError> {
+    use crate::providers::anthropic::try_parse_anthropic;
+
+    // Provider-specific sanitization that parses into typed struct (drops unknown fields)
+    // and re-serializes. This is different from round-tripping through universal which
+    // preserves unknown fields in extras.
+    match format {
+        ProviderFormat::Anthropic => {
+            let parsed = try_parse_anthropic(payload)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+            crate::serde_json::to_value(parsed)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))
+        }
+        // Other formats don't need sanitization (permissive) or aren't supported yet
+        _ => Ok(payload.clone()),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -446,8 +753,13 @@ mod tests {
             TransformResult::Transformed {
                 payload: _,
                 source_format,
+                universal,
             } => {
                 assert_eq!(source_format, ProviderFormat::OpenAI);
+                assert!(
+                    universal.is_some(),
+                    "Request transformation should include universal"
+                );
             }
             TransformResult::PassThrough => {
                 panic!("Expected transformation, got pass-through");
@@ -627,6 +939,54 @@ mod tests {
         assert_eq!(
             final_payload.get("stream").and_then(|v| v.as_bool()),
             Some(true)
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_transform_request_openai_to_google() {
+        // OpenAI request with system and duplicate user messages
+        let payload = json!({
+            "model": "gemini-2.5-flash",
+            "max_tokens": 50,
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Say 'hello' and nothing else."},
+                {"role": "user", "content": "Say 'goodbye' after 'hello'."}
+            ]
+        });
+
+        let result = transform_request(&payload, ProviderFormat::Google, None);
+        assert!(
+            result.is_ok(),
+            "transform_request failed: {:?}",
+            result.err()
+        );
+
+        let result = result.unwrap();
+        assert!(!result.is_pass_through());
+
+        let final_payload = result.payload_or_original(payload);
+
+        // Should have contents (Google format), not messages
+        assert!(final_payload.get("contents").is_some(), "missing contents");
+        assert!(
+            final_payload.get("messages").is_none(),
+            "should not have messages"
+        );
+
+        // Should have systemInstruction extracted
+        assert!(
+            final_payload.get("systemInstruction").is_some(),
+            "missing systemInstruction"
+        );
+
+        // Contents should have flattened user messages (consecutive user -> single user)
+        let contents = final_payload.get("contents").unwrap().as_array().unwrap();
+        assert_eq!(contents.len(), 1, "should have 1 content (flattened users)");
+        assert_eq!(
+            contents[0].get("role").and_then(|v| v.as_str()),
+            Some("user")
         );
     }
 }

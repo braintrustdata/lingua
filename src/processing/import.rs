@@ -314,9 +314,9 @@ mod tests {
     #[test]
     fn test_import_spans_with_no_messages() {
         let span = Span {
-            input: Some(serde_json::json!({"random": "data"})),
+            input: Some(self::serde_json::json!({"random": "data"})),
             output: None,
-            other: serde_json::Map::new(),
+            other: self::serde_json::Map::new(),
         };
         let messages = import_messages_from_spans(vec![span]);
         assert_eq!(messages.len(), 0);
@@ -325,12 +325,12 @@ mod tests {
     #[test]
     fn test_import_spans_with_chat_completion_messages() {
         let span = Span {
-            input: Some(serde_json::json!([
+            input: Some(self::serde_json::json!([
                 {"role": "user", "content": "Hello"},
                 {"role": "assistant", "content": "Hi there"}
             ])),
             output: None,
-            other: serde_json::Map::new(),
+            other: self::serde_json::Map::new(),
         };
         let messages = import_messages_from_spans(vec![span]);
         assert_eq!(messages.len(), 2);
@@ -339,10 +339,10 @@ mod tests {
     #[test]
     fn test_import_spans_with_choices_array_output() {
         let span = Span {
-            input: Some(serde_json::json!([
+            input: Some(self::serde_json::json!([
                 {"role": "user", "content": "Hello"}
             ])),
-            output: Some(serde_json::json!([
+            output: Some(self::serde_json::json!([
                 {
                     "finish_reason": "stop",
                     "index": 0,
@@ -353,7 +353,7 @@ mod tests {
                     }
                 }
             ])),
-            other: serde_json::Map::new(),
+            other: self::serde_json::Map::new(),
         };
         let messages = import_messages_from_spans(vec![span]);
         assert_eq!(messages.len(), 2); // 1 from input, 1 from output

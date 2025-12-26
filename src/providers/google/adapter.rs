@@ -18,8 +18,9 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChunk,
-    UniversalStreamChoice, UniversalUsage,
+    extract_system_messages, flatten_consecutive_messages, FinishReason, UniversalParams,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalUsage, UserContent,
 };
 
 /// Known request fields for Google GenerateContent API.
@@ -58,9 +59,8 @@ impl ProviderAdapter for GoogleAdapter {
         let request: GoogleGenerateContentRequest = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let messages =
-            <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(request.contents)
-                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let messages = <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(request.contents)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         // Extract params from generationConfig
         let (temperature, top_p, top_k, max_tokens, stop) =
@@ -109,9 +109,16 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
+        // Extract system messages (Google requires them in systemInstruction, not contents)
+        let mut messages = req.messages.clone();
+        let system_contents = extract_system_messages(&mut messages);
+
+        // Flatten consecutive messages of the same role (Google doesn't allow them)
+        flatten_consecutive_messages(&mut messages);
+
         // Convert messages to Google contents
         let google_contents: Vec<GoogleContent> =
-            <Vec<GoogleContent> as TryFromLLM<Vec<Message>>>::try_from(req.messages.clone())
+            <Vec<GoogleContent> as TryFromLLM<Vec<Message>>>::try_from(messages)
                 .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
 
         let mut obj = Map::new();
@@ -126,6 +133,35 @@ impl ProviderAdapter for GoogleAdapter {
             serde_json::to_value(google_contents)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
+
+        // Add systemInstruction if system messages were present
+        if !system_contents.is_empty() {
+            let system_text = system_contents
+                .into_iter()
+                .map(|c| match c {
+                    UserContent::String(s) => s,
+                    UserContent::Array(parts) => parts
+                        .into_iter()
+                        .filter_map(|p| {
+                            if let crate::universal::UserContentPart::Text(t) = p {
+                                Some(t.text)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                })
+                .collect::<Vec<_>>()
+                .join("\n");
+
+            obj.insert(
+                "systemInstruction".into(),
+                serde_json::json!({
+                    "parts": [{"text": system_text}]
+                }),
+            );
+        }
 
         // Build generationConfig if any params are set
         let has_params = req.params.temperature.is_some()
@@ -167,9 +203,13 @@ impl ProviderAdapter for GoogleAdapter {
             obj.insert("tools".into(), tools.clone());
         }
 
-        // Merge extras
+        // Merge extras - only include Google-known fields
+        // This filters out OpenAI-specific fields like stream_options that would cause
+        // Google to reject the request with "Unknown name: stream_options"
         for (k, v) in &req.extras {
-            obj.insert(k.clone(), v.clone());
+            if GOOGLE_KNOWN_KEYS.contains(&k.as_str()) {
+                obj.insert(k.clone(), v.clone());
+            }
         }
 
         Ok(Value::Object(obj))
@@ -184,11 +224,7 @@ impl ProviderAdapter for GoogleAdapter {
         payload
             .get("candidates")
             .and_then(Value::as_array)
-            .is_some_and(|arr| {
-                arr.first()
-                    .and_then(|c| c.get("content"))
-                    .is_some()
-            })
+            .is_some_and(|arr| arr.first().and_then(|c| c.get("content")).is_some())
     }
 
     fn response_to_universal(&self, payload: &Value) -> Result<UniversalResponse, TransformError> {
@@ -212,14 +248,16 @@ impl ProviderAdapter for GoogleAdapter {
             // Get finishReason from first candidate
             if finish_reason.is_none() {
                 if let Some(reason) = candidate.get("finishReason").and_then(Value::as_str) {
-                    finish_reason = Some(FinishReason::from_str(reason));
+                    finish_reason = Some(reason.parse().unwrap());
                 }
             }
         }
 
         let usage = payload.get("usageMetadata").map(|u| UniversalUsage {
-            input_tokens: u.get("promptTokenCount").and_then(Value::as_i64),
-            output_tokens: u.get("candidatesTokenCount").and_then(Value::as_i64),
+            prompt_tokens: u.get("promptTokenCount").and_then(Value::as_i64),
+            completion_tokens: u.get("candidatesTokenCount").and_then(Value::as_i64),
+            prompt_cached_tokens: u.get("cachedContentTokenCount").and_then(Value::as_i64),
+            prompt_cache_creation_tokens: None, // Google doesn't report cache creation tokens
         });
 
         Ok(UniversalResponse {
@@ -263,14 +301,14 @@ impl ProviderAdapter for GoogleAdapter {
         });
 
         if let Some(usage) = &resp.usage {
-            let input = usage.input_tokens.unwrap_or(0);
-            let output = usage.output_tokens.unwrap_or(0);
+            let prompt = usage.prompt_tokens.unwrap_or(0);
+            let completion = usage.completion_tokens.unwrap_or(0);
             obj.as_object_mut().unwrap().insert(
                 "usageMetadata".into(),
                 serde_json::json!({
-                    "promptTokenCount": input,
-                    "candidatesTokenCount": output,
-                    "totalTokenCount": input + output
+                    "promptTokenCount": prompt,
+                    "candidatesTokenCount": completion,
+                    "totalTokenCount": prompt + completion
                 }),
             );
         }
@@ -327,16 +365,15 @@ impl ProviderAdapter for GoogleAdapter {
                 .unwrap_or_default();
 
             // Map finish reason
-            let finish_reason =
-                candidate
-                    .get("finishReason")
-                    .and_then(Value::as_str)
-                    .map(|r| match r {
-                        "STOP" => "stop".to_string(),
-                        "MAX_TOKENS" => "length".to_string(),
-                        "SAFETY" | "RECITATION" | "OTHER" => "stop".to_string(),
-                        other => other.to_lowercase(),
-                    });
+            let finish_reason = candidate
+                .get("finishReason")
+                .and_then(Value::as_str)
+                .map(|r| match r {
+                    "STOP" => "stop".to_string(),
+                    "MAX_TOKENS" => "length".to_string(),
+                    "SAFETY" | "RECITATION" | "OTHER" => "stop".to_string(),
+                    other => other.to_lowercase(),
+                });
 
             choices.push(UniversalStreamChoice {
                 index,
@@ -350,8 +387,10 @@ impl ProviderAdapter for GoogleAdapter {
 
         // Extract usage from usageMetadata
         let usage = payload.get("usageMetadata").map(|u| UniversalUsage {
-            input_tokens: u.get("promptTokenCount").and_then(Value::as_i64),
-            output_tokens: u.get("candidatesTokenCount").and_then(Value::as_i64),
+            prompt_tokens: u.get("promptTokenCount").and_then(Value::as_i64),
+            completion_tokens: u.get("candidatesTokenCount").and_then(Value::as_i64),
+            prompt_cached_tokens: u.get("cachedContentTokenCount").and_then(Value::as_i64),
+            prompt_cache_creation_tokens: None,
         });
 
         let model = payload
@@ -364,13 +403,12 @@ impl ProviderAdapter for GoogleAdapter {
             .and_then(Value::as_str)
             .map(String::from);
 
-        Ok(Some(UniversalStreamChunk::new(id, model, choices, None, usage)))
+        Ok(Some(UniversalStreamChunk::new(
+            id, model, choices, None, usage,
+        )))
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Value, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         if chunk.is_keep_alive() {
             // Google doesn't have a keep-alive event, return empty candidates
             return Ok(serde_json::json!({
@@ -431,14 +469,14 @@ impl ProviderAdapter for GoogleAdapter {
             obj_map.insert("modelVersion".into(), Value::String(model.clone()));
         }
         if let Some(ref usage) = chunk.usage {
-            let input = usage.input_tokens.unwrap_or(0);
-            let output = usage.output_tokens.unwrap_or(0);
+            let prompt = usage.prompt_tokens.unwrap_or(0);
+            let completion = usage.completion_tokens.unwrap_or(0);
             obj_map.insert(
                 "usageMetadata".into(),
                 serde_json::json!({
-                    "promptTokenCount": input,
-                    "candidatesTokenCount": output,
-                    "totalTokenCount": input + output
+                    "promptTokenCount": prompt,
+                    "candidatesTokenCount": completion,
+                    "totalTokenCount": prompt + completion
                 }),
             );
         }

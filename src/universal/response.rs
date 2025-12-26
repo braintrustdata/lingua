@@ -32,11 +32,17 @@ pub struct UniversalResponse {
 /// Token usage statistics.
 #[derive(Debug, Clone, Default)]
 pub struct UniversalUsage {
-    /// Tokens in the input/prompt
-    pub input_tokens: Option<i64>,
+    /// Tokens in the prompt/input
+    pub prompt_tokens: Option<i64>,
 
-    /// Tokens in the output/completion
-    pub output_tokens: Option<i64>,
+    /// Tokens in the completion/output
+    pub completion_tokens: Option<i64>,
+
+    /// Cached tokens in the prompt (from prompt caching)
+    pub prompt_cached_tokens: Option<i64>,
+
+    /// Tokens written to cache during this request
+    pub prompt_cache_creation_tokens: Option<i64>,
 }
 
 /// Reason why the model stopped generating.
@@ -60,15 +66,16 @@ pub enum FinishReason {
     Other(String),
 }
 
-impl FinishReason {
-    /// Parse a finish reason string into a canonical variant.
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
+impl std::str::FromStr for FinishReason {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s.to_lowercase().as_str() {
             "stop" | "end_turn" | "completed" => FinishReason::Stop,
             "length" | "max_tokens" | "max_output_tokens" => FinishReason::Length,
             "tool_calls" | "tool_use" => FinishReason::ToolCalls,
             "content_filter" => FinishReason::ContentFilter,
             _ => FinishReason::Other(s.to_string()),
-        }
+        })
     }
 }

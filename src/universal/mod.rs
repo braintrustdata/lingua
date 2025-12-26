@@ -20,5 +20,5 @@ pub mod transform;
 pub use message::*;
 pub use request::{UniversalParams, UniversalRequest};
 pub use response::{FinishReason, UniversalResponse, UniversalUsage};
-pub use stream::{UniversalStreamChunk, UniversalStreamChoice};
+pub use stream::{UniversalStreamChoice, UniversalStreamChunk};
 pub use transform::{extract_system_messages, flatten_consecutive_messages};

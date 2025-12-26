@@ -19,8 +19,8 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChunk,
-    UniversalStreamChoice, UniversalUsage,
+    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalUsage,
 };
 
 /// Known request fields for Bedrock Converse API.
@@ -66,20 +66,20 @@ impl ProviderAdapter for BedrockAdapter {
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         // Extract params from inferenceConfig
-        let (temperature, top_p, max_tokens, stop) =
-            if let Some(config) = &request.inference_config {
-                (
-                    config.temperature,
-                    config.top_p,
-                    config.max_tokens.map(|t| t as i64),
-                    config
-                        .stop_sequences
-                        .as_ref()
-                        .and_then(|s| serde_json::to_value(s).ok()),
-                )
-            } else {
-                (None, None, None, None)
-            };
+        let (temperature, top_p, max_tokens, stop) = if let Some(config) = &request.inference_config
+        {
+            (
+                config.temperature,
+                config.top_p,
+                config.max_tokens.map(|t| t as i64),
+                config
+                    .stop_sequences
+                    .as_ref()
+                    .and_then(|s| serde_json::to_value(s).ok()),
+            )
+        } else {
+            (None, None, None, None)
+        };
 
         let params = UniversalParams {
             temperature,
@@ -87,7 +87,9 @@ impl ProviderAdapter for BedrockAdapter {
             top_k: None, // Bedrock doesn't expose top_k in Converse API
             max_tokens,
             stop,
-            tools: request.tool_config.and_then(|t| serde_json::to_value(t).ok()),
+            tools: request
+                .tool_config
+                .and_then(|t| serde_json::to_value(t).ok()),
             tool_choice: None, // Tool choice is inside tool_config
             response_format: None,
             seed: None, // Bedrock doesn't support seed
@@ -186,24 +188,27 @@ impl ProviderAdapter for BedrockAdapter {
             .get("output")
             .ok_or_else(|| TransformError::ToUniversalFailed("missing output".to_string()))?;
 
-        let message_val = output
-            .get("message")
-            .ok_or_else(|| TransformError::ToUniversalFailed("missing output.message".to_string()))?;
+        let message_val = output.get("message").ok_or_else(|| {
+            TransformError::ToUniversalFailed("missing output.message".to_string())
+        })?;
 
         let bedrock_message: BedrockMessage = serde_json::from_value(message_val.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<BedrockMessage>>>::try_from(vec![bedrock_message])
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let messages =
+            <Vec<Message> as TryFromLLM<Vec<BedrockMessage>>>::try_from(vec![bedrock_message])
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let finish_reason = payload
             .get("stopReason")
             .and_then(Value::as_str)
-            .map(FinishReason::from_str);
+            .map(|s| s.parse().unwrap());
 
         let usage = payload.get("usage").map(|u| UniversalUsage {
-            input_tokens: u.get("inputTokens").and_then(Value::as_i64),
-            output_tokens: u.get("outputTokens").and_then(Value::as_i64),
+            prompt_tokens: u.get("inputTokens").and_then(Value::as_i64),
+            completion_tokens: u.get("outputTokens").and_then(Value::as_i64),
+            prompt_cached_tokens: u.get("cacheReadInputTokens").and_then(Value::as_i64),
+            prompt_cache_creation_tokens: u.get("cacheCreationInputTokens").and_then(Value::as_i64),
         });
 
         Ok(UniversalResponse {
@@ -244,8 +249,8 @@ impl ProviderAdapter for BedrockAdapter {
             obj.as_object_mut().unwrap().insert(
                 "usage".into(),
                 serde_json::json!({
-                    "inputTokens": usage.input_tokens.unwrap_or(0),
-                    "outputTokens": usage.output_tokens.unwrap_or(0)
+                    "inputTokens": usage.prompt_tokens.unwrap_or(0),
+                    "outputTokens": usage.completion_tokens.unwrap_or(0)
                 }),
             );
         }
@@ -340,8 +345,12 @@ impl ProviderAdapter for BedrockAdapter {
         // Handle metadata - usage info
         if let Some(meta) = payload.get("metadata") {
             let usage = meta.get("usage").map(|u| UniversalUsage {
-                input_tokens: u.get("inputTokens").and_then(Value::as_i64),
-                output_tokens: u.get("outputTokens").and_then(Value::as_i64),
+                prompt_tokens: u.get("inputTokens").and_then(Value::as_i64),
+                completion_tokens: u.get("outputTokens").and_then(Value::as_i64),
+                prompt_cached_tokens: u.get("cacheReadInputTokens").and_then(Value::as_i64),
+                prompt_cache_creation_tokens: u
+                    .get("cacheCreationInputTokens")
+                    .and_then(Value::as_i64),
             });
 
             if usage.is_some() {
@@ -374,10 +383,7 @@ impl ProviderAdapter for BedrockAdapter {
         Ok(Some(UniversalStreamChunk::keep_alive()))
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Value, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         if chunk.is_keep_alive() {
             // Return empty contentBlockStop for keep-alive
             return Ok(serde_json::json!({
@@ -415,8 +421,8 @@ impl ProviderAdapter for BedrockAdapter {
             return Ok(serde_json::json!({
                 "metadata": {
                     "usage": {
-                        "inputTokens": usage.input_tokens.unwrap_or(0),
-                        "outputTokens": usage.output_tokens.unwrap_or(0)
+                        "inputTokens": usage.prompt_tokens.unwrap_or(0),
+                        "outputTokens": usage.completion_tokens.unwrap_or(0)
                     }
                 }
             }));
@@ -493,12 +499,18 @@ mod tests {
         });
 
         let universal = adapter.request_to_universal(&payload).unwrap();
-        assert_eq!(universal.model, Some("anthropic.claude-3-sonnet".to_string()));
+        assert_eq!(
+            universal.model,
+            Some("anthropic.claude-3-sonnet".to_string())
+        );
         assert_eq!(universal.params.temperature, Some(0.7));
         assert_eq!(universal.params.max_tokens, Some(1024));
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        assert_eq!(reconstructed.get("modelId").unwrap(), "anthropic.claude-3-sonnet");
+        assert_eq!(
+            reconstructed.get("modelId").unwrap(),
+            "anthropic.claude-3-sonnet"
+        );
         assert!(reconstructed.get("messages").is_some());
         assert!(reconstructed.get("inferenceConfig").is_some());
     }

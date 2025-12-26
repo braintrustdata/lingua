@@ -11,19 +11,15 @@ pub mod capabilities;
 pub mod convert;
 pub mod detect;
 pub mod generated;
-pub mod transformations;
 
-// Re-export adapters
-pub use adapter::{OpenAIAdapter, ResponsesAdapter};
+// Re-export adapters and transformations
+pub use adapter::{apply_target_transforms, OpenAIAdapter, OpenAITransformError, ResponsesAdapter};
 
 #[cfg(test)]
 pub mod test_responses;
 
 #[cfg(test)]
 pub mod test_chat_completions;
-
-#[cfg(test)]
-pub mod test_transformations;
 
 // Re-export detection functions
 pub use detect::{try_parse_openai, try_parse_responses, DetectionError};
