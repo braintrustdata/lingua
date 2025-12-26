@@ -41,6 +41,9 @@ pub enum TransformError {
 
     #[error("Unsupported source format: {0:?}")]
     UnsupportedSourceFormat(ProviderFormat),
+
+    #[error("Streaming not implemented: {0}")]
+    StreamingNotImplemented(String),
 }
 
 /// Result of a transformation operation
@@ -312,6 +315,105 @@ pub fn transform_response(
         payload: transformed,
         source_format,
     })
+}
+
+// ============================================================================
+// Streaming transformation
+// ============================================================================
+
+/// Transform a streaming chunk from one format to another.
+///
+/// This handles per-event transformation for streaming responses. Each event
+/// is processed independently (stateless).
+///
+/// # Arguments
+///
+/// * `chunk` - The source streaming chunk JSON payload
+/// * `target_format` - The target provider format
+///
+/// # Returns
+///
+/// * `Ok(TransformResult::PassThrough)` - Chunk is already valid for target format
+/// * `Ok(TransformResult::Transformed { payload, source_format })` - Transformed chunk
+/// * `Err(TransformError)` - If transformation fails
+pub fn transform_stream_chunk(
+    chunk: &Value,
+    target_format: ProviderFormat,
+) -> Result<TransformResult, TransformError> {
+    // Step 1: Detect source format using streaming detection
+    let source_adapter = adapters()
+        .into_iter()
+        .find(|a| a.detect_stream_response(chunk))
+        .ok_or(TransformError::UnableToDetectFormat)?;
+
+    let source_format = source_adapter.format();
+
+    // Step 2: PassThrough if source matches target
+    if source_format == target_format {
+        return Ok(TransformResult::PassThrough);
+    }
+
+    // Step 3: Get target adapter
+    let target_adapter = adapters()
+        .into_iter()
+        .find(|a| a.format() == target_format)
+        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+
+    // Step 4: Convert: source -> universal -> target
+    let universal = source_adapter.stream_to_universal(chunk)?;
+
+    match universal {
+        Some(universal_chunk) => {
+            // Transform to target format
+            let transformed = target_adapter.stream_from_universal(&universal_chunk)?;
+            Ok(TransformResult::Transformed {
+                payload: transformed,
+                source_format,
+            })
+        }
+        None => {
+            // Source returned None (terminal event) - return empty object
+            Ok(TransformResult::Transformed {
+                payload: crate::serde_json::json!({}),
+                source_format,
+            })
+        }
+    }
+}
+
+/// Transform an array of streaming chunks from one format to another.
+///
+/// This is useful for testing with snapshot files which contain arrays of events.
+///
+/// # Arguments
+///
+/// * `chunks` - The source streaming chunks as a JSON array value
+/// * `target_format` - The target provider format
+///
+/// # Returns
+///
+/// A vector of transform results, one per chunk.
+pub fn transform_stream_array(
+    chunks: &Value,
+    target_format: ProviderFormat,
+) -> Result<Vec<TransformResult>, TransformError> {
+    let array = chunks
+        .as_array()
+        .ok_or_else(|| TransformError::ToUniversalFailed("expected array".to_string()))?;
+
+    array
+        .iter()
+        .map(|chunk| transform_stream_chunk(chunk, target_format))
+        .collect()
+}
+
+/// Detect the source format of a streaming chunk.
+pub fn detect_stream_source_format(chunk: &Value) -> Result<ProviderFormat, TransformError> {
+    adapters()
+        .into_iter()
+        .find(|a| a.detect_stream_response(chunk))
+        .map(|a| a.format())
+        .ok_or(TransformError::UnableToDetectFormat)
 }
 
 #[cfg(test)]

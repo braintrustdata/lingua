@@ -15,7 +15,7 @@ provider-specific logic into a single interface.
 use crate::capabilities::ProviderFormat;
 use crate::processing::transform::TransformError;
 use crate::serde_json::{Map, Number, Value};
-use crate::universal::{FinishReason, UniversalRequest, UniversalResponse};
+use crate::universal::{FinishReason, UniversalRequest, UniversalResponse, UniversalStreamChunk};
 
 /// Trait for provider-specific request and response handling.
 ///
@@ -87,6 +87,50 @@ pub trait ProviderAdapter: Send + Sync {
     /// - Anthropic: "end_turn", "max_tokens", "tool_use"
     /// - Google: "STOP", "MAX_TOKENS"
     fn map_finish_reason(&self, reason: Option<&FinishReason>) -> Option<String>;
+
+    // =========================================================================
+    // Streaming response handling
+    // =========================================================================
+
+    /// Checks if a payload matches this provider's streaming response format.
+    ///
+    /// Streaming formats differ from non-streaming responses:
+    /// - OpenAI: `object == "chat.completion.chunk"` or has `choices` with `delta`
+    /// - Anthropic: has `type` field with streaming event types
+    /// - Google: has `candidates` array (same as non-streaming)
+    /// - Bedrock: has `messageStart`, `contentBlockDelta`, etc.
+    fn detect_stream_response(&self, payload: &Value) -> bool {
+        // Default: not implemented
+        let _ = payload;
+        false
+    }
+
+    /// Convert a provider-specific streaming chunk to universal format.
+    ///
+    /// Returns `Ok(None)` for events that don't produce output (keep-alive, metadata).
+    /// Returns `Ok(Some(chunk))` with `chunk.is_keep_alive() == true` for events
+    /// that should be acknowledged but not forwarded to clients.
+    fn stream_to_universal(
+        &self,
+        _payload: &Value,
+    ) -> Result<Option<UniversalStreamChunk>, TransformError> {
+        Err(TransformError::StreamingNotImplemented(
+            self.display_name().to_string(),
+        ))
+    }
+
+    /// Convert a universal streaming chunk to provider-specific format.
+    ///
+    /// This builds a streaming chunk payload in the provider's format.
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Value, TransformError> {
+        let _ = chunk;
+        Err(TransformError::StreamingNotImplemented(
+            self.display_name().to_string(),
+        ))
+    }
 }
 
 // ============================================================================

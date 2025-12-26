@@ -77,6 +77,7 @@ pub fn generate_table(
 pub fn generate_report(
     request_results: &HashMap<(usize, usize), PairResult>,
     response_results: &HashMap<(usize, usize), PairResult>,
+    streaming_results: &HashMap<(usize, usize), PairResult>,
     adapters: &[Box<dyn ProviderAdapter>],
 ) -> String {
     let mut report = String::new();
@@ -92,8 +93,13 @@ pub fn generate_report(
         generate_table(response_results, adapters, "Response Transformations");
     report.push_str(&resp_table);
 
-    let total_passed = req_stats.passed + resp_stats.passed;
-    let total_failed = req_stats.failed + resp_stats.failed;
+    report.push('\n');
+    let (stream_table, stream_stats, stream_failures) =
+        generate_table(streaming_results, adapters, "Streaming Response Transformations");
+    report.push_str(&stream_table);
+
+    let total_passed = req_stats.passed + resp_stats.passed + stream_stats.passed;
+    let total_failed = req_stats.failed + resp_stats.failed + stream_stats.failed;
     let total = total_passed + total_failed;
 
     let pass_percentage = if total > 0 {
@@ -110,6 +116,7 @@ pub fn generate_report(
 
     let req_total = req_stats.passed + req_stats.failed;
     let resp_total = resp_stats.passed + resp_stats.failed;
+    let stream_total = stream_stats.passed + stream_stats.failed;
 
     report.push_str(&format!(
         "\n**Requests:** {}/{} passed, {} failed\n",
@@ -119,14 +126,19 @@ pub fn generate_report(
         "**Responses:** {}/{} passed, {} failed\n",
         resp_stats.passed, resp_total, resp_stats.failed
     ));
+    report.push_str(&format!(
+        "**Streaming:** {}/{} passed, {} failed\n",
+        stream_stats.passed, stream_total, stream_stats.failed
+    ));
 
-    // Organize issues by source provider → request/response → target
-    if !req_failures.is_empty() || !resp_failures.is_empty() {
+    // Organize issues by source provider → request/response/streaming → target
+    if !req_failures.is_empty() || !resp_failures.is_empty() || !stream_failures.is_empty() {
         report.push_str("\n### Issues by Source\n\n");
 
-        // Group failures by source provider, keeping request/response separate
+        // Group failures by source provider, keeping request/response/streaming separate
         let mut req_by_source: HashMap<String, Vec<(String, String, String)>> = HashMap::new();
         let mut resp_by_source: HashMap<String, Vec<(String, String, String)>> = HashMap::new();
+        let mut stream_by_source: HashMap<String, Vec<(String, String, String)>> = HashMap::new();
 
         for (direction, test_case, error) in req_failures {
             let source = direction
@@ -152,12 +164,27 @@ pub fn generate_report(
                 .push((direction, test_case, error));
         }
 
+        for (direction, test_case, error) in stream_failures {
+            let source = direction
+                .split(" → ")
+                .next()
+                .unwrap_or(&direction)
+                .to_string();
+            stream_by_source
+                .entry(source)
+                .or_default()
+                .push((direction, test_case, error));
+        }
+
         // Get all unique sources and sort by total failure count
         let mut all_sources: HashMap<String, usize> = HashMap::new();
         for (source, failures) in &req_by_source {
             *all_sources.entry(source.clone()).or_default() += failures.len();
         }
         for (source, failures) in &resp_by_source {
+            *all_sources.entry(source.clone()).or_default() += failures.len();
+        }
+        for (source, failures) in &stream_by_source {
             *all_sources.entry(source.clone()).or_default() += failures.len();
         }
 
@@ -225,6 +252,49 @@ pub fn generate_report(
                 // Group by target
                 let mut by_target: HashMap<String, Vec<(String, String)>> = HashMap::new();
                 for (direction, test_case, error) in resp_failures {
+                    let target = direction
+                        .split(" → ")
+                        .nth(1)
+                        .unwrap_or("Unknown")
+                        .to_string();
+                    by_target
+                        .entry(target)
+                        .or_default()
+                        .push((test_case.clone(), error.clone()));
+                }
+
+                let mut targets: Vec<_> = by_target.into_iter().collect();
+                targets.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+
+                for (target, target_failures) in targets {
+                    report.push_str("<details>\n");
+                    report.push_str(&format!(
+                        "<summary>    → {} ({})</summary>\n\n",
+                        target,
+                        target_failures.len()
+                    ));
+
+                    for (test_case, error) in target_failures {
+                        report.push_str(&format!("      - `{}` - {}\n", test_case, error));
+                    }
+
+                    report.push_str("\n</details>\n\n");
+                }
+
+                report.push_str("</details>\n\n");
+            }
+
+            // Streaming transformation issues for this source
+            if let Some(stream_failures) = stream_by_source.get(&source) {
+                report.push_str("<details>\n");
+                report.push_str(&format!(
+                    "<summary>  🌊 Streaming transformations ({})</summary>\n\n",
+                    stream_failures.len()
+                ));
+
+                // Group by target
+                let mut by_target: HashMap<String, Vec<(String, String)>> = HashMap::new();
+                for (direction, test_case, error) in stream_failures {
                     let target = direction
                         .split(" → ")
                         .nth(1)

@@ -18,7 +18,8 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent};
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalUsage,
+    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChunk,
+    UniversalStreamChoice, UniversalUsage,
 };
 use crate::universal::transform::extract_system_messages;
 
@@ -256,6 +257,234 @@ impl ProviderAdapter for AnthropicAdapter {
             FinishReason::ContentFilter => "content_filter".to_string(),
             FinishReason::Other(s) => s.clone(),
         })
+    }
+
+    // =========================================================================
+    // Streaming response handling
+    // =========================================================================
+
+    fn detect_stream_response(&self, payload: &Value) -> bool {
+        // Anthropic streaming has type field with specific event types
+        if let Some(event_type) = payload.get("type").and_then(Value::as_str) {
+            matches!(
+                event_type,
+                "message_start"
+                    | "content_block_start"
+                    | "content_block_delta"
+                    | "content_block_stop"
+                    | "message_delta"
+                    | "message_stop"
+                    | "ping"
+            )
+        } else {
+            false
+        }
+    }
+
+    fn stream_to_universal(
+        &self,
+        payload: &Value,
+    ) -> Result<Option<UniversalStreamChunk>, TransformError> {
+        let event_type = payload
+            .get("type")
+            .and_then(Value::as_str)
+            .ok_or_else(|| TransformError::ToUniversalFailed("missing type field".to_string()))?;
+
+        match event_type {
+            "content_block_delta" => {
+                // Extract text delta - only handle text_delta type for basic text support
+                let delta = payload.get("delta");
+                let delta_type = delta.and_then(|d| d.get("type")).and_then(Value::as_str);
+
+                if delta_type == Some("text_delta") {
+                    let text = delta
+                        .and_then(|d| d.get("text"))
+                        .and_then(Value::as_str)
+                        .unwrap_or("");
+
+                    let index = payload.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index,
+                            delta: Some(serde_json::json!({
+                                "role": "assistant",
+                                "content": text
+                            })),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )));
+                }
+
+                // For non-text deltas (tool_use, etc.), return keep-alive
+                Ok(Some(UniversalStreamChunk::keep_alive()))
+            }
+
+            "message_delta" => {
+                // Contains stop_reason and final usage
+                let stop_reason = payload
+                    .get("delta")
+                    .and_then(|d| d.get("stop_reason"))
+                    .and_then(Value::as_str);
+
+                let finish_reason = stop_reason.map(|r| match r {
+                    "end_turn" | "stop_sequence" => "stop".to_string(),
+                    "max_tokens" => "length".to_string(),
+                    "tool_use" => "tool_calls".to_string(),
+                    other => other.to_string(),
+                });
+
+                let usage = payload.get("usage").map(|u| UniversalUsage {
+                    input_tokens: u.get("input_tokens").and_then(Value::as_i64),
+                    output_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                });
+
+                if finish_reason.is_some() || usage.is_some() {
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({})),
+                            finish_reason,
+                        }],
+                        None,
+                        usage,
+                    )));
+                }
+
+                Ok(Some(UniversalStreamChunk::keep_alive()))
+            }
+
+            "message_start" => {
+                // Extract initial usage and model info
+                let message = payload.get("message");
+                let model = message
+                    .and_then(|m| m.get("model"))
+                    .and_then(Value::as_str)
+                    .map(String::from);
+                let id = message
+                    .and_then(|m| m.get("id"))
+                    .and_then(Value::as_str)
+                    .map(String::from);
+                let usage = message.and_then(|m| m.get("usage")).map(|u| UniversalUsage {
+                    input_tokens: u.get("input_tokens").and_then(Value::as_i64),
+                    output_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                });
+
+                // Return chunk with metadata but mark as role initialization
+                Ok(Some(UniversalStreamChunk::new(
+                    id,
+                    model,
+                    vec![UniversalStreamChoice {
+                        index: 0,
+                        delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
+                        finish_reason: None,
+                    }],
+                    None,
+                    usage,
+                )))
+            }
+
+            "message_stop" | "content_block_start" | "content_block_stop" | "ping" => {
+                // Metadata events - return keep-alive
+                Ok(Some(UniversalStreamChunk::keep_alive()))
+            }
+
+            _ => {
+                // Unknown event type - return keep-alive
+                Ok(Some(UniversalStreamChunk::keep_alive()))
+            }
+        }
+    }
+
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Value, TransformError> {
+        if chunk.is_keep_alive() {
+            // Return a ping event for keep-alive
+            return Ok(serde_json::json!({"type": "ping"}));
+        }
+
+        // Check if this is a finish chunk
+        let has_finish = chunk
+            .choices
+            .first()
+            .and_then(|c| c.finish_reason.as_ref())
+            .is_some();
+
+        if has_finish {
+            // Generate message_delta with stop_reason
+            let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
+            let stop_reason = finish_reason.map(|r| match r.as_str() {
+                "stop" => "end_turn",
+                "length" => "max_tokens",
+                "tool_calls" => "tool_use",
+                other => other,
+            });
+
+            let mut obj = serde_json::json!({
+                "type": "message_delta",
+                "delta": {
+                    "stop_reason": stop_reason
+                }
+            });
+
+            if let Some(usage) = &chunk.usage {
+                obj.as_object_mut().unwrap().insert(
+                    "usage".into(),
+                    serde_json::json!({
+                        "input_tokens": usage.input_tokens.unwrap_or(0),
+                        "output_tokens": usage.output_tokens.unwrap_or(0)
+                    }),
+                );
+            }
+
+            return Ok(obj);
+        }
+
+        // Check if this is a content delta
+        if let Some(choice) = chunk.choices.first() {
+            if let Some(delta) = &choice.delta {
+                if let Some(content) = delta.get("content").and_then(Value::as_str) {
+                    return Ok(serde_json::json!({
+                        "type": "content_block_delta",
+                        "index": choice.index,
+                        "delta": {
+                            "type": "text_delta",
+                            "text": content
+                        }
+                    }));
+                }
+
+                // Role-only delta (initial chunk) - return content_block_start
+                if delta.get("role").is_some() && delta.get("content").is_none() {
+                    return Ok(serde_json::json!({
+                        "type": "content_block_start",
+                        "index": choice.index,
+                        "content_block": {
+                            "type": "text",
+                            "text": ""
+                        }
+                    }));
+                }
+            }
+        }
+
+        // Fallback - return content_block_delta with empty text
+        Ok(serde_json::json!({
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+                "type": "text_delta",
+                "text": ""
+            }
+        }))
     }
 }
 

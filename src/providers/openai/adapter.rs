@@ -21,7 +21,8 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, Message, UserContent};
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalUsage,
+    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChunk,
+    UniversalStreamChoice, UniversalUsage,
 };
 
 /// Known request fields for OpenAI Chat Completions API.
@@ -272,6 +273,141 @@ impl ProviderAdapter for OpenAIAdapter {
             FinishReason::ContentFilter => "content_filter".to_string(),
             FinishReason::Other(s) => s.clone(),
         })
+    }
+
+    // =========================================================================
+    // Streaming response handling
+    // =========================================================================
+
+    fn detect_stream_response(&self, payload: &Value) -> bool {
+        // OpenAI streaming chunk has object="chat.completion.chunk"
+        // or has choices array with delta field
+        if let Some(obj) = payload.get("object").and_then(Value::as_str) {
+            if obj == "chat.completion.chunk" {
+                return true;
+            }
+        }
+
+        // Fallback: check for choices with delta
+        if let Some(choices) = payload.get("choices").and_then(Value::as_array) {
+            if choices.iter().any(|c| c.get("delta").is_some()) {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    fn stream_to_universal(
+        &self,
+        payload: &Value,
+    ) -> Result<Option<UniversalStreamChunk>, TransformError> {
+        // OpenAI is the canonical format, so this is mostly direct mapping
+        let choices = payload
+            .get("choices")
+            .and_then(Value::as_array)
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|c| {
+                        let index = c.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+                        let delta = c.get("delta").cloned();
+                        let finish_reason = c
+                            .get("finish_reason")
+                            .and_then(Value::as_str)
+                            .map(String::from);
+                        Some(UniversalStreamChoice {
+                            index,
+                            delta,
+                            finish_reason,
+                        })
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+
+        // Extract usage if present (usually only on final chunk)
+        let usage = payload.get("usage").map(|u| UniversalUsage {
+            input_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
+            output_tokens: u.get("completion_tokens").and_then(Value::as_i64),
+        });
+
+        Ok(Some(UniversalStreamChunk::new(
+            payload.get("id").and_then(Value::as_str).map(String::from),
+            payload
+                .get("model")
+                .and_then(Value::as_str)
+                .map(String::from),
+            choices,
+            payload.get("created").and_then(Value::as_u64),
+            usage,
+        )))
+    }
+
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Value, TransformError> {
+        // Convert back to OpenAI streaming format
+        if chunk.is_keep_alive() {
+            // Return empty chunk for keep-alive
+            return Ok(serde_json::json!({
+                "object": "chat.completion.chunk",
+                "choices": []
+            }));
+        }
+
+        let choices: Vec<Value> = chunk
+            .choices
+            .iter()
+            .map(|c| {
+                let mut choice = serde_json::json!({
+                    "index": c.index,
+                    "delta": c.delta.clone().unwrap_or(Value::Object(Map::new()))
+                });
+                if let Some(ref reason) = c.finish_reason {
+                    choice
+                        .as_object_mut()
+                        .unwrap()
+                        .insert("finish_reason".into(), Value::String(reason.clone()));
+                } else {
+                    choice
+                        .as_object_mut()
+                        .unwrap()
+                        .insert("finish_reason".into(), Value::Null);
+                }
+                choice
+            })
+            .collect();
+
+        let mut obj = serde_json::json!({
+            "object": "chat.completion.chunk",
+            "choices": choices
+        });
+
+        let obj_map = obj.as_object_mut().unwrap();
+        if let Some(ref id) = chunk.id {
+            obj_map.insert("id".into(), Value::String(id.clone()));
+        }
+        if let Some(ref model) = chunk.model {
+            obj_map.insert("model".into(), Value::String(model.clone()));
+        }
+        if let Some(created) = chunk.created {
+            obj_map.insert("created".into(), Value::Number(created.into()));
+        }
+        if let Some(ref usage) = chunk.usage {
+            let input = usage.input_tokens.unwrap_or(0);
+            let output = usage.output_tokens.unwrap_or(0);
+            obj_map.insert(
+                "usage".into(),
+                serde_json::json!({
+                    "prompt_tokens": input,
+                    "completion_tokens": output,
+                    "total_tokens": input + output
+                }),
+            );
+        }
+
+        Ok(obj)
     }
 }
 
@@ -584,6 +720,209 @@ impl ProviderAdapter for ResponsesAdapter {
             FinishReason::ContentFilter => "incomplete".to_string(),
             FinishReason::Other(s) => s.clone(),
         })
+    }
+
+    // =========================================================================
+    // Streaming response handling
+    // =========================================================================
+
+    fn detect_stream_response(&self, payload: &Value) -> bool {
+        // Responses API streaming has type field starting with "response."
+        payload
+            .get("type")
+            .and_then(Value::as_str)
+            .is_some_and(|t| t.starts_with("response."))
+    }
+
+    fn stream_to_universal(
+        &self,
+        payload: &Value,
+    ) -> Result<Option<UniversalStreamChunk>, TransformError> {
+        let event_type = payload
+            .get("type")
+            .and_then(Value::as_str)
+            .ok_or_else(|| TransformError::ToUniversalFailed("missing type field".to_string()))?;
+
+        match event_type {
+            "response.output_text.delta" => {
+                // Text delta - extract from delta field
+                let text = payload.get("delta").and_then(Value::as_str).unwrap_or("");
+                let output_index = payload
+                    .get("output_index")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0) as u32;
+
+                Ok(Some(UniversalStreamChunk::new(
+                    None,
+                    None,
+                    vec![UniversalStreamChoice {
+                        index: output_index,
+                        delta: Some(serde_json::json!({
+                            "role": "assistant",
+                            "content": text
+                        })),
+                        finish_reason: None,
+                    }],
+                    None,
+                    None,
+                )))
+            }
+
+            "response.completed" => {
+                // Final event with usage
+                let response = payload.get("response");
+                let usage = response.and_then(|r| r.get("usage")).map(|u| UniversalUsage {
+                    input_tokens: u.get("input_tokens").and_then(Value::as_i64),
+                    output_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                });
+
+                let model = response
+                    .and_then(|r| r.get("model"))
+                    .and_then(Value::as_str)
+                    .map(String::from);
+
+                let id = response
+                    .and_then(|r| r.get("id"))
+                    .and_then(Value::as_str)
+                    .map(String::from);
+
+                Ok(Some(UniversalStreamChunk::new(
+                    id,
+                    model,
+                    vec![UniversalStreamChoice {
+                        index: 0,
+                        delta: Some(serde_json::json!({})),
+                        finish_reason: Some("stop".to_string()),
+                    }],
+                    None,
+                    usage,
+                )))
+            }
+
+            "response.incomplete" => {
+                // Incomplete response - typically due to length
+                let response = payload.get("response");
+                let usage = response.and_then(|r| r.get("usage")).map(|u| UniversalUsage {
+                    input_tokens: u.get("input_tokens").and_then(Value::as_i64),
+                    output_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                });
+
+                Ok(Some(UniversalStreamChunk::new(
+                    None,
+                    None,
+                    vec![UniversalStreamChoice {
+                        index: 0,
+                        delta: Some(serde_json::json!({})),
+                        finish_reason: Some("length".to_string()),
+                    }],
+                    None,
+                    usage,
+                )))
+            }
+
+            "response.created" | "response.in_progress" => {
+                // Initial metadata events - extract model/id
+                let response = payload.get("response");
+                let model = response
+                    .and_then(|r| r.get("model"))
+                    .and_then(Value::as_str)
+                    .map(String::from);
+                let id = response
+                    .and_then(|r| r.get("id"))
+                    .and_then(Value::as_str)
+                    .map(String::from);
+
+                Ok(Some(UniversalStreamChunk::new(
+                    id,
+                    model,
+                    vec![UniversalStreamChoice {
+                        index: 0,
+                        delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
+                        finish_reason: None,
+                    }],
+                    None,
+                    None,
+                )))
+            }
+
+            // All other events are metadata/keep-alive
+            _ => Ok(Some(UniversalStreamChunk::keep_alive())),
+        }
+    }
+
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Value, TransformError> {
+        if chunk.is_keep_alive() {
+            // Return a generic in_progress event
+            return Ok(serde_json::json!({
+                "type": "response.in_progress",
+                "sequence_number": 0
+            }));
+        }
+
+        // Check for finish chunk
+        let has_finish = chunk
+            .choices
+            .first()
+            .and_then(|c| c.finish_reason.as_ref())
+            .is_some();
+
+        if has_finish {
+            let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
+            let status = match finish_reason.map(|r| r.as_str()) {
+                Some("stop") => "completed",
+                Some("length") => "incomplete",
+                _ => "completed",
+            };
+
+            let mut response = serde_json::json!({
+                "id": chunk.id.as_deref().unwrap_or("resp_transformed"),
+                "object": "response",
+                "model": chunk.model.as_deref().unwrap_or("transformed"),
+                "status": status,
+                "output": []
+            });
+
+            if let Some(usage) = &chunk.usage {
+                response.as_object_mut().unwrap().insert(
+                    "usage".into(),
+                    serde_json::json!({
+                        "input_tokens": usage.input_tokens.unwrap_or(0),
+                        "output_tokens": usage.output_tokens.unwrap_or(0),
+                        "total_tokens": usage.input_tokens.unwrap_or(0) + usage.output_tokens.unwrap_or(0)
+                    }),
+                );
+            }
+
+            return Ok(serde_json::json!({
+                "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
+                "response": response
+            }));
+        }
+
+        // Check for content delta
+        if let Some(choice) = chunk.choices.first() {
+            if let Some(delta) = &choice.delta {
+                if let Some(content) = delta.get("content").and_then(Value::as_str) {
+                    return Ok(serde_json::json!({
+                        "type": "response.output_text.delta",
+                        "output_index": choice.index,
+                        "content_index": 0,
+                        "delta": content
+                    }));
+                }
+            }
+        }
+
+        // Fallback - return output_text.delta with empty content
+        Ok(serde_json::json!({
+            "type": "response.output_text.delta",
+            "output_index": 0,
+            "content_index": 0,
+            "delta": ""
+        }))
     }
 }
 
