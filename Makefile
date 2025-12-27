@@ -1,4 +1,4 @@
-.PHONY: all typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup
+.PHONY: all lingua-wasm typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup
 
 all: typescript python ## Build all bindings
 
@@ -27,7 +27,11 @@ generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."
 	@cargo test export_bindings --lib --quiet
 
-typescript: generate-types ## Build TypeScript bindings (WASM)
+lingua-wasm: ## Build WASM package
+	@echo "Building WASM package..."
+	cd bindings/lingua-wasm && pnpm run build
+
+typescript: generate-types lingua-wasm ## Build TypeScript bindings (WASM)
 	@echo "Building TypeScript bindings..."
 	cd bindings/typescript && pnpm install && pnpm run build
 
@@ -56,7 +60,8 @@ test-python: ## Run Python tests
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	cargo clean
-	rm -rf bindings/typescript/wasm bindings/typescript/dist bindings/typescript/node_modules
+	rm -rf bindings/lingua-wasm/nodejs bindings/lingua-wasm/web
+	rm -rf bindings/typescript/dist bindings/typescript/node_modules
 	rm -rf bindings/typescript/src/generated
 	rm -rf bindings/python/.venv bindings/python/target
 	rm -rf target/wheels
@@ -77,13 +82,13 @@ install-hooks: ## Install git pre-commit hooks
 	@echo "Installing git hooks..."
 	./scripts/install-hooks.sh
 
-install-wasm-tools: ## Install WASM build tools (wasm32-unknown-unknown target, wasm-bindgen-cli)
+install-wasm-tools: ## Install WASM build tools (wasm32-unknown-unknown target, wasm-pack)
 	@echo "Installing WASM build tools..."
 	@rustup target add wasm32-unknown-unknown
-	@if ! command -v wasm-bindgen >/dev/null 2>&1; then \
-		cargo install wasm-bindgen-cli@0.2.100; \
+	@if ! command -v wasm-pack >/dev/null 2>&1; then \
+		cargo install wasm-pack; \
 	else \
-		echo "✅ wasm-bindgen already installed"; \
+		echo "✅ wasm-pack already installed"; \
 	fi
 
 install-dependencies: ## Install dependencies

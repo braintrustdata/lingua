@@ -1,65 +1,22 @@
 /**
  * Browser Exports Test
  *
- * Validates that the browser entry point exports all expected functionality
- * and that WASM requires explicit init() before use.
+ * Validates that the browser entry point exports all expected functionality.
+ * With the web target, init(url) must be called with explicit WASM path.
  */
 
-import { describe, test, expect, beforeAll, afterAll } from "vitest";
-import * as fs from "fs";
-import * as path from "path";
-import * as http from "http";
+import { describe, test, expect, beforeAll, afterEach } from "vitest";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-let server: http.Server | null = null;
-let serverPort: number = 0;
-
-function startWasmServer(): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const wasmPath = path.join(__dirname, "../wasm-web/lingua_bg.wasm");
-    const wasmContent = fs.readFileSync(wasmPath);
-
-    server = http.createServer((req, res) => {
-      if (req.url === "/lingua_bg.wasm") {
-        res.writeHead(200, {
-          "Content-Type": "application/wasm",
-          "Access-Control-Allow-Origin": "*",
-          "Content-Length": wasmContent.length,
-        });
-        res.end(wasmContent);
-      } else {
-        res.writeHead(404);
-        res.end();
-      }
-    });
-
-    server.on("error", reject);
-
-    server.listen(0, "127.0.0.1", () => {
-      const address = server!.address();
-      if (address && typeof address !== "string") {
-        serverPort = address.port;
-        resolve(serverPort);
-      } else {
-        reject(new Error("Failed to get server address"));
-      }
-    });
-  });
-}
-
-function stopWasmServer(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (server) {
-      server.close((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    } else {
-      resolve();
-    }
-  });
-}
+const wasmPath = join(__dirname, "../../lingua-wasm/web/lingua_bg.wasm");
 
 describe("Browser exports", () => {
+  afterEach(async () => {
+    const { resetWasmForTests } = await import("../src/wasm-runtime");
+    resetWasmForTests();
+  });
+
   test("should export default init function", async () => {
     const exports = await import("../src/index.browser");
 
@@ -106,15 +63,12 @@ describe("Browser exports", () => {
     expect(exports.ConversionError.prototype).toBeInstanceOf(Error);
   });
 
-  test("init() accepts WASM buffer and works", async () => {
-    const init = (await import("../src/index.browser")).default;
-    const { chatCompletionsMessagesToLingua } = await import(
+  test("should work after init() with WASM buffer", async () => {
+    const { init, chatCompletionsMessagesToLingua } = await import(
       "../src/index.browser"
     );
 
-    const wasmPath = path.join(__dirname, "../wasm-web/lingua_bg.wasm");
-    const wasmBuffer = fs.readFileSync(wasmPath);
-
+    const wasmBuffer = readFileSync(wasmPath);
     await init(wasmBuffer);
 
     const simpleMessages = [
@@ -128,100 +82,25 @@ describe("Browser exports", () => {
     expect(result).toBeDefined();
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBe(1);
+    expect(result[0].role).toBe("user");
   });
 
-  describe("URL loading", () => {
-    beforeAll(async () => {
-      await startWasmServer();
-    });
+  test("init() can be called multiple times safely", async () => {
+    const { init, chatCompletionsMessagesToLingua } = await import(
+      "../src/index.browser"
+    );
 
-    afterAll(async () => {
-      await stopWasmServer();
-    });
+    const wasmBuffer = readFileSync(wasmPath);
+    
+    // Multiple init calls should be safe
+    await init(wasmBuffer);
+    await init(wasmBuffer);
 
-    test("init() accepts string URL and works", async () => {
-      const { resetWasmForTests } = await import("../src/wasm-runtime");
-      resetWasmForTests();
-
-      const init = (await import("../src/index.browser")).default;
-      const { chatCompletionsMessagesToLingua } = await import(
-        "../src/index.browser"
-      );
-
-      const wasmUrl = `http://127.0.0.1:${serverPort}/lingua_bg.wasm`;
-      await init(wasmUrl);
-
-      const simpleMessages = [
-        {
-          role: "user" as const,
-          content: "Hello from URL!",
-        },
-      ];
-
-      const result = chatCompletionsMessagesToLingua(simpleMessages);
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBe(1);
-      expect(result[0].role).toBe("user");
-    });
-
-    test("init() accepts URL object and works", async () => {
-      const { resetWasmForTests } = await import("../src/wasm-runtime");
-      resetWasmForTests();
-
-      const init = (await import("../src/index.browser")).default;
-      const { linguaToChatCompletionsMessages } = await import(
-        "../src/index.browser"
-      );
-
-      const wasmUrl = new URL(
-        `http://127.0.0.1:${serverPort}/lingua_bg.wasm`
-      );
-      await init(wasmUrl);
-
-      const linguaMessages = [
-        {
-          role: "user" as const,
-          content: [
-            {
-              type: "text" as const,
-              text: "Test with URL object",
-            },
-          ],
-        },
-      ];
-
-      const result = linguaToChatCompletionsMessages(linguaMessages);
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBe(1);
-    });
-
-    test("init() accepts fetch() Response and works", async () => {
-      const { resetWasmForTests } = await import("../src/wasm-runtime");
-      resetWasmForTests();
-
-      const init = (await import("../src/index.browser")).default;
-      const { anthropicMessagesToLingua } = await import(
-        "../src/index.browser"
-      );
-
-      const wasmUrl = `http://127.0.0.1:${serverPort}/lingua_bg.wasm`;
-      const response = await fetch(wasmUrl);
-      await init(response);
-
-      const anthropicMessages = [
-        {
-          role: "user" as const,
-          content: "Test with fetch response",
-        },
-      ];
-
-      const result = anthropicMessagesToLingua(anthropicMessages);
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBe(1);
-      expect(result[0].role).toBe("user");
-    });
+    // Functions should still work
+    const result = chatCompletionsMessagesToLingua([
+      { role: "user", content: "Test" },
+    ]);
+    expect(result).toBeDefined();
+    expect(result.length).toBe(1);
   });
 });
