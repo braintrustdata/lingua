@@ -12,18 +12,26 @@ use crate::processing::adapters::{
     ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
+use crate::providers::openai::capabilities::{OpenAICapabilities, TargetProvider};
 use crate::providers::openai::generated::{
-    ChatCompletionRequestMessage, ChatCompletionResponseMessage, CreateChatCompletionRequestClass,
-    CreateResponseClass, InputItem, InputItemContent, InputItemRole, InputItemType, Instructions,
+    AllowedToolsFunction, ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
+    ChatCompletionRequestMessageContentPart, ChatCompletionRequestMessageRole,
+    ChatCompletionResponseMessage, ChatCompletionToolChoiceOption,
+    CreateChatCompletionRequestClass, CreateResponseClass, File, FunctionObject,
+    FunctionToolChoiceClass, FunctionToolChoiceType, InputItem, InputItemContent, InputItemRole,
+    InputItemType, Instructions, PurpleType, ResponseFormatType, ToolElement, ToolType,
 };
-use crate::providers::openai::{try_parse_openai, try_parse_responses, universal_to_responses_input};
+use crate::providers::openai::{
+    try_parse_openai, try_parse_responses, universal_to_responses_input,
+};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, Message, UserContent};
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChunk,
-    UniversalStreamChoice, UniversalUsage,
+    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalUsage,
 };
+use crate::util::media::parse_base64_data_url;
 
 /// Known request fields for OpenAI Chat Completions API.
 /// These are fields extracted into UniversalRequest/UniversalParams.
@@ -100,8 +108,12 @@ impl ProviderAdapter for OpenAIAdapter {
             max_tokens: request.max_tokens.or(request.max_completion_tokens),
             stop: request.stop.and_then(|s| serde_json::to_value(s).ok()),
             tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
-            tool_choice: request.tool_choice.and_then(|t| serde_json::to_value(t).ok()),
-            response_format: request.response_format.and_then(|r| serde_json::to_value(r).ok()),
+            tool_choice: request
+                .tool_choice
+                .and_then(|t| serde_json::to_value(t).ok()),
+            response_format: request
+                .response_format
+                .and_then(|r| serde_json::to_value(r).ok()),
             seed: request.seed,
             presence_penalty: request.presence_penalty,
             frequency_penalty: request.frequency_penalty,
@@ -139,15 +151,29 @@ impl ProviderAdapter for OpenAIAdapter {
         // Insert params
         insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
-        insert_opt_i64(&mut obj, "max_tokens", req.params.max_tokens);
+        insert_opt_i64(&mut obj, "max_completion_tokens", req.params.max_tokens);
         insert_opt_value(&mut obj, "stop", req.params.stop.clone());
         insert_opt_value(&mut obj, "tools", req.params.tools.clone());
         insert_opt_value(&mut obj, "tool_choice", req.params.tool_choice.clone());
-        insert_opt_value(&mut obj, "response_format", req.params.response_format.clone());
+        insert_opt_value(
+            &mut obj,
+            "response_format",
+            req.params.response_format.clone(),
+        );
         insert_opt_i64(&mut obj, "seed", req.params.seed);
         insert_opt_f64(&mut obj, "presence_penalty", req.params.presence_penalty);
         insert_opt_f64(&mut obj, "frequency_penalty", req.params.frequency_penalty);
         insert_opt_bool(&mut obj, "stream", req.params.stream);
+
+        // If streaming, ensure stream_options.include_usage is set for usage reporting
+        if req.params.stream == Some(true) {
+            let stream_options = obj
+                .entry("stream_options")
+                .or_insert_with(|| serde_json::json!({}));
+            if let Value::Object(opts) = stream_options {
+                opts.insert("include_usage".into(), Value::Bool(true));
+            }
+        }
 
         // Merge extras (provider-specific fields)
         for (k, v) in &req.extras {
@@ -184,23 +210,29 @@ impl ProviderAdapter for OpenAIAdapter {
                 let response_msg: ChatCompletionResponseMessage =
                     serde_json::from_value(msg_val.clone())
                         .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-                let universal =
-                    <Message as TryFromLLM<&ChatCompletionResponseMessage>>::try_from(&response_msg)
-                        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+                let universal = <Message as TryFromLLM<&ChatCompletionResponseMessage>>::try_from(
+                    &response_msg,
+                )
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
                 messages.push(universal);
             }
 
             // Get finish_reason from first choice
             if finish_reason.is_none() {
                 if let Some(reason) = choice.get("finish_reason").and_then(Value::as_str) {
-                    finish_reason = Some(FinishReason::from_str(reason));
+                    finish_reason = Some(reason.parse().unwrap());
                 }
             }
         }
 
         let usage = payload.get("usage").map(|u| UniversalUsage {
-            input_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
-            output_tokens: u.get("completion_tokens").and_then(Value::as_i64),
+            prompt_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
+            completion_tokens: u.get("completion_tokens").and_then(Value::as_i64),
+            prompt_cached_tokens: u
+                .get("prompt_tokens_details")
+                .and_then(|d| d.get("cached_tokens"))
+                .and_then(Value::as_i64),
+            prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
         });
 
         Ok(UniversalResponse {
@@ -241,8 +273,8 @@ impl ProviderAdapter for OpenAIAdapter {
             .collect::<Result<Vec<_>, TransformError>>()?;
 
         let usage = resp.usage.as_ref().map(|u| {
-            let input = u.input_tokens.unwrap_or(0);
-            let output = u.output_tokens.unwrap_or(0);
+            let input = u.prompt_tokens.unwrap_or(0);
+            let output = u.completion_tokens.unwrap_or(0);
             serde_json::json!({
                 "prompt_tokens": input,
                 "completion_tokens": output,
@@ -259,7 +291,9 @@ impl ProviderAdapter for OpenAIAdapter {
         });
 
         if let Some(usage_val) = usage {
-            obj.as_object_mut().unwrap().insert("usage".into(), usage_val);
+            obj.as_object_mut()
+                .unwrap()
+                .insert("usage".into(), usage_val);
         }
 
         Ok(obj)
@@ -308,18 +342,18 @@ impl ProviderAdapter for OpenAIAdapter {
             .and_then(Value::as_array)
             .map(|arr| {
                 arr.iter()
-                    .filter_map(|c| {
+                    .map(|c| {
                         let index = c.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
                         let delta = c.get("delta").cloned();
                         let finish_reason = c
                             .get("finish_reason")
                             .and_then(Value::as_str)
                             .map(String::from);
-                        Some(UniversalStreamChoice {
+                        UniversalStreamChoice {
                             index,
                             delta,
                             finish_reason,
-                        })
+                        }
                     })
                     .collect::<Vec<_>>()
             })
@@ -327,8 +361,13 @@ impl ProviderAdapter for OpenAIAdapter {
 
         // Extract usage if present (usually only on final chunk)
         let usage = payload.get("usage").map(|u| UniversalUsage {
-            input_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
-            output_tokens: u.get("completion_tokens").and_then(Value::as_i64),
+            prompt_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
+            completion_tokens: u.get("completion_tokens").and_then(Value::as_i64),
+            prompt_cached_tokens: u
+                .get("prompt_tokens_details")
+                .and_then(|d| d.get("cached_tokens"))
+                .and_then(Value::as_i64),
+            prompt_cache_creation_tokens: None,
         });
 
         Ok(Some(UniversalStreamChunk::new(
@@ -343,10 +382,7 @@ impl ProviderAdapter for OpenAIAdapter {
         )))
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Value, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         // Convert back to OpenAI streaming format
         if chunk.is_keep_alive() {
             // Return empty chunk for keep-alive
@@ -395,14 +431,14 @@ impl ProviderAdapter for OpenAIAdapter {
             obj_map.insert("created".into(), Value::Number(created.into()));
         }
         if let Some(ref usage) = chunk.usage {
-            let input = usage.input_tokens.unwrap_or(0);
-            let output = usage.output_tokens.unwrap_or(0);
+            let prompt = usage.prompt_tokens.unwrap_or(0);
+            let completion = usage.completion_tokens.unwrap_or(0);
             obj_map.insert(
                 "usage".into(),
                 serde_json::json!({
-                    "prompt_tokens": input,
-                    "completion_tokens": output,
-                    "total_tokens": input + output
+                    "prompt_tokens": prompt,
+                    "completion_tokens": completion,
+                    "total_tokens": prompt + completion
                 }),
             );
         }
@@ -460,16 +496,18 @@ impl ProviderAdapter for ResponsesAdapter {
             max_tokens: request.max_output_tokens,
             stop: None, // Responses API doesn't use stop
             tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
-            tool_choice: request.tool_choice.and_then(|t| serde_json::to_value(t).ok()),
-            response_format: None, // Different structure in Responses API
-            seed: None, // Responses API uses different randomness control
+            tool_choice: request
+                .tool_choice
+                .and_then(|t| serde_json::to_value(t).ok()),
+            response_format: None,  // Different structure in Responses API
+            seed: None,             // Responses API uses different randomness control
             presence_penalty: None, // Responses API doesn't support penalties
             frequency_penalty: None,
             stream: request.stream,
         };
 
         Ok(UniversalRequest {
-            model: request.model,  // Already Option<String> in CreateResponseClass
+            model: request.model, // Already Option<String> in CreateResponseClass
             messages,
             params,
             extras: collect_extras(payload, RESPONSES_KNOWN_KEYS),
@@ -494,20 +532,124 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
 
-        // Insert params (note: some params like temperature are not supported by reasoning models)
-        // We still include them for passthrough, the API will validate
-        insert_opt_f64(&mut obj, "temperature", req.params.temperature);
+        // Note: temperature is intentionally NOT included for Responses API
+        // as reasoning models (o1, o3) don't support it
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
         insert_opt_i64(&mut obj, "max_output_tokens", req.params.max_tokens);
-        insert_opt_value(&mut obj, "tools", req.params.tools.clone());
-        insert_opt_value(&mut obj, "tool_choice", req.params.tool_choice.clone());
         insert_opt_f64(&mut obj, "presence_penalty", req.params.presence_penalty);
         insert_opt_f64(&mut obj, "frequency_penalty", req.params.frequency_penalty);
         insert_opt_bool(&mut obj, "stream", req.params.stream);
 
-        // Merge extras
+        // Transform tools from OpenAI Chat format to Responses API format
+        // {type: "function", function: {name, description, parameters}}
+        // → {type: "function", name, description, parameters, strict: false}
+        // Tools can come from params.tools or extras.tools depending on how the request was built
+        let tools_value = req
+            .params
+            .tools
+            .as_ref()
+            .or_else(|| req.extras.get("tools"));
+        if let Some(Value::Array(tools)) = tools_value {
+            let response_tools: Vec<Value> = tools
+                .iter()
+                .filter_map(|tool| {
+                    if tool.get("type").and_then(Value::as_str) == Some("function") {
+                        let func = tool.get("function")?;
+                        Some(serde_json::json!({
+                            "type": "function",
+                            "name": func.get("name")?,
+                            "description": func.get("description"),
+                            "parameters": func.get("parameters").cloned().unwrap_or(serde_json::json!({})),
+                            "strict": false
+                        }))
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            if !response_tools.is_empty() {
+                obj.insert("tools".into(), Value::Array(response_tools));
+            }
+        }
+
+        // Transform tool_choice from OpenAI Chat format to Responses API format
+        // {function: {name: "foo"}} → {type: "function", name: "foo"}
+        // tool_choice can come from params or extras depending on how the request was built
+        let tool_choice_value = req
+            .params
+            .tool_choice
+            .as_ref()
+            .or_else(|| req.extras.get("tool_choice"));
+        if let Some(tool_choice) = tool_choice_value {
+            let converted = match tool_choice {
+                Value::String(s) if s == "none" || s == "auto" || s == "required" => {
+                    Value::String(s.clone())
+                }
+                Value::Object(obj_tc) if obj_tc.contains_key("function") => {
+                    if let Some(func) = obj_tc.get("function") {
+                        if let Some(name) = func.get("name").and_then(Value::as_str) {
+                            serde_json::json!({ "type": "function", "name": name })
+                        } else {
+                            Value::String("auto".into())
+                        }
+                    } else {
+                        Value::String("auto".into())
+                    }
+                }
+                _ => Value::String("auto".into()),
+            };
+            obj.insert("tool_choice".into(), converted);
+        }
+
+        // Transform response_format to nested text.format structure for Responses API
+        if let Some(response_format) = req.extras.get("response_format") {
+            let text_format = match response_format.get("type").and_then(Value::as_str) {
+                Some("text") | Some("json_object") => {
+                    Some(serde_json::json!({ "format": response_format }))
+                }
+                Some("json_schema") => response_format.get("json_schema").map(|json_schema| {
+                    serde_json::json!({
+                        "format": {
+                            "type": "json_schema",
+                            "schema": json_schema.get("schema").cloned().unwrap_or(serde_json::json!({})),
+                            "name": json_schema.get("name"),
+                            "description": json_schema.get("description"),
+                            "strict": json_schema.get("strict")
+                        }
+                    })
+                }),
+                _ => None,
+            };
+            if let Some(tf) = text_format {
+                obj.insert("text".into(), tf);
+            }
+        }
+
+        // Transform reasoning_effort to nested reasoning.effort structure
+        if let Some(effort) = req.extras.get("reasoning_effort") {
+            obj.insert(
+                "reasoning".into(),
+                serde_json::json!({ "effort": effort.clone() }),
+            );
+        }
+
+        // Pass through parallel_tool_calls
+        if let Some(Value::Bool(parallel)) = req.extras.get("parallel_tool_calls") {
+            obj.insert("parallel_tool_calls".into(), Value::Bool(*parallel));
+        }
+
+        // Merge remaining extras (except those we handled specially)
         for (k, v) in &req.extras {
-            obj.insert(k.clone(), v.clone());
+            if !matches!(
+                k.as_str(),
+                "tools"
+                    | "tool_choice"
+                    | "response_format"
+                    | "reasoning_effort"
+                    | "parallel_tool_calls"
+            ) {
+                obj.insert(k.clone(), v.clone());
+            }
         }
 
         Ok(Value::Object(obj))
@@ -548,7 +690,8 @@ impl ProviderAdapter for ResponsesAdapter {
                             let text: String = content_arr
                                 .iter()
                                 .filter_map(|c| {
-                                    if c.get("type").and_then(Value::as_str) == Some("output_text") {
+                                    if c.get("type").and_then(Value::as_str) == Some("output_text")
+                                    {
                                         c.get("text").and_then(Value::as_str).map(String::from)
                                     } else {
                                         None
@@ -625,11 +768,16 @@ impl ProviderAdapter for ResponsesAdapter {
         let finish_reason = payload
             .get("status")
             .and_then(Value::as_str)
-            .map(FinishReason::from_str);
+            .map(|s| s.parse().unwrap());
 
         let usage = payload.get("usage").map(|u| UniversalUsage {
-            input_tokens: u.get("input_tokens").and_then(Value::as_i64),
-            output_tokens: u.get("output_tokens").and_then(Value::as_i64),
+            prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
+            completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
+            prompt_cached_tokens: u
+                .get("input_tokens_details")
+                .and_then(|d| d.get("cached_tokens"))
+                .and_then(Value::as_i64),
+            prompt_cache_creation_tokens: None,
         });
 
         Ok(UniversalResponse {
@@ -691,8 +839,8 @@ impl ProviderAdapter for ResponsesAdapter {
         });
 
         if let Some(usage) = &resp.usage {
-            let input = usage.input_tokens.unwrap_or(0);
-            let output = usage.output_tokens.unwrap_or(0);
+            let input = usage.prompt_tokens.unwrap_or(0);
+            let output = usage.completion_tokens.unwrap_or(0);
             obj.as_object_mut().unwrap().insert(
                 "usage".into(),
                 serde_json::json!({
@@ -771,10 +919,17 @@ impl ProviderAdapter for ResponsesAdapter {
             "response.completed" => {
                 // Final event with usage
                 let response = payload.get("response");
-                let usage = response.and_then(|r| r.get("usage")).map(|u| UniversalUsage {
-                    input_tokens: u.get("input_tokens").and_then(Value::as_i64),
-                    output_tokens: u.get("output_tokens").and_then(Value::as_i64),
-                });
+                let usage = response
+                    .and_then(|r| r.get("usage"))
+                    .map(|u| UniversalUsage {
+                        prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
+                        completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                        prompt_cached_tokens: u
+                            .get("input_tokens_details")
+                            .and_then(|d| d.get("cached_tokens"))
+                            .and_then(Value::as_i64),
+                        prompt_cache_creation_tokens: None,
+                    });
 
                 let model = response
                     .and_then(|r| r.get("model"))
@@ -802,10 +957,17 @@ impl ProviderAdapter for ResponsesAdapter {
             "response.incomplete" => {
                 // Incomplete response - typically due to length
                 let response = payload.get("response");
-                let usage = response.and_then(|r| r.get("usage")).map(|u| UniversalUsage {
-                    input_tokens: u.get("input_tokens").and_then(Value::as_i64),
-                    output_tokens: u.get("output_tokens").and_then(Value::as_i64),
-                });
+                let usage = response
+                    .and_then(|r| r.get("usage"))
+                    .map(|u| UniversalUsage {
+                        prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
+                        completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
+                        prompt_cached_tokens: u
+                            .get("input_tokens_details")
+                            .and_then(|d| d.get("cached_tokens"))
+                            .and_then(Value::as_i64),
+                        prompt_cache_creation_tokens: None,
+                    });
 
                 Ok(Some(UniversalStreamChunk::new(
                     None,
@@ -850,10 +1012,7 @@ impl ProviderAdapter for ResponsesAdapter {
         }
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Value, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         if chunk.is_keep_alive() {
             // Return a generic in_progress event
             return Ok(serde_json::json!({
@@ -889,9 +1048,9 @@ impl ProviderAdapter for ResponsesAdapter {
                 response.as_object_mut().unwrap().insert(
                     "usage".into(),
                     serde_json::json!({
-                        "input_tokens": usage.input_tokens.unwrap_or(0),
-                        "output_tokens": usage.output_tokens.unwrap_or(0),
-                        "total_tokens": usage.input_tokens.unwrap_or(0) + usage.output_tokens.unwrap_or(0)
+                        "input_tokens": usage.prompt_tokens.unwrap_or(0),
+                        "output_tokens": usage.completion_tokens.unwrap_or(0),
+                        "total_tokens": usage.prompt_tokens.unwrap_or(0) + usage.completion_tokens.unwrap_or(0)
                     }),
                 );
             }
@@ -923,6 +1082,272 @@ impl ProviderAdapter for ResponsesAdapter {
             "content_index": 0,
             "delta": ""
         }))
+    }
+}
+
+// =============================================================================
+// OpenAI Target-Specific Transformations
+// =============================================================================
+
+/// Error type for transformation operations.
+#[derive(Debug, thiserror::Error)]
+pub enum OpenAITransformError {
+    #[error("missing required field: {field}")]
+    MissingField { field: &'static str },
+    #[error("invalid value: {message}")]
+    InvalidValue { message: String },
+    #[error("unsupported feature: {feature}")]
+    Unsupported { feature: String },
+    #[error("serialization failed: {0}")]
+    SerializationFailed(String),
+}
+
+/// Apply target-specific transformations to an OpenAI-format request payload.
+///
+/// This function applies transformations needed to make an OpenAI-format request
+/// work with different target providers (Azure, Vertex, Mistral, etc.).
+///
+/// # Arguments
+///
+/// * `payload` - The OpenAI-format request payload (modified in place)
+/// * `target_provider` - The target provider that will receive the request
+/// * `provider_metadata` - Optional provider-specific metadata (e.g., api_version for Azure)
+///
+/// # Returns
+///
+/// The transformed payload, or an error if transformation fails.
+pub fn apply_target_transforms(
+    payload: &Value,
+    target_provider: TargetProvider,
+    provider_metadata: Option<&Map<String, Value>>,
+) -> Result<Value, OpenAITransformError> {
+    // Parse as OpenAI request
+    let mut request: CreateChatCompletionRequestClass = serde_json::from_value(payload.clone())
+        .map_err(|e| OpenAITransformError::SerializationFailed(e.to_string()))?;
+
+    // Detect capabilities based on request and target
+    let capabilities = OpenAICapabilities::detect(&request, target_provider);
+
+    // Apply reasoning model transformations
+    if capabilities.requires_reasoning_transforms() {
+        apply_reasoning_transforms(&mut request, &capabilities);
+    }
+
+    // Apply provider-specific field sanitization
+    apply_provider_sanitization(
+        &mut request,
+        &capabilities,
+        target_provider,
+        provider_metadata,
+    );
+
+    // Apply model name normalization if needed
+    if capabilities.requires_model_normalization {
+        apply_model_normalization(&mut request, target_provider);
+    }
+
+    // Normalize user messages (handle non-image base64 content)
+    normalize_user_messages(&mut request)?;
+
+    // Apply response format transformations
+    apply_response_format(&mut request, &capabilities)?;
+
+    // Serialize back to Value
+    serde_json::to_value(&request)
+        .map_err(|e| OpenAITransformError::SerializationFailed(e.to_string()))
+}
+
+fn apply_reasoning_transforms(
+    request: &mut CreateChatCompletionRequestClass,
+    capabilities: &OpenAICapabilities,
+) {
+    // Remove unsupported fields for reasoning models
+    request.temperature = None;
+    request.parallel_tool_calls = None;
+
+    // For legacy o1 models, convert system messages to user messages
+    if capabilities.is_legacy_o1_model {
+        for message in &mut request.messages {
+            if matches!(message.role, ChatCompletionRequestMessageRole::System) {
+                message.role = ChatCompletionRequestMessageRole::User;
+            }
+        }
+    }
+}
+
+fn apply_provider_sanitization(
+    request: &mut CreateChatCompletionRequestClass,
+    capabilities: &OpenAICapabilities,
+    target_provider: TargetProvider,
+    provider_metadata: Option<&Map<String, Value>>,
+) {
+    // Remove stream_options for providers that don't support it
+    if !capabilities.supports_stream_options {
+        request.stream_options = None;
+    }
+
+    // Remove parallel_tool_calls for providers that don't support it
+    if !capabilities.supports_parallel_tools {
+        request.parallel_tool_calls = None;
+    }
+
+    // Remove seed field for Azure with API version
+    let has_api_version = provider_metadata
+        .and_then(|meta| meta.get("api_version"))
+        .is_some();
+
+    if capabilities.should_remove_seed_for_azure(target_provider, has_api_version) {
+        request.seed = None;
+    }
+}
+
+fn apply_model_normalization(
+    request: &mut CreateChatCompletionRequestClass,
+    target_provider: TargetProvider,
+) {
+    // Normalize Vertex model names
+    if target_provider == TargetProvider::Vertex {
+        if request.model.starts_with("publishers/meta/models/") {
+            // Strip to "meta/..." format
+            request.model = request
+                .model
+                .strip_prefix("publishers/")
+                .and_then(|s| s.strip_prefix("meta/models/"))
+                .map(|s| format!("meta/{}", s))
+                .unwrap_or_else(|| request.model.clone());
+        } else if let Some(stripped) = request.model.strip_prefix("publishers/") {
+            // Strip "publishers/X/models/Y" to "Y"
+            if let Some(model_part) = stripped.split("/models/").nth(1) {
+                request.model = model_part.to_string();
+            }
+        }
+    }
+}
+
+fn normalize_user_messages(
+    request: &mut CreateChatCompletionRequestClass,
+) -> Result<(), OpenAITransformError> {
+    for message in &mut request.messages {
+        if matches!(message.role, ChatCompletionRequestMessageRole::User) {
+            if let Some(
+                ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(
+                    parts,
+                ),
+            ) = message.content.as_mut()
+            {
+                for part in parts.iter_mut() {
+                    normalize_content_part(part)?;
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn normalize_content_part(
+    part: &mut ChatCompletionRequestMessageContentPart,
+) -> Result<(), OpenAITransformError> {
+    if !matches!(
+        part.chat_completion_request_message_content_part_type,
+        PurpleType::ImageUrl
+    ) {
+        return Ok(());
+    }
+
+    let Some(image_url_value) = part
+        .image_url
+        .as_ref()
+        .map(|image_url| image_url.url.clone())
+    else {
+        return Ok(());
+    };
+
+    // Handle base64 data URLs - convert non-images to file type
+    if let Some(data_url) = parse_base64_data_url(&image_url_value) {
+        if !data_url.media_type.starts_with("image/") {
+            part.chat_completion_request_message_content_part_type = PurpleType::File;
+            part.image_url = None;
+            part.file = Some(File {
+                file_data: Some(image_url_value),
+                file_id: None,
+                filename: Some(if data_url.media_type == "application/pdf" {
+                    "file_from_base64.pdf".to_string()
+                } else {
+                    "file_from_base64".to_string()
+                }),
+            });
+        }
+    }
+
+    Ok(())
+}
+
+fn apply_response_format(
+    request: &mut CreateChatCompletionRequestClass,
+    capabilities: &OpenAICapabilities,
+) -> Result<(), OpenAITransformError> {
+    let Some(response_format) = request.response_format.take() else {
+        return Ok(());
+    };
+
+    match response_format.text_type {
+        ResponseFormatType::Text => Ok(()),
+        ResponseFormatType::JsonSchema => {
+            if capabilities.supports_native_structured_output {
+                request.response_format = Some(response_format);
+                return Ok(());
+            }
+
+            // Check if tools are already being used
+            if request
+                .tools
+                .as_ref()
+                .is_some_and(|tools| !tools.is_empty())
+                || request.function_call.is_some()
+                || request.tool_choice.is_some()
+            {
+                return Err(OpenAITransformError::Unsupported {
+                    feature: "tools_with_structured_output".to_string(),
+                });
+            }
+
+            // Convert json_schema to a tool call
+            match response_format.json_schema {
+                Some(schema) => {
+                    request.tools = Some(vec![ToolElement {
+                        function: Some(FunctionObject {
+                            description: Some("Output the result in JSON format".to_string()),
+                            name: "json".to_string(),
+                            parameters: schema.schema.clone(),
+                            strict: schema.strict,
+                        }),
+                        tool_type: ToolType::Function,
+                        custom: None,
+                    }]);
+
+                    request.tool_choice =
+                        Some(ChatCompletionToolChoiceOption::FunctionToolChoiceClass(
+                            FunctionToolChoiceClass {
+                                allowed_tools: None,
+                                allowed_tools_type: FunctionToolChoiceType::Function,
+                                function: Some(AllowedToolsFunction {
+                                    name: "json".to_string(),
+                                }),
+                                custom: None,
+                            },
+                        ));
+
+                    Ok(())
+                }
+                None => Err(OpenAITransformError::InvalidValue {
+                    message: "json_schema response_format is missing schema".to_string(),
+                }),
+            }
+        }
+        ResponseFormatType::JsonObject => {
+            request.response_format = Some(response_format);
+            Ok(())
+        }
     }
 }
 
@@ -974,7 +1399,10 @@ mod tests {
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
         assert_eq!(reconstructed.get("user").unwrap(), "test-user-123");
-        assert_eq!(reconstructed.get("custom_field").unwrap(), "should_be_preserved");
+        assert_eq!(
+            reconstructed.get("custom_field").unwrap(),
+            "should_be_preserved"
+        );
     }
 
     #[test]

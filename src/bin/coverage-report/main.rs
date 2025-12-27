@@ -25,6 +25,11 @@ use runner::run_all_tests;
 fn main() {
     let adapters = adapters();
     let (request_results, response_results, streaming_results) = run_all_tests(&adapters);
-    let report = generate_report(&request_results, &response_results, &streaming_results, &adapters);
+    let report = generate_report(
+        &request_results,
+        &response_results,
+        &streaming_results,
+        &adapters,
+    );
     println!("{}", report);
 }

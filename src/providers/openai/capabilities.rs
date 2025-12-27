@@ -46,7 +46,6 @@ pub struct OpenAICapabilities {
     pub supports_parallel_tools: bool,
     pub supports_seed_field: bool,
     pub requires_model_normalization: bool,
-    pub requires_responses_api: bool,
 }
 
 impl OpenAICapabilities {
@@ -57,12 +56,6 @@ impl OpenAICapabilities {
         let model = request.model.to_ascii_lowercase();
         let uses_reasoning_mode =
             request.reasoning_effort.is_some() || is_reasoning_model_name(&model);
-
-        // Check if model requires Responses API
-        let requires_responses_api = model.starts_with("o1-pro")
-            || model.starts_with("o3-pro")
-            || model.starts_with("gpt-5-pro")
-            || model.starts_with("gpt-5-codex");
 
         // Provider-specific capability detection
         let (
@@ -89,7 +82,6 @@ impl OpenAICapabilities {
             supports_parallel_tools,
             supports_seed_field,
             requires_model_normalization,
-            requires_responses_api,
         }
     }
 

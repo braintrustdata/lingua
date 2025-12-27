@@ -122,10 +122,7 @@ pub trait ProviderAdapter: Send + Sync {
     /// Convert a universal streaming chunk to provider-specific format.
     ///
     /// This builds a streaming chunk payload in the provider's format.
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Value, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         let _ = chunk;
         Err(TransformError::StreamingNotImplemented(
             self.display_name().to_string(),
@@ -202,6 +199,7 @@ pub fn insert_opt_string(obj: &mut Map<String, Value>, key: &str, value: Option<
 /// 3. Anthropic
 /// 4. Google
 /// 5. Bedrock (has unique `modelId` field)
+#[allow(clippy::vec_init_then_push)]
 pub fn adapters() -> Vec<Box<dyn ProviderAdapter>> {
     let mut list: Vec<Box<dyn ProviderAdapter>> = Vec::new();
 
