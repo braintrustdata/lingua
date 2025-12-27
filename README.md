@@ -258,9 +258,9 @@ This project aims to support the entire ecosystem of LLM providers. Contribution
 
 ### Developer Setup
 
-Prerequisites: Rust toolchain, Node.js, pnpm.
+Prerequisites: Install [mise](https://mise.jdx.dev/getting-started.html) to manage toolchain versions.
 
-Run `./scripts/setup.sh` from the project root after cloning. If the script succeeds, you should be all set! Otherwise, follow the error messages.
+Run `make setup` from the project root after cloning. If the setup succeeds, you should be all set! Otherwise, follow the error messages.
 
 ### TypeScript Type Generation
 

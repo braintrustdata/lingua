@@ -1,0 +1,7 @@
+[tools]
+rust = "1.86"
+cargo-binstall = "latest"
+pnpm = "10.26.1"
+nodejs = "22.15.0"
+python = "3.11.10"
+
