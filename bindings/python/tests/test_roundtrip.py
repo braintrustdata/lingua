@@ -10,7 +10,7 @@ These tests validate that:
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pytest
 
