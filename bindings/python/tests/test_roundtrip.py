@@ -10,7 +10,7 @@ These tests validate that:
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pytest
 
@@ -31,9 +31,9 @@ class Snapshot:
         name: str,
         provider: str,
         turn: str,
-        request: Optional[Dict] = None,
-        response: Optional[Dict] = None,
-        streaming_response: Optional[List] = None,
+        request: dict | None = None,
+        response: dict | None = None,
+        streaming_response: list | None = None,
     ):
         self.name = name
         self.provider = provider
@@ -43,12 +43,17 @@ class Snapshot:
         self.streaming_response = streaming_response
 
 
-def load_test_snapshots(test_case_name: str) -> List[Snapshot]:
+def load_test_snapshots(test_case_name: str) -> list[Snapshot]:
     """Load all snapshots for a given test case"""
-    snapshots: List[Snapshot] = []
+    snapshots: list[Snapshot] = []
 
     # Snapshots are in the payloads directory (3 levels up from tests/)
-    snapshots_dir = Path(__file__).parent.parent.parent.parent / "payloads" / "snapshots" / test_case_name
+    snapshots_dir = (
+        Path(__file__).parent.parent.parent.parent
+        / "payloads"
+        / "snapshots"
+        / test_case_name
+    )
 
     if not snapshots_dir.exists():
         return snapshots
@@ -95,8 +100,7 @@ def load_test_snapshots(test_case_name: str) -> List[Snapshot]:
                         # Try newline-delimited JSON
                         lines = [
                             json.loads(line)
-                            for line in content.split("\n")
-                            if line.strip()
+                            for line in content.split("\n") if line.strip()
                         ]
                         snapshot_data["streaming_response"] = lines
 
@@ -119,7 +123,9 @@ def normalize_for_comparison(obj: Any) -> Any:
 
     if isinstance(obj, list):
         # Remove None from arrays and recursively normalize
-        normalized = [normalize_for_comparison(item) for item in obj if item is not None]
+        normalized = [
+            normalize_for_comparison(item) for item in obj if item is not None
+        ]
         # Return None for empty arrays to remove them
         return normalized if normalized else None
 
@@ -138,7 +144,7 @@ def normalize_for_comparison(obj: Any) -> Any:
     return obj
 
 
-def perform_openai_roundtrip(openai_message: Dict) -> Dict[str, Any]:
+def perform_openai_roundtrip(openai_message: dict) -> dict[str, Any]:
     """
     Perform roundtrip conversion: Chat Completions -> Lingua -> Chat Completions
 
@@ -154,10 +160,14 @@ def perform_openai_roundtrip(openai_message: Dict) -> Dict[str, Any]:
     lingua_msg = chat_completions_messages_to_lingua([openai_message])[0]
     roundtripped = lingua_to_chat_completions_messages([lingua_msg])[0]
 
-    return {"original": openai_message, "lingua": lingua_msg, "roundtripped": roundtripped}
+    return {
+        "original": openai_message,
+        "lingua": lingua_msg,
+        "roundtripped": roundtripped,
+    }
 
 
-def perform_anthropic_roundtrip(anthropic_message: Dict) -> Dict[str, Any]:
+def perform_anthropic_roundtrip(anthropic_message: dict) -> dict[str, Any]:
     """
     Perform roundtrip conversion: Anthropic -> Lingua -> Anthropic
 
@@ -217,7 +227,10 @@ class TestRoundtrip:
             snapshots = load_test_snapshots(test_case)
 
             for snapshot in snapshots:
-                if snapshot.provider != "openai-chat-completions" or not snapshot.request:
+                if (
+                    snapshot.provider != "openai-chat-completions"
+                    or not snapshot.request
+                ):
                     continue
 
                 messages = snapshot.request.get("messages", [])
@@ -305,8 +318,8 @@ class TestRoundtrip:
 
         for test_case in test_cases:
             snapshots = load_test_snapshots(test_case)
-            providers = list(set(s.provider for s in snapshots))
-            turns = list(set(s.turn for s in snapshots))
+            providers = list({s.provider for s in snapshots})
+            turns = list({s.turn for s in snapshots})
 
             coverage[test_case] = {"providers": providers, "turns": turns}
 

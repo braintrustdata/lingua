@@ -1,6 +1,7 @@
 """Type stubs for Lingua Python bindings"""
 
-from typing import Any, Dict
+from typing import Any
+
 
 # ============================================================================
 # Error types
@@ -10,48 +11,82 @@ class ConversionError(Exception):
     """Error during format conversion"""
     ...
 
+
 # ============================================================================
 # Chat Completions API conversions
 # ============================================================================
 
-def chat_completions_messages_to_lingua(messages: list) -> list: ...
-def lingua_to_chat_completions_messages(messages: list) -> list: ...
+def chat_completions_messages_to_lingua(messages: list) -> list:
+    ...
+
+
+def lingua_to_chat_completions_messages(messages: list) -> list:
+    ...
+
 
 # ============================================================================
 # Responses API conversions
 # ============================================================================
 
-def responses_messages_to_lingua(messages: list) -> list: ...
-def lingua_to_responses_messages(messages: list) -> list: ...
+def responses_messages_to_lingua(messages: list) -> list:
+    ...
+
+
+def lingua_to_responses_messages(messages: list) -> list:
+    ...
+
 
 # ============================================================================
 # Anthropic conversions
 # ============================================================================
 
-def anthropic_messages_to_lingua(messages: list) -> list: ...
-def lingua_to_anthropic_messages(messages: list) -> list: ...
+def anthropic_messages_to_lingua(messages: list) -> list:
+    ...
+
+
+def lingua_to_anthropic_messages(messages: list) -> list:
+    ...
+
 
 # ============================================================================
 # Processing functions
 # ============================================================================
 
-def deduplicate_messages(messages: list) -> list: ...
-def import_messages_from_spans(spans: list) -> list: ...
-def import_and_deduplicate_messages(spans: list) -> list: ...
+def deduplicate_messages(messages: list) -> list:
+    ...
+
+
+def import_messages_from_spans(spans: list) -> list:
+    ...
+
+
+def import_and_deduplicate_messages(spans: list) -> list:
+    ...
+
 
 # ============================================================================
 # OpenAI validation
 # ============================================================================
 
-def validate_openai_request(json_str: str) -> Any: ...
-def validate_openai_response(json_str: str) -> Any: ...
+def validate_openai_request(json_str: str) -> Any:
+    ...
+
+
+def validate_openai_response(json_str: str) -> Any:
+    ...
+
 
 # ============================================================================
 # Anthropic validation
 # ============================================================================
 
-def validate_anthropic_request(json_str: str) -> Any: ...
-def validate_anthropic_response(json_str: str) -> Any: ...
+def validate_anthropic_request(json_str: str) -> Any:
+    ...
+
+
+def validate_anthropic_response(json_str: str) -> Any:
+    ...
+
 
 # ============================================================================
 # Exports
