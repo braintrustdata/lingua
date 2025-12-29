@@ -1,33 +1,48 @@
 use std::env;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+fn workspace_root() -> PathBuf {
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    Path::new(&manifest_dir)
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .to_path_buf()
+}
 
 fn main() {
+    let workspace = workspace_root();
+
     // Create TypeScript bindings directory structure
-    std::fs::create_dir_all("bindings/typescript/src/generated").unwrap();
+    let bindings_dir = workspace.join("bindings/typescript/src/generated");
+    fs::create_dir_all(&bindings_dir).unwrap();
 
     // ts-rs will automatically export types marked with #[ts(export)]
     // to the directory specified in TS_RS_EXPORT_DIR
-    println!("cargo:rustc-env=TS_RS_EXPORT_DIR=./bindings/typescript/src/generated");
+    println!(
+        "cargo:rustc-env=TS_RS_EXPORT_DIR={}",
+        bindings_dir.display()
+    );
 
     // Only rerun if source files change
     println!("cargo:rerun-if-changed=src/universal/");
 
     // Generate test cases from payloads directory
-    generate_test_cases();
-    generate_chat_completions_test_cases();
-    generate_anthropic_test_cases();
+    generate_test_cases(&workspace);
+    generate_chat_completions_test_cases(&workspace);
+    generate_anthropic_test_cases(&workspace);
 }
 
-fn generate_test_cases() {
+fn generate_test_cases(workspace: &Path) {
+    let snapshots_dir = workspace.join("payloads/snapshots");
+
     // Tell cargo to re-run if the snapshots directory changes
-    println!("cargo:rerun-if-changed=payloads/snapshots");
+    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("generated_tests.rs");
-
-    // Scan the payloads/snapshots directory
-    let snapshots_dir = Path::new("payloads/snapshots");
 
     if !snapshots_dir.exists() {
         // Create empty generated tests file if no snapshots directory
@@ -41,7 +56,7 @@ fn generate_test_cases() {
     generated_tests.push_str("// DO NOT EDIT - regenerated on each build\n\n");
 
     // Scan for test case directories
-    if let Ok(entries) = fs::read_dir(snapshots_dir) {
+    if let Ok(entries) = fs::read_dir(&snapshots_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
 
@@ -99,15 +114,14 @@ fn {test_fn_name}() {{
     fs::write(&dest_path, generated_tests).unwrap();
 }
 
-fn generate_chat_completions_test_cases() {
+fn generate_chat_completions_test_cases(workspace: &Path) {
+    let snapshots_dir = workspace.join("payloads/snapshots");
+
     // Tell cargo to re-run if the snapshots directory changes
-    println!("cargo:rerun-if-changed=payloads/snapshots");
+    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("generated_chat_completions_tests.rs");
-
-    // Scan the payloads/snapshots directory
-    let snapshots_dir = Path::new("payloads/snapshots");
 
     if !snapshots_dir.exists() {
         // Create empty generated tests file if no snapshots directory
@@ -123,7 +137,7 @@ fn generate_chat_completions_test_cases() {
     generated_tests.push_str("// DO NOT EDIT - regenerated on each build\n\n");
 
     // Scan for test case directories
-    if let Ok(entries) = fs::read_dir(snapshots_dir) {
+    if let Ok(entries) = fs::read_dir(&snapshots_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
 
@@ -181,15 +195,14 @@ fn {test_fn_name}() {{
     fs::write(&dest_path, generated_tests).unwrap();
 }
 
-fn generate_anthropic_test_cases() {
+fn generate_anthropic_test_cases(workspace: &Path) {
+    let snapshots_dir = workspace.join("payloads/snapshots");
+
     // Tell cargo to re-run if the snapshots directory changes
-    println!("cargo:rerun-if-changed=payloads/snapshots");
+    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("generated_anthropic_tests.rs");
-
-    // Scan the payloads/snapshots directory
-    let snapshots_dir = Path::new("payloads/snapshots");
 
     if !snapshots_dir.exists() {
         // Create empty generated tests file if no snapshots directory
@@ -204,7 +217,7 @@ fn generate_anthropic_test_cases() {
     generated_tests.push_str("// DO NOT EDIT - regenerated on each build\n\n");
 
     // Scan for test case directories
-    if let Ok(entries) = fs::read_dir(snapshots_dir) {
+    if let Ok(entries) = fs::read_dir(&snapshots_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
 

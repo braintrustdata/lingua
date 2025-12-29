@@ -36,7 +36,7 @@ dev = [
 python-source = "src"
 module-name = "lingua._lingua"
 features = ["pyo3/extension-module", "python"]
-manifest-path = "../../Cargo.toml"
+manifest-path = "../../crates/lingua/Cargo.toml"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

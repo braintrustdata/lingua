@@ -2,7 +2,16 @@ use crate::serde_json;
 use crate::serde_json::Value;
 use serde::Deserialize;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+fn workspace_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .to_path_buf()
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Provider {
@@ -183,7 +192,7 @@ where
     Resp: for<'de> Deserialize<'de>,
     StreamResp: for<'de> Deserialize<'de>,
 {
-    let snapshots_dir = Path::new("payloads/snapshots");
+    let snapshots_dir = workspace_root().join("payloads/snapshots");
 
     if !snapshots_dir.exists() {
         return Err(TestDiscoveryError {
@@ -195,7 +204,7 @@ where
     let mut test_cases = Vec::new();
 
     // Scan for test case directories
-    let entries = fs::read_dir(snapshots_dir).map_err(|e| TestDiscoveryError {
+    let entries = fs::read_dir(&snapshots_dir).map_err(|e| TestDiscoveryError {
         message: format!("Failed to read snapshots directory: {}", e),
         path: Some(snapshots_dir.to_string_lossy().to_string()),
     })?;
@@ -232,7 +241,7 @@ where
         // Try to discover both first turn and followup turn cases
         // First turn (required files: request.json, response.json, response-streaming.json)
         match discover_test_case_for_turn::<Req, Resp, StreamResp>(
-            snapshots_dir,
+            &snapshots_dir,
             test_case_name,
             &provider,
             TurnType::FirstTurn,
@@ -246,7 +255,7 @@ where
 
         // Followup turn (optional files: followup-request.json, followup-response.json, followup-response-streaming.json)
         match discover_test_case_for_turn::<Req, Resp, StreamResp>(
-            snapshots_dir,
+            &snapshots_dir,
             test_case_name,
             &provider,
             TurnType::FollowupTurn,

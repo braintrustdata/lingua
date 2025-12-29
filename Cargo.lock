@@ -846,6 +846,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "generate-types"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "lingua",
+ "prost-build",
+ "schemafy",
+ "schemars 0.8.22",
+ "serde",
+ "serde_json 1.0.143",
+ "serde_yaml",
+ "typify",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1341,11 +1356,8 @@ dependencies = [
  "log",
  "paste",
  "prost",
- "prost-build",
  "prost-types",
  "pyo3",
- "schemafy",
- "schemars 0.8.22",
  "serde",
  "serde-wasm-bindgen",
  "serde_with",
@@ -1353,7 +1365,6 @@ dependencies = [
  "thiserror",
  "tokio-test",
  "ts-rs",
- "typify",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

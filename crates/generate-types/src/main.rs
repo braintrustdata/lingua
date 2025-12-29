@@ -144,7 +144,7 @@ fn generate_openai_specific_types(openai_spec: &str) {
             println!("❌ Quicktype generation failed for OpenAI: {}", e);
             println!("📝 Falling back to minimal types");
             let _ = std::fs::write(
-                "src/providers/openai/generated.rs",
+                "crates/lingua/src/providers/openai/generated.rs",
                 "// Quicktype generation failed",
             );
         }
@@ -216,7 +216,7 @@ fn generate_openai_types_with_quicktype(
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
 
-    let dest_path = "src/providers/openai/generated.rs";
+    let dest_path = "crates/lingua/src/providers/openai/generated.rs";
 
     // Create directory if needed
     if let Some(parent) = std::path::Path::new(dest_path).parent() {
@@ -441,7 +441,7 @@ fn generate_anthropic_specific_types(anthropic_spec: &str) {
             println!("❌ Quicktype generation failed for Anthropic: {}", e);
             println!("📝 Falling back to minimal types");
             let _ = std::fs::write(
-                "src/providers/anthropic/generated.rs",
+                "crates/lingua/src/providers/anthropic/generated.rs",
                 "// Quicktype generation failed",
             );
         }
@@ -512,7 +512,7 @@ fn generate_anthropic_types_with_quicktype(
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
 
-    let dest_path = "src/providers/anthropic/generated.rs";
+    let dest_path = "crates/lingua/src/providers/anthropic/generated.rs";
 
     // Create directory if needed
     if let Some(parent) = std::path::Path::new(dest_path).parent() {
@@ -1249,13 +1249,19 @@ fn generate_google_protobuf_types_from_git() {
                 String::from_utf8_lossy(&result.stderr)
             );
             let _ = std::fs::remove_dir_all(&temp_dir);
-            let _ = std::fs::write("src/providers/google/generated.rs", "// Git clone failed");
+            let _ = std::fs::write(
+                "crates/lingua/src/providers/google/generated.rs",
+                "// Git clone failed",
+            );
             return;
         }
         Err(e) => {
             println!("❌ Error running git clone: {}", e);
             let _ = std::fs::remove_dir_all(&temp_dir);
-            let _ = std::fs::write("src/providers/google/generated.rs", "// Git clone error");
+            let _ = std::fs::write(
+                "crates/lingua/src/providers/google/generated.rs",
+                "// Git clone error",
+            );
             return;
         }
     }
@@ -1268,7 +1274,7 @@ fn generate_google_protobuf_types_from_git() {
         println!("❌ Could not find generative_service.proto in cloned repository");
         let _ = std::fs::remove_dir_all(&temp_dir);
         let _ = std::fs::write(
-            "src/providers/google/generated.rs",
+            "crates/lingua/src/providers/google/generated.rs",
             "// Proto file not found",
         );
         return;
@@ -1278,7 +1284,7 @@ fn generate_google_protobuf_types_from_git() {
         println!("❌ Could not find google/type/interval.proto in cloned repository");
         let _ = std::fs::remove_dir_all(&temp_dir);
         let _ = std::fs::write(
-            "src/providers/google/generated.rs",
+            "crates/lingua/src/providers/google/generated.rs",
             "// Interval proto not found",
         );
         return;
@@ -1327,7 +1333,7 @@ fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
             println!("❌ Protobuf compilation failed: {}", e);
             println!("📝 Falling back to empty types file");
             let _ = std::fs::write(
-                "src/providers/google/generated.rs",
+                "crates/lingua/src/providers/google/generated.rs",
                 "// Protobuf generation failed",
             );
         }
@@ -1394,13 +1400,13 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
     if all_content.len() < 500 {
         println!("⚠️  Generated content too small, falling back to minimal file");
         let _ = std::fs::write(
-            "src/providers/google/generated.rs",
+            "crates/lingua/src/providers/google/generated.rs",
             "// Protobuf generation incomplete",
         );
         return;
     }
 
-    let dest_path = "src/providers/google/generated.rs";
+    let dest_path = "crates/lingua/src/providers/google/generated.rs";
 
     // Create the directory if it doesn't exist
     if let Some(parent) = Path::new(dest_path).parent() {
@@ -1420,7 +1426,7 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
     } else {
         println!("❌ Failed to write Google generated types");
         let _ = std::fs::write(
-            "src/providers/google/generated.rs",
+            "crates/lingua/src/providers/google/generated.rs",
             "// Protobuf write failed",
         );
     }
