@@ -3,6 +3,9 @@
 
 pub use big_serde_json as serde_json;
 
+// Re-export bytes::Bytes for convenience - transform functions use Bytes in/out
+pub use bytes::Bytes;
+
 pub mod capabilities;
 pub mod error;
 pub mod processing;

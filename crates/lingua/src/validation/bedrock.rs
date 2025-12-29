@@ -22,14 +22,14 @@ mod tests {
 
     #[test]
     fn test_validate_bedrock_request_minimal() {
+        // Uses camelCase keys to match Bedrock API format
         let json = r#"{
-            "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "modelId": "anthropic.claude-3-5-sonnet-20241022-v2:0",
             "messages": [
                 {
                     "role": "user",
                     "content": [
                         {
-                            "type": "text",
                             "text": "Hello"
                         }
                     ]
@@ -44,7 +44,7 @@ mod tests {
     #[test]
     fn test_validate_bedrock_request_invalid() {
         let json = r#"{
-            "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0"
+            "modelId": "anthropic.claude-3-5-sonnet-20241022-v2:0"
         }"#; // missing messages
 
         let result = validate_bedrock_request(json);
@@ -53,26 +53,26 @@ mod tests {
 
     #[test]
     fn test_validate_bedrock_response_minimal() {
+        // Uses camelCase keys to match Bedrock API format
         let json = r#"{
             "output": {
                 "message": {
                     "role": "assistant",
                     "content": [
                         {
-                            "type": "text",
                             "text": "Hello!"
                         }
                     ]
                 }
             },
-            "stop_reason": "end_turn",
+            "stopReason": "end_turn",
             "usage": {
-                "input_tokens": 10,
-                "output_tokens": 20,
-                "total_tokens": 30
+                "inputTokens": 10,
+                "outputTokens": 20,
+                "totalTokens": 30
             },
             "metrics": {
-                "latency_ms": 1000
+                "latencyMs": 1000
             }
         }"#;
 
