@@ -1,9 +1,14 @@
+import { Type } from "@google/genai";
 import { TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
+  BEDROCK_MODEL,
 } from "./models";
+
+const IMAGE_BASE64 =
+  "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==";
 
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
@@ -73,6 +78,49 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
     },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "What do you see in this image?" },
+            {
+              inlineData: {
+                mimeType: "image/jpeg",
+                data: IMAGE_BASE64,
+              },
+            },
+          ],
+        },
+      ],
+      config: {
+        maxOutputTokens: 300,
+      },
+    },
+
+    bedrock: {
+      modelId: BEDROCK_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { text: "What do you see in this image?" },
+            {
+              image: {
+                format: "jpeg",
+                source: {
+                  bytes: Buffer.from(IMAGE_BASE64, "base64"),
+                },
+              },
+            },
+          ],
+        },
+      ],
+      inferenceConfig: {
+        maxTokens: 300,
+      },
+    },
   },
 
   complexReasoningRequest: {
@@ -112,6 +160,39 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
     },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+            },
+          ],
+        },
+      ],
+      config: {
+        maxOutputTokens: 20_000,
+      },
+    },
+
+    bedrock: {
+      modelId: BEDROCK_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              text: "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+            },
+          ],
+        },
+      ],
+      inferenceConfig: {
+        maxTokens: 20_000,
+      },
+    },
   },
 
   reasoningWithOutput: {
@@ -141,6 +222,25 @@ export const advancedCases: TestCaseCollection = {
         {
           role: "user",
           content: "What color is the sky?",
+        },
+      ],
+    },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What color is the sky?" }],
+        },
+      ],
+    },
+
+    bedrock: {
+      modelId: BEDROCK_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [{ text: "What color is the sky?" }],
         },
       ],
     },
@@ -232,6 +332,67 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
       tool_choice: "auto",
+    },
+
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What's the weather like in San Francisco?" }],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get the current weather for a location",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  location: {
+                    type: Type.STRING,
+                    description: "The city and state, e.g. San Francisco, CA",
+                  },
+                },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+    },
+
+    bedrock: {
+      modelId: BEDROCK_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [{ text: "What's the weather like in San Francisco?" }],
+        },
+      ],
+      toolConfig: {
+        tools: [
+          {
+            toolSpec: {
+              name: "get_weather",
+              description: "Get the current weather for a location",
+              inputSchema: {
+                json: {
+                  type: "object",
+                  properties: {
+                    location: {
+                      type: "string",
+                      description: "The city and state, e.g. San Francisco, CA",
+                    },
+                  },
+                  required: ["location"],
+                },
+              },
+            },
+          },
+        ],
+      },
     },
   },
 };

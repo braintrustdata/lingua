@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The weather in San Francisco, CA is currently **71 degrees**. It's a pleasant day! For more detailed information like precipitation or wind conditions, you might want to check a full weather service."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 657,
+    "outputTokens": 44,
+    "totalTokens": 701,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 870
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "f7a9d3a5-2074-4b86-9417-7b304ff2c496",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

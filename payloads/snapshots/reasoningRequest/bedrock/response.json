@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "# Average Speed Calculation\n\n## Step 1: Find the distance for each segment\n\n**First segment:**\n- Speed = 60 mph, Time = 2 hours\n- Distance = 60 × 2 = **120 miles**\n\n**Second segment:**\n- Speed = 80 mph, Time = 1 hour\n- Distance = 80 × 1 = **80 miles**\n\n## Step 2: Calculate total distance and total time\n\n- **Total distance** = 120 + 80 = **200 miles**\n- **Total time** = 2 + 1 = **3 hours**\n\n## Step 3: Calculate average speed\n\n$$\\text{Average Speed} = \\frac{\\text{Total Distance}}{\\text{Total Time}} = \\frac{200 \\text{ miles}}{3 \\text{ hours}} = 66.\\overline{6} \\text{ mph}$$\n\n## Answer\n\n**The average speed is approximately 66.67 mph** (or 66⅔ mph)"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 45,
+    "outputTokens": 241,
+    "totalTokens": 286,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 2022
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "ffcd9e47-5138-443d-a909-41db466bc5c4",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
