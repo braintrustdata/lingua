@@ -37,11 +37,23 @@ schemafy = "0.6"
 # Optional providers
 aws-sdk-bedrockruntime = "1.105.0"
 
+# URL and media handling
+url = "2.5"
+urlencoding = "2.1"
+base64 = "0.22"
+
+# Bytes
+bytes = "1"
+
 # WASM
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-web-sys = "0.3"
+web-sys = { version = "0.3", features = ["Window", "Request", "RequestInit", "RequestMode", "Response", "Headers"] }
+js-sys = "0.3"
 serde-wasm-bindgen = "0.6"
+
+# Native HTTP client (non-WASM only)
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 
 # Python
 pyo3 = { version = "0.20", features = ["extension-module"] }

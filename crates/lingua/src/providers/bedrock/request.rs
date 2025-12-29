@@ -12,6 +12,7 @@ use ts_rs::TS;
 
 /// Main Converse API request parameters
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct ConverseRequest {
     /// Model identifier for the foundation model
@@ -52,6 +53,7 @@ pub struct ConverseRequest {
 
 /// Streaming Converse API request parameters
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct ConverseStreamRequest {
     /// Model identifier for the foundation model
@@ -111,21 +113,32 @@ pub enum BedrockConversationRole {
 }
 
 /// Content block types
+///
+/// Bedrock uses an untagged format where the key name indicates the type:
+/// - `{"text": "Hello"}` for text content
+/// - `{"toolUse": {...}}` for tool use blocks
+/// - `{"toolResult": {...}}` for tool result blocks
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 // #[ts(export, export_to = "bindings/typescript/")]
-#[serde(tag = "type")]
+#[serde(untagged)]
 pub enum BedrockContentBlock {
-    #[serde(rename = "text")]
-    Text { text: String },
+    Text {
+        text: String,
+    },
 
-    #[serde(rename = "image")]
-    Image { image: BedrockImageBlock },
+    Image {
+        image: BedrockImageBlock,
+    },
 
-    #[serde(rename = "toolUse")]
-    ToolUse { tool_use: BedrockToolUseBlock },
+    ToolUse {
+        #[serde(rename = "toolUse")]
+        tool_use: BedrockToolUseBlock,
+    },
 
-    #[serde(rename = "toolResult")]
-    ToolResult { tool_result: BedrockToolResultBlock },
+    ToolResult {
+        #[serde(rename = "toolResult")]
+        tool_result: BedrockToolResultBlock,
+    },
 }
 
 /// Image content block
@@ -160,6 +173,7 @@ pub struct BedrockImageSource {
 
 /// Tool use content block
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolUseBlock {
     /// Unique identifier for the tool use
@@ -175,6 +189,7 @@ pub struct BedrockToolUseBlock {
 
 /// Tool result content block
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolResultBlock {
     /// Tool use ID this result corresponds to
@@ -191,19 +206,20 @@ pub struct BedrockToolResultBlock {
 /// Tool result content
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 // #[ts(export, export_to = "bindings/typescript/")]
-#[serde(tag = "type")]
+#[serde(untagged)]
 pub enum BedrockToolResultContent {
-    #[serde(rename = "text")]
-    Text { text: String },
+    Text {
+        text: String,
+    },
 
-    #[serde(rename = "json")]
     Json {
         #[ts(type = "any")]
         json: serde_json::Value,
     },
 
-    #[serde(rename = "image")]
-    Image { image: BedrockImageBlock },
+    Image {
+        image: BedrockImageBlock,
+    },
 }
 
 /// Tool result status
@@ -225,6 +241,7 @@ pub struct BedrockSystemContentBlock {
 
 /// Inference configuration
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockInferenceConfiguration {
     /// Maximum number of tokens to generate
@@ -246,6 +263,7 @@ pub struct BedrockInferenceConfiguration {
 
 /// Tool configuration
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolConfiguration {
     /// Available tools
@@ -258,6 +276,7 @@ pub struct BedrockToolConfiguration {
 
 /// Tool definition
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockTool {
     /// Tool specification
@@ -266,6 +285,7 @@ pub struct BedrockTool {
 
 /// Tool specification
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockToolSpec {
     /// Tool name
@@ -305,6 +325,7 @@ pub enum BedrockToolChoice {
 
 /// Guardrail configuration
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 // #[ts(export, export_to = "bindings/typescript/")]
 pub struct BedrockGuardrailConfiguration {
     /// Guardrail identifier
