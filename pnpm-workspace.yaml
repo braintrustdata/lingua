@@ -1,5 +1,9 @@
 packages:
-  - 'payloads'
-  - 'bindings/lingua-wasm'
-  - 'bindings/typescript'
-  - 'examples/typescript'
+  - payloads
+  - bindings/lingua-wasm
+  - bindings/typescript
+  - examples/typescript
+
+ignoredBuiltDependencies:
+  - '@swc/core'
+  - esbuild
