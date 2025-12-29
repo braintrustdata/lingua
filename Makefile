@@ -1,9 +1,4 @@
-.PHONY: all lingua-wasm typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools mise-install setup
-
-.PHONY: mise-install
-mise-install: ## Install tools via mise
-	@command -v mise >/dev/null 2>&1 || { echo "Error: mise is not installed. Visit https://mise.jdx.dev/getting-started.html"; exit 1; }
-	mise install
+.PHONY: all lingua-wasm typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup
 
 all: typescript python ## Build all bindings
 
@@ -100,6 +95,6 @@ install-dependencies: ## Install dependencies
 	@echo "Installing dependencies..."
 	./scripts/setup.sh
 
-setup: mise-install install-dependencies install-hooks ## Setup the project
+setup: install-dependencies install-hooks ## Setup the project
 
 .DEFAULT_GOAL := all
