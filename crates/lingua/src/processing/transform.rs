@@ -16,7 +16,7 @@ use bytes::Bytes;
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
 use crate::serde_json::Value;
-use crate::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
+use crate::universal::{UniversalResponse, UniversalStreamChunk};
 use thiserror::Error;
 
 /// Static empty JSON object bytes for terminal/keep-alive events.
@@ -269,6 +269,27 @@ pub fn transform_response(
     })
 }
 
+/// Parse a response to UniversalResponse without re-serializing.
+///
+/// This is useful when you need to extract data from the universal representation
+/// (e.g., usage metrics) before converting to a target format.
+///
+/// # Arguments
+///
+/// * `input` - The source response as bytes (any supported provider format)
+///
+/// # Returns
+///
+/// * `Ok(UniversalResponse)` - The parsed universal response
+/// * `Err(TransformError)` - If parsing fails
+pub fn response_to_universal(input: Bytes) -> Result<UniversalResponse, TransformError> {
+    let response: Value = crate::serde_json::from_slice(&input)
+        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
+
+    let source_adapter = detect_adapter(&response, DetectKind::Response)?;
+    source_adapter.response_to_universal(response)
+}
+
 // ============================================================================
 // Streaming transformation
 // ============================================================================
@@ -445,50 +466,6 @@ fn detect_adapter(
         })
         .map(|a| a.as_ref())
         .ok_or(TransformError::UnableToDetectFormat)
-}
-
-// ============================================================================
-// Helper APIs for direct adapter access (internal use)
-// ============================================================================
-
-/// Convert a request payload to UniversalRequest using the specified format's adapter.
-pub fn to_universal_request(
-    payload: Value,
-    format: ProviderFormat,
-) -> Result<UniversalRequest, TransformError> {
-    let adapter =
-        adapter_for_format(format).ok_or(TransformError::UnsupportedSourceFormat(format))?;
-    adapter.request_to_universal(payload)
-}
-
-/// Convert a UniversalRequest to a provider-specific payload.
-pub fn from_universal_request(
-    universal: &UniversalRequest,
-    format: ProviderFormat,
-) -> Result<Value, TransformError> {
-    let adapter =
-        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
-    adapter.request_from_universal(universal)
-}
-
-/// Convert a response payload to UniversalResponse using the specified format's adapter.
-pub fn to_universal_response(
-    payload: Value,
-    format: ProviderFormat,
-) -> Result<UniversalResponse, TransformError> {
-    let adapter =
-        adapter_for_format(format).ok_or(TransformError::UnsupportedSourceFormat(format))?;
-    adapter.response_to_universal(payload)
-}
-
-/// Convert a UniversalResponse to a provider-specific payload.
-pub fn from_universal_response(
-    universal: &UniversalResponse,
-    format: ProviderFormat,
-) -> Result<Value, TransformError> {
-    let adapter =
-        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
-    adapter.response_from_universal(universal)
 }
 
 /// Sanitize a payload for a target format by parsing and re-serializing.
