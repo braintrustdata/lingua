@@ -1,0 +1,13 @@
+{
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+        }
+      ]
+    }
+  ]
+}

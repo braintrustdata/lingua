@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I can see a very small, simple image that appears to be a tiny dark dot or speck against a light background. The image is so small and minimal that it's difficult to discern specific details. It could be a single pixel, a small mark, or perhaps part of a larger image that didn't load completely. \n\nCould you provide more context about what this image is supposed to show, or let me know if there's a larger version available?"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 19,
+    "outputTokens": 97,
+    "totalTokens": 116,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 2823
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "4ec9014a-4b23-4753-9c2c-58a88149bd44",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

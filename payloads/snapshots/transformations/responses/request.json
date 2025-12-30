@@ -1,0 +1,17 @@
+{
+  "model": "o1-mini",
+  "reasoning": {
+    "effort": "medium"
+  },
+  "text": {
+    "verbosity": "low"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "Please confirm you received the transformation instructions."
+    }
+  ]
+}
+
+

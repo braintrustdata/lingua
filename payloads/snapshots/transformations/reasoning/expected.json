@@ -1,0 +1,15 @@
+{
+  "model": "o1-mini",
+  "max_completion_tokens": 256,
+  "messages": [
+    {
+      "role": "user",
+      "content": "system instructions"
+    },
+    {
+      "role": "user",
+      "content": "hello"
+    }
+  ]
+}
+

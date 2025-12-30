@@ -1,0 +1,10 @@
+{
+  "model": "gemini-1.5-pro",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello"
+    }
+  ]
+}
+

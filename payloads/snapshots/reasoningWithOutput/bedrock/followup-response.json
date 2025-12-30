@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "That depends on what you're looking to do! Here are some options:\n\n- **Continue our conversation** - Ask me another question or explore a topic you're curious about\n- **Take a break** - Step away from your screen for a bit\n- **Work on a task** - Return to something you were doing\n- **Get information** - Ask me for help with research, writing, problem-solving, or learning something new\n- **Plan something** - Let me help you brainstorm or organize your time\n\nIs there something specific you'd like help with, or were you just looking for general guidance?"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 137,
+    "outputTokens": 131,
+    "totalTokens": 268,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1865
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "38bf480a-0756-4c56-891a-83ab02bfdcc0",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
