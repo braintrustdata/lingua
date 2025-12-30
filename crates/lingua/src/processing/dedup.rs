@@ -467,7 +467,7 @@ mod tests {
                 provider_options: Some(crate::universal::ProviderOptions {
                     options: {
                         let mut map = serde_json::Map::new();
-                        map.insert("custom".to_string(), serde_json::json!("value"));
+                        map.insert("custom".to_string(), crate::serde_json::json!("value"));
                         map
                     },
                 }),
