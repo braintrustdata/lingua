@@ -1,0 +1,51 @@
+[package]
+name = "lingua"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Lingua - Universal message format for LLM APIs"
+keywords = ["llm", "ai", "openai", "anthropic", "api"]
+categories = ["api-bindings", "development-tools"]
+
+[package.metadata.ts-rs]
+optional_option_fields = true
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[features]
+default = ["openai", "anthropic", "google"]
+openai = []
+anthropic = []
+google = []
+bedrock = ["dep:aws-sdk-bedrockruntime"]
+python = ["dep:pyo3"]
+
+[dependencies]
+serde.workspace = true
+big_serde_json.workspace = true
+serde_yaml.workspace = true
+serde_with.workspace = true
+ts-rs.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+assert-json-diff.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys.workspace = true
+serde-wasm-bindgen.workspace = true
+aws-sdk-bedrockruntime = { workspace = true, optional = true }
+pyo3 = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio-test.workspace = true
+paste.workspace = true
+log.workspace = true
+env_logger.workspace = true
+
+[lib]
+name = "lingua"
+crate-type = ["cdylib", "rlib"]

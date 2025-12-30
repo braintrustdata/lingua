@@ -4,8 +4,8 @@
   "description": "WASM bindings for Lingua",
   "scripts": {
     "build": "pnpm run build:nodejs && pnpm run build:web",
-    "build:nodejs": "cd ../.. && wasm-pack build --target nodejs --release --out-dir bindings/lingua-wasm/nodejs --no-pack",
-    "build:web": "cd ../.. && wasm-pack build --target web --release --out-dir bindings/lingua-wasm/web --no-pack"
+    "build:nodejs": "cd ../../crates/lingua && wasm-pack build --target nodejs --release --out-dir ../../bindings/lingua-wasm/nodejs --no-pack",
+    "build:web": "cd ../../crates/lingua && wasm-pack build --target web --release --out-dir ../../bindings/lingua-wasm/web --no-pack"
   },
   "files": [
     "nodejs",
