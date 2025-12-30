@@ -11,7 +11,7 @@ API matches the TypeScript interface but with Pythonic snake_case naming:
 Note: Python uses exceptions while TypeScript uses Zod-style result objects.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 # Import the native conversion functions
 from lingua._lingua import (
@@ -65,7 +65,9 @@ def chat_completions_messages_to_lingua(messages: list) -> list:
     try:
         return _chat_completions_messages_to_lingua(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert chat completions messages to Lingua: {e}") from e
+        raise ConversionError(
+            f"Failed to convert chat completions messages to Lingua: {e}"
+        ) from e
 
 
 def lingua_to_chat_completions_messages(messages: list) -> list:
@@ -84,7 +86,9 @@ def lingua_to_chat_completions_messages(messages: list) -> list:
     try:
         return _lingua_to_chat_completions_messages(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert Lingua to chat completions messages: {e}") from e
+        raise ConversionError(
+            f"Failed to convert Lingua to chat completions messages: {e}"
+        ) from e
 
 
 # ============================================================================
@@ -107,7 +111,9 @@ def responses_messages_to_lingua(messages: list) -> list:
     try:
         return _responses_messages_to_lingua(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert responses messages to Lingua: {e}") from e
+        raise ConversionError(
+            f"Failed to convert responses messages to Lingua: {e}"
+        ) from e
 
 
 def lingua_to_responses_messages(messages: list) -> list:
@@ -126,7 +132,9 @@ def lingua_to_responses_messages(messages: list) -> list:
     try:
         return _lingua_to_responses_messages(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert Lingua to responses messages: {e}") from e
+        raise ConversionError(
+            f"Failed to convert Lingua to responses messages: {e}"
+        ) from e
 
 
 # ============================================================================
@@ -149,7 +157,9 @@ def anthropic_messages_to_lingua(messages: list) -> list:
     try:
         return _anthropic_messages_to_lingua(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert Anthropic messages to Lingua: {e}") from e
+        raise ConversionError(
+            f"Failed to convert Anthropic messages to Lingua: {e}"
+        ) from e
 
 
 def lingua_to_anthropic_messages(messages: list) -> list:
@@ -168,7 +178,9 @@ def lingua_to_anthropic_messages(messages: list) -> list:
     try:
         return _lingua_to_anthropic_messages(messages)
     except Exception as e:
-        raise ConversionError(f"Failed to convert Lingua to Anthropic messages: {e}") from e
+        raise ConversionError(
+            f"Failed to convert Lingua to Anthropic messages: {e}"
+        ) from e
 
 
 # ============================================================================
@@ -400,36 +412,28 @@ def validate_anthropic_response(json_str: str) -> Any:
 __all__ = [
     # Error handling
     "ConversionError",
-
     # Chat Completions API conversions
     "chat_completions_messages_to_lingua",
     "lingua_to_chat_completions_messages",
-
     # Responses API conversions
     "responses_messages_to_lingua",
     "lingua_to_responses_messages",
-
     # Anthropic conversions
     "anthropic_messages_to_lingua",
     "lingua_to_anthropic_messages",
-
     # Processing functions
     "deduplicate_messages",
     "import_messages_from_spans",
     "import_and_deduplicate_messages",
-
     # Chat Completions validation
     "validate_chat_completions_request",
     "validate_chat_completions_response",
-
     # Responses API validation
     "validate_responses_request",
     "validate_responses_response",
-
     # OpenAI validation (deprecated - use Chat Completions or Responses instead)
     "validate_openai_request",
     "validate_openai_response",
-
     # Anthropic validation
     "validate_anthropic_request",
     "validate_anthropic_response",
