@@ -64,6 +64,59 @@ paste = "1.0"
 log = "0.4"
 env_logger = "0.11"
 
+# ============================================================================
+# Dependencies for braintrust-llm-router
+# ============================================================================
+
+# Braintrust SDK
+braintrust-sdk-rust = "0.1.0-alpha.1"
+
+# Async runtime
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "signal", "sync"] }
+async-trait = "0.1"
+futures = "0.3"
+
+# HTTP
+http = "1.1"
+hyper = { version = "1.3" }
+
+# Utilities
+rand = { version = "0.8", features = ["std"] }
+once_cell = "1.19"
+parking_lot = "0.12"
+arc-swap = "1.7"
+pin-project = "1.1"
+dashmap = "5"
+lru = "0.12"
+smallvec = "1.13"
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
+ordered-float = "4.2"
+
+# AWS (for Bedrock provider)
+aws-sigv4 = { version = "1.3" }
+aws-credential-types = { version = "1.2" }
+aws-smithy-runtime-api = { version = "1.9" }
+aws-smithy-eventstream = { version = "0.60" }
+aws-smithy-types = { version = "1.3" }
+
+# Auth
+jsonwebtoken = { version = "9.3" }
+
+# Tracing (optional)
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+
+# Router dev dependencies
+wiremock = "0.5.22"
+proptest = "1.4"
+criterion = { version = "0.5", features = ["async_tokio"] }
+pretty_assertions = "1.4"
+tempfile = "3.10"
+tokio-stream = "0.1"
+dotenv = "0.15"
+clap = { version = "4.5", features = ["derive"] }
+
 [profile.release]
 opt-level = 3
 lto = true

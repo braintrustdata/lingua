@@ -11,11 +11,38 @@ use crate::providers::anthropic::generated::CreateMessageParams;
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
+/// Fields that only exist in OpenAI format, never in Anthropic.
+/// If any of these are present, the request is definitely not Anthropic format.
+const OPENAI_ONLY_FIELDS: &[&str] = &[
+    "stream_options",
+    "n",
+    "logprobs",
+    "top_logprobs",
+    "logit_bias",
+    "response_format",
+    "seed",
+    "presence_penalty",
+    "frequency_penalty",
+    "service_tier",
+    "store",
+    "parallel_tool_calls",
+];
+
 /// Attempt to parse a JSON Value as Anthropic CreateMessageParams.
 ///
 /// Returns the parsed struct if successful, or an error if the payload
-/// is not valid Anthropic format.
+/// is not valid Anthropic format. Also rejects payloads containing
+/// OpenAI-specific fields to prevent misdetection.
 pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
+    // First, reject if any OpenAI-only fields are present
+    if let Some(obj) = payload.as_object() {
+        for field in OPENAI_ONLY_FIELDS {
+            if obj.contains_key(*field) {
+                return Err(DetectionError::OpenAIFieldPresent((*field).to_string()));
+            }
+        }
+    }
+
     serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
@@ -25,6 +52,8 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, Detec
 pub enum DetectionError {
     #[error("Deserialization failed: {0}")]
     DeserializationFailed(String),
+    #[error("OpenAI-specific field present: {0}")]
+    OpenAIFieldPresent(String),
 }
 
 #[cfg(test)]
@@ -187,5 +216,39 @@ mod tests {
         });
 
         assert!(try_parse_anthropic(&invalid_payload).is_err());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_rejects_openai_fields() {
+        // Request with stream_options (OpenAI-specific) should be rejected
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ],
+            "stream_options": {"include_usage": true}
+        });
+
+        let result = try_parse_anthropic(&payload);
+        assert!(result.is_err());
+        assert!(matches!(result, Err(DetectionError::OpenAIFieldPresent(_))));
+
+        // Request with other OpenAI-only fields
+        let payload_with_n = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "n": 2
+        });
+        assert!(try_parse_anthropic(&payload_with_n).is_err());
+
+        let payload_with_logprobs = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "logprobs": true
+        });
+        assert!(try_parse_anthropic(&payload_with_logprobs).is_err());
     }
 }
