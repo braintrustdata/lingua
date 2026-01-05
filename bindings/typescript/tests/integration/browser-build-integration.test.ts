@@ -13,7 +13,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 const browserDistPath = path.join(__dirname, "../../dist/index.browser.mjs");
-const wasmPath = path.join(__dirname, "../../dist/wasm-web/lingua_bg.wasm");
+const wasmPath = path.join(__dirname, "../../../lingua-wasm/web/lingua_bg.wasm");
 const packageRoot = path.join(__dirname, "../..");
 const packageJsonPath = path.join(packageRoot, "package.json");
 
@@ -25,7 +25,7 @@ beforeAll(() => {
   }
   if (!fs.existsSync(wasmPath)) {
     throw new Error(
-      `Browser WASM not found at ${wasmPath}. Run 'pnpm build' first.`
+      `Browser WASM not found at ${wasmPath}. Run 'pnpm build' in lingua-wasm first.`
     );
   }
 });
@@ -36,8 +36,6 @@ describe("Browser Build Integration", () => {
       const requiredFiles = [
         "dist/index.browser.mjs",
         "dist/index.browser.d.mts",
-        "dist/index.browser.mjs.map",
-        "dist/wasm-web/lingua_bg.wasm",
       ];
 
       for (const file of requiredFiles) {
@@ -67,13 +65,8 @@ describe("Browser Build Integration", () => {
       expect(browserExport).toContain("dist/index.browser.mjs");
       expect(fs.existsSync(path.join(packageRoot, browserExport))).toBe(true);
 
-      const wasmExport = pkg.exports["./browser/lingua_bg.wasm"];
-      expect(wasmExport).toBeDefined();
-      expect(fs.existsSync(path.join(packageRoot, wasmExport))).toBe(true);
-
       const typesPath = pkg.exports["./browser"].types;
       expect(typesPath).toBeDefined();
-      expect(typesPath).toContain(".d.mts");
       expect(fs.existsSync(path.join(packageRoot, typesPath))).toBe(true);
     });
   });

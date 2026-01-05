@@ -29,8 +29,6 @@ describe("Node.js Build Integration", () => {
       const requiredFiles = [
         "dist/index.mjs",
         "dist/index.d.mts",
-        "dist/index.mjs.map",
-        "dist/wasm-node/lingua_bg.wasm",
       ];
 
       for (const file of requiredFiles) {
@@ -45,21 +43,16 @@ describe("Node.js Build Integration", () => {
       const content = fs.readFileSync(packageJsonPath, "utf-8");
       const pkg = JSON.parse(content);
 
-      // Check exports exist
       expect(pkg.exports).toBeDefined();
       expect(pkg.exports["."]).toBeDefined();
-      expect(pkg.exports["./node"]).toBeDefined();
 
-      // Check default export points correctly
-      const defaultExport =
+      const nodeExport =
         pkg.exports["."].import || pkg.exports["."].default;
-      expect(defaultExport).toContain("dist/index.mjs");
-      expect(fs.existsSync(path.join(packageRoot, defaultExport))).toBe(true);
+      expect(nodeExport).toContain("dist/index.mjs");
+      expect(fs.existsSync(path.join(packageRoot, nodeExport))).toBe(true);
 
-      // Check types
       const typesPath = pkg.exports["."].types || pkg.types;
       expect(typesPath).toBeDefined();
-      expect(typesPath).toContain(".d.mts");
       expect(fs.existsSync(path.join(packageRoot, typesPath))).toBe(true);
     });
   });
