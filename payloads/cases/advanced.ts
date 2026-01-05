@@ -5,6 +5,7 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
   BEDROCK_MODEL,
+  MISTRAL_MODEL,
 } from "./models";
 
 const IMAGE_BASE64 =
@@ -121,6 +122,9 @@ export const advancedCases: TestCaseCollection = {
         maxTokens: 300,
       },
     },
+
+    // Mistral-7B doesn't support multimodal (images)
+    mistral: null,
   },
 
   complexReasoningRequest: {
@@ -193,6 +197,18 @@ export const advancedCases: TestCaseCollection = {
         maxTokens: 20_000,
       },
     },
+
+    mistral: {
+      model: MISTRAL_MODEL,
+      maxTokens: 20_000,
+      messages: [
+        {
+          role: "user",
+          content:
+            "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+        },
+      ],
+    },
   },
 
   reasoningWithOutput: {
@@ -241,6 +257,16 @@ export const advancedCases: TestCaseCollection = {
         {
           role: "user",
           content: [{ text: "What color is the sky?" }],
+        },
+      ],
+    },
+
+    mistral: {
+      model: MISTRAL_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What color is the sky?",
         },
       ],
     },
@@ -393,6 +419,37 @@ export const advancedCases: TestCaseCollection = {
           },
         ],
       },
+    },
+
+    mistral: {
+      model: MISTRAL_MODEL,
+      maxTokens: 20_000,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get the current weather for a location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA",
+                },
+              },
+              required: ["location"],
+            },
+          },
+        },
+      ],
+      toolChoice: "auto",
     },
   },
 };

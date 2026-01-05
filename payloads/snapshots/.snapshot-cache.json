@@ -1,0 +1,86 @@
+{
+  "mistral:toolCallRequest": {
+    "payloadHash": "769635bd4c593fd570d61c4213a5fcce5f949f89936e5d1dff681411f63e0570",
+    "capturedAt": "2026-01-05T19:16:19.242Z",
+    "provider": "mistral",
+    "name": "toolCallRequest",
+    "files": [
+      "toolCallRequest/mistral/request.json",
+      "toolCallRequest/mistral/response.json",
+      "toolCallRequest/mistral/response-streaming.json",
+      "toolCallRequest/mistral/followup-request.json",
+      "toolCallRequest/mistral/followup-response.json",
+      "toolCallRequest/mistral/followup-response-streaming.json"
+    ]
+  },
+  "mistral:reasoningRequestTruncated": {
+    "payloadHash": "748c5f4405c8f6e3e40ef5c07fe2c04c0664079fd2e38245fa1c5370eefcc98b",
+    "capturedAt": "2026-01-05T19:16:20.116Z",
+    "provider": "mistral",
+    "name": "reasoningRequestTruncated",
+    "files": [
+      "reasoningRequestTruncated/mistral/request.json",
+      "reasoningRequestTruncated/mistral/response.json",
+      "reasoningRequestTruncated/mistral/response-streaming.json",
+      "reasoningRequestTruncated/mistral/followup-request.json",
+      "reasoningRequestTruncated/mistral/followup-response.json",
+      "reasoningRequestTruncated/mistral/followup-response-streaming.json"
+    ]
+  },
+  "mistral:reasoningWithOutput": {
+    "payloadHash": "d0d9206d10237079c26ef1ea9c8120f757c4f42b02fd4995f8421e624e145104",
+    "capturedAt": "2026-01-05T19:16:20.147Z",
+    "provider": "mistral",
+    "name": "reasoningWithOutput",
+    "files": [
+      "reasoningWithOutput/mistral/request.json",
+      "reasoningWithOutput/mistral/response.json",
+      "reasoningWithOutput/mistral/response-streaming.json",
+      "reasoningWithOutput/mistral/followup-request.json",
+      "reasoningWithOutput/mistral/followup-response.json",
+      "reasoningWithOutput/mistral/followup-response-streaming.json"
+    ]
+  },
+  "mistral:simpleRequest": {
+    "payloadHash": "cccde593c0fe0321c8b578469d1c2aa9de294d736ccdc51ef12b6cc430f73aed",
+    "capturedAt": "2026-01-05T19:16:20.916Z",
+    "provider": "mistral",
+    "name": "simpleRequest",
+    "files": [
+      "simpleRequest/mistral/request.json",
+      "simpleRequest/mistral/response.json",
+      "simpleRequest/mistral/response-streaming.json",
+      "simpleRequest/mistral/followup-request.json",
+      "simpleRequest/mistral/followup-response.json",
+      "simpleRequest/mistral/followup-response-streaming.json"
+    ]
+  },
+  "mistral:reasoningRequest": {
+    "payloadHash": "909255c88f130d3a71ebfc94488d8b5d3fab098adae78f93202f195863677842",
+    "capturedAt": "2026-01-05T19:16:21.109Z",
+    "provider": "mistral",
+    "name": "reasoningRequest",
+    "files": [
+      "reasoningRequest/mistral/request.json",
+      "reasoningRequest/mistral/response.json",
+      "reasoningRequest/mistral/response-streaming.json",
+      "reasoningRequest/mistral/followup-request.json",
+      "reasoningRequest/mistral/followup-response.json",
+      "reasoningRequest/mistral/followup-response-streaming.json"
+    ]
+  },
+  "mistral:complexReasoningRequest": {
+    "payloadHash": "394d278d8408cc24b55549aaaedd18e95f66f014da656914e00dba07bd6f30b4",
+    "capturedAt": "2026-01-05T19:16:26.625Z",
+    "provider": "mistral",
+    "name": "complexReasoningRequest",
+    "files": [
+      "complexReasoningRequest/mistral/request.json",
+      "complexReasoningRequest/mistral/response.json",
+      "complexReasoningRequest/mistral/response-streaming.json",
+      "complexReasoningRequest/mistral/followup-request.json",
+      "complexReasoningRequest/mistral/followup-response.json",
+      "complexReasoningRequest/mistral/followup-response-streaming.json"
+    ]
+  }
+}

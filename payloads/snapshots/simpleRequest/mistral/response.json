@@ -1,0 +1,23 @@
+{
+  "id": "1b0ba4614f504026a6b4a01ee217840c",
+  "object": "chat.completion",
+  "model": "open-mistral-7b",
+  "usage": {
+    "promptTokens": 10,
+    "completionTokens": 88,
+    "totalTokens": 98
+  },
+  "created": 1767640578,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "The capital of France is Paris. It is located in the northern part of the country and serves as a significant global center for art, fashion, gastronomy, and culture. Paris is renowned for its iconic landmarks such as the Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and Arc de Triomphe. The city is also home to several UNESCO World Heritage sites.",
+        "toolCalls": null,
+        "prefix": false,
+        "role": "assistant"
+      },
+      "finishReason": "stop"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import type { Content, GenerateContentConfig, Tool } from "@google/genai";
 import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
+import type { ChatCompletionRequest } from "@mistralai/mistralai/models/components";
 
 // Google Gemini API request type (matching the js-genai library)
 export interface GoogleGenerateContentRequest {
@@ -14,6 +15,9 @@ export interface GoogleGenerateContentRequest {
 // Re-export Bedrock type for convenience
 export type BedrockConverseRequest = ConverseCommandInput;
 
+// Re-export Mistral type for convenience
+export type MistralChatCompletionRequest = ChatCompletionRequest;
+
 // Well-defined types for test cases
 export interface TestCase {
   "chat-completions": OpenAI.Chat.Completions.ChatCompletionCreateParams | null;
@@ -21,6 +25,7 @@ export interface TestCase {
   anthropic: Anthropic.Messages.MessageCreateParams | null;
   google: GoogleGenerateContentRequest | null;
   bedrock: BedrockConverseRequest | null;
+  mistral: MistralChatCompletionRequest | null;
 }
 
 // Collection of test cases organized by name
@@ -37,4 +42,5 @@ export const PROVIDER_TYPES = [
   "anthropic",
   "google",
   "bedrock",
+  "mistral",
 ] as const;

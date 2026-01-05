@@ -1,0 +1,32 @@
+{
+  "id": "9bd5ff9e02494c1a928dcf80a04ce913",
+  "object": "chat.completion",
+  "model": "open-mistral-7b",
+  "usage": {
+    "promptTokens": 94,
+    "completionTokens": 26,
+    "totalTokens": 120
+  },
+  "created": 1767640578,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "",
+        "toolCalls": [
+          {
+            "id": "fk6q08UDy",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\": \"San Francisco, CA\"}"
+            },
+            "index": 0
+          }
+        ],
+        "prefix": false,
+        "role": "assistant"
+      },
+      "finishReason": "tool_calls"
+    }
+  ]
+}

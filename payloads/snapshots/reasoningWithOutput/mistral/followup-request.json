@@ -1,0 +1,18 @@
+{
+  "model": "open-mistral-7b",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    },
+    {
+      "role": "assistant",
+      "content": "The color of the sky can appear differently depending on the time of day, weather, and location. Generally, during a clear day, the sky appears blue due to a process called Rayleigh scattering. However, at sunrise or sunset, the sky can appear red, orange, pink, or purple. Also, during twilight, the sky can appear blue or violet.",
+      "toolCalls": null
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

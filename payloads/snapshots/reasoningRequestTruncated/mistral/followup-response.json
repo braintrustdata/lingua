@@ -1,0 +1,23 @@
+{
+  "id": "b7d2bf39138f45a9b5e076a1bf2b7c1d",
+  "object": "chat.completion",
+  "model": "open-mistral-7b",
+  "usage": {
+    "promptTokens": 151,
+    "completionTokens": 100,
+    "totalTokens": 251
+  },
+  "created": 1767640579,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Next, we add the distances covered in both parts of the journey to find the total distance traveled: 120 (from first part) + 80 (from second part) = 200 miles.\n\nThe total time taken is the sum of the times spent in both parts: 2 hours (from first part) + 1 hour (from second part) = 3 hours.\n\nNow, to find the average speed, we divide the total distance by",
+        "toolCalls": null,
+        "prefix": false,
+        "role": "assistant"
+      },
+      "finishReason": "length"
+    }
+  ]
+}

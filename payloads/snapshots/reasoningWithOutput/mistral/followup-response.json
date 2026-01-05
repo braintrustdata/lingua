@@ -1,0 +1,23 @@
+{
+  "id": "48c39675e7d34062ad0af957d2922e53",
+  "object": "chat.completion",
+  "model": "open-mistral-7b",
+  "usage": {
+    "promptTokens": 98,
+    "completionTokens": 102,
+    "totalTokens": 200
+  },
+  "created": 1767640579,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "It depends on what you are working on or what you want to do. If you are working on a project or assignment, you should continue with the task at hand. If you are looking for more information on a topic, you can conduct research or ask questions to learn more. If you are looking to relax or have fun, you could engage in a hobby, exercise, or socialize with friends and family. Ultimately, it is up to you to decide what you want to do next.",
+        "toolCalls": null,
+        "prefix": false,
+        "role": "assistant"
+      },
+      "finishReason": "stop"
+    }
+  ]
+}

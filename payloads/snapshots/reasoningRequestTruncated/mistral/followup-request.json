@@ -1,0 +1,19 @@
+{
+  "model": "open-mistral-7b",
+  "maxTokens": 100,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+    },
+    {
+      "role": "assistant",
+      "content": "To find the average speed, we first need to find the total distance traveled and the total time taken.\n\n1. For the first part of the journey, the train travels at 60 mph for 2 hours, so it covers a distance of 60 * 2 = 120 miles.\n\n2. For the second part, the train travels at 80 mph for 1 hour, covering a distance of 80 * 1 =",
+      "toolCalls": null
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}
