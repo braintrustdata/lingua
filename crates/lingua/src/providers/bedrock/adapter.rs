@@ -219,7 +219,6 @@ impl ProviderAdapter for BedrockAdapter {
             messages,
             usage,
             finish_reason,
-            extras: Map::new(),
         })
     }
 

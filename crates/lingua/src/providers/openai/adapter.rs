@@ -29,7 +29,7 @@ use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, Message, UserContent};
 use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage,
+    UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use crate::util::media::parse_base64_data_url;
 
@@ -248,7 +248,6 @@ impl ProviderAdapter for OpenAIAdapter {
             messages,
             usage,
             finish_reason,
-            extras: Map::new(), // TODO: preserve extras if needed
         })
     }
 
@@ -288,10 +287,10 @@ impl ProviderAdapter for OpenAIAdapter {
         });
 
         let mut obj = serde_json::json!({
-            "id": resp.extras.get("id").and_then(Value::as_str).unwrap_or("transformed"),
+            "id": format!("chatcmpl-{}", PLACEHOLDER_ID),
             "object": "chat.completion",
-            "created": resp.extras.get("created").and_then(Value::as_i64).unwrap_or(0),
-            "model": resp.model.as_deref().unwrap_or("transformed"),
+            "created": 0,
+            "model": resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
             "choices": choices
         });
 
@@ -802,7 +801,6 @@ impl ProviderAdapter for ResponsesAdapter {
             messages,
             usage,
             finish_reason,
-            extras: Map::new(),
         })
     }
 
@@ -841,9 +839,9 @@ impl ProviderAdapter for ResponsesAdapter {
 
         // Build response with all required fields for TheResponseObject
         let mut obj = serde_json::json!({
-            "id": resp.extras.get("id").and_then(Value::as_str).unwrap_or("resp_transformed"),
+            "id": format!("resp_{}", PLACEHOLDER_ID),
             "object": "response",
-            "model": resp.model.as_deref().unwrap_or("transformed"),
+            "model": resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
             "output": output,
             "status": status,
             "created_at": 0.0,
@@ -1058,10 +1056,14 @@ impl ProviderAdapter for ResponsesAdapter {
                 _ => "completed",
             };
 
+            let id = chunk
+                .id
+                .clone()
+                .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
             let mut response = serde_json::json!({
-                "id": chunk.id.as_deref().unwrap_or("resp_transformed"),
+                "id": id,
                 "object": "response",
-                "model": chunk.model.as_deref().unwrap_or("transformed"),
+                "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
                 "status": status,
                 "output": []
             });

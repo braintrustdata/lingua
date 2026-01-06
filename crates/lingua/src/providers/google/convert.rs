@@ -12,6 +12,7 @@ use crate::providers::google::detect::{
 };
 use crate::serde_json::{self, Value};
 use crate::universal::convert::TryFromLLM;
+use crate::universal::defaults::DEFAULT_MIME_TYPE;
 use crate::universal::message::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
@@ -176,7 +177,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                         text: None,
                                         inline_data: Some(GoogleBlob {
                                             mime_type: media_type
-                                                .unwrap_or_else(|| "image/jpeg".to_string()),
+                                                .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
                                             data,
                                         }),
                                         function_call: None,

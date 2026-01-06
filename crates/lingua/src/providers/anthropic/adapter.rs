@@ -20,7 +20,7 @@ use crate::universal::message::{Message, UserContent};
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage,
+    UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
@@ -220,7 +220,6 @@ impl ProviderAdapter for AnthropicAdapter {
             messages,
             usage,
             finish_reason,
-            extras: Map::new(),
         })
     }
 
@@ -237,11 +236,11 @@ impl ProviderAdapter for AnthropicAdapter {
             .unwrap_or_else(|| "end_turn".to_string());
 
         let mut obj = serde_json::json!({
-            "id": resp.extras.get("id").and_then(Value::as_str).unwrap_or("transformed"),
+            "id": format!("msg_{}", PLACEHOLDER_ID),
             "type": "message",
             "role": "assistant",
             "content": content_value,
-            "model": resp.model.as_deref().unwrap_or("transformed"),
+            "model": resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
             "stop_reason": stop_reason
         });
 

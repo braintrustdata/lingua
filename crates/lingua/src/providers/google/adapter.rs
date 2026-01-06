@@ -269,7 +269,6 @@ impl ProviderAdapter for GoogleAdapter {
             messages,
             usage,
             finish_reason,
-            extras: Map::new(),
         })
     }
 
@@ -372,7 +371,7 @@ impl ProviderAdapter for GoogleAdapter {
                 .map(|r| match r {
                     "STOP" => "stop".to_string(),
                     "MAX_TOKENS" => "length".to_string(),
-                    "SAFETY" | "RECITATION" | "OTHER" => "stop".to_string(),
+                    "SAFETY" | "RECITATION" | "OTHER" => "content_filter".to_string(),
                     other => other.to_lowercase(),
                 });
 

@@ -2,6 +2,7 @@ use crate::error::ConvertError;
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
+use crate::universal::defaults::{EMPTY_OBJECT_STR, REFUSAL_TEXT};
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart,
     ToolResultContentPart, UserContent, UserContentPart,
@@ -64,7 +65,9 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             .ok_or_else(|| ConvertError::MissingRequiredField {
                                 field: "function call name".to_string(),
                             })?;
-                    let arguments_str = input.arguments.unwrap_or("{}".to_string());
+                    let arguments_str = input
+                        .arguments
+                        .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string());
 
                     let tool_call_part = AssistantContentPart::ToolCall {
                         tool_call_id,
@@ -228,9 +231,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
             openai::InputItemContentListType::Refusal => {
                 // Handle refusal - treat as regular text for now
                 UserContentPart::Text(TextContentPart {
-                    text: value
-                        .text
-                        .unwrap_or_else(|| "Content was refused".to_string()),
+                    text: value.text.unwrap_or_else(|| REFUSAL_TEXT.to_string()),
                     provider_options: None,
                 })
             }

@@ -5,7 +5,6 @@ This module provides a canonical representation of LLM responses that can be
 converted to/from any provider format.
 */
 
-use crate::serde_json::{Map, Value};
 use crate::universal::message::Message;
 
 /// Universal response envelope for LLM API responses.
@@ -24,9 +23,6 @@ pub struct UniversalResponse {
 
     /// Why the model stopped generating
     pub finish_reason: Option<FinishReason>,
-
-    /// Provider-specific response fields
-    pub extras: Map<String, Value>,
 }
 
 /// Token usage statistics.
