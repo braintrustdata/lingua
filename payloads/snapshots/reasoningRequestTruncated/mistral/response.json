@@ -1,0 +1,23 @@
+{
+  "id": "41262b6fe814420a914a7316e330aa5d",
+  "object": "chat.completion",
+  "model": "open-mistral-7b",
+  "usage": {
+    "promptTokens": 42,
+    "completionTokens": 100,
+    "totalTokens": 142
+  },
+  "created": 1767640578,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "To find the average speed, we first need to find the total distance traveled and the total time taken.\n\n1. For the first part of the journey, the train travels at 60 mph for 2 hours, so it covers a distance of 60 * 2 = 120 miles.\n\n2. For the second part, the train travels at 80 mph for 1 hour, covering a distance of 80 * 1 =",
+        "toolCalls": null,
+        "prefix": false,
+        "role": "assistant"
+      },
+      "finishReason": "length"
+    }
+  ]
+}

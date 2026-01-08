@@ -16,7 +16,7 @@ importers:
     devDependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.63.0
-        version: 0.63.1
+        version: 0.63.1(zod@3.25.76)
       '@types/node':
         specifier: ^22.9.0
         version: 22.19.1
@@ -25,7 +25,7 @@ importers:
         version: 10.0.0
       openai:
         specifier: ^5.22.0
-        version: 5.23.2(ws@8.18.3)
+        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(@swc/core@1.15.7)(postcss@8.5.6)(tsx@4.20.6)(typescript@5.9.3)
@@ -46,13 +46,13 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.63.0
-        version: 0.63.1
+        version: 0.63.1(zod@3.25.76)
       '@braintrust/lingua':
         specifier: file:../../bindings/typescript
-        version: file:bindings/typescript(@anthropic-ai/sdk@0.63.1)(openai@5.23.2(ws@8.18.3))
+        version: file:bindings/typescript(@anthropic-ai/sdk@0.63.1(zod@3.25.76))(openai@5.23.2(ws@8.18.3)(zod@3.25.76))
       openai:
         specifier: ^5.22.0
-        version: 5.23.2(ws@8.18.3)
+        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^22.9.0
@@ -71,16 +71,19 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.63.0
-        version: 0.63.1
+        version: 0.63.1(zod@3.25.76)
       '@aws-sdk/client-bedrock-runtime':
         specifier: ^3.700.0
         version: 3.958.0
       '@google/genai':
         specifier: ^1.34.0
         version: 1.34.0
+      '@mistralai/mistralai':
+        specifier: ^1.11.0
+        version: 1.11.0
       openai:
         specifier: ^5.22.0
-        version: 5.23.2(ws@8.18.3)
+        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^22.9.0
@@ -775,6 +778,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@mistralai/mistralai@1.11.0':
+    resolution: {integrity: sha512-6/BVj2mcaggYbpMzNSxtqtM2Tv/Jb5845XFd2CMYFO+O5VBkX70iLjtkBBTI4JFhh1l9vTCIMYXBVOjLoBVHGQ==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -2283,11 +2289,21 @@ packages:
     resolution: {integrity: sha512-4LCcse/U2MHZ63HAJVE+v71o7yOdIe4cZ70Wpf8D/IyjDKYQLV5GD46B+hSTjJsvV5PztjvHoU580EftxjDZFQ==}
     engines: {node: '>=12.20'}
 
+  zod-to-json-schema@3.25.1:
+    resolution: {integrity: sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==}
+    peerDependencies:
+      zod: ^3.25 || ^4
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
 snapshots:
 
-  '@anthropic-ai/sdk@0.63.1':
+  '@anthropic-ai/sdk@0.63.1(zod@3.25.76)':
     dependencies:
       json-schema-to-ts: 3.1.1
+    optionalDependencies:
+      zod: 3.25.76
 
   '@aws-crypto/crc32@5.2.0':
     dependencies:
@@ -2706,11 +2722,11 @@ snapshots:
 
   '@babel/runtime@7.28.4': {}
 
-  '@braintrust/lingua@file:bindings/typescript(@anthropic-ai/sdk@0.63.1)(openai@5.23.2(ws@8.18.3))':
+  '@braintrust/lingua@file:bindings/typescript(@anthropic-ai/sdk@0.63.1(zod@3.25.76))(openai@5.23.2(ws@8.18.3)(zod@3.25.76))':
     dependencies:
-      '@anthropic-ai/sdk': 0.63.1
+      '@anthropic-ai/sdk': 0.63.1(zod@3.25.76)
       '@braintrust/lingua-wasm': link:bindings/lingua-wasm
-      openai: 5.23.2(ws@8.18.3)
+      openai: 5.23.2(ws@8.18.3)(zod@3.25.76)
 
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
@@ -3007,6 +3023,11 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@mistralai/mistralai@1.11.0':
+    dependencies:
+      zod: 3.25.76
+      zod-to-json-schema: 3.25.1(zod@3.25.76)
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -4221,9 +4242,10 @@ snapshots:
     dependencies:
       mimic-fn: 4.0.0
 
-  openai@5.23.2(ws@8.18.3):
+  openai@5.23.2(ws@8.18.3)(zod@3.25.76):
     optionalDependencies:
       ws: 8.18.3
+      zod: 3.25.76
 
   optionator@0.9.4:
     dependencies:
@@ -4627,3 +4649,9 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yocto-queue@1.2.2: {}
+
+  zod-to-json-schema@3.25.1(zod@3.25.76):
+    dependencies:
+      zod: 3.25.76
+
+  zod@3.25.76: {}

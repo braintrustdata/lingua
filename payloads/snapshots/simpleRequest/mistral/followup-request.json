@@ -1,0 +1,18 @@
+{
+  "model": "open-mistral-7b",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the capital of France?"
+    },
+    {
+      "role": "assistant",
+      "content": "The capital of France is Paris. It is located in the northern part of the country and serves as a significant global center for art, fashion, gastronomy, and culture. Paris is renowned for its iconic landmarks such as the Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and Arc de Triomphe. The city is also home to several UNESCO World Heritage sites.",
+      "toolCalls": null
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

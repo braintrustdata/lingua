@@ -1,0 +1,23 @@
+{
+  "id": "4723c3804c86445bb395bea157328568",
+  "object": "chat.completion",
+  "model": "open-mistral-7b",
+  "usage": {
+    "promptTokens": 157,
+    "completionTokens": 12,
+    "totalTokens": 169
+  },
+  "created": 1767640579,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "The weather in San Francisco is 71 degrees.",
+        "toolCalls": null,
+        "prefix": false,
+        "role": "assistant"
+      },
+      "finishReason": "stop"
+    }
+  ]
+}

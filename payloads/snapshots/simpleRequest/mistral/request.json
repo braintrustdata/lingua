@@ -1,0 +1,9 @@
+{
+  "model": "open-mistral-7b",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the capital of France?"
+    }
+  ]
+}
