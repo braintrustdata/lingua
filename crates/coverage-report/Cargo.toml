@@ -1,0 +1,16 @@
+[package]
+name = "coverage-report"
+version.workspace = true
+edition.workspace = true
+publish = false
+description = "Cross-provider transformation coverage report generator for Lingua"
+
+[[bin]]
+name = "coverage-report"
+path = "src/main.rs"
+
+[dependencies]
+lingua = { path = "../lingua", features = ["openai", "anthropic", "google", "bedrock"] }
+serde.workspace = true
+big_serde_json.workspace = true
+bytes.workspace = true

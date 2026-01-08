@@ -2,6 +2,7 @@ use crate::error::ConvertError;
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
+use crate::universal::defaults::{EMPTY_OBJECT_STR, REFUSAL_TEXT};
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart,
     ToolResultContentPart, UserContent, UserContentPart,
@@ -64,7 +65,9 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             .ok_or_else(|| ConvertError::MissingRequiredField {
                                 field: "function call name".to_string(),
                             })?;
-                    let arguments_str = input.arguments.unwrap_or("{}".to_string());
+                    let arguments_str = input
+                        .arguments
+                        .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string());
 
                     let tool_call_part = AssistantContentPart::ToolCall {
                         tool_call_id,
@@ -228,9 +231,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
             openai::InputItemContentListType::Refusal => {
                 // Handle refusal - treat as regular text for now
                 UserContentPart::Text(TextContentPart {
-                    text: value
-                        .text
-                        .unwrap_or_else(|| "Content was refused".to_string()),
+                    text: value.text.unwrap_or_else(|| REFUSAL_TEXT.to_string()),
                     provider_options: None,
                 })
             }
@@ -613,6 +614,60 @@ impl TryFromLLM<Message> for openai::InputItem {
             }
         }
     }
+}
+
+/// Convert universal messages to OpenAI Responses API InputItem format.
+///
+/// This function handles the 1:N expansion for Tool messages - a single Tool message
+/// can contain multiple tool results, and each result becomes a separate InputItem
+/// (which is required by the Responses API).
+///
+/// This is provided as a standalone function rather than a TryFromLLM impl because
+/// Rust's coherence rules don't allow overriding the blanket Vec implementation.
+pub fn universal_to_responses_input(
+    messages: &[Message],
+) -> Result<Vec<openai::InputItem>, ConvertError> {
+    let mut result = Vec::with_capacity(messages.len());
+
+    for msg in messages {
+        match msg {
+            Message::Tool { content } => {
+                // Expand: one Tool message → multiple InputItems
+                for tool_part in content {
+                    match tool_part {
+                        ToolContentPart::ToolResult(tool_result) => {
+                            let output_string = match &tool_result.output {
+                                serde_json::Value::String(s) => s.clone(),
+                                other => serde_json::to_string(other).map_err(|e| {
+                                    ConvertError::JsonSerializationFailed {
+                                        field: "tool_result_output".to_string(),
+                                        error: e.to_string(),
+                                    }
+                                })?,
+                            };
+
+                            result.push(openai::InputItem {
+                                role: None,
+                                content: None,
+                                input_item_type: Some(openai::InputItemType::FunctionCallOutput),
+                                call_id: Some(tool_result.tool_call_id.clone()),
+                                output: Some(output_string),
+                                ..Default::default()
+                            });
+                        }
+                    }
+                }
+            }
+            other => {
+                // For all other message types, use the standard conversion
+                result.push(<openai::InputItem as TryFromLLM<Message>>::try_from(
+                    other.clone(),
+                )?);
+            }
+        }
+    }
+
+    Ok(result)
 }
 
 /// Convert OutputItem to InputItem for unified processing
