@@ -1,0 +1,464 @@
+use crate::providers::anthropic::generated as anthropic;
+use crate::providers::openai::generated as openai;
+use crate::serde_json;
+use crate::serde_json::Value;
+use crate::universal::convert::TryFromLLM;
+use crate::universal::Message;
+use crate::universal::{AssistantContent, TextContentPart, UserContent, UserContentPart};
+use serde::{Deserialize, Serialize};
+
+/// Represents a minimal span structure with input/output fields
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Span {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output: Option<Value>,
+    #[serde(flatten)]
+    pub other: serde_json::Map<String, Value>,
+}
+
+/// Cheap check to see if a value looks like it might contain messages
+/// Returns early to avoid expensive deserialization attempts on non-message data
+fn has_message_structure(data: &Value) -> bool {
+    match data {
+        // Check if it's an array where first element has "role" field or is a choice object
+        Value::Array(arr) => {
+            if arr.is_empty() {
+                return false;
+            }
+            if let Some(Value::Object(first)) = arr.first() {
+                // Direct message format: has "role" field
+                if first.contains_key("role") {
+                    return true;
+                }
+                // Chat completions response choices format: has "message" field with role inside
+                if let Some(Value::Object(msg)) = first.get("message") {
+                    return msg.contains_key("role");
+                }
+            }
+            false
+        }
+        // Check if it's an object with "role" field (single message)
+        Value::Object(obj) => obj.contains_key("role"),
+        _ => false,
+    }
+}
+
+/// Try to convert a value to lingua messages by attempting multiple format conversions
+fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+    // Early bailout: if data doesn't have message structure, skip expensive deserializations
+    if !has_message_structure(data) {
+        // Still try nested object search (for wrapped messages like {messages: [...]})
+        if let Value::Object(obj) = data {
+            for key in [
+                "messages", "input", "output", "choices", "result", "response",
+            ] {
+                if let Some(nested) = obj.get(key) {
+                    let nested_messages = try_converting_to_messages(nested);
+                    if !nested_messages.is_empty() {
+                        return nested_messages;
+                    }
+                }
+            }
+        }
+        return Vec::new();
+    }
+
+    // If data is a single message object (not an array), wrap it in an array for parsing
+    let wrapped;
+    let data_to_parse = if let Value::Object(obj) = data {
+        if obj.contains_key("role") {
+            wrapped = Value::Array(vec![data.clone()]);
+            &wrapped
+        } else {
+            data
+        }
+    } else {
+        data
+    };
+
+    // Try Chat Completions format (most common)
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<openai::ChatCompletionRequestMessage>>(data_to_parse.clone())
+    {
+        if let Ok(messages) = <Vec<Message> as TryFromLLM<
+            Vec<openai::ChatCompletionRequestMessage>,
+        >>::try_from(provider_messages)
+        {
+            if !messages.is_empty() {
+                return messages;
+            }
+        }
+    }
+
+    // Try Responses API format
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<openai::InputItem>>(data_to_parse.clone())
+    {
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
+        {
+            if !messages.is_empty() {
+                return messages;
+            }
+        }
+    }
+
+    // Try Anthropic format
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<anthropic::InputMessage>>(data_to_parse.clone())
+    {
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<anthropic::InputMessage>>>::try_from(provider_messages)
+        {
+            if !messages.is_empty() {
+                return messages;
+            }
+        }
+    }
+
+    // Try lenient parsing for non-standard message formats
+    if let Some(lenient_messages) = try_lenient_message_parsing(data_to_parse) {
+        if !lenient_messages.is_empty() {
+            return lenient_messages;
+        }
+    }
+
+    // Try parsing as choices array (Chat Completions response format)
+    // This handles [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
+    if let Some(choices_messages) = try_choices_array_parsing(data_to_parse) {
+        if !choices_messages.is_empty() {
+            return choices_messages;
+        }
+    }
+
+    Vec::new()
+}
+
+/// Lenient message parser for messages that don't match strict provider schemas
+///
+/// This parser looks for basic message structure: { "role": "...", "content": "..." }
+/// without requiring strict schema validation. This helps capture messages from:
+/// - Custom LLM wrappers
+/// - Logging that doesn't perfectly match provider formats
+/// - Messages with extra/missing fields
+fn try_lenient_message_parsing(data: &Value) -> Option<Vec<Message>> {
+    // Only process arrays
+    let arr = data.as_array()?;
+    let mut messages = Vec::new();
+
+    for item in arr {
+        let obj = item.as_object()?;
+
+        // Must have a "role" field
+        let role_str = obj.get("role")?.as_str()?;
+
+        // Must have a "content" field
+        let content_value = obj.get("content")?;
+
+        // Create message based on role
+        let message = match role_str {
+            "user" => {
+                let content = parse_user_content(content_value)?;
+                Message::User { content }
+            }
+            "system" => {
+                let content = parse_user_content(content_value)?;
+                Message::System { content }
+            }
+            "assistant" => {
+                let content = parse_assistant_content(content_value)?;
+                Message::Assistant { content, id: None }
+            }
+            _ => continue, // Skip unknown roles (including "tool" for now)
+        };
+
+        messages.push(message);
+    }
+
+    if messages.is_empty() {
+        None
+    } else {
+        Some(messages)
+    }
+}
+
+/// Parse user/system content from JSON value
+fn parse_user_content(value: &Value) -> Option<UserContent> {
+    match value {
+        Value::String(s) => Some(UserContent::String(s.clone())),
+        Value::Array(arr) => {
+            let mut parts = Vec::new();
+            for item in arr {
+                if let Some(obj) = item.as_object() {
+                    if let Some(Value::String(text_type)) = obj.get("type") {
+                        if text_type == "text" {
+                            if let Some(Value::String(text)) = obj.get("text") {
+                                parts.push(UserContentPart::Text(TextContentPart {
+                                    text: text.clone(),
+                                    provider_options: None,
+                                }));
+                            }
+                        }
+                    }
+                }
+            }
+            if parts.is_empty() {
+                None
+            } else {
+                Some(UserContent::Array(parts))
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Parse assistant content from JSON value
+fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
+    match value {
+        Value::String(s) => Some(AssistantContent::String(s.clone())),
+        Value::Array(arr) => {
+            let mut parts = Vec::new();
+            for item in arr {
+                if let Some(obj) = item.as_object() {
+                    if let Some(Value::String(text_type)) = obj.get("type") {
+                        if text_type == "text" {
+                            if let Some(Value::String(text)) = obj.get("text") {
+                                parts.push(crate::universal::AssistantContentPart::Text(
+                                    TextContentPart {
+                                        text: text.clone(),
+                                        provider_options: None,
+                                    },
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+            if parts.is_empty() {
+                None
+            } else {
+                Some(AssistantContent::Array(parts))
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Parse choices array from Chat Completions response format
+///
+/// This handles the output format: [{"finish_reason": "stop", "message": {"role": "assistant", ...}}]
+/// Extracts messages from the "message" field of each choice object.
+fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
+    let arr = data.as_array()?;
+    let mut messages = Vec::new();
+
+    for item in arr {
+        let obj = item.as_object()?;
+
+        // Check if this looks like a choice object (has "message" or "finish_reason")
+        // Note: has_message_structure only checks the first element, so we need to validate
+        // each element here to ensure the entire array is a valid choices array
+        if !obj.contains_key("message") && !obj.contains_key("finish_reason") {
+            return None; // Not a choices array
+        }
+
+        // Extract the message from the choice
+        if let Some(message_value) = obj.get("message") {
+            // The message is a single object, wrap in array for try_converting_to_messages
+            let wrapped = Value::Array(vec![message_value.clone()]);
+            let nested_messages = try_converting_to_messages(&wrapped);
+            if nested_messages.is_empty() {
+                // If element has "message" but we couldn't parse it, this is malformed
+                return None;
+            } else {
+                messages.extend(nested_messages);
+            }
+        }
+    }
+
+    if messages.is_empty() {
+        None
+    } else {
+        Some(messages)
+    }
+}
+
+/// Import messages from a list of spans
+///
+/// This function processes spans and extracts messages from their input/output fields,
+/// attempting to convert them from various provider formats to the lingua format.
+pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
+    let mut messages = Vec::new();
+
+    for span in spans {
+        // Try to extract messages from input
+        if let Some(input) = &span.input {
+            let input_messages = try_converting_to_messages(input);
+            messages.extend(input_messages);
+        }
+
+        // Try to extract messages from output
+        if let Some(output) = &span.output {
+            let output_messages = try_converting_to_messages(output);
+            messages.extend(output_messages);
+        }
+    }
+
+    messages
+}
+
+/// Import and deduplicate messages from spans in a single operation
+pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
+    let messages = import_messages_from_spans(spans);
+    super::dedup::deduplicate_messages(messages)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_import_empty_spans() {
+        let spans = vec![];
+        let messages = import_messages_from_spans(spans);
+        assert_eq!(messages.len(), 0);
+    }
+
+    #[test]
+    fn test_import_spans_with_no_messages() {
+        let span = Span {
+            input: Some(serde_json::json!({"random": "data"})),
+            output: None,
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 0);
+    }
+
+    #[test]
+    fn test_import_spans_with_chat_completion_messages() {
+        let span = Span {
+            input: Some(serde_json::json!([
+                {"role": "user", "content": "Hello"},
+                {"role": "assistant", "content": "Hi there"}
+            ])),
+            output: None,
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 2);
+    }
+
+    #[test]
+    fn test_import_spans_with_choices_array_output() {
+        let span = Span {
+            input: Some(serde_json::json!([
+                {"role": "user", "content": "Hello"}
+            ])),
+            output: Some(serde_json::json!([
+                {
+                    "finish_reason": "stop",
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                        "content": "Hi there!",
+                        "role": "assistant"
+                    }
+                }
+            ])),
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 2); // 1 from input, 1 from output
+    }
+
+    #[test]
+    fn test_import_spans_with_single_message_object() {
+        let span = Span {
+            input: Some(serde_json::json!([
+                {"role": "user", "content": "Hello"}
+            ])),
+            output: Some(serde_json::json!({
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Hi there!",
+                        "citations": null
+                    }
+                ]
+            })),
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 2); // 1 from input, 1 from output
+    }
+
+    #[test]
+    fn test_import_anthropic_tool_message_with_choice_output() {
+        // Mirrors "complex anthropic example" from TypeScript tests
+        let span = Span {
+            input: Some(serde_json::json!([
+                {
+                    "content": [
+                        {
+                            "cache_control": {
+                                "type": "ephemeral"
+                            },
+                            "text": "results:\n  ",
+                            "type": "text"
+                        }
+                    ],
+                    "role": "tool",
+                    "tool_call_id": "call_uZG3WxdNadqhidWK9milQNxR"
+                }
+            ])),
+            output: Some(serde_json::json!([
+                {
+                    "finish_reason": "stop",
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                        "content": "The scorer still returns",
+                        "role": "assistant"
+                    }
+                }
+            ])),
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 2); // 1 tool message from input, 1 assistant from output
+    }
+
+    #[test]
+    fn test_import_single_anthropic_message_with_citations() {
+        // Mirrors "complex anthropic example 2" from TypeScript tests
+        let span = Span {
+            input: Some(serde_json::json!([
+                {
+                    "content": "How do I create a custom scorer?",
+                    "role": "user"
+                },
+                {
+                    "content": "You are a helpful assistant.",
+                    "role": "system"
+                }
+            ])),
+            output: Some(serde_json::json!({
+                "content": [
+                    {
+                        "citations": null,
+                        "text": "A dataset record in Braintrust has the following fields...",
+                        "type": "text"
+                    }
+                ],
+                "role": "assistant"
+            })),
+            other: serde_json::Map::new(),
+        };
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 3); // 2 from input, 1 from output
+    }
+}
