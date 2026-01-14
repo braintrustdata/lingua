@@ -1,0 +1,29 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Edit file."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'd be happy to help you edit a file! However, I need some additional information to proceed:\n\n1. **File path**: What is the path to the file you want to edit?\n2. **What kind of edit**: Do you want to:\n   - View the current contents of the file?\n   - Create a new file with specific content?\n   - Replace specific text in an existing file?\n   - Insert text at a specific location?\n\nCould you please provide the file path and describe what changes you'd like to make?"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "text_editor_20250429",
+      "name": "str_replace_based_edit_tool"
+    }
+  ]
+}

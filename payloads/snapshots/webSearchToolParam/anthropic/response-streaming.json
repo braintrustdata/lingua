@@ -1,0 +1,2774 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_011Urqhn7BX3rJHdELTBKZyo",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 2035,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1,
+        "service_tier": "standard"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "server_tool_use",
+      "id": "srvtoolu_01MQRkzEdLvVa5cYGTsX2ban",
+      "name": "web_search",
+      "input": {}
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "{\"qu"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "ery\": \"Op"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "en"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "AI n"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "ews lates"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "t 2026\"}"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "web_search_tool_result",
+      "tool_use_id": "srvtoolu_01MQRkzEdLvVa5cYGTsX2ban",
+      "content": [
+        {
+          "type": "web_search_result",
+          "title": "ChatGPT Health: What you should know about OpenAI's newest chatbot",
+          "url": "https://www.advisory.com/daily-briefing/2026/01/12/chatgpt-health-ab-oi-ec",
+          "encrypted_content": "EpUKCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDG3gQ5TL0oAr5Ja1mRoMbS4YQQTBGSBaldZeIjDqAs/5r/Pt1RI5Zq3/CjYGVjNXXsmTAN+oc4ZwZgVdXHoPo9H0XwmfMES5WfTDAx8qmAk8sW8QgLXc+Y/W1m7NXaA6wlM8pjBCpv+VIqLyVK3xSDiHPO3jiuSQkNIVgV+4VgGHUDf6JIochvW9CaGz3hsD9+GxH2EjEr33lqnve4lYMf4JEcnPkxof15fLrdO4SDBVl5exej6H5B/bz+oO+P2jfBSvEKKkjwDzPc7UlYzkF34nA1Pvg2qe3zVT4b2ulnwvNYto9FNLihXBYKOBW8UuqOrsY8pc7jXlzFPSgmsseDKeLXO3NTmBkVvmxiTt7NO/lUUA1ezZBdkesBHGm8kNbphXdaFwsrqfDnQMazQtMtJQ3oVsyTWe91M41Fg+GrV0mbJPjYNV+jeZYDdnBaEIUULlAy9ohE7XDI8mOI7HsMr04dSpkHZxBcT56vkmpdSg6ob8kVGktymIvLSas4a2aPRsZi5lB9PKGMw+fmF1u4GmOYUIIOWSXRhs+DEDCxnhSfxV2UF+wnUia+IGmfPhnRQ44SEiOxvvRiazocc9Sji6nH03YNKtVuhE5cdIdzjpE++yEwq38Y5xEY/Ky0kxKx/rhK80rBqMPA3x1orELUvct2rHZe7r976dOJaRCn3IKulDxvmUZ+F5/FmODkaQBKOZZGCcoC6cF1sNdRBsOEjZ1cbqBKdL6sHVxUlKAqxjJuNA+2ffwaOlO0E81wcTp2/TbPy1Z+B1SYJh/nFmtBtyl0giHEbyB0owj+dpGbll1EgotAj66nFi6+6MzzPU2ykFfuuTxVQhVhFmTWzENqJSdLobOsMcFx5cYpMU4hi+9ogqm7gpxu3zZGYaCmVaZfnuVZoFBhcthK4fulik2RiKlawetqcMZ0x/5vw5FSRN8HA12Xv0vB6mdNPXTGiVNWbF+3+gh3UGnUwXT9UPx6TaskNLVqN9/NGbi5UN2mFEqa3yPW4MosaE3KQFRw9ZQ25quKojcPWlMxJZvcIIrlDoXSPZs5Uq9i7V34DZrQakCp62oGihUhbAJ4I2GGaDV7jTSCgMVGMg7yoy5eHSmwJ94jHyDiud+1jQ9xddw5fk3EFPUSxUQ3qvfHN7pjnXPs3Fd7NdlagW03D2LCV/76SAM//hUy8IoRz23cKuVdQek5Iv8BKNTFkxelxs3A4knVT7JdOLKmVOjShQhaNJh86OQl0N7+2tnJG7zTgNUkXNYppiYLDqpgOwbFK+SzjOnU0tF2vUXDSlHV9nHuAaR36GgT6VpYWJhiT6HLliwisG/QqAg4a5N+YY4GYG23DfcbFhvSVZjqtYAuASLnjywNKaz9B/WY8jw54MaDHbVq7YDGAn7P3rzCnnZg3t2/mcxKGjhBwK24EyE6NkmNrohlVX+NoyHqX3tJks3KctL095OVMMHBdhotC8xJ5JT7Bs/CIY8WAWXNJ1S6fuFCDfmxrdqo0dsHoQw23xXENn3DnQdTN996dlwd+7TOs7KP1zSfrUqMlTp91TuUOkOGRepISGN6yGaANZfPFZSwp48uAkGEEnMn31rytn2YBgP8WHE8P6pFs28nL+RNW8/scxlgdM4utqGwYOHy+Yq7xuOdoKlCN/ebKhtNyIqojA+2tMcEzYop49w84YAw==",
+          "page_age": "2 days ago"
+        },
+        {
+          "type": "web_search_result",
+          "title": "Jimmy Kimmel Thanks Trump, OpenAI at 2026 Critics Choice Awards",
+          "url": "https://www.hollywoodreporter.com/tv/tv-news/jimmy-kimmel-trump-openai-2026-critics-choice-awards-1236463973/",
+          "encrypted_content": "EtAJCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDKoFfDFf6zWqP2oUKRoMhY03/jXgmKVrFB+qIjDjtMubtVbIFW9yD52bqma+I+FofG0JH/hq0kN5GOLnSjCjCd4DmQX4gqpxsf2zjh4q0whF4lTCmg2TUi84cyTdz+6Bp2MZ2rS6ytjXm+0rof0i+71uVjJFjxwRr+f7cvVWmnFwqrun53JWbJMWs4YOF5qsTMJpYaIv7ukX+Cojrsk/8ch9CkSagoYN3XuO3q/CufiCq8PTrN3tFK5vAOFb7QXIfqEKBO4zu0MSRfiDWVbAmJDCRZNpGiRpkMKeQ0yLJxQQCyphSFkKxB4EWbJEtXE2VLK52QtMBItD0F2HxJC9Vx0FCnek3I2tBlNdgxF6dFj/lH9GW55t90ZcW8XEk9gAIPDZzLI7XoUGpbAvsWmGfoygV9jh+bJ3QM8Cb4s37Ro8sA9pPGig8xD47z8DzhZTVR2rtFi2TcUpVSq5c4wWkq5Zsoh3MBZslYiQGFe+poaHiwwYlP1umoryXtrd5La00CyG98hVDwn+TPE5MpYg1ZtNz7CgIvsRif5oCrC1ZoUe3uB6u/Bxt6ibeTDRd9zj1tVeL6zuHkEs/AJNx91wcL+21jhSkYFD5TAYrKm9eRpOWkefZlFwSxVM4uGfxrtVTH+4/ryeO3j+US58+0MKdCHrY4NbRi+SRLx1AQt39raPvjsNcWfvWYkgWt1lf39D8urfpuTeTtPvJC2epLYawSfB9AH8rkP13DcBm/Juqy/gbsSd1nWml0f5j8RCYUjPlu1tZEjS8ojaNOKaBAVQTaeb8NHZ34as9R2KjqpDHqj15c6CBlbZtaNd/ccuFwUnpKfp/EPvd6RafJTEEoh9jAPgb7NcKR3mNokVouMKYMdTnZk6vZxqOCkWqsPYF5BI9azCyEwqieMxajHoOY6Wi8a9bpg30wkxwO/fI2ZiPK3xOqKYUSXd3Ch9G6xW1hAVdV1NVzjfSymetQ7ZGeD1a7AG5uEOCKt8mSNOyH/qd+Y0wguzwhx7faHeTD0RoP7IXYlb8Viez24jtYlATrI8+CRPjxpYe0toJ2HGculgPZ8p09lOYqoHb+5y+/KNNXSVp2YSA3V55ESpE0XQJwBpj9tRwrk9ZVJBfUK1AMaViZbb9FQlSVq3ebsEEs02wyyObFU4Iiwg1080QZjP8oVIQ5VVeqyGJ1T5qypjge7D9E+mU8w2WNwk/zHOee8mE/ldW3/BblhhuJYlVPOYpS6l68+Zd28f3CZEFDpvpJiO+OjDsABbCznkUarF450meOxnbFVCLa9pHtiVg/ebU+MpzrGnDAcytV5B6v24yTFAZcnrQtgB/3bszo7p8j5tYrU63lSCoUD0M073ZHj3ZsZfI2ANszU1CFrm3KYc3m2al2ISo5h2JNwNMrKTya8mAjycFgcMnE/o9GIWfkCd645coKSAku4l8JRgAXzgBMkkqn1aphK6eL0bqpONvBGDRtgDqEzER8Fb38bdEA/G2maYNBhT8mGUZ6pfQwf+xjUToR7VdqQiayJkRW3kOYWx7ar+ggoBjuqrnz01m+JfCBHoQIcx6GEb/st3dmfK46GM0S+W/MgYAw==",
+          "page_age": "1 week ago"
+        },
+        {
+          "type": "web_search_result",
+          "title": "OpenAI News | OpenAI",
+          "url": "https://openai.com/news/",
+          "encrypted_content": "EucJCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDKlpToF2sI4EMV3wrBoMHahWtenwGqYObK94IjAlACVutnhSNRHM7Py5bQMyUweQyQEDxvUmL0xBWvEZi1giCKImZh8utk8LzHS0kS0q6gh+N+loY6NRDEXh6C8HMhkPB01D++EueXRv+03DQEBX89oVC4uzTamqqgSjuBqWYR2xLv8oThhr31fFmpdzMj90DunLrpIS0Y/gNbuYx+Mqf2tUiPQHNy6TJj9KsJTPXpYarO8jXouThO8LabWGSYBZFwpUojRiNaeH0UHLmFkrfMpIa01iqwFdRw24OhRxzT8bsrPV8gOXtF1lFNQfWhWbmjupJaNPP7SQpsELsUgayZlE8FnV+bZDYhQucea6oLrYWYf3ZT9IedTw//VHA0pOTUn7jV3nATyr5XiHl9q0jTReIN77fUpkmnKS3eNQhZfOJ+I8apW9FpopvXWkabewncTke+GgNYft5+LQjoKfITLXqKEYww++UCbAJm7yH+mb82Vwog/rnVoM0XY1eMheWeot+ojCzL1cafuy8Ou8eaNHUJQ7oMD+Xlz1QY7DEdtUT0Lu0ivgcUfz9j12BXcGGpFpb9n6nRpMJZTpOGWjlq8ywx19nRURGKg6FXY2tnMLsXAyY6afUWX1SQ0OxbpcT78FfykH14UkTfPrjLTZPGFyxnRScq02NN0sOaWhTGesNuFMKRHmth5GoHlHqpcqdds3Dq2YFyC1KB2LB4mNxZIf14WbuF9i4TqvpXFg9H7qf+riUBlVFLyddt+WmyKFIVGxvgTvpGs1+VXdVfzOx6gheWy9zxEwP82Qoty8KPVaRpTw26Mjevnaq7uTQH3Dd1lqh/pvw7p6l+PYcbyZkA+7EDtJ29mSuUmiIqkgAMfXUemgLdGOAdOM51WI3KBTSLSXWiBsJ74EgJkSlEM815Jv05/YE4GM1E8i45+onyhkfva9G8ZBePb9CQphPnwlpd6smdy1QNGV/dxxndNKjiz2ttntDLrn692MkIcu9+W/iu5S7jsciwaMOBxDD9CM0sXc96TiKsVeGLch3rM5bUr75BqyEGk688soknqO+1PhodpZ+aT15Cp50rVXVE8ZOXWdL3XogebzITpoaltd0Tb2vqHnFg9zTWU+D9CFaFSiaojcK9iQLlg0Wx9YA1YBNXl+cxgC6IGo1mE0KaYEL409mI4c16x1760/VYMkpNT3jm5DKd2t+dDp0Y1t5Yvqk0rjVi2ZLMozRIXrlSax5xTDgHUGxrVuT2j2ENwaIeHA9XX3Il4pwHK5jyyOPktKXHbjtXHTTzo/rxLfmKpMVV5fqCUUqTYH40E5RI47tj53cXOamcyTkuZ5CsH3N2taftRXHOBVYRNQ8vYLONLy5H4Sr01eUbXIcUAarfpN5oQ9GGiWs1g2ahbksgRrXhCrE6FDcvkUOdilYN0saOeqrlMkGGqSRKywG4f9qLfU7HIPRm9XMgO3JlQ/5Mo5eA1UOvrhaSqphOZnmlwUvs1GOvP+4VnsThLyH3zMuqBozIBIRFa+LxQ/lJE+x+/w8Mq25x8arlhMIMRwf3VLGAPdl/8XqMX4Nic1xa8i6Vj3kNNShNM8lMGHipA3ax2xKuc4gsnCuFHMTwXD6BgD",
+          "page_age": null
+        },
+        {
+          "type": "web_search_result",
+          "title": "Why OpenAI faces massively critical year ahead in 2026 | Technology | sfexaminer.com",
+          "url": "https://www.sfexaminer.com/news/technology/why-openai-faces-massively-critical-year-ahead-in-2026/article_6112d59f-28b5-4770-bde1-b333deb5f01a.html",
+          "encrypted_content": "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",
+          "page_age": "2 weeks ago"
+        },
+        {
+          "type": "web_search_result",
+          "title": "OpenAI bets big on audio as Silicon Valley declares war on screens | TechCrunch",
+          "url": "https://techcrunch.com/2026/01/01/openai-bets-big-on-audio-as-silicon-valley-declares-war-on-screens/",
+          "encrypted_content": "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",
+          "page_age": "2 weeks ago"
+        },
+        {
+          "type": "web_search_result",
+          "title": "OpenAI is reportedly asking contractors to upload real work from past jobs | TechCrunch",
+          "url": "https://techcrunch.com/2026/01/10/openai-is-reportedly-asking-contractors-to-upload-real-work-from-past-jobs/",
+          "encrypted_content": "ErELCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDCG5aeTrDucj5SUyvhoMf0XaROnGPeiCs/ikIjBNyFhHdKHs3abmOs27hc1V+N+g3zBqIS3P2MERaweWM+8YDTbmxQurtW0HKpbhGRQqtApIU/kbIZaERi8Hx886aNSRnfcAtoer/04D9cC1nZSHNBmMpGOjN0r6GmFFKzWM5ULXWOVKPJttjEdp1EridHRQ9qXAmai6n+B7SsEUYCWpIaa3uY5rdWgyBvvv2j4W4blPawSc2qMQP9gug+xRyDhPHDN3DcUa/0A/RpJpvlTvGHNoTc9l7/x3AOR/+5AdGlAyvOKTHjn6hMNCwuMZWV8oNuWzPRkI1srV49U4UZQwrNcfDISrm1w5WuIJB54jeXhpIb3fslc1rXrfuukx720ASeFuoveCNgFFynzrD1YR39StiiKNCU5WuDZ7LYjqZ4ETaxqlS/ZXRI249l44mX3fMUDLGF9cndQB3K0DP5XjsOFomewMURVeM/1J1wiis2YbtToFcVlB5i5X3GLc79jagaDsekculF0IB0D230Rz/FWjB9F2iwSBHob4LLkcXHGBv/pwWcXHJVtzHyRsSRNlLzpqJ1NdN4/7PzsvZq0EL6vnsXSnMc5ojXl1ofyzsDh1fZVGR9ivHblVnoG+t/AJWO4PeyB41qCPOEcDklb0UzCvKsUH5dXehAnuhFB8V+LPPC7sa7QH83ZDfQ8W4HKBkScnIvcM8CPcNgxLINLBFrRyBoT7jJAd5BzW83RwmvAXh3R8oPO8wrUusoO8Zz56ZuIVOshbJ/ZN49LqwX8nHtm/1mdATrtocPTbJXBubbEEtnQMGs/SZRNuQwpTr5HlSr/iV9XPPq4xK9CyKmZe6uWNfsvn6C3R8fW/Y6zc1qP0tR80yM3k9tVi53oFzVauP51EAaOVWULQS6UbhkjRxEdwCZp16/ImIDIm+SbSZLaMZoyhy1haHnDTchZ6kFGyoxRcr3Bc2/HoFO9t/QQ5/Z4iRjaB8IrADkd9jsXluPxOM5DMLXUu7eJBgBN1Cr5ByrD5g8vN7B/ov02KDmLezc9/9fxZg6W5VlmgfoSHfRnHGr/ei/6b7fB7VAN/B2Fic5CM6PBLi0Mt1dJTLdDajNBV5OR9a5l62QUK06QIUKug8hcD19fPxSx/qsIdAbOAx1guAEziDO50/C/i24bR//kQfSWDuh+JjL7kSYLzfgkfTsQ3Bk0myl65mNRnF9nFmMOyQ1v0Hj4I+wR+F42xo9n8MQrJOHewZSYjo1z74D5WIxyGnaHt/jshdNHtxljJdPenfvCxhagD1ZiW+brrDz+TggZsyBJoT53hF32QdK+IWX3yInUBxMREi1ohyzv9wNFsz6tgisFxWLku9KIspjrLtsmDFnenv9W++trqhPpTMeIQ2fc7teOOrLJgX6AGXSbbDepY5OVF4VyPdeXzJRjWX1XxkQGWB3GicgFTo89pB82PgzHz/gYsuIIvYEaKF/7Z+82PWqJeC0OTpHmvS7o8/13XZa9kIPNSdnOhYiRSYRg9gqaYBZjvRI1ElsOnUaQtuLq6j9pmQmnB1r5LHmVaU+eq4EJfOCaYPoMj0wcwTWTTGVkBAWki0W/ktxbY9HX91I8dJCDXyiyqcPdZ7iPhlpwVuNR5ULHlQkZemZHhUaJIuVbMEpY/RPJ5JeXujCw1VuJIp228NBT+JxfJfWnYv/4IiCLMS/B0i9mrBe9vPV01QNs3UTLJRKUveBn6pr/ZmpwQ6to+KLW9xo1pu5Cf0A9qYtjtAFbJMjRcIml4njquJq497iiaC+t9s6rb+EA+AV4fI5VATChcR3okbwQ56KW4ZA5SOylV1z2SYjEmTSA4sg86apUXyXqC5ekgrdxM6aFUIRaiK758aWFg0qXCJ0IYAw==",
+          "page_age": "2 days ago"
+        },
+        {
+          "type": "web_search_result",
+          "title": "OpenAI and SoftBank Group partner with SB Energy | OpenAI",
+          "url": "https://openai.com/index/stargate-sb-energy-partnership/",
+          "encrypted_content": "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",
+          "page_age": null
+        },
+        {
+          "type": "web_search_result",
+          "title": "Introducing ChatGPT Health | OpenAI",
+          "url": "https://openai.com/index/introducing-chatgpt-health/",
+          "encrypted_content": "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",
+          "page_age": null
+        },
+        {
+          "type": "web_search_result",
+          "title": "OpenAI unveils ChatGPT Health, says 230 million users ask about health each week | TechCrunch",
+          "url": "https://techcrunch.com/2026/01/07/openai-unveils-chatgpt-health-says-230-million-users-ask-about-health-each-week/",
+          "encrypted_content": "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",
+          "page_age": "1 week ago"
+        },
+        {
+          "type": "web_search_result",
+          "title": "OpenAI launches ChatGPT Health to connect user medical records, wellness apps",
+          "url": "https://www.cnbc.com/2026/01/07/openai-chatgpt-health-medical-records.html",
+          "encrypted_content": "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",
+          "page_age": "1 week ago"
+        }
+      ]
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "content_block_start",
+    "index": 2,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": "Based on the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " latest"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " search"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " results, here"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " are"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " the most significant"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " recent"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " developments at"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " OpenAI:\n\n## New Health"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": " Products"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 2,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 2
+  },
+  {
+    "type": "content_block_start",
+    "index": 3,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "With over 40 million Americans using AI chatbots for health advice daily, <strong>OpenAI</strong> has launched a new health-specific feature called Ch...",
+        "url": "https://www.advisory.com/daily-briefing/2026/01/12/chatgpt-health-ab-oi-ec",
+        "title": "ChatGPT Health: What you should know about OpenAI's newest chatbot",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDCzcelFXr6/lR5ijpRoMEaa+IHnAFywWoiXcIjBpvGFD8EfBbkIzMRnn+qOnK1PdDqRp3/EXj+qIPIUEjacbbBJ9DvwoG9A9S2fDL64qE2imDtqbiNwXaeN6mkPhrEw6IGIYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "Join the waitlist(opens in a new window) Loading… · Share · We’re introducing ChatGPT Health, a dedicated experience that securely brings your health ...",
+        "url": "https://openai.com/index/introducing-chatgpt-health/",
+        "title": "Introducing ChatGPT Health | OpenAI",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDNNHQ7KfpufxJOFWmhoMhULlK1v5AUOoArYOIjCng1vsjnEyg4ojtAp4tPMHssLVRLC26CBMuE+qpH+ElN14zwAHG+r8ca/9bwUPGEoqE86xqDU4klY2Mr22B2Es3+libvkYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": "OpenAI has launche"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": "d ChatGPT Health, a dedicate"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": "d experience that allows"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " users to uploa"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": "d medical"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " records and connect"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " health"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " data"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " from"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " other"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " wellness"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " apps"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 3
+  },
+  {
+    "type": "content_block_start",
+    "index": 4,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 4,
+    "delta": {
+      "type": "text_delta",
+      "text": ". "
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 4
+  },
+  {
+    "type": "content_block_start",
+    "index": 5,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "People already use ChatGPT to ask about medical issues; OpenAI says that over 230 million people ask health and wellness questions on the platform eac...",
+        "url": "https://techcrunch.com/2026/01/07/openai-unveils-chatgpt-health-says-230-million-users-ask-about-health-each-week/",
+        "title": "OpenAI unveils ChatGPT Health, says 230 million users ask about health each week | TechCrunch",
+        "encrypted_index": "EpABCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDBGVTiFPu0eJqaiYxBoMU/E6nbd2aecdax3aIjBQSh2q/fBS0WHZI/pBDiKwaDvUuszhW32i8JsOpLKknhpuDAMy8ZrmX9ifIWa9LPcqFPum4EKroOhbvzIv1T18ns4vjnu5GAQ="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "text_delta",
+      "text": "The"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "text_delta",
+      "text": " company"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "text_delta",
+      "text": " reports"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "text_delta",
+      "text": " that over"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "text_delta",
+      "text": " 230 million people ask health an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "text_delta",
+      "text": "d wellness questions on Chat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "text_delta",
+      "text": "GPT each"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 5,
+    "delta": {
+      "type": "text_delta",
+      "text": " week"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 5
+  },
+  {
+    "type": "content_block_start",
+    "index": 6,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 6,
+    "delta": {
+      "type": "text_delta",
+      "text": ", making"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 6,
+    "delta": {
+      "type": "text_delta",
+      "text": " health"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 6,
+    "delta": {
+      "type": "text_delta",
+      "text": " one"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 6,
+    "delta": {
+      "type": "text_delta",
+      "text": " of the most popular use"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 6,
+    "delta": {
+      "type": "text_delta",
+      "text": " cases for the platform"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 6,
+    "delta": {
+      "type": "text_delta",
+      "text": "."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 6,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 6
+  },
+  {
+    "type": "content_block_start",
+    "index": 7,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "In addition to ChatGPT Health, OpenAI also recently launched OpenAI for Healthcare, a suite of new AI tools aimed at supporting clinical and administr...",
+        "url": "https://www.advisory.com/daily-briefing/2026/01/12/chatgpt-health-ab-oi-ec",
+        "title": "ChatGPT Health: What you should know about OpenAI's newest chatbot",
+        "encrypted_index": "EpEBCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDC9Z4fJuDbpQiFEwKhoMXY9HKGEcM2AZEesZIjAYmc+mp2uoVIJEvc8ekfatbTS5Y3LDmxJ2WveWwk6zGf6DFtH5SGqh2sJcXLzyyYoqFTEiMitbsAskTnQJ2Y0BdSFlKCCw9BgE"
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": "In"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " addition"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " to Chat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": "GPT Health, OpenAI"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " also"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " recently"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " launched Open"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": "AI for Healthcare, a suite"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " of new"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " AI"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " tools aime"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": "d at supporting"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " clinical"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": "d administrative"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " work at"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " hospitals"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " and health"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " systems,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " including Chat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": "GPT for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " Healthcare"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": "d the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " Open"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": "AI API"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 7,
+    "delta": {
+      "type": "text_delta",
+      "text": " for Healthcare"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 7
+  },
+  {
+    "type": "content_block_start",
+    "index": 8,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 8,
+    "delta": {
+      "type": "text_delta",
+      "text": "."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 8,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n## Data"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 8,
+    "delta": {
+      "type": "text_delta",
+      "text": " Acquisition"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 8,
+    "delta": {
+      "type": "text_delta",
+      "text": " Controversy"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 8,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 8
+  },
+  {
+    "type": "content_block_start",
+    "index": 9,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 9,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "OpenAI and training data company Handshake AI are asking third-party contractors to upload real work that they did in past and current jobs, according...",
+        "url": "https://techcrunch.com/2026/01/10/openai-is-reportedly-asking-contractors-to-upload-real-work-from-past-jobs/",
+        "title": "OpenAI is reportedly asking contractors to upload real work from past jobs | TechCrunch",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDHs0LBOQrILIq90EJBoMqk29stfuTLp6S+s5IjDbRV2XwMEAAjRLPTJLK6Daq9AFQGKZeoIP2NIF0131GdZJzJlQxKR7xJVE6UQq99QqExKnDas2MADnUIrstEyQbySOoBgYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 9,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "OpenAI and training data company Handshake AI are asking third-party contractors to upload real work that they did in past and current jobs, according...",
+        "url": "https://techcrunch.com/2026/01/10/openai-is-reportedly-asking-contractors-to-upload-real-work-from-past-jobs/",
+        "title": "OpenAI is reportedly asking contractors to upload real work from past jobs | TechCrunch",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDN9PWRucgYR8WNAVnBoMkO4CKQpPoNUcj3JEIjApSxOIRIn8ZJyUjLPzxI6Wc+LU+nfsTn1snXxTHjlSQ/FAlATHVf7nO3TnJUKKEx4qE35CqzcRMuYiqWe6lGY6RoJYlcIYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 9,
+    "delta": {
+      "type": "text_delta",
+      "text": "OpenAI and training data company"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 9,
+    "delta": {
+      "type": "text_delta",
+      "text": " Handshake AI are asking thir"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 9,
+    "delta": {
+      "type": "text_delta",
+      "text": "d-party contractors to upload real work that"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 9,
+    "delta": {
+      "type": "text_delta",
+      "text": " they did in past and current jobs"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 9
+  },
+  {
+    "type": "content_block_start",
+    "index": 10,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 10,
+    "delta": {
+      "type": "text_delta",
+      "text": ". "
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 10
+  },
+  {
+    "type": "content_block_start",
+    "index": 11,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 11,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "An intellectual property lawyer says OpenAI is \"putting itself at great risk\" with this approach.",
+        "url": "https://techcrunch.com/2026/01/10/openai-is-reportedly-asking-contractors-to-upload-real-work-from-past-jobs/",
+        "title": "OpenAI is reportedly asking contractors to upload real work from past jobs | TechCrunch",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDO6pmX0jZa715tpuHBoMUCxiYuYED7Q8Au8OIjC7ioy9YYiNokZ+mae80z3V129Gc0q/GWaFqVcK3nz1n2Zd8aibdLVAlZXZo1ZmUPYqE1fbfLBarMgyt8Dj0uooqCH4g+kYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 11,
+    "delta": {
+      "type": "text_delta",
+      "text": "An intellectual property lawyer says OpenA"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 11,
+    "delta": {
+      "type": "text_delta",
+      "text": "I is \"putting itself at great risk"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 11,
+    "delta": {
+      "type": "text_delta",
+      "text": "\" with this approach"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 11
+  },
+  {
+    "type": "content_block_start",
+    "index": 12,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": " as part"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": " of their"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": " strategy to generate"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": " high"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": "-quality training data for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": " autom"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": "ating white"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": "-collar work.\n\n## Audio"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": "-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": "First"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": " Strategy"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 12,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 12
+  },
+  {
+    "type": "content_block_start",
+    "index": 13,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "OpenAI’s new audio model, slated for early 2026, will reportedly sound more natural, handle interruptions like an actual conversation partner, and eve...",
+        "url": "https://techcrunch.com/2026/01/01/openai-bets-big-on-audio-as-silicon-valley-declares-war-on-screens/",
+        "title": "OpenAI bets big on audio as Silicon Valley declares war on screens | TechCrunch",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDPNxlAGwYug7I8fpyhoMv6J3Sf0AHvKYrZ+zIjAVPYEIujFtUwR/x+Rb+bBB/5Tm0JuJSq+6Nhv0QsgA6w9RVToKpIiGQFtsTsEyhZEqE6kbT8aLrVP7ejFHROiCYSz0I7oYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "According to new reporting from The Information, the company has unified several engineering, product, and research teams over the past two months to ...",
+        "url": "https://techcrunch.com/2026/01/01/openai-bets-big-on-audio-as-silicon-valley-declares-war-on-screens/",
+        "title": "OpenAI bets big on audio as Silicon Valley declares war on screens | TechCrunch",
+        "encrypted_index": "EpABCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDJJwJjKqbkDDGbAAGRoM0YYnECpQ9KVBu84GIjBwIORp4LrjgHFm7vidBP7sKnRECq+U2oDrmCxLRkEqRB7WrG/dx/L+RD5pMlaiOCMqFCIw9z8LqoBtAmMU0277/DdxrBseGAQ="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": "OpenAI is betting"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " big"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " on audio AI"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": ", having"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " unifie"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": "d several"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " engineering"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " product"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": ", and research"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " teams over"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " the past two"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " months"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " to over"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": "haul its audio models"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " all"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " in"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " preparation"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " for an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " audio-first personal"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " device"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " expecte"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": "d to launch in about"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 13,
+    "delta": {
+      "type": "text_delta",
+      "text": " a year"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 13
+  },
+  {
+    "type": "content_block_start",
+    "index": 14,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 14,
+    "delta": {
+      "type": "text_delta",
+      "text": ". "
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 14
+  },
+  {
+    "type": "content_block_start",
+    "index": 15,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "OpenAI’s new audio model, slated for early 2026, will reportedly sound more natural, handle interruptions like an actual conversation partner, and eve...",
+        "url": "https://techcrunch.com/2026/01/01/openai-bets-big-on-audio-as-silicon-valley-declares-war-on-screens/",
+        "title": "OpenAI bets big on audio as Silicon Valley declares war on screens | TechCrunch",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDPRJm/lRVcuk2JqIKBoMGX8cx8KY2b+6coREIjBHb0v/Tsna48i+AjMt7Rk+MojZmt9Eu+cBtlTs26D2IVrFxs1dN0z6S9yTv3PJH8MqEyaKg94edJ2P/++x5Nx2bs/UxjMYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": "Their"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " new"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " audio model"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": ", sl"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": "ated for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " early"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " 2026"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": ", will reportedly"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " soun"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": "d more"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " natural"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " handle"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " interru"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": "ptions like"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " actual conversation partner"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": ", and even"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " speak"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " while"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 15,
+    "delta": {
+      "type": "text_delta",
+      "text": " you're talking"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 15
+  },
+  {
+    "type": "content_block_start",
+    "index": 16,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 16,
+    "delta": {
+      "type": "text_delta",
+      "text": ".\n\n##"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 16,
+    "delta": {
+      "type": "text_delta",
+      "text": " Major"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 16,
+    "delta": {
+      "type": "text_delta",
+      "text": " Infrastructure"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 16,
+    "delta": {
+      "type": "text_delta",
+      "text": " Partnership"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 16,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 16
+  },
+  {
+    "type": "content_block_start",
+    "index": 17,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "Redwood City, CA, Jan. 9, 2026—SB Energy⁠(opens in a new window), a SoftBank Group company, announced today a strategic partnership with OpenAI as par...",
+        "url": "https://openai.com/index/stargate-sb-energy-partnership/",
+        "title": "OpenAI and SoftBank Group partner with SB Energy | OpenAI",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDE9hMQmu+dkkP+UpGxoMQYUD5hrxojJhGWw1IjAQXJ4sne5KByO+w/MWkztYSAbDHN13GwCw3ysyUsM2DUwphe2Lx5gKeRA0aKR+Mp4qEw47LPmx5gFzj07qE8+hMk2w37sYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "To support the partnership and as demand for AI compute accelerates, OpenAI and SoftBank Group are each investing $500 million into SB Energy. ",
+        "url": "https://openai.com/index/stargate-sb-energy-partnership/",
+        "title": "OpenAI and SoftBank Group partner with SB Energy | OpenAI",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDMJzKYPkqcc8K/rY8RoM0OFDMnK/poNz6qC4IjAfvhV8B8UI1gdWT8RClZTK05qomvi6G4qsVQwVe2rjoxtX8KC1M8wTuLVt9FqD99UqE755rFqgNdQFj93rBghge72t/kEYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": "S"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": "B"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": " Energy,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": " a S"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": "oftBank Group company, announced a strategic"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": " partnership with OpenAI as part of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": " Stargate,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": " with"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": " Open"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": "AI an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": "d SoftBank Group each"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": " investing $500 million into SB"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 17,
+    "delta": {
+      "type": "text_delta",
+      "text": " Energy"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 17
+  },
+  {
+    "type": "content_block_start",
+    "index": 18,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 18,
+    "delta": {
+      "type": "text_delta",
+      "text": "."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 18,
+    "delta": {
+      "type": "text_delta",
+      "text": " "
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 18
+  },
+  {
+    "type": "content_block_start",
+    "index": 19,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 19,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "OpenAI has also selected SBE to build and operate its previously-announced 1.2 GW data center site in Milam County. ",
+        "url": "https://openai.com/index/stargate-sb-energy-partnership/",
+        "title": "OpenAI and SoftBank Group partner with SB Energy | OpenAI",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDJ51ZmypGhnb8oGUihoMtJlrYT4x/6Acb63cIjB+GtI+WjKZc8pCVmSblKMEbagAwPtr6svz3JN1qbrTYcval/p9kWqVvn2VDXlstfYqE1lEp51ZB3O8EIrQp0WtkbGfjNsYBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 19,
+    "delta": {
+      "type": "text_delta",
+      "text": "OpenAI has also"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 19,
+    "delta": {
+      "type": "text_delta",
+      "text": " selected SBE to build and operate"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 19,
+    "delta": {
+      "type": "text_delta",
+      "text": " its previously-announced 1.2"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 19,
+    "delta": {
+      "type": "text_delta",
+      "text": " GW data center site in"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 19,
+    "delta": {
+      "type": "text_delta",
+      "text": " Milam County"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 19
+  },
+  {
+    "type": "content_block_start",
+    "index": 20,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 20,
+    "delta": {
+      "type": "text_delta",
+      "text": ".\n\n## Financial"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 20,
+    "delta": {
+      "type": "text_delta",
+      "text": " Press"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 20,
+    "delta": {
+      "type": "text_delta",
+      "text": "ures an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 20,
+    "delta": {
+      "type": "text_delta",
+      "text": "d Competition"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 20,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 20
+  },
+  {
+    "type": "content_block_start",
+    "index": 21,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "To realize its ambitions — and meet its estimated $1.4 trillion worth of commitments, mostly related to its data-center build-out — a company that has...",
+        "url": "https://www.sfexaminer.com/news/technology/why-openai-faces-massively-critical-year-ahead-in-2026/article_6112d59f-28b5-4770-bde1-b333deb5f01a.html",
+        "title": "Why OpenAI faces massively critical year ahead in 2026 | Technology | sfexaminer.com",
+        "encrypted_index": "EpEBCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDJj8wrmGQgaQIpnajBoMb6ftc2cCqij7QHOQIjBjf9P3JlTKi+Cr6dgS+8FLtymrjZtSNOugoobFEgSM0ESs5YlJE31IujFwSY68TEQqFZPm9Q0ZtW46PODOy2XKH3FZ4j21IxgE"
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "To"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " realize"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " its amb"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "itions an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "d meet"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " its"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " estimate"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "d $1"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "4"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " trillion"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " worth"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " of commit"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "ments, OpenAI may"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " nee"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "d to raise $"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "100"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " billion or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " more,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " potentially"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " through an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " initial"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " public offering planne"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": "d for as"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " soon"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " as the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " second half"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 21,
+    "delta": {
+      "type": "text_delta",
+      "text": " of 2026"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 21
+  },
+  {
+    "type": "content_block_start",
+    "index": 22,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 22,
+    "delta": {
+      "type": "text_delta",
+      "text": ". "
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 22
+  },
+  {
+    "type": "content_block_start",
+    "index": 23,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "Likely as a result of the increased competition, OpenAI’s share of the enterprise market has fallen from about half in 2023 to 27% this year, accordin...",
+        "url": "https://www.sfexaminer.com/news/technology/why-openai-faces-massively-critical-year-ahead-in-2026/article_6112d59f-28b5-4770-bde1-b333deb5f01a.html",
+        "title": "Why OpenAI faces massively critical year ahead in 2026 | Technology | sfexaminer.com",
+        "encrypted_index": "EpMBCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDAnKj6y7fmXrX/BfeBoMXXGUAT1KGJvZfWTsIjCH8Z538E6fxBf8lD2r7xMvttUQMRDpA5sKs6B6QwCD+QAhN85HZRvtbXhy/1TPiisqF2iEA2KPoBobhAOAjc15LeKrME+JcyCpGAQ="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": "The"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " company faces"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " increase"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": "d competition,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " with"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " its"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " share"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " of the enterprise"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " market"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " falling from"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " about"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " half"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " in"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " 2023"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " to "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": "27"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": "% this"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " year, and traffic"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " Chat"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": "GPT dropping"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " about"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " 5"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": "% from"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " October"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 23,
+    "delta": {
+      "type": "text_delta",
+      "text": " to November"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 23
+  },
+  {
+    "type": "content_block_start",
+    "index": 24,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 24,
+    "delta": {
+      "type": "text_delta",
+      "text": ".\n\n## Entertainment"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 24,
+    "delta": {
+      "type": "text_delta",
+      "text": " Industry"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 24,
+    "delta": {
+      "type": "text_delta",
+      "text": " Connections"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 24,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 24
+  },
+  {
+    "type": "content_block_start",
+    "index": 25,
+    "content_block": {
+      "citations": [],
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "citations_delta",
+      "citation": {
+        "type": "web_search_result_location",
+        "cited_text": "Kimmel’s remarks about Altman appear to be a reference to Disney’s recent $1 billion investment in OpenAI that included striking a licensing deal with...",
+        "url": "https://www.hollywoodreporter.com/tv/tv-news/jimmy-kimmel-trump-openai-2026-critics-choice-awards-1236463973/",
+        "title": "Jimmy Kimmel Thanks Trump, OpenAI at 2026 Critics Choice Awards",
+        "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDA5OE0apz6Xx5yCbohoMHXKNmO74XZ/6gvGYIjAANdW8SH8q/R3qkm5zzobmXeqvs0vZgpKV1Vf/yujlv178thI6v1nvtHOlS3fs3OsqE6CG3fnoyXzINe6js65yTDS7+z8YBA=="
+      }
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": "Disney"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": " recently"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": " made"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": " a $1"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": " billion investment in OpenAI that"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": " include"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": "d striking"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": " a licensing"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": " deal with the AI"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 25,
+    "delta": {
+      "type": "text_delta",
+      "text": " company"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 25
+  },
+  {
+    "type": "content_block_start",
+    "index": 26,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " which"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " was"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " reference"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": "d by"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " Jimmy"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " Kimmel at"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " the 2026"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " Critics"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " Choice"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " Awards when"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " he j"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": "ok"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": "ingly than"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": "ked OpenAI's"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " Sam"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 26,
+    "delta": {
+      "type": "text_delta",
+      "text": " Altman."
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 26
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null
+    },
+    "usage": {
+      "input_tokens": 12551,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 866,
+      "server_tool_use": {
+        "web_search_requests": 1
+      }
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

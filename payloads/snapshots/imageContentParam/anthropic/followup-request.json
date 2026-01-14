@@ -1,0 +1,36 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "image",
+          "source": {
+            "type": "base64",
+            "media_type": "image/png",
+            "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+          }
+        },
+        {
+          "type": "text",
+          "text": "Describe."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "This image shows a collection of old, weathered stone or concrete blocks scattered on what appears to be sandy or dusty ground. The blocks are various sizes and have a grayish, aged appearance with rough, eroded surfaces that suggest they've been exposed to the elements for a considerable time. The lighting appears natural and somewhat dim, giving the scene a muted, earthy tone. The blocks seem to be randomly placed rather than in any organized pattern, and the overall setting has an archaeological or historical site quality to it, possibly ruins or remnants of an old structure or wall."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

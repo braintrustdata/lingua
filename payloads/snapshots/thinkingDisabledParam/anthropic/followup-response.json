@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01P64Fy2kZSMet8n8RfvYwH7",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I don't have enough context to give you a specific recommendation! What you should do next depends on your situation, goals, and what you were working on. Here are a few ways to think about it:\n\n- If you're studying math, you might try more addition problems or move on to other operations\n- If you're just getting started with something, consider what your main objective is\n- If you're feeling stuck or bored, maybe take a short break or switch to a different activity\n\nWhat were you hoping to accomplish, or what's on your mind right now? That would help me give you a more useful suggestion!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 34,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 132,
+    "service_tier": "standard"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Run Python"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll start Python for you."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_016NCPiqAKWbF3xRw64dMBHw",
+          "name": "bash",
+          "input": {
+            "command": "python3"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_016NCPiqAKWbF3xRw64dMBHw",
+          "content": "71 degrees"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "type": "bash_20250124",
+      "name": "bash"
+    }
+  ]
+}

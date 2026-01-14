@@ -1,0 +1,23 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Local food"
+    }
+  ],
+  "tools": [
+    {
+      "type": "web_search_20250305",
+      "name": "web_search",
+      "user_location": {
+        "type": "approximate",
+        "city": "San Francisco",
+        "region": "California",
+        "country": "US",
+        "timezone": "America/Los_Angeles"
+      }
+    }
+  ]
+}

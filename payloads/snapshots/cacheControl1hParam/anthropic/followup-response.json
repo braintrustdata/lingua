@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01ErUtBUXJ1nVgPt6BDqCQz2",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'd be happy to help you figure out what to do next! To give you the most useful suggestions, it would help to know a bit more about your situation. For example:\n\n- Are you looking for something to do right now (like an activity or task)?\n- Are you thinking about bigger life decisions (career, education, relationships)?\n- Do you have any specific goals or areas you're considering?\n- What's your current situation or what prompted this question?\n\nFeel free to share as much or as little as you'd like, and I'll do my best to offer some helpful thoughts or suggestions!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 40,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 130,
+    "service_tier": "standard"
+  }
+}

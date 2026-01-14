@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_017VFaJeGyC7cAP8iP5GXxGe",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That depends on what you're looking to accomplish! Here are a few questions that might help me give you a better suggestion:\n\n- Are you looking for something productive to do, or more for relaxation/fun?\n- Do you have any specific goals or tasks you've been putting off?\n- What's your current situation - are you at home, work, have free time, etc.?\n- What kinds of activities do you usually enjoy?\n\nOr if you just want a general suggestion: taking a short walk, reading something interesting, or reaching out to someone you care about are usually good \"next steps\" that tend to improve most people's day!\n\nWhat sounds appealing to you?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 30,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 147,
+    "service_tier": "standard"
+  }
+}

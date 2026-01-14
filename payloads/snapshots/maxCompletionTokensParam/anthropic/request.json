@@ -1,0 +1,10 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 500,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say ok."
+    }
+  ]
+}
