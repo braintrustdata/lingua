@@ -1,0 +1,33 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi"
+    },
+    {
+      "id": "rs_0ab144e1c69938ee006967e27277b4819e88de016ef3ff3b31",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0ab144e1c69938ee006967e273c358819e850d14f1808c55a6",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "OK"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "instructions": "Reply with OK"
+}

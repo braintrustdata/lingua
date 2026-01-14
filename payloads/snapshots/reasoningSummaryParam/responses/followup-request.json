@@ -1,0 +1,36 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "2+2"
+    },
+    {
+      "id": "rs_00b90c1886cbcba7006967e272d2cc819085ea07d7b4800005",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_00b90c1886cbcba7006967e2746e8c819080d22a72d9cab2cb",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "4"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "reasoning": {
+    "effort": "medium",
+    "summary": "detailed"
+  }
+}
