@@ -1,0 +1,32 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 8000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "This is a very straightforward math question. 2 + 2 = 4.",
+          "signature": "EuABCkYICxgCKkB7j437d6XJZqQHfoXpijH7vIqYgO0dMpJQrDG7jPE7OEI44ETSkXqWkQU36vPj1EBQGUoxmZ7w/fVtYH6MOHhLEgyJq5BPDZsGWCUro3AaDAU86KB/Y7BDWNi/eSIwSX1cHbVSTAnQ0pftwSi9o9f0kMAh5SmuA6iOWzuM09JXKWgdb8nF8wo035s7+FALKkiSRnfwfrNAZssJM6yRGsvu3wFHubOiB3i4/1ybzACrfI0LMhpdDmk8weOf3NDODnTtnybQSLK3ApP2BlrjToWU8TuIcQd09usYAQ=="
+        },
+        {
+          "type": "text",
+          "text": "2 + 2 = 4"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "thinking": {
+    "type": "enabled",
+    "budget_tokens": 5000
+  }
+}

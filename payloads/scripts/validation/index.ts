@@ -2,7 +2,7 @@
 
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { compareResponses, DiffResult } from "./diff-utils";
+import { compareResponses, DiffResult, hasOnlyMinorDiffs } from "./diff-utils";
 
 // Import executors
 import { openaiExecutor } from "../providers/openai";
@@ -10,7 +10,12 @@ import { openaiResponsesExecutor } from "../providers/openai-responses";
 import { anthropicExecutor } from "../providers/anthropic";
 
 // Import test cases from code
-import { simpleCases, getCaseNames, getCaseForProvider } from "../../cases";
+import {
+  allTestCases,
+  getCaseNames,
+  getCaseForProvider,
+  caseCollections,
+} from "../../cases";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   ANTHROPIC_MODEL,
@@ -61,8 +66,9 @@ export interface ValidationResult {
   caseName: string;
   model: string; // model that was tested
   success: boolean;
+  warning?: boolean; // true if success but only due to minor diffs (logprobs, tool args)
   durationMs: number;
-  diff?: DiffResult; // only if success=false due to diff
+  diff?: DiffResult; // only if success=false due to diff, or warning=true
   error?: string; // only if request failed
 }
 
@@ -105,10 +111,10 @@ const PROVIDER_REGISTRY: Record<string, string> = {
  * Get all available cases for a format from the cases definitions.
  */
 function getAvailableCases(format: string): string[] {
-  return getCaseNames(simpleCases).filter(
+  return getCaseNames(allTestCases).filter(
     (caseName) =>
       getCaseForProvider(
-        simpleCases,
+        allTestCases,
         caseName,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- format is a string key
         format as
@@ -117,7 +123,7 @@ function getAvailableCases(format: string): string[] {
           | "anthropic"
           | "google"
           | "bedrock"
-      ) !== undefined
+      ) != null
   );
 }
 
@@ -167,8 +173,11 @@ export async function runValidation(
     const availableCases = getAvailableCases(format);
     let caseNames: string[];
     if (options.cases) {
-      // User specified explicit cases
-      caseNames = options.cases.filter((c) => availableCases.includes(c));
+      // User specified explicit cases or collection names - expand collections
+      const expandedCases = options.cases.flatMap(
+        (c) => caseCollections[c] ?? [c]
+      );
+      caseNames = expandedCases.filter((c) => availableCases.includes(c));
     } else if (options.all) {
       // Run all available cases
       caseNames = availableCases;
@@ -205,7 +214,7 @@ export async function runValidation(
           try {
             // Get request from cases definitions (single source of truth)
             const caseRequest = getCaseForProvider(
-              simpleCases,
+              allTestCases,
               caseName,
               // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- format is a string key
               format as
@@ -254,11 +263,21 @@ export async function runValidation(
             }
 
             // Override model if not using default
+            // Only override if test uses the default chat-completions model
+            // Preserve explicit model choices (e.g., reasoning models like gpt-5-nano)
             if (
               providerAlias !== "default" &&
               PROVIDER_REGISTRY[providerAlias]
             ) {
-              request = { ...request, model: PROVIDER_REGISTRY[providerAlias] };
+              if (
+                request.model === OPENAI_CHAT_COMPLETIONS_MODEL ||
+                !request.model
+              ) {
+                request = {
+                  ...request,
+                  model: PROVIDER_REGISTRY[providerAlias],
+                };
+              }
             }
 
             // Execute through proxy
@@ -291,13 +310,19 @@ export async function runValidation(
               executor.ignoredFields ?? []
             );
 
+            // Determine success/warning state:
+            // - success=true, warning=undefined: perfect match (no diffs)
+            // - success=true, warning=true: only minor diffs (logprobs, tool args)
+            // - success=false: major diffs or errors
+            const onlyMinorDiffs = hasOnlyMinorDiffs(diff);
             const result: ValidationResult = {
               format,
               caseName,
               model: modelName,
-              success: diff.match,
+              success: diff.match || onlyMinorDiffs,
+              warning: onlyMinorDiffs ? true : undefined,
               durationMs: Date.now() - start,
-              diff: diff.match ? undefined : diff,
+              diff: diff.match ? undefined : diff, // Include diff for warnings too
             };
             options.onResult?.(result);
             return result;
@@ -324,5 +349,5 @@ export async function runValidation(
 }
 
 // Re-export types for convenience
-export type { DiffResult, DiffEntry } from "./diff-utils";
-export { compareResponses, formatDiff } from "./diff-utils";
+export type { DiffResult, DiffEntry, DiffSeverity } from "./diff-utils";
+export { compareResponses, formatDiff, hasOnlyMinorDiffs } from "./diff-utils";

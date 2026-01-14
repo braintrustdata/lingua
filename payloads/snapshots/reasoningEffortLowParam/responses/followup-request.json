@@ -1,0 +1,35 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    },
+    {
+      "id": "rs_00a964d72425097e00696b17e40a5c81a19a5efa4ae81a49f1",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_00a964d72425097e00696b17e44d5881a199f3ab66741c00b4",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "4"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "reasoning": {
+    "effort": "low"
+  }
+}

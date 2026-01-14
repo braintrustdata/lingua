@@ -1,0 +1,29 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_013i8x2XndNQUWgyxrwdksab",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01LYRBWWfFBcAPK55Zkt32xe",
+      "name": "get_weather",
+      "input": {
+        "location": "current location"
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 443,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 39,
+    "service_tier": "standard"
+  }
+}

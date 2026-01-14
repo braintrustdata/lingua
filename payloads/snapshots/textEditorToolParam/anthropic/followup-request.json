@@ -1,0 +1,29 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Edit file."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'd be happy to help you edit a file! However, I need more information to proceed:\n\n1. **Which file** would you like to edit? Please provide the file path.\n2. **What changes** would you like to make to the file?\n\nFor example, you could say:\n- \"Edit `/path/to/myfile.txt` and replace 'old text' with 'new text'\"\n- \"View `/path/to/myfile.py` first, then I'll tell you what to change\"\n- \"Create a new file at `/path/to/newfile.txt` with some content\"\n\nCould you please provide these details so I can help you edit your file?"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "text_editor_20250124",
+      "name": "str_replace_editor"
+    }
+  ]
+}

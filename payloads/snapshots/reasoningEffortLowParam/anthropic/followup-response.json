@@ -1,0 +1,30 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01BroKqS7k4iJSTDC924dsY9",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "The human just asked \"What should I do next?\" without providing any context about what they're currently doing, what their goals are, or what situation they're in. This is a very open-ended question that I can't answer meaningfully without more information.\n\nI should ask for clarification about what context they're referring to - are they asking about a specific task, project, life decision, or something else entirely? I want to be helpful but I need more information to give useful guidance.",
+      "signature": "EpkFCkYICxgCKkC54v5/9oXyoR5AN4IzKZ4m7ZiuTkpaqD1nvsfm/ETAz/wrIrWiS5IxyaFCa4+Ok0c6yiu1h2X6PGaM64PGf/DyEgxav/x5zaDts9nqtpUaDD2DDh3nQfAZtCgr3CIwpUit4rtzrBCvEQyF0fyumb2tGAW9KqFAkUDTKStU3bocS0lB7YLhv0eLdVqgDd8OKoAEvqt814iy2uOSRraBbciuRKyJnL07brHQkAelz8CNofqJSLZ7Z14MBMRUbFd2gkr3zel75HElIfW8UricVkdEjJ6I0x8QpfBycFcR5UrZa+9r3QcVxAxm0s+bpgiAyDFuJZPjdqKBEdbLthZuGF+ymgwiSd7BGM7sdMUf6U7Tic3YY3rFii+Kc1GCi5Yjx7dHXECkUmjtSmLhJwPQMCUOjz5elWk6htokJF7wi0ru0r69O5FmOLav5lKQj26JYmoAQL5N2F/JmwPNGd++r5Cqr/XUNuFisqNJov8xHFugbWqMHBEzfsCPFVuF4E13TOpBmZcr5pEdBqZ7ltHxinyBH0z4QlUc1Bva/cwCTy42fjPvG0o6e+LcrLbARACDy8V2tj28rf3x5mv0TVZf7wZO4ct7lIlFuE3KQRQ/43dokMcCI5z5KEDacKKAppcoU3fPeBiySA7Svn7J744Df4ibE6QD3B2Z/3gKf0V4a/Y8zXnlE37+JGOfLpIwM4xAeXjb6bw/QrOO0cU/JBdd+00rFmuVy1Jon4Wls5N9uSYESOFRziXDuBDCQEmwecpVfOaq6pr7Tsc8sDmp5wIrrzFjEEKWZgipwFIXwHMkZNws6PE1W8XpkVc6eWd8NbNp199E9ni2HsI9TDpnERZ0TVncR8ND5jDaVHTc5sdOdAHq+KoYAQ=="
+    },
+    {
+      "type": "text",
+      "text": "I'd be happy to help, but I need more context! \"What should I do next?\" could mean many different things depending on your situation. Could you tell me more about what you're working on or what context you're asking about? For example:\n\n- Are you working on a specific project or task?\n- Are you looking for general life advice?\n- Are you trying to solve a problem?\n- Are you planning your day or schedule?\n\nWith more details, I can give you much more helpful suggestions!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 65,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 220,
+    "service_tier": "standard"
+  }
+}

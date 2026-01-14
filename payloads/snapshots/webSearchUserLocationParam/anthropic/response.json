@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01EvxGXbpFnoKsUaDBwkBwvJ",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'd be happy to help you with information about local food! However, your query is quite broad. To provide you with the most relevant and useful information, could you help me understand what specifically you're looking for?\n\nFor example, are you interested in:\n\n- **Local food near you** - restaurants, markets, or food scenes in a specific city or area?\n- **Local/regional cuisine** - traditional dishes from a particular region?\n- **Local food movement** - farm-to-table, locally sourced ingredients, or sustainable eating?\n- **Finding local food sources** - farmers markets, local producers, or food co-ops?\n- **Local food trends** - what's popular in local food scenes right now?\n\nIf you let me know your location and what aspect of local food interests you most, I can search for current, relevant information to help you out!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 2032,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 188,
+    "service_tier": "standard"
+  }
+}

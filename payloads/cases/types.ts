@@ -14,11 +14,18 @@ export interface GoogleGenerateContentRequest {
 // Re-export Bedrock type for convenience
 export type BedrockConverseRequest = ConverseCommandInput;
 
+// Extended Anthropic type that includes beta features like output_format
+// The executor uses regular client.messages.create() but test cases may define beta params
+export type AnthropicMessageCreateParams =
+  Anthropic.Messages.MessageCreateParams & {
+    output_format?: Anthropic.Beta.Messages.BetaJSONOutputFormat | null;
+  };
+
 // Well-defined types for test cases
 export interface TestCase {
   "chat-completions": OpenAI.Chat.Completions.ChatCompletionCreateParams | null;
   responses: OpenAI.Responses.ResponseCreateParams | null;
-  anthropic: Anthropic.Messages.MessageCreateParams | null;
+  anthropic: AnthropicMessageCreateParams | null;
   google: GoogleGenerateContentRequest | null;
   bedrock: BedrockConverseRequest | null;
 }

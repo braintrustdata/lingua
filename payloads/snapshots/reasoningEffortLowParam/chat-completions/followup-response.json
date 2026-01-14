@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cysk8pWynTVUpKWp4vWjr5pCwub6t",
+  "object": "chat.completion",
+  "created": 1768626148,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I’m not sure what you’re working on. Could you tell me a bit about your goal or situation? In the meantime, here are some generic “what to do next” templates you can use:\n\n- If you’re trying to make progress on a project:\n  1) Define your next milestone (specific, measurable).\n  2) List the concrete steps needed to reach it.\n  3) Pick the first step and do it for 25–50 minutes (time-box).\n  4) Review what happened, adjust, and repeat.\n\n- If you’re feeling stuck or overwhelmed:\n  1) Write down the top 3 tasks that matter most.\n  2) Break them into tiny actions (2–5 minutes each).\n  3) Do one small action now, then reassess.\n\n- If you’re learning something new:\n  1) Set a learning goal for today (e.g., “watch 1 lesson and take notes”).\n  2) Do a quick recall exercise (summarize what you learned from memory).\n  3) Practice with a small example or quiz.\n\n- If you’re deciding what to do next:\n  1) List 3 options with pros/cons.\n  2) Choose the option with the highest impact and lowest effort, or do a quick 5-minute test.\n\n- If you want a routine or daily plan:\n  1) Pick 3 non-negotiables for the day.\n  2) Schedule focused blocks for deep work.\n  3) End with a quick reflection: what went well, what to adjust tomorrow.\n\nIf you can share a bit more about your goal, I can suggest a precise next step.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 30,
+    "completion_tokens": 424,
+    "total_tokens": 454,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 64,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

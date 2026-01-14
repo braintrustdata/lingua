@@ -3,6 +3,8 @@ import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
   OPENAI_NON_REASONING_MODEL,
+  ANTHROPIC_MODEL,
+  ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
 } from "./models";
 
 // OpenAI Responses API and Chat Completions API parameter test cases
@@ -13,7 +15,7 @@ export const paramsCases: TestCaseCollection = {
 
   reasoningSummaryParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL, // Must use reasoning model for reasoning_effort
       messages: [{ role: "user", content: "What is 2+2?" }],
       reasoning_effort: "medium",
     },
@@ -25,7 +27,36 @@ export const paramsCases: TestCaseCollection = {
         summary: "detailed",
       },
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 16000,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      thinking: {
+        type: "enabled",
+        budget_tokens: 10000,
+      },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  reasoningEffortLowParam: {
+    "chat-completions": {
+      model: OPENAI_RESPONSES_MODEL, // Must use reasoning model
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      reasoning_effort: "low",
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "What is 2+2?" }],
+      reasoning: { effort: "low" },
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 8000,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      thinking: { type: "enabled", budget_tokens: 5000 }, // low effort budget
+    },
     google: null,
     bedrock: null,
   },
@@ -98,7 +129,39 @@ export const paramsCases: TestCaseCollection = {
         },
       },
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Extract: John is 25." }],
+      output_format: {
+        type: "json_schema",
+        schema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            age: { type: "number" },
+          },
+          required: ["name", "age"],
+          additionalProperties: false,
+        },
+      },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  textFormatTextParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say hello." }],
+      response_format: { type: "text" },
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Say hello." }],
+      text: { format: { type: "text" } },
+    },
+    anthropic: null, // text is default, no explicit param needed
     google: null,
     bedrock: null,
   },
@@ -112,7 +175,17 @@ export const paramsCases: TestCaseCollection = {
       input: [{ role: "user", content: "Latest OpenAI news" }],
       tools: [{ type: "web_search_preview" }],
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Latest OpenAI news" }],
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+        },
+      ],
+    },
     google: null,
     bedrock: null,
   },
@@ -129,7 +202,17 @@ export const paramsCases: TestCaseCollection = {
       ],
       tools: [{ type: "code_interpreter", container: { type: "auto" } }],
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Run Python" }],
+      tools: [
+        {
+          type: "bash_20250124",
+          name: "bash",
+        },
+      ],
+    },
     google: null,
     bedrock: null,
   },
@@ -177,7 +260,25 @@ export const paramsCases: TestCaseCollection = {
       ],
       tool_choice: { type: "function", name: "get_weather" },
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Tokyo weather" }],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get weather",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: { type: "string" },
+            },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: { type: "tool", name: "get_weather" },
+    },
     google: null,
     bedrock: null,
   },
@@ -225,7 +326,25 @@ export const paramsCases: TestCaseCollection = {
       ],
       parallel_tool_calls: false,
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "NYC and LA weather" }],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get weather",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: { type: "string" },
+            },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: { type: "auto", disable_parallel_tool_use: true },
+    },
     google: null,
     bedrock: null,
   },
@@ -245,7 +364,12 @@ export const paramsCases: TestCaseCollection = {
       input: [{ role: "user", content: "Hi" }],
       instructions: "Reply with OK",
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Hi" }],
+      system: "Say OK",
+    },
     google: null,
     bedrock: null,
   },
@@ -291,7 +415,12 @@ export const paramsCases: TestCaseCollection = {
       input: [{ role: "user", content: "Hi" }],
       service_tier: "default",
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say ok." }],
+      service_tier: "auto",
+    },
     google: null,
     bedrock: null,
   },
@@ -307,7 +436,18 @@ export const paramsCases: TestCaseCollection = {
       input: [{ role: "user", content: "Hi" }],
       prompt_cache_key: "test-key",
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: "Be helpful.",
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: "Say ok." }],
+    },
     google: null,
     bedrock: null,
   },
@@ -330,7 +470,12 @@ export const paramsCases: TestCaseCollection = {
       input: [{ role: "user", content: "Hi" }],
       metadata: { key: "value" },
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say ok." }],
+      metadata: { user_id: "user-12345" },
+    },
     google: null,
     bedrock: null,
   },
@@ -346,7 +491,12 @@ export const paramsCases: TestCaseCollection = {
       input: [{ role: "user", content: "Hi" }],
       safety_identifier: "test-user",
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say ok." }],
+      metadata: { user_id: "hashed-user-id-abc123" },
+    },
     google: null,
     bedrock: null,
   },
@@ -360,7 +510,12 @@ export const paramsCases: TestCaseCollection = {
       temperature: 0.7,
     },
     responses: null,
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say hi." }],
+      temperature: 0.7,
+    },
     google: null,
     bedrock: null,
   },
@@ -372,7 +527,12 @@ export const paramsCases: TestCaseCollection = {
       top_p: 0.9,
     },
     responses: null,
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say hi." }],
+      top_p: 0.9,
+    },
     google: null,
     bedrock: null,
   },
@@ -435,7 +595,12 @@ export const paramsCases: TestCaseCollection = {
       stop: ["10", "ten"],
     },
     responses: null,
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Count to 20." }],
+      stop_sequences: ["10", "ten"],
+    },
     google: null,
     bedrock: null,
   },
@@ -447,7 +612,11 @@ export const paramsCases: TestCaseCollection = {
       max_completion_tokens: 500,
     },
     responses: null,
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 500,
+      messages: [{ role: "user", content: "Say ok." }],
+    },
     google: null,
     bedrock: null,
   },
@@ -496,6 +665,304 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  // === Anthropic-Specific Parameters ===
+
+  topKParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say hi." }],
+      top_k: 40,
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  streamParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say hi." }],
+      stream: true,
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  textEditorToolParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Edit file." }],
+      tools: [{ type: "text_editor_20250124", name: "str_replace_editor" }],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  textEditorToolV2Param: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Edit file." }],
+      tools: [
+        { type: "text_editor_20250429", name: "str_replace_based_edit_tool" },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  textEditorToolV3Param: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Edit file." }],
+      tools: [
+        {
+          type: "text_editor_20250728",
+          name: "str_replace_based_edit_tool",
+          max_characters: 10000,
+        },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  webSearchToolAdvancedParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "AI news" }],
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+          allowed_domains: ["wikipedia.org", "arxiv.org"],
+          max_uses: 3,
+        },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  webSearchUserLocationParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Local food" }],
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+          user_location: {
+            type: "approximate",
+            city: "San Francisco",
+            region: "California",
+            country: "US",
+            timezone: "America/Los_Angeles",
+          },
+        },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  toolChoiceAutoParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get weather",
+          input_schema: {
+            type: "object",
+            properties: { location: { type: "string" } },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: { type: "auto" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  toolChoiceAnyParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get weather",
+          input_schema: {
+            type: "object",
+            properties: { location: { type: "string" } },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: { type: "any" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  toolChoiceNoneParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get weather",
+          input_schema: {
+            type: "object",
+            properties: { location: { type: "string" } },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: { type: "none" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  cacheControl5mParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: "Be helpful.",
+          cache_control: { type: "ephemeral", ttl: "5m" },
+        },
+      ],
+      messages: [{ role: "user", content: "Hi" }],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  cacheControl1hParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: "Be helpful.",
+          cache_control: { type: "ephemeral", ttl: "1h" },
+        },
+      ],
+      messages: [{ role: "user", content: "Hi" }],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  imageContentParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+              },
+            },
+            { type: "text", text: "Describe." },
+          ],
+        },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  documentContentParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "document",
+              source: {
+                type: "text",
+                media_type: "text/plain",
+                data: "Sample text.",
+              },
+              title: "Doc",
+            },
+            { type: "text", text: "Summarize." },
+          ],
+        },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  thinkingDisabledParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "2+2?" }],
+      thinking: { type: "disabled" },
+    },
     google: null,
     bedrock: null,
   },

@@ -58,7 +58,7 @@ function parseArguments(): CLIOptions {
           i++;
         }
         break;
-      case "--provider":
+      case "--providers":
         if (i + 1 < args.length) {
           options.providers = args[i + 1].split(",");
           i++;
@@ -107,9 +107,10 @@ Options:
                          Use $BRAINTRUST_API_KEY for Braintrust gateway
   --format <formats>     Comma-separated formats to test (default: chat-completions)
                          Available: ${formats.join(", ")}
-  --provider <providers> Comma-separated providers to test (default: uses snapshot model)
+  --providers <providers> Comma-separated providers to test (default: uses snapshot model)
                          Available: openai, anthropic
-  --cases <cases>        Comma-separated case names to test (default: all)
+  --cases <cases>        Comma-separated case names or collections to test
+                         Collections: simple, advanced, params
   --verbose, -v          Show full diff details
   --stream, -s           Test streaming responses instead of non-streaming
   --help, -h             Show this help message
@@ -122,7 +123,7 @@ Examples:
   ./scripts/validate.ts --proxy-url http://localhost:8080 --api-key $BRAINTRUST_API_KEY
 
   # Validate chat-completions format with both OpenAI and Anthropic providers
-  ./scripts/validate.ts --proxy-url http://localhost:8080 --provider openai,anthropic
+  ./scripts/validate.ts --proxy-url http://localhost:8080 --providers openai,anthropic
 
   # Validate multiple formats
   ./scripts/validate.ts --proxy-url http://localhost:8080 --format chat-completions,anthropic
@@ -179,7 +180,8 @@ async function main(): Promise<void> {
 
   printer.printSummary(results);
 
-  // Exit with error code if any tests failed
+  // Exit with error code only for actual failures (not warnings)
+  // Warnings (minor diffs like logprobs, tool args) are acceptable variations
   const failed = results.filter((r) => !r.success).length;
   process.exit(failed > 0 ? 1 : 0);
 }

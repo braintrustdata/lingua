@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01YBXUWnYRTc8VPADxFoQ2ar",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I don't have any context about what you're working on or what your goals are, so I can't give you specific advice about what to do next. \n\nCould you tell me more about your situation? For example:\n- Are you working on a particular project or task?\n- Are you looking for general life advice?\n- Is there a specific problem you're trying to solve?\n- Are you just looking for ideas on how to spend your time?\n\nWith more information, I'd be happy to help you figure out a good next step!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 23,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 118,
+    "service_tier": "standard"
+  }
+}

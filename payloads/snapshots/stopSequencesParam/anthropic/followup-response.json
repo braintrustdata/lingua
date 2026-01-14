@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01MPj9GkoMMsbu2fjVZ1dYAU",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "You were in the middle of counting to 20! You could continue from where we left off:\n\n"
+    }
+  ],
+  "stop_reason": "stop_sequence",
+  "stop_sequence": "10",
+  "usage": {
+    "input_tokens": 52,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 22,
+    "service_tier": "standard"
+  }
+}
