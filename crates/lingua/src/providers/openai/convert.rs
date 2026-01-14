@@ -1621,3 +1621,16 @@ impl From<&openai::CompletionUsage> for UniversalUsage {
         }
     }
 }
+
+/// Convert OpenAI ResponseUsage (Responses API) to universal UniversalUsage
+impl From<&openai::ResponseUsage> for UniversalUsage {
+    fn from(usage: &openai::ResponseUsage) -> Self {
+        UniversalUsage {
+            prompt_tokens: Some(usage.input_tokens),
+            completion_tokens: Some(usage.output_tokens),
+            prompt_cached_tokens: Some(usage.input_tokens_details.cached_tokens),
+            prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
+            completion_reasoning_tokens: Some(usage.output_tokens_details.reasoning_tokens),
+        }
+    }
+}
