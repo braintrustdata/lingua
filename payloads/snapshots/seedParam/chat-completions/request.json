@@ -1,0 +1,10 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Pick a number."
+    }
+  ],
+  "seed": 12345
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Always say ok."
+    },
+    {
+      "role": "user",
+      "content": "Hi"
+    }
+  ]
+}

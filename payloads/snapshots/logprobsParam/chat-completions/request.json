@@ -1,0 +1,11 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2 + 2?"
+    }
+  ],
+  "logprobs": true,
+  "top_logprobs": 2
+}

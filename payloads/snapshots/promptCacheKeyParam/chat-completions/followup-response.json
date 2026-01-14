@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cxyz5kZHw9Y0BqxBIeC6lm6F4uPLV",
+  "object": "chat.completion",
+  "created": 1768411811,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure—what would you like to do next? If you’re not sure, I can help with many things. Here are quick options:\n\n- Learn something: I can give you a short, actionable learning plan (e.g., Python basics, writing basics, etc.).\n- Plan a project or task: I’ll outline steps, milestones, and timeline.\n- Draft content: email, resume, cover letter, article, post, etc.\n- Code help: explain a concept, debug, or write a small script.\n- Make a decision: compare options with pros/cons and a recommendation.\n- Brainstorm ideas: topics, features, or creative ideas.\n\nTell me your goal or pick an option, and I’ll give you a concrete, step-by-step plan. If you want, I can also propose a simple 3-step plan right now for a guess at common tasks.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 26,
+    "completion_tokens": 1018,
+    "total_tokens": 1044,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

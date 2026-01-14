@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-Cxyz2QNT0SyfVxYXtOAsRSCFZNcmE",
+  "object": "chat.completion",
+  "created": 1768411808,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "That depends on what you're looking to accomplish! Here are a few suggestions based on different contexts:\n\n1. **If you're looking for something productive**: \n   - Make a to-do list for the day.\n   - Start a project you've been putting off.\n   - Organize your workspace.\n\n2. **If you want to relax**:\n   - Read a book or watch a movie.\n   - Go for a walk or do some stretching.\n   - Try a new recipe or bake something.\n\n3. **If you're seeking inspiration**:\n   - Explore a new hobby or craft.\n   - Listen to a podcast or watch a documentary.\n   - Write in a journal or brainstorm ideas.\n\n4. **If you're feeling social**:\n   - Call or message a friend or family member.\n   - Plan a get-together or virtual hangout.\n   - Join a local club or online community.\n\nLet me know if you have a specific area in mind, and I can tailor my suggestions further!",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 33,
+    "completion_tokens": 201,
+    "total_tokens": 234,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_29330a9688"
+}

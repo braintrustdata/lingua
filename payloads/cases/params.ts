@@ -1,14 +1,22 @@
 import { TestCaseCollection } from "./types";
-import { OPENAI_RESPONSES_MODEL } from "./models";
+import {
+  OPENAI_CHAT_COMPLETIONS_MODEL,
+  OPENAI_RESPONSES_MODEL,
+  OPENAI_NON_REASONING_MODEL,
+} from "./models";
 
-// OpenAI Responses API parameter test cases
-// Each test case exercises specific parameters from the Responses API
+// OpenAI Responses API and Chat Completions API parameter test cases
+// Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
   // === Reasoning Configuration ===
 
   reasoningSummaryParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      reasoning_effort: "medium",
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "2+2" }],
@@ -25,7 +33,11 @@ export const paramsCases: TestCaseCollection = {
   // === Text Response Configuration ===
 
   textFormatJsonObjectParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: 'Return {"status": "ok"} as JSON.' }],
+      response_format: { type: "json_object" },
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Return JSON with a=1" }],
@@ -41,7 +53,31 @@ export const paramsCases: TestCaseCollection = {
   },
 
   textFormatJsonSchemaParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Extract: John is 25.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "person_info",
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              age: { type: "number" },
+            },
+            required: ["name", "age"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Name: John, Age: 25" }],
@@ -99,7 +135,27 @@ export const paramsCases: TestCaseCollection = {
   },
 
   toolChoiceRequiredParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Tokyo weather" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather",
+            strict: true,
+            parameters: {
+              type: "object",
+              properties: { location: { type: "string" } },
+              required: ["location"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "get_weather" } },
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Tokyo weather" }],
@@ -127,7 +183,27 @@ export const paramsCases: TestCaseCollection = {
   },
 
   parallelToolCallsDisabledParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Weather in NYC and LA?" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather",
+            strict: true,
+            parameters: {
+              type: "object",
+              properties: { location: { type: "string" } },
+              required: ["location"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      parallel_tool_calls: false,
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "NYC and LA weather" }],
@@ -157,7 +233,13 @@ export const paramsCases: TestCaseCollection = {
   // === Context & State Management ===
 
   instructionsParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        { role: "system", content: "Always say ok." },
+        { role: "user", content: "Hi" },
+      ],
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Hi" }],
@@ -181,7 +263,11 @@ export const paramsCases: TestCaseCollection = {
   },
 
   storeDisabledParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      store: false,
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Hi" }],
@@ -195,7 +281,11 @@ export const paramsCases: TestCaseCollection = {
   // === Caching & Performance ===
 
   serviceTierParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      service_tier: "default",
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Hi" }],
@@ -207,7 +297,11 @@ export const paramsCases: TestCaseCollection = {
   },
 
   promptCacheKeyParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      prompt_cache_key: "user-123-ml-explanation",
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Hi" }],
@@ -221,7 +315,16 @@ export const paramsCases: TestCaseCollection = {
   // === Metadata & Identification ===
 
   metadataParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      store: true,
+      metadata: {
+        request_id: "req-12345",
+        user_tier: "premium",
+        experiment: "control",
+      },
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Hi" }],
@@ -233,12 +336,165 @@ export const paramsCases: TestCaseCollection = {
   },
 
   safetyIdentifierParam: {
-    "chat-completions": null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      safety_identifier: "hashed-user-id-abc123",
+    },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "Hi" }],
       safety_identifier: "test-user",
     },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  // === Sampling Parameters (require non-reasoning model) ===
+
+  temperatureParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say hi." }],
+      temperature: 0.7,
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  topPParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say hi." }],
+      top_p: 0.9,
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  frequencyPenaltyParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      frequency_penalty: 0.5,
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  presencePenaltyParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      presence_penalty: 0.5,
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  logprobsParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "What is 2 + 2?" }],
+      logprobs: true,
+      top_logprobs: 2,
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  // === Output Control ===
+
+  nMultipleCompletionsParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say a word." }],
+      n: 2,
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  stopSequencesParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Count from 1 to 20." }],
+      stop: ["10", "ten"],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  maxCompletionTokensParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say ok." }],
+      max_completion_tokens: 500,
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  // === Advanced Parameters ===
+
+  predictionParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Update this function to add error handling:\n\nfunction divide(a, b) {\n  return a / b;\n}",
+        },
+      ],
+      prediction: {
+        type: "content",
+        content:
+          "function divide(a, b) {\n  if (b === 0) {\n    throw new Error('Cannot divide by zero');\n  }\n  return a / b;\n}",
+      },
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  seedParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Pick a number." }],
+      seed: 12345,
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  logitBiasParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say hello." }],
+      logit_bias: { "15339": -100 },
+    },
+    responses: null,
     anthropic: null,
     google: null,
     bedrock: null,
