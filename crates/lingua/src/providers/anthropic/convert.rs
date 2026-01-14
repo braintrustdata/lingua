@@ -703,3 +703,37 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
         Ok(content_blocks)
     }
 }
+
+// ============================================================================
+// Type-safe conversions for generated types
+// ============================================================================
+
+use crate::universal::{FinishReason, UniversalUsage};
+
+/// Convert generated Usage struct to UniversalUsage (for non-streaming responses)
+impl From<&generated::Usage> for UniversalUsage {
+    fn from(u: &generated::Usage) -> Self {
+        UniversalUsage {
+            prompt_tokens: Some(u.input_tokens),
+            completion_tokens: Some(u.output_tokens),
+            prompt_cached_tokens: u.cache_read_input_tokens,
+            prompt_cache_creation_tokens: u.cache_creation_input_tokens,
+            completion_reasoning_tokens: None, // Anthropic doesn't expose thinking tokens separately
+        }
+    }
+}
+
+/// Convert generated StopReason enum to universal FinishReason
+impl From<&generated::StopReason> for FinishReason {
+    fn from(reason: &generated::StopReason) -> Self {
+        match reason {
+            generated::StopReason::EndTurn => FinishReason::Stop,
+            generated::StopReason::StopSequence => FinishReason::Stop,
+            generated::StopReason::MaxTokens => FinishReason::Length,
+            generated::StopReason::ToolUse => FinishReason::ToolCalls,
+            generated::StopReason::Refusal => FinishReason::ContentFilter,
+            generated::StopReason::ModelContextWindowExceeded => FinishReason::Length,
+            generated::StopReason::PauseTurn => FinishReason::Other("pause_turn".to_string()),
+        }
+    }
+}
