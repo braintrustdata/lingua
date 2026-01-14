@@ -1,0 +1,33 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi"
+    },
+    {
+      "id": "rs_0e19df7168186fd3006967e270e93481a3918d4e3669b9044a",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0e19df7168186fd3006967e274421c81a3abfb1238d8f9ca7a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hi! How can I help today? I can answer questions, explain concepts, assist with writing or editing, help with math or coding, brainstorm ideas, plan things, and more.\n\nIf you’d like, tell me what you’re working on or ask a question. Quick examples:\n- Explain photosynthesis in simple terms\n- Draft an email to a coworker\n- Help debug a Python function\n- Brainstorm ideas for a short story\n- Plan a trip itinerary\n\nIf you have an image, you can upload it and I can describe or analyze it. What would you like to do?"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "prompt_cache_key": "test-key"
+}

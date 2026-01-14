@@ -1,0 +1,77 @@
+{
+  "id": "resp_0e19df7168186fd3006967e27583d481a39f4bb05f8b350c9a",
+  "object": "response",
+  "created_at": 1768415861,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768415876,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0e19df7168186fd3006967e275c91881a38cff7a7b558fa07f",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0e19df7168186fd3006967e2817de881a38c84a673c274b08a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Happy to help. To tailor the next step, tell me a bit about what you’re trying to achieve (goal, deadline, and any constraints). If you’d prefer quick options right now, here are three practical paths you can start with:\n\n- Path 1: Quick micro-action (best for momentum)\n  - Pick one concrete thing you can do in the next 15 minutes that moves you toward your goal.\n  - Do it now, then tell me what you accomplished.\n\n- Path 2: Planning sprint (best for moving from idea to plan)\n  - Write down your goal in one sentence.\n  - List 3 small next steps that would each take 30–60 minutes.\n  - Block time for one of those steps soon and plan a quick check-in to review progress.\n\n- Path 3: Decision-making (best for choosing among options)\n  - List your options and 3 criteria that matter (e.g., impact, effort, risk).\n  - Give each option a simple score for each criterion, total them, and pick the top choice.\n\nIf you want, tell me your goal and any deadline, and I’ll propose a concrete, step-by-step plan. I can also help draft/edit, debug code, brainstorm ideas, or analyze an image if you have one."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": "test-key",
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 144,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1549,
+    "output_tokens_details": {
+      "reasoning_tokens": 1280
+    },
+    "total_tokens": 1693
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Happy to help. To tailor the next step, tell me a bit about what you’re trying to achieve (goal, deadline, and any constraints). If you’d prefer quick options right now, here are three practical paths you can start with:\n\n- Path 1: Quick micro-action (best for momentum)\n  - Pick one concrete thing you can do in the next 15 minutes that moves you toward your goal.\n  - Do it now, then tell me what you accomplished.\n\n- Path 2: Planning sprint (best for moving from idea to plan)\n  - Write down your goal in one sentence.\n  - List 3 small next steps that would each take 30–60 minutes.\n  - Block time for one of those steps soon and plan a quick check-in to review progress.\n\n- Path 3: Decision-making (best for choosing among options)\n  - List your options and 3 criteria that matter (e.g., impact, effort, risk).\n  - Give each option a simple score for each criterion, total them, and pick the top choice.\n\nIf you want, tell me your goal and any deadline, and I’ll propose a concrete, step-by-step plan. I can also help draft/edit, debug code, brainstorm ideas, or analyze an image if you have one."
+}

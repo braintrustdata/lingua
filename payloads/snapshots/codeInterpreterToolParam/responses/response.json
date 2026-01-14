@@ -1,0 +1,97 @@
+{
+  "id": "resp_010121ebb5e188bb006967e457cd3081a18576dd1906e07d88",
+  "object": "response",
+  "created_at": 1768416343,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768416364,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_010121ebb5e188bb006967e4607ddc81a18c909c1d7e06c207",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ci_010121ebb5e188bb006967e463fc6c81a1a49c34d9bf2a46ee",
+      "type": "code_interpreter_call",
+      "status": "completed",
+      "code": "import random\nrandom.randint(1,100)",
+      "container_id": "cntr_6967e46040a881918bafe26339ea573d07ea9c1707add848",
+      "outputs": null
+    },
+    {
+      "id": "rs_010121ebb5e188bb006967e46885e481a1bc1bf28e97360474",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_010121ebb5e188bb006967e46aacec81a18809a200d9cfc0c1",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here's a random number between 1 and 100: 25\n\nWant another one or a different range (e.g., 0-1 float, 1-1000 int)?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "code_interpreter",
+      "container": {
+        "type": "auto"
+      }
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 1104,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 684,
+    "output_tokens_details": {
+      "reasoning_tokens": 640
+    },
+    "total_tokens": 1788
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here's a random number between 1 and 100: 25\n\nWant another one or a different range (e.g., 0-1 float, 1-1000 int)?"
+}

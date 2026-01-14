@@ -98,6 +98,12 @@ export async function executeOpenAIResponses(
       }
     }
 
+    // Skip followup if store is disabled (responses aren't persisted)
+    if (payload.store === false) {
+      console.log(`⚠️ Skipping followup for ${caseName} - store is disabled`);
+      return result;
+    }
+
     // Create follow-up conversation if we have a non-streaming response with valid output
     if (
       result.response &&

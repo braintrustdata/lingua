@@ -1,0 +1,77 @@
+{
+  "id": "resp_02f1203a2a9c36a8006967e277124c819e8ab6c1a3a79b52b3",
+  "object": "response",
+  "created_at": 1768415863,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768415879,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_02f1203a2a9c36a8006967e2775658819ea3fe849d8c58e7d7",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_02f1203a2a9c36a8006967e282d378819ea4e3d34fe8b8675a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Nice question. To tailor it, tell me a bit about your goals and time. In the meantime, here are quick, practical options you can start with right now:\n\n- Quick productivity win (25 minutes):\n  - Pick one small task you’ve been putting off.\n  - Set a timer for 25 minutes and focus on just that task.\n  - Take a 5-minute break, repeat once or twice.\n\n- Learn something new (10–15 minutes today):\n  - Choose a topic you’re curious about and I’ll give you a mini plan (a quick article, short video, and a tiny exercise) for the next few days.\n\n- Tiny creative kick (5–10 minutes):\n  - Write a 100-word micro-story from a random prompt, or brainstorm 20 ideas for a project you care about.\n\n- Quick fitness booster (10–15 minutes):\n  - Do a 10–15 minute bodyweight workout or a brisk walk.\n\n- Organize or plan (5–15 minutes):\n  - Write down your top 3 priorities for tomorrow.\n  - Do a 2-minute tidy-up of your workspace.\n\n- Coding or tech mini-project (30 minutes max):\n  - Create a small project starter (e.g., a to-do app, a basic script) and I’ll guide you through the steps.\n\nIf you tell me:\n- What you want to focus on (productivity, learning, creativity, health, coding, etc.)\n- How much time you have\n- Any constraints or goals\n\nI’ll give you a concrete, step-by-step plan tailored to you. Want me to pick one and lay out a quick plan?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "auto",
+  "usage": {
+    "input_tokens": 70,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1366,
+    "output_tokens_details": {
+      "reasoning_tokens": 1024
+    },
+    "total_tokens": 1436
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Nice question. To tailor it, tell me a bit about your goals and time. In the meantime, here are quick, practical options you can start with right now:\n\n- Quick productivity win (25 minutes):\n  - Pick one small task you’ve been putting off.\n  - Set a timer for 25 minutes and focus on just that task.\n  - Take a 5-minute break, repeat once or twice.\n\n- Learn something new (10–15 minutes today):\n  - Choose a topic you’re curious about and I’ll give you a mini plan (a quick article, short video, and a tiny exercise) for the next few days.\n\n- Tiny creative kick (5–10 minutes):\n  - Write a 100-word micro-story from a random prompt, or brainstorm 20 ideas for a project you care about.\n\n- Quick fitness booster (10–15 minutes):\n  - Do a 10–15 minute bodyweight workout or a brisk walk.\n\n- Organize or plan (5–15 minutes):\n  - Write down your top 3 priorities for tomorrow.\n  - Do a 2-minute tidy-up of your workspace.\n\n- Coding or tech mini-project (30 minutes max):\n  - Create a small project starter (e.g., a to-do app, a basic script) and I’ll guide you through the steps.\n\nIf you tell me:\n- What you want to focus on (productivity, learning, creativity, health, coding, etc.)\n- How much time you have\n- Any constraints or goals\n\nI’ll give you a concrete, step-by-step plan tailored to you. Want me to pick one and lay out a quick plan?"
+}

@@ -1,0 +1,79 @@
+{
+  "id": "resp_058c0bd4ea1763f3006967e27046988192a91531a09b4c2709",
+  "object": "response",
+  "created_at": 1768415856,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768415865,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_058c0bd4ea1763f3006967e27263a0819293bf740ecddd6469",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_058c0bd4ea1763f3006967e277ad488192a5e2704e5759d9c8",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hi there! How can I help today? I can explain ideas, help with writing or editing, brainstorm, plan something, or assist with coding and tech questions. \n\nTell me what you’re working on or drop a topic, and I’ll jump in. If you’re not sure, here are a few quick ideas:\n- Explain a concept in simple terms\n- Draft an email or document\n- Brainstorm ideas for a project\n- Debug a snippet of code\n- Plan a trip or itinerary\n\nWhat would you like to do?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 7,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 435,
+    "output_tokens_details": {
+      "reasoning_tokens": 320
+    },
+    "total_tokens": 442
+  },
+  "user": null,
+  "metadata": {
+    "key": "value"
+  },
+  "output_text": "Hi there! How can I help today? I can explain ideas, help with writing or editing, brainstorm, plan something, or assist with coding and tech questions. \n\nTell me what you’re working on or drop a topic, and I’ll jump in. If you’re not sure, here are a few quick ideas:\n- Explain a concept in simple terms\n- Draft an email or document\n- Brainstorm ideas for a project\n- Debug a snippet of code\n- Plan a trip or itinerary\n\nWhat would you like to do?"
+}

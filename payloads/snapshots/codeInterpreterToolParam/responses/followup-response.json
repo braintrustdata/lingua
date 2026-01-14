@@ -1,0 +1,84 @@
+{
+  "id": "resp_010121ebb5e188bb006967e46cb68c81a18513de8068c05db0",
+  "object": "response",
+  "created_at": 1768416364,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768416382,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_010121ebb5e188bb006967e46d6af481a1ba9f3e4e9c890287",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_010121ebb5e188bb006967e47c7b5081a1a82da65c51c4bef1",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Nice! Want to do something similar or try something a bit different? Here are quick options. Tell me which one you’d like (or give your own parameters), and I’ll run it.\n\n- Generate another random number in the same range (1–100)\n- Random integer in a custom range [a, b] (tell me a and b)\n- Random float between 0 and 1\n- Generate N random integers in a range (e.g., N=5, range 1–100)\n- Pick a random item from a list you provide\n- Generate a random password (length and character set you choose)\n- Seeded run for reproducibility (pass a seed like 42)\n- Save the result to a file (e.g., results.txt)"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "code_interpreter",
+      "container": {
+        "type": "auto"
+      }
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 745,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1891,
+    "output_tokens_details": {
+      "reasoning_tokens": 1728
+    },
+    "total_tokens": 2636
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Nice! Want to do something similar or try something a bit different? Here are quick options. Tell me which one you’d like (or give your own parameters), and I’ll run it.\n\n- Generate another random number in the same range (1–100)\n- Random integer in a custom range [a, b] (tell me a and b)\n- Random float between 0 and 1\n- Generate N random integers in a range (e.g., N=5, range 1–100)\n- Pick a random item from a list you provide\n- Generate a random password (length and character set you choose)\n- Seeded run for reproducibility (pass a seed like 42)\n- Save the result to a file (e.g., results.txt)"
+}

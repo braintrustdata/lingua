@@ -1,0 +1,77 @@
+{
+  "id": "resp_046d311d0d184f00006967e27750dc81a3b1e7a9d599d8ff44",
+  "object": "response",
+  "created_at": 1768415863,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768415882,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_046d311d0d184f00006967e277a10c81a381ca7938ba8d9bae",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_046d311d0d184f00006967e288153881a3b64e71dcab03df80",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Nice question. Here are quick, practical options you can pick from. Tell me which one you want, or share a goal and I’ll tailor it.\n\n- Learn something fast: I give you a 5-minute micro-lesson on any topic and a take-away you can apply immediately.\n- Solve a problem: describe the challenge you’re facing, and I’ll outline concrete steps and a simple solution.\n- Write or edit: draft a paragraph, email, resume bullet, or a short snippet; I’ll revise for clarity and impact.\n- Plan something: create a short plan for a day, week, project, or trip—tasks, priorities, and deadlines.\n- Brainstorm: generate ideas for a project, story prompt, product concept, or marketing angle.\n- Code help: write or debug a small function, explain an error, or review a snippet.\n- Quick self-care or focus routine: a 5-minute breathing, stretch, or focus session to reset.\n- Quick momentum boost: do a 2-minute brain dump (list 3 goals for today) or a 15-minute sprint plan.\n\nIf you want, tell me your goal or topic and I’ll propose a specific next step right away. What area would you like to focus on?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 90,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1604,
+    "output_tokens_details": {
+      "reasoning_tokens": 1344
+    },
+    "total_tokens": 1694
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Nice question. Here are quick, practical options you can pick from. Tell me which one you want, or share a goal and I’ll tailor it.\n\n- Learn something fast: I give you a 5-minute micro-lesson on any topic and a take-away you can apply immediately.\n- Solve a problem: describe the challenge you’re facing, and I’ll outline concrete steps and a simple solution.\n- Write or edit: draft a paragraph, email, resume bullet, or a short snippet; I’ll revise for clarity and impact.\n- Plan something: create a short plan for a day, week, project, or trip—tasks, priorities, and deadlines.\n- Brainstorm: generate ideas for a project, story prompt, product concept, or marketing angle.\n- Code help: write or debug a small function, explain an error, or review a snippet.\n- Quick self-care or focus routine: a 5-minute breathing, stretch, or focus session to reset.\n- Quick momentum boost: do a 2-minute brain dump (list 3 goals for today) or a 15-minute sprint plan.\n\nIf you want, tell me your goal or topic and I’ll propose a specific next step right away. What area would you like to focus on?"
+}
