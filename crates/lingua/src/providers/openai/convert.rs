@@ -4,8 +4,9 @@ use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, REFUSAL_TEXT};
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart,
-    ToolResultContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, FinishReason as UniversalFinishReason, Message,
+    TextContentPart, ToolContentPart, ToolResultContentPart, UniversalUsage, UserContent,
+    UserContentPart,
 };
 
 /// Convert OpenAI InputItem collection to universal Message collection
@@ -1543,6 +1544,80 @@ impl TryFromLLM<&Message> for openai::ChatCompletionResponseMessage {
             _ => Err(ConvertError::InvalidRole {
                 role: format!("{:?}", msg),
             }),
+        }
+    }
+}
+
+/// Convert OpenAI generated FinishReason to universal FinishReason
+impl From<&openai::FinishReason> for UniversalFinishReason {
+    fn from(reason: &openai::FinishReason) -> Self {
+        match reason {
+            openai::FinishReason::Stop => UniversalFinishReason::Stop,
+            openai::FinishReason::Length => UniversalFinishReason::Length,
+            openai::FinishReason::ToolCalls => UniversalFinishReason::ToolCalls,
+            openai::FinishReason::ContentFilter => UniversalFinishReason::ContentFilter,
+            openai::FinishReason::FunctionCall => {
+                UniversalFinishReason::Other("function_call".to_string())
+            }
+        }
+    }
+}
+
+/// Convert universal FinishReason to OpenAI generated FinishReason
+impl From<&UniversalFinishReason> for openai::FinishReason {
+    fn from(reason: &UniversalFinishReason) -> Self {
+        match reason {
+            UniversalFinishReason::Stop => openai::FinishReason::Stop,
+            UniversalFinishReason::Length => openai::FinishReason::Length,
+            UniversalFinishReason::ToolCalls => openai::FinishReason::ToolCalls,
+            UniversalFinishReason::ContentFilter => openai::FinishReason::ContentFilter,
+            UniversalFinishReason::Other(s) if s == "function_call" => {
+                openai::FinishReason::FunctionCall
+            }
+            // Default to Stop for other cases
+            UniversalFinishReason::Other(_) => openai::FinishReason::Stop,
+        }
+    }
+}
+
+/// Convert FinishReason to its string representation (for streaming)
+pub fn finish_reason_to_string(reason: &openai::FinishReason) -> String {
+    match reason {
+        openai::FinishReason::Stop => "stop".to_string(),
+        openai::FinishReason::Length => "length".to_string(),
+        openai::FinishReason::ToolCalls => "tool_calls".to_string(),
+        openai::FinishReason::ContentFilter => "content_filter".to_string(),
+        openai::FinishReason::FunctionCall => "function_call".to_string(),
+    }
+}
+
+/// Parse a string to OpenAI FinishReason (for streaming)
+pub fn string_to_finish_reason(s: &str) -> openai::FinishReason {
+    match s {
+        "stop" => openai::FinishReason::Stop,
+        "length" => openai::FinishReason::Length,
+        "tool_calls" => openai::FinishReason::ToolCalls,
+        "content_filter" => openai::FinishReason::ContentFilter,
+        "function_call" => openai::FinishReason::FunctionCall,
+        _ => openai::FinishReason::Stop, // Default fallback
+    }
+}
+
+/// Convert OpenAI CompletionUsage to universal UniversalUsage
+impl From<&openai::CompletionUsage> for UniversalUsage {
+    fn from(usage: &openai::CompletionUsage) -> Self {
+        UniversalUsage {
+            prompt_tokens: Some(usage.prompt_tokens),
+            completion_tokens: Some(usage.completion_tokens),
+            prompt_cached_tokens: usage
+                .prompt_tokens_details
+                .as_ref()
+                .and_then(|d| d.cached_tokens),
+            prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
+            completion_reasoning_tokens: usage
+                .completion_tokens_details
+                .as_ref()
+                .and_then(|d| d.reasoning_tokens),
         }
     }
 }
