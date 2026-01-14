@@ -1,0 +1,23 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Count from 1 to 20."
+    },
+    {
+      "role": "assistant",
+      "content": "Sure! Here are the numbers from 1 to 20:\n\n1, 2, 3, 4, 5, 6, 7, 8, 9, ",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "stop": [
+    "10",
+    "ten"
+  ]
+}

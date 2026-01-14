@@ -1,0 +1,10 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say a word."
+    }
+  ],
+  "n": 2
+}

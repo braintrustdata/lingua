@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cxyz3HUYPjFqpvWzzRPDcneBchYNT",
+  "object": "chat.completion",
+  "created": 1768411809,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "ok, I can help. What are you trying to do? If you’re not sure yet, here are general next steps you can try:\n\n- Define a clear goal and the desired outcome.\n- Break the goal into 2–5 concrete tasks or milestones.\n- Gather the resources or information you’ll need.\n- Start with the first task, set a short deadline, and begin.\n- Create a simple plan or checklist to track progress.\n- Review what you learned and adjust the plan as needed.\n\nIf you tell me your area (study, coding, writing, planning a project, etc.), I’ll tailor the steps to fit.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 32,
+    "completion_tokens": 969,
+    "total_tokens": 1001,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

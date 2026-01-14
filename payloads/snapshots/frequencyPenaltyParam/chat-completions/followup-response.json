@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-Cxyz2ZRjg1ccZrJos1hmLHeTSPVeI",
+  "object": "chat.completion",
+  "created": 1768411808,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "It depends on what you're looking to do! Here are a few options:\n\n1. **Learn Something New**: Pick a topic or skill you’re interested in and look up resources to start learning.\n2. **Read a Book**: If you enjoy reading, consider picking up a book you've been wanting to dive into.\n3. **Get Creative**: Try drawing, writing, or doing some other form of art.\n4. **Exercise**: Go for a walk, do some yoga, or engage in any physical activity you enjoy.\n5. **Connect with Someone**: Reach out to a friend or family member for a chat or make plans to catch up.\n\nLet me know if you need specific advice on any of these suggestions!",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 26,
+    "completion_tokens": 149,
+    "total_tokens": 175,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_29330a9688"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cxyz3cN6Juy8A51jtucv40x8kY76q",
+  "object": "chat.completion",
+  "created": 1768411809,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Great question. What would you like to do next? Here are a few easy options:\n\n- Plan or decide: I’ll help you define a goal, break it into steps, and make a checklist.\n- Learn or practice: Pick a topic and I’ll give a quick mini-lesson plus a short exercise.\n- Create something: I can draft an email, message, resume bullet, outline, or simple code snippet.\n- Troubleshoot: Describe a problem and I’ll guide you through debugging or solving it.\n- Quick task: I can summarize a document, brainstorm ideas, or research options.\n\nIf you want, I can propose a concrete next step right now. For example: summarize what you want to achieve in one sentence, then list the top 3 actions to get there. What would you like to do?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 26,
+    "completion_tokens": 1134,
+    "total_tokens": 1160,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 960,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

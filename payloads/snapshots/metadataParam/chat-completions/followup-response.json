@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cxyz42FB60Ol09VPK6Fjfd2uTB2pK",
+  "object": "chat.completion",
+  "created": 1768411810,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Great—what would you like to work on? If you’re not sure, here are quick options. Tell me which one fits, or describe your task and any constraints and I’ll propose a concrete plan.\n\n- Plan or organize something: define your goal, break into steps, and set a timeline.\n- Learn or explain something: a short, beginner-friendly explanation or a quick micro-lesson.\n- Create or edit: draft or polish writing, code, or a presentation outline.\n- Decide or troubleshoot: compare options, weigh pros/cons, and suggest a decision.\n\nIf you prefer, share a bit about your current goal or task and I’ll propose a 1–2 step next action.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 27,
+    "completion_tokens": 982,
+    "total_tokens": 1009,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
