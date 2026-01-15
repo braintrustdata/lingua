@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import type { GenerateContentResponse, Content } from "@google/genai";
-import { CaptureResult, ProviderExecutor } from "../types";
+import { CaptureResult, ExecuteOptions, ProviderExecutor } from "../types";
 import {
   allTestCases,
   getCaseNames,
@@ -33,7 +33,7 @@ type ParallelGoogleResult =
 export async function executeGoogle(
   caseName: string,
   payload: GoogleGenerateContentRequest,
-  stream?: boolean
+  options?: ExecuteOptions
 ): Promise<
   CaptureResult<
     GoogleGenerateContentRequest,
@@ -41,7 +41,11 @@ export async function executeGoogle(
     GenerateContentResponse
   >
 > {
-  const client = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
+  const { stream, apiKey } = options ?? {};
+  // Note: Google SDK doesn't support baseURL override, so we ignore it here
+  const client = new GoogleGenAI({
+    apiKey: apiKey ?? process.env.GOOGLE_API_KEY,
+  });
   const result: CaptureResult<
     GoogleGenerateContentRequest,
     GenerateContentResponse,

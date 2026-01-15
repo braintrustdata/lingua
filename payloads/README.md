@@ -2,6 +2,18 @@
 
 Scripts to capture OpenAI and Anthropic API payloads with TypeScript type safety.
 
+## Table of contents
+
+- [Purpose](#purpose)
+- [Installation](#installation)
+- [Environment variables](#environment-variables)
+- [Capture usage](#usage)
+- [Validation tool](#validation-tool)
+- [Output structure](#output-structure)
+- [Example payloads](#example-payloads)
+- [Type checking](#type-checking)
+- [Extending](#extending)
+
 ## Purpose
 
 This package provides scripts to systematically capture real API requests and responses from OpenAI and Anthropic, using their official TypeScript types to ensure payload validity. This creates a repository of real-world test cases for AI API compatibility testing.
@@ -81,7 +93,61 @@ const anthropicRequest = {
 } satisfies Anthropic.MessageCreateParams;
 ```
 
-## Output Structure
+## Validation tool
+
+Validate any LLM proxy by comparing responses to captured snapshots.
+
+### Basic usage
+
+```bash
+# Validate chat-completions format through a proxy
+pnpm validate --proxy-url http://localhost:8080
+
+# Use Braintrust API key
+pnpm validate --proxy-url http://localhost:8080 --api-key $BRAINTRUST_API_KEY
+```
+
+### Testing different models
+
+The `--models` flag lets you test the same format with different provider models:
+
+```bash
+# Test with both OpenAI and Anthropic models through chat-completions format
+pnpm validate --proxy-url http://localhost:8080 --models openai,anthropic
+
+# Test specific model
+pnpm validate --proxy-url http://localhost:8080 --models anthropic
+```
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--proxy-url <url>` | Proxy URL (required) |
+| `--api-key <key>` | API key for gateway |
+| `--format <formats>` | Formats to test: `chat-completions`, `responses`, `anthropic` |
+| `--models <models>` | Model providers: `openai`, `anthropic`, `google`, `bedrock` |
+| `--cases <cases>` | Specific cases to run |
+| `--all` | Run all cases (including slow ones) |
+| `--verbose` | Show full diff details |
+
+### Example output
+
+```
+Validating proxy at http://localhost:8080...
+
+chat-completions
+  ✓ simpleRequest [gpt-5-nano] (4124ms)
+  ✓ simpleRequest [claude-sonnet-4-20250514] (11033ms)
+  ✓ toolCallRequest [gpt-5-nano] (7344ms)
+  ✓ reasoningRequest [gpt-5-nano] (26859ms)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Summary: 4 passed, 0 failed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+## Output structure
 
 Payloads are saved to `snapshots/` directory with the following naming:
 

@@ -6,7 +6,7 @@ import {
   type ConverseStreamOutput,
   type Message,
 } from "@aws-sdk/client-bedrock-runtime";
-import { CaptureResult, ProviderExecutor } from "../types";
+import { CaptureResult, ExecuteOptions, ProviderExecutor } from "../types";
 import {
   allTestCases,
   getCaseNames,
@@ -65,10 +65,12 @@ type ParallelBedrockResult =
 export async function executeBedrock(
   caseName: string,
   payload: BedrockConverseRequest,
-  stream?: boolean
+  options?: ExecuteOptions
 ): Promise<
   CaptureResult<BedrockConverseRequest, ConverseResponse, ConverseStreamOutput>
 > {
+  const { stream } = options ?? {};
+  // Note: Bedrock SDK uses AWS credentials, so baseURL/apiKey are ignored
   const client = createBedrockClient();
   const result: CaptureResult<
     BedrockConverseRequest,
