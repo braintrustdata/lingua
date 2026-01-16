@@ -19,6 +19,12 @@ export interface ProviderCase<TPayload = unknown> {
   payload: TPayload;
 }
 
+export interface ExecuteOptions {
+  stream?: boolean;
+  baseURL?: string; // Proxy URL (e.g., "http://localhost:8080")
+  apiKey?: string; // API key override (e.g., BRAINTRUST_API_KEY)
+}
+
 export interface ProviderExecutor<
   TRequest = unknown,
   TResponse = unknown,
@@ -29,6 +35,8 @@ export interface ProviderExecutor<
   execute: (
     caseName: string,
     payload: TRequest,
-    stream?: boolean
+    options?: ExecuteOptions
   ) => Promise<CaptureResult<TRequest, TResponse, TStreamChunk>>;
+  // Fields to ignore when comparing responses (e.g., 'id', 'created', 'content')
+  ignoredFields?: string[];
 }

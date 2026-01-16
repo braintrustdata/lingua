@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { CaptureResult, ProviderExecutor } from "../types";
+import { CaptureResult, ExecuteOptions, ProviderExecutor } from "../types";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 import {
   ResponseInputItem,
@@ -33,7 +33,7 @@ type ParallelResponseResult =
 export async function executeOpenAIResponses(
   caseName: string,
   payload: OpenAI.Responses.ResponseCreateParams,
-  stream?: boolean
+  options?: ExecuteOptions
 ): Promise<
   CaptureResult<
     OpenAI.Responses.ResponseCreateParams,
@@ -41,7 +41,11 @@ export async function executeOpenAIResponses(
     unknown
   >
 > {
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const { stream, baseURL, apiKey } = options ?? {};
+  const client = new OpenAI({
+    apiKey: apiKey ?? process.env.OPENAI_API_KEY,
+    baseURL: baseURL ? `${baseURL}/v1` : undefined,
+  });
   const result: CaptureResult<
     OpenAI.Responses.ResponseCreateParams,
     OpenAI.Responses.Response,
@@ -233,4 +237,11 @@ export const openaiResponsesExecutor: ProviderExecutor<
   name: "responses",
   cases: openaiResponsesCases,
   execute: executeOpenAIResponses,
+  ignoredFields: [
+    "id",
+    "created_at",
+    "output.*.content.*.text",
+    "output_text",
+    "usage",
+  ],
 };

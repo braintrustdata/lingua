@@ -199,7 +199,7 @@ async function main() {
       const result = await case_.executor.execute(
         case_.caseName,
         case_.payload,
-        options.stream
+        { stream: options.stream }
       );
 
       const savedFiles = saveAllFiles(
