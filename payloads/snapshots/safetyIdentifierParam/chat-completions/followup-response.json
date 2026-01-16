@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cxyz4k9p8BKh2p1BZsGYtGqnwvR5i",
+  "object": "chat.completion",
+  "created": 1768411810,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure—to help you best, tell me what you want to achieve. If you’re not sure, here are quick options you can pick from (or mix):\n\n- Plan a project or task: define goal, milestones, timeline.\n- Learn something new: a focused mini-course with key topics and resources.\n- Write something: create an outline, draft, and revision steps.\n- Make a decision: list options, criteria, pros/cons, and a ranking.\n- Solve a problem: diagnose, brainstorm solutions, and pick a plan.\n- Code/tech task: gather requirements, propose architecture, and sample code.\n- Organize something: priorities, to-do list, and schedule.\n\nIf you want, we can start with a quick prompt: describe your goal in one sentence and list the top 3 outcomes you want. Any deadline or constraints?\n\nTell me which option fits, or share your goal and I’ll generate a concrete plan right away.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 27,
+    "completion_tokens": 970,
+    "total_tokens": 997,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 768,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

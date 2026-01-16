@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-Cxyz2B5Um0U2U5gombnBkRRFfwtAn",
+  "object": "chat.completion",
+  "created": 1768411808,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "That depends on what you’re looking to do! Here are a few suggestions:\n\n1. **Learn Something New**: Pick a topic you’re interested in and read an article or watch a video about it.\n2. **Get Creative**: Try your hand at drawing, writing, or crafting.\n3. **Exercise**: Go for a walk, do some yoga, or try a workout routine at home.\n4. **Connect with Someone**: Reach out to a friend or family member for a chat.\n5. **Plan Your Day**: Make a to-do list or set some goals for the week.\n6. **Relax**: Take a break and enjoy some downtime, whether it’s meditating, listening to music, or watching a show.\n\nLet me know if you want more specific suggestions or have a certain area in mind!",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 33,
+    "completion_tokens": 170,
+    "total_tokens": 203,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_c4585b5b9c"
+}

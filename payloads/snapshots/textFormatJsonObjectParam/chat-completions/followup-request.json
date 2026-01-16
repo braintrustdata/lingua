@@ -1,0 +1,22 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Return {\"status\": \"ok\"} as JSON."
+    },
+    {
+      "role": "assistant",
+      "content": "{\"status\": \"ok\"}",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "response_format": {
+    "type": "json_object"
+  }
+}

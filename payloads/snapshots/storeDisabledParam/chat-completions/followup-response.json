@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cxyz489PgQFFZS3SRfk3gKliJ27VX",
+  "object": "chat.completion",
+  "created": 1768411810,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure—what would you like to focus on? Here are a few quick options, with a simple next-step plan for each. Tell me which fits, or share your own goal.\n\n1) Decide what to work on next (planning)\n- Define your goal (what you want to achieve) and deadline.\n- List 3-5 candidate tasks.\n- Pick the one with the biggest impact for the least effort.\n- Timebox the first action (e.g., 25 minutes) and start.\n\n2) Create a plan for a project\n- Write a one-paragraph goal statement and a milestone roadmap.\n- Break milestones into 2–3 concrete tasks you can do this week.\n- Identify blockers and needed resources.\n- Schedule the first task with a deadline.\n\n3) Learn something new\n- Choose a topic and a tiny task (e.g., watch a 10-minute video, then summarize in 5 bullets).\n- Set a 30-minute focused practice block.\n- Review what you learned and note one next-step task.\n\n4) Build a new habit or routine\n- Pick one micro-habit (e.g., 5-minute daily practice).\n- Attach it to an existing daily cue (after you brush your teeth, do the habit).\n- Track consistency for a week and adjust if needed.\n\n5) Solve a problem you’re facing\n- State the problem in one sentence.\n- List constraints and possible solutions.\n- Pick a feasible option and define a concrete next action with a deadline.\n\nIf you share a bit about your goal, deadline, and any constraints, I can propose a tailored next step and even draft a quick to-do. Want to try a 5-minute planning sprint now? Here’s a quick template you can fill in:\n- Goal: [what you want to achieve] by [deadline]\n- Top 1–2 next actions: [action 1], [action 2]\n- Deadline for each action: [date/time]\n- Resources needed: [list]\n- Potential obstacle and backup plan: [brief note]\n\nTell me your context and I’ll customize this.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 26,
+    "completion_tokens": 1266,
+    "total_tokens": 1292,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

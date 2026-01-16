@@ -1,0 +1,20 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say ok."
+    },
+    {
+      "role": "assistant",
+      "content": "Ok.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "presence_penalty": 0.5
+}

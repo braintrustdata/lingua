@@ -1,0 +1,20 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say ok."
+    },
+    {
+      "role": "assistant",
+      "content": "Ok.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_completion_tokens": 500
+}
