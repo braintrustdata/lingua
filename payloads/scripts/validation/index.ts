@@ -18,7 +18,7 @@ import {
 } from "../../cases";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
-  ANTHROPIC_MODEL,
+  ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
   GOOGLE_MODEL,
   BEDROCK_MODEL,
 } from "../../cases/models";
@@ -50,6 +50,42 @@ const formatRegistry: Record<string, ExecutorEntry> = {
 };
 /* eslint-enable @typescript-eslint/consistent-type-assertions */
 
+/**
+ * Type guard to check if value is a record with string keys.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Extract model name from actual API response.
+ * Handles both streaming (array) and non-streaming (object) responses.
+ */
+function extractModelFromResponse(
+  response: unknown,
+  isStreaming?: boolean
+): string | undefined {
+  if (!response) return undefined;
+
+  if (isStreaming && Array.isArray(response)) {
+    // Streaming: model is in response[0].response.model
+    const firstChunk: unknown = response[0];
+    if (isRecord(firstChunk) && isRecord(firstChunk.response)) {
+      const nested = firstChunk.response;
+      if (typeof nested.model === "string") {
+        return nested.model;
+      }
+    }
+  } else if (isRecord(response)) {
+    // Non-streaming: model is directly on response.model
+    if (typeof response.model === "string") {
+      return response.model;
+    }
+  }
+
+  return undefined;
+}
+
 export interface ValidationOptions {
   proxyUrl: string;
   apiKey?: string; // API key to use (e.g., BRAINTRUST_API_KEY)
@@ -58,6 +94,7 @@ export interface ValidationOptions {
   providers?: string[]; // provider aliases to test (default: uses snapshot model)
   all?: boolean; // run all cases including slow ones
   stream?: boolean; // default: false (non-streaming only)
+  verbose?: boolean; // include actual response in results
   onResult?: (result: ValidationResult) => void; // callback for streaming results
 }
 
@@ -70,6 +107,7 @@ export interface ValidationResult {
   durationMs: number;
   diff?: DiffResult; // only if success=false due to diff, or warning=true
   error?: string; // only if request failed
+  actualResponse?: unknown; // the actual response from the proxy (when verbose)
 }
 
 /**
@@ -102,7 +140,7 @@ const DEFAULT_CASES = ["simpleRequest", "toolCallRequest", "reasoningRequest"];
 // Provider registry - maps provider aliases to actual model names (uses canonical models.ts)
 const PROVIDER_REGISTRY: Record<string, string> = {
   openai: OPENAI_CHAT_COMPLETIONS_MODEL,
-  anthropic: ANTHROPIC_MODEL,
+  anthropic: ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
   google: GOOGLE_MODEL,
   bedrock: BEDROCK_MODEL,
 };
@@ -262,17 +300,17 @@ export async function runValidation(
               return result;
             }
 
-            // Override model if not using default
-            // Only override if test uses the default chat-completions model
-            // Preserve explicit model choices (e.g., reasoning models like gpt-5-nano)
+            // Override model only for cross-provider testing
+            // OpenAI formats (chat-completions, responses) with non-OpenAI providers
             if (
               providerAlias !== "default" &&
+              providerAlias !== "openai" && // Don't override for OpenAI - tests have correct models
               PROVIDER_REGISTRY[providerAlias]
             ) {
-              if (
-                request.model === OPENAI_CHAT_COMPLETIONS_MODEL ||
-                !request.model
-              ) {
+              const isOpenAIFormat =
+                format === "chat-completions" || format === "responses";
+              if (isOpenAIFormat) {
+                // Override for cross-provider translation testing
                 request = {
                   ...request,
                   model: PROVIDER_REGISTRY[providerAlias],
@@ -304,6 +342,12 @@ export async function runValidation(
             const actualResponse = options.stream
               ? actual.streamingResponse
               : actual.response;
+
+            // Extract actual model from response (fallback to registry-based name)
+            const actualModel =
+              extractModelFromResponse(actualResponse, options.stream) ??
+              modelName;
+
             const diff = compareResponses(
               expectedResponse,
               actualResponse,
@@ -318,11 +362,12 @@ export async function runValidation(
             const result: ValidationResult = {
               format,
               caseName,
-              model: modelName,
+              model: actualModel,
               success: diff.match || onlyMinorDiffs,
               warning: onlyMinorDiffs ? true : undefined,
               durationMs: Date.now() - start,
               diff: diff.match ? undefined : diff, // Include diff for warnings too
+              actualResponse: options.verbose ? actualResponse : undefined,
             };
             options.onResult?.(result);
             return result;

@@ -1,78 +1,43 @@
 /*!
-OpenAI provider adapters for chat completions and responses API.
+OpenAI Chat Completions API adapter.
 
-This module provides two adapters:
-- `OpenAIAdapter` for the standard Chat Completions API
-- `ResponsesAdapter` for the Responses API (used by reasoning models like o1)
+This module provides the `OpenAIAdapter` for the standard Chat Completions API,
+along with target-specific transformation utilities for providers like Azure,
+Vertex, and Mistral.
 */
 
 use crate::capabilities::ProviderFormat;
+use crate::error::ConvertError;
+use crate::reject_params;
+use std::collections::HashMap;
+
 use crate::processing::adapters::{
-    collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value,
-    ProviderAdapter,
+    insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::{OpenAICapabilities, TargetProvider};
+use crate::providers::openai::convert::{
+    ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
+};
 use crate::providers::openai::generated::{
-    AllowedToolsFunction, ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
+    AllowedToolsFunction, ChatCompletionRequestMessageContent,
     ChatCompletionRequestMessageContentPart, ChatCompletionRequestMessageRole,
-    ChatCompletionResponseMessage, ChatCompletionToolChoiceOption,
-    CreateChatCompletionRequestClass, CreateResponseClass, File, FunctionObject,
-    FunctionToolChoiceClass, FunctionToolChoiceType, InputItem, InputItemContent, InputItemRole,
-    InputItemType, Instructions, PurpleType, ResponseFormatType, ToolElement, ToolType,
+    ChatCompletionToolChoiceOption, CreateChatCompletionRequestClass, File, FunctionObject,
+    FunctionToolChoiceClass, FunctionToolChoiceType, PurpleType, ResponseFormatType, ToolElement,
+    ToolType,
 };
-use crate::providers::openai::{
-    try_parse_openai, try_parse_responses, universal_to_responses_input,
-};
+use crate::providers::openai::params::OpenAIChatParams;
+use crate::providers::openai::try_parse_openai;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{AssistantContent, Message, UserContent};
+use crate::universal::message::Message;
+use crate::universal::tools::{tools_to_openai_chat_value, UniversalTool};
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use crate::util::media::parse_base64_data_url;
-
-/// Known request fields for OpenAI Chat Completions API.
-/// These are fields extracted into UniversalRequest/UniversalParams.
-/// Fields not in this list go into `extras` for passthrough.
-const OPENAI_KNOWN_KEYS: &[&str] = &[
-    "model",
-    "messages",
-    "temperature",
-    "top_p",
-    "max_tokens",
-    "max_completion_tokens",
-    "stop",
-    "tools",
-    "tool_choice",
-    "response_format",
-    "seed",
-    "presence_penalty",
-    "frequency_penalty",
-    "stream",
-    // OpenAI-specific fields (not in UniversalParams) go to extras:
-    // stream_options, n, logprobs, top_logprobs, logit_bias,
-    // user, store, metadata, parallel_tool_calls, service_tier
-];
-
-/// Known request fields for OpenAI Responses API.
-/// These are fields extracted into UniversalRequest/UniversalParams.
-/// Fields not in this list go into `extras` for passthrough.
-const RESPONSES_KNOWN_KEYS: &[&str] = &[
-    "model",
-    "input",
-    "temperature",
-    "top_p",
-    "max_output_tokens",
-    "tools",
-    "tool_choice",
-    "stream",
-    // Responses-specific fields (not in UniversalParams) go to extras:
-    // instructions, stop, response_format, seed, presence_penalty,
-    // frequency_penalty, reasoning, truncation, user, store,
-    // metadata, parallel_tool_calls
-];
+use std::convert::TryInto;
 
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
@@ -95,37 +60,123 @@ impl ProviderAdapter for OpenAIAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let extras = collect_extras(&payload, OPENAI_KNOWN_KEYS);
-        let request: CreateChatCompletionRequestClass = serde_json::from_value(payload)
+        // Parse params (messages will be parsed separately to preserve reasoning field)
+        let typed_params: OpenAIChatParams = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(request.messages)
+        // Extract and parse messages as extended type to capture reasoning field
+        let messages_val = payload
+            .get("messages")
+            .ok_or_else(|| {
+                TransformError::ToUniversalFailed("OpenAI: missing 'messages' field".to_string())
+            })?
+            .as_array()
+            .ok_or_else(|| {
+                TransformError::ToUniversalFailed("OpenAI: 'messages' must be an array".to_string())
+            })?;
+
+        let provider_messages: Vec<ChatCompletionRequestMessageExt> = messages_val
+            .iter()
+            .map(|msg_val| {
+                serde_json::from_value(msg_val.clone())
+                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(provider_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let params = UniversalParams {
-            temperature: request.temperature,
-            top_p: request.top_p,
+        // Extract max_tokens first - needed for reasoning budget computation
+        let max_tokens = typed_params
+            .max_tokens
+            .or(typed_params.max_completion_tokens);
+
+        // Convert reasoning effort to ReasoningConfig, computing budget_tokens with max_tokens context
+        let reasoning = typed_params
+            .reasoning_effort
+            .map(|effort| (effort, max_tokens).into());
+
+        // Build canonical params from typed fields
+        let mut params = UniversalParams {
+            temperature: typed_params.temperature,
+            top_p: typed_params.top_p,
             top_k: None, // OpenAI doesn't support top_k
-            max_tokens: request.max_tokens.or(request.max_completion_tokens),
-            stop: request.stop.and_then(|s| serde_json::to_value(s).ok()),
-            tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
-            tool_choice: request
+            max_tokens,
+            stop: typed_params.stop.as_ref().and_then(parse_stop_sequences),
+            tools: typed_params
+                .tools
+                .as_ref()
+                .map(UniversalTool::from_value_array),
+            tool_choice: typed_params
                 .tool_choice
-                .and_then(|t| serde_json::to_value(t).ok()),
-            response_format: request
+                .as_ref()
+                .and_then(|v| (ProviderFormat::OpenAI, v).try_into().ok()),
+            response_format: typed_params
                 .response_format
-                .and_then(|r| serde_json::to_value(r).ok()),
-            seed: request.seed,
-            presence_penalty: request.presence_penalty,
-            frequency_penalty: request.frequency_penalty,
-            stream: request.stream,
+                .as_ref()
+                .and_then(|v| (ProviderFormat::OpenAI, v).try_into().ok()),
+            seed: typed_params.seed,
+            presence_penalty: typed_params.presence_penalty,
+            frequency_penalty: typed_params.frequency_penalty,
+            stream: typed_params.stream,
+            // New canonical fields
+            parallel_tool_calls: typed_params.parallel_tool_calls,
+            reasoning,
+            metadata: typed_params.metadata,
+            store: typed_params.store,
+            service_tier: typed_params.service_tier,
+            logprobs: typed_params.logprobs,
+            top_logprobs: typed_params.top_logprobs,
         };
 
+        // Sync parallel_tool_calls with tool_choice.disable_parallel for roundtrip fidelity
+        // OpenAI uses parallel_tool_calls at params level, Anthropic uses tool_choice.disable_parallel
+        if params.parallel_tool_calls == Some(false) {
+            if let Some(ref mut tc) = params.tool_choice {
+                if tc.disable_parallel.is_none() {
+                    tc.disable_parallel = Some(true);
+                }
+            }
+        }
+
+        // Collect provider-specific extras for round-trip preservation
+        // This includes both unknown fields (from serde flatten) and known OpenAI fields
+        // that aren't part of UniversalParams
+        let mut extras_map: Map<String, Value> = typed_params.extras.into_iter().collect();
+
+        // Add OpenAI-specific known fields that aren't in UniversalParams
+        if let Some(user) = typed_params.user {
+            extras_map.insert("user".into(), Value::String(user));
+        }
+        if let Some(n) = typed_params.n {
+            extras_map.insert("n".into(), Value::Number(n.into()));
+        }
+        if let Some(logit_bias) = typed_params.logit_bias {
+            extras_map.insert("logit_bias".into(), logit_bias);
+        }
+        if let Some(stream_options) = typed_params.stream_options {
+            extras_map.insert("stream_options".into(), stream_options);
+        }
+        if let Some(prediction) = typed_params.prediction {
+            extras_map.insert("prediction".into(), prediction);
+        }
+        if let Some(safety_identifier) = typed_params.safety_identifier {
+            extras_map.insert("safety_identifier".into(), Value::String(safety_identifier));
+        }
+        if let Some(prompt_cache_key) = typed_params.prompt_cache_key {
+            extras_map.insert("prompt_cache_key".into(), Value::String(prompt_cache_key));
+        }
+
+        let mut provider_extras = HashMap::new();
+        if !extras_map.is_empty() {
+            provider_extras.insert(ProviderFormat::OpenAI, extras_map);
+        }
+
         Ok(UniversalRequest {
-            model: Some(request.model),
+            model: typed_params.model,
             messages,
             params,
-            extras,
+            provider_extras,
         })
     }
 
@@ -135,8 +186,11 @@ impl ProviderAdapter for OpenAIAdapter {
             reason: "missing model".to_string(),
         })?;
 
-        let openai_messages: Vec<ChatCompletionRequestMessage> =
-            <Vec<ChatCompletionRequestMessage> as TryFromLLM<Vec<Message>>>::try_from(
+        // Validate unsupported parameters
+        reject_params!(req, ProviderFormat::OpenAI, top_k);
+
+        let openai_messages: Vec<ChatCompletionRequestMessageExt> =
+            <Vec<ChatCompletionRequestMessageExt> as TryFromLLM<Vec<Message>>>::try_from(
                 req.messages.clone(),
             )
             .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
@@ -153,18 +207,63 @@ impl ProviderAdapter for OpenAIAdapter {
         insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
         insert_opt_i64(&mut obj, "max_completion_tokens", req.params.max_tokens);
-        insert_opt_value(&mut obj, "stop", req.params.stop.clone());
-        insert_opt_value(&mut obj, "tools", req.params.tools.clone());
-        insert_opt_value(&mut obj, "tool_choice", req.params.tool_choice.clone());
+        // Output stop sequences as array (OpenAI accepts both string and array)
+        if let Some(ref stop) = req.params.stop {
+            if !stop.is_empty() {
+                obj.insert(
+                    "stop".into(),
+                    Value::Array(stop.iter().map(|s| Value::String(s.clone())).collect()),
+                );
+            }
+        }
+        // Convert tools to OpenAI Chat format
+        if let Some(tools) = &req.params.tools {
+            if let Some(tools_value) = tools_to_openai_chat_value(tools)? {
+                obj.insert("tools".into(), tools_value);
+            }
+        }
+        // Use helper methods to reduce boilerplate
+        insert_opt_value(
+            &mut obj,
+            "tool_choice",
+            req.params.tool_choice_for(ProviderFormat::OpenAI),
+        );
         insert_opt_value(
             &mut obj,
             "response_format",
-            req.params.response_format.clone(),
+            req.params.response_format_for(ProviderFormat::OpenAI),
         );
         insert_opt_i64(&mut obj, "seed", req.params.seed);
         insert_opt_f64(&mut obj, "presence_penalty", req.params.presence_penalty);
         insert_opt_f64(&mut obj, "frequency_penalty", req.params.frequency_penalty);
+        insert_opt_bool(&mut obj, "logprobs", req.params.logprobs);
+        insert_opt_i64(&mut obj, "top_logprobs", req.params.top_logprobs);
         insert_opt_bool(&mut obj, "stream", req.params.stream);
+
+        // Add parallel_tool_calls from canonical params
+        if let Some(parallel) = req.params.parallel_tool_calls {
+            obj.insert("parallel_tool_calls".into(), Value::Bool(parallel));
+        }
+
+        // Add reasoning_effort from canonical params
+        if let Some(effort_value) = req.params.reasoning_for(ProviderFormat::OpenAI) {
+            obj.insert("reasoning_effort".into(), effort_value);
+        }
+
+        // Add metadata from canonical params
+        if let Some(metadata) = req.params.metadata.as_ref() {
+            obj.insert("metadata".into(), metadata.clone());
+        }
+
+        // Add store from canonical params
+        if let Some(store) = req.params.store {
+            obj.insert("store".into(), Value::Bool(store));
+        }
+
+        // Add service_tier from canonical params
+        if let Some(ref service_tier) = req.params.service_tier {
+            obj.insert("service_tier".into(), Value::String(service_tier.clone()));
+        }
 
         // If streaming, ensure stream_options.include_usage is set for usage reporting
         if req.params.stream == Some(true) {
@@ -176,16 +275,14 @@ impl ProviderAdapter for OpenAIAdapter {
             }
         }
 
-        // Merge extras (provider-specific fields)
-        for (k, v) in &req.extras {
-            obj.insert(k.clone(), v.clone());
+        // Merge back provider-specific extras (only for OpenAI)
+        if let Some(extras) = req.provider_extras.get(&ProviderFormat::OpenAI) {
+            for (k, v) in extras {
+                obj.insert(k.clone(), v.clone());
+            }
         }
 
         Ok(Value::Object(obj))
-    }
-
-    fn apply_defaults(&self, _req: &mut UniversalRequest) {
-        // OpenAI doesn't require any specific defaults
     }
 
     fn detect_response(&self, payload: &Value) -> bool {
@@ -208,37 +305,31 @@ impl ProviderAdapter for OpenAIAdapter {
 
         for choice in choices {
             if let Some(msg_val) = choice.get("message") {
-                let response_msg: ChatCompletionResponseMessage =
+                // Deserialize to extended type to capture reasoning field
+                let response_msg: ChatCompletionResponseMessageExt =
                     serde_json::from_value(msg_val.clone())
                         .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-                let universal = <Message as TryFromLLM<&ChatCompletionResponseMessage>>::try_from(
-                    &response_msg,
-                )
-                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+                let universal =
+                    <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(
+                        response_msg,
+                    )
+                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
                 messages.push(universal);
             }
 
             // Get finish_reason from first choice
             if finish_reason.is_none() {
                 if let Some(reason) = choice.get("finish_reason").and_then(Value::as_str) {
-                    finish_reason = Some(reason.parse().unwrap());
+                    finish_reason =
+                        Some(reason.parse().map_err(|_| ConvertError::InvalidEnumValue {
+                            type_name: "FinishReason",
+                            value: reason.to_string(),
+                        })?);
                 }
             }
         }
 
-        let usage = payload.get("usage").map(|u| UniversalUsage {
-            prompt_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
-            completion_tokens: u.get("completion_tokens").and_then(Value::as_i64),
-            prompt_cached_tokens: u
-                .get("prompt_tokens_details")
-                .and_then(|d| d.get("cached_tokens"))
-                .and_then(Value::as_i64),
-            prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
-            completion_reasoning_tokens: u
-                .get("completion_tokens_details")
-                .and_then(|d| d.get("reasoning_tokens"))
-                .and_then(Value::as_i64),
-        });
+        let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
             model: payload
@@ -252,8 +343,10 @@ impl ProviderAdapter for OpenAIAdapter {
     }
 
     fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError> {
-        let finish_reason = self
-            .map_finish_reason(resp.finish_reason.as_ref())
+        let finish_reason = resp
+            .finish_reason
+            .as_ref()
+            .map(|r| r.to_provider_string(self.format()).to_string())
             .unwrap_or_else(|| "stop".to_string());
 
         let choices: Vec<Value> = resp
@@ -261,8 +354,9 @@ impl ProviderAdapter for OpenAIAdapter {
             .iter()
             .enumerate()
             .map(|(i, msg)| {
+                // Use extended type to include reasoning field in output
                 let response_msg =
-                    <ChatCompletionResponseMessage as TryFromLLM<&Message>>::try_from(msg)
+                    <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(msg)
                         .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
 
                 let message_value = serde_json::to_value(&response_msg)
@@ -276,15 +370,10 @@ impl ProviderAdapter for OpenAIAdapter {
             })
             .collect::<Result<Vec<_>, TransformError>>()?;
 
-        let usage = resp.usage.as_ref().map(|u| {
-            let input = u.prompt_tokens.unwrap_or(0);
-            let output = u.completion_tokens.unwrap_or(0);
-            serde_json::json!({
-                "prompt_tokens": input,
-                "completion_tokens": output,
-                "total_tokens": input + output
-            })
-        });
+        let usage = resp
+            .usage
+            .as_ref()
+            .map(|u| u.to_provider_value(self.format()));
 
         let mut obj = serde_json::json!({
             "id": format!("chatcmpl-{}", PLACEHOLDER_ID),
@@ -301,16 +390,6 @@ impl ProviderAdapter for OpenAIAdapter {
         }
 
         Ok(obj)
-    }
-
-    fn map_finish_reason(&self, reason: Option<&FinishReason>) -> Option<String> {
-        reason.map(|r| match r {
-            FinishReason::Stop => "stop".to_string(),
-            FinishReason::Length => "length".to_string(),
-            FinishReason::ToolCalls => "tool_calls".to_string(),
-            FinishReason::ContentFilter => "content_filter".to_string(),
-            FinishReason::Other(s) => s.clone(),
-        })
     }
 
     // =========================================================================
@@ -364,19 +443,7 @@ impl ProviderAdapter for OpenAIAdapter {
             .unwrap_or_default();
 
         // Extract usage if present (usually only on final chunk)
-        let usage = payload.get("usage").map(|u| UniversalUsage {
-            prompt_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
-            completion_tokens: u.get("completion_tokens").and_then(Value::as_i64),
-            prompt_cached_tokens: u
-                .get("prompt_tokens_details")
-                .and_then(|d| d.get("cached_tokens"))
-                .and_then(Value::as_i64),
-            prompt_cache_creation_tokens: None,
-            completion_reasoning_tokens: u
-                .get("completion_tokens_details")
-                .and_then(|d| d.get("reasoning_tokens"))
-                .and_then(Value::as_i64),
-        });
+        let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(Some(UniversalStreamChunk::new(
             payload.get("id").and_then(Value::as_str).map(String::from),
@@ -439,673 +506,13 @@ impl ProviderAdapter for OpenAIAdapter {
             obj_map.insert("created".into(), Value::Number(created.into()));
         }
         if let Some(ref usage) = chunk.usage {
-            let prompt = usage.prompt_tokens.unwrap_or(0);
-            let completion = usage.completion_tokens.unwrap_or(0);
             obj_map.insert(
                 "usage".into(),
-                serde_json::json!({
-                    "prompt_tokens": prompt,
-                    "completion_tokens": completion,
-                    "total_tokens": prompt + completion
-                }),
+                usage.to_provider_value(ProviderFormat::OpenAI),
             );
         }
 
         Ok(obj)
-    }
-}
-
-/// Adapter for OpenAI Responses API (used by reasoning models like o1).
-pub struct ResponsesAdapter;
-
-impl ProviderAdapter for ResponsesAdapter {
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::Responses
-    }
-
-    fn directory_name(&self) -> &'static str {
-        "responses"
-    }
-
-    fn display_name(&self) -> &'static str {
-        "Responses"
-    }
-
-    fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_responses(payload).is_ok()
-    }
-
-    fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let extras = collect_extras(&payload, RESPONSES_KNOWN_KEYS);
-        let request: CreateResponseClass = serde_json::from_value(payload)
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-
-        // Extract input items from the request
-        let input_items: Vec<InputItem> = match request.input {
-            Some(Instructions::InputItemArray(items)) => items,
-            Some(Instructions::String(s)) => {
-                // Single string input - create a user message InputItem
-                vec![InputItem {
-                    input_item_type: Some(InputItemType::Message),
-                    role: Some(InputItemRole::User),
-                    content: Some(InputItemContent::String(s)),
-                    ..Default::default()
-                }]
-            }
-            None => vec![],
-        };
-
-        let messages = <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(input_items)
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-
-        let params = UniversalParams {
-            temperature: request.temperature,
-            top_p: request.top_p,
-            top_k: None,
-            max_tokens: request.max_output_tokens,
-            stop: None, // Responses API doesn't use stop
-            tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
-            tool_choice: request
-                .tool_choice
-                .and_then(|t| serde_json::to_value(t).ok()),
-            response_format: None,  // Different structure in Responses API
-            seed: None,             // Responses API uses different randomness control
-            presence_penalty: None, // Responses API doesn't support penalties
-            frequency_penalty: None,
-            stream: request.stream,
-        };
-
-        Ok(UniversalRequest {
-            model: request.model, // Already Option<String> in CreateResponseClass
-            messages,
-            params,
-            extras,
-        })
-    }
-
-    fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
-        let model = req.model.as_ref().ok_or(TransformError::ValidationFailed {
-            target: ProviderFormat::Responses,
-            reason: "missing model".to_string(),
-        })?;
-
-        // Use existing conversion with 1:N Tool message expansion
-        let input_items = universal_to_responses_input(&req.messages)
-            .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
-
-        let mut obj = Map::new();
-        obj.insert("model".into(), Value::String(model.clone()));
-        obj.insert(
-            "input".into(),
-            serde_json::to_value(input_items)
-                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-        );
-
-        // Note: temperature is intentionally NOT included for Responses API
-        // as reasoning models (o1, o3) don't support it
-        insert_opt_f64(&mut obj, "top_p", req.params.top_p);
-        insert_opt_i64(&mut obj, "max_output_tokens", req.params.max_tokens);
-        insert_opt_f64(&mut obj, "presence_penalty", req.params.presence_penalty);
-        insert_opt_f64(&mut obj, "frequency_penalty", req.params.frequency_penalty);
-        insert_opt_bool(&mut obj, "stream", req.params.stream);
-
-        // Transform tools from OpenAI Chat format to Responses API format
-        // {type: "function", function: {name, description, parameters}}
-        // → {type: "function", name, description, parameters, strict: false}
-        // Tools can come from params.tools or extras.tools depending on how the request was built
-        let tools_value = req
-            .params
-            .tools
-            .as_ref()
-            .or_else(|| req.extras.get("tools"));
-        if let Some(Value::Array(tools)) = tools_value {
-            let response_tools: Vec<Value> = tools
-                .iter()
-                .filter_map(|tool| {
-                    if tool.get("type").and_then(Value::as_str) == Some("function") {
-                        let func = tool.get("function")?;
-                        Some(serde_json::json!({
-                            "type": "function",
-                            "name": func.get("name")?,
-                            "description": func.get("description"),
-                            "parameters": func.get("parameters").cloned().unwrap_or(serde_json::json!({})),
-                            "strict": false
-                        }))
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            if !response_tools.is_empty() {
-                obj.insert("tools".into(), Value::Array(response_tools));
-            }
-        }
-
-        // Transform tool_choice from OpenAI Chat format to Responses API format
-        // {function: {name: "foo"}} → {type: "function", name: "foo"}
-        // tool_choice can come from params or extras depending on how the request was built
-        let tool_choice_value = req
-            .params
-            .tool_choice
-            .as_ref()
-            .or_else(|| req.extras.get("tool_choice"));
-        if let Some(tool_choice) = tool_choice_value {
-            let converted = match tool_choice {
-                Value::String(s) if s == "none" || s == "auto" || s == "required" => {
-                    Value::String(s.clone())
-                }
-                Value::Object(obj_tc) if obj_tc.contains_key("function") => {
-                    if let Some(func) = obj_tc.get("function") {
-                        if let Some(name) = func.get("name").and_then(Value::as_str) {
-                            serde_json::json!({ "type": "function", "name": name })
-                        } else {
-                            Value::String("auto".into())
-                        }
-                    } else {
-                        Value::String("auto".into())
-                    }
-                }
-                _ => Value::String("auto".into()),
-            };
-            obj.insert("tool_choice".into(), converted);
-        }
-
-        // Transform response_format to nested text.format structure for Responses API
-        if let Some(response_format) = req.extras.get("response_format") {
-            let text_format = match response_format.get("type").and_then(Value::as_str) {
-                Some("text") | Some("json_object") => {
-                    Some(serde_json::json!({ "format": response_format }))
-                }
-                Some("json_schema") => response_format.get("json_schema").map(|json_schema| {
-                    serde_json::json!({
-                        "format": {
-                            "type": "json_schema",
-                            "schema": json_schema.get("schema").cloned().unwrap_or(serde_json::json!({})),
-                            "name": json_schema.get("name"),
-                            "description": json_schema.get("description"),
-                            "strict": json_schema.get("strict")
-                        }
-                    })
-                }),
-                _ => None,
-            };
-            if let Some(tf) = text_format {
-                obj.insert("text".into(), tf);
-            }
-        }
-
-        // Transform reasoning_effort to nested reasoning.effort structure
-        if let Some(effort) = req.extras.get("reasoning_effort") {
-            obj.insert(
-                "reasoning".into(),
-                serde_json::json!({ "effort": effort.clone() }),
-            );
-        }
-
-        // Pass through parallel_tool_calls
-        if let Some(Value::Bool(parallel)) = req.extras.get("parallel_tool_calls") {
-            obj.insert("parallel_tool_calls".into(), Value::Bool(*parallel));
-        }
-
-        // Merge remaining extras (except those we handled specially)
-        for (k, v) in &req.extras {
-            if !matches!(
-                k.as_str(),
-                "tools"
-                    | "tool_choice"
-                    | "response_format"
-                    | "reasoning_effort"
-                    | "parallel_tool_calls"
-            ) {
-                obj.insert(k.clone(), v.clone());
-            }
-        }
-
-        Ok(Value::Object(obj))
-    }
-
-    fn apply_defaults(&self, _req: &mut UniversalRequest) {
-        // Responses API doesn't require any specific defaults
-    }
-
-    fn detect_response(&self, payload: &Value) -> bool {
-        // Responses API response has output[] array and object="response"
-        payload.get("output").and_then(Value::as_array).is_some()
-            && payload
-                .get("object")
-                .and_then(Value::as_str)
-                .is_some_and(|o| o == "response")
-    }
-
-    fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
-        let output = payload
-            .get("output")
-            .and_then(Value::as_array)
-            .ok_or_else(|| TransformError::ToUniversalFailed("missing output".to_string()))?;
-
-        // Convert output items to messages
-        // Responses API has multiple output types: message, function_call, reasoning, etc.
-        let mut messages: Vec<Message> = Vec::new();
-        let mut tool_calls: Vec<Value> = Vec::new();
-
-        for item in output {
-            let item_type = item.get("type").and_then(Value::as_str);
-
-            match item_type {
-                Some("message") => {
-                    // Message type - extract text content
-                    if let Some(content) = item.get("content") {
-                        if let Some(content_arr) = content.as_array() {
-                            let text: String = content_arr
-                                .iter()
-                                .filter_map(|c| {
-                                    if c.get("type").and_then(Value::as_str) == Some("output_text")
-                                    {
-                                        c.get("text").and_then(Value::as_str).map(String::from)
-                                    } else {
-                                        None
-                                    }
-                                })
-                                .collect::<Vec<_>>()
-                                .join("");
-                            if !text.is_empty() {
-                                messages.push(Message::Assistant {
-                                    content: AssistantContent::String(text),
-                                    id: None,
-                                });
-                            }
-                        }
-                    }
-                }
-                Some("function_call") => {
-                    // Function call - collect for later conversion to tool calls
-                    tool_calls.push(item.clone());
-                }
-                _ => {
-                    // Skip reasoning and other types for now
-                }
-            }
-        }
-
-        // If we have tool calls but no messages, create an assistant message with tool calls
-        if !tool_calls.is_empty() && messages.is_empty() {
-            // Convert function_call items to tool call format
-            use crate::universal::message::{AssistantContentPart, ToolCallArguments};
-            let parts: Vec<AssistantContentPart> = tool_calls
-                .iter()
-                .filter_map(|tc| {
-                    let name = tc.get("name").and_then(Value::as_str)?;
-                    let call_id = tc.get("call_id").and_then(Value::as_str)?;
-                    let arguments = tc.get("arguments").and_then(Value::as_str)?;
-
-                    // Try to parse arguments as JSON, fall back to invalid string
-                    let args = serde_json::from_str::<Map<String, Value>>(arguments)
-                        .map(ToolCallArguments::Valid)
-                        .unwrap_or_else(|_| ToolCallArguments::Invalid(arguments.to_string()));
-
-                    Some(AssistantContentPart::ToolCall {
-                        tool_call_id: call_id.to_string(),
-                        tool_name: name.to_string(),
-                        arguments: args,
-                        provider_options: None,
-                        provider_executed: None,
-                    })
-                })
-                .collect();
-
-            if !parts.is_empty() {
-                messages.push(Message::Assistant {
-                    content: AssistantContent::Array(parts),
-                    id: None,
-                });
-            }
-        }
-
-        // If still no messages, try output_text field as fallback
-        if messages.is_empty() {
-            if let Some(text) = payload.get("output_text").and_then(Value::as_str) {
-                if !text.is_empty() {
-                    messages.push(Message::Assistant {
-                        content: AssistantContent::String(text.to_string()),
-                        id: None,
-                    });
-                }
-            }
-        }
-
-        // Map status to finish_reason
-        let finish_reason = payload
-            .get("status")
-            .and_then(Value::as_str)
-            .map(|s| s.parse().unwrap());
-
-        let usage = payload.get("usage").map(|u| UniversalUsage {
-            prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
-            completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
-            prompt_cached_tokens: u
-                .get("input_tokens_details")
-                .and_then(|d| d.get("cached_tokens"))
-                .and_then(Value::as_i64),
-            prompt_cache_creation_tokens: None,
-            completion_reasoning_tokens: u
-                .get("output_tokens_details")
-                .and_then(|d| d.get("reasoning_tokens"))
-                .and_then(Value::as_i64),
-        });
-
-        Ok(UniversalResponse {
-            model: payload
-                .get("model")
-                .and_then(Value::as_str)
-                .map(String::from),
-            messages,
-            usage,
-            finish_reason,
-        })
-    }
-
-    fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError> {
-        // Build Responses API response format
-        let output: Vec<Value> = resp
-            .messages
-            .iter()
-            .map(|msg| {
-                let text = match msg {
-                    Message::Assistant { content, .. } => match content {
-                        AssistantContent::String(s) => s.clone(),
-                        AssistantContent::Array(_) => String::new(), // TODO: extract text from parts
-                    },
-                    Message::User { content } => match content {
-                        UserContent::String(s) => s.clone(),
-                        UserContent::Array(_) => String::new(),
-                    },
-                    _ => String::new(),
-                };
-
-                serde_json::json!({
-                    "type": "message",
-                    "role": "assistant",
-                    "content": [{
-                        "type": "output_text",
-                        "text": text
-                    }]
-                })
-            })
-            .collect();
-
-        let status = self
-            .map_finish_reason(resp.finish_reason.as_ref())
-            .unwrap_or_else(|| "completed".to_string());
-
-        // Build response with all required fields for TheResponseObject
-        let mut obj = serde_json::json!({
-            "id": format!("resp_{}", PLACEHOLDER_ID),
-            "object": "response",
-            "model": resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-            "output": output,
-            "status": status,
-            "created_at": 0.0,
-            "tool_choice": "none",
-            "tools": [],
-            "parallel_tool_calls": false
-        });
-
-        if let Some(usage) = &resp.usage {
-            let input = usage.prompt_tokens.unwrap_or(0);
-            let output = usage.completion_tokens.unwrap_or(0);
-            obj.as_object_mut().unwrap().insert(
-                "usage".into(),
-                serde_json::json!({
-                    "input_tokens": input,
-                    "output_tokens": output,
-                    "total_tokens": input + output,
-                    "input_tokens_details": {
-                        "cached_tokens": usage.prompt_cached_tokens.unwrap_or(0)
-                    },
-                    "output_tokens_details": {
-                        "reasoning_tokens": usage.completion_reasoning_tokens.unwrap_or(0)
-                    }
-                }),
-            );
-        }
-
-        Ok(obj)
-    }
-
-    fn map_finish_reason(&self, reason: Option<&FinishReason>) -> Option<String> {
-        reason.map(|r| match r {
-            FinishReason::Stop => "completed".to_string(),
-            FinishReason::Length => "incomplete".to_string(),
-            FinishReason::ToolCalls => "completed".to_string(), // Tool calls also complete
-            FinishReason::ContentFilter => "incomplete".to_string(),
-            FinishReason::Other(s) => s.clone(),
-        })
-    }
-
-    // =========================================================================
-    // Streaming response handling
-    // =========================================================================
-
-    fn detect_stream_response(&self, payload: &Value) -> bool {
-        // Responses API streaming has type field starting with "response."
-        payload
-            .get("type")
-            .and_then(Value::as_str)
-            .is_some_and(|t| t.starts_with("response."))
-    }
-
-    fn stream_to_universal(
-        &self,
-        payload: Value,
-    ) -> Result<Option<UniversalStreamChunk>, TransformError> {
-        let event_type = payload
-            .get("type")
-            .and_then(Value::as_str)
-            .ok_or_else(|| TransformError::ToUniversalFailed("missing type field".to_string()))?;
-
-        match event_type {
-            "response.output_text.delta" => {
-                // Text delta - extract from delta field
-                let text = payload.get("delta").and_then(Value::as_str).unwrap_or("");
-                let output_index = payload
-                    .get("output_index")
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0) as u32;
-
-                Ok(Some(UniversalStreamChunk::new(
-                    None,
-                    None,
-                    vec![UniversalStreamChoice {
-                        index: output_index,
-                        delta: Some(serde_json::json!({
-                            "role": "assistant",
-                            "content": text
-                        })),
-                        finish_reason: None,
-                    }],
-                    None,
-                    None,
-                )))
-            }
-
-            "response.completed" => {
-                // Final event with usage
-                let response = payload.get("response");
-                let usage = response
-                    .and_then(|r| r.get("usage"))
-                    .map(|u| UniversalUsage {
-                        prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
-                        completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
-                        prompt_cached_tokens: u
-                            .get("input_tokens_details")
-                            .and_then(|d| d.get("cached_tokens"))
-                            .and_then(Value::as_i64),
-                        prompt_cache_creation_tokens: None,
-                        completion_reasoning_tokens: u
-                            .get("output_tokens_details")
-                            .and_then(|d| d.get("reasoning_tokens"))
-                            .and_then(Value::as_i64),
-                    });
-
-                let model = response
-                    .and_then(|r| r.get("model"))
-                    .and_then(Value::as_str)
-                    .map(String::from);
-
-                let id = response
-                    .and_then(|r| r.get("id"))
-                    .and_then(Value::as_str)
-                    .map(String::from);
-
-                Ok(Some(UniversalStreamChunk::new(
-                    id,
-                    model,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({})),
-                        finish_reason: Some("stop".to_string()),
-                    }],
-                    None,
-                    usage,
-                )))
-            }
-
-            "response.incomplete" => {
-                // Incomplete response - typically due to length
-                let response = payload.get("response");
-                let usage = response
-                    .and_then(|r| r.get("usage"))
-                    .map(|u| UniversalUsage {
-                        prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
-                        completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
-                        prompt_cached_tokens: u
-                            .get("input_tokens_details")
-                            .and_then(|d| d.get("cached_tokens"))
-                            .and_then(Value::as_i64),
-                        prompt_cache_creation_tokens: None,
-                        completion_reasoning_tokens: u
-                            .get("output_tokens_details")
-                            .and_then(|d| d.get("reasoning_tokens"))
-                            .and_then(Value::as_i64),
-                    });
-
-                Ok(Some(UniversalStreamChunk::new(
-                    None,
-                    None,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({})),
-                        finish_reason: Some("length".to_string()),
-                    }],
-                    None,
-                    usage,
-                )))
-            }
-
-            "response.created" | "response.in_progress" => {
-                // Initial metadata events - extract model/id
-                let response = payload.get("response");
-                let model = response
-                    .and_then(|r| r.get("model"))
-                    .and_then(Value::as_str)
-                    .map(String::from);
-                let id = response
-                    .and_then(|r| r.get("id"))
-                    .and_then(Value::as_str)
-                    .map(String::from);
-
-                Ok(Some(UniversalStreamChunk::new(
-                    id,
-                    model,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
-                        finish_reason: None,
-                    }],
-                    None,
-                    None,
-                )))
-            }
-
-            // All other events are metadata/keep-alive
-            _ => Ok(Some(UniversalStreamChunk::keep_alive())),
-        }
-    }
-
-    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
-        if chunk.is_keep_alive() {
-            // Return a generic in_progress event
-            return Ok(serde_json::json!({
-                "type": "response.in_progress",
-                "sequence_number": 0
-            }));
-        }
-
-        // Check for finish chunk
-        let has_finish = chunk
-            .choices
-            .first()
-            .and_then(|c| c.finish_reason.as_ref())
-            .is_some();
-
-        if has_finish {
-            let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
-            let status = match finish_reason.map(|r| r.as_str()) {
-                Some("stop") => "completed",
-                Some("length") => "incomplete",
-                _ => "completed",
-            };
-
-            let id = chunk
-                .id
-                .clone()
-                .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
-            let mut response = serde_json::json!({
-                "id": id,
-                "object": "response",
-                "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-                "status": status,
-                "output": []
-            });
-
-            if let Some(usage) = &chunk.usage {
-                response.as_object_mut().unwrap().insert(
-                    "usage".into(),
-                    serde_json::json!({
-                        "input_tokens": usage.prompt_tokens.unwrap_or(0),
-                        "output_tokens": usage.completion_tokens.unwrap_or(0),
-                        "total_tokens": usage.prompt_tokens.unwrap_or(0) + usage.completion_tokens.unwrap_or(0)
-                    }),
-                );
-            }
-
-            return Ok(serde_json::json!({
-                "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
-                "response": response
-            }));
-        }
-
-        // Check for content delta
-        if let Some(choice) = chunk.choices.first() {
-            if let Some(delta) = &choice.delta {
-                if let Some(content) = delta.get("content").and_then(Value::as_str) {
-                    return Ok(serde_json::json!({
-                        "type": "response.output_text.delta",
-                        "output_index": choice.index,
-                        "content_index": 0,
-                        "delta": content
-                    }));
-                }
-            }
-        }
-
-        // Fallback - return output_text.delta with empty content
-        Ok(serde_json::json!({
-            "type": "response.output_text.delta",
-            "output_index": 0,
-            "content_index": 0,
-            "delta": ""
-        }))
     }
 }
 
@@ -1418,8 +825,12 @@ mod tests {
         });
 
         let universal = adapter.request_to_universal(payload).unwrap();
-        assert!(universal.extras.contains_key("user"));
-        assert!(universal.extras.contains_key("custom_field"));
+        let openai_extras = universal
+            .provider_extras
+            .get(&ProviderFormat::OpenAI)
+            .expect("should have OpenAI extras");
+        assert!(openai_extras.contains_key("user"));
+        assert!(openai_extras.contains_key("custom_field"));
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
         assert_eq!(reconstructed.get("user").unwrap(), "test-user-123");
@@ -1430,12 +841,218 @@ mod tests {
     }
 
     #[test]
-    fn test_responses_detect_request() {
-        let adapter = ResponsesAdapter;
-        let payload = json!({
-            "model": "o1",
-            "input": [{"role": "user", "content": "Hello"}]
-        });
-        assert!(adapter.detect_request(&payload));
+    fn test_openai_reasoning_roundtrip() {
+        use crate::universal::message::{AssistantContent, AssistantContentPart, TextContentPart};
+
+        let adapter = OpenAIAdapter;
+
+        // Create universal request with reasoning content
+        let universal = UniversalRequest {
+            model: Some("gpt-4".to_string()),
+            messages: vec![
+                Message::User {
+                    content: crate::universal::message::UserContent::String("Hello".to_string()),
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::Reasoning {
+                            text: "Let me think about this...".to_string(),
+                            encrypted_content: None,
+                        },
+                        AssistantContentPart::Text(TextContentPart {
+                            text: "OK".to_string(),
+                            provider_options: None,
+                        }),
+                    ]),
+                    id: None,
+                },
+                Message::User {
+                    content: crate::universal::message::UserContent::String("Thanks".to_string()),
+                },
+            ],
+            params: Default::default(),
+            provider_extras: Default::default(),
+        };
+
+        // Convert universal to ChatCompletions format
+        let openai_json = adapter.request_from_universal(&universal).unwrap();
+
+        // Verify reasoning field is in the JSON output
+        let messages = openai_json.get("messages").unwrap().as_array().unwrap();
+        let assistant_msg = &messages[1];
+        eprintln!(
+            "Assistant message JSON: {}",
+            serde_json::to_string_pretty(assistant_msg).unwrap()
+        );
+
+        assert!(
+            assistant_msg.get("reasoning").is_some(),
+            "Assistant message should have reasoning field. Got: {}",
+            serde_json::to_string_pretty(assistant_msg).unwrap()
+        );
+        assert_eq!(
+            assistant_msg.get("reasoning").unwrap().as_str().unwrap(),
+            "Let me think about this..."
+        );
+
+        // Now convert back to universal and verify reasoning is preserved
+        let universal2 = adapter.request_to_universal(openai_json.clone()).unwrap();
+
+        // Check that reasoning is preserved in universal format
+        let msg = &universal2.messages[1];
+        match msg {
+            Message::Assistant { content, .. } => match content {
+                AssistantContent::Array(parts) => {
+                    let reasoning_part = parts
+                        .iter()
+                        .find(|p| matches!(p, AssistantContentPart::Reasoning { .. }));
+                    assert!(
+                        reasoning_part.is_some(),
+                        "Should have reasoning part after roundtrip. Got: {:?}",
+                        parts
+                    );
+                }
+                _ => panic!("Expected Array content, got {:?}", content),
+            },
+            _ => panic!("Expected Assistant message, got {:?}", msg),
+        }
+    }
+
+    #[test]
+    fn test_openai_reasoning_only_roundtrip() {
+        // Test case like Responses API where assistant message only has reasoning, no text
+        use crate::universal::message::{AssistantContent, AssistantContentPart};
+
+        let adapter = OpenAIAdapter;
+
+        // Create universal request with reasoning-only content (like from Responses API)
+        let universal = UniversalRequest {
+            model: Some("gpt-4".to_string()),
+            messages: vec![
+                Message::User {
+                    content: crate::universal::message::UserContent::String("Hello".to_string()),
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
+                        text: "Let me think...".to_string(),
+                        encrypted_content: None,
+                    }]),
+                    id: None,
+                },
+            ],
+            params: Default::default(),
+            provider_extras: Default::default(),
+        };
+
+        // Convert universal to ChatCompletions format
+        let openai_json = adapter.request_from_universal(&universal).unwrap();
+        eprintln!(
+            "Full OpenAI JSON: {}",
+            serde_json::to_string_pretty(&openai_json).unwrap()
+        );
+
+        // Verify reasoning field is in the JSON output
+        let messages = openai_json.get("messages").unwrap().as_array().unwrap();
+        let assistant_msg = &messages[1];
+        eprintln!(
+            "Assistant message JSON: {}",
+            serde_json::to_string_pretty(assistant_msg).unwrap()
+        );
+
+        assert!(
+            assistant_msg.get("reasoning").is_some(),
+            "Assistant message should have reasoning field. Got: {}",
+            serde_json::to_string_pretty(assistant_msg).unwrap()
+        );
+
+        // Now convert back to universal and verify reasoning is preserved
+        let universal2 = adapter.request_to_universal(openai_json.clone()).unwrap();
+        eprintln!("Universal2 messages: {:?}", universal2.messages);
+
+        // Check that reasoning is preserved in universal format
+        let msg = &universal2.messages[1];
+        match msg {
+            Message::Assistant { content, .. } => match content {
+                AssistantContent::Array(parts) => {
+                    eprintln!("Parts: {:?}", parts);
+                    let reasoning_part = parts
+                        .iter()
+                        .find(|p| matches!(p, AssistantContentPart::Reasoning { .. }));
+                    assert!(
+                        reasoning_part.is_some(),
+                        "Should have reasoning part after roundtrip. Got: {:?}",
+                        parts
+                    );
+                }
+                AssistantContent::String(s) => {
+                    panic!("Expected Array content, got String: {:?}", s)
+                }
+            },
+            _ => panic!("Expected Assistant message, got {:?}", msg),
+        }
+    }
+
+    #[test]
+    fn test_openai_empty_reasoning_roundtrip() {
+        // Test case like Responses API where assistant message has empty reasoning summary
+        use crate::universal::message::{AssistantContent, AssistantContentPart};
+
+        let adapter = OpenAIAdapter;
+
+        // Create universal request with empty reasoning content (like from Responses API with empty summary)
+        let universal = UniversalRequest {
+            model: Some("gpt-4".to_string()),
+            messages: vec![
+                Message::User {
+                    content: crate::universal::message::UserContent::String("Hello".to_string()),
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
+                        text: "".to_string(), // Empty reasoning
+                        encrypted_content: None,
+                    }]),
+                    id: None,
+                },
+            ],
+            params: Default::default(),
+            provider_extras: Default::default(),
+        };
+
+        // Convert universal to ChatCompletions format
+        let openai_json = adapter.request_from_universal(&universal).unwrap();
+
+        // Verify reasoning field is in the JSON output (even if empty)
+        let messages = openai_json.get("messages").unwrap().as_array().unwrap();
+        let assistant_msg = &messages[1];
+
+        assert!(
+            assistant_msg.get("reasoning").is_some(),
+            "Assistant message should have reasoning field (even if empty). Got: {}",
+            serde_json::to_string_pretty(assistant_msg).unwrap()
+        );
+
+        // Now convert back to universal and verify reasoning is preserved
+        let universal2 = adapter.request_to_universal(openai_json.clone()).unwrap();
+
+        // Check that empty reasoning is preserved in universal format
+        let msg = &universal2.messages[1];
+        match msg {
+            Message::Assistant { content, .. } => match content {
+                AssistantContent::Array(parts) => {
+                    let reasoning_part = parts
+                        .iter()
+                        .find(|p| matches!(p, AssistantContentPart::Reasoning { .. }));
+                    assert!(
+                        reasoning_part.is_some(),
+                        "Should have reasoning part after roundtrip (even if empty). Got: {:?}",
+                        parts
+                    );
+                }
+                AssistantContent::String(s) => {
+                    panic!("Expected Array content, got String: {:?}", s)
+                }
+            },
+            _ => panic!("Expected Assistant message, got {:?}", msg),
+        }
     }
 }

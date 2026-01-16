@@ -12,15 +12,27 @@ This module provides a 1:1 Rust implementation of the AI SDK ModelMessage format
 pub mod convert;
 pub mod defaults;
 pub mod message;
+pub mod reasoning;
 pub mod request;
 pub mod response;
+pub mod response_format;
 pub mod stream;
+pub mod tool_choice;
+pub mod tools;
 pub mod transform;
 
 // Re-export main types for convenience
 pub use defaults::*;
 pub use message::*;
-pub use request::{UniversalParams, UniversalRequest};
+pub use request::{
+    parse_stop_sequences, JsonSchemaConfig, ReasoningConfig, ReasoningEffort, ResponseFormatConfig,
+    ResponseFormatType, SummaryMode, ToolChoiceConfig, ToolChoiceMode, UniversalParams,
+    UniversalRequest,
+};
 pub use response::{FinishReason, UniversalResponse, UniversalUsage};
 pub use stream::{UniversalStreamChoice, UniversalStreamChunk};
+pub use tools::{
+    tools_to_anthropic_value, tools_to_openai_chat_value, tools_to_responses_value, UniversalTool,
+    UniversalToolType,
+};
 pub use transform::{extract_system_messages, flatten_consecutive_messages};

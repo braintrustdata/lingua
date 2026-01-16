@@ -860,6 +860,7 @@ dependencies = [
  "big_serde_json",
  "bytes",
  "lingua",
+ "regex",
  "serde",
 ]
 

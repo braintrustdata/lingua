@@ -215,6 +215,8 @@ export const openaiExecutor: ProviderExecutor<
     "service_tier",
     "system_fingerprint",
     "choices.*.message.content",
+    "choices.*.message.reasoning", // Extended thinking content varies per request
+    "choices.*.message.reasoning_signature", // Cryptographic signature for reasoning roundtrips
     "choices.*.message.tool_calls.*.id",
     "choices.*.delta.content",
     "choices.*.delta.tool_calls.*.id",

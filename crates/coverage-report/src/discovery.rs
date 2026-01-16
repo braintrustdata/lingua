@@ -6,8 +6,18 @@ use bytes::Bytes;
 use std::fs;
 use std::path::PathBuf;
 
-/// Discover all test case directories in payloads/snapshots
-pub fn discover_test_cases() -> Vec<String> {
+use crate::types::TestFilter;
+
+/// Discover test case directories in payloads/snapshots, filtered by the provided filter.
+pub fn discover_test_cases_filtered(filter: &TestFilter) -> Vec<String> {
+    discover_all_test_cases()
+        .into_iter()
+        .filter(|name| filter.matches_test_case(name))
+        .collect()
+}
+
+/// Discover all test case directories in payloads/snapshots (unfiltered)
+fn discover_all_test_cases() -> Vec<String> {
     // Navigate from crates/coverage-report to workspace root
     let workspace_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent() // crates/

@@ -1,0 +1,62 @@
+{
+  "global": [
+    {
+      "source": "*",
+      "target": "*",
+      "fields": [
+        { "pattern": "created", "reason": "Provider-set timestamp with inconsistent field names (OpenAI: 'created', Responses: 'created_at', Anthropic: none)" },
+        { "pattern": "service_tier", "reason": "OpenAI-specific billing tier not present in other providers" },
+        { "pattern": "system_fingerprint", "reason": "OpenAI-specific system identifier not universal" },
+        { "pattern": "messages[*].id", "reason": "Message/response IDs vary by provider and represent different concepts" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "*",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic reports cache creation tokens" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "*",
+      "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "Responses API sends usage at end, other providers expect it at start" },
+        { "pattern": "usage.completion_tokens", "reason": "Responses API sends usage at end, other providers expect it at start" }
+      ]
+    },
+    {
+      "source": "ChatCompletions",
+      "target": "*",
+      "fields": [
+        { "pattern": "choices[*].delta.refusal", "reason": "ChatCompletions refusal field has no equivalent in other providers" },
+        { "pattern": "choices[*].delta.tool_calls", "reason": "Streaming tool_calls transformation not yet implemented" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "model", "reason": "Bedrock streaming format doesn't include model in events" }
+      ]
+    }
+  ],
+  "perTestCase": [
+    {
+      "testCase": "toolCallRequest",
+      "source": "ChatCompletions",
+      "target": "*",
+      "fields": [
+        { "pattern": "choices[*].delta.content", "reason": "ChatCompletions sends null content when tool_calls are present; not preserved in transformation" }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredParam",
+      "source": "ChatCompletions",
+      "target": "*",
+      "fields": [
+        { "pattern": "choices[*].delta.content", "reason": "ChatCompletions sends null content when tool_calls are present; not preserved in transformation" }
+      ]
+    }
+  ]
+}
