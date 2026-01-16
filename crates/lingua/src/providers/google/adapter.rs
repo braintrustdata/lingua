@@ -9,7 +9,7 @@ Google's API has some unique characteristics:
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::{collect_extras, ProviderAdapter};
+use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::google::detect::{
     try_parse_google, GoogleContent, GoogleGenerateContentRequest, GoogleGenerationConfig,
@@ -17,11 +17,13 @@ use crate::providers::google::detect::{
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
+use std::convert::TryInto;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, UniversalParams,
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
     UniversalUsage, UserContent,
 };
+use std::collections::HashMap;
 
 /// Known request fields for Google GenerateContent API.
 /// Fields not in this list go into `extras`.
@@ -34,6 +36,21 @@ const GOOGLE_KNOWN_KEYS: &[&str] = &[
     "toolConfig",
     "model",
 ];
+
+/// Collect fields not in GOOGLE_KNOWN_KEYS as extras for passthrough.
+fn collect_google_extras(payload: &Value) -> Map<String, Value> {
+    let obj = match payload.as_object() {
+        Some(o) => o,
+        None => return Map::new(),
+    };
+    let mut extras = Map::new();
+    for (k, v) in obj {
+        if !GOOGLE_KNOWN_KEYS.contains(&k.as_str()) {
+            extras.insert(k.clone(), v.clone());
+        }
+    }
+    extras
+}
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
@@ -56,13 +73,12 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let extras = collect_extras(&payload, GOOGLE_KNOWN_KEYS);
         let model = payload
             .get("model")
             .and_then(Value::as_str)
             .map(String::from);
 
-        let request: GoogleGenerateContentRequest = serde_json::from_value(payload)
+        let request: GoogleGenerateContentRequest = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let messages = <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(request.contents)
@@ -79,7 +95,9 @@ impl ProviderAdapter for GoogleAdapter {
                     config
                         .stop_sequences
                         .as_ref()
-                        .and_then(|s| serde_json::to_value(s).ok()),
+                        .and_then(|s| serde_json::to_value(s).ok())
+                        .as_ref()
+                        .and_then(|v| (ProviderFormat::Google, v).try_into().ok()),
                 )
             } else {
                 (None, None, None, None, None)
@@ -98,13 +116,29 @@ impl ProviderAdapter for GoogleAdapter {
             presence_penalty: None,
             frequency_penalty: None,
             stream: None, // Google uses endpoint-based streaming
+            // New canonical fields - Google doesn't support most of these
+            parallel_tool_calls: None,
+            reasoning: None,
+            metadata: None,
+            store: None,
+            service_tier: None,
+            logprobs: None,
+            top_logprobs: None,
         };
+
+        // Collect unknown fields as extras for this provider
+        let extras = collect_google_extras(&payload);
+
+        let mut provider_extras = HashMap::new();
+        if !extras.is_empty() {
+            provider_extras.insert(ProviderFormat::Google, extras);
+        }
 
         Ok(UniversalRequest {
             model,
             messages,
             params,
-            extras,
+            provider_extras,
         })
     }
 
@@ -176,19 +210,7 @@ impl ProviderAdapter for GoogleAdapter {
                 top_p: req.params.top_p,
                 top_k: req.params.top_k.map(|k| k as i32),
                 max_output_tokens: req.params.max_tokens.map(|t| t as i32),
-                stop_sequences: req.params.stop.as_ref().and_then(|v| {
-                    if let Value::Array(arr) = v {
-                        Some(
-                            arr.iter()
-                                .filter_map(|s| s.as_str().map(String::from))
-                                .collect(),
-                        )
-                    } else if let Value::String(s) = v {
-                        Some(vec![s.clone()])
-                    } else {
-                        None
-                    }
-                }),
+                stop_sequences: req.params.stop.as_ref().and_then(|s| s.to_sequences_array()),
             };
 
             obj.insert(
@@ -203,12 +225,13 @@ impl ProviderAdapter for GoogleAdapter {
             obj.insert("tools".into(), tools.clone());
         }
 
-        // Merge extras - only include Google-known fields
-        // This filters out OpenAI-specific fields like stream_options that would cause
-        // Google to reject the request with "Unknown name: stream_options"
-        for (k, v) in &req.extras {
-            if GOOGLE_KNOWN_KEYS.contains(&k.as_str()) {
-                obj.insert(k.clone(), v.clone());
+        // Merge back provider-specific extras (only for Google)
+        if let Some(extras) = req.provider_extras.get(&ProviderFormat::Google) {
+            for (k, v) in extras {
+                // Don't overwrite canonical fields we already handled
+                if !obj.contains_key(k) {
+                    obj.insert(k.clone(), v.clone());
+                }
             }
         }
 

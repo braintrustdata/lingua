@@ -11,9 +11,12 @@ pub mod capabilities;
 pub mod convert;
 pub mod detect;
 pub mod generated;
+pub mod params;
+pub mod responses_adapter;
 
 // Re-export adapters and transformations
-pub use adapter::{apply_target_transforms, OpenAIAdapter, OpenAITransformError, ResponsesAdapter};
+pub use adapter::{apply_target_transforms, OpenAIAdapter, OpenAITransformError};
+pub use responses_adapter::ResponsesAdapter;
 
 #[cfg(test)]
 pub mod test_responses;

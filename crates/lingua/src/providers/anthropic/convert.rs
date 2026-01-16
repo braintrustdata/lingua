@@ -2,8 +2,9 @@ use crate::error::ConvertError;
 use crate::providers::anthropic::generated;
 use crate::serde_json;
 use crate::universal::{
-    convert::TryFromLLM, AssistantContent, AssistantContentPart, Message, TextContentPart,
-    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart, Message,
+    TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
+    UserContentPart,
 };
 
 impl TryFromLLM<generated::InputMessage> for Message {
@@ -139,6 +140,74 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     // Skip tool results for now - should be handled properly
                                     continue;
                                 }
+                                generated::InputContentBlockType::Document => {
+                                    // Map document to File with provider_options for title/context
+                                    if let Some(source) = &block.source {
+                                        let mut opts = serde_json::Map::new();
+                                        // Store document-specific fields in provider_options
+                                        opts.insert(
+                                            "anthropic_type".into(),
+                                            serde_json::Value::String("document".to_string()),
+                                        );
+                                        if let Some(title) = &block.title {
+                                            opts.insert(
+                                                "title".into(),
+                                                serde_json::Value::String(title.clone()),
+                                            );
+                                        }
+                                        if let Some(context) = &block.context {
+                                            opts.insert(
+                                                "context".into(),
+                                                serde_json::Value::String(context.clone()),
+                                            );
+                                        }
+
+                                        // Extract data and media_type from source
+                                        match source {
+                                            generated::Source::SourceSource(s) => {
+                                                let media_type = s.media_type.as_ref().map(|mt| {
+                                                    match mt {
+                                                        generated::FluffyMediaType::ImageJpeg => {
+                                                            "image/jpeg".to_string()
+                                                        }
+                                                        generated::FluffyMediaType::ImagePng => {
+                                                            "image/png".to_string()
+                                                        }
+                                                        generated::FluffyMediaType::ImageGif => {
+                                                            "image/gif".to_string()
+                                                        }
+                                                        generated::FluffyMediaType::ImageWebp => {
+                                                            "image/webp".to_string()
+                                                        }
+                                                        generated::FluffyMediaType::ApplicationPdf => {
+                                                            "application/pdf".to_string()
+                                                        }
+                                                        generated::FluffyMediaType::TextPlain => {
+                                                            "text/plain".to_string()
+                                                        }
+                                                    }
+                                                });
+                                                content_parts.push(UserContentPart::File {
+                                                    data: s
+                                                        .data
+                                                        .clone()
+                                                        .map(serde_json::Value::String)
+                                                        .unwrap_or(serde_json::Value::Null),
+                                                    filename: None,
+                                                    media_type: media_type
+                                                        .unwrap_or_else(|| "text/plain".to_string()),
+                                                    provider_options: Some(ProviderOptions {
+                                                        options: opts,
+                                                    }),
+                                                });
+                                            }
+                                            _ => {
+                                                // Skip other source types
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
                                 _ => {
                                     // Skip other types for now
                                     continue;
@@ -180,10 +249,19 @@ impl TryFromLLM<generated::InputMessage> for Message {
                             match block.input_content_block_type {
                                 generated::InputContentBlockType::Text => {
                                     if let Some(text) = block.text {
+                                        // Preserve citations in provider_options for roundtrip
+                                        let provider_options = block.citations.as_ref().map(|citations| {
+                                            let mut opts = serde_json::Map::new();
+                                            if let Ok(v) = serde_json::to_value(citations) {
+                                                opts.insert("citations".into(), v);
+                                            }
+                                            ProviderOptions { options: opts }
+                                        });
+
                                         content_parts.push(AssistantContentPart::Text(
                                             TextContentPart {
                                                 text,
-                                                provider_options: None,
+                                                provider_options,
                                             },
                                         ));
                                     }
@@ -192,7 +270,8 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     if let Some(thinking) = block.thinking {
                                         content_parts.push(AssistantContentPart::Reasoning {
                                             text: thinking,
-                                            encrypted_content: None,
+                                            // Preserve the signature in encrypted_content for roundtrip
+                                            encrypted_content: block.signature.clone(),
                                         });
                                     }
                                 }
@@ -215,6 +294,51 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 .into(),
                                             provider_options: None,
                                             provider_executed: None,
+                                        });
+                                    }
+                                }
+                                generated::InputContentBlockType::ServerToolUse => {
+                                    // Server-executed tool use (web search, etc.)
+                                    if let (Some(id), Some(name)) = (&block.id, &block.name) {
+                                        let input = if let Some(input_map) = &block.input {
+                                            serde_json::to_value(input_map)
+                                                .unwrap_or(serde_json::Value::Null)
+                                        } else {
+                                            serde_json::Value::Null
+                                        };
+
+                                        content_parts.push(AssistantContentPart::ToolCall {
+                                            tool_call_id: id.clone(),
+                                            tool_name: name.clone(),
+                                            arguments: serde_json::to_string(&input)
+                                                .unwrap_or_else(|_| "{}".to_string())
+                                                .into(),
+                                            provider_options: None,
+                                            provider_executed: Some(true), // Mark as server-executed
+                                        });
+                                    }
+                                }
+                                generated::InputContentBlockType::WebSearchToolResult => {
+                                    // Web search tool result - convert to ToolResult with marker
+                                    if let Some(id) = &block.tool_use_id {
+                                        let mut output = serde_json::Map::new();
+                                        output.insert(
+                                            "anthropic_type".into(),
+                                            serde_json::Value::String(
+                                                "web_search_tool_result".to_string(),
+                                            ),
+                                        );
+                                        if let Some(content) = &block.content {
+                                            if let Ok(v) = serde_json::to_value(content) {
+                                                output.insert("content".into(), v);
+                                            }
+                                        }
+
+                                        content_parts.push(AssistantContentPart::ToolResult {
+                                            tool_call_id: id.clone(),
+                                            tool_name: "web_search".to_string(), // Server-executed web search tool
+                                            output: serde_json::Value::Object(output),
+                                            provider_options: None,
                                         });
                                     }
                                 }
@@ -344,7 +468,82 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         None
                                     }
                                 }
-                                _ => None, // Skip other parts for now
+                                UserContentPart::File {
+                                    data,
+                                    media_type,
+                                    provider_options,
+                                    ..
+                                } => {
+                                    // Check if this was originally a Document block
+                                    let is_document = provider_options
+                                        .as_ref()
+                                        .and_then(|opts| opts.options.get("anthropic_type"))
+                                        .and_then(|v| v.as_str())
+                                        == Some("document");
+
+                                    if is_document {
+                                        // Restore as Document block
+                                        let title = provider_options
+                                            .as_ref()
+                                            .and_then(|opts| opts.options.get("title"))
+                                            .and_then(|v| v.as_str())
+                                            .map(|s| s.to_string());
+
+                                        let context = provider_options
+                                            .as_ref()
+                                            .and_then(|opts| opts.options.get("context"))
+                                            .and_then(|v| v.as_str())
+                                            .map(|s| s.to_string());
+
+                                        let anthropic_media_type = match media_type.as_str() {
+                                            "image/jpeg" => Some(generated::FluffyMediaType::ImageJpeg),
+                                            "image/png" => Some(generated::FluffyMediaType::ImagePng),
+                                            "image/gif" => Some(generated::FluffyMediaType::ImageGif),
+                                            "image/webp" => Some(generated::FluffyMediaType::ImageWebp),
+                                            "application/pdf" => {
+                                                Some(generated::FluffyMediaType::ApplicationPdf)
+                                            }
+                                            "text/plain" => Some(generated::FluffyMediaType::TextPlain),
+                                            _ => Some(generated::FluffyMediaType::TextPlain),
+                                        };
+
+                                        let data_str = match data {
+                                            serde_json::Value::String(s) => Some(s),
+                                            _ => None,
+                                        };
+
+                                        Some(generated::InputContentBlock {
+                                            cache_control: None,
+                                            citations: None,
+                                            text: None,
+                                            input_content_block_type:
+                                                generated::InputContentBlockType::Document,
+                                            source: Some(generated::Source::SourceSource(
+                                                generated::SourceSource {
+                                                    data: data_str,
+                                                    media_type: anthropic_media_type,
+                                                    source_type: generated::FluffyType::Text,
+                                                    url: None,
+                                                    content: None,
+                                                },
+                                            )),
+                                            context,
+                                            title,
+                                            content: None,
+                                            signature: None,
+                                            thinking: None,
+                                            data: None,
+                                            id: None,
+                                            input: None,
+                                            name: None,
+                                            is_error: None,
+                                            tool_use_id: None,
+                                        })
+                                    } else {
+                                        // Regular file - skip for now
+                                        None
+                                    }
+                                }
                             })
                             .collect();
                         generated::MessageContent::InputContentBlockArray(blocks)
@@ -382,9 +581,15 @@ impl TryFromLLM<Message> for generated::InputMessage {
                         .into_iter()
                         .filter_map(|part| match part {
                             AssistantContentPart::Text(text_part) => {
+                                // Restore citations from provider_options
+                                let citations = text_part.provider_options
+                                    .as_ref()
+                                    .and_then(|opts| opts.options.get("citations"))
+                                    .and_then(|v| serde_json::from_value::<generated::Citations>(v.clone()).ok());
+
                                 Some(generated::InputContentBlock {
                                     cache_control: None,
-                                    citations: None,
+                                    citations,
                                     text: Some(text_part.text),
                                     input_content_block_type:
                                         generated::InputContentBlockType::Text,
@@ -402,7 +607,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     tool_use_id: None,
                                 })
                             }
-                            AssistantContentPart::Reasoning { text, .. } => {
+                            AssistantContentPart::Reasoning {
+                                text,
+                                encrypted_content,
+                            } => {
                                 Some(generated::InputContentBlock {
                                     cache_control: None,
                                     citations: None,
@@ -413,7 +621,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     context: None,
                                     title: None,
                                     content: None,
-                                    signature: None,
+                                    // Restore signature from encrypted_content
+                                    signature: encrypted_content,
                                     thinking: Some(text),
                                     data: None,
                                     id: None,
@@ -427,6 +636,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 tool_call_id,
                                 tool_name,
                                 arguments,
+                                provider_executed,
                                 ..
                             } => {
                                 // Convert ToolCallArguments to serde_json::Map
@@ -435,12 +645,18 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     ToolCallArguments::Invalid(_) => None,
                                 };
 
+                                // Use ServerToolUse for provider-executed tools
+                                let block_type = if provider_executed == Some(true) {
+                                    generated::InputContentBlockType::ServerToolUse
+                                } else {
+                                    generated::InputContentBlockType::ToolUse
+                                };
+
                                 Some(generated::InputContentBlock {
                                     cache_control: None,
                                     citations: None,
                                     text: None,
-                                    input_content_block_type:
-                                        generated::InputContentBlockType::ToolUse,
+                                    input_content_block_type: block_type,
                                     source: None,
                                     context: None,
                                     title: None,
@@ -454,6 +670,46 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     is_error: None,
                                     tool_use_id: None,
                                 })
+                            }
+                            AssistantContentPart::ToolResult {
+                                tool_call_id,
+                                output,
+                                ..
+                            } => {
+                                // Check if this was a web_search_tool_result
+                                let is_web_search_result = output.as_object()
+                                    .and_then(|obj| obj.get("anthropic_type"))
+                                    .and_then(|v| v.as_str())
+                                    == Some("web_search_tool_result");
+
+                                if is_web_search_result {
+                                    // Restore WebSearchToolResult block
+                                    let content = output.as_object()
+                                        .and_then(|obj| obj.get("content"))
+                                        .and_then(|v| serde_json::from_value::<generated::Content>(v.clone()).ok());
+
+                                    Some(generated::InputContentBlock {
+                                        cache_control: None,
+                                        citations: None,
+                                        text: None,
+                                        input_content_block_type:
+                                            generated::InputContentBlockType::WebSearchToolResult,
+                                        source: None,
+                                        context: None,
+                                        title: None,
+                                        content,
+                                        signature: None,
+                                        thinking: None,
+                                        data: None,
+                                        id: None,
+                                        input: None,
+                                        name: None,
+                                        is_error: None,
+                                        tool_use_id: Some(tool_call_id.clone()),
+                                    })
+                                } else {
+                                    None // Skip other tool results in assistant messages
+                                }
                             }
                             _ => None, // Skip other types for now
                         })
@@ -530,9 +786,17 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
             match block.content_block_type {
                 generated::ContentBlockType::Text => {
                     if let Some(text) = block.text {
+                        // Preserve citations in provider_options for roundtrip
+                        let provider_options = block.citations.as_ref().map(|citations| {
+                            let mut opts = serde_json::Map::new();
+                            if let Ok(v) = serde_json::to_value(citations) {
+                                opts.insert("citations".into(), v);
+                            }
+                            ProviderOptions { options: opts }
+                        });
                         content_parts.push(AssistantContentPart::Text(TextContentPart {
                             text,
-                            provider_options: None,
+                            provider_options,
                         }));
                     }
                 }
@@ -540,7 +804,8 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                     if let Some(thinking) = block.thinking {
                         content_parts.push(AssistantContentPart::Reasoning {
                             text: thinking,
-                            encrypted_content: None,
+                            // Preserve signature in encrypted_content for roundtrip
+                            encrypted_content: block.signature.clone(),
                         });
                     }
                 }
@@ -564,8 +829,51 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                         });
                     }
                 }
+                generated::ContentBlockType::ServerToolUse => {
+                    // Server-executed tool (similar to ToolUse but provider_executed=true)
+                    if let (Some(id), Some(name)) = (block.id, block.name) {
+                        let input = if let Some(input_map) = block.input {
+                            serde_json::to_value(input_map).unwrap_or(serde_json::Value::Null)
+                        } else {
+                            serde_json::Value::Null
+                        };
+
+                        content_parts.push(AssistantContentPart::ToolCall {
+                            tool_call_id: id,
+                            tool_name: name,
+                            arguments: serde_json::to_string(&input)
+                                .unwrap_or_else(|_| "{}".to_string())
+                                .into(),
+                            provider_options: None,
+                            provider_executed: Some(true), // Mark as server-executed
+                        });
+                    }
+                }
+                generated::ContentBlockType::WebSearchToolResult => {
+                    // Web search tool result - convert to ToolResult with full data
+                    if let Some(id) = block.tool_use_id {
+                        // Store the entire block data for roundtrip
+                        let mut output = serde_json::Map::new();
+                        output.insert(
+                            "anthropic_type".into(),
+                            serde_json::Value::String("web_search_tool_result".to_string()),
+                        );
+                        if let Some(content) = &block.content {
+                            if let Ok(v) = serde_json::to_value(content) {
+                                output.insert("content".into(), v);
+                            }
+                        }
+
+                        content_parts.push(AssistantContentPart::ToolResult {
+                            tool_call_id: id,
+                            tool_name: "web_search".to_string(),
+                            output: serde_json::Value::Object(output),
+                            provider_options: None,
+                        });
+                    }
+                }
                 _ => {
-                    // Skip other types for now
+                    // Skip other types (RedactedThinking, etc.)
                     continue;
                 }
             }
@@ -614,8 +922,19 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                         for part in parts {
                             match part {
                                 AssistantContentPart::Text(text_part) => {
+                                    // Restore citations from provider_options if present
+                                    let citations = text_part
+                                        .provider_options
+                                        .as_ref()
+                                        .and_then(|opts| opts.options.get("citations"))
+                                        .and_then(|v| {
+                                            serde_json::from_value::<Vec<generated::ResponseLocationCitation>>(
+                                                v.clone(),
+                                            )
+                                            .ok()
+                                        });
                                     content_blocks.push(generated::ContentBlock {
-                                        citations: None,
+                                        citations,
                                         text: Some(text_part.text),
                                         content_block_type: generated::ContentBlockType::Text,
                                         signature: None,
@@ -628,12 +947,16 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         tool_use_id: None,
                                     });
                                 }
-                                AssistantContentPart::Reasoning { text, .. } => {
+                                AssistantContentPart::Reasoning {
+                                    text,
+                                    encrypted_content,
+                                } => {
                                     content_blocks.push(generated::ContentBlock {
                                         citations: None,
                                         text: None,
                                         content_block_type: generated::ContentBlockType::Thinking,
-                                        signature: None,
+                                        // Restore signature from encrypted_content
+                                        signature: encrypted_content,
                                         thinking: Some(text),
                                         data: None,
                                         id: None,
@@ -647,6 +970,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     tool_call_id,
                                     tool_name,
                                     arguments,
+                                    provider_executed,
                                     ..
                                 } => {
                                     // Convert ToolCallArguments to serde_json::Map for response generation
@@ -655,10 +979,17 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         ToolCallArguments::Invalid(_) => None,
                                     };
 
+                                    // Use ServerToolUse if provider_executed is true
+                                    let block_type = if provider_executed == Some(true) {
+                                        generated::ContentBlockType::ServerToolUse
+                                    } else {
+                                        generated::ContentBlockType::ToolUse
+                                    };
+
                                     content_blocks.push(generated::ContentBlock {
                                         citations: None,
                                         text: None,
-                                        content_block_type: generated::ContentBlockType::ToolUse,
+                                        content_block_type: block_type,
                                         signature: None,
                                         thinking: None,
                                         data: None,
@@ -668,6 +999,45 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         content: None,
                                         tool_use_id: None,
                                     });
+                                }
+                                AssistantContentPart::ToolResult {
+                                    tool_call_id,
+                                    output,
+                                    ..
+                                } => {
+                                    // Check if this is a web_search_tool_result
+                                    let is_web_search_result = output
+                                        .get("anthropic_type")
+                                        .and_then(|v| v.as_str())
+                                        == Some("web_search_tool_result");
+
+                                    if is_web_search_result {
+                                        // Restore as WebSearchToolResult
+                                        let content = output
+                                            .get("content")
+                                            .and_then(|v| {
+                                                serde_json::from_value::<generated::ContentBlockContent>(
+                                                    v.clone(),
+                                                )
+                                                .ok()
+                                            });
+
+                                        content_blocks.push(generated::ContentBlock {
+                                            citations: None,
+                                            text: None,
+                                            content_block_type:
+                                                generated::ContentBlockType::WebSearchToolResult,
+                                            signature: None,
+                                            thinking: None,
+                                            data: None,
+                                            id: None,
+                                            input: None,
+                                            name: None,
+                                            content,
+                                            tool_use_id: Some(tool_call_id.clone()),
+                                        });
+                                    }
+                                    // Skip other tool results - they shouldn't appear in response content
                                 }
                                 _ => {
                                     // Skip other types for now

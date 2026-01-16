@@ -9,7 +9,7 @@ Bedrock's Converse API has some unique characteristics:
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::{collect_extras, ProviderAdapter};
+use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::bedrock::request::{
     BedrockInferenceConfiguration, BedrockMessage, ConverseRequest,
@@ -18,24 +18,37 @@ use crate::providers::bedrock::try_parse_bedrock;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
+use std::convert::TryInto;
 use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
     UniversalStreamChunk, UniversalUsage,
 };
+use std::collections::HashMap;
 
-/// Known request fields for Bedrock Converse API.
-/// Fields not in this list go into `extras`.
-const BEDROCK_KNOWN_KEYS: &[&str] = &[
+/// Fields that are mapped to UniversalParams canonical fields for Bedrock Converse API.
+/// These are excluded from extras since they're handled explicitly.
+const BEDROCK_CANONICAL_KEYS: &[&str] = &[
     "modelId",
     "messages",
     "system",
     "inferenceConfig",
     "toolConfig",
-    "guardrailConfig",
-    "additionalModelRequestFields",
-    "additionalModelResponseFieldPaths",
-    "promptVariables",
 ];
+
+/// Collect fields not in BEDROCK_CANONICAL_KEYS as extras for passthrough.
+fn collect_bedrock_extras(payload: &Value) -> Map<String, Value> {
+    let obj = match payload.as_object() {
+        Some(o) => o,
+        None => return Map::new(),
+    };
+    let mut extras = Map::new();
+    for (k, v) in obj {
+        if !BEDROCK_CANONICAL_KEYS.contains(&k.as_str()) {
+            extras.insert(k.clone(), v.clone());
+        }
+    }
+    extras
+}
 
 /// Adapter for Amazon Bedrock Converse API.
 pub struct BedrockAdapter;
@@ -58,9 +71,7 @@ impl ProviderAdapter for BedrockAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let extras = collect_extras(&payload, BEDROCK_KNOWN_KEYS);
-
-        let request: ConverseRequest = serde_json::from_value(payload)
+        let request: ConverseRequest = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let messages =
@@ -77,7 +88,9 @@ impl ProviderAdapter for BedrockAdapter {
                 config
                     .stop_sequences
                     .as_ref()
-                    .and_then(|s| serde_json::to_value(s).ok()),
+                    .and_then(|s| serde_json::to_value(s).ok())
+                    .as_ref()
+                    .and_then(|v| (ProviderFormat::Converse, v).try_into().ok()),
             )
         } else {
             (None, None, None, None)
@@ -98,13 +111,29 @@ impl ProviderAdapter for BedrockAdapter {
             presence_penalty: None,
             frequency_penalty: None,
             stream: None, // Bedrock uses separate endpoint for streaming
+            // New canonical fields - Bedrock doesn't support these
+            parallel_tool_calls: None,
+            reasoning: None,
+            metadata: None,
+            store: None,
+            service_tier: None,
+            logprobs: None,
+            top_logprobs: None,
         };
+
+        // Collect unknown fields as extras for this provider
+        let extras = collect_bedrock_extras(&payload);
+
+        let mut provider_extras = HashMap::new();
+        if !extras.is_empty() {
+            provider_extras.insert(ProviderFormat::Converse, extras);
+        }
 
         Ok(UniversalRequest {
             model: Some(request.model_id),
             messages,
             params,
-            extras,
+            provider_extras,
         })
     }
 
@@ -138,19 +167,7 @@ impl ProviderAdapter for BedrockAdapter {
                 temperature: req.params.temperature,
                 top_p: req.params.top_p,
                 max_tokens: req.params.max_tokens.map(|t| t as i32),
-                stop_sequences: req.params.stop.as_ref().and_then(|v| {
-                    if let Value::Array(arr) = v {
-                        Some(
-                            arr.iter()
-                                .filter_map(|s| s.as_str().map(String::from))
-                                .collect(),
-                        )
-                    } else if let Value::String(s) = v {
-                        Some(vec![s.clone()])
-                    } else {
-                        None
-                    }
-                }),
+                stop_sequences: req.params.stop.as_ref().and_then(|s| s.to_sequences_array()),
             };
 
             obj.insert(
@@ -165,9 +182,14 @@ impl ProviderAdapter for BedrockAdapter {
             obj.insert("toolConfig".into(), tools.clone());
         }
 
-        // Merge extras
-        for (k, v) in &req.extras {
-            obj.insert(k.clone(), v.clone());
+        // Merge back provider-specific extras (only for Bedrock/Converse)
+        if let Some(extras) = req.provider_extras.get(&ProviderFormat::Converse) {
+            for (k, v) in extras {
+                // Don't overwrite canonical fields we already handled
+                if !obj.contains_key(k) {
+                    obj.insert(k.clone(), v.clone());
+                }
+            }
         }
 
         Ok(Value::Object(obj))

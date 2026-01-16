@@ -55,6 +55,9 @@ pub enum TransformError {
 
     #[error("Streaming not implemented: {0}")]
     StreamingNotImplemented(String),
+
+    #[error("Provider limitation: {0}")]
+    ProviderLimitation(String),
 }
 
 /// Result of a transformation operation.
