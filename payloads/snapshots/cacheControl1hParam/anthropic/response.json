@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01H6yqDn7qukbj8rVL2y3yJH",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Hello! How are you doing today? Is there anything I can help you with?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 20,
+    "service_tier": "standard"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tokyo weather"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_01MWoFAbQkgyajQ3QE6AU3mw",
+          "name": "get_weather",
+          "input": {
+            "location": "Tokyo"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_01MWoFAbQkgyajQ3QE6AU3mw",
+          "content": "71 degrees"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get weather",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "tool",
+    "name": "get_weather"
+  }
+}

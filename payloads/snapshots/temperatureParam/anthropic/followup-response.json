@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01Uzc3i3zX1oEaDg1VMQ4q9g",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That's a pretty open question! What you should do next really depends on what's going on in your life right now. Here are a few ways to think about it:\n\n**If you're looking for something to do right now:**\n- What sounds appealing - something productive, relaxing, creative, or social?\n- Any tasks or responsibilities you've been putting off?\n- Something you've been wanting to learn or try?\n\n**If you're thinking bigger picture:**\n- What are your current goals or priorities?\n- Is there something you've been meaning to work toward?\n- Any decisions you've been weighing?\n\nWhat context were you thinking about? I'd be happy to help you brainstorm once I know more about your situation!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 30,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 161,
+    "service_tier": "standard"
+  }
+}

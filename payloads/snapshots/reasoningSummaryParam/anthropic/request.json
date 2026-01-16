@@ -1,0 +1,14 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 16000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    }
+  ],
+  "thinking": {
+    "type": "enabled",
+    "budget_tokens": 10000
+  }
+}

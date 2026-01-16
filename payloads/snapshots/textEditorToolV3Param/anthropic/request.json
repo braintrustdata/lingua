@@ -1,0 +1,17 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Edit file."
+    }
+  ],
+  "tools": [
+    {
+      "type": "text_editor_20250728",
+      "name": "str_replace_based_edit_tool",
+      "max_characters": 10000
+    }
+  ]
+}

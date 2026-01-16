@@ -1,0 +1,269 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_01FWWfuHGCqadrrFJpMTEApk",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 1087,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2,
+        "service_tier": "standard"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "I'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d be happy to help you edit a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " file!"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " However, I need more"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " information to proceed:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n1. **File path"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "**: What's"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the path"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " to the file you want to edit?"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n2. **What"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " type"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " of edit"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "**:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Do"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you want to:\n   - View"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the current"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " content of"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the file?\n   - Create a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " new file?\n   - Replace specific"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " text in"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the file?\n   - Insert text"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " at a specific location"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "?\n\nCoul"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d you please provide the file path and describe"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " what changes"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d like to make?"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null
+    },
+    "usage": {
+      "input_tokens": 1087,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 113
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

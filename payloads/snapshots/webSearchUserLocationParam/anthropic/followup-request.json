@@ -1,0 +1,36 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Local food"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'd be happy to help you with information about local food! However, your query is quite broad. To provide you with the most relevant and useful information, could you help me understand what specifically you're looking for?\n\nFor example, are you interested in:\n\n- **Local food near you** - restaurants, markets, or food scenes in a specific city or area?\n- **Local/regional cuisine** - traditional dishes from a particular region?\n- **Local food movement** - farm-to-table, locally sourced ingredients, or sustainable eating?\n- **Finding local food sources** - farmers markets, local producers, or food co-ops?\n- **Local food trends** - what's popular in local food scenes right now?\n\nIf you let me know your location and what aspect of local food interests you most, I can search for current, relevant information to help you out!"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "web_search_20250305",
+      "name": "web_search",
+      "user_location": {
+        "type": "approximate",
+        "city": "San Francisco",
+        "region": "California",
+        "country": "US",
+        "timezone": "America/Los_Angeles"
+      }
+    }
+  ]
+}

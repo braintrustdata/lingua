@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01X2qLocZBFaWyEj9gFqAPou",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That's a pretty open question! What you should do next depends on what you're trying to accomplish or what's on your mind. Here are a few ways to think about it:\n\n- If you have a specific project or task you're working on, you could tell me about it and I can help you brainstorm next steps\n- If you're looking for something productive to do, you might consider learning something new, organizing something, or working on a personal goal\n- If you want to have a conversation, you could ask me about a topic you're curious about\n- If you're just experimenting with this chat, feel free to ask me anything you'd like to know\n\nWhat sounds most interesting to you right now?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 153,
+    "service_tier": "standard"
+  }
+}

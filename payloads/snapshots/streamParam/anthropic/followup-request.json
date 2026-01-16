@@ -1,0 +1,24 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say hi."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Hi! How are you doing today?"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "stream": true
+}

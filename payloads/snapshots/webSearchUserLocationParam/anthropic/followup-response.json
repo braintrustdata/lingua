@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01AENYXEgRgFwekkVzKkmTVB",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'd be happy to help you figure out your next steps! However, I need a bit more context to give you useful guidance. Could you tell me more about your situation?\n\nFor example:\n- Are you asking about next steps related to local food (from your previous question)?\n- Is this about a specific project, decision, or goal you're working on?\n- Are you looking for general life advice or direction?\n- Is this related to work, personal life, a hobby, or something else?\n\nOnce I understand what area of your life or what specific situation you're referring to, I can provide much more targeted and helpful suggestions for your next steps!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 2229,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 141,
+    "service_tier": "standard"
+  }
+}

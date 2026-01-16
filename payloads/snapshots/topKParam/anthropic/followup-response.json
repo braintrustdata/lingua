@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_018PrKxXXyCobJsZv7iL1znd",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That's a pretty open question! What you should do next depends on what's going on in your life right now. Here are a few ways to think about it:\n\n- **If you have tasks or responsibilities:** Maybe tackle something on your to-do list, or the thing that's been weighing on your mind\n- **If you're looking for something enjoyable:** Do something that usually makes you feel good - read, listen to music, go for a walk, call a friend\n- **If you're feeling stuck:** Sometimes just changing your environment helps - step outside, move to a different room, or try something small and different\n\nWhat's your current situation? Are you bored, procrastinating, looking for ideas, or something else? I'd be happy to give more specific suggestions if you share a bit more context!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 30,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 175,
+    "service_tier": "standard"
+  }
+}

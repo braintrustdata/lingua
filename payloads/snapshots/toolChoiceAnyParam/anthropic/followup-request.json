@@ -1,0 +1,53 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Weather?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_01Q3ikQ7QbcbfETxaCN9zHqo",
+          "name": "get_weather",
+          "input": {
+            "location": "<UNKNOWN>"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_01Q3ikQ7QbcbfETxaCN9zHqo",
+          "content": "71 degrees"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get weather",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "any"
+  }
+}
