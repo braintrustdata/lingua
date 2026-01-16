@@ -1,0 +1,33 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi"
+    },
+    {
+      "id": "rs_0ed226998f748acc006967e272539881a1828ec73bf40fe48d",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0ed226998f748acc006967e279616881a1a563255f26b92361",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hi! How can I help today? I can assist with:\n\n- Answering questions or explaining topics\n- Writing, editing, or brainstorming\n- Coding help and debugging\n- Math and problem solving\n- Planning, study tips, summaries\n- Translating or explaining texts\n- Generating ideas for projects, stories, resumes\n\nIf you have a specific task, tell me the details or paste the text, and I’ll jump in. What would you like to do?"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "safety_identifier": "test-user"
+}

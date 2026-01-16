@@ -1,0 +1,37 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Return JSON with a=1"
+    },
+    {
+      "id": "rs_0165a328b6b2bb52006967e2724a3c8196b9741550dce02f32",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0165a328b6b2bb52006967e275aa68819696c7da050af3fb03",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"a\":1}"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_object"
+    }
+  }
+}

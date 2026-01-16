@@ -1,0 +1,93 @@
+{
+  "id": "resp_053fea6d108a617e006967e2704a0c81a0b61937074cd2c46a",
+  "object": "response",
+  "created_at": 1768415856,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768415864,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_053fea6d108a617e006967e27263ac81a0a9158e161cb9ec28",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_053fea6d108a617e006967e27895b081a0bf97756b2f5e96b1",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"Tokyo, Japan\"}",
+      "call_id": "call_4Zx8kwz2y8nCCNHDpVpNONhx",
+      "name": "get_weather"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": {
+    "type": "function",
+    "name": "get_weather"
+  },
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 342,
+    "output_tokens_details": {
+      "reasoning_tokens": 320
+    },
+    "total_tokens": 383
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}

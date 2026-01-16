@@ -58,7 +58,7 @@ def load_test_snapshots(test_case_name: str) -> list[Snapshot]:
     if not snapshots_dir.exists():
         return snapshots
 
-    providers = ["openai-chat-completions", "openai-responses", "anthropic"]
+    providers = ["chat-completions", "responses", "anthropic"]
     turns = ["first_turn", "followup_turn"]
 
     for provider in providers:
@@ -228,7 +228,7 @@ class TestRoundtrip:
 
             for snapshot in snapshots:
                 if (
-                    snapshot.provider != "openai-chat-completions"
+                    snapshot.provider != "chat-completions"
                     or not snapshot.request
                 ):
                     continue

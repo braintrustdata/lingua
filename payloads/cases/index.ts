@@ -6,14 +6,20 @@ export * from "./models";
 // Export all case collections
 export { simpleCases } from "./simple";
 export { advancedCases } from "./advanced";
+export { paramsCases } from "./params";
 
 // Import and merge all collections for convenience
 import { simpleCases } from "./simple";
 import { advancedCases } from "./advanced";
+import { paramsCases } from "./params";
 import { mergeCollections } from "./utils";
 
 // Combined collection of all test cases
-export const allTestCases = mergeCollections(simpleCases, advancedCases);
+export const allTestCases = mergeCollections(
+  simpleCases,
+  advancedCases,
+  paramsCases
+);
 
 // Legacy export for backward compatibility (can be removed later)
 export const unifiedTestCases = allTestCases;

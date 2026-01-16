@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Execute Python code to generate a random number"
+    },
+    {
+      "id": "rs_010121ebb5e188bb006967e4607ddc81a18c909c1d7e06c207",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ci_010121ebb5e188bb006967e463fc6c81a1a49c34d9bf2a46ee",
+      "type": "code_interpreter_call",
+      "status": "completed",
+      "code": "import random\nrandom.randint(1,100)",
+      "container_id": "cntr_6967e46040a881918bafe26339ea573d07ea9c1707add848",
+      "outputs": null
+    },
+    {
+      "id": "rs_010121ebb5e188bb006967e46885e481a1bc1bf28e97360474",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_010121ebb5e188bb006967e46aacec81a18809a200d9cfc0c1",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here's a random number between 1 and 100: 25\n\nWant another one or a different range (e.g., 0-1 float, 1-1000 int)?"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "code_interpreter",
+      "container": {
+        "type": "auto"
+      }
+    }
+  ]
+}

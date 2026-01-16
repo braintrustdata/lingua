@@ -1,0 +1,33 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi"
+    },
+    {
+      "id": "rs_046d311d0d184f00006967e272604c81a386ecbc9a1f9d64e7",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_046d311d0d184f00006967e2760abc81a3be7dac2dad0dc957",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hi! How can I help today? I can explain concepts, answer questions, help with writing or code, brainstorm ideas, plan stuff, and more. Tell me what you’d like to do, or share a topic you’re curious about. If you have an image, you can upload it and I can describe or analyze it."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "service_tier": "default"
+}
