@@ -8,40 +8,26 @@ Anthropic's Messages API has some unique requirements:
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::{
-    collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value,
-    ProviderAdapter,
+    insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
-use crate::providers::anthropic::generated::{ContentBlock, CreateMessageParams, InputMessage};
+use crate::providers::anthropic::generated::{ContentBlock, InputMessage};
+use crate::providers::anthropic::params::AnthropicParams;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent};
 use crate::universal::transform::extract_system_messages;
+use std::convert::TryInto;
+use crate::universal::tools::{find_builtin_tool, is_anthropic_custom_format, openai_to_anthropic_tools};
 use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
     UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
+use std::collections::HashMap;
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
-
-/// Known request fields for Anthropic Messages API.
-/// Fields not in this list go into `extras`.
-const ANTHROPIC_KNOWN_KEYS: &[&str] = &[
-    "model",
-    "messages",
-    "system",
-    "max_tokens",
-    "temperature",
-    "top_p",
-    "top_k",
-    "stop_sequences",
-    "stream",
-    "metadata",
-    "tools",
-    "tool_choice",
-];
 
 /// Adapter for Anthropic Messages API.
 pub struct AnthropicAdapter;
@@ -64,37 +50,72 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let extras = collect_extras(&payload, ANTHROPIC_KNOWN_KEYS);
-        let stop = payload.get("stop_sequences").cloned();
-
-        let request: CreateMessageParams = serde_json::from_value(payload)
+        // Parse into typed params - extras are automatically captured via #[serde(flatten)]
+        let typed_params: AnthropicParams = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(request.messages)
+        // Extract messages array directly to avoid deserializing problematic Tool enum
+        // (CreateMessageParams has tools: Option<Vec<Tool>>, but Tool enum's #[serde(tag = "type")]
+        // fails on custom tools that lack a type field. We only need messages here anyway.)
+        let input_messages: Vec<InputMessage> = payload
+            .get("messages")
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .ok_or_else(|| TransformError::ToUniversalFailed("missing messages field".to_string()))?;
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let params = UniversalParams {
-            temperature: request.temperature,
-            top_p: request.top_p,
-            top_k: request.top_k,
-            max_tokens: Some(request.max_tokens),
-            stop,
-            tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
-            tool_choice: request
+            temperature: typed_params.temperature,
+            top_p: typed_params.top_p,
+            top_k: typed_params.top_k,
+            max_tokens: typed_params.max_tokens,
+            stop: typed_params
+                .stop_sequences
+                .as_ref()
+                .and_then(|v| (ProviderFormat::Anthropic, v).try_into().ok()),
+            tools: typed_params.tools,
+            tool_choice: typed_params
                 .tool_choice
-                .and_then(|t| serde_json::to_value(t).ok()),
-            response_format: None,  // Anthropic doesn't use response_format
-            seed: None,             // Anthropic doesn't support seed
+                .as_ref()
+                .and_then(|v| (ProviderFormat::Anthropic, v).try_into().ok()),
+            response_format: None, // Anthropic doesn't use response_format
+            seed: None,            // Anthropic doesn't support seed
             presence_penalty: None, // Anthropic doesn't support these
             frequency_penalty: None,
-            stream: request.stream,
+            stream: typed_params.stream,
+            // Extract parallel_tool_calls from Anthropic's disable_parallel_tool_use in tool_choice
+            parallel_tool_calls: typed_params
+                .tool_choice
+                .as_ref()
+                .and_then(|tc| tc.get("disable_parallel_tool_use"))
+                .and_then(Value::as_bool)
+                .map(|disabled| !disabled), // disable_parallel_tool_use: true → parallel_tool_calls: false
+            reasoning: typed_params
+                .thinking
+                .as_ref()
+                .and_then(|v| (ProviderFormat::Anthropic, v).try_into().ok()),
+            metadata: typed_params.metadata,
+            store: None, // Anthropic doesn't support store
+            service_tier: typed_params.service_tier,
+            logprobs: None,     // Anthropic doesn't support logprobs
+            top_logprobs: None, // Anthropic doesn't support top_logprobs
         };
 
+        // Use extras captured automatically via #[serde(flatten)]
+        let mut provider_extras = HashMap::new();
+        if !typed_params.extras.is_empty() {
+            provider_extras.insert(
+                ProviderFormat::Anthropic,
+                typed_params.extras.into_iter().collect(),
+            );
+        }
+
         Ok(UniversalRequest {
-            model: Some(request.model),
+            model: typed_params.model,
             messages,
             params,
-            extras,
+            provider_extras,
         })
     }
 
@@ -144,20 +165,66 @@ impl ProviderAdapter for AnthropicAdapter {
         insert_opt_i64(&mut obj, "top_k", req.params.top_k);
 
         // Anthropic uses stop_sequences instead of stop
-        if let Some(stop) = &req.params.stop {
-            obj.insert("stop_sequences".into(), stop.clone());
+        if let Some(sequences) = req.params.stop.as_ref().and_then(|s| s.to_sequences_array()) {
+            obj.insert(
+                "stop_sequences".into(),
+                Value::Array(sequences.into_iter().map(Value::String).collect()),
+            );
         }
 
-        insert_opt_value(&mut obj, "tools", req.params.tools.clone());
-        insert_opt_value(&mut obj, "tool_choice", req.params.tool_choice.clone());
+        // Convert tools from OpenAI format to Anthropic format if needed
+        if let Some(tools) = &req.params.tools {
+            if is_anthropic_custom_format(tools) || find_builtin_tool(tools).is_some() {
+                // Already in Anthropic format (custom tools or built-ins) - pass through
+                insert_opt_value(&mut obj, "tools", Some(tools.clone()));
+            } else {
+                // Convert from OpenAI format
+                insert_opt_value(&mut obj, "tools", openai_to_anthropic_tools(tools));
+            }
+        }
+
+        // Convert tool_choice from canonical ToolChoiceConfig to Anthropic format
+        // parallel_tool_calls is passed explicitly for disable_parallel_tool_use
+        if let Some(tool_choice_val) = req
+            .params
+            .tool_choice
+            .as_ref()
+            .and_then(|tc| tc.to_provider(ProviderFormat::Anthropic, req.params.parallel_tool_calls).ok())
+            .flatten()
+        {
+            obj.insert("tool_choice".into(), tool_choice_val);
+        }
         insert_opt_bool(&mut obj, "stream", req.params.stream);
 
-        // Merge extras - only include Anthropic-known fields
-        // This filters out OpenAI-specific fields like stream_options that would cause
-        // Anthropic to reject the request with "extra inputs are not permitted"
-        for (k, v) in &req.extras {
-            if ANTHROPIC_KNOWN_KEYS.contains(&k.as_str()) {
-                obj.insert(k.clone(), v.clone());
+        // Add reasoning as thinking if present (convert ReasoningConfig to Anthropic thinking format)
+        // max_tokens is passed explicitly for effort→budget conversion
+        if let Some(thinking_val) = req
+            .params
+            .reasoning
+            .as_ref()
+            .and_then(|r| r.to_provider(ProviderFormat::Anthropic, req.params.max_tokens).ok())
+            .flatten()
+        {
+            obj.insert("thinking".into(), thinking_val);
+        }
+
+        // Add metadata from canonical params
+        if let Some(metadata) = req.params.metadata.as_ref() {
+            obj.insert("metadata".into(), metadata.clone());
+        }
+
+        // Add service_tier from canonical params
+        if let Some(ref service_tier) = req.params.service_tier {
+            obj.insert("service_tier".into(), Value::String(service_tier.clone()));
+        }
+
+        // Merge back provider-specific extras (only for Anthropic)
+        if let Some(extras) = req.provider_extras.get(&ProviderFormat::Anthropic) {
+            for (k, v) in extras {
+                // Don't overwrite canonical fields we already handled
+                if !obj.contains_key(k) {
+                    obj.insert(k.clone(), v.clone());
+                }
             }
         }
 
@@ -559,7 +626,7 @@ mod tests {
             model: Some("claude-3-5-sonnet-20241022".to_string()),
             messages: vec![],
             params: UniversalParams::default(),
-            extras: Map::new(),
+            provider_extras: HashMap::new(),
         };
 
         assert!(req.params.max_tokens.is_none());
@@ -577,7 +644,7 @@ mod tests {
                 max_tokens: Some(8192),
                 ..Default::default()
             },
-            extras: Map::new(),
+            provider_extras: HashMap::new(),
         };
 
         adapter.apply_defaults(&mut req);
