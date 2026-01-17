@@ -5,6 +5,7 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
   BEDROCK_MODEL,
+  MISTRAL_MODEL,
 } from "./models";
 
 // Simple test cases - basic functionality testing
@@ -59,6 +60,16 @@ export const simpleCases: TestCaseCollection = {
         {
           role: "user",
           content: [{ text: "What is the capital of France?" }],
+        },
+      ],
+    },
+
+    mistral: {
+      model: MISTRAL_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What is the capital of France?",
         },
       ],
     },
@@ -122,6 +133,17 @@ export const simpleCases: TestCaseCollection = {
               text: "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
             },
           ],
+        },
+      ],
+    },
+
+    mistral: {
+      model: MISTRAL_MODEL,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
     },
@@ -195,6 +217,18 @@ export const simpleCases: TestCaseCollection = {
       inferenceConfig: {
         maxTokens: 100,
       },
+    },
+
+    mistral: {
+      model: MISTRAL_MODEL,
+      maxTokens: 100,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
     },
   },
 
@@ -342,6 +376,36 @@ export const simpleCases: TestCaseCollection = {
           },
         ],
       },
+    },
+
+    mistral: {
+      model: MISTRAL_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get the current weather for a location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA",
+                },
+              },
+              required: ["location"],
+            },
+          },
+        },
+      ],
+      toolChoice: "auto",
     },
   },
 };

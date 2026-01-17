@@ -1,0 +1,203 @@
+[
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "role": "assistant",
+          "content": ""
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "The"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " weather"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " in"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " San"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " Francisco"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " is"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " "
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "7"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "1"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " degrees"
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "."
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "f26fba115b7a457da619fa1a3ef715ff",
+    "object": "chat.completion.chunk",
+    "created": 1767640579,
+    "model": "open-mistral-7b",
+    "usage": {
+      "promptTokens": 157,
+      "completionTokens": 12,
+      "totalTokens": 169
+    },
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": ""
+        },
+        "finishReason": "stop"
+      }
+    ]
+  }
+]

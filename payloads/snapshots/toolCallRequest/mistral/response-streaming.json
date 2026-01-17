@@ -1,0 +1,47 @@
+[
+  {
+    "id": "416a85111145428c8d88f1bd40e2387d",
+    "object": "chat.completion.chunk",
+    "created": 1767640578,
+    "model": "open-mistral-7b",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "role": "assistant",
+          "content": ""
+        },
+        "finishReason": null
+      }
+    ]
+  },
+  {
+    "id": "416a85111145428c8d88f1bd40e2387d",
+    "object": "chat.completion.chunk",
+    "created": 1767640578,
+    "model": "open-mistral-7b",
+    "usage": {
+      "promptTokens": 94,
+      "completionTokens": 26,
+      "totalTokens": 120
+    },
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "toolCalls": [
+            {
+              "id": "zAhr0bY74",
+              "function": {
+                "name": "get_weather",
+                "arguments": "{\"location\": \"San Francisco, CA\"}"
+              },
+              "index": 0
+            }
+          ]
+        },
+        "finishReason": "tool_calls"
+      }
+    ]
+  }
+]
