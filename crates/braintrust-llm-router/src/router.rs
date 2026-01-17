@@ -13,7 +13,7 @@ use crate::catalog::{
     default_catalog, load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec,
 };
 use crate::error::{Error, Result};
-use crate::providers::Provider;
+use crate::providers::{ClientHeaders, Provider};
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_stream, ResponseStream};
 use lingua::serde_json::Value;
@@ -129,6 +129,7 @@ impl Router {
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
     /// * `output_format` - The output format, or None to auto-detect from body
+    /// * `client_headers` - Client headers to forward to the upstream provider
     ///
     /// The body will be automatically transformed to the target provider's format if needed.
     /// The response will be converted to the requested output format.
@@ -136,7 +137,7 @@ impl Router {
         feature = "tracing",
         tracing::instrument(
             name = "bt.router.complete",
-            skip(self, body),
+            skip(self, body, client_headers),
             fields(llm.model = %model)
         )
     )]
@@ -145,6 +146,7 @@ impl Router {
         body: Bytes,
         model: &str,
         output_format: ProviderFormat,
+        client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let (provider, auth, spec, strategy) = self.resolve_provider(model)?;
         let payload = match lingua::transform_request(body.clone(), provider.format(), Some(model))
@@ -156,7 +158,14 @@ impl Router {
         };
 
         let response_bytes = self
-            .execute_with_retry(provider.clone(), auth, spec, payload, strategy)
+            .execute_with_retry(
+                provider.clone(),
+                auth,
+                spec,
+                payload,
+                strategy,
+                client_headers,
+            )
             .await?;
 
         let result = lingua::transform_response(response_bytes.clone(), output_format)
@@ -177,6 +186,7 @@ impl Router {
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
     /// * `output_format` - The output format, or None to auto-detect from body
+    /// * `client_headers` - Client headers to forward to the upstream provider
     ///
     /// The body will be automatically transformed to the target provider's format if needed.
     /// Stream chunks will be transformed to the requested output format.
@@ -184,7 +194,7 @@ impl Router {
         feature = "tracing",
         tracing::instrument(
             name = "bt.router.complete_stream",
-            skip(self, body),
+            skip(self, body, client_headers),
             fields(llm.model = %model)
         )
     )]
@@ -193,6 +203,7 @@ impl Router {
         body: Bytes,
         model: &str,
         output_format: ProviderFormat,
+        client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
         let (provider, auth, spec, _) = self.resolve_provider(model)?;
         let payload = match lingua::transform_request(body.clone(), provider.format(), Some(model))
@@ -203,7 +214,9 @@ impl Router {
             Err(e) => return Err(Error::Lingua(e.to_string())),
         };
 
-        let raw_stream = provider.complete_stream(payload, auth, &spec).await?;
+        let raw_stream = provider
+            .complete_stream(payload, auth, &spec, client_headers)
+            .await?;
 
         Ok(transform_stream(raw_stream, output_format))
     }
@@ -236,6 +249,7 @@ impl Router {
         spec: Arc<ModelSpec>,
         payload: Bytes,
         mut strategy: RetryStrategy,
+        client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         #[cfg(feature = "tracing")]
         let mut attempt = 0u32;
@@ -253,13 +267,19 @@ impl Router {
                     llm.provider = %provider.id(),
                     attempt = attempt,
                 );
-                async { provider.complete(payload.clone(), auth, &spec).await }
-                    .instrument(span)
-                    .await
+                async {
+                    provider
+                        .complete(payload.clone(), auth, &spec, client_headers)
+                        .await
+                }
+                .instrument(span)
+                .await
             };
 
             #[cfg(not(feature = "tracing"))]
-            let result = provider.complete(payload.clone(), auth, &spec).await;
+            let result = provider
+                .complete(payload.clone(), auth, &spec, client_headers)
+                .await;
 
             match result {
                 Ok(response) => return Ok(response),
