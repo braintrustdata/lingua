@@ -16,7 +16,7 @@ use crate::providers::openai::capabilities::{OpenAICapabilities, TargetProvider}
 use crate::providers::openai::generated::{
     AllowedToolsFunction, ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
     ChatCompletionRequestMessageContentPart, ChatCompletionRequestMessageRole,
-    ChatCompletionResponseMessage, ChatCompletionToolChoiceOption,
+    ChatCompletionResponseMessage, ChatCompletionToolChoiceOption, CompletionUsage,
     CreateChatCompletionRequestClass, CreateResponseClass, File, FunctionObject,
     FunctionToolChoiceClass, FunctionToolChoiceType, InputItem, InputItemContent, InputItemRole,
     InputItemType, Instructions, PurpleType, ResponseFormatType, ToolElement, ToolType,
@@ -73,6 +73,40 @@ const RESPONSES_KNOWN_KEYS: &[&str] = &[
     // frequency_penalty, reasoning, truncation, user, store,
     // metadata, parallel_tool_calls
 ];
+
+mod streaming_types {
+    use serde::{Deserialize, Serialize};
+
+    use crate::serde_json::{Map, Value};
+
+    #[derive(Debug, Clone, Deserialize, Serialize)]
+    pub struct StreamResponse {
+        pub choices: Vec<StreamChoice>,
+        pub created: i64,
+        pub id: String,
+        pub model: String,
+        pub object: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub service_tier: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub system_fingerprint: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub usage: Option<Value>,
+        #[serde(flatten)]
+        pub extra: Map<String, Value>,
+    }
+
+    #[derive(Debug, Clone, Deserialize, Serialize)]
+    pub struct StreamChoice {
+        pub delta: Value,
+        pub finish_reason: Option<String>,
+        pub index: i64,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub logprobs: Option<Value>,
+        #[serde(flatten)]
+        pub extra: Map<String, Value>,
+    }
+}
 
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
@@ -226,19 +260,13 @@ impl ProviderAdapter for OpenAIAdapter {
             }
         }
 
-        let usage = payload.get("usage").map(|u| UniversalUsage {
-            prompt_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
-            completion_tokens: u.get("completion_tokens").and_then(Value::as_i64),
-            prompt_cached_tokens: u
-                .get("prompt_tokens_details")
-                .and_then(|d| d.get("cached_tokens"))
-                .and_then(Value::as_i64),
-            prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
-            completion_reasoning_tokens: u
-                .get("completion_tokens_details")
-                .and_then(|d| d.get("reasoning_tokens"))
-                .and_then(Value::as_i64),
-        });
+        // Parse usage with typed struct, then convert to universal format
+        let usage = payload
+            .get("usage")
+            .map(|u| serde_json::from_value::<CompletionUsage>(u.clone()))
+            .transpose()
+            .map_err(|e| TransformError::ToUniversalFailed(format!("invalid usage: {}", e)))?
+            .map(|u| UniversalUsage::from(&u));
 
         Ok(UniversalResponse {
             model: payload
@@ -340,118 +368,82 @@ impl ProviderAdapter for OpenAIAdapter {
         &self,
         payload: Value,
     ) -> Result<Option<UniversalStreamChunk>, TransformError> {
-        // OpenAI is the canonical format, so this is mostly direct mapping
-        let choices = payload
-            .get("choices")
-            .and_then(Value::as_array)
-            .map(|arr| {
-                arr.iter()
-                    .map(|c| {
-                        let index = c.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
-                        let delta = c.get("delta").cloned();
-                        let finish_reason = c
-                            .get("finish_reason")
-                            .and_then(Value::as_str)
-                            .map(String::from);
-                        UniversalStreamChoice {
-                            index,
-                            delta,
-                            finish_reason,
-                        }
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
+        // Parse into typed struct with proper nullable handling
+        let response: streaming_types::StreamResponse = serde_json::from_value(payload)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        // Extract usage if present (usually only on final chunk)
-        let usage = payload.get("usage").map(|u| UniversalUsage {
-            prompt_tokens: u.get("prompt_tokens").and_then(Value::as_i64),
-            completion_tokens: u.get("completion_tokens").and_then(Value::as_i64),
-            prompt_cached_tokens: u
-                .get("prompt_tokens_details")
-                .and_then(|d| d.get("cached_tokens"))
-                .and_then(Value::as_i64),
-            prompt_cache_creation_tokens: None,
-            completion_reasoning_tokens: u
-                .get("completion_tokens_details")
-                .and_then(|d| d.get("reasoning_tokens"))
-                .and_then(Value::as_i64),
-        });
+        // Convert choices - delta and finish_reason pass through directly (both already correct types)
+        let choices: Vec<UniversalStreamChoice> = response
+            .choices
+            .into_iter()
+            .map(|c| UniversalStreamChoice {
+                index: c.index as u32,
+                delta: Some(c.delta),
+                finish_reason: c.finish_reason,
+            })
+            .collect();
+
+        // Parse usage on final chunk if needed for billing/metrics
+        let usage = response
+            .usage
+            .as_ref()
+            .and_then(|u| serde_json::from_value::<CompletionUsage>(u.clone()).ok())
+            .map(|u| UniversalUsage::from(&u));
 
         Ok(Some(UniversalStreamChunk::new(
-            payload.get("id").and_then(Value::as_str).map(String::from),
-            payload
-                .get("model")
-                .and_then(Value::as_str)
-                .map(String::from),
+            Some(response.id),
+            Some(response.model),
             choices,
-            payload.get("created").and_then(Value::as_u64),
+            Some(response.created as u64),
             usage,
         )))
     }
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
-        // Convert back to OpenAI streaming format
+        // Keep-alive: return minimal JSON (don't emit fake id/model/created)
         if chunk.is_keep_alive() {
-            // Return empty chunk for keep-alive
             return Ok(serde_json::json!({
                 "object": "chat.completion.chunk",
                 "choices": []
             }));
         }
 
-        let choices: Vec<Value> = chunk
+        // Build choices - delta and finish_reason pass through directly
+        let choices: Vec<streaming_types::StreamChoice> = chunk
             .choices
             .iter()
-            .map(|c| {
-                let mut choice = serde_json::json!({
-                    "index": c.index,
-                    "delta": c.delta.clone().unwrap_or(Value::Object(Map::new()))
-                });
-                if let Some(ref reason) = c.finish_reason {
-                    choice
-                        .as_object_mut()
-                        .unwrap()
-                        .insert("finish_reason".into(), Value::String(reason.clone()));
-                } else {
-                    choice
-                        .as_object_mut()
-                        .unwrap()
-                        .insert("finish_reason".into(), Value::Null);
-                }
-                choice
+            .map(|c| streaming_types::StreamChoice {
+                delta: c.delta.clone().unwrap_or(serde_json::json!({})),
+                finish_reason: c.finish_reason.clone(),
+                index: c.index as i64,
+                logprobs: None,
+                extra: Map::new(),
             })
             .collect();
 
-        let mut obj = serde_json::json!({
-            "object": "chat.completion.chunk",
-            "choices": choices
+        // Build usage as Value if present
+        let usage = chunk.usage.as_ref().map(|u| {
+            serde_json::json!({
+                "prompt_tokens": u.prompt_tokens.unwrap_or(0),
+                "completion_tokens": u.completion_tokens.unwrap_or(0),
+                "total_tokens": u.prompt_tokens.unwrap_or(0) + u.completion_tokens.unwrap_or(0)
+            })
         });
 
-        let obj_map = obj.as_object_mut().unwrap();
-        if let Some(ref id) = chunk.id {
-            obj_map.insert("id".into(), Value::String(id.clone()));
-        }
-        if let Some(ref model) = chunk.model {
-            obj_map.insert("model".into(), Value::String(model.clone()));
-        }
-        if let Some(created) = chunk.created {
-            obj_map.insert("created".into(), Value::Number(created.into()));
-        }
-        if let Some(ref usage) = chunk.usage {
-            let prompt = usage.prompt_tokens.unwrap_or(0);
-            let completion = usage.completion_tokens.unwrap_or(0);
-            obj_map.insert(
-                "usage".into(),
-                serde_json::json!({
-                    "prompt_tokens": prompt,
-                    "completion_tokens": completion,
-                    "total_tokens": prompt + completion
-                }),
-            );
-        }
+        let response = streaming_types::StreamResponse {
+            choices,
+            created: chunk.created.unwrap_or(0) as i64,
+            id: chunk.id.clone().unwrap_or_default(),
+            model: chunk.model.clone().unwrap_or_default(),
+            object: "chat.completion.chunk".to_string(),
+            service_tier: None,
+            system_fingerprint: None,
+            usage,
+            extra: Map::new(),
+        };
 
-        Ok(obj)
+        serde_json::to_value(&response)
+            .map_err(|e| TransformError::SerializationFailed(e.to_string()))
     }
 }
 
