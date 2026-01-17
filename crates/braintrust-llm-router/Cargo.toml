@@ -24,7 +24,7 @@ rand = { workspace = true }
 lingua = { workspace = true, features = ["openai", "anthropic", "google", "bedrock"] }
 
 # HTTP client
-reqwest = { workspace = true, features = ["json", "stream"] }
+reqwest = { workspace = true, features = ["json", "stream", "gzip"] }
 hyper = { workspace = true, optional = true }
 http = { workspace = true }
 

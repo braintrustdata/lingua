@@ -5,8 +5,8 @@ use std::time::Duration;
 use async_trait::async_trait;
 use braintrust_llm_router::{
     serde_json::{json, Value},
-    AuthConfig, Error, ModelCatalog, ModelFlavor, ModelSpec, Provider, ProviderFormat,
-    RawResponseStream, RetryPolicy, RouterBuilder,
+    AuthConfig, ClientHeaders, Error, ModelCatalog, ModelFlavor, ModelSpec, Provider,
+    ProviderFormat, RawResponseStream, RetryPolicy, RouterBuilder,
 };
 use bytes::Bytes;
 
@@ -33,6 +33,7 @@ impl Provider for StubProvider {
         payload: Bytes,
         _auth: &AuthConfig,
         _spec: &ModelSpec,
+        _client_headers: &ClientHeaders,
     ) -> braintrust_llm_router::Result<Bytes> {
         // Parse the incoming payload to extract model name
         let value: Value =
@@ -71,6 +72,7 @@ impl Provider for StubProvider {
         _payload: Bytes,
         _auth: &AuthConfig,
         _spec: &ModelSpec,
+        _client_headers: &ClientHeaders,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(Box::pin(tokio_stream::empty()))
     }
@@ -129,7 +131,12 @@ async fn router_routes_to_stub_provider() {
     }));
 
     let bytes = router
-        .complete(body, model, ProviderFormat::OpenAI)
+        .complete(
+            body,
+            model,
+            ProviderFormat::OpenAI,
+            &ClientHeaders::default(),
+        )
         .await
         .expect("complete");
     // Parse bytes to Value using braintrust_llm_router's serde_json
@@ -179,7 +186,12 @@ async fn router_requires_auth_for_provider() {
     }));
 
     let err = router
-        .complete(body, model, ProviderFormat::OpenAI)
+        .complete(
+            body,
+            model,
+            ProviderFormat::OpenAI,
+            &ClientHeaders::default(),
+        )
         .await
         .expect_err("missing auth");
     assert!(matches!(err, Error::NoAuth(alias) if alias == "stub"));
@@ -220,7 +232,12 @@ async fn router_reports_missing_provider() {
     }));
 
     let err = router
-        .complete(body, model, ProviderFormat::OpenAI)
+        .complete(
+            body,
+            model,
+            ProviderFormat::OpenAI,
+            &ClientHeaders::default(),
+        )
         .await
         .expect_err("missing provider");
     assert!(matches!(err, Error::NoProvider(ProviderFormat::OpenAI)));
@@ -247,7 +264,7 @@ async fn router_propagates_validation_errors() {
         "messages": []
     }));
     let err = router
-        .complete(body, "", ProviderFormat::OpenAI)
+        .complete(body, "", ProviderFormat::OpenAI, &ClientHeaders::default())
         .await
         .expect_err("validation");
     // Empty model is treated as unknown model, not invalid request
@@ -274,6 +291,7 @@ impl Provider for FailingProvider {
         _payload: Bytes,
         _auth: &AuthConfig,
         _spec: &ModelSpec,
+        _client_headers: &ClientHeaders,
     ) -> braintrust_llm_router::Result<Bytes> {
         self.attempts.fetch_add(1, Ordering::SeqCst);
         Err(Error::Timeout)
@@ -284,6 +302,7 @@ impl Provider for FailingProvider {
         _payload: Bytes,
         _auth: &AuthConfig,
         _spec: &ModelSpec,
+        _client_headers: &ClientHeaders,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Err(Error::Timeout)
     }
@@ -353,7 +372,12 @@ async fn router_retries_and_propagates_terminal_error() {
     }));
 
     let err = router
-        .complete(body, model, ProviderFormat::OpenAI)
+        .complete(
+            body,
+            model,
+            ProviderFormat::OpenAI,
+            &ClientHeaders::default(),
+        )
         .await
         .expect_err("terminal error");
     assert!(matches!(err, Error::Timeout));

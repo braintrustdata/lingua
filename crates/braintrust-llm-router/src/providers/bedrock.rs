@@ -17,6 +17,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{default_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
+use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, single_bytes_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
@@ -179,6 +180,12 @@ impl BedrockProvider {
         }
         Ok(headers)
     }
+
+    fn build_headers(&self, url: &Url, payload: &[u8], auth: &AuthConfig) -> Result<HeaderMap> {
+        let mut headers = self.sign_request(url, payload, auth)?;
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        Ok(headers)
+    }
 }
 
 #[async_trait]
@@ -191,7 +198,13 @@ impl crate::providers::Provider for BedrockProvider {
         ProviderFormat::Converse
     }
 
-    async fn complete(&self, payload: Bytes, auth: &AuthConfig, spec: &ModelSpec) -> Result<Bytes> {
+    async fn complete(
+        &self,
+        payload: Bytes,
+        auth: &AuthConfig,
+        spec: &ModelSpec,
+        _client_headers: &ClientHeaders,
+    ) -> Result<Bytes> {
         let url = self.invoke_url(&spec.model, false)?;
 
         #[cfg(feature = "tracing")]
@@ -202,8 +215,7 @@ impl crate::providers::Provider for BedrockProvider {
             "sending request to Bedrock"
         );
 
-        let mut headers = self.sign_request(&url, &payload, auth)?;
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        let headers = self.build_headers(&url, payload.as_ref(), auth)?;
 
         let response = self
             .client
@@ -248,9 +260,10 @@ impl crate::providers::Provider for BedrockProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self.complete(payload, auth, spec).await?;
+            let response = self.complete(payload, auth, spec, client_headers).await?;
             return Ok(single_bytes_stream(response));
         }
 
@@ -266,8 +279,7 @@ impl crate::providers::Provider for BedrockProvider {
             "sending streaming request to Bedrock"
         );
 
-        let mut headers = self.sign_request(&url, &payload, auth)?;
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        let headers = self.build_headers(&url, payload.as_ref(), auth)?;
 
         let response = self
             .client

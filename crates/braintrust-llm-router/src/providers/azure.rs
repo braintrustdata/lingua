@@ -3,13 +3,14 @@ use std::time::Duration;
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::Value;
-use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
+use reqwest::header::HeaderMap;
 use reqwest::{Client, StatusCode, Url};
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{default_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
+use crate::providers::ClientHeaders;
 use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
@@ -143,7 +144,13 @@ impl crate::providers::Provider for AzureProvider {
         ProviderFormat::OpenAI
     }
 
-    async fn complete(&self, payload: Bytes, auth: &AuthConfig, spec: &ModelSpec) -> Result<Bytes> {
+    async fn complete(
+        &self,
+        payload: Bytes,
+        auth: &AuthConfig,
+        spec: &ModelSpec,
+        client_headers: &ClientHeaders,
+    ) -> Result<Bytes> {
         let url = self.chat_url(&spec.model)?;
 
         #[cfg(feature = "tracing")]
@@ -154,8 +161,7 @@ impl crate::providers::Provider for AzureProvider {
             "sending request to Azure"
         );
 
-        let mut headers = HeaderMap::new();
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self
@@ -201,9 +207,10 @@ impl crate::providers::Provider for AzureProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self.complete(payload, auth, spec).await?;
+            let response = self.complete(payload, auth, spec, client_headers).await?;
             return Ok(single_bytes_stream(response));
         }
 
@@ -219,8 +226,7 @@ impl crate::providers::Provider for AzureProvider {
             "sending streaming request to Azure"
         );
 
-        let mut headers = HeaderMap::new();
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self

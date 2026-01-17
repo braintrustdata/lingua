@@ -7,7 +7,7 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, OpenAIConfig, OpenAIProvider, ProviderFormat, Router,
+    serde_json::json, ClientHeaders, OpenAIConfig, OpenAIProvider, ProviderFormat, Router,
 };
 use bytes::Bytes;
 use serde_json::Value;
@@ -53,7 +53,14 @@ async fn main() -> Result<()> {
 
     // Convert payload to bytes and send request
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let bytes = router.complete(body, model, ProviderFormat::OpenAI).await?;
+    let bytes = router
+        .complete(
+            body,
+            model,
+            ProviderFormat::OpenAI,
+            &ClientHeaders::default(),
+        )
+        .await?;
     let response: Value = serde_json::from_slice(&bytes)?;
 
     println!("📝 Response:\n");
