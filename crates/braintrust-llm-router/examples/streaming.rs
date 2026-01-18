@@ -7,8 +7,8 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ProviderFormat,
-    ResponseStream, Router,
+    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders,
+    ProviderFormat, ResponseStream, Router,
 };
 use bytes::Bytes;
 use futures::StreamExt;
@@ -54,7 +54,12 @@ async fn main() -> Result<()> {
 
     let body = Bytes::from(serde_json::to_vec(&payload)?);
     let mut stream = router
-        .complete_stream(body, model, ProviderFormat::OpenAI)
+        .complete_stream(
+            body,
+            model,
+            ProviderFormat::OpenAI,
+            &ClientHeaders::default(),
+        )
         .await?;
 
     // Process the stream
@@ -128,7 +133,12 @@ async fn main() -> Result<()> {
         });
         let body = Bytes::from(serde_json::to_vec(&payload)?);
         let stream = router
-            .complete_stream(body, model, ProviderFormat::OpenAI)
+            .complete_stream(
+                body,
+                model,
+                ProviderFormat::OpenAI,
+                &ClientHeaders::default(),
+            )
             .await?;
         streams.push((model.to_string(), stream));
     }

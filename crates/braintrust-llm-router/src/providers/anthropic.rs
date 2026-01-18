@@ -2,21 +2,25 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use bytes::Bytes;
-use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
+use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Client, StatusCode, Url};
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{default_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
+use crate::providers::ClientHeaders;
 use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
+
+const ANTHROPIC_VERSION: &str = "anthropic-version";
+const ANTHROPIC_BETA: &str = "anthropic-beta";
+const STRUCTURED_OUTPUTS_BETA: &str = "structured-outputs-2025-11-13";
 
 #[derive(Debug, Clone)]
 pub struct AnthropicConfig {
     pub endpoint: Url,
     pub version: String,
-    pub beta: Option<String>,
     pub timeout: Option<Duration>,
 }
 
@@ -26,7 +30,6 @@ impl Default for AnthropicConfig {
             endpoint: Url::parse("https://api.anthropic.com/v1/")
                 .expect("valid Anthropic endpoint"),
             version: "2023-06-01".to_string(),
-            beta: None,
             timeout: None,
         }
     }
@@ -56,7 +59,6 @@ impl AnthropicProvider {
     ///
     /// Extracts Anthropic-specific options from metadata:
     /// - `version`: Anthropic API version (defaults to "2023-06-01")
-    /// - `beta`: Beta feature flag
     pub fn from_config(
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
@@ -74,9 +76,6 @@ impl AnthropicProvider {
         if let Some(version) = metadata.get("version").and_then(Value::as_str) {
             config.version = version.to_string();
         }
-        if let Some(beta) = metadata.get("beta").and_then(Value::as_str) {
-            config.beta = Some(beta.to_string());
-        }
 
         Self::new(config)
     }
@@ -88,18 +87,23 @@ impl AnthropicProvider {
             .expect("join messages path")
     }
 
-    fn apply_headers(&self, headers: &mut HeaderMap) {
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    fn build_headers(&self, client_headers: &ClientHeaders) -> HeaderMap {
+        let mut headers = client_headers.to_json_headers();
+
         headers.insert(
-            "anthropic-version",
+            ANTHROPIC_VERSION,
             HeaderValue::from_str(&self.config.version).expect("version header"),
         );
-        if let Some(beta) = &self.config.beta {
+
+        // Respect caller override: only set default if missing.
+        if !headers.contains_key(ANTHROPIC_BETA) {
             headers.insert(
-                "anthropic-beta",
-                HeaderValue::from_str(beta).unwrap_or_else(|_| HeaderValue::from_static("")),
+                ANTHROPIC_BETA,
+                HeaderValue::from_static(STRUCTURED_OUTPUTS_BETA),
             );
         }
+
+        headers
     }
 }
 
@@ -118,6 +122,7 @@ impl crate::providers::Provider for AnthropicProvider {
         payload: Bytes,
         auth: &AuthConfig,
         _spec: &ModelSpec,
+        client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let url = self.messages_url();
 
@@ -129,8 +134,7 @@ impl crate::providers::Provider for AnthropicProvider {
             "sending request to Anthropic"
         );
 
-        let mut headers = HeaderMap::new();
-        self.apply_headers(&mut headers);
+        let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self
@@ -176,9 +180,10 @@ impl crate::providers::Provider for AnthropicProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self.complete(payload, auth, spec).await?;
+            let response = self.complete(payload, auth, spec, client_headers).await?;
             return Ok(single_bytes_stream(response));
         }
 
@@ -194,8 +199,7 @@ impl crate::providers::Provider for AnthropicProvider {
             "sending streaming request to Anthropic"
         );
 
-        let mut headers = HeaderMap::new();
-        self.apply_headers(&mut headers);
+        let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self
@@ -243,8 +247,7 @@ impl crate::providers::Provider for AnthropicProvider {
             .endpoint
             .join("models")
             .expect("join models path");
-        let mut headers = HeaderMap::new();
-        self.apply_headers(&mut headers);
+        let mut headers = self.build_headers(&ClientHeaders::default());
         auth.apply_headers(&mut headers)?;
 
         let response = self.client.get(url).headers(headers).send().await?;
