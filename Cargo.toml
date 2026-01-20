@@ -68,9 +68,6 @@ env_logger = "0.11"
 # Dependencies for braintrust-llm-router
 # ============================================================================
 
-# Braintrust SDK
-braintrust-sdk-rust = "0.1.0-alpha.1"
-
 # Async runtime
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "signal", "sync"] }
 async-trait = "0.1"
