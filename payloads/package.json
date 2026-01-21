@@ -5,15 +5,20 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "capture": "tsx scripts/capture.ts",
+    "validate": "tsx scripts/validate.ts",
     "prune": "tsx scripts/prune.ts",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint \"./**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"./**/*.{ts,tsx}\" --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "openai": "^5.22.0",
-    "@anthropic-ai/sdk": "^0.63.0"
+    "@anthropic-ai/sdk": "^0.63.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.700.0",
+    "@google/genai": "^1.34.0",
+    "openai": "^5.22.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
@@ -23,6 +28,7 @@
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.4.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^3.0.0"
   }
 }

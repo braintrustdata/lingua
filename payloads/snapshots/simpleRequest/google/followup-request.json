@@ -1,0 +1,28 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What is the capital of France?"
+        }
+      ]
+    },
+    {
+      "parts": [
+        {
+          "text": "The capital of France is **Paris**."
+        }
+      ],
+      "role": "model"
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ]
+}

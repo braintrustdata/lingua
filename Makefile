@@ -1,4 +1,4 @@
-.PHONY: all typescript python test clean help generate-types install-hooks install-wasm-tools setup
+.PHONY: all lingua-wasm typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup
 
 all: typescript python ## Build all bindings
 
@@ -7,11 +7,31 @@ help: ## Show this help message
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
+generate-provider-types: ## Regenerate provider types from OpenAPI specs (usage: make generate-provider-types PROVIDER=openai)
+	@if [ -z "$(PROVIDER)" ]; then \
+		echo "Usage: make generate-provider-types PROVIDER=<provider>"; \
+		echo "Available providers: openai, anthropic, google, all"; \
+		echo "Example: make generate-provider-types PROVIDER=openai"; \
+		exit 1; \
+	fi
+	@echo "Regenerating $(PROVIDER) types from OpenAPI spec..."
+	@cargo run --bin generate-types -- $(PROVIDER)
+
+generate-all-providers: ## Regenerate types for all providers (anthropic, openai, google)
+	@echo "Regenerating all provider types..."
+	./pipelines/generate-provider-types.sh anthropic
+	./pipelines/generate-provider-types.sh openai
+	./pipelines/generate-provider-types.sh google
+
 generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."
 	@cargo test export_bindings --lib --quiet
 
-typescript: generate-types ## Build TypeScript bindings (WASM)
+lingua-wasm: ## Build WASM package
+	@echo "Building WASM package..."
+	cd bindings/lingua-wasm && pnpm run build
+
+typescript: generate-types lingua-wasm ## Build TypeScript bindings (WASM)
 	@echo "Building TypeScript bindings..."
 	cd bindings/typescript && pnpm install && pnpm run build
 
@@ -40,7 +60,8 @@ test-python: ## Run Python tests
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	cargo clean
-	rm -rf bindings/typescript/wasm bindings/typescript/dist bindings/typescript/node_modules
+	rm -rf bindings/lingua-wasm/nodejs bindings/lingua-wasm/web
+	rm -rf bindings/typescript/dist bindings/typescript/node_modules
 	rm -rf bindings/typescript/src/generated
 	rm -rf bindings/python/.venv bindings/python/target
 	rm -rf target/wheels
@@ -61,13 +82,13 @@ install-hooks: ## Install git pre-commit hooks
 	@echo "Installing git hooks..."
 	./scripts/install-hooks.sh
 
-install-wasm-tools: ## Install WASM build tools (wasm32-unknown-unknown target, wasm-bindgen-cli)
+install-wasm-tools: ## Install WASM build tools (wasm32-unknown-unknown target, wasm-pack)
 	@echo "Installing WASM build tools..."
 	@rustup target add wasm32-unknown-unknown
-	@if ! command -v wasm-bindgen >/dev/null 2>&1; then \
-		cargo install wasm-bindgen-cli@0.2.100; \
+	@if ! command -v wasm-pack >/dev/null 2>&1; then \
+		cargo install wasm-pack; \
 	else \
-		echo "✅ wasm-bindgen already installed"; \
+		echo "✅ wasm-pack already installed"; \
 	fi
 
 install-dependencies: ## Install dependencies

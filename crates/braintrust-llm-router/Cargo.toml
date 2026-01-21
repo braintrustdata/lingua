@@ -1,0 +1,137 @@
+[package]
+name = "braintrust-llm-router"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version = "1.75"
+authors = ["Braintrust Team <team@braintrust.dev>"]
+description = "High-performance Rust library for routing requests to various LLM providers"
+documentation = "https://docs.rs/braintrust-llm-router"
+homepage = "https://github.com/braintrustdata/braintrust-llm-router"
+readme = "README.md"
+keywords = ["llm", "ai", "openai", "anthropic", "routing"]
+categories = ["api-bindings", "asynchronous", "network-programming"]
+
+[dependencies]
+# Core async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+rand = { workspace = true }
+
+# Lingua - Universal LLM message format library (workspace)
+lingua = { workspace = true, features = ["openai", "anthropic", "google", "bedrock"] }
+
+# HTTP client
+reqwest = { workspace = true, features = ["json", "stream", "gzip"] }
+hyper = { workspace = true, optional = true }
+http = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+big_serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Utilities
+once_cell = { workspace = true }
+parking_lot = { workspace = true }
+arc-swap = { workspace = true }
+bytes = { workspace = true }
+pin-project = { workspace = true }
+dashmap = { workspace = true }
+log = { workspace = true }
+
+# Provider-specific dependencies
+aws-sigv4 = { workspace = true, optional = true }
+aws-credential-types = { workspace = true, optional = true }
+aws-smithy-runtime-api = { workspace = true, optional = true }
+aws-smithy-eventstream = { workspace = true, optional = true }
+aws-smithy-types = { workspace = true, optional = true }
+jsonwebtoken = { workspace = true, optional = true }
+
+# Logging & tracing
+tracing = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, optional = true }
+
+# Performance
+lru = { workspace = true }
+smallvec = { workspace = true }
+
+# Time handling
+chrono = { workspace = true }
+
+# URL handling
+url = { workspace = true }
+
+# Base64 encoding (for auth)
+base64 = { workspace = true }
+
+# SHA hashing (for cache keys)
+sha2 = { workspace = true }
+
+# Ordered float for cache keys
+ordered-float = { workspace = true }
+
+[dev-dependencies]
+# Testing
+tokio-test = { workspace = true }
+wiremock = { workspace = true }
+proptest = { workspace = true }
+criterion = { workspace = true }
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+tokio-stream = { workspace = true }
+
+# Example/test utilities
+dotenv = { workspace = true }
+clap = { workspace = true }
+
+[features]
+default = ["all-providers", "rustls"]
+all-providers = ["provider-openai", "provider-anthropic", "provider-google", "provider-bedrock"]
+provider-openai = []
+provider-anthropic = []
+provider-google = ["jsonwebtoken"]
+provider-bedrock = ["aws-sigv4", "aws-credential-types", "aws-smithy-runtime-api", "aws-smithy-eventstream", "aws-smithy-types"]
+tracing = ["dep:tracing", "dep:tracing-subscriber"]
+
+# TLS backends
+rustls = ["reqwest/rustls-tls"]
+native-tls = ["reqwest/native-tls"]
+
+# Advanced features
+hyper-client = ["hyper"]
+simd-json = []  # Would require simd-json crate when implemented
+
+[[bench]]
+name = "translation"
+harness = false
+
+[[bench]]
+name = "streaming"
+harness = false
+
+[[example]]
+name = "simple"
+path = "examples/simple.rs"
+
+[[example]]
+name = "streaming"
+path = "examples/streaming.rs"
+
+[[example]]
+name = "multi_provider"
+path = "examples/multi_provider.rs"
+
+[[example]]
+name = "custom_auth"
+path = "examples/custom_auth.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

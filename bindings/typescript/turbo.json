@@ -3,12 +3,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": [
-        "dist/**",
-        "wasm/**",
-        "wasm-web/**"
-      ]
+      "outputs": ["dist/**"]
     }
   }
 }
-

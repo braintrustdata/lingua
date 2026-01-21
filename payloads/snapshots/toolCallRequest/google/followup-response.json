@@ -1,0 +1,46 @@
+{
+  "sdkHttpResponse": {
+    "headers": {
+      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "content-encoding": "gzip",
+      "content-type": "application/json; charset=UTF-8",
+      "date": "Sun, 21 Dec 2025 13:11:58 GMT",
+      "server": "scaffolding on HTTPServer2",
+      "server-timing": "gfet4t7; dur=794",
+      "transfer-encoding": "chunked",
+      "vary": "Origin, X-Origin, Referer",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "0"
+    }
+  },
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Please tell me what you would like to do next, and I will try to help! I can tell you the weather in a particular location if you provide the city and state.",
+            "thoughtSignature": "CuoBAXLI2nxWvixXM2LAU9HXkrQbE+RuNUbY73/MnDG3Dtz/ac3XvvKexPoRXTrPXKMfXtezaw+aGS+E0V5Gb9zV1B4CR1ytCARaKDJVhCmvF6sNmznDdEZpcvIKbSlucK6MN5amICVD8FQkk7m9PY6kTz2Fj9ZNmLaZ3iN5Wl6T2v14+9ZmIDjHypwAVdCJpxJAQo2SNyjgMrvynoiwtFAL4inYFjjOf6vDINnvL03suw27beivkSsPSAlTw0DFj3DfXh1Opr6XIOMJFmfXXjfvYAO2OXe2CdOqB6cSJ9COf7MnPtfkbrzksoH6"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "HfJHaarwONLfjrEP2LjLyA4",
+  "usageMetadata": {
+    "promptTokenCount": 81,
+    "candidatesTokenCount": 36,
+    "totalTokenCount": 158,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 81
+      }
+    ],
+    "thoughtsTokenCount": 41
+  }
+}

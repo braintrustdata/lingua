@@ -1,0 +1,311 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "To find the average speed, we need to calculate the **total distance traveled** and divide it by the **total time taken**.\n\nHere's how to solve it step-by-step:\n\n**Step 1: Calculate the"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaZiyFaLujrEP29jTwAk",
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 48,
+      "totalTokenCount": 829,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 744
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:12:00 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=3687",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " distance traveled in the first part of the journey.**\n*   Speed = 60 mph\n*   Time = 2 hours\n*   Distance = Speed × Time\n*   Distance 1 = 60 mph × "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaZiyFaLujrEP29jTwAk",
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 95,
+      "totalTokenCount": 876,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 744
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:12:00 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=3687",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "2 hours = 120 miles\n\n**Step 2: Calculate the distance traveled in the second part of the journey.**\n*   Speed = 80 mph\n*   Time = 1 hour\n*   Distance ="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaZiyFaLujrEP29jTwAk",
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 143,
+      "totalTokenCount": 924,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 744
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:12:00 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=3687",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " Speed × Time\n*   Distance 2 = 80 mph × 1 hour = 80 miles\n\n**Step 3: Calculate the total distance traveled.**\n*   Total Distance = Distance 1 + Distance 2"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaZiyFaLujrEP29jTwAk",
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 191,
+      "totalTokenCount": 972,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 744
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:12:00 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=3687",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "\n*   Total Distance = 120 miles + 80 miles = 200 miles\n\n**Step 4: Calculate the total time taken.**\n*   Total Time = Time 1 + Time 2\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaZiyFaLujrEP29jTwAk",
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 237,
+      "totalTokenCount": 1018,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 744
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:12:00 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=3687",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   Total Time = 2 hours + 1 hour = 3 hours\n\n**Step 5: Calculate the average speed.**\n*   Average Speed = Total Distance / Total Time\n*   Average Speed = 200"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaZiyFaLujrEP29jTwAk",
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 285,
+      "totalTokenCount": 1066,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 744
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:12:00 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=3687",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " miles / 3 hours\n*   Average Speed $\\approx$ 66.67 mph\n\nThe average speed of the train is approximately **66.67 mph**."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaZiyFaLujrEP29jTwAk",
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 322,
+      "totalTokenCount": 1103,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 744
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:12:00 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=3687",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  }
+]

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { CaptureResult, ProviderExecutor } from "../types";
+import { CaptureResult, ExecuteOptions, ProviderExecutor } from "../types";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 
 // Anthropic cases - extracted from unified cases
@@ -29,7 +29,7 @@ type ParallelAnthropicResult =
 export async function executeAnthropic(
   caseName: string,
   payload: Anthropic.Messages.MessageCreateParams,
-  stream?: boolean
+  options?: ExecuteOptions
 ): Promise<
   CaptureResult<
     Anthropic.Messages.MessageCreateParams,
@@ -37,7 +37,12 @@ export async function executeAnthropic(
     unknown
   >
 > {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const { stream, baseURL, apiKey } = options ?? {};
+  const client = new Anthropic({
+    apiKey: apiKey ?? process.env.ANTHROPIC_API_KEY,
+    // Anthropic SDK adds /messages, gateway expects /v1/messages
+    baseURL: baseURL ? `${baseURL}/v1` : undefined,
+  });
   const result: CaptureResult<
     Anthropic.Messages.MessageCreateParams,
     Anthropic.Messages.Message,
@@ -227,4 +232,5 @@ export const anthropicExecutor: ProviderExecutor<
   name: "anthropic",
   cases: anthropicCases,
   execute: executeAnthropic,
+  ignoredFields: ["id", "content.*.text", "usage"],
 };

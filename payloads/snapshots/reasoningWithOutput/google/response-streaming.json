@@ -1,0 +1,311 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "The sky is most commonly **blue**.\n\nHowever, its color can change dramatically depending on the time of day, weather, and atmospheric conditions:\n\n*   **Blue:** This is due to Rayleigh scattering. Sunlight contains all colors, but when it"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaauWF-bRjrEP4LfaKQ",
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 50,
+      "totalTokenCount": 566,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 509
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:59 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=2857",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " enters Earth's atmosphere, blue light (which has shorter wavelengths) is scattered more efficiently by the tiny nitrogen and oxygen molecules. This scattered blue light reaches our eyes from all directions, making the sky appear blue.\n*   **Red,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaauWF-bRjrEP4LfaKQ",
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 99,
+      "totalTokenCount": 615,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 509
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:59 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=2857",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " Orange, Pink, Purple:** At **sunrise and sunset**, the sun's light has to travel through more of the atmosphere to reach our eyes. Most of the blue and green light gets scattered away, leaving the longer-wavelength red,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaauWF-bRjrEP4LfaKQ",
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 147,
+      "totalTokenCount": 663,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 509
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:59 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=2857",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " orange, and yellow light to be seen. Clouds can also reflect these colors, creating stunning pinks and purples.\n*   **Grey/Dark Blue:** When it's **cloudy or stormy**, clouds block and reflect sunlight, making"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaauWF-bRjrEP4LfaKQ",
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 197,
+      "totalTokenCount": 713,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 509
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:59 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=2857",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " the sky appear grey or a very dark, ominous blue.\n*   **Black:** At **night**, without the sun's light interacting with the atmosphere, the sky appears black, allowing us to see stars.\n*   **Hazy/"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaauWF-bRjrEP4LfaKQ",
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 248,
+      "totalTokenCount": 764,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 509
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:59 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=2857",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Yellowish/Reddish:** Sometimes, due to **pollution, dust, or smoke** (e.g., from wildfires), the sky can take on a hazy, yellowish, or reddish tint, as these particles scatter light differently.\n\nSo"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaauWF-bRjrEP4LfaKQ",
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 297,
+      "totalTokenCount": 813,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 509
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:59 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=2857",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", while blue is its most iconic color, the sky is a dynamic canvas of many hues!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaauWF-bRjrEP4LfaKQ",
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 316,
+      "totalTokenCount": 832,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 509
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:59 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=2857",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  }
+]

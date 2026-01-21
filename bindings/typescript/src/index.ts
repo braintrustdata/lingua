@@ -1,12 +1,12 @@
 /**
- * Lingua TypeScript Bindings
+ * Lingua TypeScript Bindings (Node.js)
  *
  * Universal message format for LLMs
  */
 
-import * as wasm from "../wasm/lingua.js";
+import * as wasm from "@braintrust/lingua-wasm";
 
-import { ensureOnce, getWasm, setWasm } from "./wasm-runtime";
+import { setWasm, getWasm, ensureOnce } from "./wasm-runtime";
 
 setWasm(wasm);
 

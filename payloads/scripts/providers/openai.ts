@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { CaptureResult, ProviderExecutor } from "../types";
+import { CaptureResult, ExecuteOptions, ProviderExecutor } from "../types";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 
 // Define specific types for OpenAI
@@ -35,9 +35,13 @@ type ParallelOpenAIResult =
 export async function executeOpenAI(
   caseName: string,
   payload: OpenAIRequest,
-  stream?: boolean
+  options?: ExecuteOptions
 ): Promise<CaptureResult<OpenAIRequest, OpenAIResponse, OpenAIStreamChunk>> {
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const { stream, baseURL, apiKey } = options ?? {};
+  const client = new OpenAI({
+    apiKey: apiKey ?? process.env.OPENAI_API_KEY,
+    baseURL: baseURL ? `${baseURL}/v1` : undefined,
+  });
   const result: CaptureResult<
     OpenAIRequest,
     OpenAIResponse,
@@ -204,4 +208,18 @@ export const openaiExecutor: ProviderExecutor<
   name: "chat-completions",
   cases: openaiCases,
   execute: executeOpenAI,
+  ignoredFields: [
+    "id",
+    "created",
+    "model",
+    "service_tier",
+    "system_fingerprint",
+    "choices.*.message.content",
+    "choices.*.message.tool_calls.*.id",
+    "choices.*.delta.content",
+    "choices.*.delta.tool_calls.*.id",
+    "choices.*.finish_reason",
+    "usage",
+    "obfuscation",
+  ],
 };

@@ -1,0 +1,40 @@
+{
+  "name": "@braintrust/lingua-wasm",
+  "version": "0.1.0",
+  "description": "WASM bindings for Lingua",
+  "scripts": {
+    "build": "pnpm run build:nodejs && pnpm run build:web",
+    "build:nodejs": "cd ../../crates/lingua && wasm-pack build --target nodejs --release --out-dir ../../bindings/lingua-wasm/nodejs --no-pack",
+    "build:web": "cd ../../crates/lingua && wasm-pack build --target web --release --out-dir ../../bindings/lingua-wasm/web --no-pack"
+  },
+  "files": [
+    "nodejs",
+    "web"
+  ],
+  "main": "nodejs/lingua.js",
+  "types": "nodejs/lingua.d.ts",
+  "exports": {
+    ".": {
+      "types": "./nodejs/lingua.d.ts",
+      "import": "./nodejs/lingua.js",
+      "default": "./nodejs/lingua.js"
+    },
+    "./nodejs": {
+      "types": "./nodejs/lingua.d.ts",
+      "import": "./nodejs/lingua.js",
+      "default": "./nodejs/lingua.js"
+    },
+    "./browser": {
+      "types": "./web/lingua.d.ts",
+      "import": "./web/lingua.js",
+      "default": "./web/lingua.js"
+    },
+    "./browser/lingua_bg.wasm": "./web/lingua_bg.wasm"
+  },
+  "sideEffects": [
+    "./nodejs/lingua.js",
+    "./web/lingua.js"
+  ],
+  "license": "MIT"
+}
+

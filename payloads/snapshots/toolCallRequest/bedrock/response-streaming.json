@@ -1,0 +1,101 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockStart": {
+      "start": {
+        "toolUse": {
+          "toolUseId": "tooluse_goAizSZrTlKUF-GLdqmWSA",
+          "name": "get_weather",
+          "type": "tool_use"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": ""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "{\"locati"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "on\": \"San "
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "Fr"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "ancisco, CA"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "\"}"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "tool_use"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 585,
+        "outputTokens": 57,
+        "totalTokens": 642
+      },
+      "metrics": {
+        "latencyMs": 762
+      }
+    }
+  }
+]

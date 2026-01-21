@@ -1,0 +1,31 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+        }
+      ]
+    },
+    {
+      "parts": [
+        {
+          "text": "Let'"
+        }
+      ],
+      "role": "model"
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "maxOutputTokens": 100
+  }
+}

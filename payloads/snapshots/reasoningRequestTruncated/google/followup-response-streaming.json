@@ -1,0 +1,47 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Okay"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HvJHafriCdmG-8YPxcjikAQ",
+    "usageMetadata": {
+      "promptTokenCount": 47,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 143,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 47
+        }
+      ],
+      "thoughtsTokenCount": 95
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:58 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=725",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  }
+]

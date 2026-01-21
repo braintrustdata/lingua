@@ -3,11 +3,11 @@
 /**
  * A tool available on an MCP server.
  */
-export type McpListToolsTool = { annotations: any, description: string | null, 
+export type McpListToolsTool = { annotations: unknown, description: string | null, 
 /**
  * The JSON schema describing the tool's input.
  */
-input_schema: any, 
+input_schema: unknown, 
 /**
  * The name of the tool.
  */

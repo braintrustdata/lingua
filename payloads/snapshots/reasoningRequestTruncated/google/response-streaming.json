@@ -1,0 +1,47 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Let's"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "HfJHaYbyGoOkjrEPhfG76Ac",
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 3,
+      "totalTokenCount": 133,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 93
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Sun, 21 Dec 2025 13:11:57 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=849",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  }
+]
