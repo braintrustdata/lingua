@@ -1,0 +1,14 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 300,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Write a haiku about coding."
+    },
+    {
+      "role": "assistant",
+      "content": "Here is a haiku:"
+    }
+  ]
+}

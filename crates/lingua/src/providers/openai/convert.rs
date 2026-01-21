@@ -212,10 +212,44 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 });
             }
             openai::InputItemContentListType::InputFile => {
-                // Handle file input if needed in the future
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: "InputFile content type".to_string(),
-                });
+                // Extract file data
+                let file_data =
+                    value
+                        .file_data
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: "file_data".to_string(),
+                        })?;
+
+                // Extract filename if available
+                let filename = value.filename;
+
+                // Parse media type from data URL (e.g., "data:application/pdf;base64,...")
+                let media_type = if file_data.starts_with("data:") {
+                    file_data
+                        .split(';')
+                        .next()
+                        .and_then(|part| part.strip_prefix("data:"))
+                        .unwrap_or("application/octet-stream")
+                        .to_string()
+                } else {
+                    "application/octet-stream".to_string()
+                };
+
+                // Determine if it's an image or other file based on MIME type
+                if media_type.starts_with("image/") {
+                    UserContentPart::Image {
+                        image: serde_json::Value::String(file_data),
+                        media_type: Some(media_type),
+                        provider_options: None,
+                    }
+                } else {
+                    UserContentPart::File {
+                        data: serde_json::Value::String(file_data),
+                        filename,
+                        media_type,
+                        provider_options: None,
+                    }
+                }
             }
             openai::InputItemContentListType::ReasoningText => {
                 // Handle reasoning text - treat as regular text for now
@@ -306,10 +340,22 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
-            _ => {
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: format!("UserContentPart variant: {:?}", part),
-                })
+            UserContentPart::File { data, filename, .. } => {
+                let file_data = match data {
+                    serde_json::Value::String(url) => url,
+                    _ => {
+                        return Err(ConvertError::UnsupportedInputType {
+                            type_info: format!("File data must be string URL, got: {:?}", data),
+                        })
+                    }
+                };
+
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputFile,
+                    file_data: Some(file_data),
+                    filename: filename.clone(),
+                    ..Default::default()
+                }
             }
         })
     }
@@ -479,8 +525,6 @@ impl TryFromLLM<Message> for openai::InputItem {
                         role: Some(openai::InputItemRole::Assistant),
                         content: Some(openai::InputItemContent::String(text)),
                         id,
-                        input_item_type: Some(openai::InputItemType::Message),
-                        status: Some(openai::FunctionCallItemStatus::Completed),
                         ..Default::default()
                     }),
                     AssistantContent::Array(parts) => {
@@ -787,7 +831,7 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
     type Error = ConvertError;
 
     fn try_from(input_item: openai::InputItem) -> Result<Self, Self::Error> {
-        // Convert InputItem to OutputItem by mapping the fields
+        // Convert InputItem type to OutputItem type
         let output_item_type = match input_item.input_item_type {
             Some(openai::InputItemType::Message) => Some(openai::OutputItemType::Message),
             Some(openai::InputItemType::Reasoning) => Some(openai::OutputItemType::Reasoning),
@@ -795,7 +839,19 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             Some(openai::InputItemType::CustomToolCall) => {
                 Some(openai::OutputItemType::CustomToolCall)
             }
-            _ => None,
+            _ => {
+                // Infer type from other fields if not explicitly set
+                // This handles InputItems that came from Message conversion where type wasn't set
+                if input_item.content.is_some() {
+                    Some(openai::OutputItemType::Message)
+                } else if input_item.summary.is_some() {
+                    Some(openai::OutputItemType::Reasoning)
+                } else if input_item.call_id.is_some() && input_item.name.is_some() {
+                    Some(openai::OutputItemType::FunctionCall)
+                } else {
+                    None
+                }
+            }
         };
 
         // Convert content from InputItemContent to Vec<OutputMessageContent>
@@ -830,11 +886,22 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             _ => None, // OutputItem only supports Assistant role
         });
 
+        // Infer status if not set - messages should have completed status
+        let status = input_item.status.or_else(|| {
+            if output_item_type == Some(openai::OutputItemType::Message)
+                || output_item_type == Some(openai::OutputItemType::FunctionCall)
+            {
+                Some(openai::FunctionCallItemStatus::Completed)
+            } else {
+                None
+            }
+        });
+
         Ok(openai::OutputItem {
             role,
             content,
             output_item_type,
-            status: input_item.status,
+            status,
             id: input_item.id,
             summary: input_item.summary,
             arguments: input_item.arguments,
@@ -1195,6 +1262,57 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     })
                 }
             }
+            openai::PurpleType::File => {
+                if let Some(file) = part.file {
+                    // Convert File to UserContentPart::File
+                    // Priority: file_data over file_id
+                    let (data, media_type) = if let Some(file_data) = file.file_data {
+                        // Extract media type from data URL if present (e.g., "data:application/pdf;base64,...")
+                        let media_type = if file_data.starts_with("data:") {
+                            file_data
+                                .split(';')
+                                .next()
+                                .and_then(|s| s.strip_prefix("data:"))
+                                .unwrap_or("application/octet-stream")
+                                .to_string()
+                        } else {
+                            "application/octet-stream".to_string()
+                        };
+
+                        let data_value = serde_json::to_value(&file_data).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "file_data".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?;
+                        (data_value, media_type)
+                    } else if let Some(file_id) = file.file_id {
+                        let data_value = serde_json::to_value(&file_id).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "file_id".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?;
+                        // File IDs don't have media type info, use generic
+                        (data_value, "application/octet-stream".to_string())
+                    } else {
+                        return Err(ConvertError::MissingRequiredField {
+                            field: "file_data or file_id".to_string(),
+                        });
+                    };
+
+                    Ok(UserContentPart::File {
+                        data,
+                        filename: file.filename,
+                        media_type,
+                        provider_options: None,
+                    })
+                } else {
+                    Err(ConvertError::MissingRequiredField {
+                        field: "file".to_string(),
+                    })
+                }
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -1341,12 +1459,37 @@ fn convert_user_content_part_to_chat_completion_part(
                 refusal: None,
             })
         }
-        _ => Err(ConvertError::UnsupportedInputType {
-            type_info: format!(
-                "UserContentPart variant in ChatCompletion conversion: {:?}",
-                part
-            ),
-        }),
+        UserContentPart::File {
+            data,
+            filename,
+            media_type: _,
+            provider_options: _,
+        } => {
+            // Convert file data to File format
+            let file_data = match data {
+                serde_json::Value::String(data_str) => data_str,
+                _ => {
+                    return Err(ConvertError::UnsupportedInputType {
+                        type_info: format!(
+                            "File data must be string for ChatCompletion, got: {:?}",
+                            data
+                        ),
+                    })
+                }
+            };
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: None,
+                chat_completion_request_message_content_part_type: openai::PurpleType::File,
+                image_url: None,
+                input_audio: None,
+                file: Some(openai::File {
+                    file_data: Some(file_data),
+                    file_id: None,
+                    filename,
+                }),
+                refusal: None,
+            })
+        }
     }
 }
 

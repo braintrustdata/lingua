@@ -1,4 +1,15 @@
 import { TestCaseCollection, TestCase, ProviderType } from "./types";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+// Path to shared files directory
+const FILES_DIR = join(__dirname, "..", "files");
+
+// Helper to read a file as base64
+export function readFileAsBase64(filename: string): string {
+  const filePath = join(FILES_DIR, filename);
+  return readFileSync(filePath, "base64");
+}
 
 // Helper to get all case names from a collection
 export function getCaseNames(collection: TestCaseCollection): string[] {

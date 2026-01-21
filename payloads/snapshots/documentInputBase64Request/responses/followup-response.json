@@ -1,0 +1,74 @@
+{
+  "id": "resp_04df2acaddbe6c1300690bc357b6a0819687721958ea91cf80",
+  "object": "response",
+  "created_at": 1762378584,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_04df2acaddbe6c1300690bc35866a48196a3f7066a8bb96e85",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_04df2acaddbe6c1300690bc358829c81969d0cfe09deabd705",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here are a few options you can consider next:\n\n- Paste the text: Copy and paste the sentences from the PDF, and I’ll summarize, analyze, or extract key points.\n- Share an image/page: Upload a page image (or a few) and I’ll describe or summarize what’s visible.\n- Tell me your goal: Let me know if you want a summary, keywords, tone analysis, or to convert to another format (plain text, outline, etc.).\n- If you want extraction: I can pull out specific elements like names, dates, numbers, or any defined entities.\n\nHow would you like to proceed?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "minimal",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 79,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 132,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 211
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here are a few options you can consider next:\n\n- Paste the text: Copy and paste the sentences from the PDF, and I’ll summarize, analyze, or extract key points.\n- Share an image/page: Upload a page image (or a few) and I’ll describe or summarize what’s visible.\n- Tell me your goal: Let me know if you want a summary, keywords, tone analysis, or to convert to another format (plain text, outline, etc.).\n- If you want extraction: I can pull out specific elements like names, dates, numbers, or any defined entities.\n\nHow would you like to proceed?"
+}
