@@ -4,7 +4,10 @@ use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::Message;
-use crate::universal::{AssistantContent, TextContentPart, UserContent, UserContentPart};
+use crate::universal::{
+    AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
+    ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+};
 use serde::{Deserialize, Serialize};
 
 /// Represents a minimal span structure with input/output fields
@@ -52,7 +55,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         // Still try nested object search (for wrapped messages like {messages: [...]})
         if let Value::Object(obj) = data {
             for key in [
-                "messages", "input", "output", "choices", "result", "response",
+                "messages", "prompt", "input", "output", "choices", "result", "response",
             ] {
                 if let Some(nested) = obj.get(key) {
                     let nested_messages = try_converting_to_messages(nested);
@@ -143,38 +146,37 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
 /// - Custom LLM wrappers
 /// - Logging that doesn't perfectly match provider formats
 /// - Messages with extra/missing fields
+fn parse_lenient_message_item(item: &Value) -> Option<Message> {
+    let obj = item.as_object()?;
+    let role_str = obj.get("role")?.as_str()?;
+    let content_value = obj.get("content")?;
+
+    match role_str {
+        "user" => Some(Message::User {
+            content: parse_user_content(content_value)?,
+        }),
+        "system" => Some(Message::System {
+            content: parse_user_content(content_value)?,
+        }),
+        "assistant" => Some(Message::Assistant {
+            content: parse_assistant_content(content_value)?,
+            id: None,
+        }),
+        "tool" => Some(Message::Tool {
+            content: parse_tool_content(content_value)?,
+        }),
+        _ => None,
+    }
+}
+
 fn try_lenient_message_parsing(data: &Value) -> Option<Vec<Message>> {
-    // Only process arrays
     let arr = data.as_array()?;
     let mut messages = Vec::new();
 
     for item in arr {
-        let obj = item.as_object()?;
-
-        // Must have a "role" field
-        let role_str = obj.get("role")?.as_str()?;
-
-        // Must have a "content" field
-        let content_value = obj.get("content")?;
-
-        // Create message based on role
-        let message = match role_str {
-            "user" => {
-                let content = parse_user_content(content_value)?;
-                Message::User { content }
-            }
-            "system" => {
-                let content = parse_user_content(content_value)?;
-                Message::System { content }
-            }
-            "assistant" => {
-                let content = parse_assistant_content(content_value)?;
-                Message::Assistant { content, id: None }
-            }
-            _ => continue, // Skip unknown roles (including "tool" for now)
-        };
-
-        messages.push(message);
+        if let Some(message) = parse_lenient_message_item(item) {
+            messages.push(message);
+        }
     }
 
     if messages.is_empty() {
@@ -232,6 +234,30 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
                                     },
                                 ));
                             }
+                        } else if text_type == "tool-call" {
+                            let tool_call_id = obj.get("toolCallId")?.as_str()?.to_string();
+                            let tool_name = obj
+                                .get("toolName")
+                                .and_then(Value::as_str)
+                                .unwrap_or_default()
+                                .to_string();
+                            let arguments = match obj.get("input") {
+                                Some(Value::Object(map)) => {
+                                    ToolCallArguments::Valid(map.clone())
+                                }
+                                Some(Value::String(s)) => ToolCallArguments::Invalid(s.clone()),
+                                Some(other) => ToolCallArguments::Invalid(
+                                    serde_json::to_string(other).unwrap_or_default(),
+                                ),
+                                None => ToolCallArguments::Invalid(String::new()),
+                            };
+                            parts.push(AssistantContentPart::ToolCall {
+                                tool_call_id,
+                                tool_name,
+                                arguments,
+                                provider_options: None,
+                                provider_executed: None,
+                            });
                         }
                     }
                 }
@@ -240,6 +266,41 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
                 None
             } else {
                 Some(AssistantContent::Array(parts))
+            }
+        }
+        _ => None,
+    }
+}
+
+fn parse_tool_content(value: &Value) -> Option<ToolContent> {
+    match value {
+        Value::Array(arr) => {
+            let mut parts = Vec::new();
+            for item in arr {
+                if let Some(obj) = item.as_object() {
+                    if let Some(Value::String(text_type)) = obj.get("type") {
+                        if text_type == "tool-result" {
+                            let tool_call_id = obj.get("toolCallId")?.as_str()?.to_string();
+                            let tool_name = obj
+                                .get("toolName")
+                                .and_then(Value::as_str)
+                                .unwrap_or_default()
+                                .to_string();
+                            let output = obj.get("output").cloned().unwrap_or(Value::Null);
+                            parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
+                                tool_call_id,
+                                tool_name,
+                                output,
+                                provider_options: None,
+                            }));
+                        }
+                    }
+                }
+            }
+            if parts.is_empty() {
+                None
+            } else {
+                Some(parts)
             }
         }
         _ => None,
@@ -460,5 +521,41 @@ mod tests {
         };
         let messages = import_messages_from_spans(vec![span]);
         assert_eq!(messages.len(), 3); // 2 from input, 1 from output
+    }
+
+    #[test]
+    fn test_import_spans_with_prompt_wrapper_and_tool_calls() {
+        let span = Span {
+            input: Some(crate::serde_json::json!({
+                "prompt": [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": [{"type": "text", "text": "Hello"}]},
+                    {
+                        "role": "assistant",
+                        "content": [{
+                            "type": "tool-call",
+                            "toolCallId": "call_1",
+                            "toolName": "bash",
+                            "input": {"command": "ls"}
+                        }]
+                    },
+                    {
+                        "role": "tool",
+                        "content": [{
+                            "type": "tool-result",
+                            "toolCallId": "call_1",
+                            "toolName": "bash",
+                            "output": {"stdout": "ok"}
+                        }]
+                    },
+                    {"role": "assistant", "content": [{"type": "text", "text": "Done"}]}
+                ]
+            })),
+            output: None,
+            other: crate::serde_json::Map::new(),
+        };
+
+        let messages = import_messages_from_spans(vec![span]);
+        assert_eq!(messages.len(), 5);
     }
 }
