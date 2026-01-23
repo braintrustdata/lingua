@@ -70,8 +70,8 @@ importers:
   payloads:
     dependencies:
       '@anthropic-ai/sdk':
-        specifier: ^0.63.0
-        version: 0.63.1
+        specifier: ^0.71.2
+        version: 0.71.2
       '@aws-sdk/client-bedrock-runtime':
         specifier: ^3.700.0
         version: 3.958.0
@@ -114,6 +114,15 @@ packages:
 
   '@anthropic-ai/sdk@0.63.1':
     resolution: {integrity: sha512-wMA/Xx5GLO+npV992YKUfsmlI6699XG/jFjCPTf/nsMBfUh3e3KmNiOKuhqSMZibOjoLOlhYc7L4pfLPI8A+RA==}
+    hasBin: true
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
+
+  '@anthropic-ai/sdk@0.71.2':
+    resolution: {integrity: sha512-TGNDEUuEstk/DKu0/TflXAEt+p+p/WhTlFzEnoosvbaDU2LTjm42igSdlL0VijrKpWejtOKxX0b8A7uc+XiSAQ==}
     hasBin: true
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
@@ -2414,6 +2423,10 @@ packages:
 snapshots:
 
   '@anthropic-ai/sdk@0.63.1':
+    dependencies:
+      json-schema-to-ts: 3.1.1
+
+  '@anthropic-ai/sdk@0.71.2':
     dependencies:
       json-schema-to-ts: 3.1.1
 

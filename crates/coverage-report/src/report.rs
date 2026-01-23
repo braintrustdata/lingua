@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use lingua::processing::adapters::ProviderAdapter;
 
 use crate::runner::RoundtripResults;
-use crate::types::{PairResult, RoundtripResult, TableStats};
+use crate::types::{IssueEntry, PairResult, RoundtripResult, TableResult, TableStats};
 
 pub fn format_cell(pair_result: &PairResult) -> String {
     let total = pair_result.passed + pair_result.failed;
@@ -23,17 +23,22 @@ pub fn format_cell(pair_result: &PairResult) -> String {
     format!("{} {}/{}", emoji, pair_result.passed, total)
 }
 
+/// Generate a coverage table with statistics and issue details.
 pub fn generate_table(
     results: &HashMap<(usize, usize), PairResult>,
     adapters: &[Box<dyn ProviderAdapter>],
     title: &str,
-) -> (String, TableStats, Vec<(String, String, String)>) {
+) -> TableResult {
     let mut table = String::new();
     let mut stats = TableStats {
         passed: 0,
         failed: 0,
+        limitations: 0,
+        missing_fixtures: 0,
     };
-    let mut all_failures: Vec<(String, String, String)> = Vec::new();
+    let mut all_failures: Vec<IssueEntry> = Vec::new();
+    let mut all_limitations: Vec<IssueEntry> = Vec::new();
+    let mut all_missing_fixtures: Vec<IssueEntry> = Vec::new();
 
     table.push_str(&format!("### {}\n\n", title));
     table.push_str("| Source ↓ / Target → |");
@@ -57,9 +62,27 @@ pub fn generate_table(
 
                 stats.passed += pair_result.passed;
                 stats.failed += pair_result.failed;
+                stats.limitations += pair_result.limitations;
+                stats.missing_fixtures += pair_result.missing_fixtures;
 
                 for (test_case, error) in &pair_result.failures {
                     all_failures.push((
+                        format!("{} → {}", source.display_name(), target.display_name()),
+                        test_case.clone(),
+                        error.clone(),
+                    ));
+                }
+
+                for (test_case, error) in &pair_result.limitation_details {
+                    all_limitations.push((
+                        format!("{} → {}", source.display_name(), target.display_name()),
+                        test_case.clone(),
+                        error.clone(),
+                    ));
+                }
+
+                for (test_case, error) in &pair_result.missing_fixture_details {
+                    all_missing_fixtures.push((
                         format!("{} → {}", source.display_name(), target.display_name()),
                         test_case.clone(),
                         error.clone(),
@@ -70,7 +93,13 @@ pub fn generate_table(
         table.push('\n');
     }
 
-    (table, stats, all_failures)
+    TableResult {
+        markdown: table,
+        stats,
+        failures: all_failures,
+        limitations: all_limitations,
+        missing_fixtures: all_missing_fixtures,
+    }
 }
 
 // ============================================================================
@@ -259,25 +288,27 @@ pub fn generate_report(
 
     report.push_str("## Cross-Provider Transformation Coverage\n\n");
 
-    let (req_table, req_stats, req_failures) =
-        generate_table(request_results, adapters, "Request Transformations");
-    report.push_str(&req_table);
+    let req = generate_table(request_results, adapters, "Request Transformations");
+    report.push_str(&req.markdown);
 
     report.push('\n');
-    let (resp_table, resp_stats, resp_failures) =
-        generate_table(response_results, adapters, "Response Transformations");
-    report.push_str(&resp_table);
+    let resp = generate_table(response_results, adapters, "Response Transformations");
+    report.push_str(&resp.markdown);
 
     report.push('\n');
-    let (stream_table, stream_stats, stream_failures) = generate_table(
+    let stream = generate_table(
         streaming_results,
         adapters,
         "Streaming Response Transformations",
     );
-    report.push_str(&stream_table);
+    report.push_str(&stream.markdown);
 
-    let total_passed = req_stats.passed + resp_stats.passed + stream_stats.passed;
-    let total_failed = req_stats.failed + resp_stats.failed + stream_stats.failed;
+    let total_passed = req.stats.passed + resp.stats.passed + stream.stats.passed;
+    let total_failed = req.stats.failed + resp.stats.failed + stream.stats.failed;
+    let total_limitations =
+        req.stats.limitations + resp.stats.limitations + stream.stats.limitations;
+    let total_missing =
+        req.stats.missing_fixtures + resp.stats.missing_fixtures + stream.stats.missing_fixtures;
     let total = total_passed + total_failed;
 
     let pass_percentage = if total > 0 {
@@ -288,37 +319,49 @@ pub fn generate_report(
 
     report.push_str("\n### Summary\n\n");
     report.push_str(&format!(
-        "**{}/{} ({:.1}%)** - {} failed\n",
-        total_passed, total, pass_percentage, total_failed
+        "**{}/{} ({:.1}%)** - {} failed, {} limitations, {} missing fixtures\n",
+        total_passed, total, pass_percentage, total_failed, total_limitations, total_missing
     ));
 
-    let req_total = req_stats.passed + req_stats.failed;
-    let resp_total = resp_stats.passed + resp_stats.failed;
-    let stream_total = stream_stats.passed + stream_stats.failed;
+    let req_total = req.stats.passed + req.stats.failed;
+    let resp_total = resp.stats.passed + resp.stats.failed;
+    let stream_total = stream.stats.passed + stream.stats.failed;
 
     report.push_str(&format!(
-        "\n**Requests:** {}/{} passed, {} failed\n",
-        req_stats.passed, req_total, req_stats.failed
+        "\n**Requests:** {}/{} passed, {} failed, {} limitations, {} missing\n",
+        req.stats.passed,
+        req_total,
+        req.stats.failed,
+        req.stats.limitations,
+        req.stats.missing_fixtures
     ));
     report.push_str(&format!(
-        "**Responses:** {}/{} passed, {} failed\n",
-        resp_stats.passed, resp_total, resp_stats.failed
+        "**Responses:** {}/{} passed, {} failed, {} limitations, {} missing\n",
+        resp.stats.passed,
+        resp_total,
+        resp.stats.failed,
+        resp.stats.limitations,
+        resp.stats.missing_fixtures
     ));
     report.push_str(&format!(
-        "**Streaming:** {}/{} passed, {} failed\n",
-        stream_stats.passed, stream_total, stream_stats.failed
+        "**Streaming:** {}/{} passed, {} failed, {} limitations, {} missing\n",
+        stream.stats.passed,
+        stream_total,
+        stream.stats.failed,
+        stream.stats.limitations,
+        stream.stats.missing_fixtures
     ));
 
     // Organize issues by source provider → request/response/streaming → target
-    if !req_failures.is_empty() || !resp_failures.is_empty() || !stream_failures.is_empty() {
+    if !req.failures.is_empty() || !resp.failures.is_empty() || !stream.failures.is_empty() {
         report.push_str("\n### Issues by Source\n\n");
 
         // Group failures by source provider, keeping request/response/streaming separate
-        let mut req_by_source: HashMap<String, Vec<(String, String, String)>> = HashMap::new();
-        let mut resp_by_source: HashMap<String, Vec<(String, String, String)>> = HashMap::new();
-        let mut stream_by_source: HashMap<String, Vec<(String, String, String)>> = HashMap::new();
+        let mut req_by_source: HashMap<String, Vec<IssueEntry>> = HashMap::new();
+        let mut resp_by_source: HashMap<String, Vec<IssueEntry>> = HashMap::new();
+        let mut stream_by_source: HashMap<String, Vec<IssueEntry>> = HashMap::new();
 
-        for (direction, test_case, error) in req_failures {
+        for (direction, test_case, error) in req.failures {
             let source = direction
                 .split(" → ")
                 .next()
@@ -330,7 +373,7 @@ pub fn generate_report(
                 .push((direction, test_case, error));
         }
 
-        for (direction, test_case, error) in resp_failures {
+        for (direction, test_case, error) in resp.failures {
             let source = direction
                 .split(" → ")
                 .next()
@@ -342,7 +385,7 @@ pub fn generate_report(
                 .push((direction, test_case, error));
         }
 
-        for (direction, test_case, error) in stream_failures {
+        for (direction, test_case, error) in stream.failures {
             let source = direction
                 .split(" → ")
                 .next()
@@ -507,6 +550,116 @@ pub fn generate_report(
 
             report.push_str("</details>\n\n");
         }
+    }
+
+    // Add provider limitations section
+    let all_limitations: Vec<_> = req
+        .limitations
+        .into_iter()
+        .chain(resp.limitations)
+        .chain(stream.limitations)
+        .collect();
+
+    if !all_limitations.is_empty() {
+        report.push_str("\n### Provider Limitations\n\n");
+        report.push_str("These are provider-specific features that cannot be transformed:\n\n");
+
+        // Group by source provider
+        let mut by_source: HashMap<String, Vec<IssueEntry>> = HashMap::new();
+        for (direction, test_case, error) in all_limitations {
+            let source = direction
+                .split(" → ")
+                .next()
+                .unwrap_or(&direction)
+                .to_string();
+            by_source
+                .entry(source)
+                .or_default()
+                .push((direction, test_case, error));
+        }
+
+        let mut sources: Vec<_> = by_source.into_iter().collect();
+        sources.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+
+        for (source, limitations) in sources {
+            report.push_str("<details>\n");
+            report.push_str(&format!(
+                "<summary>⚠️ {} ({} limitations)</summary>\n\n",
+                source,
+                limitations.len()
+            ));
+
+            // Group by target
+            let mut by_target: HashMap<String, Vec<(String, String)>> = HashMap::new();
+            for (direction, test_case, error) in limitations {
+                let target = direction
+                    .split(" → ")
+                    .nth(1)
+                    .unwrap_or("Unknown")
+                    .to_string();
+                by_target
+                    .entry(target)
+                    .or_default()
+                    .push((test_case, error));
+            }
+
+            let mut targets: Vec<_> = by_target.into_iter().collect();
+            targets.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+
+            for (target, target_limitations) in targets {
+                report.push_str(&format!("**→ {}:**\n", target));
+                for (test_case, error) in target_limitations {
+                    report.push_str(&format!("  - `{}` - {}\n", test_case, error));
+                }
+                report.push('\n');
+            }
+
+            report.push_str("</details>\n\n");
+        }
+    }
+
+    // Add missing fixtures section (collapsed by default)
+    let all_missing: Vec<_> = req
+        .missing_fixtures
+        .into_iter()
+        .chain(resp.missing_fixtures)
+        .chain(stream.missing_fixtures)
+        .collect();
+
+    if !all_missing.is_empty() {
+        report.push_str("\n### Missing Test Fixtures\n\n");
+        report.push_str("<details>\n");
+        report.push_str(&format!(
+            "<summary>📁 {} missing fixtures (expand to see details)</summary>\n\n",
+            all_missing.len()
+        ));
+
+        // Group by source provider
+        let mut by_source: HashMap<String, Vec<IssueEntry>> = HashMap::new();
+        for (direction, test_case, error) in all_missing {
+            let source = direction
+                .split(" → ")
+                .next()
+                .unwrap_or(&direction)
+                .to_string();
+            by_source
+                .entry(source)
+                .or_default()
+                .push((direction, test_case, error));
+        }
+
+        let mut sources: Vec<_> = by_source.into_iter().collect();
+        sources.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+
+        for (source, missing) in sources {
+            report.push_str(&format!("**{}** ({} missing):\n", source, missing.len()));
+            for (_, test_case, _) in missing {
+                report.push_str(&format!("  - `{}`\n", test_case));
+            }
+            report.push('\n');
+        }
+
+        report.push_str("</details>\n");
     }
 
     // Add roundtrip section

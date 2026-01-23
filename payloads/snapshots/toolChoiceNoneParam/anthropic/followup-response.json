@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01SiCjkSyd63Yymo1EGuiNvo",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'm not sure what specific context you're referring to when you ask \"What should I do next?\" To give you the most helpful advice, could you provide more details about your situation? For example:\n\n- Are you asking about next steps for getting weather information?\n- Do you have a particular project, task, or decision you're working on?\n- Are you looking for general life advice or guidance on a specific topic?\n\nOnce you give me more context, I'll be better able to help you figure out your next steps!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 425,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 113,
+    "service_tier": "standard"
+  }
+}

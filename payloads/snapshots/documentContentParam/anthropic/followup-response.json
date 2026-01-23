@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01YaWyniRVqasc4mankPRFFw",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Since you have a document with just placeholder text, here are some potential next steps:\n\n1. **Replace the placeholder** - Add your actual content to the document if this was meant to contain real information\n\n2. **Provide the real document** - If you have a different document you'd like me to summarize, please share that instead\n\n3. **Clarify your goal** - Let me know what kind of document you're working with or what you're trying to accomplish\n\n4. **Ask a different question** - If you have other questions or tasks I can help with, feel free to ask\n\nWhat would be most helpful for your situation?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 97,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 138,
+    "service_tier": "standard"
+  }
+}

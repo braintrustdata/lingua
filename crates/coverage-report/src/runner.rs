@@ -18,6 +18,30 @@ use crate::types::{PairResult, TransformResult, ValidationLevel};
 type PairResults = HashMap<(usize, usize), PairResult>;
 type AllResults = (PairResults, PairResults, PairResults);
 
+// Patterns that indicate provider limitations (real gaps, not bugs)
+const LIMITATION_PATTERNS: &[&str] = &[
+    "Provider limitation",
+    "has no OpenAI equivalent",
+    "has no Anthropic equivalent",
+    "has no Bedrock equivalent",
+    "has no Google equivalent",
+    "Unsupported",
+];
+
+// Patterns that indicate missing test fixtures (test coverage gaps)
+const MISSING_FIXTURE_PATTERNS: &[&str] = &["Source payload not found"];
+
+/// Classify an error into failure, limitation, or missing fixture.
+fn classify_error(error: &str) -> ValidationLevel {
+    if MISSING_FIXTURE_PATTERNS.iter().any(|p| error.contains(p)) {
+        ValidationLevel::MissingFixture
+    } else if LIMITATION_PATTERNS.iter().any(|p| error.contains(p)) {
+        ValidationLevel::Limitation
+    } else {
+        ValidationLevel::Fail
+    }
+}
+
 // Validation uses request_to_universal/response_to_universal from the adapter trait.
 // These methods return Result with detailed error info when validation fails.
 
@@ -30,10 +54,11 @@ pub fn test_request_transformation(
     let payload = match load_payload(test_case, source_adapter.directory_name(), filename) {
         Some(p) => p,
         None => {
+            let error = format!("Source payload not found: {}", filename);
             return TransformResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("Source payload not found: {}", filename)),
-            }
+                level: ValidationLevel::MissingFixture,
+                error: Some(error),
+            };
         }
     };
 
@@ -77,10 +102,14 @@ pub fn test_request_transformation(
                 },
             }
         }
-        Err(e) => TransformResult {
-            level: ValidationLevel::Fail,
-            error: Some(format!("{}", e)),
-        },
+        Err(e) => {
+            let error = format!("{}", e);
+            let level = classify_error(&error);
+            TransformResult {
+                level,
+                error: Some(error),
+            }
+        }
     }
 }
 
@@ -265,6 +294,22 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                                 .push((format!("{} (request)", test_case), error));
                         }
                     }
+                    ValidationLevel::Limitation => {
+                        pair_result.limitations += 1;
+                        if let Some(error) = result.error {
+                            pair_result
+                                .limitation_details
+                                .push((format!("{} (request)", test_case), error));
+                        }
+                    }
+                    ValidationLevel::MissingFixture => {
+                        pair_result.missing_fixtures += 1;
+                        if let Some(error) = result.error {
+                            pair_result
+                                .missing_fixture_details
+                                .push((format!("{} (request)", test_case), error));
+                        }
+                    }
                 }
 
                 // Test followup request if exists
@@ -282,6 +327,22 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                             if let Some(error) = followup_result.error {
                                 pair_result
                                     .failures
+                                    .push((format!("{} (followup)", test_case), error));
+                            }
+                        }
+                        ValidationLevel::Limitation => {
+                            pair_result.limitations += 1;
+                            if let Some(error) = followup_result.error {
+                                pair_result
+                                    .limitation_details
+                                    .push((format!("{} (followup)", test_case), error));
+                            }
+                        }
+                        ValidationLevel::MissingFixture => {
+                            pair_result.missing_fixtures += 1;
+                            if let Some(error) = followup_result.error {
+                                pair_result
+                                    .missing_fixture_details
                                     .push((format!("{} (followup)", test_case), error));
                             }
                         }
@@ -305,6 +366,22 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                             if let Some(error) = response_result.error {
                                 resp_pair_result
                                     .failures
+                                    .push((format!("{} (response)", test_case), error));
+                            }
+                        }
+                        ValidationLevel::Limitation => {
+                            resp_pair_result.limitations += 1;
+                            if let Some(error) = response_result.error {
+                                resp_pair_result
+                                    .limitation_details
+                                    .push((format!("{} (response)", test_case), error));
+                            }
+                        }
+                        ValidationLevel::MissingFixture => {
+                            resp_pair_result.missing_fixtures += 1;
+                            if let Some(error) = response_result.error {
+                                resp_pair_result
+                                    .missing_fixture_details
                                     .push((format!("{} (response)", test_case), error));
                             }
                         }
@@ -337,6 +414,22 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                                     .push((format!("{} (streaming)", test_case), error));
                             }
                         }
+                        ValidationLevel::Limitation => {
+                            stream_pair_result.limitations += 1;
+                            if let Some(error) = streaming_result.error {
+                                stream_pair_result
+                                    .limitation_details
+                                    .push((format!("{} (streaming)", test_case), error));
+                            }
+                        }
+                        ValidationLevel::MissingFixture => {
+                            stream_pair_result.missing_fixtures += 1;
+                            if let Some(error) = streaming_result.error {
+                                stream_pair_result
+                                    .missing_fixture_details
+                                    .push((format!("{} (streaming)", test_case), error));
+                            }
+                        }
                     }
                 }
 
@@ -359,6 +452,22 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                             if let Some(error) = followup_streaming_result.error {
                                 stream_pair_result
                                     .failures
+                                    .push((format!("{} (followup-streaming)", test_case), error));
+                            }
+                        }
+                        ValidationLevel::Limitation => {
+                            stream_pair_result.limitations += 1;
+                            if let Some(error) = followup_streaming_result.error {
+                                stream_pair_result
+                                    .limitation_details
+                                    .push((format!("{} (followup-streaming)", test_case), error));
+                            }
+                        }
+                        ValidationLevel::MissingFixture => {
+                            stream_pair_result.missing_fixtures += 1;
+                            if let Some(error) = followup_streaming_result.error {
+                                stream_pair_result
+                                    .missing_fixture_details
                                     .push((format!("{} (followup-streaming)", test_case), error));
                             }
                         }
@@ -612,7 +721,9 @@ pub fn run_roundtrip_tests(adapters: &[Box<dyn ProviderAdapter>]) -> RoundtripRe
             if let Some(result) = test_request_roundtrip(test_case, adapter, "request.json") {
                 match result.level {
                     ValidationLevel::Pass => provider_result.request_passed += 1,
-                    ValidationLevel::Fail => {
+                    ValidationLevel::Fail
+                    | ValidationLevel::Limitation
+                    | ValidationLevel::MissingFixture => {
                         provider_result.request_failed += 1;
                         provider_result
                             .request_failures
@@ -627,7 +738,9 @@ pub fn run_roundtrip_tests(adapters: &[Box<dyn ProviderAdapter>]) -> RoundtripRe
             {
                 match result.level {
                     ValidationLevel::Pass => provider_result.request_passed += 1,
-                    ValidationLevel::Fail => {
+                    ValidationLevel::Fail
+                    | ValidationLevel::Limitation
+                    | ValidationLevel::MissingFixture => {
                         provider_result.request_failed += 1;
                         provider_result
                             .request_failures
@@ -640,7 +753,9 @@ pub fn run_roundtrip_tests(adapters: &[Box<dyn ProviderAdapter>]) -> RoundtripRe
             if let Some(result) = test_response_roundtrip(test_case, adapter, "response.json") {
                 match result.level {
                     ValidationLevel::Pass => provider_result.response_passed += 1,
-                    ValidationLevel::Fail => {
+                    ValidationLevel::Fail
+                    | ValidationLevel::Limitation
+                    | ValidationLevel::MissingFixture => {
                         provider_result.response_failed += 1;
                         provider_result
                             .response_failures

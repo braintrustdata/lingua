@@ -6,6 +6,10 @@ Type definitions for coverage-report.
 pub enum ValidationLevel {
     Pass,
     Fail,
+    /// Provider limitation - feature that can't be transformed (e.g., "has no OpenAI equivalent")
+    Limitation,
+    /// Missing test fixture - "Source payload not found"
+    MissingFixture,
 }
 
 #[derive(Debug)]
@@ -18,12 +22,30 @@ pub struct TransformResult {
 pub struct PairResult {
     pub passed: usize,
     pub failed: usize,
+    pub limitations: usize,
+    pub missing_fixtures: usize,
     pub failures: Vec<(String, String)>,
+    pub limitation_details: Vec<(String, String)>,
+    pub missing_fixture_details: Vec<(String, String)>,
 }
 
 pub struct TableStats {
     pub passed: usize,
     pub failed: usize,
+    pub limitations: usize,
+    pub missing_fixtures: usize,
+}
+
+/// An issue entry: (direction, test_case, error_message)
+pub type IssueEntry = (String, String, String);
+
+/// Result from generating a coverage table.
+pub struct TableResult {
+    pub markdown: String,
+    pub stats: TableStats,
+    pub failures: Vec<IssueEntry>,
+    pub limitations: Vec<IssueEntry>,
+    pub missing_fixtures: Vec<IssueEntry>,
 }
 
 // ============================================================================

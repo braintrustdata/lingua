@@ -40,8 +40,7 @@ export async function executeAnthropic(
   const { stream, baseURL, apiKey } = options ?? {};
   const client = new Anthropic({
     apiKey: apiKey ?? process.env.ANTHROPIC_API_KEY,
-    // Anthropic SDK adds /messages, gateway expects /v1/messages
-    baseURL: baseURL ? `${baseURL}/v1` : undefined,
+    baseURL, // SDK adds /v1/messages itself
   });
   const result: CaptureResult<
     Anthropic.Messages.MessageCreateParams,
@@ -50,6 +49,12 @@ export async function executeAnthropic(
   > = { request: payload };
 
   try {
+    // Add beta header if output_format is present (structured outputs beta)
+    const requestOptions =
+      "output_format" in payload
+        ? { headers: { "anthropic-beta": "structured-outputs-2025-11-13" } }
+        : undefined;
+
     // Create promises for parallel execution
     const promises: Promise<ParallelAnthropicResult>[] = [];
 
@@ -57,10 +62,13 @@ export async function executeAnthropic(
     if (stream !== true) {
       promises.push(
         client.messages
-          .create({
-            ...payload,
-            stream: false,
-          })
+          .create(
+            {
+              ...payload,
+              stream: false,
+            },
+            requestOptions
+          )
           .then((response) => ({ type: "response", data: response }))
       );
     }
@@ -70,10 +78,13 @@ export async function executeAnthropic(
       promises.push(
         (async () => {
           const streamChunks: Array<Anthropic.Messages.MessageStreamEvent> = [];
-          const streamResponse = await client.messages.create({
-            ...payload,
-            stream: true,
-          });
+          const streamResponse = await client.messages.create(
+            {
+              ...payload,
+              stream: true,
+            },
+            requestOptions
+          );
 
           for await (const chunk of streamResponse) {
             streamChunks.push(chunk);
@@ -175,10 +186,13 @@ export async function executeAnthropic(
       if (stream !== true) {
         followupPromises.push(
           client.messages
-            .create({
-              ...followUpPayload,
-              stream: false,
-            })
+            .create(
+              {
+                ...followUpPayload,
+                stream: false,
+              },
+              requestOptions
+            )
             .then((response) => ({ type: "followupResponse", data: response }))
         );
       }
@@ -188,10 +202,13 @@ export async function executeAnthropic(
           (async () => {
             const followupStreamChunks: Array<Anthropic.Messages.MessageStreamEvent> =
               [];
-            const followupStreamResponse = await client.messages.create({
-              ...followUpPayload,
-              stream: true,
-            });
+            const followupStreamResponse = await client.messages.create(
+              {
+                ...followUpPayload,
+                stream: true,
+              },
+              requestOptions
+            );
 
             for await (const chunk of followupStreamResponse) {
               followupStreamChunks.push(chunk);

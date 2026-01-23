@@ -1,0 +1,277 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Latest OpenAI news"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "server_tool_use",
+          "id": "srvtoolu_01BNm4uXHL8iP38cA1CnsrbF",
+          "name": "web_search",
+          "input": {
+            "query": "OpenAI news January 2026"
+          }
+        },
+        {
+          "type": "web_search_tool_result",
+          "tool_use_id": "srvtoolu_01BNm4uXHL8iP38cA1CnsrbF",
+          "content": [
+            {
+              "type": "web_search_result",
+              "title": "OpenAI News | OpenAI",
+              "url": "https://openai.com/news/",
+              "encrypted_content": "EtYJCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDARMACQW344fkw46wBoMEYF6BNiwu9sQXKKPIjA9kR8pPWrYLqS/a/ZYoNu6FngJapGYMp/TxqjTt2TXJYXpDCtkdwBhefLgxYrZXV0q2QgU4l+EXLllL4fHRPluk2ON+42qEFnvRuk2cBrvRKiowmQRD1CLZ2lOiY1ZC1dGmkGapAkQL6yRSaMifVu2l4djJUXCyIIjNySmQXgvB8Af2rl7JfNRlaDVKt06gKO24MFNkr2hCkPmcaM1ECekjPUuV/m3Cmw+Hzglt7nCkmiXZPJrmU+nLS3nuHEq7S+KIH1Kgm56mUJpGQcoew9r3SLC4QW3QZ+FR8gFh/B1ys1gacQhzbzpPkDEn9500+3ZKHXNd3W9l9SO8nhl/wQcT7UvHdl1mrt+Ez/UGXO7s0PZezvA2JPKntKjPEh6IhCdczK6Meufd7+dqj8CY8VW2DnNcgEAc2yk38xMT1ouTmnOj/7x2jJIMATYoD/gWXjzWU6EdJWE5XWuzEv40GnDC0MKdWL917wMHUx+Uuj3ssT33BXHJ7jv2KkkDUaCckJTvB+HICViu9damrvYlHZwr2SwpEGvwDe0pbAgCZkLjKXQBUc8xO/Lxf1+ZcyeZntfJjjrciVaqMdgL5Ms2rQMMGUuPNKOzQnozWdVYQUoamS+WfNiCuiYRKea+5P0lIrZ7vIJBUMxWnTU6yA0sbDXEsuK4KeyDW8W0LnH09fUB1C5D4NeSWSJ99P1VcL/p+ylC2K8icTEOR5zesMWxK/+HVHNbACpwhSMbst9rksH38EeJi/Td7A2mOc1ykiYa3tenPjkOnSQ03dTuI5+E4EFFgGAtN4uPR90uM4ACKrfcBsw5d/fGIUWDNryr94FGPpWe6ePDeYWFSeLKpiRFeC+juO8s3wgYf4E9p0mm9oNZ0iPtuiKsFDz4jnUdS2AIb6Pxu0ohwtOp4z14mOl6aYLPKcJQqs1G4LyTtXJCdD4nJKzVW4m5Mj3g2N3tfLvFTqdUTzRu353om8KcIlpJYen7JJQ4S0G6ETkWaNUI4/ZVzEzTioZHmFuRzfRgsT96RvoHiet3BXjBYF2myB1+elneuNLrr0FxPGeFq/j2JGPcMGP9CsY+RRBPu0cBl5EcRF7j+oK8csTjw+/4qSn2cerHEZvMIMjYVR8Sq+B3kembyO65msKobw4nCOv98Z4xdMduP6MjMnm0SOSZWXkBE+Ingy78uelFzuj0jwTQfT442k3hYxHATQBWG7BPPJei1MW9ZhSDMMhg/y6e8BX7Ar+ZwufIClBdZ1j0cNlYGac4OAhBiygtSlb3qILBlSVqlnBFGShfneTnoT6YNxhKXXvg5nhwr+icsZR79VJ9gxQ2xFazPoCiQZeLRIDSTpSBMRsk72te+P2eNmmzLukFEO5TbjcZuikW2t63lzVG4KDZDG68HeHg5MuMyKPFheC3bSx0mVxCjTtUvGfbpAWN8b5smxfgrXFqFxqrErjBi8g609gzzdv0znul1quQqDRPGZ0fco+LhDmvHrPqAhEf6WRqxbcw+7j88Ojn3m4vHqykdDzzbGrEWMOquFkqNHMoBTpo89kBTbjRn9NHxsYAw==",
+              "page_age": null
+            },
+            {
+              "type": "web_search_result",
+              "title": "OpenAI bets big on audio as Silicon Valley declares war on screens | TechCrunch",
+              "url": "https://techcrunch.com/2026/01/01/openai-bets-big-on-audio-as-silicon-valley-declares-war-on-screens/",
+              "encrypted_content": "EuUaCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDOuM1fUsfnD4w/SC7xoMJfFYYtb2lnBpzOybIjCaWBLZTlKrNj9ioUg2C7cz6FWm95bho48kL2p7sirAR0+48Agk1fPETCwGo8Cv+EMq6BkjkWK6EA2UbGtAOYRuQwSUExgzhm7v0n4RNZG3dkdI7vMTMfBevXcJUZ2r7zoWsv/QGEDiqQgzt8IJOx0Hs+1lHturVkL1S5PtwQCnqpyE1dBsOHYLZg1nbpvg5lOuRml+mfJqiKwzqZHOKvYiH7IhX/HwO849v3ULqsfe6ywY5a9bfqQWCq0Bpcw23NdT2TOtkYGYVFMtw6YyWrsoyaGVvRpPYn7ccGtPiJla4XpbGr8aRl4n4MeEUUn/XjhhLoDQw+VVCvbRbjziHl5aubylsrn4bZgxi+C6UIXEfjhqERtnuF40UUkN/YhznV+CxIJ3ZbdLYApuw7Rxrf1x6e2Wg8bwV2Bo7xFods6qYCzKmmcZos9U8ic3/N+qlQmezmhtk517q800lfzlSrLoGqS0fi1dvg8Y8eF4akWFQxiNFNzmvGwRj5K16ylY1zxysq/jHsUMaQVgrqPzdSTZBUsK4NFwhUyG+3ZPuA2jk+tiMEJS3FOpaMg2talLeUElQzkew7FXIYlgDFAlbrt54RW51MOZcXhztPNrpOYfdNh6+NUHPb1sWA0mXQzA0ZkHOxF/l+Lddw1UuPzxuDKSMY8xWXcnAnOAAwcS9+BwTsUwvljHQ4VZCTtrDFcjbh6wmHp3QCu/YmGb3SYeJZM81uKtLoLSbFN8YYg8Sl5EH56nb6+mOD4SI5q5pfT76I3muva25CwKbXKqL6zyRdx3gv+dsGXdZk5ips/jTPJH6BmW80J5uh/gRKLprZ92FQY/xwDXdOPPeCX8zBcfuu4UY2o83rkzgMdbHQpzcrM1vdI+d3B76gMa2g1YzRDuqbGdcUWpO1dlIjlamJldCHSqgall7ASE3UCRWPBrSF/xJyqagnaeoAEXifOn8YA95x5ptJyPRterz0+S1iBwSfWdR/hQGrAcXjIJS2klLS9qAN7PYVv+gDSpJtnIQAinYVmvnzeTe3KqmGkeFVnd42kbF/ImaZqPLqCq6cN+WdsXdP4aq3jGQ5XZmgnI3z5FkpZdNtFlH/5L8CRvON+GLGF0BIGXjell6f4lpKu8OAwfUNKfpUgWbSw/gRyMQagGXfvLOexmfFDwf+VW4AIdrl5Vwz3GMVJZwBHxLVuBP/vvk8bfSuQshR2Gvvm48eqNNSptG0A5nn/xcCDXMC1p8J+U8vxymUTgjhYlyRjLdp0PVGm9GoOk55eut08DnbzgG9hn01gNPk0tvZTrV8DzBh9nrOxXBnPwhaqTqYvRytcLoG0U/r81ZAOjEINl7OOnUw4WYItYTNzT2QytsVBUjNiG7HuMp93hfV6z+jk8j49oA8JChDDHpAcdbqEuT/oHYsUQEGARxNjyJRs2CfbF9WNEqRr1iSaraaHkoHmcTEeTkTSfV/Y99x3M4uIlAap0KAK9ezIxPdlIvjzYJfrV8CJO0PjBOT7FVFEV0QAEvR1o7CyjGFwOfpcCuPickQENokvEAtmCAwFoAduX5W2C9INS6tzfEEtiepFzsFCtzWQQtQrCbCV+ywuZkk89CuUlG0OlZ6/xMRuuy7a/l70MvjrvHAzMAgH6put2y04yP8J1c/1O0enTF3AD3qIEbeyyvJYs3MENxvFEFg3jU2ekBDubSZteWw/WvcwUsKHlUiLPMAErA7h6yNzBLWcQuRHLF5+NWDO8r9sVGkFFDv/GNNY0FzhStKtWL+bVLuiH2mt6AXrlQLTpk6IbYWQIRbTo5xjtAZsrfpRf6wbvs29Vu740+NnpxrH6qi/HKDTPLmcdh9A3+0RBZIfD5BV0VPKB4SoA/zVGz79XVrY/GTUSQrZ/OKhnFBNSj5MFHumHv1IQB2tHJMPr9HENktrRt47GtEwL3KmEene7V6mtcJxI3gNxt1HdgOGxF4rJ015n+cEzY/9Rm6U6p3kOEU4cC1e06ebhJUD3J92oRVYa9AedVUxzRee+YCNrKTvd2OS5Ill4b7Tt+KyvFsyVzUqdyF/c0c46mDjbjHpfyqs0G9E4BH8MrnhC9WLqKJoBo/aqUD2uu9zgIC8q57PKEp/9J73zhDSBqxP6nZ2OpAsr7Kee5NE2LHxg8Kcke/awlgIbQWpIbRejvoWzDdx5zME3+FFhe7Nlo4ox1L+tU9MhhkdNcFqG4eu760TN5bvlSctv0DoD1hCQ7t0q0AvwfZ3YaJ61yR2mLm0otnZIsSjRhenYY+OyFFiwmBVf+uQhwUbeXpf0lJkMdFI38L/dGSTA4/cb80t7ddeazP9jTn71sF8m171MlfHpzxjNNYNYq2dRFxKlsmDzE/H54WnCji/VEMZQXKmmYkNj+DZAbIYjy5wPpbx+wDZBo1Q36wbb1a7coubY6oFrFQAoCR2xLxlLo/ekre2hW3coZIwTkhBMJHU/PYQZIxp/1w0MjqKEeoT+lp/qM8U7dRpISolVsVSi00VeLbxfA/P0wLRE2+yqdCM6HUPG3ck2ufQlOsVvx5WqvqFExsZ4N4GxG8gcxrZ/3UumHPza81HkZIepaUGoT08mHPUFE37Jt1iDCGBAzIDYZvc4ku/JM0mUhTpLELqdD8x+yA6m0u/29F5/vKBDlbweMCb3DlGsLRF/Mo0L7ijNydJObXmZ4xaT9X2YLvPGBEPWnJlchD0OJcfztD0X/epRXjjElg9WK1yTgdXI+QkdQWNIl4mY4ivi+Y3s5iABQ024IkKYq7PmeN/1ytNIfjksO+MFu7pNVTcPQTQAxdi0pZFzEYXYLAsU3L6VwSMw3egwcSNwEFkkT+H4aZ6NGVeg0MEYNjpXFzUUYlAxKEudx6dn3UclSSHqvgTDnHH2lBY8lDbC+EHBAEh5iNNQUixAfTvY1zbyz5GeHt3iA+VSruX1lr5tsEyCasKRx3oSDSglePHt3vcNmDYhpfvCqHyS0isDo/9nrKQJlnI4egUYMp8Ie2HqY5dbPZvHNnfffEkkLoTD8Ps6EO8E9wjPtTF4w1blfqocwedHs+91I66KxACYnmwaue/C8qRb19D7mRXYKoiCsw9D4QEFSCRGVU9L/SNNkwPIG7kTTnGq2uhgyYHrISYk9Y3apcubZoVZlkV/pb0iMsbkXky3EVG6GR+u5OlZ+XRNF8O5bKGwWZ25O03TVrrGrDyPx1iiWQjDvo+nubxzWtzjIMeg10HnRTHhRSRSDiPBom5Uh0coyS3WPG9nw6XP3b/qSJSeyAtNNPHPCazAc9I9X1UK7b/OtEMGeCcPv/calLvABJf3bCfYIY+WtuRh0ppOSRZoUMh2yEBobWqJls285qoxx9hPOYmxYrOxFs4hjeU5XqwK52bIY1f23YnUlBtfCYAFis71SZcivQPTL8lpBRVQLCxo0l7JS3VmRJaHSOhh94LE54rJHDdoY/YbGHmYEifsd/FM9jZyIPO5hVnNTG5SK9NIFIUwMeZbGJWfJsGgtDDp+qDquTVGNCS/7/jZcyff0A3GWtjnSOxksLVYPCMLEHlkcRqm0AKYtx5K+aOVMoZTlO6fgLc3IEinjMykw2W9x97EBe8TvsM9bLu3M5iprLdxkDOV4av75SusmDfQlpY4fC7u3K/7GasBFJE+/k0zzxmuO2ikPdsvInFydp/33pK9zKeq5EOkR5/OwmWA6zXBAIF04rK2wl1vdu6+atjONtlrd0fAZp6XyhQrNf/G4EESYKETXj/4NCWUTB08GDqBdMaWbvdPD8GXnCS86CjOTn+HKD3JB4M5SYD4Gk6/XAOsfcC1avyt0NxBvE8xxPYOeHft8ns890/qdfj0mBf42TKp/zlorc14Kj5mnOqXR92RdCSiMZOHWx0M0dwcoDWvf0yvSOCG2d3zln8DtMlOn1C8fsd1RuATNeXxQmE84u80d0EiOfKFCs+3ieXeBscj6C+x1JQMi0noZvrTEYnU/ssczBYJ7lY30J3fZsEZ1mc/0v7AZ8moZ1iZWufMXPlDvlU04NqA3mjgZclCfRJ38WqYApI728DrYaxJP6YRc706AWCyzfAlQsqc1XT0biKLQ3B1/QJ4smdETwf60XF2SjH70kBxQHwZCBkbE2tXXkUq0E1u9g6HA4ZPo55v2x75PaBf7avoTQkDmanR/s+uv9aC6UTZD9QoNojz6AuWygLR83t/vipgsIgd9ShD5qqXShYfHl0uJO51/Il3NueKNUgJ4P8qDUx0LLy/zG8WDPVfCT5ow/UDNehbKiX3XQxDWENg8xMKuu2pBbhazserlA1fvv2jZX/plnxe3SMoORbve9fl+WSSWttFd/85SKXz1g/hVtrAN8MQjR8EXK0CigIanWcgAtEYh5s+qpVaH52VOeLWD6VBPJGh2YHHnBfcvOfZmcPPrE1Kzi07VEaFsFPbUlFPfSyAGZwUeRO2Z5W/Luqc2sMEz8m1O3mvFnfNUwtefMSi/8uYEon5OowEt1y/GAM=",
+              "page_age": "2 weeks ago"
+            },
+            {
+              "type": "web_search_result",
+              "title": "The Walt Disney Company and OpenAI reach landmark agreement to bring beloved characters from across Disney’s brands to Sora | OpenAI",
+              "url": "https://openai.com/index/disney-sora-agreement/",
+              "encrypted_content": "EtMECioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDGOoopTYOC6bpVKrTxoMZnQOlUrjMcQvF4fhIjBkaAjpxSWlW3Og33mqq6TW/XuTIA1QIdSp/8rFAH3S31RCxUMcwFOkHyCUqBI2UDkq1gMqlB21DhW+iVZ/heQ0My5vfnGlzZrMkMlsx9kvJzDWwDC3KGatt/jgc8jgCD8XjdICZrljeWw1KQcZ6Kb7qPJDU33I10X6tJt0yTVWGkJnr2B6IOg9x1PDlfIFJrao4sm6wwsLyGzgZD+S9mQ0zh1GHQQsFQFVN9q+b1cjhvvOvrFZOaVW/nRpBbDod110Yu+ON+qW0Z4yK0/z844yhtYX9Y5KE7s225t+JEx4TikoAigMzhBij3BZYSau/z6kJW0VuptMlJfGciAd2LTWNgavzE0Zbqo2jNMgpgvh7h4YnIIoeUcmoT9hu8UQmbGA6Q9MSePX9fle+wsTtMcX8fuFoTqewlpip6RY8eCvoUbCNBPdqfMgaddm03+QAkceczFil9gykiVBmFAfXgXkhgnVx/3YZzgmUtlvNDR4+hf6rTQCllIcjYHZ0e+7DrTHAcLJep6OUWE1m4voQDnmUggk/V7MUtjguZfRbqgtVY3fl718e9JlfgwPm2XZb+gt5th7F6n/WQVJdL+7r2DvT1HMzIOkZAqwRwS9UCkLogfmiC9uB3/yS1ONLd6Lz8Q5GNu535Hk5/PPpcSG91oK80ryp6Ba3TooUnEbK69l2CfpZ7qZI55VWBgD",
+              "page_age": null
+            },
+            {
+              "type": "web_search_result",
+              "title": "Introducing ChatGPT Health | OpenAI",
+              "url": "https://openai.com/index/introducing-chatgpt-health/",
+              "encrypted_content": "EtAKCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDC5NlAgKehnpVsLPWhoMorb+ksEaTjAZSi4qIjBlomGQravEknZg4HpREX9e+FR4aFeqI9YcfkWbCaBsgHpmWY42hrvMeGwdw9veYVAq0wnRATHWl/0Ig1tWRCKkMlO96RDpcZYRjkiakEglyNYX18mzzBaO1JO4a1OhiQQOtiKf/Gxk4zqyrYlxSe7Gv1zwloRZj6ZOWXfqcj6ZovsKEuEiUZYpvrDQHXIskeDjpzHce/TTBJYigjqaZVZO8xXxUkRl8LsTEObW/tIgZlf9ffhvUF+Gj9MEFqwTIZhKj6Yr7DvsKRc3t5Kyk0821pK7ZyPADrb2IZpowH+EOnyZtlFgLB/Hnri1sBlKGv2Fw4amKlDRKhSGa9e/xGf7wWfdOYPzYsyyn4xYD8xTt86SGrwmYlpTdyRytJr/stz6+wZcCz4aV5iTuZyUUXUZwFCS6g/6X0UAxmbK3FZsCmQiicXpYM1TEb7Q4dWDNm1BC4X2t6/90RNafDAjM9kWcWdQERs91hwFbBgFLapzbX5vVM2jaY4IoMY8q6g66XpzYvZ/kkGkx89jhPZOqQCxINcVWxn+rN/Xs4eV/nrYUIV/p7sjubyWCo5S72Aab+WU5OCMOrmHJBNh1VrTSySFeOM8unjudjPFXK2SDFZlYGzd21xuRyvaU8ms1MoZ/ceSlsOupUsl7REEWMJGFVUodldFSpSbO7LXD6YOx+fnVXmp1KubNGPovSyLOxvAfVTwAgtHFkyUnLopBlwEm9Pt9Yj1RCJc/eerM5YX1+GuMkD6/NcYX21MftLo76Svi++xOsqFRJCH8OBvZd6Wg0/NwyG1NAW5lYvGcX+7gBABqVbSs5wC3YDpvUEaqkgVMKr8/pzN2X8ADzxaF5j/TDEqEZiuwMI8E99DVdRuBFI8BosX9W+LJ0T6/3gPwgCy8DayETf3X4KB0N3czr8vVlT3wpPiK5HjqEDB+JOL0NySz6ku8aHX4yDe6fC5zbM3Cdn9VVAUlEA9B0soveBpZ3818PqmFytmAyN70aw4c5RZf7mJYb4H4TcvOFBxH+llWoNqLTRF8SroJzJGQSacMW2mRwr+jAjIovKGzhXMbTbGsU9U1l+lAEx5kFjI0rxNnbOORwz7vUIw71j/Wd52wuf5F78/kKoZnrSGI+sssV+CnLj7bMxnYPPAeNhWZOceuPjAztiA8CUjHpS1YuIHHieWBciwj+Hu+bP6oaN1VMjExAZHa8bLhYWyNljXIfAwzfX+5IDE02CS720OKI4zvHKufaUHxU+0dH2RCbUdwvwV8ThHeywdMhiwAqi637ZPYTL8jUZKez1gfevXC5fjo0kfgvr3r2A49YLE8mdmhrpg8kFYLdG4VMh+Pa4i6OlyyEXQGcTM6sMP5nd4SjHjK8JzPpPmPOdM0NqgC7PrgKFtD5KoKKd8PoUMMXBC5e2QSl9z81+iQRFl7id/940zlkkm7gazzQyaFX6DWAHkTKiT22PjkddWfmF63QyamldVi5YxiczqSzyFnuA0BzrlFrzQLgukeePGuVnMeYTcnwvcDJsurCt50oqMb8DfTXe26kZB+CfSQdjPimlaUkfgjVbTO4SQ92OQBOwZsrGQS3pOKCZg8pEZVHsv3ZuQA5klnibv4JjXX4HhMft9Q3uFwi7vmxo9Z0dym9U4t65SSmidi13WROOdxcwbmdOKhCoEKU9qHM0Jx7GOkKGhOF7cAA/yhelxAiozQe/AGxtLmzDMyMo1ZBszbRgD",
+              "page_age": null
+            },
+            {
+              "type": "web_search_result",
+              "title": "Introducing OpenAI for Healthcare | OpenAI",
+              "url": "https://openai.com/index/openai-for-healthcare/",
+              "encrypted_content": "EtcCCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDNzgVoozaaOuhnAWaBoMIQ2HAHsHJo3FxCaHIjBgccPohTj6VbntGVDJeBr2wXmTC+FLhwmgsW8ZK1l8oM7aVxLDVeAkKTICITTZK+kq2gGPHpYZJUdaE4rfMXi0Dt8d6kLwHZ+ZJ7fobJWqIfW0YVPRw3Qy6gC5YvVEPDtFhrZh+ZcMkScvbyGsdpSU2FCpuUNajU6kn3W9n/++Z7UXlPUP+iWr5KZ2tN3ivUSkOgKdcPVOJd1PAYiWKdm+9VvNDy3eVL6PLwJFABOpSnvEBpTaLvofM9ehJumzNbnKqVw3Rk7m9lw0+qwri3QcJY0KjNXv3t2mADPuRtHGeR8bLRP91HpuY5zcFy1F+2jRH7PYWaVFmuSVNmfdtQH3OindCXPVIbUJC1VVjRgD",
+              "page_age": null
+            },
+            {
+              "type": "web_search_result",
+              "title": "Report: OpenAI plans to launch new audio model in the first quarter - SiliconANGLE",
+              "url": "https://siliconangle.com/2026/01/01/report-openai-plans-launch-new-audio-model-first-quarter/",
+              "encrypted_content": "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",
+              "page_age": "2 weeks ago"
+            },
+            {
+              "type": "web_search_result",
+              "title": "OpenAI is reportedly asking contractors to upload real work from past jobs | TechCrunch",
+              "url": "https://techcrunch.com/2026/01/10/openai-is-reportedly-asking-contractors-to-upload-real-work-from-past-jobs/",
+              "encrypted_content": "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",
+              "page_age": "2 days ago"
+            },
+            {
+              "type": "web_search_result",
+              "title": "How Tolan builds voice-first AI with GPT-5.1 | OpenAI",
+              "url": "https://openai.com/index/tolan/",
+              "encrypted_content": "EoALCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDKnkN5nUn3ZevEuvVxoMXjwoCakawtgVV9tDIjDb1A5laui1kggxahDXFg7L2X/ueEJWxdI/Z1suxrvT0xN0v5IRVNh8p2DDEghe6qAqgwqr7h4P4XG34jsiqrS35V+Wkmooemb1QAsU8MRqAKBBCTOiYTehPL36m4I7FJES5Y7qHNa7XwJniWwge+AuNCtmo2WktfA/GoW1QlI/6w7QfDL2fz3N2cUHOE4v42J0VZgt4+8v4wFyUCgT4rY9QVtDlyV0eiCedJ59nP7mHNfysgzqr9Q9RqOAHR3zLZznrYjBL9u3kONOqwmPOi0Nx9MO9n45bTE1ekxM8/loFYGR8CYWjeYn1eG6/xI1C2cNR5U0hj6BeqheT62K/c1hfVptBcaeEIq3HbYLUJMoOPDcI/POcYv7MIDjroh4fDm193bFuWfxbvS/7t5n5dyIQ0b4W1o06J3w5fpu6XPnFrYIYCX5AYV3m94rwb8hPm/TncSj+Pu4VkgJP9sF/wGRBlma6dDmUsc4uzmcJgTk448J6srQsR2tQZ3a1PoOnwLBAvLnDE9D6kRj+N0o+iLsaXhxDDi+VbCw+KUylrT85vGS2yXZHde5WT64Zd+/m6UsROzMqYO8Ejwfucs8s1nXE2sAkb3DgsIpbB6UEXx7UxkbnzRM0c666t7T9ojHPxFfQxt/TnXf+XtEX35CH2QIAl+pMnbD5UN/divZRM2pp+o2KqiXPWAyp6vR6AQCHdS8yBeOJ9bm4ZYxYwikYwMnvfR7T6pp6WjQst5F/hMqtkXXn9n4krTtIjmDFAkuETnxCCrkGFcEqQLelyPJvI1uzXblLX36A9tVc6C9kHePZ4p3BgxMfTnDEYBoQ4hM5Iqoxkqtjo2XAbonUyF8ecIAvJL7047ZsbPs91ebhaWQEQAGeyJxHXfJtY6gR+DkB7GEdZH/yVW0EUdlagfHQizxiA04F7+cQHfmSOpnzTXpGbM/4mIsCCvS+eBtcpdZl5XMzUTnd2ZSF5qDjSKS1H3Vk/D7gJ+luW3lroz4H6IrQjdmSbH2fuqK8xmK924QNmx5NeFa/vPoWjNnDHf7iaRSrdsfXR6Z6vQjTkvBEoPMy9XZoJeqzkdQiQUsaBsYSbuIy42B5A+UDK6u4z8d7vVO/R5qRkTLexIEOulwC4rhczur3o5n2DV7IUdYq+6rc0aCTHd//MGzMQfQczaPoNf8vceMLOOVNaNCa8b/R3KBZKz2yOZGgicX7+ZY2R6G2ctJfOgGwOjwKVKMKjE75VyyatCry2G3Ww/Kls4WS5cpvO7oIPne0PHFwk+qkOP0FMZ+GgZsRyIqvQvXasP/DqUt67bXsDI8eq2CaXa1xGpLJI6BAjCvITI5CENfBvVN9c10DitQuB7xykHwCimWlKO4cmmxEteg6NDJLmtJ/a/kXHqpqXMwbNH85vN5CYBvTct6FOjIyb7CJcnBA4Pt2I+4/RmxN8dzbuCog1VeONoSG4xR7eXhN2EOqFPa6QnhiS6qD+g/g7/LPkk34Y4M5GeHcIx6BxkGEs/jMNFuALoX2aLabmgl3UzMhFONJ932x+Fpz9IOZaClFtTvNZ3Op3WcnD9VTW78xVz1WQpKcNr1amJm5ZSWl03yBtOcAN03K7Ml7sSuGBiiGjX/0DTBGpk8Mg9MPys5nl7dzqIC3Qfg2URhFdaz4mWcE/PNTTriqA0RDSl4GWgiWHl4XyojBpFLztOFyvmT4/vOzwu/TXusBDw0uzt/+TltdTucIOZ+LQW+sBV800zs7pK9X24nw9ZxFlMqWItxiU/z97BIwqUOwzYJrriuJRgD",
+              "page_age": null
+            },
+            {
+              "type": "web_search_result",
+              "title": "OpenAI to acquire the team behind executive coaching AI tool Convogo | TechCrunch",
+              "url": "https://techcrunch.com/2026/01/08/openai-to-acquire-the-team-behind-executive-coaching-ai-tool-convogo/",
+              "encrypted_content": "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",
+              "page_age": "1 week ago"
+            },
+            {
+              "type": "web_search_result",
+              "title": "OpenAI Release Notes - January 2026 Latest Updates - Releasebot",
+              "url": "https://releasebot.io/updates/openai",
+              "encrypted_content": "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",
+              "page_age": "5 days ago"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Here are the latest OpenAI news highlights for January 2026:\n\n## Major Healthcare Initiative\n"
+        },
+        {
+          "citations": [
+            {
+              "type": "web_search_result_location",
+              "cited_text": "January 7, 2026Product · A dedicated experience in ChatGPT designed for health and wellness. ",
+              "url": "https://openai.com/index/introducing-chatgpt-health/",
+              "title": "Introducing ChatGPT Health | OpenAI",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDPQ9aCfl7LuMjlm4zBoMMaBOldNc5m2FvkapIjDiaCrB0ldQP8zgfWyqqMTF7xkUW/9TxvpqcvkmjMFZ+Hm9GrADCHSScUXYtPh+mxsqEwld2JLBXBa4o4RUmpKYdijvn9YYBA=="
+            },
+            {
+              "type": "web_search_result_location",
+              "cited_text": "Join the waitlist(opens in a new window) Loading… · Share · We’re introducing ChatGPT Health, a dedicated experience that securely brings your health ...",
+              "url": "https://openai.com/index/introducing-chatgpt-health/",
+              "title": "Introducing ChatGPT Health | OpenAI",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDK/IdkkdRj2GZcLqShoM+75AV58f9MVPkEwaIjBKytLckd27NVGIYZc1iFteUD8IRIve0w8ObjxR/kLArMj23xfjMRFrhuk19ezM7N8qE1yGFaGBpVdlwxLadYn9NGCnZEoYBA=="
+            }
+          ],
+          "type": "text",
+          "text": "OpenAI launched ChatGPT Health on January 7, 2026, a dedicated experience in ChatGPT designed for health and wellness that securely brings your health information and ChatGPT's intelligence together"
+        },
+        {
+          "type": "text",
+          "text": ". The following day, "
+        },
+        {
+          "citations": [
+            {
+              "type": "web_search_result_location",
+              "cited_text": "January 8, 2026Product · Secure AI products to help healthcare organizations scale high-quality care, reduce admin work for teams, and power custom cl...",
+              "url": "https://openai.com/index/openai-for-healthcare/",
+              "title": "Introducing OpenAI for Healthcare | OpenAI",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDBazEyYeVpFO6J59SRoMVqF5hcOf4FF/MpG9IjAb4/JvpvmbwIBGO2dRjbvSCDzVbIexOiDxPb+0Gif//UujMvkIhrzrCk4yWA5adNcqE9gonbepFBul9hj9HjIpkdOUjnEYBA=="
+            }
+          ],
+          "type": "text",
+          "text": "OpenAI introduced OpenAI for Healthcare, offering secure AI products to help healthcare organizations scale high-quality care, reduce admin work for teams, and power custom clinical solutions—while protecting health data"
+        },
+        {
+          "type": "text",
+          "text": ".\n\n## Disney Partnership for Video Generation\n"
+        },
+        {
+          "citations": [
+            {
+              "type": "web_search_result_location",
+              "cited_text": "Under the license, fans will be able to watch curated selections of Sora-generated videos on Disney+, and OpenAI and Disney will collaborate to utiliz...",
+              "url": "https://openai.com/index/disney-sora-agreement/",
+              "title": "The Walt Disney Company and OpenAI reach landmark agreement to bring beloved characters from across Disney’s brands to Sora | OpenAI",
+              "encrypted_index": "EpEBCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDEIhGbKZzx+2Ei4HgRoMogV2FicYcxpEzuG+IjDZeIPkVh5TW32kINoYQBiwBxanLCqg77ZuPFG0Au9M2XYjGGvBlGK+W750v63qvAUqFZTPg7sZW/FG2Amq8C6nYO1fvou2chgE"
+            }
+          ],
+          "type": "text",
+          "text": "OpenAI and Disney reached a landmark agreement that will allow fans to watch curated selections of Sora-generated videos on Disney+, with Sora and ChatGPT Images expected to start generating fan-inspired videos with Disney's multi-brand licensed characters in early 2026"
+        },
+        {
+          "type": "text",
+          "text": ".\n\n## Audio-First Technology Push\n"
+        },
+        {
+          "citations": [
+            {
+              "type": "web_search_result_location",
+              "cited_text": "According to new reporting from The Information, the company has unified several engineering, product, and research teams over the past two months to ...",
+              "url": "https://techcrunch.com/2026/01/01/openai-bets-big-on-audio-as-silicon-valley-declares-war-on-screens/",
+              "title": "OpenAI bets big on audio as Silicon Valley declares war on screens | TechCrunch",
+              "encrypted_index": "EpABCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDE/6mUjQYHdRGCqWIhoMhPqKarZSYAX4QKGtIjBglEb6rtRqhgPh34gAjFIzxvU/Dx6mcwjO8VYt0X1P/eeY31sl+8vL8H6hxdQGVnQqFK6BXrxYJNaq2CD3FlW7So6O1lpFGAQ="
+            }
+          ],
+          "type": "text",
+          "text": "OpenAI has unified several engineering, product, and research teams over the past two months to overhaul its audio models, all in preparation for an audio-first personal device expected to launch in about a year"
+        },
+        {
+          "type": "text",
+          "text": ". "
+        },
+        {
+          "citations": [
+            {
+              "type": "web_search_result_location",
+              "cited_text": "The Information today cited sources as saying that the algorithm will launch by the end of March.",
+              "url": "https://siliconangle.com/2026/01/01/report-openai-plans-launch-new-audio-model-first-quarter/",
+              "title": "Report: OpenAI plans to launch new audio model in the first quarter - SiliconANGLE",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDJjoLBQhd/Mj2w1Z9xoMOcKQlxr3th/UC5uwIjAo1iX7tqVZpAK7qfZHdnNnWcXDN3z/zZQISqvD+ow04VO+OvvHzEfPwvkNf3LyLdoqE9YtfbGUZvJINo0JKNREogjv3UoYBA=="
+            },
+            {
+              "type": "web_search_result_location",
+              "cited_text": "According to the publication, it’s expected to produce more natural-sounding speech than OpenAI’s current models. ",
+              "url": "https://siliconangle.com/2026/01/01/report-openai-plans-launch-new-audio-model-first-quarter/",
+              "title": "Report: OpenAI plans to launch new audio model in the first quarter - SiliconANGLE",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDD7QjGxWYCYUpDyiOxoMxB1KTILYow0xiLK5IjDXQcfE/wGTNDEwun8hY52GpbF2NjcrQfAoq1X1U+JhxFHq476bOzn31AjXf7YtqpwqE1vA41DzPRLJwwd/xljBvdps1TAYBA=="
+            }
+          ],
+          "type": "text",
+          "text": "A new audio model is expected to launch by the end of March that will produce more natural-sounding speech than OpenAI's current models"
+        },
+        {
+          "type": "text",
+          "text": ".\n\n## Recent Acquisitions\n"
+        },
+        {
+          "citations": [
+            {
+              "type": "web_search_result_location",
+              "cited_text": "OpenAI is acquiring the team behind executive coaching AI tool Convogo in an all-stock deal, adding to the firm&#x27;s M&amp;A spree.",
+              "url": "https://techcrunch.com/2026/01/08/openai-to-acquire-the-team-behind-executive-coaching-ai-tool-convogo/",
+              "title": "OpenAI to acquire the team behind executive coaching AI tool Convogo | TechCrunch",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDJGWK9OfMOpZHlIFABoMaucQ0R0DhepxhJ78IjAjnPP6Of5zrB98A196DAu7YtyEg+LnUYyKat+nFMOoQT+tc7wCVYI5vih+6LwD8Y4qE+TVgoEAjoLJCZ8rQXNpC0KRfksYBA=="
+            },
+            {
+              "type": "web_search_result_location",
+              "cited_text": "The AI giant is acquiring the team behind Convogo, a business software platform that helps executive coaches, consultants, talent leaders, and HR team...",
+              "url": "https://techcrunch.com/2026/01/08/openai-to-acquire-the-team-behind-executive-coaching-ai-tool-convogo/",
+              "title": "OpenAI to acquire the team behind executive coaching AI tool Convogo | TechCrunch",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDLyBv0ouQXpzZwi36BoMWrsHARTZDDqzi5ekIjAwXmq7gcI3mBeBJqtZvBs+T2fb7Q9mjNxylk4jdB5zOeUVbp/fP5qLcXt6A9r97KoqEzvU2xJQBJlsUVMnPLPBcu9eMQsYBA=="
+            }
+          ],
+          "type": "text",
+          "text": "OpenAI is acquiring the team behind Convogo, a business software platform that helps executive coaches and HR teams with leadership assessments and feedback reporting"
+        },
+        {
+          "type": "text",
+          "text": ". "
+        },
+        {
+          "citations": [
+            {
+              "type": "web_search_result_location",
+              "cited_text": "An OpenAI spokesperson said the company is not acquiring Convogo’s IP or technology, but rather hiring the team to work on its “AI cloud efforts.” The...",
+              "url": "https://techcrunch.com/2026/01/08/openai-to-acquire-the-team-behind-executive-coaching-ai-tool-convogo/",
+              "title": "OpenAI to acquire the team behind executive coaching AI tool Convogo | TechCrunch",
+              "encrypted_index": "EpEBCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDBtJrrmWPh5h8Pv7ABoM/LuuDblDifpgD+64IjCRYndNwG+sgtZWAYyMRrYcX8G5MCDH8y/neiFB9pPhrImLwuDuXb9abM2f1jpQ958qFRUqiQIE0G22CXL8IKNCRXjCLWIDSBgE"
+            }
+          ],
+          "type": "text",
+          "text": "The three co-founders will join OpenAI's \"AI cloud efforts\" in an all-stock deal, while Convogo's product will be wound down"
+        },
+        {
+          "type": "text",
+          "text": ".\n\n## Training Data Strategy\n"
+        },
+        {
+          "citations": [
+            {
+              "type": "web_search_result_location",
+              "cited_text": "OpenAI and training data company Handshake AI are asking third-party contractors to upload real work that they did in past and current jobs, according...",
+              "url": "https://techcrunch.com/2026/01/10/openai-is-reportedly-asking-contractors-to-upload-real-work-from-past-jobs/",
+              "title": "OpenAI is reportedly asking contractors to upload real work from past jobs | TechCrunch",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDOKD6Plxgs1CI7pxEhoM35EoXJQLuDUUh9o3IjCXdstYWNbU7utBXJGTucsmjYOiVE/9ySDTXphQLK5TAfv8ricbTsNb1Ym3nTXTNdMqE4wrz+ndkmZZd8tE2TCRiV7Nm5QYBA=="
+            },
+            {
+              "type": "web_search_result_location",
+              "cited_text": "In OpenAI’s case, a company presentation reportedly asks contractors to describe tasks they’ve performed at other jobs and upload examples of “real, o...",
+              "url": "https://techcrunch.com/2026/01/10/openai-is-reportedly-asking-contractors-to-upload-real-work-from-past-jobs/",
+              "title": "OpenAI is reportedly asking contractors to upload real work from past jobs | TechCrunch",
+              "encrypted_index": "Eo8BCioICxgCIiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDMBfeOUom7AVysMR+RoMQxk4XcmbQHHy7vvUIjATGftSpnJ/zTTw7QyFbSq6a+bwwFV4BKAf7acpkYqscAesBXWyvnTZQSUpnZ5lLBoqEySz8chGJaxaVBEzZ2sI5XmtKEQYBA=="
+            }
+          ],
+          "type": "text",
+          "text": "OpenAI and training data company Handshake AI are asking third-party contractors to upload real work from past and current jobs, with company presentations asking for examples of \"real, on-the-job work\" including Word docs, PDFs, PowerPoints, and Excel files"
+        },
+        {
+          "type": "text",
+          "text": ".\n\nThese developments show OpenAI's expansion into healthcare, entertainment partnerships, hardware development, and continued focus on improving AI capabilities across different domains."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "web_search_20250305",
+      "name": "web_search"
+    }
+  ]
+}

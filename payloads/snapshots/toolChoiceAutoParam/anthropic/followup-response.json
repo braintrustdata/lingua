@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01XMTcTfWRMaogmx5KsffpFb",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That's a pretty open-ended question! To give you the most helpful advice, it would be useful to know more context about what you're referring to. For example:\n\n- Are you asking about what to do next in your day/schedule?\n- Are you looking for next steps on a particular project or task?\n- Are you seeking general life advice or direction?\n- Are you asking about something specific we were discussing?\n\nCould you provide a bit more detail about what situation or area of your life you're thinking about? That way I can give you more targeted and useful suggestions!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 427,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 125,
+    "service_tier": "standard"
+  }
+}

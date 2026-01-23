@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01LuriiKPyzsTSryt8eGqa2W",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That depends on what you're trying to accomplish! Here are a few ways to think about it:\n\n- **If you have a specific goal or project in mind**: Break it down into smaller, manageable steps and tackle the first one.\n\n- **If you're looking for something productive to do**: Consider tasks like learning something new, organizing your space, exercising, or reaching out to someone you care about.\n\n- **If you're feeling stuck or uncertain**: Sometimes taking a short break, going for a walk, or doing something creative can help clarify your thoughts.\n\n- **If you want to chat more**: Feel free to tell me about what's on your mind or ask about anything you're curious about.\n\nWhat feels most relevant to where you are right now?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 27,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 163,
+    "service_tier": "standard"
+  }
+}

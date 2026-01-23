@@ -35,7 +35,12 @@ describe("compareResponses", () => {
       const result = compareResponses(42, 43);
       expect(result.match).toBe(false);
       expect(result.diffs).toHaveLength(1);
-      expect(result.diffs[0]).toEqual({ path: "", expected: 42, actual: 43 });
+      expect(result.diffs[0]).toEqual({
+        path: "",
+        expected: 42,
+        actual: 43,
+        severity: "major",
+      });
     });
 
     it("detects different string values", () => {
@@ -219,7 +224,12 @@ describe("compareResponses", () => {
 
 describe("formatDiff", () => {
   it("formats primitive diff", () => {
-    const diff: DiffEntry = { path: "value", expected: 42, actual: 43 };
+    const diff: DiffEntry = {
+      path: "value",
+      expected: 42,
+      actual: 43,
+      severity: "major",
+    };
     expect(formatDiff(diff)).toBe("value: 42 → 43");
   });
 
@@ -228,6 +238,7 @@ describe("formatDiff", () => {
       path: "name",
       expected: "hello",
       actual: "world",
+      severity: "major",
     };
     expect(formatDiff(diff)).toBe("name: hello → world");
   });
@@ -237,6 +248,7 @@ describe("formatDiff", () => {
       path: "data",
       expected: { a: 1 },
       actual: { a: 2 },
+      severity: "major",
     };
     expect(formatDiff(diff)).toBe('data: {"a":1} → {"a":2}');
   });
@@ -246,6 +258,7 @@ describe("formatDiff", () => {
       path: "items",
       expected: [1, 2],
       actual: [1, 2, 3],
+      severity: "major",
     };
     expect(formatDiff(diff)).toBe("items: [1,2] → [1,2,3]");
   });
@@ -255,6 +268,7 @@ describe("formatDiff", () => {
       path: "choices.0.message.content",
       expected: "hello",
       actual: "world",
+      severity: "major",
     };
     expect(formatDiff(diff)).toBe("choices.0.message.content: hello → world");
   });
@@ -264,6 +278,7 @@ describe("formatDiff", () => {
       path: "field (missing)",
       expected: "(exists)",
       actual: "(missing)",
+      severity: "major",
     };
     expect(formatDiff(diff)).toBe("field (missing): (exists) → (missing)");
   });

@@ -1,0 +1,77 @@
+{
+  "id": "resp_050192d8839a516c00696b17e6352081a084cd0256192ebbcd",
+  "object": "response",
+  "created_at": 1768626150,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768626157,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_050192d8839a516c00696b17e68a5c81a08bdaa4e936952387",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_050192d8839a516c00696b17ebdf8081a0bcdb3dd71eda7703",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure—what are you trying to accomplish? If you’d like, I can tailor it. Meanwhile, here are a few quick paths you can choose from:\n\n- Get a quick win (2-minute rule): Do any small task you can finish in two minutes to gain momentum.\n\n- Plan your day: List 3 tasks, label them Urgent vs Important, and pick one to start now.\n\n- Tackle a project: Break the project into a next concrete action (e.g., \"draft outline for report\" or \"email teammate for approvals\") and set a short deadline.\n\n- Learn something new: Set a micro-goal (e.g., 25 minutes of focused study), do it, then test yourself on what you learned.\n\n- Decide between options: Use a quick decision framework (impact vs effort) to pick the top action.\n\nIf you share a bit more about your goal or task, I’ll suggest a specific next step."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 34,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1156,
+    "output_tokens_details": {
+      "reasoning_tokens": 960
+    },
+    "total_tokens": 1190
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Sure—what are you trying to accomplish? If you’d like, I can tailor it. Meanwhile, here are a few quick paths you can choose from:\n\n- Get a quick win (2-minute rule): Do any small task you can finish in two minutes to gain momentum.\n\n- Plan your day: List 3 tasks, label them Urgent vs Important, and pick one to start now.\n\n- Tackle a project: Break the project into a next concrete action (e.g., \"draft outline for report\" or \"email teammate for approvals\") and set a short deadline.\n\n- Learn something new: Set a micro-goal (e.g., 25 minutes of focused study), do it, then test yourself on what you learned.\n\n- Decide between options: Use a quick decision framework (impact vs effort) to pick the top action.\n\nIf you share a bit more about your goal or task, I’ll suggest a specific next step."
+}

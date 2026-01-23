@@ -1,0 +1,30 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01Bb6xjmfhis18UXB57pvrj2",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "The human is asking \"What should I do next?\" but they haven't provided any context about what they're working on, what their goals are, or what situation they're in. This is a very open-ended question that I can't answer meaningfully without more information.\n\nI should ask them for more context so I can provide a helpful response. I could ask about what they're currently doing, what their goals are, or what kind of activity they're looking for suggestions about.",
+      "signature": "EvsECkYICxgCKkAhLQJy8UqYuswVLwge/ViwZgMuv+pjHeMzJtXSlW1JnrtpjuNma6+jOISIobbA5gdzDHjcddh8X8ijcu9Cu8kHEgx/4gdXCNfQa503sSgaDC2BJYAAh/OqRu2FfyIwlIc1vZjGmtg13JvE3rzfS1dP/2/eNS9ICrJ5cSOrblkuu7cu4N3AT3bweBOCYHniKuIDJxdaHyZN4AlmY6GOpY6xeL/35/auqZT4eHKUtWkouXNB3XcsBa+UE+aXDRBr99uqggN6kzuoxiHYCfQdcswu3rKJV5clXUm+qec+tCQLm+npAqPPQp1IJK+enPdPws3p5g9k5/wop4j2byAMbp7Gc7k/PQ8Itd7GNrs3Kk6avxfANSqFfNQBrYeluC26mOKF9kBRFCibKIIY4p7bNBOqK3Nid51EHswtTTZRU+FmmwfrC0/lUIZzyguooMkPpVi/bNGbTIV8WxI/Bd/YNCp3je83OUG/hy6m1QrhomD2WQuVJ5gFPq+ULeZ379uRH0ZVTCRM7pshWrykli5qwFDZeEtQNRAV2sFxtkKhyQbQxIGFa690DSX2kOzIDM6/5+5US7yBy7b81YTD4EwLQW2FaaNCTGX2biQ924qFpazkM8Tu8lnub0Tac8cpgu0vvfkkb7NjxhSWulwGV6Fbpw4UNmrad10cZP98muSPSWl8PZRok75+YmIdbkxzE80YfjEI8RO1jJFVMCKDlK/tvfLWXuZDu9rUZ7XQMQMlKFQ9d9Nx6eBHAYJmI+PommE53fdq2FOmerq7tlKPZ5sUyZjuSemohK1YcWs0wVrPFo61SVDKCRNy8gs7X4kFs+sCCWvXkxMYAQ=="
+    },
+    {
+      "type": "text",
+      "text": "I'd be happy to help, but I need more context! \"What should I do next?\" could mean many different things depending on your situation. Could you tell me:\n\n- What are you currently working on or doing?\n- What are your goals for today or this moment?\n- Are you looking for suggestions for work, learning, entertainment, or something else?\n\nWith a bit more information, I can give you much better guidance!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 65,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 201,
+    "service_tier": "standard"
+  }
+}

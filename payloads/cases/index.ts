@@ -12,7 +12,7 @@ export { paramsCases } from "./params";
 import { simpleCases } from "./simple";
 import { advancedCases } from "./advanced";
 import { paramsCases } from "./params";
-import { mergeCollections } from "./utils";
+import { mergeCollections, getCaseNames } from "./utils";
 
 // Combined collection of all test cases
 export const allTestCases = mergeCollections(
@@ -20,6 +20,13 @@ export const allTestCases = mergeCollections(
   advancedCases,
   paramsCases
 );
+
+// Map of collection names to their case names (for --cases flag)
+export const caseCollections: Record<string, string[]> = {
+  simple: getCaseNames(simpleCases),
+  advanced: getCaseNames(advancedCases),
+  params: getCaseNames(paramsCases),
+};
 
 // Legacy export for backward compatibility (can be removed later)
 export const unifiedTestCases = allTestCases;

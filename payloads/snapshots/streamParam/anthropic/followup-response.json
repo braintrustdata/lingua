@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01ET845zee2dNBQKGxnXxv5f",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That's a pretty open question! What you should do next really depends on what's going on in your life right now. Here are a few ways to think about it:\n\n- **If you're looking for something productive:** Maybe tackle a task you've been putting off, learn something new, or organize a space around you\n- **If you want to relax:** Read a book, take a walk, listen to music, or call someone you care about\n- **If you're feeling stuck:** Try writing down what's on your mind, or do something small that usually makes you feel good\n\nIs there a particular area of your life you're thinking about, or are you just looking for general inspiration for how to spend your time?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 30,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 154,
+    "service_tier": "standard"
+  }
+}

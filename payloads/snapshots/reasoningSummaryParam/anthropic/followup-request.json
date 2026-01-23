@@ -1,0 +1,32 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 16000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "This is a very straightforward math question. 2 + 2 = 4. This is basic arithmetic that I can answer directly and confidently.",
+          "signature": "EqYCCkYICxgCKkDNDfL3D+exJ9vvBpFEtkYhbE2CBxLfmbk2mRfGn8a+PSAhT3+qjg+a6ztfILQ86jZNdUjRbEUGCzNBciktry5xEgxofZ1ulnMkl78wc8AaDEqpLsvifMT/w3q3lyIw08o0jSkU8G6PG+sTMjV354h5KF7F/DXXzBA8heNSW2iSmIkHVvXBK7Yjufwf6EtiKo0BYdQ7hfHLA55wwZG0ATNiTCTB9btWFaqBdE5IKUtVAqKiv6j0W1hCjqu0LAejomNQ1G9+IkgK0DZDadVOb95oFvqvHE1wT9dHbS+O8ztY25sWRqqCIjQOTHEM5Ao9tgNtnakC0wZ0iLjPTmJ4xQG5EC3dPXwZR6gXibFKmM5N3t1iENhoORSukdOMkts1GAE="
+        },
+        {
+          "type": "text",
+          "text": "2 + 2 = 4"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "thinking": {
+    "type": "enabled",
+    "budget_tokens": 10000
+  }
+}

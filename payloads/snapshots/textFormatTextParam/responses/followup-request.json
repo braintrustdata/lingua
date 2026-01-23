@@ -1,0 +1,37 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Say hello."
+    },
+    {
+      "id": "rs_050192d8839a516c00696b17e40b9881a0add59ad77c8597a5",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_050192d8839a516c00696b17e5ae7481a0b9a5d1f7f2e7739c",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hello! How can I help you today?"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  }
+}
