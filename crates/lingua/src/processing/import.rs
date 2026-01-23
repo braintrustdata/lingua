@@ -242,9 +242,7 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
                                 .unwrap_or_default()
                                 .to_string();
                             let arguments = match obj.get("input") {
-                                Some(Value::Object(map)) => {
-                                    ToolCallArguments::Valid(map.clone())
-                                }
+                                Some(Value::Object(map)) => ToolCallArguments::Valid(map.clone()),
                                 Some(Value::String(s)) => ToolCallArguments::Invalid(s.clone()),
                                 Some(other) => ToolCallArguments::Invalid(
                                     serde_json::to_string(other).unwrap_or_default(),
