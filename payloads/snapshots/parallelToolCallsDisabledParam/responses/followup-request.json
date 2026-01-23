@@ -1,0 +1,48 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "NYC and LA weather"
+    },
+    {
+      "id": "rs_03615faf8d09f158006967e27286ec8197b119539d5c94e307",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_03615faf8d09f158006967e275a8908197b141e9d9cb52583c",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"New York City\"}",
+      "call_id": "call_A8tDE6SdX81Xa2MZgnT75oFC",
+      "name": "get_weather"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_A8tDE6SdX81Xa2MZgnT75oFC",
+      "output": "71 degrees"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get weather",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "parallel_tool_calls": false
+}

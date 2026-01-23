@@ -1,0 +1,33 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Tokyo weather"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get weather",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "function",
+    "name": "get_weather"
+  }
+}

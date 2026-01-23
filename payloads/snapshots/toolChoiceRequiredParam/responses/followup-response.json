@@ -1,0 +1,113 @@
+{
+  "id": "resp_053fea6d108a617e006967e279193c81a084b33fa6889f1238",
+  "object": "response",
+  "created_at": 1768415865,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768415873,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_053fea6d108a617e006967e279737081a0a13c92cc5b36f515",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "rs_053fea6d108a617e006967e280183081a0b5864f9192c395ce",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "rs_053fea6d108a617e006967e280fd7081a08ee33a3baab8c3bc",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "rs_053fea6d108a617e006967e2810a4081a0ae317d788a9f9374",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "rs_053fea6d108a617e006967e2812bec81a0a5a5a84fb6691d00",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_053fea6d108a617e006967e28155e081a0ad82282ddb8db347",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"Tokyo, Japan\"}",
+      "call_id": "call_r5mX4K8DkqxD9i6Ba6AhjPa4",
+      "name": "get_weather"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": {
+    "type": "function",
+    "name": "get_weather"
+  },
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 435,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 598,
+    "output_tokens_details": {
+      "reasoning_tokens": 576
+    },
+    "total_tokens": 1033
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}

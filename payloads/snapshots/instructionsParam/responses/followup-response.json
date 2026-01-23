@@ -1,0 +1,77 @@
+{
+  "id": "resp_0ab144e1c69938ee006967e2741e64819e93c26e619ceb8bcb",
+  "object": "response",
+  "created_at": 1768415860,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768415875,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": "Reply with OK",
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0ab144e1c69938ee006967e2748888819eb4731a13bbec7bd1",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0ab144e1c69938ee006967e2810e14819eaf28936fb433a39e",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Happy to help. What would you like to work on? A task, a project, learning something new, or making a decision? If you're not sure, here are quick ways to get moving:\n\n- Define a goal: Write one sentence for what you want to achieve and a clear deadline.\n- Brainstorm options: List 3–5 ways to reach that goal, then pick the best one.\n- Plan in small steps: Break the chosen option into 3 concrete actions and start a 25-minute focus session (a short sprint).\n- Check in: After you try, note what went well and what blocked you, then adjust.\n\nIf you share your goal or area (coding, writing, study, health, career, etc.), I’ll tailor a simple, step-by-step plan with your timeline."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 31,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1129,
+    "output_tokens_details": {
+      "reasoning_tokens": 960
+    },
+    "total_tokens": 1160
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Happy to help. What would you like to work on? A task, a project, learning something new, or making a decision? If you're not sure, here are quick ways to get moving:\n\n- Define a goal: Write one sentence for what you want to achieve and a clear deadline.\n- Brainstorm options: List 3–5 ways to reach that goal, then pick the best one.\n- Plan in small steps: Break the chosen option into 3 concrete actions and start a 25-minute focus session (a short sprint).\n- Check in: After you try, note what went well and what blocked you, then adjust.\n\nIf you share your goal or area (coding, writing, study, health, career, etc.), I’ll tailor a simple, step-by-step plan with your timeline."
+}

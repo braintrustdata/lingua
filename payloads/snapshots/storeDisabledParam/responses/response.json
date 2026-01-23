@@ -1,0 +1,77 @@
+{
+  "id": "resp_0002364fb5cbe93c016967e27058e08193ad94c40a382dc310",
+  "object": "response",
+  "created_at": 1768415856,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1768415864,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0002364fb5cbe93c016967e27283008193a8548ab1c3c0c7e8",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0002364fb5cbe93c016967e27680e8819393c41f600ba6e1a5",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hi there! How can I help today?\n\nIf you’re not sure yet, here are a few things I can do:\n- Answer questions or explain concepts\n- Help with writing, editing, or brainstorming\n- Assist with coding or debugging\n- Summarize or translate text\n- Plan a project, trip, meal, or study schedule\n- Provide explanations, examples, or practice problems\n\nTell me what you’re working on or what you’d like to learn, and we’ll go from there."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 7,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 364,
+    "output_tokens_details": {
+      "reasoning_tokens": 256
+    },
+    "total_tokens": 371
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Hi there! How can I help today?\n\nIf you’re not sure yet, here are a few things I can do:\n- Answer questions or explain concepts\n- Help with writing, editing, or brainstorming\n- Assist with coding or debugging\n- Summarize or translate text\n- Plan a project, trip, meal, or study schedule\n- Provide explanations, examples, or practice problems\n\nTell me what you’re working on or what you’d like to learn, and we’ll go from there."
+}
