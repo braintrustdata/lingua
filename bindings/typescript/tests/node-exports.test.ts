@@ -57,6 +57,43 @@ describe("Node.js exports", () => {
     expect(result[0].role).toBe("user");
   });
 
+  test("should import messages from prompt wrapper with tool calls", async () => {
+    const { importMessagesFromSpans } = await import("../src/index");
+
+    const input = {
+      prompt: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: [{ type: "text", text: "Hello" }] },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool-call",
+              toolCallId: "call_1",
+              toolName: "bash",
+              input: { command: "ls" },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          content: [
+            {
+              type: "tool-result",
+              toolCallId: "call_1",
+              toolName: "bash",
+              output: { stdout: "ok" },
+            },
+          ],
+        },
+        { role: "assistant", content: [{ type: "text", text: "Done" }] },
+      ],
+    };
+
+    const messages = importMessagesFromSpans([{ input }]);
+    expect(messages.length).toBe(5);
+  });
+
   test("should NOT export browser-specific init function", async () => {
     const exports = await import("../src/index");
 
