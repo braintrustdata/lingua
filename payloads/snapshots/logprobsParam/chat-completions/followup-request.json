@@ -1,0 +1,21 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2 + 2?"
+    },
+    {
+      "role": "assistant",
+      "content": "2 + 2 equals 4.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "logprobs": true,
+  "top_logprobs": 2
+}

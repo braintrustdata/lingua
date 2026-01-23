@@ -1,0 +1,20 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Pick a number."
+    },
+    {
+      "role": "assistant",
+      "content": "Alright! I pick the number 7.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "seed": 12345
+}

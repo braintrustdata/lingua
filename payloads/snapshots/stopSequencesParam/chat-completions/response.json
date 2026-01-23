@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-Cxyz1Ys7Ucbh2mgI90TSDVOJzoOIo",
+  "object": "chat.completion",
+  "created": 1768411807,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure! Here are the numbers from 1 to 20:\n\n1, 2, 3, 4, 5, 6, 7, 8, 9, ",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 15,
+    "completion_tokens": 41,
+    "total_tokens": 56,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_29330a9688"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cxyz4MZzR0qgeEDEHQi5nmYkViezz",
+  "object": "chat.completion",
+  "created": 1768411810,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Happy to help. What would you like to focus on? Here are quick options you can choose from, or tell me your goal and I’ll tailor it:\n\n- Get something done now (3-step micro-plan)\n  1) Pick one important task\n  2) Work for 25 minutes (Pomodoro)\n  3) Review what you did and decide next step\n\n- Learn something new (short plan)\n  1) Pick a topic\n  2) Do a 20-minute mini-lesson or tutorial\n  3) Do one quick practice problem or summary\n\n- Boost well-being (quick routine)\n  1) 5 minutes of deep breathing\n  2) 5 minutes of light stretching or a short walk\n  3) 2-minute reflection on how you feel\n\n- Organize tasks (next actions)\n  1) List top 3 priorities\n  2) Break each into next concrete action\n  3) Schedule or set reminders\n\n- Creative / fun prompt\n  1) Try a 10-minute creative exercise (short story, sketch, idea sprint)\n  2) Share or summarize your result\n\nTell me which option fits, or share your goal (time you have, topic, constraints), and I’ll tailor a plan.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 54,
+    "completion_tokens": 1109,
+    "total_tokens": 1163,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

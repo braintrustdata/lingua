@@ -1,0 +1,25 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say ok."
+    },
+    {
+      "role": "assistant",
+      "content": "ok.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "store": true,
+  "metadata": {
+    "request_id": "req-12345",
+    "user_tier": "premium",
+    "experiment": "control"
+  }
+}

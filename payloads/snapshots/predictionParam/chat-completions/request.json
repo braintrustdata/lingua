@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Update this function to add error handling:\n\nfunction divide(a, b) {\n  return a / b;\n}"
+    }
+  ],
+  "prediction": {
+    "type": "content",
+    "content": "function divide(a, b) {\n  if (b === 0) {\n    throw new Error('Cannot divide by zero');\n  }\n  return a / b;\n}"
+  }
+}

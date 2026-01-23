@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Count from 1 to 20."
+    }
+  ],
+  "stop": [
+    "10",
+    "ten"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Weather in NYC and LA?"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_5JltcXRPjXPzj6hHSutWaS2M",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\":\"New York, NY\"}"
+          }
+        }
+      ],
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_5JltcXRPjXPzj6hHSutWaS2M",
+      "content": "71 degrees"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get weather",
+        "strict": true,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "location"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "parallel_tool_calls": false
+}

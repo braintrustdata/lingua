@@ -419,8 +419,7 @@ impl ProviderAdapter for BedrockAdapter {
         }
 
         // Check for usage-only chunk
-        if chunk.choices.is_empty() && chunk.usage.is_some() {
-            let usage = chunk.usage.as_ref().unwrap();
+        if let (true, Some(usage)) = (chunk.choices.is_empty(), &chunk.usage) {
             return Ok(serde_json::json!({
                 "metadata": {
                     "usage": {

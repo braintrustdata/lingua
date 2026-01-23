@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Cxyz1VmF78ct2ffHFHffSErNbx11y",
+  "object": "chat.completion",
+  "created": 1768411807,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "4\n\nIf you want a quick note: 2 + 2 equals 4 because combining two and two yields four.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 13,
+    "completion_tokens": 226,
+    "total_tokens": 239,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 192,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

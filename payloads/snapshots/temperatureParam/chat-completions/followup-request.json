@@ -1,0 +1,20 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say hi."
+    },
+    {
+      "role": "assistant",
+      "content": "Hi! How can I assist you today?",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "temperature": 0.7
+}
