@@ -39,7 +39,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -57,7 +57,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -74,7 +74,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -90,7 +90,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -106,7 +106,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -122,7 +122,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -138,7 +138,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -155,7 +155,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -170,7 +170,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call]),
+                        content: AssistantContent::from(vec![tool_call]),
                         id: input.id,
                     });
                 }
@@ -203,7 +203,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     }
 
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(summaries),
+                        content: AssistantContent::from(summaries),
                         id: input.id,
                     });
                 }
@@ -235,7 +235,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     };
 
                     result.push(Message::Assistant {
-                        content: AssistantContent::Array(vec![tool_call_part]),
+                        content: AssistantContent::from(vec![tool_call_part]),
                         id: input.id.clone(),
                     });
                 }
@@ -305,9 +305,10 @@ impl TryFromLLM<openai::InputItemContent> for UserContent {
 
     fn try_from(contents: openai::InputItemContent) -> Result<Self, Self::Error> {
         Ok(match contents {
-            openai::InputItemContent::String(text) => UserContent::String(text),
+            openai::InputItemContent::String(text) => UserContent::text(text),
             openai::InputItemContent::InputContentArray(parts) => {
-                UserContent::Array(TryFromLLM::try_from(parts)?)
+                let user_parts: Vec<UserContentPart> = TryFromLLM::try_from(parts)?;
+                UserContent::new(user_parts)
             }
         })
     }
@@ -320,13 +321,28 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
         Ok(match value.input_content_type {
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
+                // Preserve input_content_type in provider_options for roundtrip fidelity
+                let provider_options = {
+                    let mut options = serde_json::Map::new();
+                    options.insert(
+                        "input_content_type".to_string(),
+                        serde_json::to_value(&value.input_content_type).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "input_content_type".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?,
+                    );
+                    Some(crate::universal::message::ProviderOptions { options })
+                };
+
                 UserContentPart::Text(TextContentPart {
                     text: value
                         .text
                         .ok_or_else(|| ConvertError::MissingRequiredField {
                             field: "text".to_string(),
                         })?,
-                    provider_options: None,
+                    provider_options,
                 })
             }
             // TODO: ToolCall and ToolResult content types - not yet implemented in generated types
@@ -401,9 +417,10 @@ impl TryFromLLM<openai::InputItemContent> for AssistantContent {
 
     fn try_from(contents: openai::InputItemContent) -> Result<Self, Self::Error> {
         Ok(match contents {
-            openai::InputItemContent::String(text) => AssistantContent::String(text),
+            openai::InputItemContent::String(text) => AssistantContent::text(text),
             openai::InputItemContent::InputContentArray(parts) => {
-                AssistantContent::Array(TryFromLLM::try_from(parts)?)
+                let assistant_parts: Vec<AssistantContentPart> = TryFromLLM::try_from(parts)?;
+                AssistantContent::new(assistant_parts)
             }
         })
     }
@@ -415,14 +432,13 @@ impl TryFromLLM<UserContent> for openai::InputItemContent {
     type Error = ConvertError;
 
     fn try_from(content: UserContent) -> Result<Self, Self::Error> {
-        Ok(match content {
-            UserContent::String(text) => openai::InputItemContent::String(text),
-            UserContent::Array(parts) => {
-                let input_parts: Result<Vec<_>, _> =
-                    parts.into_iter().map(TryFromLLM::try_from).collect();
-                openai::InputItemContent::InputContentArray(input_parts?)
-            }
-        })
+        if let Some(text) = content.as_text() {
+            Ok(openai::InputItemContent::String(text.to_string()))
+        } else {
+            let input_parts: Result<Vec<_>, _> =
+                content.into_parts().into_iter().map(TryFromLLM::try_from).collect();
+            Ok(openai::InputItemContent::InputContentArray(input_parts?))
+        }
     }
 }
 
@@ -431,11 +447,21 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
 
     fn try_from(part: UserContentPart) -> Result<Self, Self::Error> {
         Ok(match part {
-            UserContentPart::Text(text_part) => openai::InputContent {
-                input_content_type: openai::InputItemContentListType::InputText,
-                text: Some(text_part.text),
-                ..Default::default()
-            },
+            UserContentPart::Text(text_part) => {
+                // Restore input_content_type from provider_options if present
+                let input_content_type = text_part
+                    .provider_options
+                    .as_ref()
+                    .and_then(|opts| opts.options.get("input_content_type"))
+                    .and_then(|v| serde_json::from_value(v.clone()).ok())
+                    .unwrap_or(openai::InputItemContentListType::InputText);
+
+                openai::InputContent {
+                    input_content_type,
+                    text: Some(text_part.text),
+                    ..Default::default()
+                }
+            }
             UserContentPart::Image {
                 image,
                 provider_options,
@@ -495,14 +521,13 @@ impl TryFromLLM<AssistantContent> for openai::InputItemContent {
     type Error = ConvertError;
 
     fn try_from(content: AssistantContent) -> Result<Self, Self::Error> {
-        Ok(match content {
-            AssistantContent::String(text) => openai::InputItemContent::String(text),
-            AssistantContent::Array(parts) => {
-                let input_parts: Result<Vec<_>, _> =
-                    parts.into_iter().map(TryFromLLM::try_from).collect();
-                openai::InputItemContent::InputContentArray(input_parts?)
-            }
-        })
+        if let Some(text) = content.as_text() {
+            Ok(openai::InputItemContent::String(text.to_string()))
+        } else {
+            let input_parts: Result<Vec<_>, _> =
+                content.into_parts().into_iter().map(TryFromLLM::try_from).collect();
+            Ok(openai::InputItemContent::InputContentArray(input_parts?))
+        }
     }
 }
 
@@ -576,33 +601,30 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
                 // Build provider_options to preserve annotations and logprobs
+                // IMPORTANT: Preserve even empty arrays for roundtrip fidelity
                 let provider_options = {
                     let mut options = serde_json::Map::new();
                     if let Some(annotations) = &value.annotations {
-                        if !annotations.is_empty() {
-                            options.insert(
-                                "annotations".to_string(),
-                                serde_json::to_value(annotations).map_err(|e| {
-                                    ConvertError::JsonSerializationFailed {
-                                        field: "annotations".to_string(),
-                                        error: e.to_string(),
-                                    }
-                                })?,
-                            );
-                        }
+                        options.insert(
+                            "annotations".to_string(),
+                            serde_json::to_value(annotations).map_err(|e| {
+                                ConvertError::JsonSerializationFailed {
+                                    field: "annotations".to_string(),
+                                    error: e.to_string(),
+                                }
+                            })?,
+                        );
                     }
                     if let Some(logprobs) = &value.logprobs {
-                        if !logprobs.is_empty() {
-                            options.insert(
-                                "logprobs".to_string(),
-                                serde_json::to_value(logprobs).map_err(|e| {
-                                    ConvertError::JsonSerializationFailed {
-                                        field: "logprobs".to_string(),
-                                        error: e.to_string(),
-                                    }
-                                })?,
-                            );
-                        }
+                        options.insert(
+                            "logprobs".to_string(),
+                            serde_json::to_value(logprobs).map_err(|e| {
+                                ConvertError::JsonSerializationFailed {
+                                    field: "logprobs".to_string(),
+                                    error: e.to_string(),
+                                }
+                            })?,
+                        );
                     }
                     if options.is_empty() {
                         None
@@ -683,28 +705,28 @@ impl TryFromLLM<Message> for openai::InputItem {
                 ..Default::default()
             }),
             Message::Assistant { content, id } => {
-                match content {
-                    AssistantContent::String(text) => Ok(openai::InputItem {
+                if let Some(text) = content.as_text() {
+                    Ok(openai::InputItem {
                         role: Some(openai::InputItemRole::Assistant),
-                        content: Some(openai::InputItemContent::String(text)),
+                        content: Some(openai::InputItemContent::String(text.to_string())),
                         id,
                         input_item_type: Some(openai::InputItemType::Message),
                         status: Some(openai::FunctionCallItemStatus::Completed),
                         ..Default::default()
-                    }),
-                    AssistantContent::Array(parts) => {
-                        let mut has_reasoning = false;
-                        let mut encrypted_content = None;
-                        let mut reasoning_parts: Vec<openai::SummaryText> = vec![];
-                        let mut normal_parts: Vec<openai::InputContent> = vec![];
-                        let mut tool_call_info: Option<(
-                            String,
-                            String,
-                            ToolCallArguments,
-                            Option<bool>,
-                        )> = None; // (tool_call_id, name, arguments, provider_executed)
+                    })
+                } else {
+                    let mut has_reasoning = false;
+                    let mut encrypted_content = None;
+                    let mut reasoning_parts: Vec<openai::SummaryText> = vec![];
+                    let mut normal_parts: Vec<openai::InputContent> = vec![];
+                    let mut tool_call_info: Option<(
+                        String,
+                        String,
+                        ToolCallArguments,
+                        Option<bool>,
+                    )> = None; // (tool_call_id, name, arguments, provider_executed)
 
-                        for part in parts {
+                    for part in content.into_parts() {
                             match part {
                                 AssistantContentPart::Reasoning {
                                     text,
@@ -739,7 +761,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                             }
                         }
 
-                        if has_reasoning {
+                    if has_reasoning {
                             if tool_call_info.is_some() || !normal_parts.is_empty() {
                                 return Err(ConvertError::ContentConversionFailed {
                                     reason: "Mixed reasoning and other content parts are not supported in OpenAI format".to_string(),
@@ -931,7 +953,6 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 ..Default::default()
                             })
                         }
-                    }
                 }
             }
             Message::Tool { content } => {
@@ -1411,14 +1432,14 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
             openai::ChatCompletionRequestMessageRole::System => {
                 let content = match msg.content {
                     Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
-                        UserContent::String(text)
+                        UserContent::from(text)
                     }
                     Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
                         let user_parts: Result<Vec<_>, _> = parts
                             .into_iter()
                             .map(TryFromLLM::try_from)
                             .collect();
-                        UserContent::Array(user_parts?)
+                        UserContent::from(user_parts?)
                     }
                     None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
                 };
@@ -1427,14 +1448,14 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
             openai::ChatCompletionRequestMessageRole::User => {
                 let content = match msg.content {
                     Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
-                        UserContent::String(text)
+                        UserContent::from(text)
                     }
                     Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
                         let user_parts: Result<Vec<_>, _> = parts
                             .into_iter()
                             .map(TryFromLLM::try_from)
                             .collect();
-                        UserContent::Array(user_parts?)
+                        UserContent::from(user_parts?)
                     }
                     None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
                 };
@@ -1496,17 +1517,17 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                 }
 
                 let content = if content_parts.is_empty() {
-                    AssistantContent::String(String::new())
+                    AssistantContent::from(String::new())
                 } else if content_parts.len() == 1 {
                     // If there's only one text part, use string format
                     match &content_parts[0] {
                         AssistantContentPart::Text(text_part) => {
-                            AssistantContent::String(text_part.text.clone())
+                            AssistantContent::from(text_part.text.clone())
                         }
-                        _ => AssistantContent::Array(content_parts),
+                        _ => AssistantContent::from(content_parts),
                     }
                 } else {
-                    AssistantContent::Array(content_parts)
+                    AssistantContent::from(content_parts)
                 };
 
                 Ok(Message::Assistant { content, id: None })
@@ -1515,14 +1536,14 @@ impl TryFromLLM<openai::ChatCompletionRequestMessage> for Message {
                 // Treat developer messages as system messages in universal format
                 let content = match msg.content {
                     Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
-                        UserContent::String(text)
+                        UserContent::from(text)
                     }
                     Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
                         let user_parts: Result<Vec<_>, _> = parts
                             .into_iter()
                             .map(TryFromLLM::try_from)
                             .collect();
-                        UserContent::Array(user_parts?)
+                        UserContent::from(user_parts?)
                     }
                     None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
                 };
@@ -1709,15 +1730,15 @@ impl TryFromLLM<Message> for openai::ChatCompletionRequestMessage {
 fn convert_user_content_to_chat_completion_content(
     content: UserContent,
 ) -> Result<openai::ChatCompletionRequestMessageContent, ConvertError> {
-    match content {
-        UserContent::String(text) => Ok(openai::ChatCompletionRequestMessageContent::String(text)),
-        UserContent::Array(parts) => {
-            let chat_parts: Result<Vec<_>, _> = parts
-                .into_iter()
-                .map(convert_user_content_part_to_chat_completion_part)
-                .collect();
-            Ok(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(chat_parts?))
-        }
+    if let Some(text) = content.as_text() {
+        Ok(openai::ChatCompletionRequestMessageContent::String(text.to_string()))
+    } else {
+        let chat_parts: Result<Vec<_>, _> = content
+            .into_parts()
+            .into_iter()
+            .map(convert_user_content_part_to_chat_completion_part)
+            .collect();
+        Ok(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(chat_parts?))
     }
 }
 
@@ -1782,38 +1803,35 @@ fn extract_content_and_tool_calls(
     let mut text_parts = Vec::new();
     let mut tool_calls = Vec::new();
 
-    match content {
-        AssistantContent::String(text) => {
-            return Ok((
-                Some(openai::ChatCompletionRequestMessageContent::String(text)),
-                None,
-            ));
-        }
-        AssistantContent::Array(parts) => {
-            for part in parts {
-                match part {
-                    AssistantContentPart::Text(text_part) => {
-                        text_parts.push(text_part.text);
-                    }
-                    AssistantContentPart::ToolCall {
-                        tool_call_id,
-                        tool_name,
-                        arguments,
-                        ..
-                    } => {
-                        tool_calls.push(openai::ToolCall {
-                            id: tool_call_id,
-                            tool_call_type: openai::ToolType::Function,
-                            function: Some(openai::PurpleFunction {
-                                name: tool_name,
-                                arguments: arguments.to_string(),
-                            }),
-                            custom: None,
-                        });
-                    }
-                    _ => {
-                        // Handle other content types if needed
-                    }
+    if let Some(text) = content.as_text() {
+        return Ok((
+            Some(openai::ChatCompletionRequestMessageContent::String(text.to_string())),
+            None,
+        ));
+    } else {
+        for part in content.into_parts() {
+            match part {
+                AssistantContentPart::Text(text_part) => {
+                    text_parts.push(text_part.text);
+                }
+                AssistantContentPart::ToolCall {
+                    tool_call_id,
+                    tool_name,
+                    arguments,
+                    ..
+                } => {
+                    tool_calls.push(openai::ToolCall {
+                        id: tool_call_id,
+                        tool_call_type: openai::ToolType::Function,
+                        function: Some(openai::PurpleFunction {
+                            name: tool_name,
+                            arguments: arguments.to_string(),
+                        }),
+                        custom: None,
+                    });
+                }
+                _ => {
+                    // Handle other content types if needed
                 }
             }
         }
@@ -1871,17 +1889,17 @@ impl TryFromLLM<&openai::ChatCompletionResponseMessage> for Message {
                 }
 
                 let content = if content_parts.is_empty() {
-                    AssistantContent::String(String::new())
+                    AssistantContent::from(String::new())
                 } else if content_parts.len() == 1 {
                     // If there's only one text part, use string format
                     match &content_parts[0] {
                         AssistantContentPart::Text(text_part) => {
-                            AssistantContent::String(text_part.text.clone())
+                            AssistantContent::from(text_part.text.clone())
                         }
-                        _ => AssistantContent::Array(content_parts),
+                        _ => AssistantContent::from(content_parts),
                     }
                 } else {
-                    AssistantContent::Array(content_parts)
+                    AssistantContent::from(content_parts)
                 };
 
                 Ok(Message::Assistant { content, id: None })
@@ -1897,56 +1915,56 @@ impl TryFromLLM<&Message> for openai::ChatCompletionResponseMessage {
     fn try_from(msg: &Message) -> Result<Self, Self::Error> {
         match msg {
             Message::Assistant { content, id: _ } => {
-                let (content_text, tool_calls) = match content {
-                    AssistantContent::String(text) => (Some(text.clone()), None),
-                    AssistantContent::Array(parts) => {
-                        // Extract text from parts and concatenate
-                        let texts: Vec<String> = parts
-                            .iter()
-                            .filter_map(|part| match part {
-                                AssistantContentPart::Text(text_part) => {
-                                    Some(text_part.text.clone())
-                                }
-                                _ => None,
-                            })
-                            .collect();
+                let (content_text, tool_calls) = if let Some(text) = content.as_text() {
+                    (Some(text.to_string()), None)
+                } else {
+                    let parts = content.parts();
+                    // Extract text from parts and concatenate
+                    let texts: Vec<String> = parts
+                        .iter()
+                        .filter_map(|part| match part {
+                            AssistantContentPart::Text(text_part) => {
+                                Some(text_part.text.clone())
+                            }
+                            _ => None,
+                        })
+                        .collect();
 
-                        // Extract tool calls from parts
-                        let tool_calls: Vec<openai::ToolCall> = parts
-                            .iter()
-                            .filter_map(|part| match part {
-                                AssistantContentPart::ToolCall {
-                                    tool_call_id,
-                                    tool_name,
-                                    arguments,
-                                    ..
-                                } => Some(openai::ToolCall {
-                                    id: tool_call_id.clone(),
-                                    tool_call_type: openai::ToolType::Function,
-                                    function: Some(openai::PurpleFunction {
-                                        name: tool_name.clone(),
-                                        arguments: arguments.to_string(),
-                                    }),
-                                    custom: None,
+                    // Extract tool calls from parts
+                    let tool_calls: Vec<openai::ToolCall> = parts
+                        .iter()
+                        .filter_map(|part| match part {
+                            AssistantContentPart::ToolCall {
+                                tool_call_id,
+                                tool_name,
+                                arguments,
+                                ..
+                            } => Some(openai::ToolCall {
+                                id: tool_call_id.clone(),
+                                tool_call_type: openai::ToolType::Function,
+                                function: Some(openai::PurpleFunction {
+                                    name: tool_name.clone(),
+                                    arguments: arguments.to_string(),
                                 }),
-                                _ => None,
-                            })
-                            .collect();
+                                custom: None,
+                            }),
+                            _ => None,
+                        })
+                        .collect();
 
-                        let content_text = if texts.is_empty() {
-                            None
-                        } else {
-                            Some(texts.join(""))
-                        };
+                    let content_text = if texts.is_empty() {
+                        None
+                    } else {
+                        Some(texts.join(""))
+                    };
 
-                        let tool_calls_option = if tool_calls.is_empty() {
-                            None
-                        } else {
-                            Some(tool_calls)
-                        };
+                    let tool_calls_option = if tool_calls.is_empty() {
+                        None
+                    } else {
+                        Some(tool_calls)
+                    };
 
-                        (content_text, tool_calls_option)
-                    }
+                    (content_text, tool_calls_option)
                 };
 
                 Ok(openai::ChatCompletionResponseMessage {

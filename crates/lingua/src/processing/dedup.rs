@@ -38,25 +38,21 @@ fn hash_message(msg: &Message) -> u64 {
 }
 
 fn hash_user_content(content: &UserContent, hasher: &mut DefaultHasher) {
-    match content {
-        UserContent::String(s) => {
-            "text".hash(hasher);
-            s.hash(hasher);
-        }
-        UserContent::Array(parts) => {
-            // Normalize array with single text part to match string representation
-            if parts.len() == 1 {
-                if let Some(UserContentPart::Text(TextContentPart { text, .. })) = parts.first() {
-                    "text".hash(hasher);
-                    text.hash(hasher);
-                    return;
-                }
-            }
+    let parts = content.parts();
 
-            // For multi-part or non-text content, hash each part
-            "parts".hash(hasher);
-            parts.len().hash(hasher);
-            for part in parts {
+    // Normalize array with single text part to match string representation
+    if parts.len() == 1 {
+        if let Some(UserContentPart::Text(TextContentPart { text, .. })) = parts.first() {
+            "text".hash(hasher);
+            text.hash(hasher);
+            return;
+        }
+    }
+
+    // For multi-part or non-text content, hash each part
+    "parts".hash(hasher);
+    parts.len().hash(hasher);
+    for part in parts {
                 match part {
                     UserContentPart::Text(TextContentPart { text, .. }) => {
                         "text".hash(hasher);
@@ -82,32 +78,26 @@ fn hash_user_content(content: &UserContent, hasher: &mut DefaultHasher) {
                     }
                 }
             }
-        }
-    }
 }
 
 fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher) {
-    match content {
-        AssistantContent::String(s) => {
-            "text".hash(hasher);
-            s.hash(hasher);
-        }
-        AssistantContent::Array(parts) => {
-            // Normalize array with single text part to match string representation
-            if parts.len() == 1 {
-                if let Some(AssistantContentPart::Text(TextContentPart { text, .. })) =
-                    parts.first()
-                {
-                    "text".hash(hasher);
-                    text.hash(hasher);
-                    return;
-                }
-            }
+    let parts = content.parts();
 
-            // For multi-part content, hash each part
-            "parts".hash(hasher);
-            parts.len().hash(hasher);
-            for part in parts {
+    // Normalize array with single text part to match string representation
+    if parts.len() == 1 {
+        if let Some(AssistantContentPart::Text(TextContentPart { text, .. })) =
+            parts.first()
+        {
+            "text".hash(hasher);
+            text.hash(hasher);
+            return;
+        }
+    }
+
+    // For multi-part content, hash each part
+    "parts".hash(hasher);
+    parts.len().hash(hasher);
+    for part in parts {
                 match part {
                     AssistantContentPart::Text(TextContentPart { text, .. }) => {
                         "text".hash(hasher);
@@ -166,8 +156,6 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                     }
                 }
             }
-        }
-    }
 }
 
 fn hash_tool_content(content: &ToolContent, hasher: &mut DefaultHasher) {
@@ -220,13 +208,13 @@ mod tests {
     fn test_dedup_exact_duplicates() {
         let messages = vec![
             Message::User {
-                content: UserContent::String("hello".to_string()),
+                content: UserContent::from("hello".to_string()),
             },
             Message::User {
-                content: UserContent::String("hello".to_string()),
+                content: UserContent::from("hello".to_string()),
             },
             Message::User {
-                content: UserContent::String("world".to_string()),
+                content: UserContent::from("world".to_string()),
             },
         ];
 
@@ -238,16 +226,16 @@ mod tests {
     fn test_dedup_string_vs_array_text() {
         let messages = vec![
             Message::User {
-                content: UserContent::String("foo".to_string()),
+                content: UserContent::from("foo".to_string()),
             },
             Message::User {
-                content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                content: UserContent::from(vec![UserContentPart::Text(TextContentPart {
                     text: "foo".to_string(),
                     provider_options: None,
                 })]),
             },
             Message::User {
-                content: UserContent::String("bar".to_string()),
+                content: UserContent::from("bar".to_string()),
             },
         ];
 
@@ -256,10 +244,10 @@ mod tests {
 
         // Check that first "foo" was kept (as String, not Array)
         if let Message::User {
-            content: UserContent::String(s),
+            content,
         } = &result[0]
         {
-            assert_eq!(s, "foo");
+            assert_eq!(content.as_text(), Some("foo"));
         } else {
             panic!("Expected first message to be User with String content");
         }
@@ -267,9 +255,7 @@ mod tests {
         // Verify the original message format was preserved
         assert!(matches!(
             result[0],
-            Message::User {
-                content: UserContent::String(_)
-            }
+            Message::User { .. }
         ));
     }
 
@@ -277,11 +263,11 @@ mod tests {
     fn test_dedup_assistant_string_vs_array() {
         let messages = vec![
             Message::Assistant {
-                content: AssistantContent::String("response".to_string()),
+                content: AssistantContent::from("response".to_string()),
                 id: None,
             },
             Message::Assistant {
-                content: AssistantContent::Array(vec![AssistantContentPart::Text(
+                content: AssistantContent::from(vec![AssistantContentPart::Text(
                     TextContentPart {
                         text: "response".to_string(),
                         provider_options: None,
@@ -297,10 +283,7 @@ mod tests {
         // Verify original format preserved
         assert!(matches!(
             result[0],
-            Message::Assistant {
-                content: AssistantContent::String(_),
-                ..
-            }
+            Message::Assistant { .. }
         ));
     }
 
@@ -308,17 +291,17 @@ mod tests {
     fn test_dedup_preserves_order() {
         let messages = vec![
             Message::User {
-                content: UserContent::String("first".to_string()),
+                content: UserContent::from("first".to_string()),
             },
             Message::Assistant {
-                content: AssistantContent::String("second".to_string()),
+                content: AssistantContent::from("second".to_string()),
                 id: None,
             },
             Message::User {
-                content: UserContent::String("third".to_string()),
+                content: UserContent::from("third".to_string()),
             },
             Message::User {
-                content: UserContent::String("first".to_string()),
+                content: UserContent::from("first".to_string()),
             },
         ];
 
@@ -327,23 +310,23 @@ mod tests {
 
         // Verify order
         if let Message::User {
-            content: UserContent::String(s),
+            content,
         } = &result[0]
         {
-            assert_eq!(s, "first");
+            assert_eq!(content.as_text(), Some("first"));
         }
         if let Message::Assistant {
-            content: AssistantContent::String(s),
+            content,
             ..
         } = &result[1]
         {
-            assert_eq!(s, "second");
+            assert_eq!(content.as_text(), Some("second"));
         }
         if let Message::User {
-            content: UserContent::String(s),
+            content,
         } = &result[2]
         {
-            assert_eq!(s, "third");
+            assert_eq!(content.as_text(), Some("third"));
         }
     }
 
@@ -351,14 +334,14 @@ mod tests {
     fn test_dedup_different_roles_not_deduped() {
         let messages = vec![
             Message::User {
-                content: UserContent::String("same content".to_string()),
+                content: UserContent::from("same content".to_string()),
             },
             Message::Assistant {
-                content: AssistantContent::String("same content".to_string()),
+                content: AssistantContent::from("same content".to_string()),
                 id: None,
             },
             Message::System {
-                content: UserContent::String("same content".to_string()),
+                content: UserContent::from("same content".to_string()),
             },
         ];
 
@@ -376,7 +359,7 @@ mod tests {
     #[test]
     fn test_dedup_single_message() {
         let messages = vec![Message::User {
-            content: UserContent::String("only one".to_string()),
+            content: UserContent::from("only one".to_string()),
         }];
 
         let result = deduplicate_messages(messages);
@@ -387,13 +370,13 @@ mod tests {
     fn test_dedup_all_duplicates() {
         let messages = vec![
             Message::User {
-                content: UserContent::String("same".to_string()),
+                content: UserContent::from("same".to_string()),
             },
             Message::User {
-                content: UserContent::String("same".to_string()),
+                content: UserContent::from("same".to_string()),
             },
             Message::User {
-                content: UserContent::String("same".to_string()),
+                content: UserContent::from("same".to_string()),
             },
         ];
 
@@ -405,7 +388,7 @@ mod tests {
     fn test_dedup_multipart_content() {
         let messages = vec![
             Message::User {
-                content: UserContent::Array(vec![
+                content: UserContent::from(vec![
                     UserContentPart::Text(TextContentPart {
                         text: "hello".to_string(),
                         provider_options: None,
@@ -417,7 +400,7 @@ mod tests {
                 ]),
             },
             Message::User {
-                content: UserContent::Array(vec![
+                content: UserContent::from(vec![
                     UserContentPart::Text(TextContentPart {
                         text: "hello".to_string(),
                         provider_options: None,
@@ -438,13 +421,13 @@ mod tests {
     fn test_dedup_with_provider_options_ignored() {
         let messages = vec![
             Message::User {
-                content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                content: UserContent::from(vec![UserContentPart::Text(TextContentPart {
                     text: "test".to_string(),
                     provider_options: None,
                 })]),
             },
             Message::User {
-                content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                content: UserContent::from(vec![UserContentPart::Text(TextContentPart {
                     text: "test".to_string(),
                     provider_options: Some(crate::universal::ProviderOptions {
                         options: serde_json::Map::new(),
@@ -462,7 +445,7 @@ mod tests {
     fn test_original_message_unmodified() {
         // Test that the original message structure is preserved exactly
         let original = Message::User {
-            content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+            content: UserContent::from(vec![UserContentPart::Text(TextContentPart {
                 text: "preserve me".to_string(),
                 provider_options: Some(crate::universal::ProviderOptions {
                     options: {
@@ -480,10 +463,8 @@ mod tests {
         assert_eq!(result.len(), 1);
 
         // Verify it's still an Array, not converted to String
-        if let Message::User {
-            content: UserContent::Array(parts),
-        } = &result[0]
-        {
+        if let Message::User { content } = &result[0] {
+            let parts = content.parts();
             assert_eq!(parts.len(), 1);
             if let UserContentPart::Text(TextContentPart {
                 text,

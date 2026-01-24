@@ -187,7 +187,7 @@ fn try_lenient_message_parsing(data: &Value) -> Option<Vec<Message>> {
 /// Parse user/system content from JSON value
 fn parse_user_content(value: &Value) -> Option<UserContent> {
     match value {
-        Value::String(s) => Some(UserContent::String(s.clone())),
+        Value::String(s) => Some(UserContent::text(s.clone())),
         Value::Array(arr) => {
             let mut parts = Vec::new();
             for item in arr {
@@ -207,7 +207,7 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
             if parts.is_empty() {
                 None
             } else {
-                Some(UserContent::Array(parts))
+                Some(UserContent::new(parts))
             }
         }
         _ => None,
@@ -217,7 +217,7 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
 /// Parse assistant content from JSON value
 fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
     match value {
-        Value::String(s) => Some(AssistantContent::String(s.clone())),
+        Value::String(s) => Some(AssistantContent::text(s.clone())),
         Value::Array(arr) => {
             let mut parts = Vec::new();
             for item in arr {
@@ -239,7 +239,7 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
             if parts.is_empty() {
                 None
             } else {
-                Some(AssistantContent::Array(parts))
+                Some(AssistantContent::new(parts))
             }
         }
         _ => None,

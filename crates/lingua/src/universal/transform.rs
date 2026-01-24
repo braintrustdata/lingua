@@ -15,9 +15,9 @@ providers, mirroring the proxy's behavior:
 use lingua::universal::{Message, UserContent, extract_system_messages, flatten_consecutive_messages};
 
 let mut messages = vec![
-    Message::System { content: UserContent::String("You are helpful".into()) },
-    Message::User { content: UserContent::String("Hello".into()) },
-    Message::User { content: UserContent::String("World".into()) },
+    Message::System { content: UserContent::text("You are helpful") },
+    Message::User { content: UserContent::text("Hello") },
+    Message::User { content: UserContent::text("World") },
 ];
 
 // Extract system messages (for providers that need them separate)
@@ -30,10 +30,7 @@ assert_eq!(messages.len(), 1);
 ```
 */
 
-use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContent, UserContent,
-    UserContentPart,
-};
+use crate::universal::{AssistantContent, Message, ToolContent, UserContent};
 
 /// Extract system messages from the message list.
 ///
@@ -47,8 +44,8 @@ use crate::universal::{
 /// use lingua::universal::{Message, UserContent, extract_system_messages};
 ///
 /// let mut messages = vec![
-///     Message::System { content: UserContent::String("System prompt".into()) },
-///     Message::User { content: UserContent::String("Hello".into()) },
+///     Message::System { content: UserContent::text("System prompt") },
+///     Message::User { content: UserContent::text("Hello") },
 /// ];
 ///
 /// let system = extract_system_messages(&mut messages);
@@ -83,8 +80,8 @@ pub fn extract_system_messages(messages: &mut Vec<Message>) -> Vec<UserContent> 
 /// use lingua::universal::{Message, UserContent, flatten_consecutive_messages};
 ///
 /// let mut messages = vec![
-///     Message::User { content: UserContent::String("Hello".into()) },
-///     Message::User { content: UserContent::String("World".into()) },
+///     Message::User { content: UserContent::text("Hello") },
+///     Message::User { content: UserContent::text("World") },
 /// ];
 ///
 /// flatten_consecutive_messages(&mut messages);
@@ -150,23 +147,19 @@ fn merge_messages(a: &mut Message, b: Message) {
 /// Merge two UserContent values.
 fn merge_user_content(a: &mut UserContent, b: UserContent) {
     // Replace `a` with a temporary empty array, get the old value
-    let old_a = std::mem::replace(a, UserContent::Array(vec![]));
-    let a_parts = user_content_to_parts(old_a);
-    let b_parts = user_content_to_parts(b);
-    let mut merged = a_parts;
-    merged.extend(b_parts);
-    *a = UserContent::Array(merged);
+    let old_a = std::mem::replace(a, UserContent::new(vec![]));
+    let mut merged = old_a.into_parts();
+    merged.extend(b.into_parts());
+    *a = UserContent::new(merged);
 }
 
 /// Merge two AssistantContent values.
 fn merge_assistant_content(a: &mut AssistantContent, b: AssistantContent) {
     // Replace `a` with a temporary empty array, get the old value
-    let old_a = std::mem::replace(a, AssistantContent::Array(vec![]));
-    let a_parts = assistant_content_to_parts(old_a);
-    let b_parts = assistant_content_to_parts(b);
-    let mut merged = a_parts;
-    merged.extend(b_parts);
-    *a = AssistantContent::Array(merged);
+    let old_a = std::mem::replace(a, AssistantContent::new(vec![]));
+    let mut merged = old_a.into_parts();
+    merged.extend(b.into_parts());
+    *a = AssistantContent::new(merged);
 }
 
 /// Merge two ToolContent values (Vec<ToolContentPart>).
@@ -174,27 +167,6 @@ fn merge_tool_content(a: &mut ToolContent, b: ToolContent) {
     a.extend(b);
 }
 
-/// Convert UserContent to Vec<UserContentPart>.
-fn user_content_to_parts(content: UserContent) -> Vec<UserContentPart> {
-    match content {
-        UserContent::String(text) => vec![UserContentPart::Text(TextContentPart {
-            text,
-            provider_options: None,
-        })],
-        UserContent::Array(parts) => parts,
-    }
-}
-
-/// Convert AssistantContent to Vec<AssistantContentPart>.
-fn assistant_content_to_parts(content: AssistantContent) -> Vec<AssistantContentPart> {
-    match content {
-        AssistantContent::String(text) => vec![AssistantContentPart::Text(TextContentPart {
-            text,
-            provider_options: None,
-        })],
-        AssistantContent::Array(parts) => parts,
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -204,13 +176,13 @@ mod tests {
     fn test_extract_system_messages() {
         let mut messages = vec![
             Message::System {
-                content: UserContent::String("System prompt".into()),
+                content: UserContent::text("System prompt"),
             },
             Message::User {
-                content: UserContent::String("Hello".into()),
+                content: UserContent::text("Hello"),
             },
             Message::System {
-                content: UserContent::String("Another system".into()),
+                content: UserContent::text("Another system"),
             },
         ];
 
@@ -225,21 +197,18 @@ mod tests {
     fn test_flatten_consecutive_user_messages() {
         let mut messages = vec![
             Message::User {
-                content: UserContent::String("Hello".into()),
+                content: UserContent::text("Hello"),
             },
             Message::User {
-                content: UserContent::String("World".into()),
+                content: UserContent::text("World"),
             },
         ];
 
         flatten_consecutive_messages(&mut messages);
 
         assert_eq!(messages.len(), 1);
-        if let Message::User {
-            content: UserContent::Array(parts),
-        } = &messages[0]
-        {
-            assert_eq!(parts.len(), 2);
+        if let Message::User { content } = &messages[0] {
+            assert_eq!(content.parts().len(), 2);
         } else {
             panic!("Expected User message with Array content");
         }
@@ -249,11 +218,11 @@ mod tests {
     fn test_flatten_consecutive_assistant_messages() {
         let mut messages = vec![
             Message::Assistant {
-                content: AssistantContent::String("Hi".into()),
+                content: AssistantContent::text("Hi"),
                 id: None,
             },
             Message::Assistant {
-                content: AssistantContent::String("there".into()),
+                content: AssistantContent::text("there"),
                 id: Some("id2".into()),
             },
         ];
@@ -262,11 +231,11 @@ mod tests {
 
         assert_eq!(messages.len(), 1);
         if let Message::Assistant {
-            content: AssistantContent::Array(parts),
+            content,
             ..
         } = &messages[0]
         {
-            assert_eq!(parts.len(), 2);
+            assert_eq!(content.parts().len(), 2);
         } else {
             panic!("Expected Assistant message with Array content");
         }
@@ -276,10 +245,10 @@ mod tests {
     fn test_no_modification_when_not_called() {
         let messages = [
             Message::User {
-                content: UserContent::String("Hello".into()),
+                content: UserContent::text("Hello"),
             },
             Message::User {
-                content: UserContent::String("World".into()),
+                content: UserContent::text("World"),
             },
         ];
 
@@ -291,10 +260,10 @@ mod tests {
     fn test_system_messages_preserved_when_not_extracted() {
         let messages = [
             Message::System {
-                content: UserContent::String("System".into()),
+                content: UserContent::text("System"),
             },
             Message::User {
-                content: UserContent::String("Hello".into()),
+                content: UserContent::text("Hello"),
             },
         ];
 
@@ -307,17 +276,17 @@ mod tests {
     fn test_mixed_message_sequence() {
         let mut messages = vec![
             Message::User {
-                content: UserContent::String("1".into()),
+                content: UserContent::text("1"),
             },
             Message::User {
-                content: UserContent::String("2".into()),
+                content: UserContent::text("2"),
             },
             Message::Assistant {
-                content: AssistantContent::String("A".into()),
+                content: AssistantContent::text("A"),
                 id: None,
             },
             Message::User {
-                content: UserContent::String("3".into()),
+                content: UserContent::text("3"),
             },
         ];
 
@@ -369,13 +338,13 @@ mod tests {
         // Test the typical flow for providers like Anthropic
         let mut messages = vec![
             Message::System {
-                content: UserContent::String("You are helpful".into()),
+                content: UserContent::text("You are helpful"),
             },
             Message::User {
-                content: UserContent::String("Hello".into()),
+                content: UserContent::text("Hello"),
             },
             Message::User {
-                content: UserContent::String("World".into()),
+                content: UserContent::text("World"),
             },
         ];
 

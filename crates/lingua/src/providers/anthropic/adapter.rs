@@ -16,7 +16,7 @@ use crate::providers::anthropic::generated::{ContentBlock, CreateMessageParams, 
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{Message, UserContent};
+use crate::universal::message::Message;
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
@@ -125,10 +125,7 @@ impl ProviderAdapter for AnthropicAdapter {
         if !system_contents.is_empty() {
             let system_text: String = system_contents
                 .iter()
-                .filter_map(|c| match c {
-                    UserContent::String(s) => Some(s.as_str()),
-                    _ => None,
-                })
+                .filter_map(|c| c.as_text())
                 .collect::<Vec<_>>()
                 .join("\n\n");
             obj.insert("system".into(), Value::String(system_text));

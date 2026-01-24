@@ -698,14 +698,14 @@ impl TryFromLLM<MyProviderMessage> for Message {
     fn try_from(msg: MyProviderMessage) -> Result<Self, Self::Error> {
         match msg.role.as_str() {
             "user" => Ok(Message::User {
-                content: UserContent::String(msg.content),
+                content: UserContent::text(msg.content),
             }),
             "assistant" => Ok(Message::Assistant {
-                content: AssistantContent::String(msg.content),
+                content: AssistantContent::text(msg.content),
                 id: None,
             }),
             "system" => Ok(Message::System {
-                content: UserContent::String(msg.content),
+                content: UserContent::text(msg.content),
             }),
             other => Err(ConvertError::InvalidRole { role: other.to_string() }),
         }

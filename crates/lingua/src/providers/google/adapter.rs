@@ -20,7 +20,7 @@ use crate::universal::message::Message;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, UniversalParams,
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalUsage, UserContent,
+    UniversalUsage,
 };
 
 /// Known request fields for Google GenerateContent API.
@@ -138,19 +138,22 @@ impl ProviderAdapter for GoogleAdapter {
         if !system_contents.is_empty() {
             let system_text = system_contents
                 .into_iter()
-                .map(|c| match c {
-                    UserContent::String(s) => s,
-                    UserContent::Array(parts) => parts
-                        .into_iter()
-                        .filter_map(|p| {
-                            if let crate::universal::UserContentPart::Text(t) = p {
-                                Some(t.text)
-                            } else {
-                                None
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                        .join("\n"),
+                .map(|c| {
+                    if let Some(s) = c.as_text() {
+                        s.to_string()
+                    } else {
+                        c.into_parts()
+                            .into_iter()
+                            .filter_map(|p| {
+                                if let crate::universal::UserContentPart::Text(t) = p {
+                                    Some(t.text)
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect::<Vec<_>>()
+                            .join("\n")
+                    }
                 })
                 .collect::<Vec<_>>()
                 .join("\n");

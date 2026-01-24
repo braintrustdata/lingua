@@ -73,7 +73,7 @@ impl TryFromLLM<GoogleContent> for Message {
             }
 
             Ok(Message::Assistant {
-                content: AssistantContent::Array(parts),
+                content: AssistantContent::from(parts),
                 id: None,
             })
         } else if !function_responses.is_empty() {
@@ -97,10 +97,10 @@ impl TryFromLLM<GoogleContent> for Message {
             // Regular text message
             match role {
                 "user" => Ok(Message::User {
-                    content: UserContent::String(text),
+                    content: UserContent::from(text),
                 }),
                 "model" => Ok(Message::Assistant {
-                    content: AssistantContent::Array(vec![AssistantContentPart::Text(
+                    content: AssistantContent::from(vec![AssistantContentPart::Text(
                         TextContentPart {
                             text,
                             provider_options: None,
@@ -111,7 +111,7 @@ impl TryFromLLM<GoogleContent> for Message {
                 _ => {
                     // Treat unknown roles as user
                     Ok(Message::User {
-                        content: UserContent::String(text),
+                        content: UserContent::from(text),
                     })
                 }
             }
@@ -129,18 +129,18 @@ impl TryFromLLM<Message> for GoogleContent {
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, parts) = match message {
             Message::System { content } => {
-                let text = match content {
-                    UserContent::String(s) => format!("System: {}", s),
-                    UserContent::Array(parts) => {
-                        let texts: Vec<String> = parts
-                            .into_iter()
-                            .filter_map(|p| match p {
-                                UserContentPart::Text(t) => Some(t.text),
-                                _ => None,
-                            })
-                            .collect();
-                        format!("System: {}", texts.join(""))
-                    }
+                let text = if let Some(s) = content.as_text() {
+                    format!("System: {}", s)
+                } else {
+                    let texts: Vec<String> = content
+                        .into_parts()
+                        .into_iter()
+                        .filter_map(|p| match p {
+                            UserContentPart::Text(t) => Some(t.text),
+                            _ => None,
+                        })
+                        .collect();
+                    format!("System: {}", texts.join(""))
                 };
                 (
                     "user".to_string(),
@@ -153,14 +153,16 @@ impl TryFromLLM<Message> for GoogleContent {
                 )
             }
             Message::User { content } => {
-                let parts = match content {
-                    UserContent::String(s) => vec![GooglePart {
-                        text: Some(s),
+                let parts = if let Some(s) = content.as_text() {
+                    vec![GooglePart {
+                        text: Some(s.to_string()),
                         inline_data: None,
                         function_call: None,
                         function_response: None,
-                    }],
-                    UserContent::Array(parts) => parts
+                    }]
+                } else {
+                    content
+                        .into_parts()
                         .into_iter()
                         .filter_map(|p| match p {
                             UserContentPart::Text(t) => Some(GooglePart {
@@ -189,19 +191,21 @@ impl TryFromLLM<Message> for GoogleContent {
                             }
                             _ => None,
                         })
-                        .collect(),
+                        .collect()
                 };
                 ("user".to_string(), parts)
             }
             Message::Assistant { content, .. } => {
-                let parts = match content {
-                    AssistantContent::String(s) => vec![GooglePart {
-                        text: Some(s),
+                let parts = if let Some(s) = content.as_text() {
+                    vec![GooglePart {
+                        text: Some(s.to_string()),
                         inline_data: None,
                         function_call: None,
                         function_response: None,
-                    }],
-                    AssistantContent::Array(parts) => parts
+                    }]
+                } else {
+                    content
+                        .into_parts()
                         .into_iter()
                         .filter_map(|p| match p {
                             AssistantContentPart::Text(t) => Some(GooglePart {
@@ -231,7 +235,7 @@ impl TryFromLLM<Message> for GoogleContent {
                             }
                             _ => None,
                         })
-                        .collect(),
+                        .collect()
                 };
                 ("model".to_string(), parts)
             }
@@ -311,10 +315,9 @@ mod tests {
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
         match message {
-            Message::User { content } => match content {
-                UserContent::String(s) => assert_eq!(s, "Hello"),
-                _ => panic!("Expected string content"),
-            },
+            Message::User { content } => {
+                assert_eq!(content.as_text(), Some("Hello"));
+            }
             _ => panic!("Expected user message"),
         }
     }
@@ -333,16 +336,14 @@ mod tests {
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
         match message {
-            Message::Assistant { content, .. } => match content {
-                AssistantContent::Array(parts) => {
-                    assert_eq!(parts.len(), 1);
-                    match &parts[0] {
-                        AssistantContentPart::Text(t) => assert_eq!(t.text, "Hi there!"),
-                        _ => panic!("Expected text part"),
-                    }
+            Message::Assistant { content, .. } => {
+                let parts = content.parts();
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    AssistantContentPart::Text(t) => assert_eq!(t.text, "Hi there!"),
+                    _ => panic!("Expected text part"),
                 }
-                _ => panic!("Expected array content"),
-            },
+            }
             _ => panic!("Expected assistant message"),
         }
     }
@@ -364,23 +365,21 @@ mod tests {
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
         match message {
-            Message::Assistant { content, .. } => match content {
-                AssistantContent::Array(parts) => {
-                    assert_eq!(parts.len(), 1);
-                    match &parts[0] {
-                        AssistantContentPart::ToolCall {
-                            tool_name,
-                            tool_call_id,
-                            ..
-                        } => {
-                            assert_eq!(tool_name, "get_weather");
-                            assert_eq!(tool_call_id, "get_weather");
-                        }
-                        _ => panic!("Expected tool call part"),
+            Message::Assistant { content, .. } => {
+                let parts = content.parts();
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    AssistantContentPart::ToolCall {
+                        tool_name,
+                        tool_call_id,
+                        ..
+                    } => {
+                        assert_eq!(tool_name, "get_weather");
+                        assert_eq!(tool_call_id, "get_weather");
                     }
+                    _ => panic!("Expected tool call part"),
                 }
-                _ => panic!("Expected array content"),
-            },
+            }
             _ => panic!("Expected assistant message"),
         }
     }
@@ -388,7 +387,7 @@ mod tests {
     #[test]
     fn test_message_to_google_content_user() {
         let message = Message::User {
-            content: UserContent::String("Hello".to_string()),
+            content: UserContent::from("Hello".to_string()),
         };
 
         let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
@@ -400,7 +399,7 @@ mod tests {
     #[test]
     fn test_message_to_google_content_assistant() {
         let message = Message::Assistant {
-            content: AssistantContent::String("Hi there!".to_string()),
+            content: AssistantContent::from("Hi there!".to_string()),
             id: None,
         };
 
@@ -413,7 +412,7 @@ mod tests {
     #[test]
     fn test_message_to_google_content_tool_call() {
         let message = Message::Assistant {
-            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+            content: AssistantContent::from(vec![AssistantContentPart::ToolCall {
                 tool_call_id: "call_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
@@ -452,10 +451,9 @@ mod tests {
         let messages = google_to_universal(&request).unwrap();
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::User { content } => match content {
-                UserContent::String(s) => assert_eq!(s, "Hello"),
-                _ => panic!("Expected string content"),
-            },
+            Message::User { content } => {
+                assert_eq!(content.as_text(), Some("Hello"));
+            }
             _ => panic!("Expected user message"),
         }
     }
@@ -463,7 +461,7 @@ mod tests {
     #[test]
     fn test_universal_to_google_simple() {
         let messages = vec![Message::User {
-            content: UserContent::String("Hello".to_string()),
+            content: UserContent::from("Hello".to_string()),
         }];
 
         let result = universal_to_google(&messages).unwrap();
@@ -479,10 +477,10 @@ mod tests {
     fn test_universal_to_google_with_assistant() {
         let messages = vec![
             Message::User {
-                content: UserContent::String("Hello".to_string()),
+                content: UserContent::from("Hello".to_string()),
             },
             Message::Assistant {
-                content: AssistantContent::String("Hi there!".to_string()),
+                content: AssistantContent::from("Hi there!".to_string()),
                 id: None,
             },
         ];

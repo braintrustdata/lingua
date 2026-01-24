@@ -75,7 +75,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                     })
                 } else {
                     Ok(Message::User {
-                        content: UserContent::String(text_parts.join("")),
+                        content: UserContent::from(text_parts.join("")),
                     })
                 }
             }
@@ -113,7 +113,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                 }
 
                 Ok(Message::Assistant {
-                    content: AssistantContent::Array(content_parts),
+                    content: AssistantContent::from(content_parts),
                     id: None,
                 })
             }
@@ -131,18 +131,18 @@ impl TryFromLLM<Message> for BedrockMessage {
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, content) = match message {
             Message::System { content } => {
-                let text = match content {
-                    UserContent::String(s) => format!("System: {}", s),
-                    UserContent::Array(parts) => {
-                        let texts: Vec<String> = parts
-                            .into_iter()
-                            .filter_map(|p| match p {
-                                UserContentPart::Text(t) => Some(t.text),
-                                _ => None,
-                            })
-                            .collect();
-                        format!("System: {}", texts.join(""))
-                    }
+                let text = if let Some(s) = content.as_text() {
+                    format!("System: {}", s)
+                } else {
+                    let texts: Vec<String> = content
+                        .into_parts()
+                        .into_iter()
+                        .filter_map(|p| match p {
+                            UserContentPart::Text(t) => Some(t.text),
+                            _ => None,
+                        })
+                        .collect();
+                    format!("System: {}", texts.join(""))
                 };
                 (
                     BedrockConversationRole::User,
@@ -150,9 +150,11 @@ impl TryFromLLM<Message> for BedrockMessage {
                 )
             }
             Message::User { content } => {
-                let blocks = match content {
-                    UserContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
-                    UserContent::Array(parts) => parts
+                let blocks = if let Some(s) = content.as_text() {
+                    vec![BedrockContentBlock::Text { text: s.to_string() }]
+                } else {
+                    content
+                        .into_parts()
                         .into_iter()
                         .filter_map(|p| match p {
                             UserContentPart::Text(t) => {
@@ -184,14 +186,16 @@ impl TryFromLLM<Message> for BedrockMessage {
                             }
                             _ => None,
                         })
-                        .collect(),
+                        .collect()
                 };
                 (BedrockConversationRole::User, blocks)
             }
             Message::Assistant { content, .. } => {
-                let blocks = match content {
-                    AssistantContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
-                    AssistantContent::Array(parts) => parts
+                let blocks = if let Some(s) = content.as_text() {
+                    vec![BedrockContentBlock::Text { text: s.to_string() }]
+                } else {
+                    content
+                        .into_parts()
                         .into_iter()
                         .filter_map(|p| match p {
                             AssistantContentPart::Text(t) => {
@@ -219,7 +223,7 @@ impl TryFromLLM<Message> for BedrockMessage {
                             }
                             _ => None,
                         })
-                        .collect(),
+                        .collect()
                 };
                 (BedrockConversationRole::Assistant, blocks)
             }
@@ -320,7 +324,7 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
         }
 
         Ok(Message::Assistant {
-            content: AssistantContent::Array(content_parts),
+            content: AssistantContent::from(content_parts),
             id: None,
         })
     }
@@ -336,11 +340,11 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         match message {
             Message::Assistant { content, .. } => {
-                let blocks = match content {
-                    AssistantContent::String(s) => {
-                        vec![BedrockOutputContentBlock::Text { text: s }]
-                    }
-                    AssistantContent::Array(parts) => parts
+                let blocks = if let Some(s) = content.as_text() {
+                    vec![BedrockOutputContentBlock::Text { text: s.to_string() }]
+                } else {
+                    content
+                        .into_parts()
                         .into_iter()
                         .filter_map(|p| match p {
                             AssistantContentPart::Text(t) => {
@@ -369,7 +373,7 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
                             }
                             _ => None,
                         })
-                        .collect(),
+                        .collect()
                 };
                 Ok(BedrockOutputMessage {
                     role: "assistant".to_string(),
@@ -400,10 +404,9 @@ mod tests {
 
         let message = <Message as TryFromLLM<BedrockMessage>>::try_from(msg).unwrap();
         match message {
-            Message::User { content } => match content {
-                UserContent::String(s) => assert_eq!(s, "Hello"),
-                _ => panic!("Expected string content"),
-            },
+            Message::User { content } => {
+                assert_eq!(content.as_text(), Some("Hello"));
+            }
             _ => panic!("Expected user message"),
         }
     }
@@ -419,16 +422,14 @@ mod tests {
 
         let message = <Message as TryFromLLM<BedrockMessage>>::try_from(msg).unwrap();
         match message {
-            Message::Assistant { content, .. } => match content {
-                AssistantContent::Array(parts) => {
-                    assert_eq!(parts.len(), 1);
-                    match &parts[0] {
-                        AssistantContentPart::Text(t) => assert_eq!(t.text, "Hi there!"),
-                        _ => panic!("Expected text part"),
-                    }
+            Message::Assistant { content, .. } => {
+                let parts = content.parts();
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    AssistantContentPart::Text(t) => assert_eq!(t.text, "Hi there!"),
+                    _ => panic!("Expected text part"),
                 }
-                _ => panic!("Expected array content"),
-            },
+            }
             _ => panic!("Expected assistant message"),
         }
     }
@@ -448,23 +449,21 @@ mod tests {
 
         let message = <Message as TryFromLLM<BedrockMessage>>::try_from(msg).unwrap();
         match message {
-            Message::Assistant { content, .. } => match content {
-                AssistantContent::Array(parts) => {
-                    assert_eq!(parts.len(), 1);
-                    match &parts[0] {
-                        AssistantContentPart::ToolCall {
-                            tool_call_id,
-                            tool_name,
-                            ..
-                        } => {
-                            assert_eq!(tool_call_id, "tool_123");
-                            assert_eq!(tool_name, "get_weather");
-                        }
-                        _ => panic!("Expected tool call part"),
+            Message::Assistant { content, .. } => {
+                let parts = content.parts();
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name,
+                        ..
+                    } => {
+                        assert_eq!(tool_call_id, "tool_123");
+                        assert_eq!(tool_name, "get_weather");
                     }
+                    _ => panic!("Expected tool call part"),
                 }
-                _ => panic!("Expected array content"),
-            },
+            }
             _ => panic!("Expected assistant message"),
         }
     }
@@ -472,7 +471,7 @@ mod tests {
     #[test]
     fn test_message_to_bedrock_user() {
         let message = Message::User {
-            content: UserContent::String("Hello".to_string()),
+            content: UserContent::from("Hello".to_string()),
         };
 
         let msg = <BedrockMessage as TryFromLLM<Message>>::try_from(message).unwrap();
@@ -487,7 +486,7 @@ mod tests {
     #[test]
     fn test_message_to_bedrock_assistant() {
         let message = Message::Assistant {
-            content: AssistantContent::String("Hi there!".to_string()),
+            content: AssistantContent::from("Hi there!".to_string()),
             id: None,
         };
 
@@ -503,7 +502,7 @@ mod tests {
     #[test]
     fn test_message_to_bedrock_tool_call() {
         let message = Message::Assistant {
-            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+            content: AssistantContent::from(vec![AssistantContentPart::ToolCall {
                 tool_call_id: "tool_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
@@ -547,10 +546,9 @@ mod tests {
         let messages = bedrock_to_universal(&request).unwrap();
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::User { content } => match content {
-                UserContent::String(s) => assert_eq!(s, "Hello"),
-                _ => panic!("Expected string content"),
-            },
+            Message::User { content } => {
+                assert_eq!(content.as_text(), Some("Hello"));
+            }
             _ => panic!("Expected user message"),
         }
     }
@@ -581,23 +579,21 @@ mod tests {
         let messages = bedrock_to_universal(&request).unwrap();
         assert_eq!(messages.len(), 1);
         match &messages[0] {
-            Message::Assistant { content, .. } => match content {
-                AssistantContent::Array(parts) => {
-                    assert_eq!(parts.len(), 1);
-                    match &parts[0] {
-                        AssistantContentPart::ToolCall {
-                            tool_call_id,
-                            tool_name,
-                            ..
-                        } => {
-                            assert_eq!(tool_call_id, "tool_123");
-                            assert_eq!(tool_name, "get_weather");
-                        }
-                        _ => panic!("Expected tool call"),
+            Message::Assistant { content, .. } => {
+                let parts = content.parts();
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name,
+                        ..
+                    } => {
+                        assert_eq!(tool_call_id, "tool_123");
+                        assert_eq!(tool_name, "get_weather");
                     }
+                    _ => panic!("Expected tool call"),
                 }
-                _ => panic!("Expected array content"),
-            },
+            }
             _ => panic!("Expected assistant message"),
         }
     }
@@ -605,7 +601,7 @@ mod tests {
     #[test]
     fn test_universal_to_bedrock_simple() {
         let messages = vec![Message::User {
-            content: UserContent::String("Hello".to_string()),
+            content: UserContent::from("Hello".to_string()),
         }];
 
         let result = universal_to_bedrock(&messages).unwrap();
@@ -620,7 +616,7 @@ mod tests {
     #[test]
     fn test_universal_to_bedrock_with_tool_call() {
         let messages = vec![Message::Assistant {
-            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+            content: AssistantContent::from(vec![AssistantContentPart::ToolCall {
                 tool_call_id: "tool_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),

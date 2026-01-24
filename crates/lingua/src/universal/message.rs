@@ -25,16 +25,108 @@ pub enum Message {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, TS)]
 #[ts(export)]
-#[serde(untagged)]
-pub enum UserContent {
-    String(String),
-    Array(Vec<UserContentPart>),
+pub struct UserContent(#[ts(type = "UserContentPart[]")] Vec<UserContentPart>);
+
+impl UserContent {
+    /// Create from a vector of content parts
+    pub fn new(parts: Vec<UserContentPart>) -> Self {
+        Self(parts)
+    }
+
+    /// Get a reference to the content parts
+    pub fn parts(&self) -> &[UserContentPart] {
+        &self.0
+    }
+
+    /// Consume and return the inner parts
+    pub fn into_parts(self) -> Vec<UserContentPart> {
+        self.0
+    }
+
+    /// Create from a simple text string
+    pub fn text(text: impl Into<String>) -> Self {
+        Self(vec![UserContentPart::Text(TextContentPart {
+            text: text.into(),
+            provider_options: None,
+        })])
+    }
+
+    /// Get as simple text if this is a single text part with no provider options
+    pub fn as_text(&self) -> Option<&str> {
+        match self.0.as_slice() {
+            [UserContentPart::Text(t)] if t.provider_options.is_none() => Some(&t.text),
+            _ => None,
+        }
+    }
+}
+
+impl Serialize for UserContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for UserContent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        // Accept both string and array, canonicalize immediately
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Helper {
+            String(String),
+            Array(Vec<UserContentPart>),
+        }
+
+        match Helper::deserialize(deserializer)? {
+            Helper::String(s) => Ok(UserContent::text(s)),
+            Helper::Array(parts) => Ok(UserContent(parts)),
+        }
+    }
+}
+
+impl IntoIterator for UserContent {
+    type Item = UserContentPart;
+    type IntoIter = std::vec::IntoIter<UserContentPart>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a UserContent {
+    type Item = &'a UserContentPart;
+    type IntoIter = std::slice::Iter<'a, UserContentPart>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl From<String> for UserContent {
+    fn from(s: String) -> Self {
+        Self::text(s)
+    }
+}
+
+impl From<&str> for UserContent {
+    fn from(s: &str) -> Self {
+        Self::text(s)
+    }
+}
+
+impl From<Vec<UserContentPart>> for UserContent {
+    fn from(parts: Vec<UserContentPart>) -> Self {
+        Self(parts)
+    }
 }
 
 /// User content parts - text, image, and file parts allowed
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[skip_serializing_none]
@@ -59,17 +151,109 @@ pub enum UserContentPart {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, TS)]
 #[ts(export)]
-#[serde(untagged)]
-pub enum AssistantContent {
-    String(String),
-    Array(Vec<AssistantContentPart>),
+pub struct AssistantContent(#[ts(type = "AssistantContentPart[]")] Vec<AssistantContentPart>);
+
+impl AssistantContent {
+    /// Create from a vector of content parts
+    pub fn new(parts: Vec<AssistantContentPart>) -> Self {
+        Self(parts)
+    }
+
+    /// Get a reference to the content parts
+    pub fn parts(&self) -> &[AssistantContentPart] {
+        &self.0
+    }
+
+    /// Consume and return the inner parts
+    pub fn into_parts(self) -> Vec<AssistantContentPart> {
+        self.0
+    }
+
+    /// Create from a simple text string
+    pub fn text(text: impl Into<String>) -> Self {
+        Self(vec![AssistantContentPart::Text(TextContentPart {
+            text: text.into(),
+            provider_options: None,
+        })])
+    }
+
+    /// Get as simple text if this is a single text part with no provider options
+    pub fn as_text(&self) -> Option<&str> {
+        match self.0.as_slice() {
+            [AssistantContentPart::Text(t)] if t.provider_options.is_none() => Some(&t.text),
+            _ => None,
+        }
+    }
+}
+
+impl Serialize for AssistantContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for AssistantContent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        // Accept both string and array, canonicalize immediately
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Helper {
+            String(String),
+            Array(Vec<AssistantContentPart>),
+        }
+
+        match Helper::deserialize(deserializer)? {
+            Helper::String(s) => Ok(AssistantContent::text(s)),
+            Helper::Array(parts) => Ok(AssistantContent(parts)),
+        }
+    }
+}
+
+impl IntoIterator for AssistantContent {
+    type Item = AssistantContentPart;
+    type IntoIter = std::vec::IntoIter<AssistantContentPart>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a AssistantContent {
+    type Item = &'a AssistantContentPart;
+    type IntoIter = std::slice::Iter<'a, AssistantContentPart>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl From<String> for AssistantContent {
+    fn from(s: String) -> Self {
+        Self::text(s)
+    }
+}
+
+impl From<&str> for AssistantContent {
+    fn from(s: &str) -> Self {
+        Self::text(s)
+    }
+}
+
+impl From<Vec<AssistantContentPart>> for AssistantContent {
+    fn from(parts: Vec<AssistantContentPart>) -> Self {
+        Self(parts)
+    }
 }
 
 /// Assistant content parts - text, file, reasoning, tool calls, and tool results allowed
 #[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AssistantContentPart {
@@ -110,7 +294,7 @@ pub enum AssistantContentPart {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ToolCallArguments {
@@ -157,7 +341,7 @@ pub struct ToolResultContentPart {
 
 /// Reusable text content part for tagged unions
 #[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct TextContentPart {
     pub text: String,
@@ -182,7 +366,7 @@ pub enum SourceType {
 }
 
 /// Provider options - matching AI SDK Message format
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[ts(type = "Record<string, any>")]
 pub struct ProviderOptions {

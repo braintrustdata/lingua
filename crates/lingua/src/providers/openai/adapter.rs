@@ -26,7 +26,7 @@ use crate::providers::openai::{
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{AssistantContent, Message, UserContent};
+use crate::universal::message::{AssistantContent, Message};
 use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
     UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
@@ -710,7 +710,7 @@ impl ProviderAdapter for ResponsesAdapter {
                                 .join("");
                             if !text.is_empty() {
                                 messages.push(Message::Assistant {
-                                    content: AssistantContent::String(text),
+                                    content: AssistantContent::from(text),
                                     id: None,
                                 });
                             }
@@ -755,7 +755,7 @@ impl ProviderAdapter for ResponsesAdapter {
 
             if !parts.is_empty() {
                 messages.push(Message::Assistant {
-                    content: AssistantContent::Array(parts),
+                    content: AssistantContent::from(parts),
                     id: None,
                 });
             }
@@ -766,7 +766,7 @@ impl ProviderAdapter for ResponsesAdapter {
             if let Some(text) = payload.get("output_text").and_then(Value::as_str) {
                 if !text.is_empty() {
                     messages.push(Message::Assistant {
-                        content: AssistantContent::String(text.to_string()),
+                        content: AssistantContent::from(text.to_string()),
                         id: None,
                     });
                 }
@@ -811,14 +811,12 @@ impl ProviderAdapter for ResponsesAdapter {
             .iter()
             .map(|msg| {
                 let text = match msg {
-                    Message::Assistant { content, .. } => match content {
-                        AssistantContent::String(s) => s.clone(),
-                        AssistantContent::Array(_) => String::new(), // TODO: extract text from parts
-                    },
-                    Message::User { content } => match content {
-                        UserContent::String(s) => s.clone(),
-                        UserContent::Array(_) => String::new(),
-                    },
+                    Message::Assistant { content, .. } => {
+                        content.as_text().map(|s| s.to_string()).unwrap_or_default()
+                    }
+                    Message::User { content } => {
+                        content.as_text().map(|s| s.to_string()).unwrap_or_default()
+                    }
                     _ => String::new(),
                 };
 

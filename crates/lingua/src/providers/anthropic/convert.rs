@@ -92,7 +92,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
         match input_msg.role {
             generated::MessageRole::User => {
                 let content = match input_msg.content {
-                    generated::MessageContent::String(text) => UserContent::String(text),
+                    generated::MessageContent::String(text) => UserContent::from(text),
                     generated::MessageContent::InputContentBlockArray(blocks) => {
                         let mut content_parts = Vec::new();
 
@@ -190,18 +190,18 @@ impl TryFromLLM<generated::InputMessage> for Message {
                         }
 
                         if content_parts.is_empty() {
-                            UserContent::String(String::new())
+                            UserContent::from(String::new())
                         } else if content_parts.len() == 1 {
                             // Single text part can be simplified to string, but keep arrays for multimodal
                             match &content_parts[0] {
                                 UserContentPart::Text(text_part) => {
-                                    UserContent::String(text_part.text.clone())
+                                    UserContent::from(text_part.text.clone())
                                 }
-                                _ => UserContent::Array(content_parts),
+                                _ => UserContent::from(content_parts),
                             }
                         } else {
                             // Multiple parts or multimodal content must remain as array
-                            UserContent::Array(content_parts)
+                            UserContent::from(content_parts)
                         }
                     }
                 };
@@ -211,7 +211,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
             generated::MessageRole::Assistant => {
                 let content = match input_msg.content {
                     generated::MessageContent::String(text) => {
-                        AssistantContent::Array(vec![AssistantContentPart::Text(TextContentPart {
+                        AssistantContent::from(vec![AssistantContentPart::Text(TextContentPart {
                             text,
                             provider_options: None,
                         })])
@@ -321,14 +321,14 @@ impl TryFromLLM<generated::InputMessage> for Message {
                         }
 
                         if content_parts.is_empty() {
-                            AssistantContent::Array(vec![AssistantContentPart::Text(
+                            AssistantContent::from(vec![AssistantContentPart::Text(
                                 TextContentPart {
                                     text: String::new(),
                                     provider_options: None,
                                 },
                             )])
                         } else {
-                            AssistantContent::Array(content_parts)
+                            AssistantContent::from(content_parts)
                         }
                     }
                 };
@@ -347,11 +347,12 @@ impl TryFromLLM<Message> for generated::InputMessage {
     fn try_from(msg: Message) -> Result<Self, Self::Error> {
         match msg {
             Message::User { content } => {
-                let anthropic_content = match content {
-                    UserContent::String(text) => generated::MessageContent::String(text),
-                    UserContent::Array(parts) => {
-                        let blocks = parts
-                            .into_iter()
+                let anthropic_content = if let Some(text) = content.as_text() {
+                    generated::MessageContent::String(text.to_string())
+                } else {
+                    let blocks = content
+                        .into_parts()
+                        .into_iter()
                             .filter_map(|part| match part {
                                 UserContentPart::Text(text_part) => {
                                     // Regular text content
@@ -507,8 +508,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 }
                             })
                             .collect();
-                        generated::MessageContent::InputContentBlockArray(blocks)
-                    }
+                    generated::MessageContent::InputContentBlockArray(blocks)
                 };
 
                 Ok(generated::InputMessage {
@@ -517,28 +517,28 @@ impl TryFromLLM<Message> for generated::InputMessage {
                 })
             }
             Message::Assistant { content, .. } => {
-                let blocks = match content {
-                    AssistantContent::String(text) => {
-                        vec![generated::InputContentBlock {
-                            cache_control: None,
-                            citations: None,
-                            text: Some(text),
-                            input_content_block_type: generated::InputContentBlockType::Text,
-                            source: None,
-                            context: None,
-                            title: None,
-                            content: None,
-                            signature: None,
-                            thinking: None,
-                            data: None,
-                            id: None,
-                            input: None,
-                            name: None,
-                            is_error: None,
-                            tool_use_id: None,
-                        }]
-                    }
-                    AssistantContent::Array(parts) => parts
+                let blocks = if let Some(text) = content.as_text() {
+                    vec![generated::InputContentBlock {
+                        cache_control: None,
+                        citations: None,
+                        text: Some(text.to_string()),
+                        input_content_block_type: generated::InputContentBlockType::Text,
+                        source: None,
+                        context: None,
+                        title: None,
+                        content: None,
+                        signature: None,
+                        thinking: None,
+                        data: None,
+                        id: None,
+                        input: None,
+                        name: None,
+                        is_error: None,
+                        tool_use_id: None,
+                    }]
+                } else {
+                    content
+                        .into_parts()
                         .into_iter()
                         .filter_map(|part| match part {
                             AssistantContentPart::Text(text_part) => {
@@ -661,7 +661,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             }
                             _ => None, // Skip other types for now
                         })
-                        .collect(),
+                        .collect()
                 };
 
                 Ok(generated::InputMessage {
@@ -828,7 +828,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
         }
 
         Ok(vec![Message::Assistant {
-            content: AssistantContent::Array(content_parts),
+            content: AssistantContent::from(content_parts),
             id: None,
         }])
     }
@@ -843,11 +843,11 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
 
         for message in messages {
             match message {
-                Message::Assistant { content, .. } => match content {
-                    AssistantContent::String(text) => {
+                Message::Assistant { content, .. } => {
+                    if let Some(text) = content.as_text() {
                         content_blocks.push(generated::ContentBlock {
                             citations: None,
-                            text: Some(text),
+                            text: Some(text.to_string()),
                             content_block_type: generated::ContentBlockType::Text,
                             signature: None,
                             thinking: None,
@@ -858,9 +858,8 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                             content: None,
                             tool_use_id: None,
                         });
-                    }
-                    AssistantContent::Array(parts) => {
-                        for part in parts {
+                    } else {
+                        for part in content.into_parts() {
                             match part {
                                 AssistantContentPart::Text(text_part) => {
                                     // Restore citations from provider_options if present
@@ -970,7 +969,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                             }
                         }
                     }
-                },
+                }
                 _ => {
                     // Skip non-assistant messages
                     continue;
