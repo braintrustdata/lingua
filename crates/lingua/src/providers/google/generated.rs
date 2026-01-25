@@ -73,7 +73,7 @@ pub struct Part {
     /// of the additional information. For example it can be name of a file/source
     /// from which the Part originates or a way to multiplex multiple Part streams.
     #[prost(message, optional, tag = "8")]
-    pub part_metadata: ::core::option::Option<::prost_types::Struct>,
+    pub part_metadata: ::core::option::Option<::pbjson_types::Struct>,
     #[prost(oneof = "part::Data", tags = "2, 3, 4, 5, 6, 9, 10")]
     pub data: ::core::option::Option<part::Data>,
     /// Controls extra preprocessing of data.
@@ -112,7 +112,7 @@ pub mod part {
         CodeExecutionResult(super::CodeExecutionResult),
     }
     /// Controls extra preprocessing of data.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
     pub enum Metadata {
         /// Optional. Video metadata. The metadata should only be specified while the
         /// video data is presented in inline_data or file_data.
@@ -193,14 +193,14 @@ pub struct FileData {
     pub file_uri: ::prost::alloc::string::String,
 }
 /// Metadata describes the input video content.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct VideoMetadata {
     /// Optional. The start offset of the video.
     #[prost(message, optional, tag = "1")]
-    pub start_offset: ::core::option::Option<::prost_types::Duration>,
+    pub start_offset: ::core::option::Option<::pbjson_types::Duration>,
     /// Optional. The end offset of the video.
     #[prost(message, optional, tag = "2")]
-    pub end_offset: ::core::option::Option<::prost_types::Duration>,
+    pub end_offset: ::core::option::Option<::pbjson_types::Duration>,
     /// Optional. The frame rate of the video sent to the model. If not specified,
     /// the default value will be 1.0. The fps range is (0.0, 24.0].
     #[prost(double, tag = "3")]
@@ -351,27 +351,27 @@ pub struct Tool {
     /// Optional. Tool to support URL context retrieval.
     #[prost(message, optional, tag = "8")]
     pub url_context: ::core::option::Option<UrlContext>,
+    /// Optional. FileSearch tool type.
+    /// Tool to retrieve knowledge from Semantic Retrieval corpora.
+    #[prost(message, optional, tag = "9")]
+    pub file_search: ::core::option::Option<FileSearch>,
+    /// Optional. Tool that allows grounding the model's response with geospatial
+    /// context related to the user's query.
+    #[prost(message, optional, tag = "11")]
+    pub google_maps: ::core::option::Option<GoogleMaps>,
 }
 /// Nested message and enum types in `Tool`.
 pub mod tool {
     /// GoogleSearch tool type.
     /// Tool to support Google Search in Model. Powered by Google.
-    #[derive(Clone, PartialEq, ::prost::Message)]
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct GoogleSearch {
         /// Optional. Filter search results to a specific time range.
         /// If customers set a start time, they must set an end time (and vice
         /// versa).
         #[prost(message, optional, tag = "2")]
-        pub time_range_filter: ::core::option::Option<TimeRangeFilter>,
-    }
-
-    /// Simple placeholder for TimeRangeFilter until google.type module is properly included
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct TimeRangeFilter {
-        #[prost(string, optional, tag = "1")]
-        pub start_time: ::core::option::Option<::prost::alloc::string::String>,
-        #[prost(string, optional, tag = "2")]
-        pub end_time: ::core::option::Option<::prost::alloc::string::String>,
+        pub time_range_filter:
+            ::core::option::Option<crate::providers::google::generated::Interval>,
     }
     /// Computer Use tool type.
     #[derive(Clone, PartialEq, ::prost::Message)]
@@ -422,18 +422,63 @@ pub mod tool {
         }
     }
 }
+/// The GoogleMaps Tool that provides geospatial context for the user's query.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GoogleMaps {
+    /// Optional. Whether to return a widget context token in the GroundingMetadata
+    /// of the response. Developers can use the widget context token to render a
+    /// Google Maps widget with geospatial context related to the places that the
+    /// model references in the response.
+    #[prost(bool, tag = "1")]
+    pub enable_widget: bool,
+}
 /// Tool to support URL context retrieval.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct UrlContext {}
-/// Tool to retrieve public web data for grounding, powered by Google.
+/// The FileSearch tool that retrieves knowledge from Semantic Retrieval corpora.
+/// Files are imported to Semantic Retrieval corpora using the ImportFile API.
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileSearch {
+    /// Required. Semantic retrieval resources to retrieve from.
+    /// Currently only supports one corpus. In the future we may open up multiple
+    /// corpora support.
+    #[prost(message, repeated, tag = "1")]
+    pub retrieval_resources: ::prost::alloc::vec::Vec<file_search::RetrievalResource>,
+    /// Optional. The configuration for the retrieval.
+    #[prost(message, optional, tag = "2")]
+    pub retrieval_config: ::core::option::Option<file_search::RetrievalConfig>,
+}
+/// Nested message and enum types in `FileSearch`.
+pub mod file_search {
+    /// The semantic retrieval resource to retrieve from.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RetrievalResource {
+        /// Required. The name of the semantic retrieval resource to retrieve from.
+        /// Example: `ragStores/my-rag-store-123`
+        #[prost(string, tag = "1")]
+        pub rag_store_name: ::prost::alloc::string::String,
+    }
+    /// Semantic retrieval configuration.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RetrievalConfig {
+        /// Optional. The number of semantic retrieval chunks to retrieve.
+        #[prost(int32, optional, tag = "1")]
+        pub top_k: ::core::option::Option<i32>,
+        /// Optional. Metadata filter to apply to the semantic retrieval documents
+        /// and chunks.
+        #[prost(string, tag = "3")]
+        pub metadata_filter: ::prost::alloc::string::String,
+    }
+}
+/// Tool to retrieve public web data for grounding, powered by Google.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GoogleSearchRetrieval {
     /// Specifies the dynamic retrieval configuration for the given source.
     #[prost(message, optional, tag = "1")]
     pub dynamic_retrieval_config: ::core::option::Option<DynamicRetrievalConfig>,
 }
 /// Describes the options to customize dynamic retrieval.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct DynamicRetrievalConfig {
     /// The mode of the predictor to be used in dynamic retrieval.
     #[prost(enumeration = "dynamic_retrieval_config::Mode", tag = "1")]
@@ -480,7 +525,7 @@ pub mod dynamic_retrieval_config {
 ///
 /// See also `ExecutableCode` and `CodeExecutionResult` which are only generated
 /// when using this tool.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct CodeExecution {}
 /// The Tool configuration containing parameters for specifying `Tool` use
 /// in the request.
@@ -489,6 +534,21 @@ pub struct ToolConfig {
     /// Optional. Function calling config.
     #[prost(message, optional, tag = "1")]
     pub function_calling_config: ::core::option::Option<FunctionCallingConfig>,
+    /// Optional. Retrieval config.
+    #[prost(message, optional, tag = "2")]
+    pub retrieval_config: ::core::option::Option<RetrievalConfig>,
+}
+/// Retrieval config.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RetrievalConfig {
+    /// Optional. The location of the user.
+    #[prost(message, optional, tag = "1")]
+    pub lat_lng: ::core::option::Option<crate::providers::google::generated::LatLng>,
+    /// Optional. The language code of the user.
+    /// Language code for content. Use language tags defined by
+    /// [BCP47](<https://www.rfc-editor.org/rfc/bcp/bcp47.txt>).
+    #[prost(string, tag = "2")]
+    pub language_code: ::prost::alloc::string::String,
 }
 /// Configuration for specifying function calling behavior.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -601,7 +661,7 @@ pub struct FunctionDeclaration {
     ///
     /// This field is mutually exclusive with `parameters`.
     #[prost(message, optional, tag = "6")]
-    pub parameters_json_schema: ::core::option::Option<::prost_types::Value>,
+    pub parameters_json_schema: ::core::option::Option<::pbjson_types::Value>,
     /// Optional. Describes the output from this function in JSON Schema format.
     /// Reflects the Open API 3.03 Response Object. The Schema defines the type
     /// used for the response value of the function.
@@ -612,7 +672,7 @@ pub struct FunctionDeclaration {
     ///
     /// This field is mutually exclusive with `response`.
     #[prost(message, optional, tag = "7")]
-    pub response_json_schema: ::core::option::Option<::prost_types::Value>,
+    pub response_json_schema: ::core::option::Option<::pbjson_types::Value>,
     /// Optional. Specifies the function Behavior.
     /// Currently only supported by the BidiGenerateContent method.
     #[prost(enumeration = "function_declaration::Behavior", tag = "5")]
@@ -674,7 +734,7 @@ pub struct FunctionCall {
     pub name: ::prost::alloc::string::String,
     /// Optional. The function parameters and values in JSON object format.
     #[prost(message, optional, tag = "2")]
-    pub args: ::core::option::Option<::prost_types::Struct>,
+    pub args: ::core::option::Option<::pbjson_types::Struct>,
 }
 /// The result output from a `FunctionCall` that contains a string
 /// representing the `FunctionDeclaration.name` and a structured JSON
@@ -698,7 +758,7 @@ pub struct FunctionResponse {
     /// In particular, if the function call failed to execute, the response can
     /// have an "error" key to return error details to the model.
     #[prost(message, optional, tag = "2")]
-    pub response: ::core::option::Option<::prost_types::Struct>,
+    pub response: ::core::option::Option<::pbjson_types::Struct>,
     /// Optional. Ordered `Parts` that constitute a function response. Parts may
     /// have different IANA MIME types.
     #[prost(message, repeated, tag = "8")]
@@ -832,7 +892,7 @@ pub struct Schema {
     /// Optional. Example of the object. Will only populated when the object is the
     /// root.
     #[prost(message, optional, tag = "16")]
-    pub example: ::core::option::Option<::prost_types::Value>,
+    pub example: ::core::option::Option<::pbjson_types::Value>,
     /// Optional. The value should be validated against any (one or more) of the
     /// subschemas in the list.
     #[prost(message, repeated, tag = "18")]
@@ -847,7 +907,7 @@ pub struct Schema {
     /// it's included here and ignored so that developers who send schemas with a
     /// `default` field don't get unknown-field errors.
     #[prost(message, optional, tag = "25")]
-    pub default: ::core::option::Option<::prost_types::Value>,
+    pub default: ::core::option::Option<::pbjson_types::Value>,
 }
 /// Passage included inline with a grounding configuration.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -868,7 +928,7 @@ pub struct GroundingPassages {
     pub passages: ::prost::alloc::vec::Vec<GroundingPassage>,
 }
 /// Represents token counting info for a single modality.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ModalityTokenCount {
     /// The modality associated with this token count.
     #[prost(enumeration = "Modality", tag = "1")]
@@ -996,10 +1056,10 @@ pub struct Corpus {
     pub display_name: ::prost::alloc::string::String,
     /// Output only. The Timestamp of when the `Corpus` was created.
     #[prost(message, optional, tag = "3")]
-    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    pub create_time: ::core::option::Option<::pbjson_types::Timestamp>,
     /// Output only. The Timestamp of when the `Corpus` was last updated.
     #[prost(message, optional, tag = "4")]
-    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    pub update_time: ::core::option::Option<::pbjson_types::Timestamp>,
 }
 /// A `Document` is a collection of `Chunk`s.
 /// A `Corpus` can have a maximum of 10,000 `Document`s.
@@ -1024,10 +1084,10 @@ pub struct Document {
     pub custom_metadata: ::prost::alloc::vec::Vec<CustomMetadata>,
     /// Output only. The Timestamp of when the `Document` was last updated.
     #[prost(message, optional, tag = "4")]
-    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    pub update_time: ::core::option::Option<::pbjson_types::Timestamp>,
     /// Output only. The Timestamp of when the `Document` was created.
     #[prost(message, optional, tag = "5")]
-    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    pub create_time: ::core::option::Option<::pbjson_types::Timestamp>,
 }
 /// User provided string values assigned to a single metadata key.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1192,10 +1252,10 @@ pub struct Chunk {
     pub custom_metadata: ::prost::alloc::vec::Vec<CustomMetadata>,
     /// Output only. The Timestamp of when the `Chunk` was created.
     #[prost(message, optional, tag = "4")]
-    pub create_time: ::core::option::Option<::prost_types::Timestamp>,
+    pub create_time: ::core::option::Option<::pbjson_types::Timestamp>,
     /// Output only. The Timestamp of when the `Chunk` was last updated.
     #[prost(message, optional, tag = "5")]
-    pub update_time: ::core::option::Option<::prost_types::Timestamp>,
+    pub update_time: ::core::option::Option<::pbjson_types::Timestamp>,
     /// Output only. Current state of the `Chunk`.
     #[prost(enumeration = "chunk::State", tag = "6")]
     pub state: i32,
@@ -1312,7 +1372,7 @@ pub mod content_filter {
 /// Each SafetyFeedback will return the safety settings used by the request as
 /// well as the lowest HarmProbability that should be allowed in order to return
 /// a result.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SafetyFeedback {
     /// Safety rating evaluated from content.
     #[prost(message, optional, tag = "1")]
@@ -1328,7 +1388,7 @@ pub struct SafetyFeedback {
 /// Content is classified for safety across a number of
 /// harm categories and the probability of the harm classification is included
 /// here.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SafetyRating {
     /// Required. The category for this rating.
     #[prost(enumeration = "HarmCategory", tag = "3")]
@@ -1391,7 +1451,7 @@ pub mod safety_rating {
 ///
 /// Passing a safety setting for a category changes the allowed probability that
 /// content is blocked.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SafetySetting {
     /// Required. The category for this setting.
     #[prost(enumeration = "HarmCategory", tag = "3")]
@@ -1525,7 +1585,6 @@ impl HarmCategory {
     }
 }
 /// Request to generate a completion from the model.
-/// NEXT ID: 18
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerateContentRequest {
     /// Required. The name of the `Model` to use for generating the completion.
@@ -1655,7 +1714,7 @@ pub struct SpeechConfig {
     pub language_code: ::prost::alloc::string::String,
 }
 /// Config for thinking features.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ThinkingConfig {
     /// Indicates whether to include thoughts in the response.
     /// If true, thoughts are returned only when available.
@@ -1678,7 +1737,6 @@ pub struct ImageConfig {
 }
 /// Configuration options for model generation and outputs. Not all parameters
 /// are configurable for every model.
-/// Next ID: 29
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerationConfig {
     /// Optional. Number of generated responses to return. If unset, this will
@@ -1796,11 +1854,11 @@ pub struct GenerationConfig {
     /// sufficient.) If `$ref` is set on a sub-schema, no other properties, except
     /// for than those starting as a `$`, may be set.
     #[prost(message, optional, tag = "24")]
-    pub response_json_schema: ::core::option::Option<::prost_types::Value>,
+    pub response_json_schema: ::core::option::Option<::pbjson_types::Value>,
     /// Optional. An internal detail. Use `responseJsonSchema` rather than this
     /// field.
     #[prost(message, optional, tag = "28")]
-    pub response_json_schema_ordered: ::core::option::Option<::prost_types::Value>,
+    pub response_json_schema_ordered: ::core::option::Option<::pbjson_types::Value>,
     /// Optional. Presence penalty applied to the next token's logprobs if the
     /// token has already been seen in the response.
     ///
@@ -2428,7 +2486,7 @@ pub struct GroundingAttribution {
     pub content: ::core::option::Option<Content>,
 }
 /// Metadata related to retrieval in the grounding flow.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct RetrievalMetadata {
     /// Optional. Score indicating how likely information from google search could
     /// help answer the prompt. The score is in the range \[0, 1\], where 0 is the
@@ -2456,6 +2514,12 @@ pub struct GroundingMetadata {
     /// Web search queries for the following-up web search.
     #[prost(string, repeated, tag = "5")]
     pub web_search_queries: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Optional. Resource name of the Google Maps widget context token that can be
+    /// used with the PlacesContextElement widget in order to render contextual
+    /// data. Only populated in the case that grounding with Google Maps is
+    /// enabled.
+    #[prost(string, optional, tag = "7")]
+    pub google_maps_widget_context_token: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Google search entry point.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2473,7 +2537,7 @@ pub struct SearchEntryPoint {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GroundingChunk {
     /// Chunk type.
-    #[prost(oneof = "grounding_chunk::ChunkType", tags = "1")]
+    #[prost(oneof = "grounding_chunk::ChunkType", tags = "1, 2, 3")]
     pub chunk_type: ::core::option::Option<grounding_chunk::ChunkType>,
 }
 /// Nested message and enum types in `GroundingChunk`.
@@ -2488,12 +2552,86 @@ pub mod grounding_chunk {
         #[prost(string, optional, tag = "2")]
         pub title: ::core::option::Option<::prost::alloc::string::String>,
     }
+    /// Chunk from context retrieved by the file search tool.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct RetrievedContext {
+        /// Optional. URI reference of the semantic retrieval document.
+        #[prost(string, optional, tag = "1")]
+        pub uri: ::core::option::Option<::prost::alloc::string::String>,
+        /// Optional. Title of the document.
+        #[prost(string, optional, tag = "2")]
+        pub title: ::core::option::Option<::prost::alloc::string::String>,
+        /// Optional. Text of the chunk.
+        #[prost(string, optional, tag = "3")]
+        pub text: ::core::option::Option<::prost::alloc::string::String>,
+    }
+    /// A grounding chunk from Google Maps. A Maps chunk corresponds to a single
+    /// place.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Maps {
+        /// URI reference of the place.
+        #[prost(string, optional, tag = "1")]
+        pub uri: ::core::option::Option<::prost::alloc::string::String>,
+        /// Title of the place.
+        #[prost(string, optional, tag = "2")]
+        pub title: ::core::option::Option<::prost::alloc::string::String>,
+        /// Text description of the place answer.
+        #[prost(string, optional, tag = "3")]
+        pub text: ::core::option::Option<::prost::alloc::string::String>,
+        /// This ID of the place, in `places/{place_id}` format. A user can use this
+        /// ID to look up that place.
+        #[prost(string, optional, tag = "4")]
+        pub place_id: ::core::option::Option<::prost::alloc::string::String>,
+        /// Sources that provide answers about the features of a given place in
+        /// Google Maps.
+        #[prost(message, optional, tag = "5")]
+        pub place_answer_sources: ::core::option::Option<maps::PlaceAnswerSources>,
+    }
+    /// Nested message and enum types in `Maps`.
+    pub mod maps {
+        /// Collection of sources that provide answers about the features of a given
+        /// place in Google Maps. Each PlaceAnswerSources message corresponds to a
+        /// specific place in Google Maps. The Google Maps tool used these sources in
+        /// order to answer questions about features of the place (e.g: "does Bar Foo
+        /// have Wifi" or "is Foo Bar wheelchair accessible?"). Currently we only
+        /// support review snippets as sources.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct PlaceAnswerSources {
+            /// Snippets of reviews that are used to generate answers about the
+            /// features of a given place in Google Maps.
+            #[prost(message, repeated, tag = "1")]
+            pub review_snippets: ::prost::alloc::vec::Vec<place_answer_sources::ReviewSnippet>,
+        }
+        /// Nested message and enum types in `PlaceAnswerSources`.
+        pub mod place_answer_sources {
+            /// Encapsulates a snippet of a user review that answers a question about
+            /// the features of a specific place in Google Maps.
+            #[derive(Clone, PartialEq, ::prost::Message)]
+            pub struct ReviewSnippet {
+                /// The ID of the review snippet.
+                #[prost(string, optional, tag = "1")]
+                pub review_id: ::core::option::Option<::prost::alloc::string::String>,
+                /// A link that corresponds to the user review on Google Maps.
+                #[prost(string, optional, tag = "2")]
+                pub google_maps_uri: ::core::option::Option<::prost::alloc::string::String>,
+                /// Title of the review.
+                #[prost(string, optional, tag = "3")]
+                pub title: ::core::option::Option<::prost::alloc::string::String>,
+            }
+        }
+    }
     /// Chunk type.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum ChunkType {
         /// Grounding chunk from the web.
         #[prost(message, tag = "1")]
         Web(Web),
+        /// Optional. Grounding chunk from context retrieved by the file search tool.
+        #[prost(message, tag = "2")]
+        RetrievedContext(RetrievedContext),
+        /// Optional. Grounding chunk from Google Maps.
+        #[prost(message, tag = "3")]
+        Maps(Maps),
     }
 }
 /// Segment of the content.
@@ -2851,7 +2989,7 @@ pub struct CountTokensResponse {
     pub cache_tokens_details: ::prost::alloc::vec::Vec<ModalityTokenCount>,
 }
 /// Configures the realtime input behavior in `BidiGenerateContent`.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct RealtimeInputConfig {
     /// Optional. If not set, automatic activity detection is enabled by default.
     /// If automatic voice detection is disabled, the client must send activity
@@ -2877,7 +3015,7 @@ pub struct RealtimeInputConfig {
 /// Nested message and enum types in `RealtimeInputConfig`.
 pub mod realtime_input_config {
     /// Configures automatic detection of activity.
-    #[derive(Clone, PartialEq, ::prost::Message)]
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct AutomaticActivityDetection {
         /// Optional. If enabled (the default), detected voice and text input count
         /// as activity. If disabled, the client must send activity signals.
@@ -3072,7 +3210,7 @@ pub struct SessionResumptionConfig {
 }
 /// Enables context window compression — a mechanism for managing the model's
 /// context window so that it does not exceed a given length.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ContextWindowCompressionConfig {
     /// The number of tokens (before running a turn) required to trigger a context
     /// window compression.
@@ -3101,7 +3239,7 @@ pub mod context_window_compression_config {
     /// a USER role turn. System instructions and any
     /// `BidiGenerateContentSetup.prefix_turns` will always remain at the beginning
     /// of the result.
-    #[derive(Clone, PartialEq, ::prost::Message)]
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct SlidingWindow {
         /// The target number of tokens to keep. The default value is
         /// trigger_tokens/2.
@@ -3113,7 +3251,7 @@ pub mod context_window_compression_config {
         pub target_tokens: ::core::option::Option<i64>,
     }
     /// The context window compression mechanism used.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
     pub enum CompressionMechanism {
         /// A sliding-window mechanism.
         #[prost(message, tag = "2")]
@@ -3121,7 +3259,7 @@ pub mod context_window_compression_config {
     }
 }
 /// The audio transcription configuration.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct AudioTranscriptionConfig {}
 /// Message to be sent in the first (and only in the first)
 /// `BidiGenerateContentClientMessage`. Contains configuration that will apply
@@ -3267,10 +3405,10 @@ pub struct BidiGenerateContentRealtimeInput {
 /// Nested message and enum types in `BidiGenerateContentRealtimeInput`.
 pub mod bidi_generate_content_realtime_input {
     /// Marks the start of user activity.
-    #[derive(Clone, PartialEq, ::prost::Message)]
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct ActivityStart {}
     /// Marks the end of user activity.
-    #[derive(Clone, PartialEq, ::prost::Message)]
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
     pub struct ActivityEnd {}
 }
 /// Client generated response to a `ToolCall` received from the server.
@@ -3318,7 +3456,7 @@ pub mod bidi_generate_content_client_message {
     }
 }
 /// Sent in response to a `BidiGenerateContentSetup` message from the client.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct BidiGenerateContentSetupComplete {}
 /// Incremental server update generated by the model in response to client
 /// messages.
@@ -3395,14 +3533,14 @@ pub struct BidiGenerateContentToolCallCancellation {
     pub ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// A notice that the server will soon disconnect.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GoAway {
     /// The remaining time before the connection will be terminated as ABORTED.
     ///
     /// This duration will never be less than a model-specific minimum, which will
     /// be specified together with the rate limits for the model.
     #[prost(message, optional, tag = "1")]
-    pub time_left: ::core::option::Option<::prost_types::Duration>,
+    pub time_left: ::core::option::Option<::pbjson_types::Duration>,
 }
 /// Update of the session resumption state.
 ///
@@ -3568,3 +3706,498 @@ impl TaskType {
         }
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum FieldBehavior {
+    Unspecified = 0,
+    Optional = 1,
+    Required = 2,
+    OutputOnly = 3,
+    InputOnly = 4,
+    Immutable = 5,
+    UnorderedList = 6,
+    NonEmptyDefault = 7,
+    Identifier = 8,
+}
+impl FieldBehavior {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "FIELD_BEHAVIOR_UNSPECIFIED",
+            Self::Optional => "OPTIONAL",
+            Self::Required => "REQUIRED",
+            Self::OutputOnly => "OUTPUT_ONLY",
+            Self::InputOnly => "INPUT_ONLY",
+            Self::Immutable => "IMMUTABLE",
+            Self::UnorderedList => "UNORDERED_LIST",
+            Self::NonEmptyDefault => "NON_EMPTY_DEFAULT",
+            Self::Identifier => "IDENTIFIER",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "FIELD_BEHAVIOR_UNSPECIFIED" => Some(Self::Unspecified),
+            "OPTIONAL" => Some(Self::Optional),
+            "REQUIRED" => Some(Self::Required),
+            "OUTPUT_ONLY" => Some(Self::OutputOnly),
+            "INPUT_ONLY" => Some(Self::InputOnly),
+            "IMMUTABLE" => Some(Self::Immutable),
+            "UNORDERED_LIST" => Some(Self::UnorderedList),
+            "NON_EMPTY_DEFAULT" => Some(Self::NonEmptyDefault),
+            "IDENTIFIER" => Some(Self::Identifier),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResourceDescriptor {
+    #[prost(string, tag = "1")]
+    pub r#type: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "2")]
+    pub pattern: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "3")]
+    pub name_field: ::prost::alloc::string::String,
+    #[prost(enumeration = "resource_descriptor::History", tag = "4")]
+    pub history: i32,
+    #[prost(string, tag = "5")]
+    pub plural: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub singular: ::prost::alloc::string::String,
+    #[prost(enumeration = "resource_descriptor::Style", repeated, tag = "10")]
+    pub style: ::prost::alloc::vec::Vec<i32>,
+}
+/// Nested message and enum types in `ResourceDescriptor`.
+pub mod resource_descriptor {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
+    pub enum History {
+        Unspecified = 0,
+        OriginallySinglePattern = 1,
+        FutureMultiPattern = 2,
+    }
+    impl History {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "HISTORY_UNSPECIFIED",
+                Self::OriginallySinglePattern => "ORIGINALLY_SINGLE_PATTERN",
+                Self::FutureMultiPattern => "FUTURE_MULTI_PATTERN",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "HISTORY_UNSPECIFIED" => Some(Self::Unspecified),
+                "ORIGINALLY_SINGLE_PATTERN" => Some(Self::OriginallySinglePattern),
+                "FUTURE_MULTI_PATTERN" => Some(Self::FutureMultiPattern),
+                _ => None,
+            }
+        }
+    }
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
+    pub enum Style {
+        Unspecified = 0,
+        DeclarativeFriendly = 1,
+    }
+    impl Style {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "STYLE_UNSPECIFIED",
+                Self::DeclarativeFriendly => "DECLARATIVE_FRIENDLY",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STYLE_UNSPECIFIED" => Some(Self::Unspecified),
+                "DECLARATIVE_FRIENDLY" => Some(Self::DeclarativeFriendly),
+                _ => None,
+            }
+        }
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResourceReference {
+    #[prost(string, tag = "1")]
+    pub r#type: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub child_type: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Http {
+    #[prost(message, repeated, tag = "1")]
+    pub rules: ::prost::alloc::vec::Vec<HttpRule>,
+    #[prost(bool, tag = "2")]
+    pub fully_decode_reserved_expansion: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct HttpRule {
+    #[prost(string, tag = "1")]
+    pub selector: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub body: ::prost::alloc::string::String,
+    #[prost(string, tag = "12")]
+    pub response_body: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "11")]
+    pub additional_bindings: ::prost::alloc::vec::Vec<HttpRule>,
+    #[prost(oneof = "http_rule::Pattern", tags = "2, 3, 4, 5, 6, 8")]
+    pub pattern: ::core::option::Option<http_rule::Pattern>,
+}
+/// Nested message and enum types in `HttpRule`.
+pub mod http_rule {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Pattern {
+        #[prost(string, tag = "2")]
+        Get(::prost::alloc::string::String),
+        #[prost(string, tag = "3")]
+        Put(::prost::alloc::string::String),
+        #[prost(string, tag = "4")]
+        Post(::prost::alloc::string::String),
+        #[prost(string, tag = "5")]
+        Delete(::prost::alloc::string::String),
+        #[prost(string, tag = "6")]
+        Patch(::prost::alloc::string::String),
+        #[prost(message, tag = "8")]
+        Custom(super::CustomHttpPattern),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CustomHttpPattern {
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub path: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum LaunchStage {
+    Unspecified = 0,
+    Unimplemented = 6,
+    Prelaunch = 7,
+    EarlyAccess = 1,
+    Alpha = 2,
+    Beta = 3,
+    Ga = 4,
+    Deprecated = 5,
+}
+impl LaunchStage {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "LAUNCH_STAGE_UNSPECIFIED",
+            Self::Unimplemented => "UNIMPLEMENTED",
+            Self::Prelaunch => "PRELAUNCH",
+            Self::EarlyAccess => "EARLY_ACCESS",
+            Self::Alpha => "ALPHA",
+            Self::Beta => "BETA",
+            Self::Ga => "GA",
+            Self::Deprecated => "DEPRECATED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "LAUNCH_STAGE_UNSPECIFIED" => Some(Self::Unspecified),
+            "UNIMPLEMENTED" => Some(Self::Unimplemented),
+            "PRELAUNCH" => Some(Self::Prelaunch),
+            "EARLY_ACCESS" => Some(Self::EarlyAccess),
+            "ALPHA" => Some(Self::Alpha),
+            "BETA" => Some(Self::Beta),
+            "GA" => Some(Self::Ga),
+            "DEPRECATED" => Some(Self::Deprecated),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommonLanguageSettings {
+    #[deprecated]
+    #[prost(string, tag = "1")]
+    pub reference_docs_uri: ::prost::alloc::string::String,
+    #[prost(enumeration = "ClientLibraryDestination", repeated, tag = "2")]
+    pub destinations: ::prost::alloc::vec::Vec<i32>,
+    #[prost(message, optional, tag = "3")]
+    pub selective_gapic_generation: ::core::option::Option<SelectiveGapicGeneration>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ClientLibrarySettings {
+    #[prost(string, tag = "1")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(enumeration = "LaunchStage", tag = "2")]
+    pub launch_stage: i32,
+    #[prost(bool, tag = "3")]
+    pub rest_numeric_enums: bool,
+    #[prost(message, optional, tag = "21")]
+    pub java_settings: ::core::option::Option<JavaSettings>,
+    #[prost(message, optional, tag = "22")]
+    pub cpp_settings: ::core::option::Option<CppSettings>,
+    #[prost(message, optional, tag = "23")]
+    pub php_settings: ::core::option::Option<PhpSettings>,
+    #[prost(message, optional, tag = "24")]
+    pub python_settings: ::core::option::Option<PythonSettings>,
+    #[prost(message, optional, tag = "25")]
+    pub node_settings: ::core::option::Option<NodeSettings>,
+    #[prost(message, optional, tag = "26")]
+    pub dotnet_settings: ::core::option::Option<DotnetSettings>,
+    #[prost(message, optional, tag = "27")]
+    pub ruby_settings: ::core::option::Option<RubySettings>,
+    #[prost(message, optional, tag = "28")]
+    pub go_settings: ::core::option::Option<GoSettings>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Publishing {
+    #[prost(message, repeated, tag = "2")]
+    pub method_settings: ::prost::alloc::vec::Vec<MethodSettings>,
+    #[prost(string, tag = "101")]
+    pub new_issue_uri: ::prost::alloc::string::String,
+    #[prost(string, tag = "102")]
+    pub documentation_uri: ::prost::alloc::string::String,
+    #[prost(string, tag = "103")]
+    pub api_short_name: ::prost::alloc::string::String,
+    #[prost(string, tag = "104")]
+    pub github_label: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "105")]
+    pub codeowner_github_teams: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "106")]
+    pub doc_tag_prefix: ::prost::alloc::string::String,
+    #[prost(enumeration = "ClientLibraryOrganization", tag = "107")]
+    pub organization: i32,
+    #[prost(message, repeated, tag = "109")]
+    pub library_settings: ::prost::alloc::vec::Vec<ClientLibrarySettings>,
+    #[prost(string, tag = "110")]
+    pub proto_reference_documentation_uri: ::prost::alloc::string::String,
+    #[prost(string, tag = "111")]
+    pub rest_reference_documentation_uri: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JavaSettings {
+    #[prost(string, tag = "1")]
+    pub library_package: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "2")]
+    pub service_class_names:
+        ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    #[prost(message, optional, tag = "3")]
+    pub common: ::core::option::Option<CommonLanguageSettings>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CppSettings {
+    #[prost(message, optional, tag = "1")]
+    pub common: ::core::option::Option<CommonLanguageSettings>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PhpSettings {
+    #[prost(message, optional, tag = "1")]
+    pub common: ::core::option::Option<CommonLanguageSettings>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PythonSettings {
+    #[prost(message, optional, tag = "1")]
+    pub common: ::core::option::Option<CommonLanguageSettings>,
+    #[prost(message, optional, tag = "2")]
+    pub experimental_features: ::core::option::Option<python_settings::ExperimentalFeatures>,
+}
+/// Nested message and enum types in `PythonSettings`.
+pub mod python_settings {
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct ExperimentalFeatures {
+        #[prost(bool, tag = "1")]
+        pub rest_async_io_enabled: bool,
+        #[prost(bool, tag = "2")]
+        pub protobuf_pythonic_types_enabled: bool,
+        #[prost(bool, tag = "3")]
+        pub unversioned_package_disabled: bool,
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NodeSettings {
+    #[prost(message, optional, tag = "1")]
+    pub common: ::core::option::Option<CommonLanguageSettings>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DotnetSettings {
+    #[prost(message, optional, tag = "1")]
+    pub common: ::core::option::Option<CommonLanguageSettings>,
+    #[prost(map = "string, string", tag = "2")]
+    pub renamed_services:
+        ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    #[prost(map = "string, string", tag = "3")]
+    pub renamed_resources:
+        ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "4")]
+    pub ignored_resources: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "5")]
+    pub forced_namespace_aliases: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "6")]
+    pub handwritten_signatures: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RubySettings {
+    #[prost(message, optional, tag = "1")]
+    pub common: ::core::option::Option<CommonLanguageSettings>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoSettings {
+    #[prost(message, optional, tag = "1")]
+    pub common: ::core::option::Option<CommonLanguageSettings>,
+    #[prost(map = "string, string", tag = "2")]
+    pub renamed_services:
+        ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MethodSettings {
+    #[prost(string, tag = "1")]
+    pub selector: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub long_running: ::core::option::Option<method_settings::LongRunning>,
+    #[prost(string, repeated, tag = "3")]
+    pub auto_populated_fields: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `MethodSettings`.
+pub mod method_settings {
+    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+    pub struct LongRunning {
+        #[prost(message, optional, tag = "1")]
+        pub initial_poll_delay: ::core::option::Option<::pbjson_types::Duration>,
+        #[prost(float, tag = "2")]
+        pub poll_delay_multiplier: f32,
+        #[prost(message, optional, tag = "3")]
+        pub max_poll_delay: ::core::option::Option<::pbjson_types::Duration>,
+        #[prost(message, optional, tag = "4")]
+        pub total_poll_timeout: ::core::option::Option<::pbjson_types::Duration>,
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SelectiveGapicGeneration {
+    #[prost(string, repeated, tag = "1")]
+    pub methods: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(bool, tag = "2")]
+    pub generate_omitted_as_internal: bool,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ClientLibraryOrganization {
+    Unspecified = 0,
+    Cloud = 1,
+    Ads = 2,
+    Photos = 3,
+    StreetView = 4,
+    Shopping = 5,
+    Geo = 6,
+    GenerativeAi = 7,
+}
+impl ClientLibraryOrganization {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "CLIENT_LIBRARY_ORGANIZATION_UNSPECIFIED",
+            Self::Cloud => "CLOUD",
+            Self::Ads => "ADS",
+            Self::Photos => "PHOTOS",
+            Self::StreetView => "STREET_VIEW",
+            Self::Shopping => "SHOPPING",
+            Self::Geo => "GEO",
+            Self::GenerativeAi => "GENERATIVE_AI",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "CLIENT_LIBRARY_ORGANIZATION_UNSPECIFIED" => Some(Self::Unspecified),
+            "CLOUD" => Some(Self::Cloud),
+            "ADS" => Some(Self::Ads),
+            "PHOTOS" => Some(Self::Photos),
+            "STREET_VIEW" => Some(Self::StreetView),
+            "SHOPPING" => Some(Self::Shopping),
+            "GEO" => Some(Self::Geo),
+            "GENERATIVE_AI" => Some(Self::GenerativeAi),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ClientLibraryDestination {
+    Unspecified = 0,
+    Github = 10,
+    PackageManager = 20,
+}
+impl ClientLibraryDestination {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "CLIENT_LIBRARY_DESTINATION_UNSPECIFIED",
+            Self::Github => "GITHUB",
+            Self::PackageManager => "PACKAGE_MANAGER",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "CLIENT_LIBRARY_DESTINATION_UNSPECIFIED" => Some(Self::Unspecified),
+            "GITHUB" => Some(Self::Github),
+            "PACKAGE_MANAGER" => Some(Self::PackageManager),
+            _ => None,
+        }
+    }
+}
+
+/// Represents a time interval, encoded as a Timestamp start (inclusive) and a
+/// Timestamp end (exclusive).
+///
+/// The start must be less than or equal to the end.
+/// When the start equals the end, the interval is empty (matches no time).
+/// When both start and end are unspecified, the interval matches any time.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct Interval {
+    /// Optional. Inclusive start of the interval.
+    ///
+    /// If specified, a Timestamp matching this interval will have to be the same
+    /// or after the start.
+    #[prost(message, optional, tag = "1")]
+    pub start_time: ::core::option::Option<::pbjson_types::Timestamp>,
+    /// Optional. Exclusive end of the interval.
+    ///
+    /// If specified, a Timestamp matching this interval will have to be before the
+    /// end.
+    #[prost(message, optional, tag = "2")]
+    pub end_time: ::core::option::Option<::pbjson_types::Timestamp>,
+}
+/// An object that represents a latitude/longitude pair. This is expressed as a
+/// pair of doubles to represent degrees latitude and degrees longitude. Unless
+/// specified otherwise, this must conform to the
+/// <a href="<http://www.unoosa.org/pdf/icg/2012/template/WGS_84.pdf">WGS84>
+/// standard</a>. Values must be within normalized ranges.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct LatLng {
+    /// The latitude in degrees. It must be in the range \[-90.0, +90.0\].
+    #[prost(double, tag = "1")]
+    pub latitude: f64,
+    /// The longitude in degrees. It must be in the range \[-180.0, +180.0\].
+    #[prost(double, tag = "2")]
+    pub longitude: f64,
+}
+
+// Serde support generated by pbjson-build
+include!("generated_pbjson.rs");

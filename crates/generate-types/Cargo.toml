@@ -10,12 +10,12 @@ name = "generate-types"
 path = "src/main.rs"
 
 [dependencies]
-lingua.workspace = true
 serde.workspace = true
-serde_json.workspace = true
+big_serde_json.workspace = true
 serde_yaml.workspace = true
 anyhow.workspace = true
 prost-build.workspace = true
+pbjson-build.workspace = true
 typify.workspace = true
 schemars.workspace = true
 schemafy.workspace = true

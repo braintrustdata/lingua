@@ -3,15 +3,11 @@ Google format detection.
 
 This module provides functions to detect if a payload is in
 Google AI (Generative Language API) format by attempting to
-deserialize into lightweight serde structs that mirror the
-protobuf types.
-
-Note: Google's official types are protobuf-generated (prost) without
-serde support. We use custom serde structs for validation.
+deserialize into the protobuf-generated types with pbjson serde support.
 */
 
+use crate::providers::google::generated;
 use crate::serde_json::{self, Value};
-use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 /// Error type for Google payload detection
@@ -19,130 +15,6 @@ use thiserror::Error;
 pub enum DetectionError {
     #[error("Deserialization failed: {0}")]
     DeserializationFailed(String),
-}
-
-/// Lightweight serde struct for Google GenerateContent request validation.
-///
-/// This mirrors the structure of Google's protobuf GenerateContentRequest
-/// but uses serde for JSON deserialization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GoogleGenerateContentRequest {
-    /// The content of the conversation
-    pub contents: Vec<GoogleContent>,
-
-    /// Generation configuration (optional)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub generation_config: Option<GoogleGenerationConfig>,
-
-    /// System instruction (optional)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub system_instruction: Option<GoogleContent>,
-
-    /// Safety settings (optional)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub safety_settings: Option<Vec<GoogleSafetySetting>>,
-
-    /// Tools for function calling (optional)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<GoogleTool>>,
-}
-
-/// Content in a Google conversation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleContent {
-    /// Role: "user" or "model"
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub role: Option<String>,
-
-    /// Content parts
-    #[serde(default)]
-    pub parts: Vec<GooglePart>,
-}
-
-/// A part of content (text, image, etc.)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GooglePart {
-    /// Text content
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub text: Option<String>,
-
-    /// Inline data (images, etc.)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub inline_data: Option<GoogleBlob>,
-
-    /// Function call
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub function_call: Option<GoogleFunctionCall>,
-
-    /// Function response
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub function_response: Option<GoogleFunctionResponse>,
-}
-
-/// Inline binary data
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GoogleBlob {
-    pub mime_type: String,
-    pub data: String,
-}
-
-/// Function call from the model
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFunctionCall {
-    pub name: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub args: Option<Value>,
-}
-
-/// Response to a function call
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFunctionResponse {
-    pub name: String,
-    pub response: Value,
-}
-
-/// Generation configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GoogleGenerationConfig {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub temperature: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub top_p: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub top_k: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub max_output_tokens: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub stop_sequences: Option<Vec<String>>,
-}
-
-/// Safety setting
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleSafetySetting {
-    pub category: String,
-    pub threshold: String,
-}
-
-/// Tool definition
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GoogleTool {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub function_declarations: Option<Vec<GoogleFunctionDeclaration>>,
-}
-
-/// Function declaration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFunctionDeclaration {
-    pub name: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub parameters: Option<Value>,
 }
 
 /// Attempt to parse a JSON Value as Google GenerateContentRequest.
@@ -165,7 +37,15 @@ pub struct GoogleFunctionDeclaration {
 ///
 /// assert!(try_parse_google(&google_payload).is_ok());
 /// ```
-pub fn try_parse_google(payload: &Value) -> Result<GoogleGenerateContentRequest, DetectionError> {
+pub fn try_parse_google(
+    payload: &Value,
+) -> Result<generated::GenerateContentRequest, DetectionError> {
+    if payload.get("contents").and_then(Value::as_array).is_none() {
+        return Err(DetectionError::DeserializationFailed(
+            "missing contents field".to_string(),
+        ));
+    }
+
     serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
@@ -241,7 +121,7 @@ mod tests {
         assert!(result.is_ok());
         let parsed = result.unwrap();
         assert_eq!(parsed.contents.len(), 1);
-        assert_eq!(parsed.contents[0].role.as_deref(), Some("user"));
+        assert_eq!(parsed.contents[0].role, "user");
     }
 
     #[test]

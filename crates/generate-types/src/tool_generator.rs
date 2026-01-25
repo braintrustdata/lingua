@@ -7,7 +7,7 @@
 //! fields, making direct codegen cleaner.
 
 use crate::schema_converter::{schema_type_to_rust, to_rust_field_name};
-use lingua::serde_json;
+use big_serde_json as serde_json;
 use std::collections::HashSet;
 
 #[derive(Debug, Clone, Default)]
