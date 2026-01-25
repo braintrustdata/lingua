@@ -2,7 +2,7 @@
 //!
 //! This module contains utilities for converting JSON Schema types to Rust code.
 
-use lingua::serde_json;
+use big_serde_json as serde_json;
 
 /// Convert a JSON Schema type to its Rust equivalent
 pub fn schema_type_to_rust(

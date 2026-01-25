@@ -95,7 +95,7 @@ export interface TestCase {
   "chat-completions": OpenAI.Chat.Completions.ChatCompletionCreateParams | null;
   responses: OpenAI.Responses.ResponseCreateParams | null;
   anthropic: Anthropic.Messages.MessageCreateParams | null;
-  google: GoogleGenerateContentRequest | null;
+  google: GenerateContentRequest | null;
   bedrock: BedrockConverseRequest | null;
   myprovider: MyProviderRequest | null;  // Add this
 }

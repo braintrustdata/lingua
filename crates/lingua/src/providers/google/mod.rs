@@ -10,7 +10,7 @@ pub mod generated;
 pub use adapter::GoogleAdapter;
 
 // Re-export detection functions
-pub use detect::{try_parse_google, DetectionError, GoogleGenerateContentRequest};
+pub use detect::{try_parse_google, DetectionError};
 
 // Re-export conversion functions
 pub use convert::{google_to_universal, universal_to_google};

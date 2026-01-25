@@ -2,11 +2,9 @@
 //!
 //! Usage: cargo run --bin generate-types -- [provider]
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-// Import serde_json from the lingua crate's re-export
-// This ensures we use the wrapper crate with arbitrary_precision
-use lingua::serde_json;
+use big_serde_json as serde_json;
 use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
 
 mod schema_converter;
@@ -1269,6 +1267,7 @@ fn generate_google_protobuf_types_from_git() {
     // Now compile with complete dependency tree including google.type
     let proto_file = temp_dir.join("google/ai/generativelanguage/v1beta/generative_service.proto");
     let interval_proto = temp_dir.join("google/type/interval.proto");
+    let latlng_proto = temp_dir.join("google/type/latlng.proto");
 
     if !proto_file.exists() {
         println!("❌ Could not find generative_service.proto in cloned repository");
@@ -1290,12 +1289,23 @@ fn generate_google_protobuf_types_from_git() {
         return;
     }
 
+    if !latlng_proto.exists() {
+        println!("❌ Could not find google/type/latlng.proto in cloned repository");
+        let _ = std::fs::remove_dir_all(&temp_dir);
+        let _ = std::fs::write(
+            "crates/lingua/src/providers/google/generated.rs",
+            "// LatLng proto not found",
+        );
+        return;
+    }
+
     println!("✅ Found protobuf files, compiling with complete dependencies...");
 
-    // Include both the main service proto and the interval type proto
+    // Include both the main service proto and google.type dependencies
     let proto_paths = vec![
         proto_file.to_string_lossy().to_string(),
         interval_proto.to_string_lossy().to_string(),
+        latlng_proto.to_string_lossy().to_string(),
     ];
 
     generate_google_protobuf_types(&proto_paths, &temp_dir.to_string_lossy());
@@ -1311,10 +1321,15 @@ fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
     let temp_dir = std::env::temp_dir().join("google_generated");
     let _ = std::fs::remove_dir_all(&temp_dir);
     std::fs::create_dir_all(&temp_dir).expect("Failed to create temp directory");
+    let descriptor_path = temp_dir.join("google_descriptor.bin");
 
     // Configure prost-build
     let mut config = prost_build::Config::new();
     config.out_dir(&temp_dir);
+    config.file_descriptor_set_path(&descriptor_path);
+    config.compile_well_known_types();
+    config.extern_path(".google.protobuf", "::pbjson_types");
+    config.disable_comments([".google.api"]);
 
     // Include directories for resolving imports
     let include_dirs = vec![proto_dir];
@@ -1326,8 +1341,9 @@ fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
     match config.compile_protos(proto_paths, &include_dirs) {
         Ok(()) => {
             println!("✅ Protobuf compilation successful");
-            // Create a combined output file with the essential types
-            create_google_combined_output(&temp_dir);
+            let pbjson_dir = generate_google_pbjson_types(&descriptor_path, &temp_dir);
+            // Create a combined output file with the essential types (and serde support if present)
+            create_google_combined_output(&temp_dir, pbjson_dir.as_deref());
         }
         Err(e) => {
             println!("❌ Protobuf compilation failed: {}", e);
@@ -1343,11 +1359,44 @@ fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
     let _ = std::fs::remove_dir_all(&temp_dir);
 }
 
-fn create_google_combined_output(temp_dir: &std::path::Path) {
+fn generate_google_pbjson_types(descriptor_path: &Path, temp_dir: &Path) -> Option<PathBuf> {
+    let pbjson_dir = temp_dir.join("google_pbjson");
+    let _ = std::fs::remove_dir_all(&pbjson_dir);
+    if std::fs::create_dir_all(&pbjson_dir).is_err() {
+        println!("⚠️  Failed to create pbjson output directory");
+        return None;
+    }
+
+    println!("🔧 Generating pbjson serde implementations...");
+    let descriptor_set = match std::fs::read(descriptor_path) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            println!("⚠️  Failed to read protobuf descriptor set: {}", e);
+            return None;
+        }
+    };
+
+    let mut builder = pbjson_build::Builder::new();
+    builder.out_dir(&pbjson_dir);
+    builder.extern_path(".google.protobuf", "::pbjson_types");
+    if let Err(e) = builder.register_descriptors(&descriptor_set) {
+        println!("⚠️  Failed to register protobuf descriptors: {}", e);
+        return None;
+    }
+
+    if let Err(e) = builder.build(&[".google.ai.generativelanguage.v1beta", ".google.type"]) {
+        println!("⚠️  Failed to generate pbjson serde output: {}", e);
+        return None;
+    }
+
+    Some(pbjson_dir)
+}
+
+fn create_google_combined_output(temp_dir: &std::path::Path, pbjson_dir: Option<&Path>) {
     println!("🔧 Creating combined Google types output...");
 
     // Look for generated files in the temp directory
-    let generated_files = std::fs::read_dir(temp_dir)
+    let mut generated_files = std::fs::read_dir(temp_dir)
         .map(|entries| {
             entries
                 .filter_map(|entry| entry.ok())
@@ -1358,7 +1407,6 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
 
     println!("📁 Found {} generated files", generated_files.len());
 
-    // Read the main generated file
     let mut all_content = String::new();
     all_content.push_str("// Generated Google AI types from official protobuf files\n");
     all_content.push_str("// Essential types for Elmir Google AI integration\n\n");
@@ -1367,32 +1415,14 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
     all_content.push_str("#![allow(clippy::doc_overindented_list_items)]\n");
     all_content.push_str("#![allow(clippy::large_enum_variant)]\n");
 
-    // Find the main generated file (should be the Google AI one)
-    let main_file = generated_files.iter().find(|entry| {
-        entry
-            .file_name()
-            .to_str()
-            .map(|name| name.contains("google.ai.generativelanguage.v1beta"))
-            .unwrap_or(false)
-    });
+    generated_files.sort_by_key(|entry| entry.file_name());
 
-    if let Some(main_file) = main_file {
-        if let Ok(content) = std::fs::read_to_string(main_file.path()) {
+    for file_entry in &generated_files {
+        if let Ok(content) = std::fs::read_to_string(file_entry.path()) {
             // Fix problematic type references that prost-build generates incorrectly
             let fixed_content = fix_google_type_references(content);
             all_content.push_str(&fixed_content);
-        }
-    } else {
-        println!("⚠️  No Google AI generative language file found, checking all files");
-        for file_entry in generated_files {
-            if let Ok(content) = std::fs::read_to_string(file_entry.path()) {
-                if content.contains("GenerateContentRequest") || content.contains("Content") {
-                    println!("📄 Adding content from: {:?}", file_entry.file_name());
-                    let fixed_content = fix_google_type_references(content);
-                    all_content.push_str(&fixed_content);
-                    all_content.push('\n');
-                }
-            }
+            all_content.push('\n');
         }
     }
 
@@ -1407,11 +1437,49 @@ fn create_google_combined_output(temp_dir: &std::path::Path) {
     }
 
     let dest_path = "crates/lingua/src/providers/google/generated.rs";
+    let pbjson_dest_path = "crates/lingua/src/providers/google/generated_pbjson.rs";
 
     // Create the directory if it doesn't exist
     if let Some(parent) = Path::new(dest_path).parent() {
         let _ = std::fs::create_dir_all(parent);
     }
+
+    // Write the pbjson serde implementations to a separate file
+    let mut pbjson_content = String::new();
+    if let Some(pbjson_dir) = pbjson_dir {
+        let mut pbjson_files = std::fs::read_dir(pbjson_dir)
+            .map(|entries| {
+                entries
+                    .filter_map(|entry| entry.ok())
+                    .filter(|entry| {
+                        entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs")
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+
+        pbjson_files.sort_by_key(|entry| entry.file_name());
+
+        for file_entry in pbjson_files {
+            if let Ok(content) = std::fs::read_to_string(file_entry.path()) {
+                pbjson_content.push_str(&content);
+                pbjson_content.push('\n');
+            }
+        }
+    }
+
+    if pbjson_content.is_empty() {
+        pbjson_content.push_str("// pbjson serde output unavailable\n");
+    }
+
+    if let Some(parent) = Path::new(pbjson_dest_path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let _ = std::fs::write(pbjson_dest_path, &pbjson_content);
+
+    // Link the pbjson output from the main generated file
+    all_content.push_str("\n// Serde support generated by pbjson-build\n");
+    all_content.push_str("include!(\"generated_pbjson.rs\");\n");
 
     // Write the combined types
     if std::fs::write(dest_path, &all_content).is_ok() {
@@ -1439,80 +1507,28 @@ fn fix_google_type_references(content: String) -> String {
     // Remove the prost-generated @generated comment since we add our own header
     fixed = fixed.replace("// This file is @generated by prost-build.\n", "");
 
-    // Add Default derive to all #[derive(...)] attributes
-    fixed = fixed.replace(
-        "#[derive(Clone, PartialEq, ::prost::Message)]",
-        "#[derive(Clone, PartialEq, ::prost::Message, Default)]",
-    );
-    fixed = fixed.replace(
-        "#[derive(Clone, PartialEq, ::prost::Oneof)]",
-        "#[derive(Clone, PartialEq, ::prost::Oneof, Default)]",
-    );
-
-    // Fix malformed JSON in doctests that have escaped brackets
-    // This fixes doctest compilation errors where \["foo"\] should be ["foo"]
+    // Fix malformed JSON in doctests that have escaped brackets.
     fixed = fixed.replace("\\[\"", "[\"");
     fixed = fixed.replace("\"\\]", "\"]");
 
-    // Fix doctests that contain JSON by marking them as non-executable
-    // Replace ``` with ```json to prevent Rust compilation of JSON examples
+    // Mark the JSON schema example as json to prevent Rust doctest compilation.
     if fixed.contains("\"type\": \"object\"") {
-        // This is a JSON schema example, mark it as json to avoid Rust doctest compilation
         fixed = fixed.replace(
             "    /// ```\n    /// {\n    ///    \"type\": \"object\",",
             "    /// ```json\n    /// {\n    ///    \"type\": \"object\",",
         );
     }
 
-    // Replace the incorrect super::super::super::super::r#type::Interval reference
+    // Replace incorrect paths to google.type types with absolute paths so they resolve
+    // from any nested module in the combined output.
     fixed = fixed.replace(
         "super::super::super::super::r#type::Interval",
-        "TimeRangeFilter",
+        "crate::providers::google::generated::Interval",
     );
-
-    let has_time_range_filter_ref =
-        fixed.contains("time_range_filter") && fixed.contains("TimeRangeFilter");
-    let has_time_range_filter_def = fixed.contains("pub struct TimeRangeFilter");
-
-    // If we have a TimeRangeFilter reference but no definition, add it to the tool module
-    if has_time_range_filter_ref && !has_time_range_filter_def {
-        // Find the GoogleSearch struct and add TimeRangeFilter definition right after it
-        if let Some(google_search_pos) = fixed.find("pub struct GoogleSearch {") {
-            // Find the end of the GoogleSearch struct
-            if let Some(struct_start) = fixed[..google_search_pos].rfind("#[derive(") {
-                let after_struct_start = &fixed[struct_start..];
-                if let Some(struct_end) = after_struct_start.find("\n    }") {
-                    let insert_pos = struct_start + struct_end + 6; // After "\n    }"
-
-                    let before = &fixed[..insert_pos];
-                    let after = &fixed[insert_pos..];
-
-                    let time_range_filter_def = r#"
-
-    /// Simple placeholder for TimeRangeFilter until google.type module is properly included
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct TimeRangeFilter {
-        #[prost(string, optional, tag = "1")]
-        pub start_time: ::core::option::Option<::prost::alloc::string::String>,
-        #[prost(string, optional, tag = "2")]
-        pub end_time: ::core::option::Option<::prost::alloc::string::String>,
-    }"#;
-
-                    fixed = format!("{}{}{}", before, time_range_filter_def, after);
-                }
-            }
-        }
-
-        // Also need to remove Copy trait from all structs that contain non-Copy fields
-        fixed = fixed.replace(
-            "#[derive(Clone, Copy, PartialEq, ::prost::Message)]",
-            "#[derive(Clone, PartialEq, ::prost::Message)]",
-        );
-        fixed = fixed.replace(
-            "#[derive(Clone, Copy, PartialEq, ::prost::Oneof)]",
-            "#[derive(Clone, PartialEq, ::prost::Oneof)]",
-        );
-    }
+    fixed = fixed.replace(
+        "super::super::super::r#type::LatLng",
+        "crate::providers::google::generated::LatLng",
+    );
 
     fixed
 }

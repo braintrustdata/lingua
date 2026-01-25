@@ -6,9 +6,9 @@ Google's GenerateContent API format and Lingua's universal message format.
 */
 
 use crate::error::ConvertError;
-use crate::providers::google::detect::{
-    GoogleBlob, GoogleContent, GoogleFunctionCall, GoogleFunctionResponse,
-    GoogleGenerateContentRequest, GooglePart,
+use crate::providers::google::generated::{
+    part, Blob as GoogleBlob, Content as GoogleContent, FunctionCall as GoogleFunctionCall,
+    FunctionResponse as GoogleFunctionResponse, GenerateContentRequest, Part as GooglePart,
 };
 use crate::serde_json::{self, Value};
 use crate::universal::convert::TryFromLLM;
@@ -17,37 +17,70 @@ use crate::universal::message::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
+use crate::util::media::parse_base64_data_url;
+use base64::engine::general_purpose::STANDARD;
+use base64::Engine;
+use pbjson_types::Struct;
 
 // ============================================================================
 // Google Content -> Universal Message
 // ============================================================================
 
+fn part_from_data(data: part::Data) -> GooglePart {
+    GooglePart {
+        thought: false,
+        thought_signature: Vec::new(),
+        part_metadata: None,
+        data: Some(data),
+        metadata: None,
+    }
+}
+
+fn json_to_struct(value: &Value) -> Result<Struct, ConvertError> {
+    match value {
+        Value::Object(_) => serde_json::from_value(value.clone()).map_err(|e| {
+            ConvertError::ContentConversionFailed {
+                reason: format!("Failed to convert JSON object to Struct: {e}"),
+            }
+        }),
+        Value::Null => Ok(Struct {
+            fields: Default::default(),
+        }),
+        _ => Err(ConvertError::ContentConversionFailed {
+            reason: "Google function args/response must be a JSON object".to_string(),
+        }),
+    }
+}
+
+fn struct_to_json(value: &Struct) -> Value {
+    serde_json::to_value(value).unwrap_or(Value::Null)
+}
+
 impl TryFromLLM<GoogleContent> for Message {
     type Error = ConvertError;
 
     fn try_from(content: GoogleContent) -> Result<Self, Self::Error> {
-        let role = content.role.as_deref().unwrap_or("user");
+        let role = if content.role.is_empty() {
+            "user"
+        } else {
+            content.role.as_str()
+        };
 
         // Collect text parts
-        let text_parts: Vec<String> = content
-            .parts
-            .iter()
-            .filter_map(|part| part.text.clone())
-            .collect();
-        let text = text_parts.join("");
+        let mut text = String::new();
+        let mut function_calls = Vec::new();
+        let mut function_responses = Vec::new();
 
-        // Check for function calls/responses
-        let function_calls: Vec<_> = content
-            .parts
-            .iter()
-            .filter_map(|part| part.function_call.as_ref())
-            .collect();
-
-        let function_responses: Vec<_> = content
-            .parts
-            .iter()
-            .filter_map(|part| part.function_response.as_ref())
-            .collect();
+        for part in &content.parts {
+            if let Some(data) = &part.data {
+                match data {
+                    part::Data::Text(t) => text.push_str(t),
+                    part::Data::FunctionCall(fc) => function_calls.push(fc.clone()),
+                    part::Data::FunctionResponse(fr) => function_responses.push(fr.clone()),
+                    _ => {}
+                }
+            }
+        }
 
         if !function_calls.is_empty() {
             // Model message with function calls
@@ -61,11 +94,16 @@ impl TryFromLLM<GoogleContent> for Message {
             }
 
             for fc in function_calls {
+                let args_value = fc.args.as_ref().map(struct_to_json).unwrap_or(Value::Null);
                 parts.push(AssistantContentPart::ToolCall {
-                    tool_call_id: fc.name.clone(), // Google uses name as ID
+                    tool_call_id: if fc.id.is_empty() {
+                        fc.name.clone()
+                    } else {
+                        fc.id.clone()
+                    },
                     tool_name: fc.name.clone(),
                     arguments: ToolCallArguments::from(
-                        serde_json::to_string(&fc.args).unwrap_or_default(),
+                        serde_json::to_string(&args_value).unwrap_or_default(),
                     ),
                     provider_options: None,
                     provider_executed: None,
@@ -81,10 +119,19 @@ impl TryFromLLM<GoogleContent> for Message {
             let tool_parts: Vec<ToolContentPart> = function_responses
                 .iter()
                 .map(|fr| {
+                    let output = fr
+                        .response
+                        .as_ref()
+                        .map(struct_to_json)
+                        .unwrap_or(Value::Null);
                     ToolContentPart::ToolResult(ToolResultContentPart {
-                        tool_call_id: fr.name.clone(),
+                        tool_call_id: if fr.id.is_empty() {
+                            fr.name.clone()
+                        } else {
+                            fr.id.clone()
+                        },
                         tool_name: fr.name.clone(),
-                        output: fr.response.clone(),
+                        output,
                         provider_options: None,
                     })
                 })
@@ -144,90 +191,88 @@ impl TryFromLLM<Message> for GoogleContent {
                 };
                 (
                     "user".to_string(),
-                    vec![GooglePart {
-                        text: Some(text),
-                        inline_data: None,
-                        function_call: None,
-                        function_response: None,
-                    }],
+                    vec![part_from_data(part::Data::Text(text))],
                 )
             }
             Message::User { content } => {
                 let parts = match content {
-                    UserContent::String(s) => vec![GooglePart {
-                        text: Some(s),
-                        inline_data: None,
-                        function_call: None,
-                        function_response: None,
-                    }],
-                    UserContent::Array(parts) => parts
-                        .into_iter()
-                        .filter_map(|p| match p {
-                            UserContentPart::Text(t) => Some(GooglePart {
-                                text: Some(t.text),
-                                inline_data: None,
-                                function_call: None,
-                                function_response: None,
-                            }),
-                            UserContentPart::Image {
-                                image, media_type, ..
-                            } => {
-                                if let Value::String(data) = image {
-                                    Some(GooglePart {
-                                        text: None,
-                                        inline_data: Some(GoogleBlob {
-                                            mime_type: media_type
-                                                .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
-                                            data,
-                                        }),
-                                        function_call: None,
-                                        function_response: None,
-                                    })
-                                } else {
-                                    None
+                    UserContent::String(s) => vec![part_from_data(part::Data::Text(s))],
+                    UserContent::Array(parts) => {
+                        let mut converted = Vec::new();
+                        for part in parts {
+                            match part {
+                                UserContentPart::Text(t) => {
+                                    converted.push(part_from_data(part::Data::Text(t.text)));
                                 }
+                                UserContentPart::Image {
+                                    image: Value::String(data),
+                                    media_type,
+                                    ..
+                                } => {
+                                    let mut inferred_media_type = None;
+                                    let base64_data =
+                                        if let Some(block) = parse_base64_data_url(&data) {
+                                            inferred_media_type = Some(block.media_type);
+                                            block.data
+                                        } else {
+                                            data
+                                        };
+
+                                    let mime_type = media_type
+                                        .or(inferred_media_type)
+                                        .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
+                                    let bytes =
+                                        STANDARD.decode(base64_data.as_bytes()).map_err(|e| {
+                                            ConvertError::ContentConversionFailed {
+                                                reason: format!("Invalid base64 inline image: {e}"),
+                                            }
+                                        })?;
+
+                                    converted.push(part_from_data(part::Data::InlineData(
+                                        GoogleBlob {
+                                            mime_type,
+                                            data: bytes,
+                                        },
+                                    )));
+                                }
+                                _ => {}
                             }
-                            _ => None,
-                        })
-                        .collect(),
+                        }
+                        converted
+                    }
                 };
                 ("user".to_string(), parts)
             }
             Message::Assistant { content, .. } => {
                 let parts = match content {
-                    AssistantContent::String(s) => vec![GooglePart {
-                        text: Some(s),
-                        inline_data: None,
-                        function_call: None,
-                        function_response: None,
-                    }],
+                    AssistantContent::String(s) => vec![part_from_data(part::Data::Text(s))],
                     AssistantContent::Array(parts) => parts
                         .into_iter()
                         .filter_map(|p| match p {
-                            AssistantContentPart::Text(t) => Some(GooglePart {
-                                text: Some(t.text),
-                                inline_data: None,
-                                function_call: None,
-                                function_response: None,
-                            }),
+                            AssistantContentPart::Text(t) => {
+                                Some(part_from_data(part::Data::Text(t.text)))
+                            }
                             AssistantContentPart::ToolCall {
                                 tool_name,
                                 arguments,
                                 ..
                             } => {
-                                let args: Option<Value> = match arguments {
-                                    ToolCallArguments::Valid(map) => serde_json::to_value(map).ok(),
+                                let value = match arguments {
+                                    ToolCallArguments::Valid(map) => Some(Value::Object(map)),
                                     ToolCallArguments::Invalid(s) => serde_json::from_str(&s).ok(),
                                 };
-                                Some(GooglePart {
-                                    text: None,
-                                    inline_data: None,
-                                    function_call: Some(GoogleFunctionCall {
+                                let args = value.and_then(|v| match v {
+                                    Value::Object(_) => json_to_struct(&v).ok(),
+                                    _ => None,
+                                });
+
+                                Some(part_from_data(part::Data::FunctionCall(
+                                    GoogleFunctionCall {
+                                        id: String::new(),
                                         name: tool_name,
                                         args,
-                                    }),
-                                    function_response: None,
-                                })
+                                    },
+                                )))
                             }
                             _ => None,
                         })
@@ -240,25 +285,31 @@ impl TryFromLLM<Message> for GoogleContent {
                     .into_iter()
                     .map(|part| {
                         let ToolContentPart::ToolResult(result) = part;
-                        GooglePart {
-                            text: None,
-                            inline_data: None,
-                            function_call: None,
-                            function_response: Some(GoogleFunctionResponse {
-                                name: result.tool_name,
-                                response: result.output,
-                            }),
-                        }
+                        let response = match &result.output {
+                            Value::Null => None,
+                            Value::Object(_) => json_to_struct(&result.output).ok(),
+                            other => {
+                                let mut wrapped = serde_json::Map::new();
+                                wrapped.insert("output".to_string(), other.clone());
+                                json_to_struct(&Value::Object(wrapped)).ok()
+                            }
+                        };
+
+                        part_from_data(part::Data::FunctionResponse(GoogleFunctionResponse {
+                            id: result.tool_call_id,
+                            name: result.tool_name,
+                            response,
+                            parts: Vec::new(),
+                            will_continue: false,
+                            scheduling: None,
+                        }))
                     })
                     .collect();
                 ("user".to_string(), parts)
             }
         };
 
-        Ok(GoogleContent {
-            role: Some(role),
-            parts,
-        })
+        Ok(GoogleContent { role, parts })
     }
 }
 
@@ -267,9 +318,7 @@ impl TryFromLLM<Message> for GoogleContent {
 // ============================================================================
 
 /// Convert Google GenerateContentRequest to universal messages.
-pub fn google_to_universal(
-    request: &GoogleGenerateContentRequest,
-) -> Result<Vec<Message>, ConvertError> {
+pub fn google_to_universal(request: &GenerateContentRequest) -> Result<Vec<Message>, ConvertError> {
     <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(request.contents.clone())
 }
 
@@ -300,13 +349,8 @@ mod tests {
     #[test]
     fn test_google_content_to_message_user() {
         let content = GoogleContent {
-            role: Some("user".to_string()),
-            parts: vec![GooglePart {
-                text: Some("Hello".to_string()),
-                inline_data: None,
-                function_call: None,
-                function_response: None,
-            }],
+            role: "user".to_string(),
+            parts: vec![part_from_data(part::Data::Text("Hello".to_string()))],
         };
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
@@ -322,13 +366,8 @@ mod tests {
     #[test]
     fn test_google_content_to_message_model() {
         let content = GoogleContent {
-            role: Some("model".to_string()),
-            parts: vec![GooglePart {
-                text: Some("Hi there!".to_string()),
-                inline_data: None,
-                function_call: None,
-                function_response: None,
-            }],
+            role: "model".to_string(),
+            parts: vec![part_from_data(part::Data::Text("Hi there!".to_string()))],
         };
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
@@ -350,16 +389,14 @@ mod tests {
     #[test]
     fn test_google_content_to_message_function_call() {
         let content = GoogleContent {
-            role: Some("model".to_string()),
-            parts: vec![GooglePart {
-                text: None,
-                inline_data: None,
-                function_call: Some(GoogleFunctionCall {
+            role: "model".to_string(),
+            parts: vec![part_from_data(part::Data::FunctionCall(
+                GoogleFunctionCall {
+                    id: String::new(),
                     name: "get_weather".to_string(),
-                    args: Some(json!({"location": "SF"})),
-                }),
-                function_response: None,
-            }],
+                    args: Some(json_to_struct(&json!({"location": "SF"})).unwrap()),
+                },
+            ))],
         };
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
@@ -392,9 +429,12 @@ mod tests {
         };
 
         let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
-        assert_eq!(content.role.as_deref(), Some("user"));
+        assert_eq!(content.role, "user");
         assert_eq!(content.parts.len(), 1);
-        assert_eq!(content.parts[0].text.as_deref(), Some("Hello"));
+        match &content.parts[0].data {
+            Some(part::Data::Text(t)) => assert_eq!(t, "Hello"),
+            _ => panic!("Expected text part"),
+        }
     }
 
     #[test]
@@ -405,9 +445,12 @@ mod tests {
         };
 
         let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
-        assert_eq!(content.role.as_deref(), Some("model"));
+        assert_eq!(content.role, "model");
         assert_eq!(content.parts.len(), 1);
-        assert_eq!(content.parts[0].text.as_deref(), Some("Hi there!"));
+        match &content.parts[0].data {
+            Some(part::Data::Text(t)) => assert_eq!(t, "Hi there!"),
+            _ => panic!("Expected text part"),
+        }
     }
 
     #[test]
@@ -424,29 +467,28 @@ mod tests {
         };
 
         let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
-        assert_eq!(content.role.as_deref(), Some("model"));
+        assert_eq!(content.role, "model");
         assert_eq!(content.parts.len(), 1);
-        assert!(content.parts[0].function_call.is_some());
-        let fc = content.parts[0].function_call.as_ref().unwrap();
-        assert_eq!(fc.name, "get_weather");
+        match &content.parts[0].data {
+            Some(part::Data::FunctionCall(fc)) => assert_eq!(fc.name, "get_weather"),
+            _ => panic!("Expected function call part"),
+        }
     }
 
     #[test]
     fn test_google_to_universal_simple() {
-        let request = GoogleGenerateContentRequest {
-            contents: vec![GoogleContent {
-                role: Some("user".to_string()),
-                parts: vec![GooglePart {
-                    text: Some("Hello".to_string()),
-                    inline_data: None,
-                    function_call: None,
-                    function_response: None,
-                }],
-            }],
-            generation_config: None,
+        let request = GenerateContentRequest {
+            model: String::new(),
             system_instruction: None,
-            safety_settings: None,
-            tools: None,
+            contents: vec![GoogleContent {
+                role: "user".to_string(),
+                parts: vec![part_from_data(part::Data::Text("Hello".to_string()))],
+            }],
+            tools: Vec::new(),
+            tool_config: None,
+            safety_settings: Vec::new(),
+            generation_config: None,
+            cached_content: None,
         };
 
         let messages = google_to_universal(&request).unwrap();

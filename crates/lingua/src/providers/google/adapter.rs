@@ -11,8 +11,9 @@ Google's API has some unique characteristics:
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::{collect_extras, ProviderAdapter};
 use crate::processing::transform::TransformError;
-use crate::providers::google::detect::{
-    try_parse_google, GoogleContent, GoogleGenerateContentRequest, GoogleGenerationConfig,
+use crate::providers::google::detect::try_parse_google;
+use crate::providers::google::generated::{
+    Content as GoogleContent, GenerateContentRequest, GenerationConfig,
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -62,7 +63,7 @@ impl ProviderAdapter for GoogleAdapter {
             .and_then(Value::as_str)
             .map(String::from);
 
-        let request: GoogleGenerateContentRequest = serde_json::from_value(payload)
+        let request: GenerateContentRequest = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let messages = <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(request.contents)
@@ -72,14 +73,15 @@ impl ProviderAdapter for GoogleAdapter {
         let (temperature, top_p, top_k, max_tokens, stop) =
             if let Some(config) = &request.generation_config {
                 (
-                    config.temperature,
-                    config.top_p,
+                    config.temperature.map(|t| t as f64),
+                    config.top_p.map(|p| p as f64),
                     config.top_k.map(|k| k as i64),
                     config.max_output_tokens.map(|t| t as i64),
-                    config
-                        .stop_sequences
-                        .as_ref()
-                        .and_then(|s| serde_json::to_value(s).ok()),
+                    if config.stop_sequences.is_empty() {
+                        None
+                    } else {
+                        serde_json::to_value(&config.stop_sequences).ok()
+                    },
                 )
             } else {
                 (None, None, None, None, None)
@@ -91,7 +93,11 @@ impl ProviderAdapter for GoogleAdapter {
             top_k,
             max_tokens,
             stop,
-            tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
+            tools: if request.tools.is_empty() {
+                None
+            } else {
+                serde_json::to_value(&request.tools).ok()
+            },
             tool_choice: None, // Google uses different mechanism
             response_format: None,
             seed: None, // Google doesn't support seed
@@ -164,38 +170,37 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Build generationConfig if any params are set
-        let has_params = req.params.temperature.is_some()
-            || req.params.top_p.is_some()
-            || req.params.top_k.is_some()
-            || req.params.max_tokens.is_some()
-            || req.params.stop.is_some();
+        let stop_sequences = req
+            .params
+            .stop
+            .as_ref()
+            .map(|stop| match stop {
+                Value::Array(arr) => arr
+                    .iter()
+                    .filter_map(|s| s.as_str().map(|v| v.to_string()))
+                    .collect::<Vec<_>>(),
+                Value::String(s) => vec![s.clone()],
+                _ => Vec::new(),
+            })
+            .unwrap_or_default();
 
-        if has_params {
-            let config = GoogleGenerationConfig {
-                temperature: req.params.temperature,
-                top_p: req.params.top_p,
-                top_k: req.params.top_k.map(|k| k as i32),
-                max_output_tokens: req.params.max_tokens.map(|t| t as i32),
-                stop_sequences: req.params.stop.as_ref().and_then(|v| {
-                    if let Value::Array(arr) = v {
-                        Some(
-                            arr.iter()
-                                .filter_map(|s| s.as_str().map(String::from))
-                                .collect(),
-                        )
-                    } else if let Value::String(s) = v {
-                        Some(vec![s.clone()])
-                    } else {
-                        None
-                    }
-                }),
-            };
+        let config = GenerationConfig {
+            temperature: req.params.temperature.map(|t| t as f32),
+            top_p: req.params.top_p.map(|p| p as f32),
+            top_k: req.params.top_k.map(|k| k as i32),
+            max_output_tokens: req.params.max_tokens.map(|t| t as i32),
+            stop_sequences,
+            ..GenerationConfig::default()
+        };
 
-            obj.insert(
-                "generationConfig".into(),
-                serde_json::to_value(config)
-                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-            );
+        let config_value = serde_json::to_value(config)
+            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+        if !config_value
+            .as_object()
+            .map(|map| map.is_empty())
+            .unwrap_or(true)
+        {
+            obj.insert("generationConfig".into(), config_value);
         }
 
         // Add tools if present
@@ -518,7 +523,8 @@ mod tests {
         });
 
         let universal = adapter.request_to_universal(payload).unwrap();
-        assert_eq!(universal.params.temperature, Some(0.7));
+        let temperature = universal.params.temperature.unwrap();
+        assert_eq!(temperature as f32, 0.7f32);
         assert_eq!(universal.params.max_tokens, Some(1024));
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
