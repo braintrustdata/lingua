@@ -18,6 +18,7 @@ pub enum Provider {
     Responses,
     ChatCompletions,
     Anthropic,
+    Google,
 }
 
 impl Provider {
@@ -26,6 +27,7 @@ impl Provider {
             Provider::Responses => "responses",
             Provider::ChatCompletions => "chat-completions",
             Provider::Anthropic => "anthropic",
+            Provider::Google => "google",
         }
     }
 }
@@ -426,6 +428,7 @@ mod tests {
             "chat-completions"
         );
         assert_eq!(Provider::Anthropic.directory_name(), "anthropic");
+        assert_eq!(Provider::Google.directory_name(), "google");
     }
 
     #[test]
@@ -494,6 +497,7 @@ mod tests {
             Provider::Responses,
             Provider::ChatCompletions,
             Provider::Anthropic,
+            Provider::Google,
         ];
 
         for provider in providers {
