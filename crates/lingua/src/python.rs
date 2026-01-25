@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 // Import our types and conversion traits
 use crate::providers::anthropic::generated as anthropic;
+use crate::providers::google::generated as google;
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::universal::{convert::TryFromLLM, Message};
@@ -107,6 +108,18 @@ fn anthropic_messages_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject>
 #[pyfunction]
 fn lingua_to_anthropic_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
     convert_from_lingua::<Vec<Message>, Vec<anthropic::InputMessage>>(py, value)
+}
+
+/// Convert array of Google Content items to Lingua Messages
+#[pyfunction]
+fn google_contents_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_to_lingua::<Vec<google::Content>, Vec<Message>>(py, value)
+}
+
+/// Convert array of Lingua Messages to Google Content items
+#[pyfunction]
+fn lingua_to_google_contents(py: Python, value: &PyAny) -> PyResult<PyObject> {
+    convert_from_lingua::<Vec<Message>, Vec<google::Content>>(py, value)
 }
 
 // ============================================================================
@@ -253,6 +266,8 @@ fn _lingua(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(lingua_to_responses_messages, m)?)?;
     m.add_function(wrap_pyfunction!(anthropic_messages_to_lingua, m)?)?;
     m.add_function(wrap_pyfunction!(lingua_to_anthropic_messages, m)?)?;
+    m.add_function(wrap_pyfunction!(google_contents_to_lingua, m)?)?;
+    m.add_function(wrap_pyfunction!(lingua_to_google_contents, m)?)?;
 
     // Processing functions
     m.add_function(wrap_pyfunction!(deduplicate_messages, m)?)?;

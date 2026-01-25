@@ -18,6 +18,10 @@ export {
   anthropicMessagesToLingua,
   linguaToAnthropicMessages,
 
+  // Google conversions
+  googleContentsToLingua,
+  linguaToGoogleContents,
+
   // Processing functions
   deduplicateMessages,
   importMessagesFromSpans,

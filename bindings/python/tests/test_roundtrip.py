@@ -20,6 +20,8 @@ from lingua import (
     anthropic_messages_to_lingua,
     lingua_to_chat_completions_messages,
     lingua_to_anthropic_messages,
+    google_contents_to_lingua,
+    lingua_to_google_contents,
 )
 
 
@@ -58,7 +60,7 @@ def load_test_snapshots(test_case_name: str) -> list[Snapshot]:
     if not snapshots_dir.exists():
         return snapshots
 
-    providers = ["chat-completions", "responses", "anthropic"]
+    providers = ["chat-completions", "responses", "anthropic", "google"]
     turns = ["first_turn", "followup_turn"]
 
     for provider in providers:
@@ -190,6 +192,29 @@ def perform_anthropic_roundtrip(anthropic_message: dict) -> dict[str, Any]:
     }
 
 
+def perform_google_roundtrip(google_content: dict) -> dict[str, Any]:
+    """
+    Perform roundtrip conversion: Google Content -> Lingua -> Google Content
+
+    Args:
+        google_content: Original Google Content item
+
+    Returns:
+        Dict with original, lingua, and roundtripped data
+
+    Raises:
+        ConversionError: If any conversion step fails
+    """
+    lingua_msg = google_contents_to_lingua([google_content])[0]
+    roundtripped = lingua_to_google_contents([lingua_msg])[0]
+
+    return {
+        "original": google_content,
+        "lingua": lingua_msg,
+        "roundtripped": roundtripped,
+    }
+
+
 class TestRoundtrip:
     """Test roundtrip conversions using real snapshots"""
 
@@ -301,6 +326,50 @@ class TestRoundtrip:
                         # The normalized objects should be equal
                         assert normalized_roundtripped == normalized_original, (
                             f"Roundtrip mismatch in {test_name} message {i}:\n"
+                            f"Original: {json.dumps(normalized_original, indent=2)}\n"
+                            f"Roundtripped: {json.dumps(normalized_roundtripped, indent=2)}"
+                        )
+
+                    except ConversionError as e:
+                        # Skip unsupported message formats for now
+                        print(f"Skipping unsupported format in {test_name}: {e}")
+
+    def test_google_roundtrips(self, test_cases):
+        """Test Google Content roundtrip conversions"""
+        if not test_cases:
+            pytest.skip("No test cases available")
+
+        for test_case in test_cases:
+            snapshots = load_test_snapshots(test_case)
+
+            for snapshot in snapshots:
+                if snapshot.provider != "google" or not snapshot.request:
+                    continue
+
+                contents = snapshot.request.get("contents", [])
+                if not isinstance(contents, list) or not contents:
+                    continue
+
+                test_name = f"{test_case}/{snapshot.provider}/{snapshot.turn}"
+
+                for i, original_content in enumerate(contents):
+                    try:
+                        # Perform the roundtrip
+                        result = perform_google_roundtrip(original_content)
+
+                        # Verify Lingua conversion worked
+                        assert result["lingua"] is not None
+                        assert "role" in result["lingua"]
+
+                        # Normalize both objects
+                        normalized_original = normalize_for_comparison(original_content)
+                        normalized_roundtripped = normalize_for_comparison(
+                            result["roundtripped"]
+                        )
+
+                        # The normalized objects should be equal
+                        assert normalized_roundtripped == normalized_original, (
+                            f"Roundtrip mismatch in {test_name} content {i}:\n"
                             f"Original: {json.dumps(normalized_original, indent=2)}\n"
                             f"Roundtripped: {json.dumps(normalized_roundtripped, indent=2)}"
                         )

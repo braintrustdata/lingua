@@ -21,6 +21,8 @@ from lingua._lingua import (
     lingua_to_responses_messages as _lingua_to_responses_messages,
     anthropic_messages_to_lingua as _anthropic_messages_to_lingua,
     lingua_to_anthropic_messages as _lingua_to_anthropic_messages,
+    google_contents_to_lingua as _google_contents_to_lingua,
+    lingua_to_google_contents as _lingua_to_google_contents,
     validate_chat_completions_request as _validate_chat_completions_request,
     validate_chat_completions_response as _validate_chat_completions_response,
     validate_responses_request as _validate_responses_request,
@@ -180,6 +182,52 @@ def lingua_to_anthropic_messages(messages: list) -> list:
     except Exception as e:
         raise ConversionError(
             f"Failed to convert Lingua to Anthropic messages: {e}"
+        ) from e
+
+
+# ============================================================================
+# Google conversions
+# ============================================================================
+
+def google_contents_to_lingua(contents: list) -> list:
+    """
+    Convert array of Google Content items to Lingua Messages.
+
+    Args:
+        contents: List of Google Content items
+
+    Returns:
+        List of Lingua Message objects
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _google_contents_to_lingua(contents)
+    except Exception as e:
+        raise ConversionError(
+            f"Failed to convert Google contents to Lingua: {e}"
+        ) from e
+
+
+def lingua_to_google_contents(messages: list) -> list:
+    """
+    Convert array of Lingua Messages to Google Content items.
+
+    Args:
+        messages: List of Lingua Message objects
+
+    Returns:
+        List of Google Content items
+
+    Raises:
+        ConversionError: If conversion fails
+    """
+    try:
+        return _lingua_to_google_contents(messages)
+    except Exception as e:
+        raise ConversionError(
+            f"Failed to convert Lingua to Google contents: {e}"
         ) from e
 
 
@@ -421,6 +469,9 @@ __all__ = [
     # Anthropic conversions
     "anthropic_messages_to_lingua",
     "lingua_to_anthropic_messages",
+    # Google conversions
+    "google_contents_to_lingua",
+    "lingua_to_google_contents",
     # Processing functions
     "deduplicate_messages",
     "import_messages_from_spans",

@@ -19,11 +19,13 @@ import {
   anthropicMessagesToLingua,
   linguaToChatCompletionsMessages,
   linguaToAnthropicMessages,
+  googleContentsToLingua,
+  linguaToGoogleContents,
 } from "../src";
 
 interface TestSnapshot {
   name: string;
-  provider: "chat-completions" | "responses" | "anthropic";
+  provider: "chat-completions" | "responses" | "anthropic" | "google";
   turn: "first_turn" | "followup_turn";
   request?: unknown;
   response?: unknown;
@@ -46,6 +48,7 @@ function loadTestSnapshots(testCaseName: string): TestSnapshot[] {
     "chat-completions",
     "responses",
     "anthropic",
+    "google",
   ] as const;
   const turns = ["first_turn", "followup_turn"] as const;
 
@@ -225,6 +228,54 @@ describe("TypeScript Roundtrip Tests", () => {
                   // Then normalize both objects to remove null/undefined/empty arrays
                   // This matches how Rust's serde skips None values
                   const normalizedOriginal = normalizeForComparison(originalMessage);
+                  const normalizedRoundtripped = normalizeForComparison(result.roundtripped);
+
+                  // The normalized objects should be equal
+                  expect(normalizedRoundtripped).toEqual(normalizedOriginal);
+                } catch (error) {
+                  if (error instanceof ConversionError) {
+                    // Skip unsupported message formats for now
+                    console.log(
+                      `Skipping unsupported format in ${testName}:`,
+                      error.message,
+                    );
+                  } else {
+                    throw error;
+                  }
+                }
+              }
+              }
+            }
+          });
+        } else if (snapshot.provider === "google" && snapshot.request) {
+          test(`${testName}: full roundtrip conversion`, () => {
+            // Runtime type check: ensure request has contents array
+            if (
+              typeof snapshot.request === "object" &&
+              snapshot.request !== null &&
+              "contents" in snapshot.request
+            ) {
+              const contents = (snapshot.request as { contents: unknown }).contents;
+              if (Array.isArray(contents) && contents.length > 0) {
+              // Test each content item in the request
+              for (const originalContent of contents) {
+                try {
+                  // Perform the roundtrip: Google -> Lingua -> Google
+                  const result = testGoogleRoundtrip(originalContent);
+
+                  // Verify the roundtrip preserved the data
+                  expect(result.lingua).toBeDefined();
+                  expect(result.lingua.role).toBeDefined();
+
+                  // First check for type consistency (e.g., Map vs Object)
+                  const typeError = checkTypeConsistency(originalContent, result.roundtripped);
+                  if (typeError) {
+                    throw new Error(`Type consistency check failed: ${typeError}`);
+                  }
+
+                  // Then normalize both objects to remove null/undefined/empty arrays
+                  // This matches how Rust's serde skips None values
+                  const normalizedOriginal = normalizeForComparison(originalContent);
                   const normalizedRoundtripped = normalizeForComparison(result.roundtripped);
 
                   // The normalized objects should be equal
@@ -432,6 +483,25 @@ function testAnthropicRoundtrip(anthropicMessage: unknown): {
 
   return {
     original: anthropicMessage,
+    lingua,
+    roundtripped
+  };
+}
+
+/**
+ * Test roundtrip conversion: Provider -> Lingua -> Provider
+ * @throws {ConversionError} If any conversion step fails
+ */
+function testGoogleRoundtrip(googleContent: unknown): {
+  original: unknown;
+  lingua: LinguaMessage;
+  roundtripped: unknown;
+} {
+  const lingua = googleContentsToLingua([googleContent])[0];
+  const roundtripped = linguaToGoogleContents([lingua])[0];
+
+  return {
+    original: googleContent,
     lingua,
     roundtripped
   };
