@@ -50,6 +50,10 @@ pub struct UniversalTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<Value>,
 
+    /// Whether to enforce strict schema validation (OpenAI Responses API)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+
     /// Tool type classification
     #[serde(flatten)]
     pub tool_type: UniversalToolType,
@@ -87,11 +91,13 @@ impl UniversalTool {
         name: impl Into<String>,
         description: Option<String>,
         parameters: Option<Value>,
+        strict: Option<bool>,
     ) -> Self {
         Self {
             name: name.into(),
             description,
             parameters,
+            strict,
             tool_type: UniversalToolType::Function,
         }
     }
@@ -107,6 +113,7 @@ impl UniversalTool {
             name: name.into(),
             description: None,
             parameters: None,
+            strict: None,
             tool_type: UniversalToolType::Builtin {
                 provider: provider.into(),
                 builtin_type: builtin_type.into(),
@@ -165,15 +172,16 @@ impl UniversalTool {
             }
         }
 
-        // Custom tool format: {"name", "description", "input_schema"}
+        // Custom tool format: {"name", "description", "input_schema", "strict"}
         let name = value.get("name").and_then(Value::as_str)?;
         let description = value
             .get("description")
             .and_then(Value::as_str)
             .map(String::from);
         let parameters = value.get("input_schema").cloned();
+        let strict = value.get("strict").and_then(Value::as_bool);
 
-        Some(Self::function(name, description, parameters))
+        Some(Self::function(name, description, parameters, strict))
     }
 
     /// Parse a tool from OpenAI Chat Completions format (JSON Value).
@@ -192,8 +200,9 @@ impl UniversalTool {
             .and_then(Value::as_str)
             .map(String::from);
         let parameters = func.get("parameters").cloned();
+        let strict = func.get("strict").and_then(Value::as_bool);
 
-        Some(Self::function(name, description, parameters))
+        Some(Self::function(name, description, parameters, strict))
     }
 
     /// Parse a tool from OpenAI Responses API format (JSON Value).
@@ -212,8 +221,9 @@ impl UniversalTool {
                     .and_then(Value::as_str)
                     .map(String::from);
                 let parameters = value.get("parameters").cloned();
+                let strict = value.get("strict").and_then(Value::as_bool);
 
-                Some(Self::function(name, description, parameters))
+                Some(Self::function(name, description, parameters, strict))
             }
             "code_interpreter"
             | "web_search_preview"
@@ -281,6 +291,10 @@ impl UniversalTool {
                     self.parameters.clone().unwrap_or_else(|| json!({})),
                 );
 
+                if let Some(strict) = self.strict {
+                    obj.insert("strict".into(), Value::Bool(strict));
+                }
+
                 Ok(Value::Object(obj))
             }
             UniversalToolType::Builtin {
@@ -323,6 +337,10 @@ impl UniversalTool {
                     self.parameters.clone().unwrap_or_else(|| json!({})),
                 );
 
+                if let Some(strict) = self.strict {
+                    func.insert("strict".into(), Value::Bool(strict));
+                }
+
                 Ok(json!({
                     "type": "function",
                     "function": Value::Object(func)
@@ -357,8 +375,9 @@ impl UniversalTool {
                     self.parameters.clone().unwrap_or_else(|| json!({})),
                 );
 
-                // Responses API function tools have strict: false by default
-                obj.insert("strict".into(), Value::Bool(false));
+                if let Some(strict) = self.strict {
+                    obj.insert("strict".into(), Value::Bool(strict));
+                }
 
                 Ok(Value::Object(obj))
             }
@@ -507,6 +526,7 @@ mod tests {
             "get_weather",
             Some("Get the weather".to_string()),
             Some(json!({"type": "object"})),
+            None,
         );
 
         assert_eq!(tool.name, "get_weather");
@@ -514,6 +534,7 @@ mod tests {
         assert!(tool.is_function());
         assert!(!tool.is_builtin());
         assert!(tool.builtin_provider().is_none());
+        assert_eq!(tool.strict, None);
     }
 
     #[test]
@@ -620,6 +641,7 @@ mod tests {
             "get_weather",
             Some("Get weather".to_string()),
             Some(json!({"type": "object"})),
+            None,
         );
 
         let value = tool.to_anthropic_value().unwrap();
@@ -662,6 +684,7 @@ mod tests {
             "get_weather",
             Some("Get weather".to_string()),
             Some(json!({"type": "object"})),
+            None,
         );
 
         let value = tool.to_openai_chat_value().unwrap();
@@ -685,6 +708,7 @@ mod tests {
             "get_weather",
             Some("Get weather".to_string()),
             Some(json!({"type": "object"})),
+            None,
         );
 
         let value = tool.to_responses_value().unwrap();
@@ -692,7 +716,23 @@ mod tests {
         assert_eq!(value["type"], "function");
         assert_eq!(value["name"], "get_weather");
         assert_eq!(value["description"], "Get weather");
-        assert_eq!(value["strict"], false);
+        assert!(value.get("strict").is_none()); // strict only output when explicitly set
+    }
+
+    #[test]
+    fn test_universal_tool_to_responses_function_with_strict() {
+        let tool = UniversalTool::function(
+            "get_weather",
+            Some("Get weather".to_string()),
+            Some(json!({"type": "object"})),
+            Some(true),
+        );
+
+        let value = tool.to_responses_value().unwrap();
+
+        assert_eq!(value["type"], "function");
+        assert_eq!(value["name"], "get_weather");
+        assert_eq!(value["strict"], true);
     }
 
     #[test]
@@ -785,8 +825,8 @@ mod tests {
     #[test]
     fn test_batch_conversion_to_anthropic() {
         let tools = vec![
-            UniversalTool::function("tool1", Some("desc1".to_string()), None),
-            UniversalTool::function("tool2", Some("desc2".to_string()), None),
+            UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
+            UniversalTool::function("tool2", Some("desc2".to_string()), None, None),
         ];
 
         let result = tools_to_anthropic_value(&tools).unwrap();
@@ -800,7 +840,7 @@ mod tests {
     #[test]
     fn test_batch_conversion_to_anthropic_fails_on_wrong_provider() {
         let tools = vec![
-            UniversalTool::function("tool1", Some("desc1".to_string()), None),
+            UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
             UniversalTool::builtin(
                 "code_interpreter",
                 "openai_responses",
@@ -816,8 +856,8 @@ mod tests {
     #[test]
     fn test_batch_conversion_to_openai_chat() {
         let tools = vec![
-            UniversalTool::function("tool1", Some("desc1".to_string()), None),
-            UniversalTool::function("tool2", Some("desc2".to_string()), None),
+            UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
+            UniversalTool::function("tool2", Some("desc2".to_string()), None, None),
         ];
 
         let result = tools_to_openai_chat_value(&tools).unwrap();
@@ -830,7 +870,7 @@ mod tests {
     #[test]
     fn test_batch_conversion_to_openai_chat_fails_on_builtin() {
         let tools = vec![
-            UniversalTool::function("tool1", Some("desc1".to_string()), None),
+            UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
             UniversalTool::builtin("bash", "anthropic", "bash_20250124", Some(json!({}))),
         ];
 

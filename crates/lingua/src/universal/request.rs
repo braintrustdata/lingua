@@ -7,7 +7,7 @@ converted to/from any provider format.
 ## Design principles
 
 1. **Round-trip preservation**: Provider-specific fields are stored in
-   `provider_extras` keyed by `ProviderFormat`, and restored when converting
+   `params.extras` keyed by `ProviderFormat`, and restored when converting
    back to the same provider format.
 
 2. **Canonical naming**: Uses consistent field names (e.g., `max_tokens`, `top_p`)
@@ -19,6 +19,14 @@ converted to/from any provider format.
 4. **Provider isolation**: Provider-specific extras are scoped by `ProviderFormat`
    to prevent cross-provider contamination (e.g., OpenAI extras don't bleed into
    Anthropic requests).
+
+## Provider API references
+
+- **OpenAI Chat**: <https://platform.openai.com/docs/api-reference/chat>
+- **OpenAI Responses**: <https://platform.openai.com/docs/api-reference/responses>
+- **Anthropic**: <https://docs.anthropic.com/en/api/messages>
+- **Google**: <https://ai.google.dev/api/generate-content>
+- **Bedrock**: <https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html>
 */
 
 use std::collections::HashMap;
@@ -36,8 +44,6 @@ use crate::universal::tools::UniversalTool;
 /// Universal request envelope for LLM API calls.
 ///
 /// This type captures the common structure across all provider request formats.
-/// Provider-specific fields are stored in `provider_extras`, keyed by the source
-/// provider format to prevent cross-provider contamination.
 #[derive(Debug, Clone, Serialize)]
 pub struct UniversalRequest {
     /// Model identifier (may be None for providers that use endpoint-based model selection)
@@ -46,105 +52,126 @@ pub struct UniversalRequest {
     /// Conversation messages in universal format
     pub messages: Vec<Message>,
 
-    /// Common request parameters (canonical fields only)
+    /// Request parameters (canonical fields + provider-specific extras)
     pub params: UniversalParams,
-
-    /// Provider-specific fields, keyed by the source ProviderFormat.
-    ///
-    /// When transforming back to the same provider, these extras are merged back.
-    /// When transforming to a different provider, they are ignored (no cross-pollination).
-    ///
-    /// Example: OpenAI Chat extras stay in `provider_extras[ProviderFormat::OpenAI]`
-    /// and are only merged back when converting to OpenAI Chat, not to Anthropic.
-    #[serde(skip)]
-    pub provider_extras: HashMap<ProviderFormat, Map<String, Value>>,
 }
 
 /// Common request parameters across providers.
 ///
 /// Uses canonical names - adapters handle mapping to provider-specific names.
-/// This struct contains ONLY canonical fields - no extras or provider-specific baggage.
+/// Provider-specific fields without canonical mappings are stored in `extras`.
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct UniversalParams {
     // === Sampling parameters ===
-    /// Sampling temperature (0.0 to 2.0 typically)
+    /// Controls randomness: 0 = deterministic, 2 = maximum randomness.
+    ///
+    /// **Providers:** OpenAI, Anthropic, Google (`generationConfig.temperature`), Bedrock (`inferenceConfig.temperature`)
     pub temperature: Option<f64>,
 
-    /// Nucleus sampling probability
+    /// Nucleus sampling: only consider tokens with cumulative probability ≤ top_p.
+    ///
+    /// **Providers:** OpenAI, Anthropic, Google (`generationConfig.topP`), Bedrock (`inferenceConfig.topP`)
     pub top_p: Option<f64>,
 
-    /// Top-k sampling (not supported by all providers)
+    /// Only sample from the top K most likely tokens.
+    ///
+    /// **Providers:** Anthropic, Google (`generationConfig.topK`)
     pub top_k: Option<i64>,
 
-    /// Random seed for deterministic generation
+    /// Random seed for deterministic generation.
+    ///
+    /// **Providers:** OpenAI
     pub seed: Option<i64>,
 
-    /// Presence penalty (-2.0 to 2.0)
+    /// Penalize tokens based on whether they've appeared at all (-2.0 to 2.0).
+    ///
+    /// **Providers:** OpenAI
     pub presence_penalty: Option<f64>,
 
-    /// Frequency penalty (-2.0 to 2.0)
+    /// Penalize tokens based on how often they've appeared (-2.0 to 2.0).
+    ///
+    /// **Providers:** OpenAI
     pub frequency_penalty: Option<f64>,
 
     // === Output control ===
-    /// Maximum tokens to generate
+    /// Maximum tokens to generate in the response.
+    ///
+    /// **Providers:** OpenAI (`max_completion_tokens`), Anthropic, Google (`generationConfig.maxOutputTokens`), Bedrock (`inferenceConfig.maxTokens`)
     pub max_tokens: Option<i64>,
 
-    /// Stop sequences for generation termination.
+    /// Sequences that stop generation when encountered.
     ///
-    /// All providers accept arrays of strings. OpenAI also accepts a single string,
-    /// but we normalize to arrays for simplicity - OpenAI accepts both forms.
+    /// **Providers:** OpenAI, Anthropic (`stop_sequences`), Google (`generationConfig.stopSequences`), Bedrock (`inferenceConfig.stopSequences`)
     pub stop: Option<Vec<String>>,
 
-    /// Whether to return log probabilities (OpenAI-specific but canonical)
+    /// Return log probabilities of output tokens.
+    ///
+    /// **Providers:** OpenAI
     pub logprobs: Option<bool>,
 
-    /// Number of top logprobs to return (0-20)
+    /// Number of most likely tokens to return log probabilities for (0-20).
+    ///
+    /// **Providers:** OpenAI
     pub top_logprobs: Option<i64>,
 
     // === Tools and function calling ===
-    /// Tool definitions in universal format.
+    /// Tool/function definitions the model can call.
     ///
-    /// Tools are normalized to `UniversalTool` which handles the different formats:
-    /// - Anthropic: `{"name", "description", "input_schema"}` for custom, `{"type": "bash_20250124"}` for builtins
-    /// - OpenAI Chat: `{"type": "function", "function": {...}}`
-    /// - OpenAI Responses: `{"type": "function", "name", ...}` or `{"type": "code_interpreter"}`
+    /// **Providers:** OpenAI, Anthropic, Google (`tools[].functionDeclarations`), Bedrock (`toolConfig.tools[].toolSpec`)
     pub tools: Option<Vec<UniversalTool>>,
 
-    /// Tool selection strategy configuration.
+    /// How the model should choose which tool to call.
     ///
-    /// Uses canonical fields (`mode`, `tool_name`) for cross-provider conversion.
+    /// **Providers:** OpenAI, Anthropic
     pub tool_choice: Option<ToolChoiceConfig>,
 
-    /// Whether tools can be called in parallel
+    /// Allow multiple tool calls in a single response.
+    ///
+    /// **Providers:** OpenAI, Anthropic (`tool_choice.disable_parallel_tool_use`)
     pub parallel_tool_calls: Option<bool>,
 
     // === Response format ===
-    /// Response format configuration.
+    /// Constrain output format (text, JSON, or JSON schema).
     ///
-    /// Uses canonical fields (`format_type`, `json_schema`) for cross-provider conversion.
+    /// **Providers:** OpenAI, Anthropic (`output_format`)
     pub response_format: Option<ResponseFormatConfig>,
 
     // === Reasoning / Extended thinking ===
-    /// Reasoning configuration for extended thinking / chain-of-thought.
+    /// Enable extended thinking / chain-of-thought reasoning.
     ///
-    /// Uses canonical fields (`effort`, `budget_tokens`) for cross-provider conversion.
-    /// Skipped when disabled or empty to normalize `{enabled: false}` to `null`.
+    /// **Providers:** OpenAI (`reasoning_effort`), Anthropic (`thinking`), Google (`generationConfig.thinkingConfig`), Bedrock (`additionalModelRequestFields.thinking`)
     #[serde(skip_serializing_if = "reasoning_should_skip")]
     pub reasoning: Option<ReasoningConfig>,
 
     // === Metadata and identification ===
-    /// Request metadata (user tracking, experiment tags, etc.)
+    /// Key-value metadata attached to the request.
+    ///
+    /// **Providers:** OpenAI, Anthropic (only `user_id`)
     pub metadata: Option<Value>,
 
-    /// Whether to store completion for training/evals (OpenAI-specific but canonical)
+    /// Store the completion for later use in fine-tuning or evals.
+    ///
+    /// **Providers:** OpenAI
     pub store: Option<bool>,
 
-    /// Service tier preference
+    /// Request priority tier (e.g., "auto", "default").
+    ///
+    /// **Providers:** OpenAI, Anthropic
     pub service_tier: Option<String>,
 
     // === Streaming ===
-    /// Whether to stream the response
+    /// Stream the response as server-sent events.
+    ///
+    /// **Providers:** OpenAI, Anthropic
     pub stream: Option<bool>,
+
+    // === Provider-specific extras ===
+    /// Provider-specific parameters without canonical mappings.
+    ///
+    /// Keyed by source `ProviderFormat` - only restored when converting back to
+    /// the same provider (no cross-provider contamination).
+    #[serde(skip)]
+    pub extras: HashMap<ProviderFormat, Map<String, Value>>,
 }
 
 // =============================================================================

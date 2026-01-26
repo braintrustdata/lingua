@@ -1048,3 +1048,129 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
         Ok(content_blocks)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::universal::convert::TryFromLLM;
+
+    #[test]
+    fn test_file_to_anthropic_document_with_provider_options() {
+        // Create a File content part marked as a document (via provider_options)
+        let mut opts = serde_json::Map::new();
+        opts.insert(
+            "anthropic_type".into(),
+            serde_json::Value::String("document".to_string()),
+        );
+        opts.insert(
+            "title".into(),
+            serde_json::Value::String("Test Document".to_string()),
+        );
+
+        let file_part = UserContentPart::File {
+            data: serde_json::Value::String("base64encodeddata".to_string()),
+            filename: Some("test.pdf".to_string()),
+            media_type: "application/pdf".to_string(),
+            provider_options: Some(ProviderOptions { options: opts }),
+        };
+
+        // Create a user message with the file part
+        let message = Message::User {
+            content: UserContent::Array(vec![file_part]),
+        };
+
+        // Convert to Anthropic InputMessage
+        let result: Result<generated::InputMessage, _> =
+            <generated::InputMessage as TryFromLLM<Message>>::try_from(message);
+
+        assert!(result.is_ok(), "File conversion should succeed");
+        let input_msg = result.unwrap();
+
+        // Verify it's a user message with document block
+        assert!(matches!(input_msg.role, generated::MessageRole::User));
+        if let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content {
+            assert_eq!(blocks.len(), 1, "Should have exactly one content block");
+            let block = &blocks[0];
+            assert!(
+                matches!(
+                    block.input_content_block_type,
+                    generated::InputContentBlockType::Document
+                ),
+                "Should be a Document block"
+            );
+            assert_eq!(block.title, Some("Test Document".to_string()));
+        } else {
+            panic!("Expected InputContentBlockArray");
+        }
+    }
+
+    #[test]
+    fn test_regular_file_without_anthropic_marker_is_skipped() {
+        // Create a regular File content part (no anthropic_type marker)
+        let file_part = UserContentPart::File {
+            data: serde_json::Value::String("base64encodeddata".to_string()),
+            filename: Some("test.pdf".to_string()),
+            media_type: "application/pdf".to_string(),
+            provider_options: None, // No anthropic_type marker
+        };
+
+        let message = Message::User {
+            content: UserContent::Array(vec![file_part]),
+        };
+
+        let result: Result<generated::InputMessage, _> =
+            <generated::InputMessage as TryFromLLM<Message>>::try_from(message);
+
+        assert!(result.is_ok());
+        let input_msg = result.unwrap();
+
+        // Regular files without anthropic_type marker are currently skipped
+        if let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content {
+            // The file was skipped, so blocks should be empty
+            assert!(
+                blocks.is_empty(),
+                "Regular files without anthropic_type should be skipped (current behavior)"
+            );
+        }
+    }
+
+    #[test]
+    fn test_image_url_to_anthropic() {
+        let image_part = UserContentPart::Image {
+            image: serde_json::Value::String("https://example.com/image.jpg".to_string()),
+            media_type: Some("image/jpeg".to_string()),
+            provider_options: None,
+        };
+
+        let message = Message::User {
+            content: UserContent::Array(vec![image_part]),
+        };
+
+        let result: Result<generated::InputMessage, _> =
+            <generated::InputMessage as TryFromLLM<Message>>::try_from(message);
+
+        assert!(result.is_ok());
+        let input_msg = result.unwrap();
+
+        if let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content {
+            assert_eq!(blocks.len(), 1);
+            let block = &blocks[0];
+            assert!(matches!(
+                block.input_content_block_type,
+                generated::InputContentBlockType::Image
+            ));
+            // Verify URL source type is used
+            if let Some(generated::Source::SourceSource(source)) = &block.source {
+                assert!(matches!(source.source_type, generated::FluffyType::Url));
+                assert_eq!(
+                    source.url,
+                    Some("https://example.com/image.jpg".to_string())
+                );
+            } else {
+                panic!("Expected SourceSource");
+            }
+        } else {
+            panic!("Expected InputContentBlockArray");
+        }
+    }
+}

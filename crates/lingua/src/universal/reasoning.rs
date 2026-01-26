@@ -97,8 +97,20 @@ pub const ANTHROPIC_THINKING_TEMPERATURE: f64 = 1.0;
 /// - high: 75% of max_tokens
 ///
 /// Result is clamped to minimum of 1024 tokens (Anthropic requirement).
+///
+/// # Parameters
+/// - `effort`: The reasoning effort level
+/// - `max_tokens`: Maximum tokens (must be positive, uses DEFAULT_MAX_TOKENS if None/invalid)
+///
+/// # Validation
+/// - If `max_tokens` is None, zero, or negative, uses `DEFAULT_MAX_TOKENS` (4096)
 pub fn effort_to_budget(effort: ReasoningEffort, max_tokens: Option<i64>) -> i64 {
-    let max = max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
+    // Validate max_tokens - must be strictly positive
+    let max = match max_tokens {
+        Some(value) if value > 0 => value,
+        _ => DEFAULT_MAX_TOKENS, // Use default for None, zero, or negative
+    };
+
     let multiplier = match effort {
         ReasoningEffort::Low => EFFORT_LOW_MULTIPLIER,
         ReasoningEffort::Medium => EFFORT_MEDIUM_MULTIPLIER,
@@ -114,8 +126,26 @@ pub fn effort_to_budget(effort: ReasoningEffort, max_tokens: Option<i64>) -> i64
 /// - ratio < 0.35: low
 /// - 0.35 <= ratio < 0.65: medium
 /// - ratio >= 0.65: high
+///
+/// # Parameters
+/// - `budget`: Token budget (must be positive, returns default effort if <= 0)
+/// - `max_tokens`: Maximum tokens (must be positive, uses DEFAULT_MAX_TOKENS if None/invalid)
+///
+/// # Validation
+/// - If `max_tokens` is None, zero, or negative, uses `DEFAULT_MAX_TOKENS` (4096)
+/// - If `budget` is zero or negative, returns `DEFAULT_REASONING_EFFORT` (Medium)
 pub fn budget_to_effort(budget: i64, max_tokens: Option<i64>) -> ReasoningEffort {
-    let max = max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
+    // Validate max_tokens - must be strictly positive
+    let max = match max_tokens {
+        Some(value) if value > 0 => value,
+        _ => DEFAULT_MAX_TOKENS, // Use default for None, zero, or negative
+    };
+
+    // Validate budget - if invalid, return default effort
+    if budget <= 0 {
+        return DEFAULT_REASONING_EFFORT;
+    }
+
     let ratio = budget as f64 / max as f64;
 
     if ratio < EFFORT_LOW_THRESHOLD {
@@ -523,5 +553,85 @@ mod tests {
             .to_provider(ProviderFormat::Converse, Some(4096))
             .unwrap();
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_budget_to_effort_edge_cases() {
+        let test_cases = vec![
+            // (budget, max_tokens, expected_effort, description)
+            (
+                2048,
+                Some(0),
+                ReasoningEffort::Medium,
+                "zero max_tokens uses DEFAULT",
+            ),
+            (
+                1200,
+                Some(-100),
+                ReasoningEffort::Low,
+                "negative max_tokens uses DEFAULT (1200/4096=0.29<0.35)",
+            ),
+            (
+                0,
+                Some(4096),
+                DEFAULT_REASONING_EFFORT,
+                "zero budget returns default",
+            ),
+            (
+                -1000,
+                Some(4096),
+                DEFAULT_REASONING_EFFORT,
+                "negative budget returns default",
+            ),
+            (
+                -500,
+                Some(-200),
+                DEFAULT_REASONING_EFFORT,
+                "both negative returns default",
+            ),
+        ];
+
+        for (budget, max_tokens, expected, description) in test_cases {
+            assert_eq!(
+                budget_to_effort(budget, max_tokens),
+                expected,
+                "Failed: {}",
+                description
+            );
+        }
+    }
+
+    #[test]
+    fn test_effort_to_budget_edge_cases() {
+        let test_cases = vec![
+            // (effort, max_tokens, expected_budget, description)
+            (
+                ReasoningEffort::Medium,
+                Some(0),
+                2048,
+                "zero max_tokens uses DEFAULT (4096*0.5)",
+            ),
+            (
+                ReasoningEffort::High,
+                Some(-1000),
+                3072,
+                "negative max_tokens uses DEFAULT (4096*0.75)",
+            ),
+            (
+                ReasoningEffort::Low,
+                Some(-50),
+                1024,
+                "negative max_tokens clamped to minimum",
+            ),
+        ];
+
+        for (effort, max_tokens, expected, description) in test_cases {
+            assert_eq!(
+                effort_to_budget(effort, max_tokens),
+                expected,
+                "Failed: {}",
+                description
+            );
+        }
     }
 }

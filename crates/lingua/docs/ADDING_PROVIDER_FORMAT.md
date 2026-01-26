@@ -707,7 +707,10 @@ impl TryFromLLM<MyProviderMessage> for Message {
             "system" => Ok(Message::System {
                 content: UserContent::String(msg.content),
             }),
-            other => Err(ConvertError::InvalidRole { role: other.to_string() }),
+            other => Err(ConvertError::InvalidEnumValue {
+                type_name: "role",
+                value: other,
+             }),
         }
     }
 }

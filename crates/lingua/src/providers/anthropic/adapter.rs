@@ -15,7 +15,6 @@ use crate::processing::transform::TransformError;
 use crate::providers::anthropic::generated::{ContentBlock, InputMessage};
 use crate::providers::anthropic::params::AnthropicParams;
 use crate::providers::anthropic::try_parse_anthropic;
-use crate::reject_params;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent};
@@ -26,7 +25,6 @@ use crate::universal::{
     parse_stop_sequences, FinishReason, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
-use std::collections::HashMap;
 use std::convert::TryInto;
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
@@ -65,7 +63,7 @@ impl ProviderAdapter for AnthropicAdapter {
         let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let params = UniversalParams {
+        let mut params = UniversalParams {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
             top_k: typed_params.top_k,
@@ -106,12 +104,12 @@ impl ProviderAdapter for AnthropicAdapter {
             service_tier: typed_params.service_tier,
             logprobs: None,     // Anthropic doesn't support logprobs
             top_logprobs: None, // Anthropic doesn't support top_logprobs
+            extras: Default::default(),
         };
 
         // Use extras captured automatically via #[serde(flatten)]
-        let mut provider_extras = HashMap::new();
         if !typed_params.extras.is_empty() {
-            provider_extras.insert(
+            params.extras.insert(
                 ProviderFormat::Anthropic,
                 typed_params.extras.into_iter().collect(),
             );
@@ -121,7 +119,6 @@ impl ProviderAdapter for AnthropicAdapter {
             model: typed_params.model,
             messages,
             params,
-            provider_extras,
         })
     }
 
@@ -130,29 +127,6 @@ impl ProviderAdapter for AnthropicAdapter {
             target: ProviderFormat::Anthropic,
             reason: "missing model".to_string(),
         })?;
-
-        // Validate unsupported parameters
-        reject_params!(
-            req,
-            ProviderFormat::Anthropic,
-            logprobs,
-            top_logprobs,
-            presence_penalty,
-            frequency_penalty,
-            seed,
-            store
-        );
-        // Anthropic doesn't support multiple completions (n > 1)
-        if let Some(openai_extras) = req.provider_extras.get(&ProviderFormat::OpenAI) {
-            if let Some(n) = openai_extras.get("n").and_then(Value::as_i64) {
-                if n > 1 {
-                    return Err(TransformError::ValidationFailed {
-                        target: ProviderFormat::Anthropic,
-                        reason: "does not support n > 1 (multiple completions)".to_string(),
-                    });
-                }
-            }
-        }
 
         // Clone messages and extract system messages (Anthropic uses separate `system` param)
         let mut msgs = req.messages.clone();
@@ -261,7 +235,7 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Merge back provider-specific extras (only for Anthropic)
-        if let Some(extras) = req.provider_extras.get(&ProviderFormat::Anthropic) {
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::Anthropic) {
             for (k, v) in extras {
                 // Don't overwrite canonical fields we already handled
                 if !obj.contains_key(k) {
@@ -341,22 +315,25 @@ impl ProviderAdapter for AnthropicAdapter {
             .map(|r| r.to_provider_string(self.format()).to_string())
             .unwrap_or_else(|| "end_turn".to_string());
 
-        let mut obj = serde_json::json!({
-            "id": format!("msg_{}", PLACEHOLDER_ID),
-            "type": "message",
-            "role": "assistant",
-            "content": content_value,
-            "model": resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-            "stop_reason": stop_reason
-        });
+        let mut map = serde_json::Map::new();
+        map.insert(
+            "id".into(),
+            Value::String(format!("msg_{}", PLACEHOLDER_ID)),
+        );
+        map.insert("type".into(), Value::String("message".into()));
+        map.insert("role".into(), Value::String("assistant".into()));
+        map.insert("content".into(), content_value);
+        map.insert(
+            "model".into(),
+            Value::String(resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL).into()),
+        );
+        map.insert("stop_reason".into(), Value::String(stop_reason));
 
         if let Some(usage) = &resp.usage {
-            obj.as_object_mut()
-                .unwrap()
-                .insert("usage".into(), usage.to_provider_value(self.format()));
+            map.insert("usage".into(), usage.to_provider_value(self.format()));
         }
 
-        Ok(obj)
+        Ok(Value::Object(map))
     }
 
     // =========================================================================
@@ -680,7 +657,6 @@ mod tests {
             model: Some("claude-3-5-sonnet-20241022".to_string()),
             messages: vec![],
             params: UniversalParams::default(),
-            provider_extras: HashMap::new(),
         };
 
         assert!(req.params.max_tokens.is_none());
@@ -698,7 +674,6 @@ mod tests {
                 max_tokens: Some(8192),
                 ..Default::default()
             },
-            provider_extras: HashMap::new(),
         };
 
         adapter.apply_defaults(&mut req);
@@ -728,7 +703,6 @@ mod tests {
                 max_tokens: Some(4096),
                 ..Default::default()
             },
-            provider_extras: HashMap::new(),
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
@@ -764,7 +738,6 @@ mod tests {
                 max_tokens: Some(1024),
                 ..Default::default()
             },
-            provider_extras: HashMap::new(),
         };
 
         let result = adapter.request_from_universal(&req).unwrap();

@@ -286,75 +286,75 @@ impl UniversalUsage {
         match provider {
             // OpenAI, Mistral, and Unknown use OpenAI format
             ProviderFormat::OpenAI | ProviderFormat::Mistral | ProviderFormat::Unknown => {
-                let mut obj = serde_json::json!({
-                    "prompt_tokens": prompt,
-                    "completion_tokens": completion,
-                    "total_tokens": prompt + completion
-                });
-                let obj_map = obj.as_object_mut().unwrap();
+                let mut map = serde_json::Map::new();
+                map.insert("prompt_tokens".into(), serde_json::json!(prompt));
+                map.insert("completion_tokens".into(), serde_json::json!(completion));
+                map.insert(
+                    "total_tokens".into(),
+                    serde_json::json!(prompt + completion),
+                );
 
                 if let Some(cached_tokens) = self.prompt_cached_tokens {
-                    obj_map.insert(
+                    map.insert(
                         "prompt_tokens_details".into(),
                         serde_json::json!({ "cached_tokens": cached_tokens }),
                     );
                 }
 
                 if let Some(reasoning_tokens) = self.completion_reasoning_tokens {
-                    obj_map.insert(
+                    map.insert(
                         "completion_tokens_details".into(),
                         serde_json::json!({ "reasoning_tokens": reasoning_tokens }),
                     );
                 }
 
-                obj
+                Value::Object(map)
             }
             ProviderFormat::Responses => {
-                let mut obj = serde_json::json!({
-                    "input_tokens": prompt,
-                    "output_tokens": completion,
-                    "total_tokens": prompt + completion
-                });
-                let obj_map = obj.as_object_mut().unwrap();
+                let mut map = serde_json::Map::new();
+                map.insert("input_tokens".into(), serde_json::json!(prompt));
+                map.insert("output_tokens".into(), serde_json::json!(completion));
+                map.insert(
+                    "total_tokens".into(),
+                    serde_json::json!(prompt + completion),
+                );
 
                 if let Some(cached_tokens) = self.prompt_cached_tokens {
-                    obj_map.insert(
+                    map.insert(
                         "input_tokens_details".into(),
                         serde_json::json!({ "cached_tokens": cached_tokens }),
                     );
                 }
 
                 if let Some(reasoning_tokens) = self.completion_reasoning_tokens {
-                    obj_map.insert(
+                    map.insert(
                         "output_tokens_details".into(),
                         serde_json::json!({ "reasoning_tokens": reasoning_tokens }),
                     );
                 }
 
-                obj
+                Value::Object(map)
             }
             ProviderFormat::Anthropic => {
-                let mut obj = serde_json::json!({
-                    "input_tokens": prompt,
-                    "output_tokens": completion
-                });
-                let obj_map = obj.as_object_mut().unwrap();
+                let mut map = serde_json::Map::new();
+                map.insert("input_tokens".into(), serde_json::json!(prompt));
+                map.insert("output_tokens".into(), serde_json::json!(completion));
 
                 if let Some(cache_creation) = self.prompt_cache_creation_tokens {
-                    obj_map.insert(
+                    map.insert(
                         "cache_creation_input_tokens".into(),
                         serde_json::json!(cache_creation),
                     );
                 }
 
                 if let Some(cache_read) = self.prompt_cached_tokens {
-                    obj_map.insert(
+                    map.insert(
                         "cache_read_input_tokens".into(),
                         serde_json::json!(cache_read),
                     );
                 }
 
-                obj
+                Value::Object(map)
             }
             ProviderFormat::Converse => serde_json::json!({
                 "inputTokens": prompt,

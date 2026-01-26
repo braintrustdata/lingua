@@ -42,25 +42,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
 
+      - name: Verify no unexpected failures
+        run: |
+          cargo test -p coverage-report --test cross_provider_test -- --nocapture
+
       - name: Generate coverage report
         run: |
           cargo run -p coverage-report > coverage_report.md
 
       - name: Post coverage to job summary
-        if: always()
         run: |
           echo "# 🔄 Cross-Provider Transformation Coverage" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat coverage_report.md >> $GITHUB_STEP_SUMMARY
 
       - name: Upload coverage artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: transformation-coverage-report
           path: coverage_report.md
           retention-days: 30
-
-      - name: Verify no unexpected failures
-        run: |
-          cargo test -p coverage-report --test cross_provider_test -- --nocapture

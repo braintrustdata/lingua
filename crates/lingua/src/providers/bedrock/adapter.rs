@@ -26,7 +26,6 @@ use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
     UniversalStreamChunk, UniversalUsage,
 };
-use std::collections::HashMap;
 
 /// Adapter for Amazon Bedrock Converse API.
 pub struct BedrockAdapter;
@@ -84,7 +83,7 @@ impl ProviderAdapter for BedrockAdapter {
             .and_then(|v| serde_json::from_value::<Thinking>(v.clone()).ok())
             .map(|t| ReasoningConfig::from(&t));
 
-        let params = UniversalParams {
+        let mut params = UniversalParams {
             temperature,
             top_p,
             top_k: None, // Bedrock doesn't expose top_k in Converse API
@@ -111,6 +110,7 @@ impl ProviderAdapter for BedrockAdapter {
                             name,
                             description,
                             parameters,
+                            None,
                         ));
                     }
                 }
@@ -141,12 +141,12 @@ impl ProviderAdapter for BedrockAdapter {
             service_tier: None,
             logprobs: None,
             top_logprobs: None,
+            extras: Default::default(),
         };
 
         // Use extras captured automatically via #[serde(flatten)]
-        let mut provider_extras = HashMap::new();
         if !typed_params.extras.is_empty() {
-            provider_extras.insert(
+            params.extras.insert(
                 ProviderFormat::Converse,
                 typed_params.extras.into_iter().collect(),
             );
@@ -156,7 +156,6 @@ impl ProviderAdapter for BedrockAdapter {
             model: typed_params.model_id,
             messages,
             params,
-            provider_extras,
         })
     }
 
@@ -273,7 +272,7 @@ impl ProviderAdapter for BedrockAdapter {
         }
 
         // Merge back provider-specific extras (only for Bedrock/Converse)
-        if let Some(extras) = req.provider_extras.get(&ProviderFormat::Converse) {
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::Converse) {
             for (k, v) in extras {
                 // Don't overwrite canonical fields we already handled
                 if !obj.contains_key(k) {
@@ -347,20 +346,20 @@ impl ProviderAdapter for BedrockAdapter {
             .map(|r| r.to_provider_string(self.format()).to_string())
             .unwrap_or_else(|| "end_turn".to_string());
 
-        let mut obj = serde_json::json!({
-            "output": {
+        let mut map = serde_json::Map::new();
+        map.insert(
+            "output".into(),
+            serde_json::json!({
                 "message": message_value
-            },
-            "stopReason": stop_reason
-        });
+            }),
+        );
+        map.insert("stopReason".into(), Value::String(stop_reason));
 
         if let Some(usage) = &resp.usage {
-            obj.as_object_mut()
-                .unwrap()
-                .insert("usage".into(), usage.to_provider_value(self.format()));
+            map.insert("usage".into(), usage.to_provider_value(self.format()));
         }
 
-        Ok(obj)
+        Ok(Value::Object(map))
     }
 
     // =========================================================================
@@ -666,7 +665,6 @@ mod tests {
                 max_tokens: Some(4096),
                 ..Default::default()
             },
-            provider_extras: Default::default(),
         };
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
@@ -698,7 +696,6 @@ mod tests {
                 max_tokens: Some(4096),
                 ..Default::default()
             },
-            provider_extras: Default::default(),
         };
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();

@@ -26,7 +26,6 @@ use crate::universal::{
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
     UniversalUsage, UserContent,
 };
-use std::collections::HashMap;
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
@@ -93,7 +92,7 @@ impl ProviderAdapter for GoogleAdapter {
                 (None, None, None, None, None, None)
             };
 
-        let params = UniversalParams {
+        let mut params = UniversalParams {
             temperature,
             top_p,
             top_k,
@@ -121,6 +120,7 @@ impl ProviderAdapter for GoogleAdapter {
                                     name,
                                     description,
                                     parameters,
+                                    None,
                                 ));
                             }
                         }
@@ -153,12 +153,12 @@ impl ProviderAdapter for GoogleAdapter {
             service_tier: None,
             logprobs: None,
             top_logprobs: None,
+            extras: Default::default(),
         };
 
         // Use extras captured automatically via #[serde(flatten)]
-        let mut provider_extras = HashMap::new();
         if !typed_params.extras.is_empty() {
-            provider_extras.insert(
+            params.extras.insert(
                 ProviderFormat::Google,
                 typed_params.extras.into_iter().collect(),
             );
@@ -168,7 +168,6 @@ impl ProviderAdapter for GoogleAdapter {
             model,
             messages,
             params,
-            provider_extras,
         })
     }
 
@@ -324,7 +323,7 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Merge back provider-specific extras (only for Google)
-        if let Some(extras) = req.provider_extras.get(&ProviderFormat::Google) {
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::Google) {
             for (k, v) in extras {
                 // Don't overwrite canonical fields we already handled
                 if !obj.contains_key(k) {
@@ -413,18 +412,17 @@ impl ProviderAdapter for GoogleAdapter {
             })
             .collect::<Result<Vec<_>, TransformError>>()?;
 
-        let mut obj = serde_json::json!({
-            "candidates": candidates
-        });
+        let mut map = serde_json::Map::new();
+        map.insert("candidates".into(), Value::Array(candidates));
 
         if let Some(usage) = &resp.usage {
-            obj.as_object_mut().unwrap().insert(
+            map.insert(
                 "usageMetadata".into(),
                 usage.to_provider_value(self.format()),
             );
         }
 
-        Ok(obj)
+        Ok(Value::Object(map))
     }
 
     // =========================================================================
@@ -528,45 +526,41 @@ impl ProviderAdapter for GoogleAdapter {
                     other => other,
                 });
 
-                let mut candidate = serde_json::json!({
-                    "index": c.index,
-                    "content": {
+                let mut candidate_map = serde_json::Map::new();
+                candidate_map.insert("index".into(), serde_json::json!(c.index));
+                candidate_map.insert(
+                    "content".into(),
+                    serde_json::json!({
                         "parts": [{"text": text}],
                         "role": "model"
-                    }
-                });
+                    }),
+                );
 
                 if let Some(reason) = finish_reason {
-                    candidate
-                        .as_object_mut()
-                        .unwrap()
-                        .insert("finishReason".into(), Value::String(reason.to_string()));
+                    candidate_map.insert("finishReason".into(), Value::String(reason.to_string()));
                 }
 
-                candidate
+                Value::Object(candidate_map)
             })
             .collect();
 
-        let mut obj = serde_json::json!({
-            "candidates": candidates
-        });
-
-        let obj_map = obj.as_object_mut().unwrap();
+        let mut map = serde_json::Map::new();
+        map.insert("candidates".into(), Value::Array(candidates));
 
         if let Some(ref id) = chunk.id {
-            obj_map.insert("responseId".into(), Value::String(id.clone()));
+            map.insert("responseId".into(), Value::String(id.clone()));
         }
         if let Some(ref model) = chunk.model {
-            obj_map.insert("modelVersion".into(), Value::String(model.clone()));
+            map.insert("modelVersion".into(), Value::String(model.clone()));
         }
         if let Some(ref usage) = chunk.usage {
-            obj_map.insert(
+            map.insert(
                 "usageMetadata".into(),
                 usage.to_provider_value(self.format()),
             );
         }
 
-        Ok(obj)
+        Ok(Value::Object(map))
     }
 }
 

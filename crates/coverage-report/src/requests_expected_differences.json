@@ -20,26 +20,23 @@
         { "pattern": "params.response_format", "reason": "Anthropic doesn't support Text format type" },
         { "pattern": "params.metadata", "reason": "Anthropic only accepts user_id in metadata" },
         { "pattern": "params.parallel_tool_calls", "reason": "Anthropic only supports disable_parallel via tool_choice" },
-        { "pattern": "params.tool_choice", "reason": "Anthropic requires tool_choice to express disable_parallel_tool_use" }
-      ],
-      "errors": [
-        { "pattern": "does not support logprobs", "reason": "Anthropic doesn't support logprobs parameter" },
-        { "pattern": "does not support top_logprobs", "reason": "Anthropic doesn't support top_logprobs parameter" },
-        { "pattern": "does not support frequency_penalty", "reason": "Anthropic doesn't support frequency_penalty parameter" },
-        { "pattern": "does not support presence_penalty", "reason": "Anthropic doesn't support presence_penalty parameter" },
-        { "pattern": "does not support seed", "reason": "Anthropic doesn't support seed parameter" },
-        { "pattern": "does not support store", "reason": "Anthropic doesn't support store parameter" },
-        { "pattern": "does not support n > 1", "reason": "Anthropic doesn't support multiple completions" }
+        { "pattern": "params.tool_choice", "reason": "Anthropic requires tool_choice to express disable_parallel_tool_use" },
+        { "pattern": "params.logprobs", "reason": "Anthropic doesn't support logprobs (silently dropped)" },
+        { "pattern": "params.top_logprobs", "reason": "Anthropic doesn't support top_logprobs (silently dropped)" },
+        { "pattern": "params.frequency_penalty", "reason": "Anthropic doesn't support frequency_penalty (silently dropped)" },
+        { "pattern": "params.presence_penalty", "reason": "Anthropic doesn't support presence_penalty (silently dropped)" },
+        { "pattern": "params.seed", "reason": "Anthropic doesn't support seed (silently dropped)" },
+        { "pattern": "params.store", "reason": "Anthropic doesn't support store (silently dropped)" }
       ]
     },
     {
       "source": "*",
       "target": "ChatCompletions",
       "fields": [
-        { "pattern": "params.reasoning.summary", "reason": "ChatCompletions doesn't support reasoning summary" }
+        { "pattern": "params.reasoning.summary", "reason": "ChatCompletions doesn't support reasoning summary" },
+        { "pattern": "params.top_k", "reason": "ChatCompletions doesn't support top_k (silently dropped)" }
       ],
       "errors": [
-        { "pattern": "does not support top_k", "reason": "OpenAI Chat Completions doesn't support top_k parameter" },
         { "pattern": "is not supported by OpenAI Chat Completions", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
         { "pattern": "Unsupported input type: UserContentPart variant: File", "reason": "Anthropic document blocks not supported in OpenAI" }
       ]
@@ -56,10 +53,10 @@
       "source": "*",
       "target": "Responses",
       "fields": [
+        { "pattern": "params.top_k", "reason": "Responses API doesn't support top_k (silently dropped)" },
+        { "pattern": "params.stop", "reason": "Responses API doesn't support stop sequences (silently dropped)" }
       ],
       "errors": [
-        { "pattern": "does not support top_k", "reason": "OpenAI Responses API doesn't support top_k parameter" },
-        { "pattern": "does not support stop sequences", "reason": "OpenAI Responses API doesn't support stop sequences" },
         { "pattern": "is not supported by OpenAI Responses API", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
         { "pattern": "Unsupported input type: UserContentPart variant: File", "reason": "Anthropic document blocks not supported in OpenAI" },
         { "pattern": "ToolResult { tool_name: \"web_search\"", "reason": "Anthropic web_search encrypted results cannot be transformed to OpenAI" }

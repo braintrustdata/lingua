@@ -11,7 +11,8 @@ use coverage_report::types::TestFilter;
 use lingua::capabilities::ProviderFormat;
 use lingua::processing::adapters::adapters;
 
-/// Required providers for CI: Anthropic <-> ChatCompletions <-> Responses
+/// TODO: remove REQUIRED_PROVIDERS once all formats are fully supported by coverage-report.
+/// this is temporary as we make incremental progress.
 const REQUIRED_PROVIDERS: &[ProviderFormat] = &[
     ProviderFormat::Responses,
     ProviderFormat::OpenAI, // ChatCompletions

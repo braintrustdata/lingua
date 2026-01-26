@@ -8,8 +8,6 @@ Vertex, and Mistral.
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
-use crate::reject_params;
-use std::collections::HashMap;
 
 use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value, ProviderAdapter,
@@ -127,6 +125,7 @@ impl ProviderAdapter for OpenAIAdapter {
             service_tier: typed_params.service_tier,
             logprobs: typed_params.logprobs,
             top_logprobs: typed_params.top_logprobs,
+            extras: Default::default(),
         };
 
         // Sync parallel_tool_calls with tool_choice.disable_parallel for roundtrip fidelity
@@ -167,16 +166,14 @@ impl ProviderAdapter for OpenAIAdapter {
             extras_map.insert("prompt_cache_key".into(), Value::String(prompt_cache_key));
         }
 
-        let mut provider_extras = HashMap::new();
         if !extras_map.is_empty() {
-            provider_extras.insert(ProviderFormat::OpenAI, extras_map);
+            params.extras.insert(ProviderFormat::OpenAI, extras_map);
         }
 
         Ok(UniversalRequest {
             model: typed_params.model,
             messages,
             params,
-            provider_extras,
         })
     }
 
@@ -185,9 +182,6 @@ impl ProviderAdapter for OpenAIAdapter {
             target: ProviderFormat::OpenAI,
             reason: "missing model".to_string(),
         })?;
-
-        // Validate unsupported parameters
-        reject_params!(req, ProviderFormat::OpenAI, top_k);
 
         let openai_messages: Vec<ChatCompletionRequestMessageExt> =
             <Vec<ChatCompletionRequestMessageExt> as TryFromLLM<Vec<Message>>>::try_from(
@@ -276,7 +270,7 @@ impl ProviderAdapter for OpenAIAdapter {
         }
 
         // Merge back provider-specific extras (only for OpenAI)
-        if let Some(extras) = req.provider_extras.get(&ProviderFormat::OpenAI) {
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::OpenAI) {
             for (k, v) in extras {
                 obj.insert(k.clone(), v.clone());
             }
@@ -375,21 +369,24 @@ impl ProviderAdapter for OpenAIAdapter {
             .as_ref()
             .map(|u| u.to_provider_value(self.format()));
 
-        let mut obj = serde_json::json!({
-            "id": format!("chatcmpl-{}", PLACEHOLDER_ID),
-            "object": "chat.completion",
-            "created": 0,
-            "model": resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-            "choices": choices
-        });
+        let mut map = serde_json::Map::new();
+        map.insert(
+            "id".into(),
+            Value::String(format!("chatcmpl-{}", PLACEHOLDER_ID)),
+        );
+        map.insert("object".into(), Value::String("chat.completion".into()));
+        map.insert("created".into(), serde_json::json!(0));
+        map.insert(
+            "model".into(),
+            Value::String(resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL).into()),
+        );
+        map.insert("choices".into(), Value::Array(choices));
 
         if let Some(usage_val) = usage {
-            obj.as_object_mut()
-                .unwrap()
-                .insert("usage".into(), usage_val);
+            map.insert("usage".into(), usage_val);
         }
 
-        Ok(obj)
+        Ok(Value::Object(map))
     }
 
     // =========================================================================
@@ -471,48 +468,45 @@ impl ProviderAdapter for OpenAIAdapter {
             .choices
             .iter()
             .map(|c| {
-                let mut choice = serde_json::json!({
-                    "index": c.index,
-                    "delta": c.delta.clone().unwrap_or(Value::Object(Map::new()))
-                });
-                if let Some(ref reason) = c.finish_reason {
-                    choice
-                        .as_object_mut()
-                        .unwrap()
-                        .insert("finish_reason".into(), Value::String(reason.clone()));
-                } else {
-                    choice
-                        .as_object_mut()
-                        .unwrap()
-                        .insert("finish_reason".into(), Value::Null);
-                }
-                choice
+                let mut choice_map = Map::new();
+                choice_map.insert("index".into(), serde_json::json!(c.index));
+                choice_map.insert(
+                    "delta".into(),
+                    c.delta.clone().unwrap_or(Value::Object(Map::new())),
+                );
+                let finish_reason_val = match &c.finish_reason {
+                    Some(reason) => Value::String(reason.clone()),
+                    None => Value::Null,
+                };
+                choice_map.insert("finish_reason".into(), finish_reason_val);
+                Value::Object(choice_map)
             })
             .collect();
 
-        let mut obj = serde_json::json!({
-            "object": "chat.completion.chunk",
-            "choices": choices
-        });
+        let mut map = Map::new();
+        map.insert(
+            "object".into(),
+            Value::String("chat.completion.chunk".into()),
+        );
+        map.insert("choices".into(), Value::Array(choices));
 
-        let obj_map = obj.as_object_mut().unwrap();
         if let Some(ref id) = chunk.id {
-            obj_map.insert("id".into(), Value::String(id.clone()));
+            map.insert("id".into(), Value::String(id.clone()));
         }
         if let Some(ref model) = chunk.model {
-            obj_map.insert("model".into(), Value::String(model.clone()));
+            map.insert("model".into(), Value::String(model.clone()));
         }
         if let Some(created) = chunk.created {
-            obj_map.insert("created".into(), Value::Number(created.into()));
+            map.insert("created".into(), Value::Number(created.into()));
         }
         if let Some(ref usage) = chunk.usage {
-            obj_map.insert(
+            map.insert(
                 "usage".into(),
                 usage.to_provider_value(ProviderFormat::OpenAI),
             );
         }
 
-        Ok(obj)
+        Ok(Value::Object(map))
     }
 }
 
@@ -826,7 +820,8 @@ mod tests {
 
         let universal = adapter.request_to_universal(payload).unwrap();
         let openai_extras = universal
-            .provider_extras
+            .params
+            .extras
             .get(&ProviderFormat::OpenAI)
             .expect("should have OpenAI extras");
         assert!(openai_extras.contains_key("user"));
@@ -871,7 +866,6 @@ mod tests {
                 },
             ],
             params: Default::default(),
-            provider_extras: Default::default(),
         };
 
         // Convert universal to ChatCompletions format
@@ -941,7 +935,6 @@ mod tests {
                 },
             ],
             params: Default::default(),
-            provider_extras: Default::default(),
         };
 
         // Convert universal to ChatCompletions format
@@ -1015,7 +1008,6 @@ mod tests {
                 },
             ],
             params: Default::default(),
-            provider_extras: Default::default(),
         };
 
         // Convert universal to ChatCompletions format

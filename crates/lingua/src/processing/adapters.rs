@@ -12,40 +12,6 @@ provider-specific logic into a single interface.
 3. Register it in `adapters()` with the appropriate feature gate
 */
 
-/// Macro to reject unsupported parameters in provider adapters.
-///
-/// This macro reduces boilerplate when validating that a UniversalRequest doesn't
-/// contain parameters that a provider doesn't support.
-///
-/// # Example
-///
-/// ```ignore
-/// reject_params!(req, ProviderFormat::Anthropic,
-///     logprobs,
-///     top_logprobs,
-///     presence_penalty,
-///     frequency_penalty,
-///     seed,
-///     store
-/// );
-/// ```
-///
-/// This expands to individual checks for each field, returning a ValidationFailed
-/// error if any unsupported field is present.
-#[macro_export]
-macro_rules! reject_params {
-    ($req:expr, $target:expr, $($field:ident),+ $(,)?) => {
-        $(
-            if $req.params.$field.is_some() {
-                return Err($crate::processing::transform::TransformError::ValidationFailed {
-                    target: $target,
-                    reason: concat!("does not support ", stringify!($field)).to_string(),
-                });
-            }
-        )+
-    };
-}
-
 use std::sync::LazyLock;
 
 use crate::capabilities::ProviderFormat;

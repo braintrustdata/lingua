@@ -6,8 +6,6 @@ which is used by reasoning models like o1 and o3.
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::reject_params;
-use std::collections::HashMap;
 
 use crate::error::ConvertError;
 use crate::processing::adapters::{
@@ -156,6 +154,7 @@ impl ProviderAdapter for ResponsesAdapter {
             service_tier: typed_params.service_tier,
             logprobs: None, // Responses API doesn't support logprobs boolean
             top_logprobs: typed_params.top_logprobs,
+            extras: Default::default(),
         };
 
         // Sync parallel_tool_calls with tool_choice.disable_parallel for roundtrip fidelity
@@ -193,16 +192,14 @@ impl ProviderAdapter for ResponsesAdapter {
             extras_map.insert("prompt_cache_key".into(), Value::String(prompt_cache_key));
         }
 
-        let mut provider_extras = HashMap::new();
         if !extras_map.is_empty() {
-            provider_extras.insert(ProviderFormat::Responses, extras_map);
+            params.extras.insert(ProviderFormat::Responses, extras_map);
         }
 
         Ok(UniversalRequest {
             model: typed_params.model,
             messages,
             params,
-            provider_extras,
         })
     }
 
@@ -212,22 +209,7 @@ impl ProviderAdapter for ResponsesAdapter {
             reason: "missing model".to_string(),
         })?;
 
-        // Validate unsupported parameters
-        reject_params!(req, ProviderFormat::Responses, top_k);
-        // Stop sequences need special handling (check if non-empty)
-        if req
-            .params
-            .stop
-            .as_ref()
-            .is_some_and(|stop| !stop.is_empty())
-        {
-            return Err(TransformError::ValidationFailed {
-                target: ProviderFormat::Responses,
-                reason: "does not support stop sequences".to_string(),
-            });
-        }
-
-        let responses_extras = req.provider_extras.get(&ProviderFormat::Responses);
+        let responses_extras = req.params.extras.get(&ProviderFormat::Responses);
         let mut messages_for_input = req.messages.clone();
         if let Some(extras) = responses_extras {
             if let Some(instructions) = extras.get("instructions").and_then(Value::as_str) {
@@ -263,7 +245,7 @@ impl ProviderAdapter for ResponsesAdapter {
         insert_opt_bool(&mut obj, "stream", req.params.stream);
 
         // Get provider-specific extras for Responses API
-        let responses_extras = req.provider_extras.get(&ProviderFormat::Responses);
+        let responses_extras = req.params.extras.get(&ProviderFormat::Responses);
 
         // Convert tools to Responses API format
         if let Some(tools) = req.params.tools.as_ref() {
@@ -493,26 +475,29 @@ impl ProviderAdapter for ResponsesAdapter {
             .unwrap_or_else(|| "completed".to_string());
 
         // Build response with all required fields for TheResponseObject
-        let mut obj = serde_json::json!({
-            "id": format!("resp_{}", PLACEHOLDER_ID),
-            "object": "response",
-            "model": resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-            "output": output,
-            "output_text": output_text,
-            "status": status,
-            "created_at": 0.0,
-            "tool_choice": "none",
-            "tools": [],
-            "parallel_tool_calls": false
-        });
+        let mut map = serde_json::Map::new();
+        map.insert(
+            "id".into(),
+            Value::String(format!("resp_{}", PLACEHOLDER_ID)),
+        );
+        map.insert("object".into(), Value::String("response".into()));
+        map.insert(
+            "model".into(),
+            Value::String(resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL).into()),
+        );
+        map.insert("output".into(), Value::Array(output));
+        map.insert("output_text".into(), Value::String(output_text));
+        map.insert("status".into(), Value::String(status));
+        map.insert("created_at".into(), serde_json::json!(0.0));
+        map.insert("tool_choice".into(), Value::String("none".into()));
+        map.insert("tools".into(), Value::Array(vec![]));
+        map.insert("parallel_tool_calls".into(), Value::Bool(false));
 
         if let Some(usage) = &resp.usage {
-            obj.as_object_mut()
-                .unwrap()
-                .insert("usage".into(), usage.to_provider_value(self.format()));
+            map.insert("usage".into(), usage.to_provider_value(self.format()));
         }
 
-        Ok(obj)
+        Ok(Value::Object(map))
     }
 
     // =========================================================================
