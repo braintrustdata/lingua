@@ -88,6 +88,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             "queries": input.queries,
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -106,6 +107,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             "outputs": input.outputs,
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -123,6 +125,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             "results": input.results,
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -139,6 +142,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             "action": input.action,
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -155,6 +159,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             "result": input.result,
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -171,6 +176,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             "action": input.action,
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -187,6 +193,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             "server_label": input.server_label,
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -204,6 +211,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             "tools": input.tools,
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -219,6 +227,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         arguments: build_tool_arguments(&serde_json::json!({
                             "status": input.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     };
@@ -283,6 +292,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         tool_call_id,
                         tool_name,
                         arguments: arguments_str.into(),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: None,
                     };
@@ -829,6 +839,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     tool_call_id,
                                     tool_name,
                                     arguments,
+                                    encrypted_content: _,
                                     provider_options: _,
                                     provider_executed,
                                 } => {
@@ -1346,6 +1357,7 @@ pub fn universal_to_responses_input(
                                     tool_call_id,
                                     tool_name,
                                     arguments,
+                                    encrypted_content: _,
                                     provider_options: _,
                                     provider_executed,
                                 } => {
@@ -1754,6 +1766,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         tool_call_id,
                         tool_name,
                         arguments: arguments_str.into(),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: None,
                     }]
@@ -1768,6 +1781,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             "outputs": item.outputs,
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -1781,6 +1795,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             "queries": item.queries,
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -1794,6 +1809,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             "results": item.results,
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -1806,6 +1822,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             "action": item.action,
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -1818,6 +1835,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             "result": item.result,
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -1830,6 +1848,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             "action": item.action,
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -1842,6 +1861,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             "server_label": item.server_label,
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -1855,6 +1875,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             "tools": item.tools,
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -1866,6 +1887,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         arguments: build_tool_arguments(&serde_json::json!({
                             "status": item.status,
                         })),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: Some(true),
                     }]
@@ -2436,6 +2458,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                                 tool_call_id: tool_call.id,
                                 tool_name: function.name,
                                 arguments: function.arguments.into(),
+                                encrypted_content: None,
                                 provider_options: None,
                                 provider_executed: None,
                             });
@@ -2883,6 +2906,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                                 tool_call_id: tool_call.id.clone(),
                                 tool_name: function.name.clone(),
                                 arguments: function.arguments.clone().into(),
+                                encrypted_content: None,
                                 provider_options: None,
                                 provider_executed: None,
                             });

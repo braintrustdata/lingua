@@ -16,12 +16,12 @@
       ]
     },
     {
+      "role": "model",
       "parts": [
         {
-          "text": "I can help with that! I'll query the `"
+          "text": "To find recent errors from the `project_logs"
         }
-      ],
-      "role": "model"
+      ]
     },
     {
       "role": "user",
@@ -32,7 +32,7 @@
       ]
     }
   ],
-  "config": {
+  "generationConfig": {
     "maxOutputTokens": 300
   }
 }

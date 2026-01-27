@@ -95,6 +95,8 @@ pub enum AssistantContentPart {
         tool_name: String,
         arguments: ToolCallArguments,
         #[ts(optional)]
+        encrypted_content: Option<String>,
+        #[ts(optional)]
         provider_options: Option<ProviderOptions>,
         #[ts(optional)]
         provider_executed: Option<bool>,

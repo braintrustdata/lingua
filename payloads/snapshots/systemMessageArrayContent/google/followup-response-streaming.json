@@ -5,175 +5,28 @@
         "content": {
           "parts": [
             {
-              "text": "To give you the best advice, I need a little more context! \"What should I do next?\" can depend on many things.\n\nCould you tell me:\n\n1.  **What were you just"
+              "text": "\"What should you do next\" depends on what you'"
             }
           ],
           "role": "model"
         },
+        "finishReason": "MAX_TOKENS",
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "RUqFaaDpA8XbjMcPn6KFuQU",
     "usageMetadata": {
-      "promptTokenCount": 49,
-      "candidatesTokenCount": 42,
-      "totalTokenCount": 164,
+      "promptTokenCount": 47,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 343,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 49
+          "tokenCount": 47
         }
       ],
-      "thoughtsTokenCount": 73
+      "thoughtsTokenCount": 284
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Fri, 06 Feb 2026 01:56:21 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=945",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " doing?** (e.g., \"I just ran a query for X,\" \"I was looking at the number of Y,\" \"I finished a report on Z\")\n2.  **What is your goal or the problem you're"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "RUqFaaDpA8XbjMcPn6KFuQU",
-    "usageMetadata": {
-      "promptTokenCount": 49,
-      "candidatesTokenCount": 92,
-      "totalTokenCount": 214,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 49
-        }
-      ],
-      "thoughtsTokenCount": 73
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Fri, 06 Feb 2026 01:56:21 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=945",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " trying to solve?** (e.g., \"I need to understand why sales dropped,\" \"I'm trying to optimize user engagement,\" \"I need to prepare for a meeting about project A\")\n3.  **What kind"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "RUqFaaDpA8XbjMcPn6KFuQU",
-    "usageMetadata": {
-      "promptTokenCount": 49,
-      "candidatesTokenCount": 140,
-      "totalTokenCount": 262,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 49
-        }
-      ],
-      "thoughtsTokenCount": 73
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Fri, 06 Feb 2026 01:56:21 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=945",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " of information are you looking for?** (e.g., more data, a different visualization, an analysis of a specific metric)\n\nOnce I have a better idea of your situation, I can suggest a relevant next step!"
-            }
-          ],
-          "role": "model"
-        },
-        "finishReason": "STOP",
-        "index": 0
-      }
-    ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "RUqFaaDpA8XbjMcPn6KFuQU",
-    "usageMetadata": {
-      "promptTokenCount": 49,
-      "candidatesTokenCount": 186,
-      "totalTokenCount": 308,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 49
-        }
-      ],
-      "thoughtsTokenCount": 73
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Fri, 06 Feb 2026 01:56:21 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=945",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "responseId": "em2Pad7kDYz1jMcP26ymwA8"
   }
 ]

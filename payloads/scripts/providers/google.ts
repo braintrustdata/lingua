@@ -1,5 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-import type { GenerateContentResponse, Content } from "@google/genai";
 import { CaptureResult, ExecuteOptions, ProviderExecutor } from "../types";
 import {
   allTestCases,
@@ -9,6 +7,54 @@ import {
   GoogleGenerateContentRequest,
   GOOGLE_MODEL,
 } from "../../cases";
+
+const GOOGLE_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
+
+// Response type matching Google's GenerateContent response
+// Using a minimal type since we just need to capture the raw response
+type GenerateContentResponse = {
+  candidates?: Array<{
+    content?: {
+      role?: string;
+      parts?: Array<{
+        text?: string;
+        functionCall?: { name: string; args?: Record<string, unknown> };
+        [key: string]: unknown;
+      }>;
+    };
+    [key: string]: unknown;
+  }>;
+  [key: string]: unknown;
+};
+
+// Content type for building follow-up messages
+type Content = {
+  role: string;
+  parts: Array<Record<string, unknown>>;
+};
+
+// Helper to parse JSON response with proper typing
+async function parseJsonResponse(
+  response: Response
+): Promise<GenerateContentResponse> {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- response.json() returns unknown
+  return (await response.json()) as GenerateContentResponse;
+}
+
+// Helper to convert content to our local Content type
+function toContent(content: { role?: string; parts?: unknown[] }): Content {
+  const parts: Array<Record<string, unknown>> = [];
+  for (const part of content.parts ?? []) {
+    if (part && typeof part === "object") {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- validated above
+      parts.push(part as Record<string, unknown>);
+    }
+  }
+  return {
+    role: content.role ?? "user",
+    parts,
+  };
+}
 
 // Google cases - extracted from unified cases
 // Skips cases with expectations (those are validated, not captured)
@@ -25,6 +71,79 @@ getCaseNames(allTestCases).forEach((caseName) => {
     googleCases[caseName] = caseData;
   }
 });
+
+/**
+ * Make a request to the Google Gemini API
+ */
+async function googleRequest(
+  model: string,
+  payload: GoogleGenerateContentRequest,
+  apiKey: string,
+  stream: boolean
+): Promise<Response> {
+  const endpoint = stream
+    ? `${GOOGLE_API_BASE}/models/${model}:streamGenerateContent?alt=sse`
+    : `${GOOGLE_API_BASE}/models/${model}:generateContent`;
+
+  // Build the request body matching the raw Google API structure
+  const body: Record<string, unknown> = {
+    contents: payload.contents,
+  };
+
+  if (payload.generationConfig) {
+    body.generationConfig = payload.generationConfig;
+  }
+
+  if (payload.tools) {
+    body.tools = payload.tools;
+  }
+
+  if (payload.toolConfig) {
+    body.toolConfig = payload.toolConfig;
+  }
+
+  if (payload.systemInstruction) {
+    body.systemInstruction = payload.systemInstruction;
+  }
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  return response;
+}
+
+/**
+ * Parse SSE stream into array of response chunks
+ */
+async function parseSSEStream(
+  response: Response
+): Promise<GenerateContentResponse[]> {
+  const chunks: GenerateContentResponse[] = [];
+  const text = await response.text();
+
+  // SSE format: "data: {...}\n\n"
+  const lines = text.split("\n");
+  for (const line of lines) {
+    if (line.startsWith("data: ")) {
+      const jsonStr = line.slice(6); // Remove "data: " prefix
+      if (jsonStr.trim()) {
+        try {
+          chunks.push(JSON.parse(jsonStr));
+        } catch {
+          // Skip malformed JSON
+        }
+      }
+    }
+  }
+
+  return chunks;
+}
 
 type ParallelGoogleResult =
   | {
@@ -47,11 +166,14 @@ export async function executeGoogle(
     GenerateContentResponse
   >
 > {
-  const { stream, apiKey } = options ?? {};
-  // Note: Google SDK doesn't support baseURL override, so we ignore it here
-  const client = new GoogleGenAI({
-    apiKey: apiKey ?? process.env.GOOGLE_API_KEY,
-  });
+  const { stream, apiKey: optApiKey } = options ?? {};
+  const apiKey = optApiKey ?? process.env.GOOGLE_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("GOOGLE_API_KEY is required");
+  }
+
+  const model = payload.model ?? GOOGLE_MODEL;
   const result: CaptureResult<
     GoogleGenerateContentRequest,
     GenerateContentResponse,
@@ -62,23 +184,18 @@ export async function executeGoogle(
     // Create promises for parallel execution
     const promises: Promise<ParallelGoogleResult>[] = [];
 
-    // Build config with tools and other settings
-    const config = {
-      ...payload.config,
-      tools: payload.tools,
-      systemInstruction: payload.systemInstruction,
-    };
-
     // Add non-streaming call if requested
     if (stream !== true) {
       promises.push(
-        client.models
-          .generateContent({
-            model: GOOGLE_MODEL,
-            contents: payload.contents,
-            config,
-          })
-          .then((response) => ({ type: "response", data: response }))
+        (async () => {
+          const response = await googleRequest(model, payload, apiKey, false);
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`ApiError: ${text}`);
+          }
+          const data = await parseJsonResponse(response);
+          return { type: "response" as const, data };
+        })()
       );
     }
 
@@ -86,17 +203,13 @@ export async function executeGoogle(
     if (stream !== false) {
       promises.push(
         (async () => {
-          const streamChunks: Array<GenerateContentResponse> = [];
-          const streamResponse = await client.models.generateContentStream({
-            model: GOOGLE_MODEL,
-            contents: payload.contents,
-            config,
-          });
-
-          for await (const chunk of streamResponse) {
-            streamChunks.push(chunk);
+          const response = await googleRequest(model, payload, apiKey, true);
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`ApiError: ${text}`);
           }
-          return { type: "streamingResponse", data: streamChunks };
+          const chunks = await parseSSEStream(response);
+          return { type: "streamingResponse" as const, data: chunks };
         })()
       );
     }
@@ -120,8 +233,8 @@ export async function executeGoogle(
       if (assistantContent) {
         // Build follow-up messages
         const followUpContents: Content[] = [
-          ...payload.contents,
-          assistantContent,
+          ...payload.contents.map(toContent),
+          toContent(assistantContent),
         ];
 
         // Check if the assistant message contains function calls
@@ -174,45 +287,42 @@ export async function executeGoogle(
 
         const followupPromises: Promise<FollowupGoogleResult>[] = [];
 
-        // Build followup config with tools and other settings
-        const followupConfig = {
-          ...followUpPayload.config,
-          tools: followUpPayload.tools,
-          systemInstruction: followUpPayload.systemInstruction,
-        };
-
         if (stream !== true) {
           followupPromises.push(
-            client.models
-              .generateContent({
-                model: GOOGLE_MODEL,
-                contents: followUpPayload.contents,
-                config: followupConfig,
-              })
-              .then((response) => ({
-                type: "followupResponse",
-                data: response,
-              }))
+            (async () => {
+              const response = await googleRequest(
+                model,
+                followUpPayload,
+                apiKey,
+                false
+              );
+              if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`ApiError: ${text}`);
+              }
+              const data = await parseJsonResponse(response);
+              return { type: "followupResponse" as const, data };
+            })()
           );
         }
 
         if (stream !== false) {
           followupPromises.push(
             (async () => {
-              const followupStreamChunks: Array<GenerateContentResponse> = [];
-              const followupStreamResponse =
-                await client.models.generateContentStream({
-                  model: GOOGLE_MODEL,
-                  contents: followUpPayload.contents,
-                  config: followupConfig,
-                });
-
-              for await (const chunk of followupStreamResponse) {
-                followupStreamChunks.push(chunk);
+              const response = await googleRequest(
+                model,
+                followUpPayload,
+                apiKey,
+                true
+              );
+              if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`ApiError: ${text}`);
               }
+              const chunks = await parseSSEStream(response);
               return {
-                type: "followupStreamingResponse",
-                data: followupStreamChunks,
+                type: "followupStreamingResponse" as const,
+                data: chunks,
               };
             })()
           );

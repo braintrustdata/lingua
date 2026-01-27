@@ -199,7 +199,7 @@ export const simpleCases: TestCaseCollection = {
           ],
         },
       ],
-      config: {
+      generationConfig: {
         maxOutputTokens: 100,
       },
     },

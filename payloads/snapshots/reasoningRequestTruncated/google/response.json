@@ -1,25 +1,10 @@
 {
-  "sdkHttpResponse": {
-    "headers": {
-      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-      "content-encoding": "gzip",
-      "content-type": "application/json; charset=UTF-8",
-      "date": "Sun, 21 Dec 2025 13:11:57 GMT",
-      "server": "scaffolding on HTTPServer2",
-      "server-timing": "gfet4t7; dur=765",
-      "transfer-encoding": "chunked",
-      "vary": "Origin, X-Origin, Referer",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "SAMEORIGIN",
-      "x-xss-protection": "0"
-    }
-  },
   "candidates": [
     {
       "content": {
         "parts": [
           {
-            "text": "Let'"
+            "text": "Here's"
           }
         ],
         "role": "model"
@@ -28,11 +13,9 @@
       "index": 0
     }
   ],
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "HfJHaZzTLLyH-8YP4Y-WkQk",
   "usageMetadata": {
     "promptTokenCount": 37,
-    "candidatesTokenCount": 2,
+    "candidatesTokenCount": 3,
     "totalTokenCount": 133,
     "promptTokensDetails": [
       {
@@ -40,6 +23,8 @@
         "tokenCount": 37
       }
     ],
-    "thoughtsTokenCount": 94
-  }
+    "thoughtsTokenCount": 93
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "iL58af2TBvDWjMcPzOq6-Qc"
 }

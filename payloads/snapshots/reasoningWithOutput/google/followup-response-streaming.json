@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "That's a fun, open-ended question! To give you the best suggestion, I need a little more context about what you're looking for. Tell me:\n\n1.  **What kind of mood are you in?"
+              "text": "That depends entirely on what you're looking for! To give you"
             }
           ],
           "role": "model"
@@ -13,35 +13,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 48,
-      "totalTokenCount": 1203,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 14,
+      "totalTokenCount": 1665,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -49,7 +34,7 @@
         "content": {
           "parts": [
             {
-              "text": "** (e.g., bored, energetic, tired, stressed, creative, social, hungry, curious)\n2.  **What's your general goal right now?** (e.g., relax, be productive, learn something"
+              "text": " the best suggestions, I need a little more context. Tell me:\n\n*   **What were you just doing?** (This helps me understand your starting point.)\n*   **What kind of mood are you in?** ("
             }
           ],
           "role": "model"
@@ -57,35 +42,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 97,
-      "totalTokenCount": 1252,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 62,
+      "totalTokenCount": 1713,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -93,7 +63,7 @@
         "content": {
           "parts": [
             {
-              "text": " new, have fun, connect with someone)\n3.  **What resources do you have available?** (e.g., are you at home, outside, with friends, alone, near a computer, have art supplies, etc.)"
+              "text": "Productive, relaxed, creative, bored, stressed, energetic?)\n*   **How much time do you have?** (5 minutes, an hour, the whole day?)\n*   **What kind of energy do you have?"
             }
           ],
           "role": "model"
@@ -101,35 +71,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 146,
-      "totalTokenCount": 1301,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 110,
+      "totalTokenCount": 1761,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -137,7 +92,7 @@
         "content": {
           "parts": [
             {
-              "text": "\n4.  **How much time do you have?** (e.g., 5 minutes, an hour, all afternoon, the whole evening)\n\nIn the meantime, here are some general categories of things you could do,"
+              "text": "** (High, low, mentally drained, physically restless?)\n*   **Are you looking for something productive, relaxing, entertaining, active, social, or creative?**\n*   **Are you indoors or outdoors?**\n*   **"
             }
           ],
           "role": "model"
@@ -145,35 +100,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 193,
-      "totalTokenCount": 1348,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 160,
+      "totalTokenCount": 1811,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -181,7 +121,7 @@
         "content": {
           "parts": [
             {
-              "text": " pick one that resonates:\n\n**For Relaxation & Self-Care:**\n*   Take a few deep breaths or meditate for a few minutes.\n*   Listen to some calming music or a podcast.\n*   Read a book or"
+              "text": "Do you have any specific goals you're working towards?**\n\nIn the meantime, here are some general ideas, depending on what you're looking for:\n\n**If you want to be productive:**\n*   Tackle a"
             }
           ],
           "role": "model"
@@ -189,35 +129,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 241,
-      "totalTokenCount": 1396,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 208,
+      "totalTokenCount": 1859,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -225,7 +150,7 @@
         "content": {
           "parts": [
             {
-              "text": " an interesting article.\n*   Make a cup of tea or coffee.\n*   Take a short nap or rest your eyes.\n*   Stretch or do some gentle yoga.\n\n**For Productivity & Organization:**\n*   Make"
+              "text": " small chore (dishes, laundry, tidy a space).\n*   Plan your day, week, or upcoming tasks.\n*   Learn something new (read an article, watch an educational video).\n*   Respond to emails or messages you"
             }
           ],
           "role": "model"
@@ -233,35 +158,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 289,
-      "totalTokenCount": 1444,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 258,
+      "totalTokenCount": 1909,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -269,7 +179,7 @@
         "content": {
           "parts": [
             {
-              "text": " a to-do list for the rest of your day/week.\n*   Tidy up a small area (your desk, a drawer, the kitchen counter).\n*   Answer any pending emails or messages.\n*   Plan"
+              "text": "'ve been putting off.\n*   Organize your digital files or desktop.\n\n**If you want to relax/recharge:**\n*   Read a book or an interesting article.\n*   Listen to music, a podcast,"
             }
           ],
           "role": "model"
@@ -277,35 +187,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 337,
-      "totalTokenCount": 1492,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 307,
+      "totalTokenCount": 1958,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -313,7 +208,7 @@
         "content": {
           "parts": [
             {
-              "text": " your next meal or grocery list.\n*   Do a quick chore you've been putting off.\n\n**For Learning & Growth:**\n*   Watch a documentary or an educational YouTube video.\n*   Learn a few words in a new"
+              "text": " or an audiobook.\n*   Take a short walk, even just around the block.\n*   Meditate or do some deep breathing exercises.\n*   Watch a short video or episode of a show.\n*   Make a warm drink ("
             }
           ],
           "role": "model"
@@ -321,35 +216,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 387,
-      "totalTokenCount": 1542,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 358,
+      "totalTokenCount": 2009,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -357,7 +237,7 @@
         "content": {
           "parts": [
             {
-              "text": " language.\n*   Read about a topic you're curious about.\n*   Try out a new recipe.\n*   Practice a skill you're trying to develop.\n\n**For Fun & Creativity:**\n*   Listen"
+              "text": "tea, coffee, hot chocolate).\n*   Take a power nap.\n\n**If you want to be creative:**\n*   Journal or free-write.\n*   Doodle, sketch, or try a quick art prompt.\n*   "
             }
           ],
           "role": "model"
@@ -365,35 +245,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 435,
-      "totalTokenCount": 1590,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 408,
+      "totalTokenCount": 2059,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -401,7 +266,7 @@
         "content": {
           "parts": [
             {
-              "text": " to your favorite music and dance.\n*   Draw, doodle, or write something.\n*   Play a game (video game, board game, puzzle).\n*   Watch an episode of a show or a movie.\n*   "
+              "text": "Listen to music and imagine scenarios or stories.\n*   Brainstorm new ideas for a project or hobby.\n*   Try a simple craft.\n\n**If you want to be active:**\n*   Stretch or do some light exercise"
             }
           ],
           "role": "model"
@@ -409,35 +274,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 483,
-      "totalTokenCount": 1638,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 456,
+      "totalTokenCount": 2107,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -445,7 +295,7 @@
         "content": {
           "parts": [
             {
-              "text": "Do something artistic (paint, knit, play an instrument).\n\n**For Physical Activity & Outdoors:**\n*   Go for a short walk outside.\n*   Do some quick exercises (jumping jacks, push-ups).\n*   Step"
+              "text": ".\n*   Go for a walk, run, or bike ride.\n*   Do some quick bodyweight exercises.\n\n**If you want to connect:**\n*   Call or text a friend or family member.\n*   Engage"
             }
           ],
           "role": "model"
@@ -453,35 +303,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 532,
-      "totalTokenCount": 1687,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 506,
+      "totalTokenCount": 2157,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   },
   {
     "candidates": [
@@ -489,51 +324,7 @@
         "content": {
           "parts": [
             {
-              "text": " outside and get some fresh air.\n*   Do some gardening if you have a garden.\n\n**For Social Connection:**\n*   Text or call a friend or family member.\n*   Plan a future get-together.\n\nOnce you give"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
-    "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 583,
-      "totalTokenCount": 1738,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 291
-        }
-      ],
-      "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " me a bit more info, I can give you a more tailored suggestion!"
+              "text": " in an online community or forum related to your interests.\n\nLet me know more about what you're looking for, and I can give you more tailored ideas!"
             }
           ],
           "role": "model"
@@ -542,34 +333,19 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "IfJHaZfAFuGxjrEP66Ww8Ao",
     "usageMetadata": {
-      "promptTokenCount": 291,
-      "candidatesTokenCount": 598,
-      "totalTokenCount": 1753,
+      "promptTokenCount": 360,
+      "candidatesTokenCount": 539,
+      "totalTokenCount": 2190,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 291
+          "tokenCount": 360
         }
       ],
-      "thoughtsTokenCount": 864
+      "thoughtsTokenCount": 1291
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "jL58abarEM7ojMcPsr_bqA4"
   }
 ]
