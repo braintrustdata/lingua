@@ -14,6 +14,13 @@ import type { ChatCompletionRequestMessage } from "./generated/openai/ChatComple
 import type { InputItem } from "./generated/openai/InputItem";
 import type { InputMessage } from "./generated/anthropic/InputMessage";
 
+type GoogleContent = Record<string, unknown>;
+
+type GoogleWasmExports = {
+  google_contents_to_lingua: (value: unknown) => unknown;
+  lingua_to_google_contents: (value: unknown) => unknown;
+};
+
 // ============================================================================
 // Error handling
 // ============================================================================
@@ -261,6 +268,46 @@ export const linguaToAnthropicMessages = createFromLinguaConverter<
   Message[],
   InputMessage[]
 >(() => getWasm().lingua_to_anthropic_messages, "Anthropic");
+
+// ============================================================================
+// Google Conversions
+// ============================================================================
+
+/**
+ * Convert array of Google Content items to Lingua Messages
+ *
+ * Returns messages in Lingua's universal format. Accepts contents from:
+ * - Google GenerateContent requests (`contents` array)
+ *
+ * @example
+ * const lingua = googleContentsToLingua(contents)
+ *
+ * @throws {ConversionError} If conversion fails
+ */
+export const googleContentsToLingua = createToLinguaConverter<Message[]>(
+  () =>
+    (getWasm() as unknown as GoogleWasmExports).google_contents_to_lingua,
+  "Google"
+);
+
+/**
+ * Convert array of Lingua Messages to Google Content items
+ *
+ * Returns contents in Google GenerateContent format.
+ *
+ * @example
+ * const contents = linguaToGoogleContents(lingua)
+ *
+ * @throws {ConversionError} If conversion fails
+ */
+export const linguaToGoogleContents = createFromLinguaConverter<
+  Message[],
+  GoogleContent[]
+>(
+  () =>
+    (getWasm() as unknown as GoogleWasmExports).lingua_to_google_contents,
+  "Google"
+);
 
 // ============================================================================
 // Processing functions

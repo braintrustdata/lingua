@@ -1,6 +1,10 @@
 import { writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { CaptureResult } from "./types";
+import {
+  normalizeGoogleRequestFields,
+  stripGoogleSdkFields,
+} from "./validation/diff-utils";
 
 export function createTestCaseDirectory(
   baseOutputDir: string,
@@ -21,15 +25,31 @@ export function saveAllFiles(
   const testCaseDir = createTestCaseDirectory(outputDir, testCase, provider);
   const savedFiles: string[] = [];
 
+  // For Google, normalize SDK request field names and strip SDK-added response fields
+  const processRequest =
+    provider === "google"
+      ? <T>(data: T) => normalizeGoogleRequestFields(data)
+      : <T>(data: T) => data;
+  const processResponse =
+    provider === "google"
+      ? <T>(data: T) => stripGoogleSdkFields(data)
+      : <T>(data: T) => data;
+
   // Always save the request
   const requestPath = join(testCaseDir, "request.json");
-  writeFileSync(requestPath, JSON.stringify(result.request, null, 2));
+  writeFileSync(
+    requestPath,
+    JSON.stringify(processRequest(result.request), null, 2)
+  );
   savedFiles.push(requestPath);
 
   // Save response if it exists
   if (result.response) {
     const responsePath = join(testCaseDir, "response.json");
-    writeFileSync(responsePath, JSON.stringify(result.response, null, 2));
+    writeFileSync(
+      responsePath,
+      JSON.stringify(processResponse(result.response), null, 2)
+    );
     savedFiles.push(responsePath);
   }
 
@@ -38,7 +58,7 @@ export function saveAllFiles(
     const streamingPath = join(testCaseDir, "response-streaming.json");
     writeFileSync(
       streamingPath,
-      JSON.stringify(result.streamingResponse, null, 2)
+      JSON.stringify(processResponse(result.streamingResponse), null, 2)
     );
     savedFiles.push(streamingPath);
   }
@@ -48,7 +68,7 @@ export function saveAllFiles(
     const followupRequestPath = join(testCaseDir, "followup-request.json");
     writeFileSync(
       followupRequestPath,
-      JSON.stringify(result.followupRequest, null, 2)
+      JSON.stringify(processRequest(result.followupRequest), null, 2)
     );
     savedFiles.push(followupRequestPath);
   }
@@ -58,7 +78,7 @@ export function saveAllFiles(
     const followupResponsePath = join(testCaseDir, "followup-response.json");
     writeFileSync(
       followupResponsePath,
-      JSON.stringify(result.followupResponse, null, 2)
+      JSON.stringify(processResponse(result.followupResponse), null, 2)
     );
     savedFiles.push(followupResponsePath);
   }
@@ -71,7 +91,7 @@ export function saveAllFiles(
     );
     writeFileSync(
       followupStreamingPath,
-      JSON.stringify(result.followupStreamingResponse, null, 2)
+      JSON.stringify(processResponse(result.followupStreamingResponse), null, 2)
     );
     savedFiles.push(followupStreamingPath);
   }

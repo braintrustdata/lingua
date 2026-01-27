@@ -255,3 +255,56 @@ export function formatDiff(diff: DiffEntry): string {
 
   return `${diff.path}: ${expectedStr} → ${actualStr}`;
 }
+
+/**
+ * Strip SDK-added fields from Google responses.
+ * The Google SDK adds `sdkHttpResponse` which isn't part of the actual API response
+ * and causes deserialization failures in Rust tests (pbjson rejects unknown fields).
+ *
+ * Note: Only strips at the top level of objects (and recursively for arrays).
+ * This matches Google SDK behavior where sdkHttpResponse only appears at response root.
+ */
+export function stripGoogleSdkFields<T>(data: T): T {
+  if (data === null || typeof data !== "object") {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Generic T cannot be narrowed; array was verified above
+    return data.map((item) => stripGoogleSdkFields(item)) as T;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Need Record to delete fields; T confirmed as object above
+  const result = { ...data } as Record<string, unknown>;
+  delete result.sdkHttpResponse;
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Returning modified T; structure preserved
+  return result as T;
+}
+
+/**
+ * Normalize Google SDK request field names to protobuf field names.
+ * The SDK uses shorthand names (e.g., "config") but the API/protobuf
+ * uses full names (e.g., "generationConfig").
+ */
+export function normalizeGoogleRequestFields<T>(data: T): T {
+  if (data === null || typeof data !== "object") {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Generic T cannot be narrowed; array was verified above
+    return data.map((item) => normalizeGoogleRequestFields(item)) as T;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Need Record to modify fields; T confirmed as object above
+  const result = { ...data } as Record<string, unknown>;
+
+  // Rename 'config' to 'generationConfig' (only if generationConfig doesn't exist)
+  if ("config" in result && !("generationConfig" in result)) {
+    result.generationConfig = result.config;
+    delete result.config;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Returning modified T; structure preserved
+  return result as T;
+}
