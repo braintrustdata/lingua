@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "That's a very open-ended question! To give you the best suggestion, could you tell me a little more about what kind of \"next\" you're thinking of?\n\nFor example, are you wondering:\n\n*   "
+              "text": "That's a great open-ended"
             }
           ],
           "role": "model"
@@ -13,35 +13,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "HfJHabLsOKLujrEP29jTwAk",
     "usageMetadata": {
       "promptTokenCount": 24,
-      "candidatesTokenCount": 47,
-      "totalTokenCount": 1124,
+      "candidatesTokenCount": 8,
+      "totalTokenCount": 1083,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 24
         }
       ],
-      "thoughtsTokenCount": 1053
+      "thoughtsTokenCount": 1051
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:02 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=5193",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iL58ac-8EdSpjMcP5r_l4Qs"
   },
   {
     "candidates": [
@@ -49,7 +34,7 @@
         "content": {
           "parts": [
             {
-              "text": "**What to ask me next?** (e.g., about another country, a different topic entirely, a creative writing prompt, a game, a joke?)\n*   **What to do related to France/Paris?** ("
+              "text": " question! What you do next depends entirely on what you're interested in or what your goal is.\n\nDo any of these sound like what you're looking for?\n\n*   **Learn more about Paris?** (e."
             }
           ],
           "role": "model"
@@ -57,35 +42,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "HfJHabLsOKLujrEP29jTwAk",
     "usageMetadata": {
       "promptTokenCount": 24,
-      "candidatesTokenCount": 95,
-      "totalTokenCount": 1172,
+      "candidatesTokenCount": 56,
+      "totalTokenCount": 1131,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 24
         }
       ],
-      "thoughtsTokenCount": 1053
+      "thoughtsTokenCount": 1051
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:02 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=5193",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iL58ac-8EdSpjMcP5r_l4Qs"
   },
   {
     "candidates": [
@@ -93,7 +63,7 @@
         "content": {
           "parts": [
             {
-              "text": "e.g., learn more about its history, famous landmarks, culture, food, or plan a hypothetical trip?)\n*   **What to do in general?** (e.g., suggestions for a hobby, a task, something"
+              "text": "g., its famous landmarks, history, culture, food, best time to visit)\n*   **Learn about other places?** (e.g., the capital of another country, other cities in France)\n*   **Plan something?**"
             }
           ],
           "role": "model"
@@ -101,35 +71,20 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "HfJHabLsOKLujrEP29jTwAk",
     "usageMetadata": {
       "promptTokenCount": 24,
-      "candidatesTokenCount": 143,
-      "totalTokenCount": 1220,
+      "candidatesTokenCount": 107,
+      "totalTokenCount": 1182,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 24
         }
       ],
-      "thoughtsTokenCount": 1053
+      "thoughtsTokenCount": 1051
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:02 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=5193",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iL58ac-8EdSpjMcP5r_l4Qs"
   },
   {
     "candidates": [
@@ -137,7 +92,7 @@
         "content": {
           "parts": [
             {
-              "text": " fun to do on your computer, a relaxation idea?)\n\nOnce I know what you're looking for, I can give you a more specific idea!"
+              "text": " (e.g., a hypothetical trip to Paris, a research project)\n*   **Just chat about something else entirely?**\n\nJust let me know what you have in mind!"
             }
           ],
           "role": "model"
@@ -146,34 +101,19 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "HfJHabLsOKLujrEP29jTwAk",
     "usageMetadata": {
       "promptTokenCount": 24,
-      "candidatesTokenCount": 174,
-      "totalTokenCount": 1251,
+      "candidatesTokenCount": 145,
+      "totalTokenCount": 1220,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 24
         }
       ],
-      "thoughtsTokenCount": 1053
+      "thoughtsTokenCount": 1051
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:02 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=5193",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iL58ac-8EdSpjMcP5r_l4Qs"
   }
 ]

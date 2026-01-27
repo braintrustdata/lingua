@@ -5,9 +5,11 @@ import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
 
 // Google Gemini API request type (matching the js-genai library)
 export interface GoogleGenerateContentRequest {
+  model?: string;
   contents: Content[];
-  config?: GenerateContentConfig;
+  generationConfig?: GenerateContentConfig;
   tools?: Tool[];
+  toolConfig?: Record<string, unknown>;
   systemInstruction?: Content;
 }
 

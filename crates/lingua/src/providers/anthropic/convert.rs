@@ -292,6 +292,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                             arguments: serde_json::to_string(&input)
                                                 .unwrap_or_else(|_| "{}".to_string())
                                                 .into(),
+                                            encrypted_content: None,
                                             provider_options: None,
                                             provider_executed: None,
                                         });
@@ -313,6 +314,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                             arguments: serde_json::to_string(&input)
                                                 .unwrap_or_else(|_| "{}".to_string())
                                                 .into(),
+                                            encrypted_content: None,
                                             provider_options: None,
                                             provider_executed: Some(true), // Mark as server-executed
                                         });
@@ -870,6 +872,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                             arguments: serde_json::to_string(&input)
                                 .unwrap_or_else(|_| "{}".to_string())
                                 .into(),
+                            encrypted_content: None,
                             provider_options: None,
                             provider_executed: None,
                         });
@@ -890,6 +893,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                             arguments: serde_json::to_string(&input)
                                 .unwrap_or_else(|_| "{}".to_string())
                                 .into(),
+                            encrypted_content: None,
                             provider_options: None,
                             provider_executed: Some(true), // Mark as server-executed
                         });

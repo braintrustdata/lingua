@@ -1,25 +1,10 @@
 {
-  "sdkHttpResponse": {
-    "headers": {
-      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-      "content-encoding": "gzip",
-      "content-type": "application/json; charset=UTF-8",
-      "date": "Sun, 21 Dec 2025 13:12:00 GMT",
-      "server": "scaffolding on HTTPServer2",
-      "server-timing": "gfet4t7; dur=3777",
-      "transfer-encoding": "chunked",
-      "vary": "Origin, X-Origin, Referer",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "SAMEORIGIN",
-      "x-xss-protection": "0"
-    }
-  },
   "candidates": [
     {
       "content": {
         "parts": [
           {
-            "text": "To find the average speed, we need to calculate the total distance traveled and the total time taken. The formula for average speed is:\n\n**Average Speed = Total Distance / Total Time**\n\nLet's break down the train's journey into two parts:\n\n**Part 1: First Leg of the Journey**\n1.  **Speed:** 60 mph\n2.  **Time:** 2 hours\n3.  **Calculate Distance for Part 1:**\n    *   Distance = Speed × Time\n    *   Distance_1 = 60 mph × 2 hours = 120 miles\n\n**Part 2: Second Leg of the Journey**\n1.  **Speed:** 80 mph\n2.  **Time:** 1 hour\n3.  **Calculate Distance for Part 2:**\n    *   Distance = Speed × Time\n    *   Distance_2 = 80 mph × 1 hour = 80 miles\n\n**Now, let's calculate the Total Distance and Total Time:**\n\n4.  **Calculate Total Distance:**\n    *   Total Distance = Distance_1 + Distance_2\n    *   Total Distance = 120 miles + 80 miles = 200 miles\n\n5.  **Calculate Total Time:**\n    *   Total Time = Time_1 + Time_2\n    *   Total Time = 2 hours + 1 hour = 3 hours\n\n**Finally, calculate the Average Speed:**\n\n6.  **Average Speed = Total Distance / Total Time**\n    *   Average Speed = 200 miles / 3 hours\n    *   Average Speed ≈ 66.67 mph\n\nThe average speed of the train is **66 2/3 mph** or approximately **66.67 mph**."
+            "text": "To calculate the average speed, we need to find the total distance traveled and the total time taken. The formula for average speed is:\n\n**Average Speed = Total Distance / Total Time**\n\nLet's break down the problem:\n\n**Step 1: Calculate the distance for the first part of the journey.**\n*   Speed = 60 mph\n*   Time = 2 hours\n*   Distance = Speed × Time\n*   Distance₁ = 60 mph × 2 hours = 120 miles\n\n**Step 2: Calculate the distance for the second part of the journey.**\n*   Speed = 80 mph\n*   Time = 1 hour\n*   Distance = Speed × Time\n*   Distance₂ = 80 mph × 1 hour = 80 miles\n\n**Step 3: Calculate the total distance traveled.**\n*   Total Distance = Distance₁ + Distance₂\n*   Total Distance = 120 miles + 80 miles = 200 miles\n\n**Step 4: Calculate the total time taken.**\n*   Total Time = Time₁ + Time₂\n*   Total Time = 2 hours + 1 hour = 3 hours\n\n**Step 5: Calculate the average speed.**\n*   Average Speed = Total Distance / Total Time\n*   Average Speed = 200 miles / 3 hours\n*   Average Speed = 66.666... mph\n\n**Answer:**\nThe average speed of the train is **66 and 2/3 mph** (or approximately 66.67 mph)."
           }
         ],
         "role": "model"
@@ -28,18 +13,18 @@
       "index": 0
     }
   ],
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "IPJHafrELvDujrEP3K3RuAs",
   "usageMetadata": {
     "promptTokenCount": 37,
-    "candidatesTokenCount": 386,
-    "totalTokenCount": 946,
+    "candidatesTokenCount": 340,
+    "totalTokenCount": 961,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 37
       }
     ],
-    "thoughtsTokenCount": 523
-  }
+    "thoughtsTokenCount": 584
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "i758ae26J4u-jMcPvN7c-QE"
 }

@@ -1,25 +1,10 @@
 {
-  "sdkHttpResponse": {
-    "headers": {
-      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-      "content-encoding": "gzip",
-      "content-type": "application/json; charset=UTF-8",
-      "date": "Sun, 21 Dec 2025 13:12:03 GMT",
-      "server": "scaffolding on HTTPServer2",
-      "server-timing": "gfet4t7; dur=6063",
-      "transfer-encoding": "chunked",
-      "vary": "Origin, X-Origin, Referer",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "SAMEORIGIN",
-      "x-xss-protection": "0"
-    }
-  },
   "candidates": [
     {
       "content": {
         "parts": [
           {
-            "text": "That's a great question! It really depends on what you're curious about or what you're trying to achieve.\n\nHere are a few ideas for what you could do next:\n\n1.  **Ask me another question:** You could ask me about anything at all – history, science, technology, current events, culture, or even just random facts.\n2.  **Dive deeper into France/Paris:** We could explore more about France, Paris, its history, famous landmarks, cuisine, or culture.\n3.  **Start a new topic entirely:** Tell me a topic you're interested in, and we can discuss it. For example, \"Tell me about the Amazon rainforest\" or \"Explain quantum physics in simple terms.\"\n4.  **Get help with a task:** I can help you brainstorm ideas, write a short paragraph, summarize information, or even help you outline a plan.\n5.  **Just for fun:** Ask me to tell you a joke, a fun fact, or suggest a creative writing prompt.\n\nWhat sounds most appealing to you, or do you have something else in mind?"
+            "text": "That's a great open-ended question! Since we just talked about France, here are a few ideas, depending on what you're interested in:\n\n1.  **Learn more about France:**\n    *   \"What are some famous landmarks in Paris?\"\n    *   \"Tell me about French cuisine.\"\n    *   \"What are some other major cities in France?\"\n    *   \"What's the history of France?\"\n\n2.  **Ask another general knowledge question:**\n    *   \"What's the capital of Japan?\"\n    *   \"How do airplanes fly?\"\n    *   \"What's the biggest animal on Earth?\"\n\n3.  **Get help with a task:**\n    *   \"Can you help me brainstorm ideas for a story?\"\n    *   \"Write a short poem about spring.\"\n    *   \"Summarize the plot of 'Romeo and Juliet'.\"\n\n4.  **Just chat:**\n    *   \"What's your favorite color?\" (As an AI, I don't have one, but it's a fun question!)\n    *   \"Tell me a joke.\"\n\n**Or, just tell me what's on your mind! What are you curious about or what do you need help with?**"
           }
         ],
         "role": "model"
@@ -28,18 +13,18 @@
       "index": 0
     }
   ],
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "I_JHacr4J7-4jrEPg5fzqQo",
   "usageMetadata": {
     "promptTokenCount": 24,
-    "candidatesTokenCount": 233,
-    "totalTokenCount": 1334,
+    "candidatesTokenCount": 272,
+    "totalTokenCount": 1027,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 24
       }
     ],
-    "thoughtsTokenCount": 1077
-  }
+    "thoughtsTokenCount": 731
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "jb58aaC0Gd6J-sAPufSBoAY"
 }

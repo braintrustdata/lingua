@@ -275,6 +275,7 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
                                 tool_call_id,
                                 tool_name,
                                 arguments,
+                                encrypted_content: None,
                                 provider_options: None,
                                 provider_executed: None,
                             });
