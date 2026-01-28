@@ -1,6 +1,11 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import type { Content, GenerateContentConfig, Tool } from "@google/genai";
+import type {
+  Content,
+  GenerateContentConfig,
+  Tool,
+  ToolConfig,
+} from "@google/genai";
 import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
 
 // Google Gemini API request type (matching the js-genai library)

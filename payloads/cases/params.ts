@@ -5,7 +5,15 @@ import {
   OPENAI_NON_REASONING_MODEL,
   ANTHROPIC_MODEL,
   ANTHROPIC_OPUS_MODEL,
+  GOOGLE_GEMINI_3_MODEL,
 } from "./models";
+import {
+  Type,
+  ThinkingLevel,
+  FunctionCallingConfigMode,
+  Modality,
+  MediaResolution,
+} from "@google/genai";
 
 // OpenAI Responses API and Chat Completions API parameter test cases
 // Each test case exercises specific parameters with bidirectional mappings where possible
@@ -33,7 +41,16 @@ export const paramsCases: TestCaseCollection = {
       messages: [{ role: "user", content: "What is 2+2?" }],
       output_config: { effort: "medium" },
     },
-    google: null,
+    google: {
+      // Gemini 2.5 uses thinkingBudget (integer)
+      contents: [{ role: "user", parts: [{ text: "What is 2+2?" }] }],
+      config: {
+        thinkingConfig: {
+          thinkingBudget: 10000,
+          includeThoughts: true,
+        },
+      },
+    },
     bedrock: null,
   },
 
@@ -54,7 +71,14 @@ export const paramsCases: TestCaseCollection = {
       messages: [{ role: "user", content: "What is 2+2?" }],
       output_config: { effort: "low" },
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "What is 2+2?" }] }],
+      config: {
+        thinkingConfig: {
+          thinkingBudget: 5000, // lower budget for low effort
+        },
+      },
+    },
     bedrock: null,
   },
 
@@ -76,7 +100,14 @@ export const paramsCases: TestCaseCollection = {
       },
     },
     anthropic: null,
-    google: null,
+    google: {
+      contents: [
+        { role: "user", parts: [{ text: 'Return {"status": "ok"} as JSON.' }] },
+      ],
+      config: {
+        responseMimeType: "application/json",
+      },
+    },
     bedrock: null,
   },
 
@@ -216,7 +247,20 @@ export const paramsCases: TestCaseCollection = {
         },
       },
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Extract: John is 25." }] }],
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            age: { type: "number" },
+          },
+          required: ["name", "age"],
+        },
+      },
+    },
     bedrock: null,
   },
 
@@ -349,7 +393,32 @@ export const paramsCases: TestCaseCollection = {
       ],
       tool_choice: { type: "tool", name: "get_weather" },
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Tokyo weather" }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  location: { type: Type.STRING },
+                },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.ANY,
+          allowedFunctionNames: ["get_weather"],
+        },
+      },
+    },
     bedrock: null,
   },
 
@@ -440,7 +509,10 @@ export const paramsCases: TestCaseCollection = {
       messages: [{ role: "user", content: "Hi" }],
       system: "Say OK",
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Hi" }] }],
+      systemInstruction: { parts: [{ text: "Always say ok." }] },
+    },
     bedrock: null,
   },
 
@@ -586,7 +658,12 @@ export const paramsCases: TestCaseCollection = {
       messages: [{ role: "user", content: "Say hi." }],
       temperature: 0.7,
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Say hi." }] }],
+      config: {
+        temperature: 0.7,
+      },
+    },
     bedrock: null,
   },
 
@@ -603,7 +680,12 @@ export const paramsCases: TestCaseCollection = {
       messages: [{ role: "user", content: "Say hi." }],
       top_p: 0.9,
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Say hi." }] }],
+      config: {
+        topP: 0.9,
+      },
+    },
     bedrock: null,
   },
 
@@ -615,7 +697,12 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      config: {
+        frequencyPenalty: 0.5,
+      },
+    },
     bedrock: null,
   },
 
@@ -627,7 +714,12 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      config: {
+        presencePenalty: 0.5,
+      },
+    },
     bedrock: null,
   },
 
@@ -640,7 +732,13 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "What is 2 + 2?" }] }],
+      config: {
+        responseLogprobs: true,
+        logprobs: 2,
+      },
+    },
     bedrock: null,
   },
 
@@ -654,7 +752,12 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Say a word." }] }],
+      config: {
+        candidateCount: 2,
+      },
+    },
     bedrock: null,
   },
 
@@ -671,7 +774,12 @@ export const paramsCases: TestCaseCollection = {
       messages: [{ role: "user", content: "Count to 20." }],
       stop_sequences: ["10", "ten"],
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Count from 1 to 20." }] }],
+      config: {
+        stopSequences: ["10", "ten"],
+      },
+    },
     bedrock: null,
   },
 
@@ -687,7 +795,12 @@ export const paramsCases: TestCaseCollection = {
       max_tokens: 500,
       messages: [{ role: "user", content: "Say ok." }],
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
+      config: {
+        maxOutputTokens: 500,
+      },
+    },
     bedrock: null,
   },
 
@@ -723,7 +836,12 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Pick a number." }] }],
+      config: {
+        seed: 12345,
+      },
+    },
     bedrock: null,
   },
 
@@ -750,7 +868,12 @@ export const paramsCases: TestCaseCollection = {
       messages: [{ role: "user", content: "Say hi." }],
       top_k: 40,
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Say hi." }] }],
+      config: {
+        topK: 40,
+      },
+    },
     bedrock: null,
   },
 
@@ -879,7 +1002,29 @@ export const paramsCases: TestCaseCollection = {
       ],
       tool_choice: { type: "auto" },
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Weather?" }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: Type.OBJECT,
+                properties: { location: { type: Type.STRING } },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.AUTO,
+        },
+      },
+    },
     bedrock: null,
   },
 
@@ -903,7 +1048,29 @@ export const paramsCases: TestCaseCollection = {
       ],
       tool_choice: { type: "any" },
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Weather?" }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: Type.OBJECT,
+                properties: { location: { type: Type.STRING } },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.ANY,
+        },
+      },
+    },
     bedrock: null,
   },
 
@@ -927,7 +1094,29 @@ export const paramsCases: TestCaseCollection = {
       ],
       tool_choice: { type: "none" },
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Weather?" }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: Type.OBJECT,
+                properties: { location: { type: Type.STRING } },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.NONE,
+        },
+      },
+    },
     bedrock: null,
   },
 
@@ -1113,6 +1302,184 @@ export const paramsCases: TestCaseCollection = {
       },
     },
     google: null,
+    bedrock: null,
+  },
+
+  // === Google-Specific Parameters ===
+
+  thinkingLevelParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      // thinkingLevel is for Gemini 3 models (not 2.5 which uses thinkingBudget)
+      model: GOOGLE_GEMINI_3_MODEL,
+      contents: [
+        { role: "user", parts: [{ text: "Solve this complex problem." }] },
+      ],
+      config: {
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.HIGH, // MINIMAL, LOW, MEDIUM, HIGH
+          includeThoughts: true,
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  toolModeValidatedParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      // VALIDATED mode is unique to Google - ensures schema compliance
+      contents: [{ role: "user", parts: [{ text: "Weather in Tokyo?" }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: Type.OBJECT,
+                properties: { location: { type: Type.STRING } },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.VALIDATED,
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  thoughtSignatureParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      // Multi-turn conversation with thought signature preserved
+      // thoughtSignature must be echoed back for Gemini 3 function calling
+      contents: [
+        { role: "user", parts: [{ text: "What's the weather?" }] },
+        {
+          role: "model",
+          parts: [
+            {
+              functionCall: { name: "get_weather", args: { location: "NYC" } },
+              thought: false,
+              thoughtSignature: "base64-encoded-signature-from-response",
+            },
+          ],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              functionResponse: {
+                name: "get_weather",
+                response: { temperature: 72, condition: "sunny" },
+              },
+              thoughtSignature: "base64-encoded-signature-from-response",
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: Type.OBJECT,
+                properties: { location: { type: Type.STRING } },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+    },
+    bedrock: null,
+  },
+
+  responseModalitiesAudioParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      // Request audio output from the model
+      contents: [
+        { role: "user", parts: [{ text: "Say hello in a friendly tone." }] },
+      ],
+      config: {
+        responseModalities: [Modality.AUDIO],
+      },
+    },
+    bedrock: null,
+  },
+
+  speechConfigParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      // Configure speech synthesis voice and language
+      contents: [{ role: "user", parts: [{ text: "Tell me a joke." }] }],
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          languageCode: "en-US",
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: "Kore",
+            },
+          },
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  imageConfigParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      // Configure image generation settings
+      contents: [
+        { role: "user", parts: [{ text: "Generate an image of a sunset." }] },
+      ],
+      config: {
+        responseModalities: [Modality.IMAGE],
+        imageConfig: {
+          aspectRatio: "16:9",
+          imageSize: "1K",
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  mediaResolutionParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      // Control input media resolution for token efficiency
+      contents: [
+        { role: "user", parts: [{ text: "Describe this image briefly." }] },
+      ],
+      config: {
+        mediaResolution: MediaResolution.MEDIA_RESOLUTION_LOW,
+      },
+    },
     bedrock: null,
   },
 };
