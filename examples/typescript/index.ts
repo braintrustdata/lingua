@@ -1,5 +1,9 @@
 import {
   type Message,
+  type UniversalParams,
+  type UniversalRequest,
+  type UniversalTool,
+  type ProviderFormat,
   linguaToChatCompletionsMessages,
   linguaToAnthropicMessages,
   chatCompletionsMessagesToLingua,
@@ -40,6 +44,9 @@ async function basicUsage() {
 }
 
 async function main() {
+  // Always run the typed request example (no API keys needed)
+  exampleTypedRequest();
+
   const hasOpenAiApiKey = !!process.env.OPENAI_API_KEY;
   const hasAnthropicApiKey = !!process.env.ANTHROPIC_API_KEY;
 
@@ -94,6 +101,92 @@ const createAnthropicCompletion = async (messages: Message[]) => {
 
   return [anthropicResponse];
 };
+
+/**
+ * Example: Creating a request with typed parameters
+ *
+ * This demonstrates the ergonomics of using UniversalParams and UniversalTool types.
+ */
+function exampleTypedRequest() {
+  console.log("\n📋 Example: Creating a typed UniversalRequest");
+
+  // Define tools with full type safety
+  const tools: UniversalTool[] = [
+    {
+      name: "get_weather",
+      description: "Get the current weather for a location",
+      parameters: {
+        type: "object",
+        properties: {
+          location: { type: "string", description: "City name" },
+          units: { type: "string", enum: ["celsius", "fahrenheit"] },
+        },
+        required: ["location"],
+      },
+      strict: null,
+      kind: "function",
+    },
+  ];
+
+  // Create params with all the bells and whistles
+  const params: UniversalParams = {
+    temperature: 0.7,
+    max_tokens: BigInt(1000),
+    top_p: null,
+    top_k: null,
+    seed: null,
+    presence_penalty: null,
+    frequency_penalty: null,
+    stop: null,
+    logprobs: null,
+    top_logprobs: null,
+    tools: tools,
+    tool_choice: {
+      mode: "auto",
+      tool_name: null,
+      disable_parallel: null,
+    },
+    parallel_tool_calls: null,
+    response_format: {
+      format_type: "json_schema",
+      json_schema: {
+        name: "weather_response",
+        schema: {
+          type: "object",
+          properties: {
+            temperature: { type: "number" },
+            conditions: { type: "string" },
+          },
+        },
+        strict: true,
+        description: null,
+      },
+    },
+    reasoning: {
+      enabled: true,
+      budget_tokens: BigInt(2048),
+      summary: "auto",
+    },
+    metadata: { user_id: "example-user" },
+    store: null,
+    service_tier: null,
+    stream: null,
+  };
+
+  // Create the full request
+  const request: UniversalRequest = {
+    model: "gpt-5-mini",
+    messages: [
+      { role: "user", content: "What's the weather in San Francisco?" },
+    ],
+    params: params,
+  };
+
+  console.log("   Model:", request.model);
+  console.log("   Tools:", request.params.tools?.length ?? 0, "tool(s)");
+  console.log("   Reasoning enabled:", request.params.reasoning?.enabled);
+  console.log("   Response format:", request.params.response_format?.format_type);
+}
 
 /**
  * Test ideas:

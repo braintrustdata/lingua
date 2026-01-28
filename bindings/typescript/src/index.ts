@@ -33,6 +33,26 @@ export * from "./generated/ToolResultResponsePart";
 export * from "./generated/UserContent";
 export * from "./generated/UserContentPart";
 
+// Universal request types
+export * from "./generated/UniversalRequest";
+export * from "./generated/UniversalParams";
+export * from "./generated/ProviderFormat";
+
+// Configuration types
+export * from "./generated/ReasoningConfig";
+export * from "./generated/ReasoningEffort";
+export * from "./generated/ReasoningCanonical";
+export * from "./generated/SummaryMode";
+export * from "./generated/ToolChoiceConfig";
+export * from "./generated/ToolChoiceMode";
+export * from "./generated/ResponseFormatConfig";
+export * from "./generated/ResponseFormatType";
+export * from "./generated/JsonSchemaConfig";
+
+// Tool types
+export * from "./generated/UniversalTool";
+export * from "./generated/UniversalToolType";
+
 // Main type aliases for convenience
 export type { Message } from "./generated/Message";
 
