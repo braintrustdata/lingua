@@ -151,7 +151,8 @@ fn extract_anthropic_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
     let mut result = ToolSchemas::default();
 
     for (schema_name, schema_def) in schemas {
-        // Skip beta tools for now - Lingua does not (yet) support Anthropic beta features
+        // Skip Beta schemas - they introduce breaking structural changes (new required
+        // fields on content blocks). We add Beta-only fields like `strict` manually below.
         if schema_name.starts_with("Beta") {
             continue;
         }
@@ -364,6 +365,12 @@ fn generate_tool_struct_direct(
             }
         }
     }
+
+    // Add `strict` field - this is a Beta-only field that we add manually since we use
+    // stable schemas to avoid breaking structural changes from Beta content blocks
+    output.push_str("    /// Whether to enforce strict schema validation for tool inputs.\n");
+    output.push_str("    #[serde(skip_serializing_if = \"Option::is_none\")]\n");
+    output.push_str("    pub strict: Option<bool>,\n");
 
     output.push_str("}\n");
     output

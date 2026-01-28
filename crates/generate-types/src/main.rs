@@ -103,12 +103,12 @@ fn generate_anthropic_types() {
         }
     };
 
-    println!("🔍 Parsing JSON OpenAPI spec...");
+    println!("🔍 Parsing YAML OpenAPI spec...");
 
-    let schema: serde_json::Value = match serde_json::from_str(&anthropic_spec) {
+    let schema: serde_json::Value = match serde_yaml::from_str(&anthropic_spec) {
         Ok(value) => value,
         Err(e) => {
-            println!("❌ Failed to parse Anthropic OpenAPI spec as JSON: {}", e);
+            println!("❌ Failed to parse Anthropic OpenAPI spec as YAML: {}", e);
             return;
         }
     };
@@ -424,9 +424,9 @@ fn extract_type_name_from_ref(ref_str: &str) -> Option<String> {
 fn generate_anthropic_specific_types(anthropic_spec: &str) {
     println!("🏗️  Using quicktype for Anthropic type generation...");
 
-    // Extract Anthropic OpenAPI spec
+    // Extract Anthropic OpenAPI spec (YAML format from Stainless)
     let full_spec: serde_json::Value =
-        serde_json::from_str(anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
+        serde_yaml::from_str(anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
 
     // Generate types using quicktype approach
     match generate_anthropic_types_with_quicktype(
@@ -545,8 +545,11 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         .and_then(|s| s.as_object())
         .unwrap_or(&default_map);
 
-    // Step 1: Analyze endpoints to identify request vs response schemas
-    let (request_schemas, response_schemas) = analyze_anthropic_endpoints(spec);
+    // Use stable schemas (not Beta) - Beta schemas introduce breaking structural changes
+    // (new required fields on content blocks). Beta-only fields like `strict` are added
+    // manually to tool structs in tool_generator.rs instead.
+    let request_schemas = vec!["CreateMessageParams".to_string()];
+    let response_schemas = vec!["Message".to_string()];
 
     println!(
         "🔍 Identified {} request schemas, {} response schemas",
@@ -556,7 +559,7 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
 
     let mut separated_schemas = serde_json::Map::new();
 
-    // Step 2: Recursively add all dependencies for the original schemas.
+    // Recursively add all dependencies for the schemas.
     // Tool schemas will be pulled in automatically via $ref links from CreateMessageParams.
     for schema_name in &request_schemas {
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
@@ -565,7 +568,7 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
 
-    // Step 3: Now clean the main request/response schemas to remove conflicting fields
+    // Clean the main request/response schemas to remove conflicting fields
     for schema_name in &request_schemas {
         if let Some(schema) = separated_schemas.get(schema_name) {
             let cleaned_schema = remove_response_fields_from_schema(schema);
@@ -581,7 +584,6 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
     }
 
     // Step 5: Create root schema with separated types
-    // Use a different approach: create separate top-level object types to avoid merging
     let root_schema = serde_json::json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -605,66 +607,6 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
     });
 
     root_schema
-}
-
-fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
-    let mut request_schemas = Vec::new();
-    let mut response_schemas = Vec::new();
-
-    // Analyze the /v1/messages endpoint
-    if let Some(paths) = spec.get("paths") {
-        if let Some(messages_path) = paths.get("/v1/messages") {
-            if let Some(post_op) = messages_path.get("post") {
-                // Extract request schema from requestBody
-                if let Some(request_body) = post_op.get("requestBody") {
-                    if let Some(content) = request_body.get("content") {
-                        if let Some(json_content) = content.get("application/json") {
-                            if let Some(schema) = json_content.get("schema") {
-                                if let Some(schema_ref) = schema.get("$ref") {
-                                    if let Some(schema_name) = extract_schema_name_from_ref(
-                                        schema_ref.as_str().unwrap_or(""),
-                                    ) {
-                                        request_schemas.push(schema_name);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Extract response schemas from responses
-                if let Some(responses) = post_op.get("responses") {
-                    if let Some(success_response) = responses.get("200") {
-                        if let Some(content) = success_response.get("content") {
-                            if let Some(json_content) = content.get("application/json") {
-                                if let Some(schema) = json_content.get("schema") {
-                                    if let Some(schema_ref) = schema.get("$ref") {
-                                        if let Some(schema_name) = extract_schema_name_from_ref(
-                                            schema_ref.as_str().unwrap_or(""),
-                                        ) {
-                                            response_schemas.push(schema_name);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    println!("🔍 Found request schemas: {:?}", request_schemas);
-    println!("🔍 Found response schemas: {:?}", response_schemas);
-
-    (request_schemas, response_schemas)
-}
-
-fn extract_schema_name_from_ref(ref_str: &str) -> Option<String> {
-    // Extract schema name from "#/components/schemas/CreateMessageParams"
-    ref_str
-        .rfind('/')
-        .map(|last_slash| ref_str[last_slash + 1..].to_string())
 }
 
 fn remove_response_fields_from_schema(schema: &serde_json::Value) -> serde_json::Value {

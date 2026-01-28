@@ -31,7 +31,7 @@ OpenAPI Spec Download → Automated Type Generation → Build Integration → Va
 
 **Spec sources**:
 - **OpenAI**: `https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml` → `specs/openai/openapi.yml`
-- **Anthropic**: `https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json` → `specs/anthropic/openapi.json`
+- **Anthropic**: `https://app.stainless.com/api/spec/documented/anthropic/openapi.documented.yml` → `specs/anthropic/openapi.yml`
 
 **What this provides**:
 - Official API specification (always up-to-date)
