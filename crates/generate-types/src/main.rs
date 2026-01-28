@@ -609,66 +609,6 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
     root_schema
 }
 
-fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
-    let mut request_schemas = Vec::new();
-    let mut response_schemas = Vec::new();
-
-    // Analyze the /v1/messages endpoint
-    if let Some(paths) = spec.get("paths") {
-        if let Some(messages_path) = paths.get("/v1/messages") {
-            if let Some(post_op) = messages_path.get("post") {
-                // Extract request schema from requestBody
-                if let Some(request_body) = post_op.get("requestBody") {
-                    if let Some(content) = request_body.get("content") {
-                        if let Some(json_content) = content.get("application/json") {
-                            if let Some(schema) = json_content.get("schema") {
-                                if let Some(schema_ref) = schema.get("$ref") {
-                                    if let Some(schema_name) = extract_schema_name_from_ref(
-                                        schema_ref.as_str().unwrap_or(""),
-                                    ) {
-                                        request_schemas.push(schema_name);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Extract response schemas from responses
-                if let Some(responses) = post_op.get("responses") {
-                    if let Some(success_response) = responses.get("200") {
-                        if let Some(content) = success_response.get("content") {
-                            if let Some(json_content) = content.get("application/json") {
-                                if let Some(schema) = json_content.get("schema") {
-                                    if let Some(schema_ref) = schema.get("$ref") {
-                                        if let Some(schema_name) = extract_schema_name_from_ref(
-                                            schema_ref.as_str().unwrap_or(""),
-                                        ) {
-                                            response_schemas.push(schema_name);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    println!("🔍 Found request schemas: {:?}", request_schemas);
-    println!("🔍 Found response schemas: {:?}", response_schemas);
-
-    (request_schemas, response_schemas)
-}
-
-fn extract_schema_name_from_ref(ref_str: &str) -> Option<String> {
-    // Extract schema name from "#/components/schemas/CreateMessageParams"
-    ref_str
-        .rfind('/')
-        .map(|last_slash| ref_str[last_slash + 1..].to_string())
-}
-
 fn remove_response_fields_from_schema(schema: &serde_json::Value) -> serde_json::Value {
     let mut cleaned_schema = schema.clone();
 
