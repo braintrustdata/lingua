@@ -25,6 +25,7 @@ any provider format. It distinguishes between:
 */
 
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::error::ConvertError;
 use crate::serde_json::{json, Map, Value};
@@ -37,7 +38,8 @@ use crate::serde_json::{json, Map, Value};
 ///
 /// This provides a typed representation that normalizes the different tool formats
 /// across providers (Anthropic, OpenAI Chat, OpenAI Responses API, etc.).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct UniversalTool {
     /// Tool name (required for all tool types)
     pub name: String,
@@ -48,6 +50,7 @@ pub struct UniversalTool {
 
     /// Parameters/input schema (JSON Schema)
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "Record<string, unknown> | null")]
     pub parameters: Option<Value>,
 
     /// Whether to enforce strict schema validation (OpenAI Responses API)
@@ -60,7 +63,8 @@ pub struct UniversalTool {
 }
 
 /// Classification of tool types.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export)]
 #[serde(tag = "kind")]
 pub enum UniversalToolType {
     /// User-defined function tool (works across all providers)
@@ -77,6 +81,7 @@ pub enum UniversalToolType {
         builtin_type: String,
         /// Provider-specific configuration
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(type = "Record<string, unknown> | null")]
         config: Option<Value>,
     },
 }
