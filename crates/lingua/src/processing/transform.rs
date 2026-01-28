@@ -62,7 +62,9 @@ impl TransformError {
     /// Returns true if this is a client-side error (user's fault).
     ///
     /// Client errors indicate invalid input or unsupported configurations
-    /// that the user should fix in their request.
+    /// that the user should fix in their request. This includes conversion
+    /// failures which typically mean the user tried to use features that
+    /// the target provider doesn't support.
     pub fn is_client_error(&self) -> bool {
         matches!(
             self,
@@ -71,6 +73,8 @@ impl TransformError {
                 | TransformError::DeserializationFailed(_)
                 | TransformError::UnsupportedTargetFormat(_)
                 | TransformError::UnsupportedSourceFormat(_)
+                | TransformError::ToUniversalFailed(_)
+                | TransformError::FromUniversalFailed(_)
         )
     }
 }

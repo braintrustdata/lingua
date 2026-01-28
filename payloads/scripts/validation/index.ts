@@ -1,22 +1,14 @@
-// Core validation library - runValidation()
-
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { compareResponses, DiffResult, hasOnlyMinorDiffs } from "./diff-utils";
-
-// Import executors
 import { openaiExecutor } from "../providers/openai";
 import { openaiResponsesExecutor } from "../providers/openai-responses";
 import { anthropicExecutor } from "../providers/anthropic";
-
-// Import test cases from code
 import {
   allTestCases,
   getCaseNames,
   getCaseForProvider,
-  getFullTestCase,
   caseCollections,
-  TestExpectation,
 } from "../../cases";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -24,8 +16,13 @@ import {
   GOOGLE_MODEL,
   BEDROCK_MODEL,
 } from "../../cases/models";
+import {
+  proxyCases,
+  getProxyCaseNames,
+  ProxyTestExpectation,
+} from "../../proxy";
 
-// Simplified executor interface for the registry (relaxes generic constraints)
+// Relaxes generic constraints for heterogeneous executor types
 interface ExecutorEntry {
   name: string;
   cases: Record<string, unknown>;
@@ -42,15 +39,12 @@ interface ExecutorEntry {
   ignoredFields?: string[];
 }
 
-// Format registry - maps format names to executors
-// Type assertions are necessary for heterogeneous executor types in the registry
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- heterogeneous executor types */
 const formatRegistry: Record<string, ExecutorEntry> = {
   "chat-completions": openaiExecutor as ExecutorEntry,
   responses: openaiResponsesExecutor as ExecutorEntry,
   anthropic: anthropicExecutor as ExecutorEntry,
 };
-/* eslint-enable @typescript-eslint/consistent-type-assertions */
 
 /**
  * Type guard to check if value is a record with string keys.
@@ -81,7 +75,7 @@ function getPath(obj: unknown, path: string): unknown {
  * Returns null if all expectations pass, or an error message if any fail.
  */
 function validateExpectations(
-  expect: TestExpectation,
+  expect: ProxyTestExpectation,
   response: unknown,
   httpStatus?: number
 ): string | null {
@@ -207,6 +201,26 @@ function loadSnapshotFile<T>(
 // Default cases to run (fast + representative)
 const DEFAULT_CASES = ["simpleRequest", "toolCallRequest", "reasoningRequest"];
 
+// Batch size for parallel promise execution
+const BATCH_SIZE = 10;
+
+/**
+ * Process an array in batches, running each batch in parallel.
+ */
+async function processBatches<T, R>(
+  items: T[],
+  batchSize: number,
+  processor: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map(processor));
+    results.push(...batchResults);
+  }
+  return results;
+}
+
 // Provider registry - maps provider aliases to actual model names (uses canonical models.ts)
 const PROVIDER_REGISTRY: Record<string, string> = {
   openai: OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -277,13 +291,26 @@ export async function runValidation(
       continue;
     }
 
-    // Get cases to run
-    const availableCases = getAvailableCases(format);
+    // Get cases to run (snapshot cases + proxy cases)
+    const availableSnapshotCases = getAvailableCases(format);
+    const availableProxyCases = getProxyCaseNames().filter((name) => {
+      const proxyCase = proxyCases[name];
+      return proxyCase && proxyCase.format === format;
+    });
+    const availableCases = [
+      ...availableSnapshotCases,
+      ...availableProxyCases.filter((c) => !availableSnapshotCases.includes(c)),
+    ];
+
     let caseNames: string[];
     if (options.cases) {
       // User specified explicit cases or collection names - expand collections
+      const allCollections: Record<string, string[]> = {
+        ...caseCollections,
+        proxy: getProxyCaseNames(),
+      };
       const expandedCases = options.cases.flatMap(
-        (c) => caseCollections[c] ?? [c]
+        (c) => allCollections[c] ?? [c]
       );
       caseNames = expandedCases.filter((c) => availableCases.includes(c));
     } else if (options.all) {
@@ -308,205 +335,206 @@ export async function runValidation(
       }
     }
 
-    const caseResults = await Promise.all(
-      testCombinations.map(
-        async ({ caseName, providerAlias }): Promise<ValidationResult> => {
-          const start = Date.now();
+    const caseResults = await processBatches(
+      testCombinations,
+      BATCH_SIZE,
+      async ({ caseName, providerAlias }): Promise<ValidationResult> => {
+        const start = Date.now();
 
-          // Resolve model name from provider alias
-          const modelName =
-            providerAlias === "default"
-              ? "default"
-              : (PROVIDER_REGISTRY[providerAlias] ?? providerAlias);
+        // Resolve model name from provider alias
+        const modelName =
+          providerAlias === "default"
+            ? "default"
+            : (PROVIDER_REGISTRY[providerAlias] ?? providerAlias);
 
-          try {
-            // Get request from cases definitions (single source of truth)
-            const caseRequest = getCaseForProvider(
-              allTestCases,
-              caseName,
-              // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- format is a string key
-              format as
-                | "chat-completions"
-                | "responses"
-                | "anthropic"
-                | "google"
-                | "bedrock"
-            );
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Need to type the request for model override
-            let request = caseRequest as Record<string, unknown> | null;
-            // Load expected response from snapshots for comparison
-            const snapshotFilename = options.stream
-              ? "response-streaming.json"
-              : "response.json";
-            const expectedResponse = loadSnapshotFile(
-              caseName,
-              format,
-              snapshotFilename
-            );
+        try {
+          // Check if this is a proxy test case first (expectation-based validation)
+          const proxyCase = proxyCases[caseName];
+          const isProxyCase = proxyCase && proxyCase.format === format;
 
-            if (!request) {
-              const result: ValidationResult = {
-                format,
-                caseName,
-                model: modelName,
-                success: false,
-                durationMs: Date.now() - start,
-                error: `Case ${caseName} not found for format ${format}`,
-              };
-              options.onResult?.(result);
-              return result;
-            }
-
-            // Check if this is an expectation-based test
-            const fullTestCase = getFullTestCase(allTestCases, caseName);
-            const expectations = fullTestCase?.expect;
-
-            // For expectation-based tests, use direct HTTP request to get status codes
-            if (expectations) {
-              const endpoint =
-                format === "chat-completions"
-                  ? "/v1/chat/completions"
-                  : "/v1/responses";
-              const fetchResponse = await fetch(
-                `${options.proxyUrl}${endpoint}`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    ...(options.apiKey
-                      ? { Authorization: `Bearer ${options.apiKey}` }
-                      : {}),
-                  },
-                  body: JSON.stringify(request),
-                }
-              );
-
-              const httpStatus = fetchResponse.status;
-              let responseBody: unknown;
-              try {
-                responseBody = await fetchResponse.json();
-              } catch {
-                responseBody = { error: "Failed to parse response JSON" };
+          // For proxy test cases, use direct HTTP validation with expectations
+          if (isProxyCase) {
+            const expectations = proxyCase.expect;
+            const endpoint =
+              format === "chat-completions"
+                ? "/v1/chat/completions"
+                : "/v1/responses";
+            const fetchResponse = await fetch(
+              `${options.proxyUrl}${endpoint}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...(options.apiKey
+                    ? { Authorization: `Bearer ${options.apiKey}` }
+                    : {}),
+                },
+                body: JSON.stringify(proxyCase.request),
               }
-
-              const validationError = validateExpectations(
-                expectations,
-                responseBody,
-                httpStatus
-              );
-
-              const result: ValidationResult = {
-                format,
-                caseName,
-                model: modelName,
-                success: validationError === null,
-                durationMs: Date.now() - start,
-                error: validationError ?? undefined,
-                actualResponse: options.verbose ? responseBody : undefined,
-              };
-              options.onResult?.(result);
-              return result;
-            }
-
-            // Standard snapshot-based validation
-            if (!expectedResponse) {
-              const result: ValidationResult = {
-                format,
-                caseName,
-                model: modelName,
-                success: false,
-                durationMs: Date.now() - start,
-                error: `Missing ${snapshotFilename} for ${caseName}/${format}`,
-              };
-              options.onResult?.(result);
-              return result;
-            }
-
-            // Override model only for cross-provider testing
-            // OpenAI formats (chat-completions, responses) with non-OpenAI providers
-            if (
-              providerAlias !== "default" &&
-              providerAlias !== "openai" && // Don't override for OpenAI - tests have correct models
-              PROVIDER_REGISTRY[providerAlias]
-            ) {
-              const isOpenAIFormat =
-                format === "chat-completions" || format === "responses";
-              if (isOpenAIFormat) {
-                // Override for cross-provider translation testing
-                request = {
-                  ...request,
-                  model: PROVIDER_REGISTRY[providerAlias],
-                };
-              }
-            }
-
-            // Execute through proxy
-            const actual = await executor.execute(caseName, request, {
-              stream: options.stream,
-              baseURL: options.proxyUrl,
-              apiKey: options.apiKey,
-            });
-
-            if (actual.error) {
-              const result: ValidationResult = {
-                format,
-                caseName,
-                model: modelName,
-                success: false,
-                durationMs: Date.now() - start,
-                error: actual.error,
-              };
-              options.onResult?.(result);
-              return result;
-            }
-
-            // Compare response (use streamingResponse array when streaming)
-            const actualResponse = options.stream
-              ? actual.streamingResponse
-              : actual.response;
-
-            // Extract actual model from response (fallback to registry-based name)
-            const actualModel =
-              extractModelFromResponse(actualResponse, options.stream) ??
-              modelName;
-
-            const diff = compareResponses(
-              expectedResponse,
-              actualResponse,
-              executor.ignoredFields ?? []
             );
 
-            // Determine success/warning state:
-            // - success=true, warning=undefined: perfect match (no diffs)
-            // - success=true, warning=true: only minor diffs (logprobs, tool args)
-            // - success=false: major diffs or errors
-            const onlyMinorDiffs = hasOnlyMinorDiffs(diff);
+            const httpStatus = fetchResponse.status;
+            let responseBody: unknown;
+            try {
+              responseBody = await fetchResponse.json();
+            } catch {
+              responseBody = { error: "Failed to parse response JSON" };
+            }
+
+            const validationError = validateExpectations(
+              expectations,
+              responseBody,
+              httpStatus
+            );
+
             const result: ValidationResult = {
               format,
               caseName,
-              model: actualModel,
-              success: diff.match || onlyMinorDiffs,
-              warning: onlyMinorDiffs ? true : undefined,
+              model: modelName,
+              success: validationError === null,
               durationMs: Date.now() - start,
-              diff: diff.match ? undefined : diff, // Include diff for warnings too
-              actualResponse: options.verbose ? actualResponse : undefined,
+              error: validationError ?? undefined,
+              actualResponse: options.verbose ? responseBody : undefined,
             };
             options.onResult?.(result);
             return result;
-          } catch (error) {
+          }
+
+          // Standard snapshot-based validation - get request from cases definitions
+          const caseRequest = getCaseForProvider(
+            allTestCases,
+            caseName,
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- format is a string key
+            format as
+              | "chat-completions"
+              | "responses"
+              | "anthropic"
+              | "google"
+              | "bedrock"
+          );
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Need to type the request for model override
+          let request = caseRequest as Record<string, unknown> | null;
+
+          if (!request) {
             const result: ValidationResult = {
               format,
               caseName,
               model: modelName,
               success: false,
               durationMs: Date.now() - start,
-              error: String(error),
+              error: `Case ${caseName} not found for format ${format}`,
             };
             options.onResult?.(result);
             return result;
           }
+
+          // Load expected response from snapshots for comparison
+          const snapshotFilename = options.stream
+            ? "response-streaming.json"
+            : "response.json";
+          const expectedResponse = loadSnapshotFile(
+            caseName,
+            format,
+            snapshotFilename
+          );
+
+          if (!expectedResponse) {
+            const result: ValidationResult = {
+              format,
+              caseName,
+              model: modelName,
+              success: false,
+              durationMs: Date.now() - start,
+              error: `Missing ${snapshotFilename} for ${caseName}/${format}`,
+            };
+            options.onResult?.(result);
+            return result;
+          }
+
+          // Override model only for cross-provider testing
+          // OpenAI formats (chat-completions, responses) with non-OpenAI providers
+          if (
+            providerAlias !== "default" &&
+            providerAlias !== "openai" && // Don't override for OpenAI - tests have correct models
+            PROVIDER_REGISTRY[providerAlias]
+          ) {
+            const isOpenAIFormat =
+              format === "chat-completions" || format === "responses";
+            if (isOpenAIFormat) {
+              // Override for cross-provider translation testing
+              request = {
+                ...request,
+                model: PROVIDER_REGISTRY[providerAlias],
+              };
+            }
+          }
+
+          // Execute through proxy
+          const actual = await executor.execute(caseName, request, {
+            stream: options.stream,
+            baseURL: options.proxyUrl,
+            apiKey: options.apiKey,
+          });
+
+          if (actual.error) {
+            const result: ValidationResult = {
+              format,
+              caseName,
+              model: modelName,
+              success: false,
+              durationMs: Date.now() - start,
+              error: actual.error,
+            };
+            options.onResult?.(result);
+            return result;
+          }
+
+          // Compare response (use streamingResponse array when streaming)
+          const actualResponse = options.stream
+            ? actual.streamingResponse
+            : actual.response;
+
+          // Extract actual model from response (fallback to registry-based name)
+          const actualModel =
+            extractModelFromResponse(actualResponse, options.stream) ??
+            modelName;
+
+          const diff = compareResponses(
+            expectedResponse,
+            actualResponse,
+            executor.ignoredFields ?? []
+          );
+
+          // Determine success/warning state:
+          // - success=true, warning=undefined: perfect match (no diffs)
+          // - success=true, warning=true: only minor diffs (logprobs, tool args)
+          // - success=false: major diffs or errors
+          const onlyMinorDiffs = hasOnlyMinorDiffs(diff);
+          const result: ValidationResult = {
+            format,
+            caseName,
+            model: actualModel,
+            success: diff.match || onlyMinorDiffs,
+            warning: onlyMinorDiffs ? true : undefined,
+            durationMs: Date.now() - start,
+            diff: diff.match ? undefined : diff, // Include diff for warnings too
+            actualResponse: options.verbose ? actualResponse : undefined,
+          };
+          options.onResult?.(result);
+          return result;
+        } catch (error) {
+          const result: ValidationResult = {
+            format,
+            caseName,
+            model: modelName,
+            success: false,
+            durationMs: Date.now() - start,
+            error: String(error),
+          };
+          options.onResult?.(result);
+          return result;
         }
-      )
+      }
     );
 
     results.push(...caseResults);

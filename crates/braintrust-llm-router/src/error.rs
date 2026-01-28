@@ -170,10 +170,12 @@ mod tests {
         assert!(TransformError::UnsupportedTargetFormat(ProviderFormat::OpenAI).is_client_error());
         assert!(TransformError::UnsupportedSourceFormat(ProviderFormat::OpenAI).is_client_error());
 
-        // Server errors
+        // Conversion errors are client errors (user sent unsupported content)
+        assert!(TransformError::FromUniversalFailed("test".into()).is_client_error());
+        assert!(TransformError::ToUniversalFailed("test".into()).is_client_error());
+
+        // Server errors (internal issues)
         assert!(!TransformError::SerializationFailed("test".into()).is_client_error());
-        assert!(!TransformError::FromUniversalFailed("test".into()).is_client_error());
-        assert!(!TransformError::ToUniversalFailed("test".into()).is_client_error());
         assert!(!TransformError::StreamingNotImplemented("test".into()).is_client_error());
     }
 

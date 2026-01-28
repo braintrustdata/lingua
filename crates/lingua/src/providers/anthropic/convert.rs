@@ -6,6 +6,7 @@ use crate::universal::{
     TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
     UserContentPart,
 };
+use crate::util::media::parse_base64_data_url;
 
 impl TryFromLLM<generated::InputMessage> for Message {
     type Error = ConvertError;
@@ -406,6 +407,43 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         let is_url = image_data.starts_with("http://")
                                             || image_data.starts_with("https://");
 
+                                        // Handle text content types - decode to text block instead of document
+                                        // Anthropic's Document block only accepts PDFs, not text files
+                                        if !is_url {
+                                            if let Some(mt) = &media_type {
+                                                if mt.starts_with("text/") {
+                                                    // Parse data URL and decode base64 to text
+                                                    if let Some(media_block) = parse_base64_data_url(&image_data) {
+                                                        use base64::Engine;
+                                                        if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(&media_block.data) {
+                                                            if let Ok(text) = String::from_utf8(bytes) {
+                                                                return Some(generated::InputContentBlock {
+                                                                    cache_control: None,
+                                                                    citations: None,
+                                                                    text: Some(text),
+                                                                    input_content_block_type: generated::InputContentBlockType::Text,
+                                                                    source: None,
+                                                                    context: None,
+                                                                    title: None,
+                                                                    content: None,
+                                                                    signature: None,
+                                                                    thinking: None,
+                                                                    data: None,
+                                                                    id: None,
+                                                                    input: None,
+                                                                    name: None,
+                                                                    is_error: None,
+                                                                    tool_use_id: None,
+                                                                });
+                                                            }
+                                                        }
+                                                    }
+                                                    // Skip if can't decode text
+                                                    return None;
+                                                }
+                                            }
+                                        }
+
                                         let (source_type, source_url, source_data, anthropic_media_type) = if is_url {
                                             (
                                                 generated::FluffyType::Url,
@@ -414,7 +452,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                 None,
                                             )
                                         } else {
-                                            // Base64 data - parse media_type
+                                            // Base64 data - parse media_type (images and PDFs only)
                                             let anthropic_media_type =
                                                 media_type.as_ref().and_then(|mt| match mt.as_str() {
                                                     "image/jpeg" => {
@@ -432,9 +470,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                     "application/pdf" => {
                                                         Some(generated::FluffyMediaType::ApplicationPdf)
                                                     }
-                                                    "text/plain" => {
-                                                        Some(generated::FluffyMediaType::TextPlain)
-                                                    }
+                                                    // Text types are handled above, shouldn't reach here
                                                     _ => None,
                                                 });
                                             (
@@ -445,12 +481,19 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             )
                                         };
 
+                                        // Block type: only PDF uses Document, everything else is Image
+                                        let block_type = match anthropic_media_type {
+                                            Some(generated::FluffyMediaType::ApplicationPdf) => {
+                                                generated::InputContentBlockType::Document
+                                            }
+                                            _ => generated::InputContentBlockType::Image,
+                                        };
+
                                         Some(generated::InputContentBlock {
                                             cache_control: None,
                                             citations: None,
                                             text: None,
-                                            input_content_block_type:
-                                                generated::InputContentBlockType::Image,
+                                            input_content_block_type: block_type,
                                             source: Some(generated::Source::SourceSource(
                                                 generated::SourceSource {
                                                     data: source_data,

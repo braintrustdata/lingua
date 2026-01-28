@@ -29,6 +29,8 @@ use crate::providers::openai::try_parse_openai;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
+use crate::universal::reasoning::effort_to_budget;
+use crate::universal::request::{ReasoningConfig, ReasoningEffort};
 use crate::universal::tools::{tools_to_openai_chat_value, UniversalTool};
 use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
@@ -89,10 +91,14 @@ impl ProviderAdapter for OpenAIAdapter {
             .max_tokens
             .or(typed_params.max_completion_tokens);
 
-        // Convert reasoning effort to ReasoningConfig, computing budget_tokens with max_tokens context
-        let reasoning = typed_params
-            .reasoning_effort
-            .map(|effort| (effort, max_tokens).into());
+        // Build ReasoningConfig from all reasoning-related fields
+        // Priority: reasoning_enabled: false takes precedence, then reasoning_budget, then reasoning_effort
+        let reasoning = build_reasoning_config(
+            typed_params.reasoning_enabled,
+            typed_params.reasoning_budget,
+            typed_params.reasoning_effort,
+            max_tokens,
+        );
 
         // Build canonical params from typed fields
         let mut params = UniversalParams {
@@ -508,6 +514,61 @@ impl ProviderAdapter for OpenAIAdapter {
 
         Ok(Value::Object(map))
     }
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+use crate::providers::openai::generated::ReasoningEffort as OpenAIReasoningEffort;
+
+/// Build ReasoningConfig from OpenAI reasoning-related fields.
+///
+/// Priority:
+/// - `reasoning_enabled: false` OR `reasoning_budget: 0` → disabled
+/// - `reasoning_budget: N` (N > 0) → enabled with explicit budget
+/// - `reasoning_effort` → enabled with computed budget from effort level
+/// - `reasoning_enabled: true` (without budget/effort) → enabled with default
+fn build_reasoning_config(
+    reasoning_enabled: Option<bool>,
+    reasoning_budget: Option<i64>,
+    reasoning_effort: Option<OpenAIReasoningEffort>,
+    max_tokens: Option<i64>,
+) -> Option<ReasoningConfig> {
+    // Check if any reasoning field is set
+    if reasoning_enabled.is_none() && reasoning_budget.is_none() && reasoning_effort.is_none() {
+        return None;
+    }
+
+    // Determine if reasoning is disabled
+    // reasoning_enabled: false OR reasoning_budget: 0 means disabled
+    let is_disabled = reasoning_enabled == Some(false) || reasoning_budget == Some(0);
+
+    if is_disabled {
+        return Some(ReasoningConfig {
+            enabled: Some(false),
+            budget_tokens: None,
+            ..Default::default()
+        });
+    }
+
+    // Calculate budget_tokens: reasoning_budget takes precedence over reasoning_effort
+    let budget_tokens = reasoning_budget.or_else(|| {
+        reasoning_effort.map(|effort| {
+            let universal_effort = match effort {
+                OpenAIReasoningEffort::Low | OpenAIReasoningEffort::Minimal => ReasoningEffort::Low,
+                OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
+                OpenAIReasoningEffort::High => ReasoningEffort::High,
+            };
+            effort_to_budget(universal_effort, max_tokens)
+        })
+    });
+
+    Some(ReasoningConfig {
+        enabled: Some(true),
+        budget_tokens,
+        ..Default::default()
+    })
 }
 
 // =============================================================================
@@ -1046,5 +1107,134 @@ mod tests {
             },
             _ => panic!("Expected Assistant message, got {:?}", msg),
         }
+    }
+
+    // =========================================================================
+    // Braintrust reasoning extension tests
+    // =========================================================================
+
+    #[test]
+    fn test_build_reasoning_config_disabled() {
+        // reasoning_enabled: false should result in disabled
+        let config = build_reasoning_config(Some(false), None, None, None);
+        assert!(config.is_some());
+        let config = config.unwrap();
+        assert_eq!(config.enabled, Some(false));
+    }
+
+    #[test]
+    fn test_build_reasoning_config_budget_zero_disabled() {
+        // reasoning_budget: 0 should result in disabled
+        let config = build_reasoning_config(None, Some(0), None, None);
+        assert!(config.is_some());
+        let config = config.unwrap();
+        assert_eq!(config.enabled, Some(false));
+    }
+
+    #[test]
+    fn test_build_reasoning_config_budget_positive() {
+        // reasoning_budget: 2000 should result in enabled with explicit budget
+        let config = build_reasoning_config(None, Some(2000), None, None);
+        assert!(config.is_some());
+        let config = config.unwrap();
+        assert_eq!(config.enabled, Some(true));
+        assert_eq!(config.budget_tokens, Some(2000));
+    }
+
+    #[test]
+    fn test_build_reasoning_config_effort_only() {
+        // reasoning_effort: high should result in enabled with computed budget
+        let config =
+            build_reasoning_config(None, None, Some(OpenAIReasoningEffort::High), Some(4096));
+        assert!(config.is_some());
+        let config = config.unwrap();
+        assert_eq!(config.enabled, Some(true));
+        assert_eq!(config.budget_tokens, Some(3072)); // 75% of 4096
+    }
+
+    #[test]
+    fn test_build_reasoning_config_budget_overrides_effort() {
+        // reasoning_budget should take precedence over reasoning_effort
+        let config = build_reasoning_config(
+            None,
+            Some(5000),
+            Some(OpenAIReasoningEffort::Low),
+            Some(4096),
+        );
+        assert!(config.is_some());
+        let config = config.unwrap();
+        assert_eq!(config.enabled, Some(true));
+        assert_eq!(config.budget_tokens, Some(5000)); // Not the computed effort budget
+    }
+
+    #[test]
+    fn test_build_reasoning_config_enabled_true_budget_zero_disabled() {
+        // reasoning_enabled: true with reasoning_budget: 0 should still be disabled
+        // (budget: 0 takes precedence)
+        let config = build_reasoning_config(Some(true), Some(0), None, None);
+        assert!(config.is_some());
+        let config = config.unwrap();
+        assert_eq!(config.enabled, Some(false));
+    }
+
+    #[test]
+    fn test_build_reasoning_config_none() {
+        // No reasoning fields should result in None
+        let config = build_reasoning_config(None, None, None, None);
+        assert!(config.is_none());
+    }
+
+    #[test]
+    fn test_openai_reasoning_enabled_false_to_anthropic() {
+        // Full integration test: OpenAI request with reasoning_enabled: false
+        // should produce Anthropic { type: "disabled" }
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "model": "claude-3-7-sonnet-20250219",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "reasoning_enabled": false,
+            "max_tokens": 100
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+
+        // Verify ReasoningConfig has enabled: false
+        assert!(universal.params.reasoning.is_some());
+        let reasoning = universal.params.reasoning.as_ref().unwrap();
+        assert_eq!(reasoning.enabled, Some(false));
+
+        // Verify the output for Anthropic
+        let anthropic_thinking = universal.params.reasoning_for(ProviderFormat::Anthropic);
+        assert!(anthropic_thinking.is_some());
+        let thinking = anthropic_thinking.unwrap();
+        assert_eq!(thinking.get("type").unwrap(), "disabled");
+    }
+
+    #[test]
+    fn test_openai_reasoning_budget_to_anthropic() {
+        // Full integration test: OpenAI request with reasoning_budget
+        // should produce Anthropic { type: "enabled", budget_tokens: N }
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "model": "claude-3-7-sonnet-20250219",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "reasoning_budget": 3000,
+            "max_tokens": 100
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+
+        // Verify ReasoningConfig
+        assert!(universal.params.reasoning.is_some());
+        let reasoning = universal.params.reasoning.as_ref().unwrap();
+        assert_eq!(reasoning.enabled, Some(true));
+        assert_eq!(reasoning.budget_tokens, Some(3000));
+
+        // Verify the output for Anthropic
+        let anthropic_thinking = universal.params.reasoning_for(ProviderFormat::Anthropic);
+        assert!(anthropic_thinking.is_some());
+        let thinking = anthropic_thinking.unwrap();
+        assert_eq!(thinking.get("type").unwrap(), "enabled");
+        assert_eq!(thinking.get("budget_tokens").unwrap(), 3000);
     }
 }

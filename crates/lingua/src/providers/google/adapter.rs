@@ -67,9 +67,11 @@ impl ProviderAdapter for GoogleAdapter {
             if let Some(config) = &typed_params.generation_config {
                 let max_tokens = config.max_output_tokens.map(|t| t as i64);
                 // Convert Google's thinkingConfig to ReasoningConfig
+                // thinkingBudget: 0 means disabled
                 let reasoning = config.thinking_config.as_ref().map(|tc| {
+                    let is_disabled = tc.thinking_budget == Some(0);
                     crate::universal::ReasoningConfig {
-                        enabled: tc.include_thoughts.or(Some(true)), // If thinking_config exists, it's enabled
+                        enabled: Some(!is_disabled),
                         budget_tokens: tc.thinking_budget.map(|b| b as i64),
                         ..Default::default()
                     }
