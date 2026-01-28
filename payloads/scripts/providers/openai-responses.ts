@@ -1,12 +1,18 @@
 import OpenAI from "openai";
 import { CaptureResult, ExecuteOptions, ProviderExecutor } from "../types";
-import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
+import {
+  allTestCases,
+  getCaseNames,
+  getCaseForProvider,
+  hasExpectation,
+} from "../../cases";
 import {
   ResponseInputItem,
   ResponseStreamEvent,
 } from "openai/resources/responses/responses";
 
 // OpenAI Responses API cases - extracted from unified cases
+// Skips cases with expectations (those are validated, not captured)
 export const openaiResponsesCases: Record<
   string,
   OpenAI.Responses.ResponseCreateParams
@@ -14,6 +20,10 @@ export const openaiResponsesCases: Record<
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
+  // Skip cases with expectations - they use validate.ts, not capture.ts
+  if (hasExpectation(allTestCases, caseName)) {
+    return;
+  }
   const caseData = getCaseForProvider(allTestCases, caseName, "responses");
   if (caseData) {
     openaiResponsesCases[caseName] = caseData;

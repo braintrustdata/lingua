@@ -283,6 +283,7 @@ pub struct InputContentBlock {
     pub cache_control: Option<CacheControlEphemeral>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Citations>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub input_content_block_type: InputContentBlockType,
@@ -323,6 +324,7 @@ pub struct CacheControlEphemeral {
     /// - `1h`: 1 hour
     ///
     /// Defaults to `5m`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ttl: Option<Ttl>,
     #[serde(rename = "type")]
     pub cache_control_ephemeral_type: CacheControlEphemeralType,
@@ -369,6 +371,7 @@ pub struct RequestLocationCitation {
     pub document_title: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub end_char_index: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
     pub request_location_citation_type: CitationType,
@@ -440,6 +443,7 @@ pub struct Block {
     pub cache_control: Option<CacheControlEphemeral>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Citations>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub block_type: WebSearchToolResultBlockItemType,
@@ -506,6 +510,7 @@ pub enum Source {
 pub struct SourceSource {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub media_type: Option<FluffyMediaType>,
     #[serde(rename = "type")]
     pub source_type: FluffyType,
@@ -534,6 +539,7 @@ pub struct ContentBlockSourceContentItem {
     pub cache_control: Option<CacheControlEphemeral>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Vec<RequestLocationCitation>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
@@ -554,6 +560,7 @@ pub enum ContentBlockSourceContentItemType {
 pub struct SourceSourceClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub media_type: Option<PurpleMediaType>,
     #[serde(rename = "type")]
     pub source_type: PurpleType,
@@ -731,6 +738,7 @@ pub struct Thinking {
     /// See [extended
     /// thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking) for
     /// details.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub budget_tokens: Option<i64>,
     #[serde(rename = "type")]
     pub thinking_type: ThinkingType,
@@ -764,6 +772,7 @@ pub struct ToolChoice {
     /// Whether to disable parallel tool use.
     ///
     /// Defaults to `false`. If set to `true`, the model will output exactly one tool use.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub disable_parallel_tool_use: Option<bool>,
     #[serde(rename = "type")]
     pub tool_choice_type: ToolChoiceType,
@@ -919,6 +928,7 @@ pub struct InputSchema {
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<serde_json::Map<String, serde_json::Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
     #[serde(rename = "type")]
     pub input_schema_type: InputSchemaType,
@@ -962,6 +972,7 @@ pub struct UserLocation {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub region: Option<String>,
     /// The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub timezone: Option<String>,
     #[serde(rename = "type")]
     pub user_location_type: UserLocationType,
@@ -1070,6 +1081,7 @@ pub struct ContentBlock {
     /// document results in `content_block_location`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<Vec<ResponseLocationCitation>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(rename = "type")]
     pub content_block_type: ContentBlockType,
@@ -1104,6 +1116,7 @@ pub struct ResponseLocationCitation {
     pub end_char_index: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
     pub response_location_citation_type: CitationType,

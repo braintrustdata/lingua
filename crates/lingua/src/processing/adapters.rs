@@ -17,14 +17,14 @@ use std::sync::LazyLock;
 use crate::capabilities::ProviderFormat;
 use crate::processing::transform::TransformError;
 use crate::serde_json::{Map, Number, Value};
-use crate::universal::{FinishReason, UniversalRequest, UniversalResponse, UniversalStreamChunk};
+use crate::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
 
 /// Trait for provider-specific request and response handling.
 ///
 /// Implementations handle:
 /// - Format detection for both requests and responses
 /// - Conversion to/from universal request/response format
-/// - Provider-specific defaults and finish reason mapping
+/// - Provider-specific defaults
 pub trait ProviderAdapter: Send + Sync {
     // =========================================================================
     // Metadata
@@ -59,12 +59,6 @@ pub trait ProviderAdapter: Send + Sync {
     /// This builds a complete request payload in the provider's format.
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError>;
 
-    /// Apply provider-specific defaults to a universal request.
-    ///
-    /// This is called after conversion but before building the final payload.
-    /// For example, Anthropic requires `max_tokens` to be set.
-    fn apply_defaults(&self, req: &mut UniversalRequest);
-
     // =========================================================================
     // Response handling
     // =========================================================================
@@ -82,13 +76,15 @@ pub trait ProviderAdapter: Send + Sync {
     /// This builds a complete response payload in the provider's format.
     fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError>;
 
-    /// Map a universal FinishReason to provider-specific string.
+    /// Apply provider-specific defaults to a universal request.
     ///
-    /// Each provider uses different strings for finish reasons:
-    /// - OpenAI: "stop", "length", "tool_calls", "content_filter"
-    /// - Anthropic: "end_turn", "max_tokens", "tool_use"
-    /// - Google: "STOP", "MAX_TOKENS"
-    fn map_finish_reason(&self, reason: Option<&FinishReason>) -> Option<String>;
+    /// This is called after conversion but before building the final payload.
+    /// For example, Anthropic requires `max_tokens` to be set.
+    ///
+    /// Default implementation is a no-op. Override if your provider requires specific defaults.
+    fn apply_defaults(&self, _req: &mut UniversalRequest) {
+        // Default: no-op - override if provider requires specific defaults
+    }
 
     // =========================================================================
     // Streaming response handling

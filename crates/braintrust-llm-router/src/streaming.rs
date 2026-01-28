@@ -59,7 +59,7 @@ pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -
                             // Pass through unrecognized formats
                             Some(Ok(bytes))
                         }
-                        Err(e) => Some(Err(Error::Lingua(e.to_string()))),
+                        Err(e) => Some(Err(Error::Lingua(e))),
                     }
                 }
                 Err(e) => Some(Err(e)),

@@ -11,9 +11,12 @@ pub mod capabilities;
 pub mod convert;
 pub mod detect;
 pub mod generated;
+pub mod params;
+pub mod responses_adapter;
 
 // Re-export adapters and transformations
-pub use adapter::{apply_target_transforms, OpenAIAdapter, OpenAITransformError, ResponsesAdapter};
+pub use adapter::{apply_target_transforms, OpenAIAdapter, OpenAITransformError};
+pub use responses_adapter::ResponsesAdapter;
 
 #[cfg(test)]
 pub mod test_responses;
@@ -24,8 +27,10 @@ pub mod test_chat_completions;
 // Re-export detection functions
 pub use detect::{try_parse_openai, try_parse_responses, DetectionError};
 
-// Re-export conversion functions
-pub use convert::universal_to_responses_input;
+// Re-export conversion functions and extension types
+pub use convert::{
+    universal_to_responses_input, ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
+};
 
 // Re-export generated types (official OpenAI API types from OpenAPI spec)
 pub use generated::{

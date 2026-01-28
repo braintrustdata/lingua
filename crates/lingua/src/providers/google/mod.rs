@@ -5,6 +5,7 @@ pub mod adapter;
 pub mod convert;
 pub mod detect;
 pub mod generated;
+pub mod params;
 
 // Re-export adapter
 pub use adapter::GoogleAdapter;

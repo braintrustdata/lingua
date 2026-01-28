@@ -47,3 +47,20 @@ export function mergeCollections(
     return { ...merged, ...collection };
   }, {});
 }
+
+// Helper to get the full test case (including expect field)
+export function getFullTestCase(
+  collection: TestCaseCollection,
+  caseName: string
+): TestCase | undefined {
+  return collection[caseName];
+}
+
+// Helper to check if a test case has expectations (should skip capture)
+export function hasExpectation(
+  collection: TestCaseCollection,
+  caseName: string
+): boolean {
+  const testCase = collection[caseName];
+  return testCase?.expect !== undefined;
+}

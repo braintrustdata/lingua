@@ -1,4 +1,5 @@
 use crate::providers::anthropic::generated as anthropic;
+use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::serde_json::Value;
@@ -82,12 +83,14 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     };
 
     // Try Chat Completions format (most common)
+    // Use extended type to capture reasoning field from vLLM/OpenRouter convention
     if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::ChatCompletionRequestMessage>>(data_to_parse.clone())
+        serde_json::from_value::<Vec<ChatCompletionRequestMessageExt>>(data_to_parse.clone())
     {
-        if let Ok(messages) = <Vec<Message> as TryFromLLM<
-            Vec<openai::ChatCompletionRequestMessage>,
-        >>::try_from(provider_messages)
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
+                provider_messages,
+            )
         {
             if !messages.is_empty() {
                 return messages;
