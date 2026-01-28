@@ -179,11 +179,18 @@ impl ProviderAdapter for BedrockAdapter {
         );
 
         // Check if reasoning/thinking is enabled (for temperature override)
+        // Note: thinking_config can be { type: "disabled" } or { type: "enabled", ... }
+        // Only override temperature when type is "enabled"
         let thinking_config = req.params.reasoning_for(ProviderFormat::Converse);
+        let reasoning_enabled = thinking_config
+            .as_ref()
+            .and_then(|v| v.get("type"))
+            .and_then(|t| t.as_str())
+            .is_some_and(|t| t == "enabled");
 
         // Build inferenceConfig if any params are set
         // Note: Claude on Bedrock requires temperature=1.0 when extended thinking is enabled
-        let temperature = if thinking_config.is_some() {
+        let temperature = if reasoning_enabled {
             Some(ANTHROPIC_THINKING_TEMPERATURE)
         } else {
             req.params.temperature

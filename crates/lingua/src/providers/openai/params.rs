@@ -53,6 +53,13 @@ pub struct OpenAIChatParams {
     // === Reasoning (o-series models) ===
     pub reasoning_effort: Option<ReasoningEffort>,
 
+    // === Reasoning (Braintrust proxy extensions) ===
+    /// Explicitly enable/disable reasoning (Braintrust proxy extension)
+    pub reasoning_enabled: Option<bool>,
+
+    /// Token budget for reasoning (Braintrust proxy extension)
+    pub reasoning_budget: Option<i64>,
+
     // === Metadata and identification ===
     pub metadata: Option<Value>,
     pub store: Option<bool>,

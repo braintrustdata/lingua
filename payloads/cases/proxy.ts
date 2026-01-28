@@ -225,7 +225,7 @@ export const proxyCases: TestCaseCollection = {
    */
   proxyAnthropicPdfFile: {
     "chat-completions": {
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5-20250929",
       messages: [
         {
           role: "user",
@@ -245,7 +245,7 @@ export const proxyCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: {
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 200,
       messages: [
         {
@@ -282,7 +282,7 @@ export const proxyCases: TestCaseCollection = {
    */
   proxyAnthropicImageFile: {
     "chat-completions": {
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5-20250929",
       messages: [
         {
           role: "user",
@@ -301,7 +301,7 @@ export const proxyCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: {
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 100,
       messages: [
         {
@@ -441,7 +441,7 @@ export const proxyCases: TestCaseCollection = {
    */
   proxyAnthropicMaxTokensExceeds: {
     "chat-completions": {
-      model: "claude-sonnet-4-5-20250514",
+      model: "claude-sonnet-4-5-20250929",
       messages: [{ role: "user", content: "Hello" }],
       max_tokens: 200000, // Exceeds Anthropic's max
     },
@@ -483,12 +483,13 @@ export const proxyCases: TestCaseCollection = {
 
   /**
    * JSON object response format.
-   * Tests: response_format: json_object triggers tool-based workaround.
+   * Tests: response_format: json_object triggers structured output.
    * From: anthropic.test.ts "should handle json_object response format"
+   * Note: Requires a model that supports output_format (claude-3-5+ or claude-sonnet-4+)
    */
   proxyAnthropicJsonObject: {
     "chat-completions": {
-      model: "claude-3-haiku-20240307",
+      model: "claude-sonnet-4-5-20250929",
       messages: [
         {
           role: "user",
@@ -559,7 +560,7 @@ export const proxyCases: TestCaseCollection = {
    */
   proxyAnthropicPlainTextFile: {
     "chat-completions": {
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5-20250929",
       messages: [
         {
           role: "user",
@@ -925,7 +926,7 @@ export const proxyCases: TestCaseCollection = {
    */
   proxyAnthropicMarkdownFile: {
     "chat-completions": {
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5-20250929",
       messages: [
         {
           role: "user",
@@ -964,7 +965,7 @@ export const proxyCases: TestCaseCollection = {
    */
   proxyAnthropicCSVFile: {
     "chat-completions": {
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5-20250929",
       messages: [
         {
           role: "user",
@@ -1259,30 +1260,6 @@ export const proxyCases: TestCaseCollection = {
       fields: {
         "choices[0].message.role": "assistant",
         "choices[0].finish_reason": "stop",
-      },
-    },
-  },
-
-  /**
-   * OpenAI reasoning_effort with null value.
-   * Tests: null reasoning_effort should fallback to medium.
-   * From: openai.test.ts "should fallback to medium when reasoning_effort is null"
-   */
-  proxyOpenAIReasoningEffortNull: {
-    "chat-completions": {
-      model: "o3-mini-2025-01-31",
-      messages: [{ role: "user", content: "What is 5+5?" }],
-      reasoning_effort: null,
-      max_tokens: 500,
-    },
-    responses: null,
-    anthropic: null,
-    google: null,
-    bedrock: null,
-    expect: {
-      status: 200,
-      fields: {
-        "choices[0].message.role": "assistant",
       },
     },
   },

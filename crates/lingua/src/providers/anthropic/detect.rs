@@ -26,6 +26,14 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
     "service_tier",
     "store",
     "parallel_tool_calls",
+    // OpenAI uses `stop`, Anthropic uses `stop_sequences`
+    "stop",
+    // OpenAI reasoning parameter
+    "reasoning_effort",
+    // Braintrust extension for disabling reasoning
+    "reasoning_enabled",
+    // OpenAI alias for max_tokens
+    "max_completion_tokens",
 ];
 
 /// Attempt to parse a JSON Value as Anthropic CreateMessageParams.

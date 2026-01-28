@@ -163,8 +163,14 @@ impl ProviderAdapter for AnthropicAdapter {
         obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
 
         // Check if reasoning/thinking is enabled (needed for temperature override)
+        // Note: thinking_val can be { type: "disabled" } or { type: "enabled", ... }
+        // Only override temperature when type is "enabled"
         let thinking_val = req.params.reasoning_for(ProviderFormat::Anthropic);
-        let reasoning_enabled = thinking_val.is_some();
+        let reasoning_enabled = thinking_val
+            .as_ref()
+            .and_then(|v| v.get("type"))
+            .and_then(|t| t.as_str())
+            .is_some_and(|t| t == "enabled");
 
         // Insert other params
         // Anthropic requires temperature=1.0 when extended thinking is enabled

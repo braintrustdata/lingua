@@ -364,33 +364,49 @@ fn to_openai_responses(config: &ReasoningConfig, max_tokens: Option<i64>) -> Opt
 }
 
 /// Convert ReasoningConfig to Anthropic `thinking` object.
+///
+/// Returns:
+/// - `Some({ type: "disabled" })` when explicitly disabled
+/// - `Some({ type: "enabled", budget_tokens: N })` when enabled
+/// - `None` when not specified (no thinking field)
 fn to_anthropic(config: &ReasoningConfig, _max_tokens: Option<i64>) -> Option<Value> {
-    if config.enabled != Some(true) {
-        return None;
+    match config.enabled {
+        // Explicitly disabled - return disabled payload
+        Some(false) => Some(json!({ "type": "disabled" })),
+        // Enabled - return enabled payload with budget
+        Some(true) => {
+            let budget = config.budget_tokens.unwrap_or(MIN_THINKING_BUDGET);
+            Some(json!({
+                "type": "enabled",
+                "budget_tokens": budget
+            }))
+        }
+        // Not specified - no thinking field
+        None => None,
     }
-
-    // Use budget_tokens or default minimum
-    let budget = config.budget_tokens.unwrap_or(MIN_THINKING_BUDGET);
-
-    Some(json!({
-        "type": "enabled",
-        "budget_tokens": budget
-    }))
 }
 
 /// Convert ReasoningConfig to Google `thinkingConfig` object.
+///
+/// Returns:
+/// - `Some({ thinkingBudget: 0 })` when explicitly disabled
+/// - `Some({ includeThoughts: true, thinkingBudget: N })` when enabled
+/// - `None` when not specified (no thinkingConfig field)
 fn to_google(config: &ReasoningConfig, _max_tokens: Option<i64>) -> Option<Value> {
-    if config.enabled != Some(true) {
-        return None;
+    match config.enabled {
+        // Explicitly disabled - return disabled payload
+        Some(false) => Some(json!({ "thinkingBudget": 0 })),
+        // Enabled - return enabled payload with budget
+        Some(true) => {
+            let budget = config.budget_tokens.unwrap_or(MIN_THINKING_BUDGET);
+            Some(json!({
+                "includeThoughts": true,
+                "thinkingBudget": budget
+            }))
+        }
+        // Not specified - no thinkingConfig field
+        None => None,
     }
-
-    // Use budget_tokens or default minimum
-    let budget = config.budget_tokens.unwrap_or(MIN_THINKING_BUDGET);
-
-    Some(json!({
-        "includeThoughts": true,
-        "thinkingBudget": budget
-    }))
 }
 
 #[cfg(test)]
@@ -544,6 +560,7 @@ mod tests {
 
     #[test]
     fn test_to_bedrock_thinking_disabled() {
+        // When explicitly disabled, should return { type: "disabled" }
         let config = ReasoningConfig {
             enabled: Some(false),
             ..Default::default()
@@ -551,6 +568,68 @@ mod tests {
 
         let result = config
             .to_provider(ProviderFormat::Converse, Some(4096))
+            .unwrap()
+            .unwrap();
+        assert_eq!(result.get("type").unwrap(), "disabled");
+    }
+
+    #[test]
+    fn test_to_anthropic_thinking_disabled() {
+        // When explicitly disabled, should return { type: "disabled" }
+        let config = ReasoningConfig {
+            enabled: Some(false),
+            ..Default::default()
+        };
+
+        let result = config
+            .to_provider(ProviderFormat::Anthropic, Some(4096))
+            .unwrap()
+            .unwrap();
+        assert_eq!(result.get("type").unwrap(), "disabled");
+    }
+
+    #[test]
+    fn test_to_anthropic_thinking_not_specified() {
+        // When not specified (enabled: None), should return None
+        let config = ReasoningConfig {
+            enabled: None,
+            budget_tokens: None,
+            ..Default::default()
+        };
+
+        let result = config
+            .to_provider(ProviderFormat::Anthropic, Some(4096))
+            .unwrap();
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_to_google_thinking_disabled() {
+        // When explicitly disabled, should return { thinkingBudget: 0 }
+        let config = ReasoningConfig {
+            enabled: Some(false),
+            ..Default::default()
+        };
+
+        let result = config
+            .to_provider(ProviderFormat::Google, Some(4096))
+            .unwrap()
+            .unwrap();
+        assert_eq!(result.get("thinkingBudget").unwrap(), 0);
+        assert!(result.get("includeThoughts").is_none());
+    }
+
+    #[test]
+    fn test_to_google_thinking_not_specified() {
+        // When not specified (enabled: None), should return None
+        let config = ReasoningConfig {
+            enabled: None,
+            budget_tokens: None,
+            ..Default::default()
+        };
+
+        let result = config
+            .to_provider(ProviderFormat::Google, Some(4096))
             .unwrap();
         assert!(result.is_none());
     }
