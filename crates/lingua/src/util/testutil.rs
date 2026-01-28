@@ -18,6 +18,7 @@ pub enum Provider {
     Responses,
     ChatCompletions,
     Anthropic,
+    Google,
 }
 
 impl Provider {
@@ -26,6 +27,7 @@ impl Provider {
             Provider::Responses => "responses",
             Provider::ChatCompletions => "chat-completions",
             Provider::Anthropic => "anthropic",
+            Provider::Google => "google",
         }
     }
 }

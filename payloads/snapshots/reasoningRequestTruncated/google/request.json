@@ -9,7 +9,7 @@
       ]
     }
   ],
-  "config": {
+  "generationConfig": {
     "maxOutputTokens": 100
   }
 }
