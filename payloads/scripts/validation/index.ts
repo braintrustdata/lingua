@@ -14,7 +14,9 @@ import {
   allTestCases,
   getCaseNames,
   getCaseForProvider,
+  getFullTestCase,
   caseCollections,
+  TestExpectation,
 } from "../../cases";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -55,6 +57,74 @@ const formatRegistry: Record<string, ExecutorEntry> = {
  */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Get a nested value from an object using dot notation path.
+ * Supports array indexing like "choices[0].message".
+ */
+function getPath(obj: unknown, path: string): unknown {
+  const parts = path.split(/\.|\[|\]/).filter(Boolean);
+  let current: unknown = obj;
+  for (const part of parts) {
+    if (!isRecord(current) && !Array.isArray(current)) {
+      return undefined;
+    }
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    current = (current as Record<string, unknown>)[part];
+  }
+  return current;
+}
+
+/**
+ * Validate response against expectations.
+ * Returns null if all expectations pass, or an error message if any fail.
+ */
+function validateExpectations(
+  expect: TestExpectation,
+  response: unknown,
+  httpStatus?: number
+): string | null {
+  // Check HTTP status code
+  if (expect.status !== undefined && httpStatus !== expect.status) {
+    return `Expected status ${expect.status}, got ${httpStatus}`;
+  }
+
+  // Check error fields
+  if (expect.error && isRecord(response)) {
+    const errorObj = response.error;
+    if (!isRecord(errorObj)) {
+      return `Expected error response, got: ${JSON.stringify(response)}`;
+    }
+    if (expect.error.type && errorObj.type !== expect.error.type) {
+      return `Expected error.type "${expect.error.type}", got "${errorObj.type}"`;
+    }
+    if (expect.error.message) {
+      const actualMessage = String(errorObj.message ?? "");
+      if (!actualMessage.includes(expect.error.message)) {
+        return `Expected error.message to contain "${expect.error.message}", got "${actualMessage}"`;
+      }
+    }
+  }
+
+  // Check specific fields
+  if (expect.fields) {
+    for (const [path, expected] of Object.entries(expect.fields)) {
+      const actual = getPath(response, path);
+      // Handle special case: checking existence
+      if (isRecord(expected) && "exists" in expected) {
+        const shouldExist = expected.exists;
+        const doesExist = actual !== undefined;
+        if (shouldExist !== doesExist) {
+          return `Expected ${path} to ${shouldExist ? "exist" : "not exist"}`;
+        }
+      } else if (actual !== expected) {
+        return `Expected ${path} = ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`;
+      }
+    }
+  }
+
+  return null; // All expectations passed
 }
 
 /**
@@ -287,6 +357,58 @@ export async function runValidation(
               return result;
             }
 
+            // Check if this is an expectation-based test
+            const fullTestCase = getFullTestCase(allTestCases, caseName);
+            const expectations = fullTestCase?.expect;
+
+            // For expectation-based tests, use direct HTTP request to get status codes
+            if (expectations) {
+              const endpoint =
+                format === "chat-completions"
+                  ? "/v1/chat/completions"
+                  : "/v1/responses";
+              const fetchResponse = await fetch(
+                `${options.proxyUrl}${endpoint}`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    ...(options.apiKey
+                      ? { Authorization: `Bearer ${options.apiKey}` }
+                      : {}),
+                  },
+                  body: JSON.stringify(request),
+                }
+              );
+
+              const httpStatus = fetchResponse.status;
+              let responseBody: unknown;
+              try {
+                responseBody = await fetchResponse.json();
+              } catch {
+                responseBody = { error: "Failed to parse response JSON" };
+              }
+
+              const validationError = validateExpectations(
+                expectations,
+                responseBody,
+                httpStatus
+              );
+
+              const result: ValidationResult = {
+                format,
+                caseName,
+                model: modelName,
+                success: validationError === null,
+                durationMs: Date.now() - start,
+                error: validationError ?? undefined,
+                actualResponse: options.verbose ? responseBody : undefined,
+              };
+              options.onResult?.(result);
+              return result;
+            }
+
+            // Standard snapshot-based validation
             if (!expectedResponse) {
               const result: ValidationResult = {
                 format,

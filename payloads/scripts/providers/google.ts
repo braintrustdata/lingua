@@ -5,15 +5,21 @@ import {
   allTestCases,
   getCaseNames,
   getCaseForProvider,
+  hasExpectation,
   GoogleGenerateContentRequest,
   GOOGLE_MODEL,
 } from "../../cases";
 
 // Google cases - extracted from unified cases
+// Skips cases with expectations (those are validated, not captured)
 export const googleCases: Record<string, GoogleGenerateContentRequest> = {};
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
+  // Skip cases with expectations - they use validate.ts, not capture.ts
+  if (hasExpectation(allTestCases, caseName)) {
+    return;
+  }
   const caseData = getCaseForProvider(allTestCases, caseName, "google");
   if (caseData) {
     googleCases[caseName] = caseData;
