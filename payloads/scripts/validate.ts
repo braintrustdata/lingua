@@ -172,6 +172,7 @@ async function main(): Promise<void> {
     providers: options.providers,
     all: options.all,
     stream: options.stream,
+    verbose: options.verbose,
     onResult: (result) => {
       results.push(result);
       printer.printResult(result);

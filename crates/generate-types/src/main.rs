@@ -1180,15 +1180,11 @@ fn add_ts_type_annotations(content: &str) -> String {
 
 /// Add #[serde(skip_serializing_if = "Option::is_none")] to all Option<T> fields
 fn add_serde_skip_if_none(content: &str) -> String {
-    let processed = content.to_string();
-
-    // Use regex-like approach to find Option<T> fields and add serde attributes
-    let lines: Vec<&str> = processed.lines().collect();
+    let lines: Vec<&str> = content.lines().collect();
     let mut result_lines = Vec::new();
 
     for i in 0..lines.len() {
         let line = lines[i];
-        result_lines.push(line.to_string());
 
         // Check if this line contains a pub field with Option<T> (but not nested Options)
         if line.trim_start().starts_with("pub ") && line.ends_with(",") {
@@ -1197,22 +1193,23 @@ fn add_serde_skip_if_none(content: &str) -> String {
             if field_parts.len() >= 3 {
                 let field_type = field_parts[2].trim_end_matches(',');
                 if field_type.starts_with("Option<") {
-                    // Check if the next line already has a serde attribute
-                    let next_line = lines.get(i + 1).map(|l| l.trim()).unwrap_or("");
-                    if !next_line.starts_with("#[serde(") && !line.contains("#[serde(") {
+                    // FIX: Check if the PREVIOUS line already has the skip_serializing_if attribute
+                    // Serde attributes come BEFORE the field they annotate
+                    let prev_line = if i > 0 { lines[i - 1].trim() } else { "" };
+                    if !prev_line.contains("skip_serializing_if") {
                         // Get the indentation level from the current line
                         let indent = line.len() - line.trim_start().len();
                         let serde_attr = format!(
                             "{}#[serde(skip_serializing_if = \"Option::is_none\")]",
                             " ".repeat(indent)
                         );
-
-                        // Insert the serde attribute before the field
-                        result_lines.insert(result_lines.len() - 1, serde_attr);
+                        result_lines.push(serde_attr);
                     }
                 }
             }
         }
+
+        result_lines.push(line.to_string());
     }
 
     result_lines.join("\n")

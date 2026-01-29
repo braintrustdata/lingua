@@ -11,14 +11,20 @@ import {
   allTestCases,
   getCaseNames,
   getCaseForProvider,
+  hasExpectation,
   BedrockConverseRequest,
 } from "../../cases";
 
 // Bedrock cases - extracted from unified cases
+// Skips cases with expectations (those are validated, not captured)
 export const bedrockCases: Record<string, BedrockConverseRequest> = {};
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
+  // Skip cases with expectations - they use validate.ts, not capture.ts
+  if (hasExpectation(allTestCases, caseName)) {
+    return;
+  }
   const caseData = getCaseForProvider(allTestCases, caseName, "bedrock");
   if (caseData) {
     bedrockCases[caseName] = caseData;

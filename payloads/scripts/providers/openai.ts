@@ -1,6 +1,11 @@
 import OpenAI from "openai";
 import { CaptureResult, ExecuteOptions, ProviderExecutor } from "../types";
-import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
+import {
+  allTestCases,
+  getCaseNames,
+  getCaseForProvider,
+  hasExpectation,
+} from "../../cases";
 
 // Define specific types for OpenAI
 type OpenAIRequest = OpenAI.Chat.Completions.ChatCompletionCreateParams;
@@ -8,10 +13,15 @@ type OpenAIResponse = OpenAI.Chat.Completions.ChatCompletion;
 type OpenAIStreamChunk = OpenAI.Chat.Completions.ChatCompletionChunk;
 
 // OpenAI Chat Completions cases - extracted from unified cases
+// Skips cases with expectations (those are validated, not captured)
 export const openaiCases: Record<string, OpenAIRequest> = {};
 
 // Populate cases from unified structure
 getCaseNames(allTestCases).forEach((caseName) => {
+  // Skip cases with expectations - they use validate.ts, not capture.ts
+  if (hasExpectation(allTestCases, caseName)) {
+    return;
+  }
   const caseData = getCaseForProvider(
     allTestCases,
     caseName,
@@ -215,6 +225,8 @@ export const openaiExecutor: ProviderExecutor<
     "service_tier",
     "system_fingerprint",
     "choices.*.message.content",
+    "choices.*.message.reasoning", // Extended thinking content varies per request
+    "choices.*.message.reasoning_signature", // Cryptographic signature for reasoning roundtrips
     "choices.*.message.tool_calls.*.id",
     "choices.*.delta.content",
     "choices.*.delta.tool_calls.*.id",
