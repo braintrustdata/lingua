@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-D3BLKqd79W3DJHUENamWfq204RGee",
+  "object": "chat.completion",
+  "created": 1769650958,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Step 1: Compute distances\n- Distance1 = 60 mph × 2 h = 120 miles\n- Distance2 = 80 mph × 1 h = 80 miles\n\nStep 2: Total distance\n- Total distance = 120 + 80 = 200 miles\n\nStep 3: Total time\n- Total time = 2 h + 1 h = 3 h\n\nStep 4: Average speed\n- Average speed = Total distance / Total time = 200 miles / 3 h = 200/3 mph ≈ 66.7 mph\n\nAnswer: 200/3 mph (about 66 2/3 mph).",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 38,
+    "completion_tokens": 659,
+    "total_tokens": 697,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 512,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

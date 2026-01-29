@@ -1,0 +1,25 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01UxW58KmdvVafohvUU613Vf",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I see an adorable young tabby kitten lying on what appears to be a wooden floor. The kitten has beautiful striped markings in gray and brown tones, with distinctive large yellow-green eyes that are looking directly at the camera. The kitten is positioned on its side in a relaxed, playful pose with its head tilted at a charming angle. Its ears are perked up and alert, and you can see its small pink nose and whiskers clearly. In the blurred background, there appears to be some furniture, possibly wooden chairs or a table. The lighting in the photo is soft and warm, creating a cozy, intimate feeling that perfectly captures this sweet moment with the kitten."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 278,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 151,
+    "service_tier": "standard"
+  }
+}

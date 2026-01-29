@@ -1,0 +1,30 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01Xrc4PPLmZt1YmHHBUPqbG6",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "This is a straightforward factual question about geography. The capital of France is Paris. This is a well-established fact and there's no ambiguity or controversy around it.",
+      "signature": "EtcCCkYICxgCKkCdIXUyVg3DaxfLI8Hie56Ksu41ye5HUj9fwp1vbLCo1cKu/Sk5K90qFnozb2HxfjmifzJ3Sae/P1wH3A56rUp/Egz2qyGq7ZdRr9EocJcaDANqdJZUKkxkABGX6SIwCsbRol95Vel2Etd4f9Bta2w2eDsLXIj47H4nKqt6x01867xq+ZGaOXbt6NRaQ1ItKr4BZnUNdD2Sbyl0pV3E+FgqWnoNLCBqXZhKAy4uTvSwVEFMGFRm0fKnc1h+cw8vQPX4DIxyyZ9SqAdu9Q0D9v787H4pz/EiY1SuReIMgdU2nAMVRgbIfQPDbbTEL/9QDrjtEalFaCIIARjAoxQbhgs3AxQMVSOWiB/ZNcrtE5Shx255yHae36X8kMt8JetT/tNbg6u1K1QnS/5U5pla9KTyscYKTjdmmnvTLdq2vAJ/sPb8nDkYEljnmo5ev3EU3RgB"
+    },
+    {
+      "type": "text",
+      "text": "The capital of France is Paris."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 43,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 55,
+    "service_tier": "standard"
+  }
+}
