@@ -1,0 +1,30 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "id": "msg_01RSPSbeb1syPbxTsgGSbVt6",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "This is a straightforward factual question about geography. The capital of France is Paris. This is basic knowledge that I can answer directly.",
+      "signature": "ErgCCkYICxgCKkDAcAhMIaE3za7R+jLBO4RA0fkGL5aFbum0oHigdpj1dsb9boZ43P4FDr6LxJR254S2ywAopiH3X4j6ppTeWcW5EgzL+t1/IG5QQn3bIEgaDEAn4pb8I/rFYD96bSIwqKqtw1KIV1fLg2iUixWAa8I2tcjvsPNvjmdsJWrMNGr0pqDG+6sw5vk6I9xQom2LKp8B9qIqdQr6vAVEdJWQ2NCrdE/hQhe0O2wrQ3NCjRFDaB3F6sZe8vB0vFgGTGVJK7HdTO7eVnO6ydUDwqTjXRCYqTG0wLOthalPjvRDxzxPr3CacrcaNiU8a3AOcWzgmDZx/bU7tUwt3w53XbNTwCHJYqxs1WJyMdIB8iLs5M7SMcQ6+VOsUH9uVkxEFlfRYtiAio4DMsdt5Yn5e8YCOBAuGAE="
+    },
+    {
+      "type": "text",
+      "text": "The capital of France is Paris."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 43,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 46,
+    "service_tier": "standard"
+  }
+}
