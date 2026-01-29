@@ -5,6 +5,7 @@ This enum represents the different LLM provider API formats that lingua can hand
 */
 
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 /// Represents the API format/protocol used by an LLM provider.
 ///
@@ -13,7 +14,8 @@ use serde::{Deserialize, Serialize};
 /// 1. Add a variant here
 /// 2. Update detection heuristics in `processing/detect.rs`
 /// 3. Add conversion logic in `providers/<name>/convert.rs` if needed
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default, TS)]
+#[ts(export)]
 #[serde(rename_all = "lowercase")]
 pub enum ProviderFormat {
     /// OpenAI Chat Completions API format (also used by OpenAI-compatible providers)
