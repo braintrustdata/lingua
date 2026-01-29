@@ -1,0 +1,72 @@
+{
+  "id": "resp_05d74363027f2e8400697aafb2285881a39c4cd96ee6fd67c9",
+  "object": "response",
+  "created_at": 1769648050,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1769648052,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 20000,
+  "max_tool_calls": null,
+  "model": "gpt-4o-mini-2024-07-18",
+  "output": [
+    {
+      "id": "msg_05d74363027f2e8400697aafb26dbc81a3a954957a3c2bcc5c",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The color of the sky appears blue during the day due to Rayleigh scattering, where shorter wavelengths of light (blue) scatter more than longer wavelengths (red). At sunrise and sunset, the sky can exhibit shades of orange, pink, and purple due to the angle of the sun and atmospheric conditions. At night, the sky appears dark, often speckled with stars."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": null,
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 13,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 76,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 89
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "The color of the sky appears blue during the day due to Rayleigh scattering, where shorter wavelengths of light (blue) scatter more than longer wavelengths (red). At sunrise and sunset, the sky can exhibit shades of orange, pink, and purple due to the angle of the sun and atmospheric conditions. At night, the sky appears dark, often speckled with stars."
+}

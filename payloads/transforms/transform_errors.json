@@ -1,0 +1,5 @@
+{
+  "responses_to_anthropic": {
+    "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)"
+  }
+}

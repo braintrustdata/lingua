@@ -43,7 +43,8 @@ pub struct UniversalUsage {
     /// Tokens written to cache during this request
     pub prompt_cache_creation_tokens: Option<i64>,
 
-    /// Tokens used for reasoning in completion (OpenAI: completion_tokens_details.reasoning_tokens, Google: thoughtsTokenCount)
+    /// Reasoning/thinking tokens used in the completion.
+    /// `Some(n)` only when `n > 0`; otherwise `None`.
     pub completion_reasoning_tokens: Option<i64>,
 }
 
@@ -216,10 +217,12 @@ impl UniversalUsage {
                         .and_then(|d| d.get("cached_tokens"))
                         .and_then(Value::as_i64),
                     prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
+                    // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
                     completion_reasoning_tokens: usage
                         .get("completion_tokens_details")
                         .and_then(|d| d.get("reasoning_tokens"))
-                        .and_then(Value::as_i64),
+                        .and_then(Value::as_i64)
+                        .filter(|&v| v > 0),
                 }
             }
             ProviderFormat::Responses => Self {
@@ -230,10 +233,12 @@ impl UniversalUsage {
                     .and_then(|d| d.get("cached_tokens"))
                     .and_then(Value::as_i64),
                 prompt_cache_creation_tokens: None,
+                // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
                 completion_reasoning_tokens: usage
                     .get("output_tokens_details")
                     .and_then(|d| d.get("reasoning_tokens"))
-                    .and_then(Value::as_i64),
+                    .and_then(Value::as_i64)
+                    .filter(|&v| v > 0),
             },
             ProviderFormat::Anthropic => Self {
                 prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
@@ -321,19 +326,14 @@ impl UniversalUsage {
                     serde_json::json!(prompt + completion),
                 );
 
-                if let Some(cached_tokens) = self.prompt_cached_tokens {
-                    map.insert(
-                        "input_tokens_details".into(),
-                        serde_json::json!({ "cached_tokens": cached_tokens }),
-                    );
-                }
-
-                if let Some(reasoning_tokens) = self.completion_reasoning_tokens {
-                    map.insert(
-                        "output_tokens_details".into(),
-                        serde_json::json!({ "reasoning_tokens": reasoning_tokens }),
-                    );
-                }
+                map.insert(
+                    "input_tokens_details".into(),
+                    serde_json::json!({ "cached_tokens": self.prompt_cached_tokens.unwrap_or(0) }),
+                );
+                map.insert(
+                    "output_tokens_details".into(),
+                    serde_json::json!({ "reasoning_tokens": self.completion_reasoning_tokens.unwrap_or(0) }),
+                );
 
                 Value::Object(map)
             }

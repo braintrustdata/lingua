@@ -1,0 +1,2025 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`anthropic → chat-completions > complexReasoningRequest > request 1`] = `
+{
+  "max_completion_tokens": 20000,
+  "messages": [
+    {
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → chat-completions > complexReasoningRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "1440 times (00:00 to 23:59) times 4 digits each = 5760 digits in total.
+
+Count by digit (0–9):
+
+- H1 (tens of hours): 0 appears 600 times, 1 appears 600 times, 2 appears 240 times.
+- H2 (units of hours): 0,1,2,3 each appear 180 times; 4,5,6,7,8,9 each appear 120 times.
+- M1 (tens of minutes): digits 0–5 each appear 240 times; digits 6–9 appear 0 times.
+- M2 (units of minutes): each digit 0–9 appears 144 times.
+
+Sum per digit across all positions:
+- 0: 600 + 180 + 240 + 144 = 1164
+- 1: 600 + 180 + 240 + 144 = 1164
+- 2: 240 + 180 + 240 + 144 = 804
+- 3: 0 + 180 + 240 + 144 = 564
+- 4: 0 + 120 + 240 + 144 = 504
+- 5: 0 + 120 + 240 + 144 = 504
+- 6: 0 + 120 + 0 + 144 = 264
+- 7: 0 + 120 + 0 + 144 = 264
+- 8: 0 + 120 + 0 + 144 = 264
+- 9: 0 + 120 + 0 + 144 = 264
+
+Percentages of the 5760 digits:
+- 0 or 1: 1164 / 5760 = 97/480 ≈ 20.21%
+- 2: 804 / 5760 = 67/480 ≈ 13.96%
+- 3: 564 / 5760 = 47/480 ≈ 9.79%
+- 4 or 5: 504 / 5760 = 7/80 = 8.75%
+- 6, 7, 8, 9: 264 / 5760 = 11/240 ≈ 4.58%
+
+Conclusion:
+- Most common digits: 0 and 1, each about 20.21%.
+- Rarest digits: 6, 7, 8, and 9, each about 4.58%.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 74,
+    "output_tokens": 13596,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > multimodalRequest > request 1`] = `
+{
+  "max_completion_tokens": 300,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "text",
+        },
+        {
+          "image_url": {
+            "url": "data:image/jpeg;base64,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",
+          },
+          "type": "image_url",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → chat-completions > multimodalRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "This image features a Pokémon character known for its distinct blue-green skin and large, leafy plant on its back. It has big red eyes and a cute, round face. The character is often associated with nature and is a beginner-level Pokémon in the series.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 8515,
+    "output_tokens": 51,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningRequest > request 1`] = `
+{
+  "max_completion_tokens": 20000,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Step 1: Compute distances
+- Distance1 = 60 mph × 2 h = 120 miles
+- Distance2 = 80 mph × 1 h = 80 miles
+
+Step 2: Total distance
+- Total distance = 120 + 80 = 200 miles
+
+Step 3: Total time
+- Total time = 2 h + 1 h = 3 h
+
+Step 4: Average speed
+- Average speed = Total distance / Total time = 200 miles / 3 h = 200/3 mph ≈ 66.7 mph
+
+Answer: 200/3 mph (about 66 2/3 mph).",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 38,
+    "output_tokens": 659,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningRequestTruncated > request 1`] = `
+{
+  "max_completion_tokens": 100,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningRequestTruncated > response 1`] = `
+{
+  "content": [
+    {
+      "text": "To find the average speed of the train over the entire trip, we can use the formula for average speed:
+
+\\[
+\\text{Average Speed} = \\frac{\\text{Total Distance}}{\\text{Total Time}}
+\\]
+
+### Step 1: Calculate the distance traveled at each speed.
+
+1. **Travel at 60 mph for 2 hours:**
+   \\[
+   \\text{Distance} = \\text{Speed} \\times \\text{Time} = 60 \\",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 39,
+    "output_tokens": 100,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningWithOutput > request 1`] = `
+{
+  "max_completion_tokens": 20000,
+  "messages": [
+    {
+      "content": "What color is the sky?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Usually blue during a clear day. That’s because sunlight (white light) scatters off the atmosphere, and the shorter blue wavelengths scatter more than the others.
+
+Colors can change:
+- Sunrise/sunset: red/orange/pink (sunlight passes through more air, longer wavelengths dominate)
+- Cloudy/overcast: gray
+- Night: dark/black (stars may be visible)
+
+Sometimes, in storms the sky can look greenish-gray.
+
+If you tell me your location and time of day, I can give a more specific guess for the sky color right now.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 12,
+    "output_tokens": 765,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > simpleRequest > request 1`] = `
+{
+  "max_completion_tokens": 20000,
+  "messages": [
+    {
+      "content": "What is the capital of France?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Paris.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 139,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > systemMessageArrayContent > request 1`] = `
+{
+  "max_completion_tokens": 300,
+  "messages": [
+    {
+      "content": "What errors occurred recently?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → chat-completions > systemMessageArrayContent > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 11,
+    "output_tokens": 300,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > toolCallRequest > request 1`] = `
+{
+  "max_completion_tokens": 20000,
+  "messages": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-20250514",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "function": {
+        "description": "Get the current weather for a location",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "description": "The city and state, e.g. San Francisco, CA",
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
+{
+  "content": [
+    {
+      "id": "call_Y01ca17t4IsAFQ4PSryUqAmj",
+      "input": {
+        "location": "San Francisco, CA",
+      },
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 148,
+    "output_tokens": 218,
+  },
+}
+`;
+
+exports[`anthropic → responses > complexReasoningRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 20000,
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → responses > complexReasoningRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "To find the most common and rarest digits in a digital clock from 00:00 to 23:59, let's break down the analysis.
+
+### Total Times
+The total number of times displayed on the clock is from 00:00 to 23:59, which is \\(24 \\times 60 = 1440\\) minutes.
+
+### Counting Each Digit
+In a 24-hour digital clock format (HH:MM), we need to consider each position of the time. The times can be broken down into:
+
+- **Hours:** 00 to 23 (2 digits)
+- **Minutes:** 00 to 59 (2 digits)
+
+#### Breaking down the counts:
+1. **Hour Positions (HH)**
+   - 00, 01, 02, ..., 09 (10 times): Each of these has:
+     - '0': 10 times (from 00, 01, ..., 09)
+     - '1': 10 times (from 10, 11, 12, ..., 19)
+     - '2': 4 times (from 20, 21, 22, 23)
+   - Total digits for HH:
+     - '0' appears 10 + 0 = 10 times
+     - '1' appears 10 + 1 = 11 times
+     - '2' appears 4 + 1 = 5 times
+     
+2. **Minute Positions (MM)**
+   - 00 to 59 (60 times): Each digit is counted by the number system.
+     - Tens digit: '0' (0-9) appears 10 times, '1' (10-19) appears 10 times, '2' (20-29) appears 10 times, '3' (30-39) appears 10 times, '4' (40-49) appears 10 times, '5' (50-59) appears 10 times
+     - Units digit: '0' to '9' appears exactly 6 times for each digit:
+       - '0': 6 times (00, 10, 20, 30, 40, 50)
+       - '1': 6 times, 2: 6 times, ..., 9: 6 times
+
+#### Combining Counts
+Now let's sum them:
+
+- **Total Counts:**
+  - '0': HH (10) + MM (10) + Units (6) = **26**
+  - '1': HH (10) + Units (6) = **16**
+  - '2': HH (5) + MM (10) + Units (6) = **21**
+  - '3': MM (10) + Units (6) = **16**
+  - '4': MM (10) + Units (6) = **16**
+  - '5': MM (10) + Units (6) = **16**
+  - '6': Units (6) = **6**
+  - '7': Units (6) = **6**
+  - '8': Units (6) = **6**
+  - '9': Units (6) = **6**
+
+### Conclusion
+From the counts:
+- **Most common digit:** '0' appears **26 times**.
+- **Rarest digits:** '6', '7', '8', and '9', each appears **6 times**.
+
+### Percentage Calculation
+- **Percentage of most common digit ('0'):**
+  \\[
+  \\frac{26}{1440} \\times 100 \\approx 1.81\\%
+  \\]
+
+- **Percentage of rarest digits ('6', '7', '8', '9'):**
+  \\[
+  \\frac{6}{1440} \\times 100 \\approx 0.42\\%
+  \\]
+
+### Summary
+- **Most common digit:** '0' (1.81%)
+- **Rarest digits:** '6', '7', '8', '9' (0.42% each)",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 75,
+    "output_tokens": 840,
+  },
+}
+`;
+
+exports[`anthropic → responses > multimodalRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "input_text",
+        },
+        {
+          "image_url": "data:image/jpeg;base64,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",
+          "type": "input_image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 300,
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → responses > multimodalRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "The image features a character known as Bulbasaur, which is a Pokémon. Bulbasaur has a green body with darker green spots and large plant-like features on its back, resembling a bulb. It has red eyes and a friendly expression, typical of many Pokémon characters.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 8515,
+    "output_tokens": 56,
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 20000,
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → responses > reasoningRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "To find the average speed of the train, we need to calculate the total distance traveled and the total time taken.
+
+**Step 1: Calculate the distance for each part of the journey.**
+
+1. **For the first part:**
+   - Speed = 60 mph
+   - Time = 2 hours
+   - Distance = Speed × Time = 60 mph × 2 hours = 120 miles
+
+2. **For the second part:**
+   - Speed = 80 mph
+   - Time = 1 hour
+   - Distance = Speed × Time = 80 mph × 1 hour = 80 miles
+
+**Step 2: Calculate the total distance.**
+- Total Distance = Distance from first part + Distance from second part
+- Total Distance = 120 miles + 80 miles = 200 miles
+
+**Step 3: Calculate the total time.**
+- Total Time = Time for first part + Time for second part
+- Total Time = 2 hours + 1 hour = 3 hours
+
+**Step 4: Calculate the average speed.**
+- Average Speed = Total Distance / Total Time
+- Average Speed = 200 miles / 3 hours ≈ 66.67 mph
+
+Thus, the average speed of the train is approximately **66.67 mph**.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 39,
+    "output_tokens": 269,
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningRequestTruncated > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 100,
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → responses > reasoningRequestTruncated > response 1`] = `
+{
+  "content": [
+    {
+      "text": "To find the average speed of the train over the entire trip, we first need to calculate the total distance traveled and the total time taken.
+
+### Step 1: Calculate Distance for Each Segment
+
+1. **First Segment** (60 mph for 2 hours)
+   \\[
+   \\text{Distance}_1 = \\text{Speed} \\times \\text{Time} = 60 \\, \\text{mph} \\times 2 \\, \\text{hours} = 120",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 39,
+    "output_tokens": 100,
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningWithOutput > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What color is the sky?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 20000,
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → responses > reasoningWithOutput > response 1`] = `
+{
+  "content": [
+    {
+      "text": "The color of the sky appears blue during the day due to Rayleigh scattering, where shorter wavelengths of light (blue) scatter more than longer wavelengths (red). At sunrise and sunset, the sky can exhibit shades of orange, pink, and purple due to the angle of the sun and atmospheric conditions. At night, the sky appears dark, often speckled with stars.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 76,
+  },
+}
+`;
+
+exports[`anthropic → responses > simpleRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is the capital of France?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 20000,
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → responses > simpleRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "The capital of France is Paris.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 14,
+    "output_tokens": 8,
+  },
+}
+`;
+
+exports[`anthropic → responses > systemMessageArrayContent > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What errors occurred recently?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 300,
+  "model": "claude-sonnet-4-20250514",
+}
+`;
+
+exports[`anthropic → responses > systemMessageArrayContent > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 11,
+    "output_tokens": 256,
+  },
+}
+`;
+
+exports[`anthropic → responses > toolCallRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 20000,
+  "model": "claude-sonnet-4-20250514",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > toolCallRequest > response 1`] = `
+{
+  "content": [
+    {
+      "id": "call_1Tzb1VJiHdkBnXO3RVkOxGFL",
+      "input": {
+        "location": "San Francisco, CA",
+      },
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 61,
+    "output_tokens": 18,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > complexReasoningRequest > request 1`] = `
+{
+  "max_tokens": 20000,
+  "messages": [
+    {
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → anthropic > complexReasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I need to count how often each digit (0-9) appears in all possible times from 00:00 to 23:59.
+
+Let me break this down by position:
+
+**Hours (00 to 23):**
+- First digit of hours: 0 (00-09), 1 (10-19), 2 (20-23)
+- Second digit of hours: 0-9 for 00-09, 10-19, and 20-23
+
+**Minutes (00 to 59):**
+- First digit of minutes: 0-5 
+- Second digit of minutes: 0-9
+
+Let me count systematically:
+
+**Total times:** 24 hours × 60 minutes = 1,440 times
+**Total digit positions:** 1,440 × 4 digits = 5,760 total digits
+
+**Counting each digit:**
+
+**Digit 0:**
+- Hours first position: 10 times (00-09) × 60 minutes = 600
+- Hours second position: 6 times per hour (00, 10, 20) × 60 minutes = 360
+- Minutes first position: 1 time per minute (00-09, 30-39, 50-59) × 24 hours × 1 = 240
+- Minutes second position: 6 times per hour (x0 minutes) × 24 hours = 144
+- Total: 600 + 360 + 240 + 144 = **1,344**
+
+**Digit 1:**
+- Hours first position: 10 times (10-19) × 60 minutes = 600
+- Hours second position: 6 times per hour (01, 11, 21) × 60 minutes = 360
+- Minutes first position: 10 times per hour (10-19) × 24 hours = 240
+- Minutes second position: 6 times per hour (x1 minutes) × 24 hours = 144
+- Total: 600 + 360 + 240 + 144 = **1,344**
+
+**Digit 2:**
+- Hours first position: 4 times (20-23) × 60 minutes = 240
+- Hours second position: 6 times per hour (02, 12, 22) × 60 minutes = 360
+- Minutes first position: 10 times per hour (20-29) × 24 hours = 240
+- Minutes second position: 6 times per hour (x2 minutes) × 24 hours = 144
+- Total: 240 + 360 + 240 + 144 = **984**
+
+**Digit 3:**
+- Hours first position: 0 times = 0
+- Hours second position: 6 times per hour (03, 13, 23) × 60 minutes = 360
+- Minutes first position: 10 times per hour (30-39) × 24 hours = 240
+- Minutes second position: 6 times per hour (x3 minutes) × 24 hours = 144
+- Total: 0 + 360 + 240 + 144 = **744**
+
+**Digit 4:**
+- Hours first position: 0 times = 0
+- Hours second position: 6 times per hour (04, 14) × 60 minutes = 360
+- Minutes first position: 10 times per hour (40-49) × 24 hours = 240
+- Minutes second position: 6 times per hour (x4 minutes) × 24 hours = 144
+- Total: 0 + 360 + 240 + 144 = **744**
+
+**Digit 5:**
+- Hours first position: 0 times = 0
+- Hours second position: 6 times per hour (05, 15) × 60 minutes = 360
+- Minutes first position: 10 times per hour (50-59) × 24 hours = 240
+- Minutes second position: 6 times per hour (x5 minutes) × 24 hours = 144
+- Total: 0 + 360 + 240 + 144 = **744**
+
+**Digits 6, 7, 8, 9:**
+- Hours first position: 0 times each = 0
+- Hours second position: 4 times per hour each (06, 16) × 60 minutes = 240 each
+- Minutes first position: 0 times each (no 60-69, 70-79, 80-89, 90-99) = 0 each
+- Minutes second position: 6 times per hour each × 24 hours = 144 each
+- Total each: 0 + 240 + 0 + 144 = **384**
+
+**Results:**
+- **Most common:** 0 and 1 (tied) with 1,344 occurrences = **23.33%** each
+- **Rarest:** 6, 7, 8, and 9 (tied) with 384 occurrences = **6.67%** each
+
+The digits 0 and 1 are most common because they appear frequently in the hours (00-09 and 10-19), while digits 6-9 are rarest because they can't appear in the tens place of minutes (no minutes 60-99) and appear less frequently in hours.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1271,
+    "prompt_tokens": 80,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1351,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > multimodalRequest > request 1`] = `
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "text",
+        },
+        {
+          "source": {
+            "type": "url",
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+          "type": "image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → anthropic > multimodalRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I see an adorable tabby kitten lying on its side on what appears to be a wooden floor. The kitten has beautiful striped gray and brown markings, large golden-yellow eyes, and distinctive pointed ears. Its head is tilted at a charming angle as it looks directly at the camera, giving it an endearing and playful expression. The kitten appears to be quite young, with soft fluffy fur and that sweet, innocent look that young cats have. In the blurred background, there appears to be some furniture, possibly including wooden elements like chairs or shelving. The lighting in the photo is warm and natural, creating a cozy domestic setting that perfectly captures this precious moment with the kitten.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 152,
+    "prompt_tokens": 278,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 430,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'll solve this step by step using the formula: Average speed = Total distance ÷ Total time
+
+**Step 1: Calculate distance for each segment**
+
+Segment 1: 60 mph for 2 hours
+- Distance = speed × time = 60 × 2 = 120 miles
+
+Segment 2: 80 mph for 1 hour  
+- Distance = speed × time = 80 × 1 = 80 miles
+
+**Step 2: Find totals**
+- Total distance = 120 + 80 = 200 miles
+- Total time = 2 + 1 = 3 hours
+
+**Step 3: Calculate average speed**
+Average speed = Total distance ÷ Total time
+Average speed = 200 miles ÷ 3 hours = 66.67 mph
+
+**Answer: The average speed is 66.67 mph (or 66⅔ mph)**
+
+Note: The average speed (66.67 mph) is not simply the arithmetic mean of the two speeds (70 mph) because the train spent different amounts of time at each speed.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 261,
+    "prompt_tokens": 45,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 306,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningRequestTruncated > request 1`] = `
+{
+  "max_tokens": 100,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'll solve this step by step using the formula: Average speed = Total distance ÷ Total time
+
+**Step 1: Calculate distance for each segment**
+
+First segment:
+- Speed = 60 mph
+- Time = 2 hours
+- Distance = 60 × 2 = 120 miles
+
+Second segment:
+- Speed = 80 mph  
+- Time = 1 hour
+- Distance = 80 × ",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 100,
+    "prompt_tokens": 45,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 145,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningWithOutput > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What color is the sky?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningWithOutput > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The sky appears blue during the day under normal weather conditions. This is due to a phenomenon called Rayleigh scattering, where molecules in Earth's atmosphere scatter blue light from the sun more than other colors.
+
+Of course, the sky's color can change depending on conditions - it can appear red, orange, or pink during sunrise and sunset, gray during overcast weather, or nearly black at night.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 87,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 100,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > simpleRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is the capital of France?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > simpleRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The capital of France is Paris.",
+        "reasoning": "This is a straightforward factual question about geography. The capital of France is Paris. This is a well-established fact and there's no ambiguity or controversy around it.",
+        "reasoning_signature": "EtcCCkYICxgCKkCdIXUyVg3DaxfLI8Hie56Ksu41ye5HUj9fwp1vbLCo1cKu/Sk5K90qFnozb2HxfjmifzJ3Sae/P1wH3A56rUp/Egz2qyGq7ZdRr9EocJcaDANqdJZUKkxkABGX6SIwCsbRol95Vel2Etd4f9Bta2w2eDsLXIj47H4nKqt6x01867xq+ZGaOXbt6NRaQ1ItKr4BZnUNdD2Sbyl0pV3E+FgqWnoNLCBqXZhKAy4uTvSwVEFMGFRm0fKnc1h+cw8vQPX4DIxyyZ9SqAdu9Q0D9v787H4pz/EiY1SuReIMgdU2nAMVRgbIfQPDbbTEL/9QDrjtEalFaCIIARjAoxQbhgs3AxQMVSOWiB/ZNcrtE5Shx255yHae36X8kMt8JetT/tNbg6u1K1QnS/5U5pla9KTyscYKTjdmmnvTLdq2vAJ/sPb8nDkYEljnmo5ev3EU3RgB",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 55,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 98,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > systemMessageArrayContent > request 1`] = `
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": "What errors occurred recently?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "system": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+}
+`;
+
+exports[`chat-completions → anthropic > systemMessageArrayContent > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'll help you find recent errors from your project logs. Let me query the data to see what errors have occurred recently.
+
+\`\`\`sql
+SELECT 
+    timestamp,
+    level,
+    message,
+    source,
+    error_code
+FROM project_logs 
+WHERE level = 'ERROR' 
+ORDER BY timestamp DESC 
+LIMIT 20;
+\`\`\`
+
+This query will show the 20 most recent error entries, including:
+- When each error occurred
+- The error message
+- Where it came from (source)
+- Any error codes if available
+
+Would you like me to:
+1. Filter by a specific time period (last hour, day, week)?
+2. Look for specific types of errors?
+3. Group errors by frequency or source?
+4. Show additional context like stack traces if available?
+
+Please let me know what specific timeframe you're interested in or if you'd like me to focus on particular types of errors.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 210,
+    "prompt_tokens": 33,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 243,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > toolCallRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'll check the current weather in San Francisco for you.",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"San Francisco, CA"}",
+              "name": "get_weather",
+            },
+            "id": "toolu_01UDUGC3YdtpQ8bkdZQMpGMq",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 69,
+    "prompt_tokens": 402,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 471,
+  },
+}
+`;
+
+exports[`responses → anthropic > complexReasoningRequest > request 1`] = `
+{
+  "max_tokens": 20000,
+  "messages": [
+    {
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "thinking": {
+    "budget_tokens": 15000,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > complexReasoningRequest > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "response",
+  "output": [
+    {
+      "encrypted_content": "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",
+      "summary": [
+        {
+          "text": "I need to analyze all the times from 00:00 to 23:59 and count how often each digit (0-9) appears.
+
+Let me break this down systematically:
+
+The format is HH:MM where:
+- HH ranges from 00 to 23 (24 hours)
+- MM ranges from 00 to 59 (60 minutes)
+
+So there are 24 × 60 = 1440 different times.
+
+Each time has 4 digits, so there are 1440 × 4 = 5760 total digit positions.
+
+Let me count each digit:
+
+For the hours (HH):
+- First digit of hour (tens place):
+  - 0: appears in 00-09 (10 times) for each of the 60 minutes = 10 × 60 = 600 times
+  - 1: appears in 10-19 (10 times) for each of the 60 minutes = 10 × 60 = 600 times  
+  - 2: appears in 20-23 (4 times) for each of the 60 minutes = 4 × 60 = 240 times
+  - 3,4,5,6,7,8,9: don't appear in the tens place of hours
+
+- Second digit of hour (ones place):
+  - 0: appears in 00, 10, 20 for each of the 60 minutes = 3 × 60 = 180 times
+  - 1: appears in 01, 11, 21 for each of the 60 minutes = 3 × 60 = 180 times
+  - 2: appears in 02, 12, 22 for each of the 60 minutes = 3 × 60 = 180 times
+  - 3: appears in 03, 13, 23 for each of the 60 minutes = 3 × 60 = 180 times
+  - 4-7: each appears in two hours (like 04, 14) for each of the 60 minutes = 2 × 60 = 120 times each
+  - 8: appears in 08, 18 for each of the 60 minutes = 2 × 60 = 120 times
+
+For the minutes (MM), digits 0-9 each appear equally across all 24 hours. The tens place cycles through 0-5 six times per hour, and the ones place cycles through 0-9 six times per hour, giving each digit 24 × 6 = 144 occurrences in both the tens and ones positions of minutes. 10 times) for each of the 24 hours = 10 × 24 = 240 times. The digits 4 and 5 follow the same pattern in the 40-49 and 50-59 ranges respectively, each appearing 240 times. Digits 6 through 9 never appear in the tens position of minutes.
+
+For the ones place of minutes, 0 shows up in 00, 10, 20, 30, 40, 50 across all 24 hours, totaling 144 occurrences. The digit 1 appears similarly in 01, 11, 21, 31, 41, and continues this pattern. × 24 = 144 times. The digits 6 through 9 follow the same pattern—each appears in six different minute values (06, 16, 26, 36, 46, 56 for digit 6, and so on) across all 24 hours, giving 144 occurrences for each digit.
+
+Now I need to tally the total appearances for each digit across all positions. Digits 0 and 1 appear most frequently, with 1,164 occurrences each—they show up in the hour tens place 600 times, hour ones 180 times, minute tens 240 times, and minute ones 144 times. Digit 2 appears 804 times total, while digits 3 and 4 appear less frequently at 564 and 504 times respectively since they don't appear in the hour tens position. Digit 5 follows a similar pattern to 4, appearing in the hour ones 120 times, minute tens 240 times, and minute ones 144 times.
+
+Digits 6 through 9 are the least common, each appearing only 264 times—they're restricted to the hour ones position (120 times) and minute ones position (144 times). The sum across all digits is 5,760, confirming the calculation. This means digits 0 and 1 represent about 20.21% of all digit occurrences, while digits 6-9 each account for roughly 4.58%.",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "text": "Looking at this systematically, I need to count how often each digit (0-9) appears across all times from 00:00 to 23:59.
+
+There are 24 hours × 60 minutes = 1,440 different times, and each time has 4 digits, giving us 5,760 total digit positions.
+
+Let me break this down by position:
+
+**Hours (HH):**
+- Tens place: 0 (00-09), 1 (10-19), 2 (20-23)
+- Ones place: 0-9 in various patterns
+
+**Minutes (MM):**  
+- Tens place: 0-5 (00-59)
+- Ones place: 0-9 in cycles
+
+**Counting each digit:**
+
+**Digit 0:** 1,164 occurrences
+- Hour tens: 600 (00-09, 60 minutes each)
+- Hour ones: 180 (00, 10, 20, 60 minutes each)  
+- Minute tens: 240 (00-09, 24 hours each)
+- Minute ones: 144 (x0, x0, x0... pattern, 24 hours each)
+
+**Digit 1:** 1,164 occurrences
+- Hour tens: 600 (10-19, 60 minutes each)
+- Hour ones: 180 (01, 11, 21, 60 minutes each)
+- Minute tens: 240 (10-19, 24 hours each)  
+- Minute ones: 144 (x1 pattern, 24 hours each)
+
+**Digit 2:** 804 occurrences
+- Hour tens: 240 (20-23, 60 minutes each)
+- Hour ones: 180 (02, 12, 22, 60 minutes each)
+- Minute tens: 240 (20-29, 24 hours each)
+- Minute ones: 144 (x2 pattern, 24 hours each)
+
+**Digits 3:** 564 occurrences
+**Digits 4-5:** 504 occurrences each  
+**Digits 6-9:** 264 occurrences each
+
+**Results:**
+- **Most common:** 0 and 1 (tied) - 1,164 occurrences = **20.21%**
+- **Least common:** 6, 7, 8, and 9 (tied) - 264 occurrences = **4.58%**
+
+The digits 0 and 1 dominate because they appear frequently in the hour tens position (covering 20 of the 24 hours), while digits 6-9 never appear in either tens position and only show up in the ones positions.",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Looking at this systematically, I need to count how often each digit (0-9) appears across all times from 00:00 to 23:59.
+
+There are 24 hours × 60 minutes = 1,440 different times, and each time has 4 digits, giving us 5,760 total digit positions.
+
+Let me break this down by position:
+
+**Hours (HH):**
+- Tens place: 0 (00-09), 1 (10-19), 2 (20-23)
+- Ones place: 0-9 in various patterns
+
+**Minutes (MM):**  
+- Tens place: 0-5 (00-59)
+- Ones place: 0-9 in cycles
+
+**Counting each digit:**
+
+**Digit 0:** 1,164 occurrences
+- Hour tens: 600 (00-09, 60 minutes each)
+- Hour ones: 180 (00, 10, 20, 60 minutes each)  
+- Minute tens: 240 (00-09, 24 hours each)
+- Minute ones: 144 (x0, x0, x0... pattern, 24 hours each)
+
+**Digit 1:** 1,164 occurrences
+- Hour tens: 600 (10-19, 60 minutes each)
+- Hour ones: 180 (01, 11, 21, 60 minutes each)
+- Minute tens: 240 (10-19, 24 hours each)  
+- Minute ones: 144 (x1 pattern, 24 hours each)
+
+**Digit 2:** 804 occurrences
+- Hour tens: 240 (20-23, 60 minutes each)
+- Hour ones: 180 (02, 12, 22, 60 minutes each)
+- Minute tens: 240 (20-29, 24 hours each)
+- Minute ones: 144 (x2 pattern, 24 hours each)
+
+**Digits 3:** 564 occurrences
+**Digits 4-5:** 504 occurrences each  
+**Digits 6-9:** 264 occurrences each
+
+**Results:**
+- **Most common:** 0 and 1 (tied) - 1,164 occurrences = **20.21%**
+- **Least common:** 6, 7, 8, and 9 (tied) - 264 occurrences = **4.58%**
+
+The digits 0 and 1 dominate because they appear frequently in the hour tens position (covering 20 of the 24 hours), while digits 6-9 never appear in either tens position and only show up in the ones positions.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 109,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 3043,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 3152,
+  },
+}
+`;
+
+exports[`responses → anthropic > multimodalRequest > request 1`] = `
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "text",
+        },
+        {
+          "source": {
+            "type": "url",
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+          "type": "image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`responses → anthropic > multimodalRequest > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "text": "I see an adorable young tabby kitten lying on what appears to be a wooden floor. The kitten has beautiful striped markings in gray and brown tones, with distinctive large yellow-green eyes that are looking directly at the camera. The kitten is positioned on its side in a relaxed, playful pose with its head tilted at a charming angle. Its ears are perked up and alert, and you can see its small pink nose and whiskers clearly. In the blurred background, there appears to be some furniture, possibly wooden chairs or a table. The lighting in the photo is soft and warm, creating a cozy, intimate feeling that perfectly captures this sweet moment with the kitten.",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I see an adorable young tabby kitten lying on what appears to be a wooden floor. The kitten has beautiful striped markings in gray and brown tones, with distinctive large yellow-green eyes that are looking directly at the camera. The kitten is positioned on its side in a relaxed, playful pose with its head tilted at a charming angle. Its ears are perked up and alert, and you can see its small pink nose and whiskers clearly. In the blurred background, there appears to be some furniture, possibly wooden chairs or a table. The lighting in the photo is soft and warm, creating a cozy, intimate feeling that perfectly captures this sweet moment with the kitten.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 278,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 151,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 429,
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "thinking": {
+    "budget_tokens": 3072,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningRequest > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "response",
+  "output": [
+    {
+      "encrypted_content": "EooHCkYICxgCKkAf/+k3sfdt5oisAA2hvTbFQLm+CItHqUUf0tbGEPs1d31nJRrxrdntR87LSUXvF+PJBDn86MFmFOMzxW4BZ/GrEgxTNNcTVYONg2p9rgYaDMS8Ppz16FiQvLMrVSIwMEBArCL5Wyv5Mmea01sBzoM5+Bn5S73T0z5Ey77mY2O70glS/3uEU8gthco9YdVJKvEFQ1zqvQRJ6bmaWOI9rRw3c/8me2qPaOdeN6Q1/rGw0iVyd61wZ96+1oX7sfh3eKS3IGDO5pSP+r4OhqoFtc/H2JMo3Z7dW5KX77HWDpcbdkHIiP9URy+M1lczMtzbAvQrxPVG2MhZj4YfrlRe7UbcIiuNbOnfQWG9bCre8xy45K1z+SQgXxNydQpqJ4WqhldicWkec1dp313V0CLiXZWH6Zfp9+80bQCFnDNYjYvcAmACbbmeGAjS4CHrm7aIol3aq9sBRnuWlCQbO6U55KJVHBgVYR23hcrvBTJTQZicPRuJw1DfjbvZTFI6pA/j9y6Dz/praFwHkeTT7V6RyogQJJ70HnGRgSRf2pv1l0TP1Gp7K1q+gCSvhHeV9lj7c4HvimHa+6aeGi+0J7Zpbgw/4cLFem4UpNxbhOvAvZSJ7j37HFyL1CbD/W27M0bXLzWlDNF5PzaQI4laDjILh9VYdvHTi8ynzNYDoKUcqDahu+fFmybFWO7l7ohXMNIkD81VrhnJbgRFDysqP1WNTqSNDGqLfBjp3CfRVKfqvwQGb9nWMHMlJsgZs21cOXQz8uLPIhOTyVBzoIskLhPXxGe54Doo6LCKDmI6RP6co1ShVXEABJ4FZkGdMEfJwP+6mIBt0TIFw61/TUgxsWB6QyQeFIOPybjHmF10qbDKcnx72A0Rqvg7oSyvPTiaEPJiyQV17Xv82M89DkDdF5fWSoDXpD5LfIM/9+S2oH/SzvhiBLAAy4/CyVPRqBUlIKkpdKXu7scRam0qyZS0ZmVLFfdIwvtNrBuv1FvEctb/ZMrbILFJp++4cyjnc/+noUX4CNGOorZ8U0a4qMkNbMKDcYJdEpytIUisGRHVBYxgCi+Qz+Tx/GjJu47MxHYXh3GldEvIrwLhdU8nWM+DxLs7Lt4ySij2feoCPCULusR9gGXBhbvt2D+iBz+fJXa8NrklNMZkQnvQT5K3NisODClwd7ACLDkrHD8Py3GX8pRk2ToZAH3jGAE=",
+      "summary": [
+        {
+          "text": "To find the average speed, I need to calculate the total distance traveled and divide it by the total time taken.
+
+Let me break this down:
+
+First part of the journey:
+- Speed: 60 mph
+- Time: 2 hours
+- Distance = Speed × Time = 60 × 2 = 120 miles
+
+Second part of the journey:
+- Speed: 80 mph
+- Time: 1 hour
+- Distance = Speed × Time = 80 × 1 = 80 miles
+
+Total distance = 120 + 80 = 200 miles
+Total time = 2 + 1 = 3 hours
+
+Average speed = Total distance ÷ Total time = 200 ÷ 3 = 66.67 mph (rounded to 2 decimal places)
+
+Let me double-check this:
+- First segment: 60 mph × 2 hours = 120 miles
+- Second segment: 80 mph × 1 hour = 80 miles
+- Total: 200 miles in 3 hours
+- Average: 200/3 = 66⅔ mph ≈ 66.67 mph
+
+Yes, that's correct.",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "text": "I'll solve this step-by-step using the formula: Average Speed = Total Distance ÷ Total Time
+
+**Step 1: Calculate distance for each segment**
+
+First segment:
+- Speed = 60 mph
+- Time = 2 hours
+- Distance = 60 × 2 = 120 miles
+
+Second segment:
+- Speed = 80 mph
+- Time = 1 hour  
+- Distance = 80 × 1 = 80 miles
+
+**Step 2: Find totals**
+
+Total distance = 120 + 80 = 200 miles
+Total time = 2 + 1 = 3 hours
+
+**Step 3: Calculate average speed**
+
+Average speed = Total distance ÷ Total time
+Average speed = 200 miles ÷ 3 hours = 66.67 mph
+
+**Answer: The average speed is 66.67 mph (or 66⅔ mph)**",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'll solve this step-by-step using the formula: Average Speed = Total Distance ÷ Total Time
+
+**Step 1: Calculate distance for each segment**
+
+First segment:
+- Speed = 60 mph
+- Time = 2 hours
+- Distance = 60 × 2 = 120 miles
+
+Second segment:
+- Speed = 80 mph
+- Time = 1 hour  
+- Distance = 80 × 1 = 80 miles
+
+**Step 2: Find totals**
+
+Total distance = 120 + 80 = 200 miles
+Total time = 2 + 1 = 3 hours
+
+**Step 3: Calculate average speed**
+
+Average speed = Total distance ÷ Total time
+Average speed = 200 miles ÷ 3 hours = 66.67 mph
+
+**Answer: The average speed is 66.67 mph (or 66⅔ mph)**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 74,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 511,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 585,
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningRequestTruncated > request 1`] = `
+{
+  "max_tokens": 100,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningWithOutput > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What color is the sky?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningWithOutput > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "response",
+  "output": [
+    {
+      "encrypted_content": "EuUGCkYICxgCKkBB+eX22CK0b06mGqZZbMv0k1l5dz27fb2vtxw36OiqZ5hO0WlpvNzjo/kAEsKsETlgvDb3Ox0dgV4LgPOlg2wZEgwxp2whJKzIIDkIPqEaDOGdNlvVmcwXEqbJHiIwD4WP0Npp721Hwz3QLy7aqlo1os3D0cPiZZAy3UPKZE2ZbDnpepILnOskeqEo1EEgKswFC4f1UMD0IRftFMgEZSKCgwWEpLgtULkjWrz6/qgxZxKfqLjgJVsQnF/qcEWpp5JjCyqbQjA+/qhl6ODHzJIMAdBkumLceLTxUylr63LXlWQrDcCQTLp/O5Mvzhfycj5qxxbGo1seRGarTBmydg3S9H3LlRUIiF6xGUlMNxsqGnD3g6ESefJhdK4UKWc+Sitqvi3vOJcHCjeGzWI5PQr9CwwvDbnh7IebM7dx1bsC5pSE9XHs4tfA2+jHNMaU/wY5FI++Cdkle7PI7/2IrlMQg+5kdZ4N9SZVKW1yA1glEYpvbMegyl4QHRcH8sh0H1MJ9sSkdDqyS1IPxkfxcHanaKd7gIfNuv9Xsa/jkHOcgMrmBrC7hh/DSkSBenwi9kIt9ElHyJWDE3PRFGDzd/PytXdG61wtPtJnqyP38T/oFUn6jYe9e3RMWQeOJRaHLWgbSnf5dBi7HNbWHzlavgwEKl05XyC7WLybyG/+Fw71YXc+G3nN1zO4PKHdPSRIR53VXUp9nq2T1iNs1jjkfDtI/ofCY+u9FQUYf+KRFJN+iTUYff6/RZNNkgJSRM+BS2h2ivLxSPggOoBUqANKR3S0ttyL+yZWrFY7GpQ7huBU7+CU3jG9h10TawSo04MYtLfC7g0k6wtk02negHii3sd9Cve8w8PfINbXollBF3d+t8+K7CprssPBmHztNfbNNJcuRc+C0x0FqJW3BQFSOJYUbSw1gKpB4i3J+ZgPB4HbBC0YWe+OCfAbbD3qHZkyal9oA9zOVukGkiU6V11iZs9sGjQUFZjyHKulx+LkcHtiwDZe+RgrQFU1p64AKP9jW6BBexWk+XYzqaASq2thC5cFX88Lib5kBc0ycRBy3ZW7YgWUnOCu+fZohq9vo3oPnvQ+cllMgL4gL90tzRkaDN4Xa4GdJZI2K7flxytv83pg2cwq5TT5FQpD/tPM8MYYAQ==",
+      "summary": [
+        {
+          "text": "This is a straightforward question about the color of the sky. The sky appears blue during the day under normal clear weather conditions. This is due to a phenomenon called Rayleigh scattering, where shorter blue wavelengths of light are scattered more by molecules in Earth's atmosphere than longer wavelengths like red.
+
+However, the sky can appear different colors at different times and under different conditions:
+- Blue during a clear day
+- Various shades of red, orange, pink, and purple during sunrise and sunset
+- Gray or white when cloudy
+- Dark/black at night
+- Sometimes green during certain weather phenomena
+
+I should give the most common/typical answer while acknowledging it can vary.",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "text": "The sky is typically blue during the day. This blue color occurs because of the way sunlight interacts with Earth's atmosphere - shorter blue wavelengths of light are scattered more than other colors by the tiny molecules in the air.
+
+However, the sky can appear different colors depending on conditions:
+- Red, orange, or pink during sunrise and sunset
+- Gray or white when cloudy
+- Dark blue to black at night
+- Sometimes dramatic colors during storms or other weather events",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "The sky is typically blue during the day. This blue color occurs because of the way sunlight interacts with Earth's atmosphere - shorter blue wavelengths of light are scattered more than other colors by the tiny molecules in the air.
+
+However, the sky can appear different colors depending on conditions:
+- Red, orange, or pink during sunrise and sunset
+- Gray or white when cloudy
+- Dark blue to black at night
+- Sometimes dramatic colors during storms or other weather events",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 42,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 258,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 300,
+  },
+}
+`;
+
+exports[`responses → anthropic > simpleRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is the capital of France?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > simpleRequest > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "response",
+  "output": [
+    {
+      "encrypted_content": "ErgCCkYICxgCKkDAcAhMIaE3za7R+jLBO4RA0fkGL5aFbum0oHigdpj1dsb9boZ43P4FDr6LxJR254S2ywAopiH3X4j6ppTeWcW5EgzL+t1/IG5QQn3bIEgaDEAn4pb8I/rFYD96bSIwqKqtw1KIV1fLg2iUixWAa8I2tcjvsPNvjmdsJWrMNGr0pqDG+6sw5vk6I9xQom2LKp8B9qIqdQr6vAVEdJWQ2NCrdE/hQhe0O2wrQ3NCjRFDaB3F6sZe8vB0vFgGTGVJK7HdTO7eVnO6ydUDwqTjXRCYqTG0wLOthalPjvRDxzxPr3CacrcaNiU8a3AOcWzgmDZx/bU7tUwt3w53XbNTwCHJYqxs1WJyMdIB8iLs5M7SMcQ6+VOsUH9uVkxEFlfRYtiAio4DMsdt5Yn5e8YCOBAuGAE=",
+      "summary": [
+        {
+          "text": "This is a straightforward factual question about geography. The capital of France is Paris. This is basic knowledge that I can answer directly.",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "text": "The capital of France is Paris.",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "The capital of France is Paris.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 43,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 46,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 89,
+  },
+}
+`;
+
+exports[`responses → anthropic > systemMessageArrayContent > request 1`] = `
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": "What errors occurred recently?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "system": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+}
+`;
+
+exports[`responses → anthropic > systemMessageArrayContent > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "text": "I'll help you find recent errors from the project logs. Let me query the logs to identify error entries.
+
+\`\`\`sql
+SELECT 
+    timestamp,
+    level,
+    message,
+    source,
+    error_code
+FROM project_logs 
+WHERE level IN ('ERROR', 'FATAL', 'CRITICAL')
+    AND timestamp >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 24 HOURS)
+ORDER BY timestamp DESC
+LIMIT 20;
+\`\`\`
+
+This query will show you:
+- The most recent errors from the last 24 hours
+- Error level (ERROR, FATAL, or CRITICAL)
+- Error messages and their sources
+- Any associated error codes
+- Results ordered by most recent first
+
+Would you like me to:
+1. Extend the time range (e.g., last week)?
+2. Filter by specific error types or sources?
+3. Group errors by frequency to see the most common issues?
+4. Look for error patterns or trends?
+
+Just let me know what specific aspect of the recent errors you'd like to focus on!",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'll help you find recent errors from the project logs. Let me query the logs to identify error entries.
+
+\`\`\`sql
+SELECT 
+    timestamp,
+    level,
+    message,
+    source,
+    error_code
+FROM project_logs 
+WHERE level IN ('ERROR', 'FATAL', 'CRITICAL')
+    AND timestamp >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 24 HOURS)
+ORDER BY timestamp DESC
+LIMIT 20;
+\`\`\`
+
+This query will show you:
+- The most recent errors from the last 24 hours
+- Error level (ERROR, FATAL, or CRITICAL)
+- Error messages and their sources
+- Any associated error codes
+- Results ordered by most recent first
+
+Would you like me to:
+1. Extend the time range (e.g., last week)?
+2. Filter by specific error types or sources?
+3. Group errors by frequency to see the most common issues?
+4. Look for error patterns or trends?
+
+Just let me know what specific aspect of the recent errors you'd like to focus on!",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 33,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 245,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 278,
+  },
+}
+`;
+
+exports[`responses → anthropic > toolCallRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": false,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > toolCallRequest > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "text": "I'll check the current weather in San Francisco for you.",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+    {
+      "arguments": "{"location":"San Francisco, CA"}",
+      "call_id": "toolu_01RYyweGHhGo3FJwJQpxCsgA",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "I'll check the current weather in San Francisco for you.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 402,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 69,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 471,
+  },
+}
+`;
