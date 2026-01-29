@@ -26,21 +26,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -70,21 +55,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -114,21 +84,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -158,21 +113,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -202,21 +142,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -246,21 +171,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -290,21 +200,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -334,21 +229,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -378,21 +258,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -422,21 +287,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -466,21 +316,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -510,21 +345,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   },
   {
@@ -555,21 +375,6 @@
         }
       ],
       "thoughtsTokenCount": 864
-    },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:12:05 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=4642",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
     }
   }
 ]

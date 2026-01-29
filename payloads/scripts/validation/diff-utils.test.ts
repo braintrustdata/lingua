@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { compareResponses, formatDiff, DiffEntry } from "./diff-utils";
+import {
+  compareResponses,
+  formatDiff,
+  DiffEntry,
+  stripGoogleSdkFields,
+  normalizeGoogleRequestFields,
+} from "./diff-utils";
 
 describe("compareResponses", () => {
   describe("matching objects", () => {
@@ -281,5 +287,235 @@ describe("formatDiff", () => {
       severity: "major",
     };
     expect(formatDiff(diff)).toBe("field (missing): (exists) → (missing)");
+  });
+});
+
+describe("stripGoogleSdkFields", () => {
+  describe("primitive values", () => {
+    it("returns null unchanged", () => {
+      expect(stripGoogleSdkFields(null)).toBe(null);
+    });
+
+    it("returns undefined unchanged", () => {
+      expect(stripGoogleSdkFields(undefined)).toBe(undefined);
+    });
+
+    it("returns strings unchanged", () => {
+      expect(stripGoogleSdkFields("hello")).toBe("hello");
+    });
+
+    it("returns numbers unchanged", () => {
+      expect(stripGoogleSdkFields(42)).toBe(42);
+    });
+
+    it("returns booleans unchanged", () => {
+      expect(stripGoogleSdkFields(true)).toBe(true);
+    });
+  });
+
+  describe("object handling", () => {
+    it("removes sdkHttpResponse from top-level object", () => {
+      const input = {
+        candidates: [{ content: "test" }],
+        sdkHttpResponse: { statusCode: 200, headers: {} },
+      };
+      const result = stripGoogleSdkFields(input);
+      expect(result).toEqual({
+        candidates: [{ content: "test" }],
+      });
+      expect("sdkHttpResponse" in result).toBe(false);
+    });
+
+    it("preserves objects without sdkHttpResponse", () => {
+      const input = {
+        candidates: [{ content: "test" }],
+        modelVersion: "gemini-2.5-flash",
+      };
+      const result = stripGoogleSdkFields(input);
+      expect(result).toEqual(input);
+    });
+
+    it("only strips sdkHttpResponse at top level of objects (not deeply nested)", () => {
+      // Note: In real Google SDK responses, sdkHttpResponse only appears at the
+      // top level of response objects. The function is intentionally NOT recursive
+      // for nested object properties - this matches the actual SDK behavior.
+      const input = {
+        outer: {
+          inner: {
+            sdkHttpResponse: { statusCode: 200 },
+            data: "preserved",
+          },
+        },
+      };
+      const result = stripGoogleSdkFields(input);
+      // sdkHttpResponse is preserved in nested objects (doesn't happen in practice)
+      expect(result).toEqual({
+        outer: {
+          inner: {
+            sdkHttpResponse: { statusCode: 200 },
+            data: "preserved",
+          },
+        },
+      });
+    });
+
+    it("does not mutate the original object", () => {
+      const input = {
+        candidates: [{ content: "test" }],
+        sdkHttpResponse: { statusCode: 200 },
+      };
+      const original = JSON.parse(JSON.stringify(input));
+      stripGoogleSdkFields(input);
+      expect(input).toEqual(original);
+    });
+  });
+
+  describe("array handling", () => {
+    it("processes arrays recursively", () => {
+      const input = [
+        { sdkHttpResponse: { statusCode: 200 }, data: "chunk1" },
+        { sdkHttpResponse: { statusCode: 200 }, data: "chunk2" },
+      ];
+      const result = stripGoogleSdkFields(input);
+      expect(result).toEqual([{ data: "chunk1" }, { data: "chunk2" }]);
+    });
+
+    it("preserves arrays without sdkHttpResponse", () => {
+      const input = [{ data: "chunk1" }, { data: "chunk2" }];
+      const result = stripGoogleSdkFields(input);
+      expect(result).toEqual(input);
+    });
+
+    it("strips sdkHttpResponse from each item in top-level arrays", () => {
+      // This is the actual use case: streaming responses are arrays where
+      // each chunk has sdkHttpResponse at its top level
+      const input = [
+        { sdkHttpResponse: { statusCode: 200 }, data: "a" },
+        { sdkHttpResponse: { statusCode: 200 }, data: "b" },
+      ];
+      const result = stripGoogleSdkFields(input);
+      expect(result).toEqual([{ data: "a" }, { data: "b" }]);
+    });
+  });
+
+  describe("realistic Google response", () => {
+    it("strips sdkHttpResponse from real Google GenerateContentResponse structure", () => {
+      const googleResponse = {
+        sdkHttpResponse: {
+          statusCode: 200,
+          headers: {
+            "content-type": "application/json",
+          },
+        },
+        candidates: [
+          {
+            content: {
+              parts: [{ text: "The capital of France is Paris." }],
+              role: "model",
+            },
+            finishReason: "STOP",
+            index: 0,
+          },
+        ],
+        modelVersion: "gemini-2.5-flash",
+        responseId: "abc123",
+        usageMetadata: {
+          promptTokenCount: 8,
+          candidatesTokenCount: 8,
+          totalTokenCount: 16,
+        },
+      };
+
+      const result = stripGoogleSdkFields(googleResponse);
+
+      expect(result).toEqual({
+        candidates: [
+          {
+            content: {
+              parts: [{ text: "The capital of France is Paris." }],
+              role: "model",
+            },
+            finishReason: "STOP",
+            index: 0,
+          },
+        ],
+        modelVersion: "gemini-2.5-flash",
+        responseId: "abc123",
+        usageMetadata: {
+          promptTokenCount: 8,
+          candidatesTokenCount: 8,
+          totalTokenCount: 16,
+        },
+      });
+      expect("sdkHttpResponse" in result).toBe(false);
+    });
+
+    it("handles streaming response array", () => {
+      const streamingResponse = [
+        {
+          sdkHttpResponse: { statusCode: 200 },
+          candidates: [{ content: { parts: [{ text: "Hello" }] } }],
+        },
+        {
+          sdkHttpResponse: { statusCode: 200 },
+          candidates: [{ content: { parts: [{ text: " world" }] } }],
+        },
+      ];
+
+      const result = stripGoogleSdkFields(streamingResponse);
+
+      expect(result).toEqual([
+        { candidates: [{ content: { parts: [{ text: "Hello" }] } }] },
+        { candidates: [{ content: { parts: [{ text: " world" }] } }] },
+      ]);
+    });
+  });
+});
+
+describe("normalizeGoogleRequestFields", () => {
+  it("renames config to generationConfig", () => {
+    const input = { contents: [], config: { maxOutputTokens: 100 } };
+    const result = normalizeGoogleRequestFields(input);
+    expect(result).toEqual({
+      contents: [],
+      generationConfig: { maxOutputTokens: 100 },
+    });
+    expect("config" in result).toBe(false);
+  });
+
+  it("preserves existing generationConfig", () => {
+    const input = { contents: [], generationConfig: { maxOutputTokens: 100 } };
+    const result = normalizeGoogleRequestFields(input);
+    expect(result).toEqual(input);
+  });
+
+  it("does not overwrite existing generationConfig with config", () => {
+    const input = {
+      contents: [],
+      config: { maxOutputTokens: 50 },
+      generationConfig: { maxOutputTokens: 100 },
+    };
+    const result = normalizeGoogleRequestFields(input);
+    expect(result.generationConfig).toEqual({ maxOutputTokens: 100 });
+    expect("config" in result).toBe(true); // config preserved when generationConfig exists
+  });
+
+  it("handles objects without config", () => {
+    const input = { contents: [{ text: "hello" }] };
+    const result = normalizeGoogleRequestFields(input);
+    expect(result).toEqual(input);
+  });
+
+  it("returns primitives unchanged", () => {
+    expect(normalizeGoogleRequestFields(null)).toBe(null);
+    expect(normalizeGoogleRequestFields("string")).toBe("string");
+    expect(normalizeGoogleRequestFields(42)).toBe(42);
+  });
+
+  it("does not mutate original object", () => {
+    const input = { contents: [], config: { maxOutputTokens: 100 } };
+    const original = JSON.parse(JSON.stringify(input));
+    normalizeGoogleRequestFields(input);
+    expect(input).toEqual(original);
   });
 });

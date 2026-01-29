@@ -60,105 +60,121 @@ impl TryFromLLM<GoogleContent> for Message {
     type Error = ConvertError;
 
     fn try_from(content: GoogleContent) -> Result<Self, Self::Error> {
-        let role = if content.role.is_empty() {
-            "user"
-        } else {
-            content.role.as_str()
-        };
+        match content.role.as_str() {
+            "model" => {
+                // Collect into AssistantContentPart
+                let mut parts: Vec<AssistantContentPart> = Vec::new();
 
-        // Collect text parts
-        let mut text = String::new();
-        let mut function_calls = Vec::new();
-        let mut function_responses = Vec::new();
-
-        for part in &content.parts {
-            if let Some(data) = &part.data {
-                match data {
-                    part::Data::Text(t) => text.push_str(t),
-                    part::Data::FunctionCall(fc) => function_calls.push(fc.clone()),
-                    part::Data::FunctionResponse(fr) => function_responses.push(fr.clone()),
-                    _ => {}
+                for part in &content.parts {
+                    if let Some(data) = &part.data {
+                        match data {
+                            part::Data::Text(t) => {
+                                if !part.thought_signature.is_empty() {
+                                    parts.push(AssistantContentPart::Reasoning {
+                                        text: t.clone(),
+                                        encrypted_content: Some(
+                                            STANDARD.encode(&part.thought_signature),
+                                        ),
+                                    });
+                                } else {
+                                    parts.push(AssistantContentPart::Text(TextContentPart {
+                                        text: t.clone(),
+                                        provider_options: None,
+                                    }));
+                                }
+                            }
+                            part::Data::FunctionCall(fc) => {
+                                let args_value =
+                                    fc.args.as_ref().map(struct_to_json).unwrap_or(Value::Null);
+                                parts.push(AssistantContentPart::ToolCall {
+                                    tool_call_id: if fc.id.is_empty() {
+                                        fc.name.clone()
+                                    } else {
+                                        fc.id.clone()
+                                    },
+                                    tool_name: fc.name.clone(),
+                                    arguments: ToolCallArguments::from(
+                                        serde_json::to_string(&args_value).unwrap_or_default(),
+                                    ),
+                                    provider_options: None,
+                                    provider_executed: None,
+                                });
+                            }
+                            _ => {}
+                        }
+                    }
                 }
-            }
-        }
 
-        if !function_calls.is_empty() {
-            // Model message with function calls
-            let mut parts = Vec::new();
-
-            if !text.is_empty() {
-                parts.push(AssistantContentPart::Text(TextContentPart {
-                    text,
-                    provider_options: None,
-                }));
-            }
-
-            for fc in function_calls {
-                let args_value = fc.args.as_ref().map(struct_to_json).unwrap_or(Value::Null);
-                parts.push(AssistantContentPart::ToolCall {
-                    tool_call_id: if fc.id.is_empty() {
-                        fc.name.clone()
-                    } else {
-                        fc.id.clone()
-                    },
-                    tool_name: fc.name.clone(),
-                    arguments: ToolCallArguments::from(
-                        serde_json::to_string(&args_value).unwrap_or_default(),
-                    ),
-                    provider_options: None,
-                    provider_executed: None,
-                });
-            }
-
-            Ok(Message::Assistant {
-                content: AssistantContent::Array(parts),
-                id: None,
-            })
-        } else if !function_responses.is_empty() {
-            // User message with function responses (tool results)
-            let tool_parts: Vec<ToolContentPart> = function_responses
-                .iter()
-                .map(|fr| {
-                    let output = fr
-                        .response
-                        .as_ref()
-                        .map(struct_to_json)
-                        .unwrap_or(Value::Null);
-                    ToolContentPart::ToolResult(ToolResultContentPart {
-                        tool_call_id: if fr.id.is_empty() {
-                            fr.name.clone()
-                        } else {
-                            fr.id.clone()
-                        },
-                        tool_name: fr.name.clone(),
-                        output,
-                        provider_options: None,
-                    })
-                })
-                .collect();
-
-            Ok(Message::Tool {
-                content: tool_parts,
-            })
-        } else {
-            // Regular text message
-            match role {
-                "user" => Ok(Message::User {
-                    content: UserContent::String(text),
-                }),
-                "model" => Ok(Message::Assistant {
-                    content: AssistantContent::Array(vec![AssistantContentPart::Text(
-                        TextContentPart {
-                            text,
-                            provider_options: None,
-                        },
-                    )]),
+                Ok(Message::Assistant {
+                    content: AssistantContent::Array(parts),
                     id: None,
-                }),
-                _ => {
-                    // Treat unknown roles as user
+                })
+            }
+
+            // "user" or unknown roles
+            _ => {
+                // Collect into UserContentPart or ToolContentPart
+                let mut user_parts: Vec<UserContentPart> = Vec::new();
+                let mut tool_parts: Vec<ToolContentPart> = Vec::new();
+
+                for part in &content.parts {
+                    if let Some(data) = &part.data {
+                        match data {
+                            part::Data::Text(t) => {
+                                user_parts.push(UserContentPart::Text(TextContentPart {
+                                    text: t.clone(),
+                                    provider_options: None,
+                                }));
+                            }
+                            part::Data::InlineData(blob) => {
+                                user_parts.push(UserContentPart::Image {
+                                    image: Value::String(STANDARD.encode(&blob.data)),
+                                    media_type: Some(blob.mime_type.clone()),
+                                    provider_options: None,
+                                });
+                            }
+                            part::Data::FunctionResponse(fr) => {
+                                let output = fr
+                                    .response
+                                    .as_ref()
+                                    .map(struct_to_json)
+                                    .unwrap_or(Value::Null);
+                                tool_parts.push(ToolContentPart::ToolResult(
+                                    ToolResultContentPart {
+                                        tool_call_id: if fr.id.is_empty() {
+                                            fr.name.clone()
+                                        } else {
+                                            fr.id.clone()
+                                        },
+                                        tool_name: fr.name.clone(),
+                                        output,
+                                        provider_options: None,
+                                    },
+                                ));
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+
+                if !tool_parts.is_empty() {
+                    Ok(Message::Tool {
+                        content: tool_parts,
+                    })
+                } else if user_parts.len() == 1
+                    && matches!(&user_parts[0], UserContentPart::Text(_))
+                {
+                    // Single text part -> String for simplicity
+                    let text = match user_parts.remove(0) {
+                        UserContentPart::Text(t) => t.text,
+                        _ => unreachable!(),
+                    };
                     Ok(Message::User {
                         content: UserContent::String(text),
+                    })
+                } else {
+                    Ok(Message::User {
+                        content: UserContent::Array(user_parts),
                     })
                 }
             }
@@ -273,6 +289,23 @@ impl TryFromLLM<Message> for GoogleContent {
                                         args,
                                     },
                                 )))
+                            }
+                            AssistantContentPart::Reasoning {
+                                text,
+                                encrypted_content,
+                            } => {
+                                let thought_signature = encrypted_content
+                                    .as_ref()
+                                    .and_then(|s| STANDARD.decode(s).ok())
+                                    .unwrap_or_default();
+
+                                Some(GooglePart {
+                                    thought: false, // Don't set thought flag - signature alone handles context
+                                    thought_signature,
+                                    part_metadata: None,
+                                    data: Some(part::Data::Text(text)),
+                                    metadata: None,
+                                })
                             }
                             _ => None,
                         })
