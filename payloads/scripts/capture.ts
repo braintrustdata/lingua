@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { mkdirSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { needsRegeneration, updateCache } from "./cache-utils";
 import { saveAllFiles } from "./file-manager";
@@ -25,6 +25,7 @@ const allProviders = [
 interface CaptureOptions {
   list: boolean;
   force: boolean;
+  failing: boolean;
   filter?: string;
   providers?: string[];
   cases?: string[];
@@ -36,6 +37,7 @@ function parseArguments(): CaptureOptions {
   const options: CaptureOptions = {
     list: false,
     force: false,
+    failing: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -47,6 +49,9 @@ function parseArguments(): CaptureOptions {
         break;
       case "--force":
         options.force = true;
+        break;
+      case "--failing":
+        options.failing = true;
         break;
       case "--filter":
         if (i + 1 < args.length) {
@@ -87,7 +92,7 @@ function parseArguments(): CaptureOptions {
         if (arg.startsWith("--")) {
           console.error(`Unknown option: ${arg}`);
           console.error(
-            "Available options: --list, --force, --filter, --providers, --cases, --stream"
+            "Available options: --list, --force, --failing, --filter, --providers, --cases, --stream"
           );
           process.exit(1);
         }
@@ -102,6 +107,22 @@ interface CaseToRun {
   caseName: string;
   payload: unknown;
   executor: ProviderExecutor<unknown, unknown, unknown>;
+}
+
+const FAILURES_FILE = ".failures.json";
+
+function loadFailures(outputDir: string): Set<string> {
+  const failuresPath = join(outputDir, FAILURES_FILE);
+  if (!existsSync(failuresPath)) {
+    return new Set();
+  }
+  const data = JSON.parse(readFileSync(failuresPath, "utf-8"));
+  return new Set(data);
+}
+
+function saveFailures(outputDir: string, failures: string[]): void {
+  const failuresPath = join(outputDir, FAILURES_FILE);
+  writeFileSync(failuresPath, JSON.stringify(failures, null, 2));
 }
 
 function getAllCases(options: CaptureOptions): CaseToRun[] {
@@ -157,13 +178,28 @@ async function main() {
   const outputDir = join(__dirname, "..", "snapshots");
   mkdirSync(outputDir, { recursive: true });
 
+  // Filter to only failing cases if --failing is passed
+  let filteredCases = allCases;
+  if (options.failing) {
+    const previousFailures = loadFailures(outputDir);
+    if (previousFailures.size === 0) {
+      console.log("No previous failures recorded.");
+      return;
+    }
+    filteredCases = allCases.filter((c) =>
+      previousFailures.has(`${c.provider}/${c.caseName}`)
+    );
+    console.log(`Retrying ${filteredCases.length} previously failed cases...`);
+  }
+
   // Filter cases that need to be run
   const casesToRun: CaseToRun[] = [];
   const skippedCases: CaseToRun[] = [];
 
-  for (const case_ of allCases) {
+  for (const case_ of filteredCases) {
     if (
       !options.force &&
+      !options.failing &&
       !needsRegeneration(
         outputDir,
         case_.provider,
@@ -265,6 +301,15 @@ async function main() {
         `  - ${failure.case_.provider}/${failure.case_.caseName}: ${failure.error}`
       );
     }
+  }
+
+  // Save failures for --failing retry
+  const failureKeys = failed.map(
+    (f) => `${f.case_.provider}/${f.case_.caseName}`
+  );
+  saveFailures(outputDir, failureKeys);
+  if (failed.length > 0) {
+    console.log(`\n💡 Run with --failing to retry failed cases`);
   }
 
   console.log(`\nCapture complete! Results saved to: ${outputDir}`);
