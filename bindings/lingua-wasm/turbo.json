@@ -3,8 +3,14 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": ["nodejs/**", "web/**"]
+      "outputs": ["nodejs/**", "web/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "../../**/Cargo.toml",
+        "../../**/Cargo.lock",
+        "../../**/build.rs",
+        "../../**/src/**"
+      ]
     }
   }
 }
-
