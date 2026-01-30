@@ -6,14 +6,10 @@
       "outputs": ["nodejs/**", "web/**"],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "../../Cargo.toml",
-        "../../Cargo.lock",
-        "../../crates/lingua/Cargo.toml",
-        "../../crates/lingua/build.rs",
-        "../../crates/lingua/src/**/*.rs",
-        "../../serde_json/Cargo.toml",
-        "../../serde_json/Cargo.lock",
-        "../../serde_json/src/**/*.rs"
+        "../../**/Cargo.toml",
+        "../../**/Cargo.lock",
+        "../../**/build.rs",
+        "../../**/src/**"
       ]
     }
   }
