@@ -1326,6 +1326,7 @@ dependencies = [
  "big_serde_json",
  "pbjson-build",
  "prost-build",
+ "regex",
  "schemafy",
  "schemars 0.8.22",
  "serde",

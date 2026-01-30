@@ -1,0 +1,61 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "A close-up portrait of a young woman with long, dark, wavy hair, smiling warmly and looking directly at the viewer. She"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 27,
+      "totalTokenCount": 950,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 917
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8affnDuKVjMcP1MG6kA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " is wearing noticeable eye makeup and lipstick, against a softly blurred background."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 41,
+      "totalTokenCount": 964,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 917
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8affnDuKVjMcP1MG6kA8"
+  }
+]

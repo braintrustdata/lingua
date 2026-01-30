@@ -1,0 +1,15 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say hi."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0.7
+  }
+}

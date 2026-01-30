@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Thought Process for Handling \"What Should I Do Next?\"**\n\nAlright, a user poses the classic open-ended question: \"What should I do next?\". My immediate reaction? That's a *huge* question! No context at all. It's the AI equivalent of getting a blank stare.\n\nThe core problem is the absolute lack of information. I can't just throw out random suggestions like \"Go for a walk\" or \"Read a book,\" unless specifically asked to be creative or give generic options. That's not helpful; it's just guessing. My role here is to provide guidance, not make assumptions or pick tasks for the user. My priority is to be helpful and the only way to be so, is to get more information from the user.\n\nSo, how do I do that? I need a strategy, a way to gently extract the necessary context. I'll acknowledge the breadth of the question upfront. Then I'll briefly explain *why* I need more info: because context leads to relevant suggestions!\n\nThe next step is to guide them. I'll provide categories of helpful information. I'm thinking:\n\n*   **What just happened?** What were they *just* doing? Did they finish a task? Are they bored? Are they looking for productivity or relaxation?\n*   **What are their goals/mood/interests?** Are they trying to be productive, creative, learn, relax, or have fun? What's their current mood? What are their hobbies?\n*   **What are their constraints/environment?** How much time do they have? What's their energy level? Are they alone? Where are they? Do they have resources available (computer, tools, ingredients)?\n\nI'll structure my response carefully. I'll begin with a polite acknowledgement. I'll explain the need for context and then provide a clear list of guiding questions. As a fallback, or if the user doesn't offer more, I might offer a *few* incredibly generic examples. But I'll make sure those are truly universal. Something like, \"In the meantime, some general ideas...\" and then give options for relaxation, productivity, physical activity, and social contact.\n\nFinally, I'll end with an invitation to provide more context. \"Once you tell me a bit more, I can give you a more tailored suggestion!\"\n\nBefore I commit to this response, I'll do a quick self-check. Is it helpful? Yes, by giving guidance. Is it polite? Absolutely. Is it overwhelming? No, because the categories help. Does it avoid assumptions? Totally. Does it set the right expectations? Yes, by explaining the *why* behind needing more information. This approach is comprehensive, user-friendly, and should provide a great starting point for resolving the user's initial ambiguity.\n",
+            "thought": true
+          },
+          {
+            "text": "That's a very open question! To give you the best suggestion, I need a little more information about what you're looking for. Tell me:\n\n1.  **What were you just doing?** (e.g., working, relaxing, eating, thinking about something specific)\n2.  **What's your current mood or goal?** (e.g., bored, wanting to be productive, looking to relax, wanting to learn something new, need a distraction)\n3.  **How much time do you have?** (e.g., 5 minutes, an hour, the rest of the day)\n4.  **What's your energy level like?** (e.g., tired, energetic, somewhere in between)\n5.  **Where are you?** (e.g., at home, at work, outside)\n6.  **Are you alone or with others?**\n\nIn the meantime, some *very general* ideas could be:\n\n*   **Relax:** Listen to music, read a book, take a short walk, meditate.\n*   **Be Productive:** Make a to-do list, organize something small, learn a new skill online.\n*   **Connect:** Call a friend or family member, send a thoughtful message.\n*   **Engage:** Work on a hobby, watch a documentary, play a game.\n*   **Physical:** Stretch, do a few simple exercises.\n\nOnce you tell me a bit more, I can give you a more tailored suggestion!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 140,
+    "candidatesTokenCount": 325,
+    "totalTokenCount": 1358,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 140
+      }
+    ],
+    "thoughtsTokenCount": 893
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "wtF8adznIIuXjMcPnMm2kA4"
+}

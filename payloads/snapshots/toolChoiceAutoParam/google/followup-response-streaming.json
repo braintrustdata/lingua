@@ -1,0 +1,91 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I can help with many things, but I need a little more information. What kind of things are you interested in doing? For example, are you looking for:\n\n*   **Activities or hobbies?** (e.g., \"",
+              "thoughtSignature": "CiQBcsjafISnabJk0cYotVIqFFlRzLsD3xjxcHMZDMItEmB5EWkKaQFyyNp8dOlmXbJN6+/ktQBoN1RPYKu3BOJwHinDKr2RsKe3evqyI7KOp8lmUJ27mKAiOm51Yc3JAtGX3AVBaUt+SD1UIildURLQyhIHuQffVn6CWmmWiC3sbIeRGxWDHuaNNDCVNdT+TwqWAgFyyNp8DukEzWZTKkrIinueMj58kNtbT9BsvTPC8hFAJ0l/4usi+FQb804Efxf53cYAHfP9HHqe5thFjAeaLVXjFcII1n5N3DZAdnwm1OuAV5x+CkDu3e4HuWfsY3cXE8krmrNNwOBcA62N7+LqKPmZeyFHjiTVouLm9ccj9zChelm5N9B5ARQLBEk2VCnOs82M3hpwmyL1QTdoWbxOgjNKuUhsE5x2atyYxXrUEg7/79RCvVF1nAB8XrCTGAfQMRX/ZQNk3YGpDlx2xUF2MndYS3dA+QupZeuFehh6XG3Wwzom5w30StIWAdMxwvUUT6ljtJ8CcjbVDTYIQ705ynh/fBckpsPCo1SXS6bvp80ZMrl2bngVCoUCAXLI2nwztByRYp9j2ruuJuTTwviGZLNUOjd0EzB9vAQoWtLpLTSKh0H2An2EIPBVuzXN1VIL60ydWfjiAZ74NFYnp2HEZZe/3KHFCHY+2gAmKN7vEhDZaMV+UzOkNVBe/86HGQE02dneld6h63erqfWUgAKE+PylhP9b+eEjKhLGzJ52ZlCm/RaYPN5nHCqQ5gxK3gIbzMuznUtrZU562nH5/pSQzM+V7n18X761DTOjgOBwCl9uPFaL0Fnn9lU1id4CVDKuz19wT7Q2OgFXG/HQyCmuRxp8TDBF6vJ2fwyXgFGxKRAm6BY+63BP0aAW5RBWoPH1TMIZxfyIkJkY61HqoFdLCv0BAXLI2nzTR3rFtntwtt6GXYdx9mSu+FSwtNbWUAIotqpYliT2b0di0an2rGI92oxjM46En4OyuhFt0qvveVLykh6VqXfrLetWBgb5oOLMPkJiD0TXrkIh4Ch/IdphFjVJHZuLyVd2SxpJJyK+lHN9S1oV5b9GO+MElpf0x626DnABrtkkBX8Te5gW2vJrmnK6Jvc3tVZ7qkaBfMuv9k6uYmzx7R/NDxZg+r9pXrpeoU0crayAfleqciTUWUAmVZYhENn35tcN9cv78vuRzZTlg/4QD8NVHv5H0YNre0olBaDVOvC0ALrUV4JGWLLK9kYBx5FbpJ6Af6HHsBAzygr+AQFyyNp8hmJvn/zEWidePk8VVIojgQEnqSIA6bkdHQ1Yh2zukZLT5tQ71uw8vID+uB44uzlquWrPAUzxpJSLPHcw9Naqcu/3aMjnpUkgrnm/q2AJKt15cKi03qdrRMGWDskdKTEZfm1tFQatHEraavK1HOijHDuyKP7jUvYSGLdIX3qVQ2AJsMOV2rlNnDKpa39BQHeEFmjkFQwxtIRsbUaf+kQscmE34HgsiAYDbZkyx9HcfFOVr1a/u95TU7ey0oIDFsfxAoLQukUcGO2J5VZvPtoMAxm9UhYfdYjK3i2xIXuOnxRkHNWRRWt4cZPWO+mdjhPXaYS9Roalhho5"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 59,
+      "candidatesTokenCount": 48,
+      "totalTokenCount": 320,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 59
+        }
+      ],
+      "thoughtsTokenCount": 213
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aeKBPfbAjMcP6bWPwA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I'm bored, what's a fun activity?\")\n*   **Help with a task?** (e.g., \"What should I do to plan a trip?\")\n*   **Information or learning?** (e"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 59,
+      "candidatesTokenCount": 96,
+      "totalTokenCount": 368,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 59
+        }
+      ],
+      "thoughtsTokenCount": 213
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aeKBPfbAjMcP6bWPwA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ".g., \"What should I read next?\")\n*   **Something else entirely?**\n\nPlease tell me more about what you have in mind!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 59,
+      "candidatesTokenCount": 127,
+      "totalTokenCount": 399,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 59
+        }
+      ],
+      "thoughtsTokenCount": 213
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aeKBPfbAjMcP6bWPwA8"
+  }
+]

@@ -1,0 +1,61 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Calculate the Answer**\n\nI've got a straightforward arithmetic problem to solve. My primary task is to execute the addition accurately and supply the final answer. It seems simple enough.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "totalTokenCount": 28,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 20
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aYTqA5KJ-sAP9vDhiQ4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "2 + 2 = 4"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "candidatesTokenCount": 6,
+      "totalTokenCount": 34,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 20
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aYTqA5KJ-sAP9vDhiQ4"
+  }
+]

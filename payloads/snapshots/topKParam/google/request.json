@@ -1,0 +1,15 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say hi."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "topK": 40
+  }
+}

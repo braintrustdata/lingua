@@ -1,0 +1,68 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Tokyo weather"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "functionCall": {
+            "name": "get_weather",
+            "args": {
+              "location": "Tokyo"
+            }
+          },
+          "thoughtSignature": "CvABAXLI2nyJjqjZJqWede25stRfM78KRyfpNwEGi/p5ESVce0Cj05W8Pxo1r5DoRxPodxDoYGS6CNU34UcnyE7ZNkDlJ0BwLncHJH4XXd+TkY7L/XMya6+cIWdAZdET6vT1mpFj2LPnUXZWLmN5SVJ4pFPjmuBrgLcTJJlyx9mS5mb36R70LwrfFOo+BjaeGv9TQN97KbGlosO04ANpCTo1JEe41efxfvHbR+ag4hvAjjDogSZTQJKLUJE03mwOhM547Ey2TAtwa4KtW+8Q7xz/ltl5eUomvMdABBsP9+apiFmdsLLWYKJ45cEWecxlWMl9"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_weather",
+            "response": {
+              "temperature": "71 degrees"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get weather",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "location": {
+                "type": "STRING"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY",
+      "allowedFunctionNames": [
+        "get_weather"
+      ]
+    }
+  }
+}

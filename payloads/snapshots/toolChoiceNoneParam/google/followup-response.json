@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That's a very open-ended question! To give you the best advice, I need a little more context.\n\nWhat kind of \"next step\" are you looking for? For example:\n\n*   **What were you just doing, or what were you thinking about?** (e.g., \"I just finished work,\" \"I was browsing the internet,\" \"I just had a great idea for a project.\")\n*   **Are you feeling stuck, bored, overwhelmed, excited, or something else?**\n*   **What area of your life are you thinking about?** (e.g., work, personal life, a specific project, a hobby, relationships, health, finances)\n*   **What are you trying to achieve?** (e.g., relax, be productive, learn something new, solve a problem, have fun)\n*   **How much time do you have?** (e.g., 5 minutes, an hour, the rest of the day)\n*   **What resources are available to you?** (e.g., computer, outdoors, money, other people)\n\nOnce you give me a little more information, I can help you brainstorm some ideas!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 124,
+    "candidatesTokenCount": 252,
+    "totalTokenCount": 1276,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 124
+      }
+    ],
+    "thoughtsTokenCount": 900
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "wtF8aau2A4fRjMcPopDL-QM"
+}

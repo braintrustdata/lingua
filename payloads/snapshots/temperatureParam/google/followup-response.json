@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That's a great question! To give you the best suggestion, I need a little more information about what you're looking for. Tell me:\n\n*   **What kind of mood are you in?** (e.g., energetic, tired, bored, restless, creative, focused)\n*   **How much time do you have?** (e.g., 5 minutes, an hour, a whole afternoon)\n*   **Are you looking to be productive, relax, learn something new, have fun, connect with someone, or something else?**\n*   **Are you alone or with others?**\n*   **Where are you right now?** (e.g., home, work, outside)\n\nIn the meantime, here are some general categories of things people often do:\n\n*   **Relax and unwind:** Read a book, listen to music, watch a movie/show, meditate, take a warm bath.\n*   **Be productive:** Tackle a small task, plan your day/week, organize something, do some chores.\n*   **Engage your mind:** Learn something new, research a topic, do a puzzle (crossword, sudoku), listen to a podcast.\n*   **Be active:** Go for a walk, stretch, do a quick workout, dance.\n*   **Get creative:** Write, draw, play an instrument, cook/bake, craft.\n*   **Connect with others:** Call a friend, text a family member, plan a virtual hangout.\n\nOnce you tell me a bit more, I can give you a more tailored suggestion!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 14,
+    "candidatesTokenCount": 335,
+    "totalTokenCount": 1597,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 14
+      }
+    ],
+    "thoughtsTokenCount": 1248
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "wNF8aYt239GMxw-pprKZBQ"
+}

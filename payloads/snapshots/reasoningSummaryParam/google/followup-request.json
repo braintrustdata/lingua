@@ -1,0 +1,38 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What is 2+2?"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "Okay, here's my interpretation of that thought process, tailored for an expert user:\n\n**Direct and Concise Response is Key**\n\nAlright, I see the user has posed a very straightforward arithmetic question. It's fundamental, almost trivial. My primary goal here is to provide the answer as efficiently and clearly as possible. There's no need for elaborate explanations or contextualization – the user is likely already well-versed in this area. A simple, correct statement of the fact is all that's required. I'll focus on delivering that with absolute clarity.\n",
+          "thought": true
+        },
+        {
+          "text": "2 + 2 = 4"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingBudget": 10000,
+      "includeThoughts": true
+    }
+  }
+}

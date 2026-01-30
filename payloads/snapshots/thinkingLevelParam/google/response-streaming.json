@@ -1,0 +1,292 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Initiating Clarification Quest**\n\nOkay, so I'm currently stuck. The user's input is a bit vague, just a general instruction. My immediate thought is that I need to ask for more specifics. I'm going to probe the user for the actual problem. It's too general, so I can't start solving anything just yet, but maybe offering some problem categories will move this along.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "totalTokenCount": 6,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ]
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Defining Problem Categories**\n\nI've been working on how to narrow down the user's initial vague request. I've broken down potential problem areas: math, science, coding, engineering, business, and writing. I want to use different ways to ask for clarification. I'm choosing between direct, helpful, and playful approaches to get the specifics. My goal is to make my response clear.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "totalTokenCount": 6,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ]
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I’m ready to help, but **you haven't provided the problem yet"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 17,
+      "totalTokenCount": 495,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 472
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "!**\n\nPlease paste the details, describe the scenario, or provide the data. I can assist with a wide range of complex"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 43,
+      "totalTokenCount": 521,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 472
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " issues, including:\n\n1.  **Mathematics:** Calculus, Linear Algebra, Statistics, or Differential Equations.\n2."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 68,
+      "totalTokenCount": 546,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 472
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "  **Programming & Logic:** Debugging code, optimizing algorithms, or designing system architectures.\n3.  **Science"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 92,
+      "totalTokenCount": 570,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 472
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " & Engineering:** Physics, Chemistry, or Structural/Electrical problems.\n4.  **Business & Strategy:** Financial modeling, game theory"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 119,
+      "totalTokenCount": 597,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 472
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", or case study analysis.\n5.  **Linguistics & Synthesis:** Summarizing dense papers or restructuring complex"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 143,
+      "totalTokenCount": 621,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 472
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " arguments.\n\n**What are we solving today?**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 154,
+      "totalTokenCount": 632,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 472
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "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"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 178,
+      "candidatesTokenCount": 154,
+      "totalTokenCount": 804,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 178
+        }
+      ],
+      "thoughtsTokenCount": 472
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "utF8aZDOE87ojMcPsr_bqA4"
+  }
+]

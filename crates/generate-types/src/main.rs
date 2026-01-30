@@ -7,6 +7,8 @@ use std::path::{Path, PathBuf};
 use big_serde_json as serde_json;
 use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
 
+mod pbjson_patches;
+mod proto_patches;
 mod schema_converter;
 mod tool_generator;
 
@@ -1298,6 +1300,28 @@ fn generate_google_protobuf_types_from_git() {
 
     println!("✅ Found protobuf files, compiling with complete dependencies...");
 
+    // Patch the proto file with missing fields/enums before compilation
+    let patches = &*proto_patches::GOOGLE_TYPE_PATCHES;
+    match std::fs::read_to_string(&proto_file) {
+        Ok(proto_content) => match patches.apply(&proto_content) {
+            Ok(patched_proto) => {
+                if let Err(e) = std::fs::write(&proto_file, patched_proto) {
+                    println!("❌ Failed to write patched proto: {}", e);
+                    return;
+                }
+                println!("✅ Applied proto patches for missing fields/enums");
+            }
+            Err(e) => {
+                println!("❌ Failed to apply proto patches: {}", e);
+                return;
+            }
+        },
+        Err(e) => {
+            println!("❌ Failed to read proto file: {}", e);
+            return;
+        }
+    }
+
     // Include both the main service proto and google.type dependencies
     let proto_paths = vec![
         proto_file.to_string_lossy().to_string(),
@@ -1467,6 +1491,18 @@ fn create_google_combined_output(temp_dir: &std::path::Path, pbjson_dir: Option<
 
     if pbjson_content.is_empty() {
         pbjson_content.push_str("// pbjson serde output unavailable\n");
+    }
+
+    // Fix float deserialization (pbjson wraps floats in NumberDeserialize which we don't want)
+    match pbjson_patches::fix_float_fields(&pbjson_content, &pbjson_patches::FLOAT_PATCHES) {
+        Ok(fixed) => {
+            pbjson_content = fixed;
+            println!("✅ Applied float deserialization fix");
+        }
+        Err(e) => {
+            println!("⚠️  Failed to apply float fix: {}", e);
+            // Continue anyway - floats will just accept strings too
+        }
     }
 
     if let Some(parent) = Path::new(pbjson_dest_path).parent() {

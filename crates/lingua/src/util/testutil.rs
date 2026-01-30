@@ -249,8 +249,13 @@ where
             TurnType::FirstTurn,
         ) {
             Ok(case) => test_cases.push(case),
-            Err(_) => {
-                // First turn not found or invalid, skip this test case entirely
+            Err(e) => {
+                eprintln!(
+                    "Warning: Failed to discover first turn for '{}' provider '{}': {}",
+                    test_case_name,
+                    provider.directory_name(),
+                    e
+                );
                 continue;
             }
         }
@@ -263,8 +268,13 @@ where
             TurnType::FollowupTurn,
         ) {
             Ok(case) => test_cases.push(case),
-            Err(_e) => {
-                // Note: Followup turn not found or invalid for test case
+            Err(e) => {
+                eprintln!(
+                    "Warning: Failed to discover followup turn for '{}' provider '{}': {}",
+                    test_case_name,
+                    provider.directory_name(),
+                    e
+                );
             }
         }
     }
@@ -279,6 +289,24 @@ pub fn discover_test_cases(
     test_name_filter: Option<&str>,
 ) -> Result<Vec<TestCase<Value, Value, Value>>, TestDiscoveryError> {
     discover_test_cases_typed::<Value, Value, Value>(provider, test_name_filter)
+}
+
+/// Recursively truncates string values in a JSON Value that exceed max_len characters
+pub fn truncate_large_values(value: Value, max_len: usize) -> Value {
+    match value {
+        Value::String(s) if s.len() > max_len => Value::String(format!("{}...", &s[..max_len])),
+        Value::Array(arr) => Value::Array(
+            arr.into_iter()
+                .map(|v| truncate_large_values(v, max_len))
+                .collect(),
+        ),
+        Value::Object(map) => Value::Object(
+            map.into_iter()
+                .map(|(k, v)| (k, truncate_large_values(v, max_len)))
+                .collect(),
+        ),
+        other => other,
+    }
 }
 
 /// Generic differ that compares any two serializable types using a professional JSON diff library
@@ -342,9 +370,13 @@ where
                     )
                     .unwrap();
 
-                    // Create full JSON output with highlighted differences
-                    let original_json = serde_json::to_string_pretty(o).unwrap();
-                    let roundtripped_json = serde_json::to_string_pretty(r).unwrap();
+                    // Create full JSON output with highlighted differences (truncate large values)
+                    let original_json =
+                        serde_json::to_string_pretty(&truncate_large_values(o.clone(), 1000))
+                            .unwrap();
+                    let roundtripped_json =
+                        serde_json::to_string_pretty(&truncate_large_values(r.clone(), 1000))
+                            .unwrap();
 
                     let original_lines: Vec<&str> = original_json.lines().collect();
                     let roundtripped_lines: Vec<&str> = roundtripped_json.lines().collect();
@@ -384,7 +416,8 @@ where
                     i
                 )
                 .unwrap();
-                let json = serde_json::to_string_pretty(o).unwrap();
+                let json =
+                    serde_json::to_string_pretty(&truncate_large_values(o.clone(), 1000)).unwrap();
                 for line in json.lines() {
                     writeln!(diff_output, "\x1b[31m  {}\x1b[0m", line).unwrap();
                 }
@@ -399,7 +432,8 @@ where
                     i
                 )
                 .unwrap();
-                let json = serde_json::to_string_pretty(r).unwrap();
+                let json =
+                    serde_json::to_string_pretty(&truncate_large_values(r.clone(), 1000)).unwrap();
                 for line in json.lines() {
                     writeln!(diff_output, "\x1b[32m  {}\x1b[0m", line).unwrap();
                 }

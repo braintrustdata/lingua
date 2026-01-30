@@ -1,0 +1,29 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The weather in Tokyo is 71 degrees."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 71,
+    "candidatesTokenCount": 10,
+    "totalTokenCount": 81,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 71
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "udF8ab-rCIuXjMcPgL62kA4"
+}

@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "To give you the most accurate weather, I need to know your **location**!\n\nCould you please tell me the city, state, or zip code you're interested in?\n\nOnce I have that, I can tell you about:\n*   Current temperature and conditions\n*   Humidity\n*   Wind speed\n*   The forecast for today, tonight, or the coming days"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 79,
+    "totalTokenCount": 769,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 653
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "vNF8aZG2BcHdjMcP9celgA4"
+}

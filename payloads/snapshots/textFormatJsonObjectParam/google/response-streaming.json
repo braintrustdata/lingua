@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\n  \"status\": \"ok\"\n}"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 11,
+      "candidatesTokenCount": 11,
+      "totalTokenCount": 51,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 11
+        }
+      ],
+      "thoughtsTokenCount": 29
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aeulFuKVjMcP1MG6kA8"
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Please tell me the location for which you'd like the weather.",
+            "thoughtSignature": "CtEBAXLI2nzU8DxAJ4J0dwsjJHp2cuimGK5ywwrJBq6wEcHDTZUqZPOM0lf+R0+SN5Th6jns9+czBSbVndU5kGx+A9EzxJ8uznWMuTFYAhO7avIvP4okhW5c0/IyUW6H30jZezzPafXTYRa0Ks0thX88R8VCWWVsGlcLo+3JcCyCBQC3VuAr19H9XQXsPewg8/0xt1uc0xxHFjr5N+4YpKclTPoDwhGOfwl78rqthujvTiTzqnDsU/0ys5GvnmJaQ/Jb0Wx9osRfhSqbmxfSMLnUIRc="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 14,
+    "totalTokenCount": 93,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 42
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "uNF8adDpJJKJ-sAP6vDhiQ4"
+}

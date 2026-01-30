@@ -1713,7 +1713,6 @@ pub struct SpeechConfig {
     #[prost(string, tag = "2")]
     pub language_code: ::prost::alloc::string::String,
 }
-/// Config for thinking features.
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ThinkingConfig {
     /// Indicates whether to include thoughts in the response.
@@ -1723,6 +1722,9 @@ pub struct ThinkingConfig {
     /// The number of thoughts tokens that the model should generate.
     #[prost(int32, optional, tag = "2")]
     pub thinking_budget: ::core::option::Option<i32>,
+    /// LINGUA PATCH - DELETE when googleapis adds upstream
+    #[prost(enumeration = "ThinkingLevel", optional, tag = "3")]
+    pub thinking_level: ::core::option::Option<i32>,
 }
 /// Config for image generation features.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1734,6 +1736,9 @@ pub struct ImageConfig {
     /// reference images provided.
     #[prost(string, optional, tag = "1")]
     pub aspect_ratio: ::core::option::Option<::prost::alloc::string::String>,
+    /// LINGUA PATCH - DELETE when googleapis adds upstream
+    #[prost(string, optional, tag = "2")]
+    pub image_size: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Configuration options for model generation and outputs. Not all parameters
 /// are configurable for every model.
@@ -3702,6 +3707,43 @@ impl TaskType {
             "QUESTION_ANSWERING" => Some(Self::QuestionAnswering),
             "FACT_VERIFICATION" => Some(Self::FactVerification),
             "CODE_RETRIEVAL_QUERY" => Some(Self::CodeRetrievalQuery),
+            _ => None,
+        }
+    }
+}
+/// Config for thinking features.
+/// LINGUA PATCH - DELETE when googleapis adds upstream
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ThinkingLevel {
+    Unspecified = 0,
+    Low = 1,
+    Medium = 2,
+    High = 3,
+    Minimal = 4,
+}
+impl ThinkingLevel {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "THINKING_LEVEL_UNSPECIFIED",
+            Self::Low => "LOW",
+            Self::Medium => "MEDIUM",
+            Self::High => "HIGH",
+            Self::Minimal => "MINIMAL",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "THINKING_LEVEL_UNSPECIFIED" => Some(Self::Unspecified),
+            "LOW" => Some(Self::Low),
+            "MEDIUM" => Some(Self::Medium),
+            "HIGH" => Some(Self::High),
+            "MINIMAL" => Some(Self::Minimal),
             _ => None,
         }
     }

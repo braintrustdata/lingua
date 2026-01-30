@@ -1,0 +1,264 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Assessing Contextual Flow**\n\nI've analyzed the user's latest input, \"What should I do next?\", and assessed my immediate response to the prior prompt, \"What is 2+2?\", along with the response \"2 + 2 = 4.\" I need to determine the user's intent.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "totalTokenCount": 210,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 70
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Clarifying User Intent**\n\nI've broken down the user's \"What should I do next?\" query, recognizing its open-ended nature given our limited prior exchange. My thought process is now centered on the AI's best approach. I intend to ask clarifying questions to avoid assuming the user's context or goals. I'll consider offering broad, non-specific possibilities if needed to guide their response.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "totalTokenCount": 462,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 322
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Formulating a Response Strategy**\n\nI've outlined a robust response process for ambiguous queries like \"What should I do next?\". I'm prioritizing non-assumption, focusing on using clarifying questions to guide the user towards specifying their intent. I'm considering offering broad categories related to our interaction or other contexts that help the user narrow down their thoughts. I will also make my capabilities known.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "totalTokenCount": 758,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 618
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Developing a Multi-faceted Strategy**\n\nI've just refined my approach to address ambiguous user requests like \"What should I do next?\" My current focus centers on constructing a layered response. First, I acknowledge the vagueness of the question and then offer a spectrum of possible interpretations and corresponding clarifying prompts. I'm prioritizing the user's need for guidance and creating a framework to elicit essential context. My concluding thought will be an encouragement for them to provide more detail.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "totalTokenCount": 1057,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 917
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Refining Response Framework**\n\nI've just finished outlining a detailed, systematic framework for addressing the ambiguous user input \"What should I do next?\". I'm prioritizing the creation of clarifying questions and broader suggestions. I will ask the user to specify their intent, focusing on providing structured options to guide their thinking and elicit useful context. My objective remains to be helpful while avoiding any unwarranted assumptions.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "totalTokenCount": 1138,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 998
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a very open-ended question! To give you a good suggestion, I"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "candidatesTokenCount": 13,
+      "totalTokenCount": 1151,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 998
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " need a little more context.\n\nWhat kind of \"next\" are you thinking about? For example:\n\n*   **Next in our conversation?** (e.g., ask another question, give me a new task, continue with"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "candidatesTokenCount": 61,
+      "totalTokenCount": 1199,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 998
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " math, change the topic entirely?)\n*   **Next in your day?** (e.g., something productive, something fun, a chore?)\n*   **Next in a project you're working on?** (e.g"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "candidatesTokenCount": 111,
+      "totalTokenCount": 1249,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 998
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "., a specific step, brainstorming ideas?)\n*   **Next step for learning something new?** (e.g., what topic interests you?)\n\nTell me a bit more about what you have in mind!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "candidatesTokenCount": 154,
+      "totalTokenCount": 1292,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ],
+      "thoughtsTokenCount": 998
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8aaykKb_yjMcPg_a4gA0"
+  }
+]

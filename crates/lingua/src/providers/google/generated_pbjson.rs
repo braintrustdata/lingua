@@ -7468,9 +7468,7 @@ impl<'de> serde::Deserialize<'de> for GenerateAnswerRequest {
                             if temperature__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("temperature"));
                             }
-                            temperature__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
+                            temperature__ =  map_.next_value()?;
                         }
                         GeneratedField::InlinePassages => {
                             if grounding_source__.is_some() {
@@ -9057,17 +9055,13 @@ impl<'de> serde::Deserialize<'de> for GenerationConfig {
                             if temperature__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("temperature"));
                             }
-                            temperature__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
+                            temperature__ =  map_.next_value()?;
                         }
                         GeneratedField::TopP => {
                             if top_p__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("topP"));
                             }
-                            top_p__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
+                            top_p__ =  map_.next_value()?;
                         }
                         GeneratedField::TopK => {
                             if top_k__.is_some() {
@@ -9113,17 +9107,13 @@ impl<'de> serde::Deserialize<'de> for GenerationConfig {
                             if presence_penalty__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("presencePenalty"));
                             }
-                            presence_penalty__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
+                            presence_penalty__ =  map_.next_value()?;
                         }
                         GeneratedField::FrequencyPenalty => {
                             if frequency_penalty__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("frequencyPenalty"));
                             }
-                            frequency_penalty__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
+                            frequency_penalty__ =  map_.next_value()?;
                         }
                         GeneratedField::ResponseLogprobs => {
                             if response_logprobs__.is_some() {
@@ -11106,9 +11096,15 @@ impl serde::Serialize for ImageConfig {
         if self.aspect_ratio.is_some() {
             len += 1;
         }
+        if self.image_size.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("google.ai.generativelanguage.v1beta.ImageConfig", len)?;
         if let Some(v) = self.aspect_ratio.as_ref() {
             struct_ser.serialize_field("aspectRatio", v)?;
+        }
+        if let Some(v) = self.image_size.as_ref() {
+            struct_ser.serialize_field("imageSize", v)?;
         }
         struct_ser.end()
     }
@@ -11122,11 +11118,14 @@ impl<'de> serde::Deserialize<'de> for ImageConfig {
         const FIELDS: &[&str] = &[
             "aspect_ratio",
             "aspectRatio",
+            "image_size",
+            "imageSize",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             AspectRatio,
+            ImageSize,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -11149,6 +11148,7 @@ impl<'de> serde::Deserialize<'de> for ImageConfig {
                     {
                         match value {
                             "aspectRatio" | "aspect_ratio" => Ok(GeneratedField::AspectRatio),
+                            "imageSize" | "image_size" => Ok(GeneratedField::ImageSize),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -11169,6 +11169,7 @@ impl<'de> serde::Deserialize<'de> for ImageConfig {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut aspect_ratio__ = None;
+                let mut image_size__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::AspectRatio => {
@@ -11177,10 +11178,17 @@ impl<'de> serde::Deserialize<'de> for ImageConfig {
                             }
                             aspect_ratio__ = map_.next_value()?;
                         }
+                        GeneratedField::ImageSize => {
+                            if image_size__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("imageSize"));
+                            }
+                            image_size__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(ImageConfig {
                     aspect_ratio: aspect_ratio__,
+                    image_size: image_size__,
                 })
             }
         }
@@ -15154,12 +15162,20 @@ impl serde::Serialize for ThinkingConfig {
         if self.thinking_budget.is_some() {
             len += 1;
         }
+        if self.thinking_level.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("google.ai.generativelanguage.v1beta.ThinkingConfig", len)?;
         if let Some(v) = self.include_thoughts.as_ref() {
             struct_ser.serialize_field("includeThoughts", v)?;
         }
         if let Some(v) = self.thinking_budget.as_ref() {
             struct_ser.serialize_field("thinkingBudget", v)?;
+        }
+        if let Some(v) = self.thinking_level.as_ref() {
+            let v = ThinkingLevel::try_from(*v)
+                .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", *v)))?;
+            struct_ser.serialize_field("thinkingLevel", &v)?;
         }
         struct_ser.end()
     }
@@ -15175,12 +15191,15 @@ impl<'de> serde::Deserialize<'de> for ThinkingConfig {
             "includeThoughts",
             "thinking_budget",
             "thinkingBudget",
+            "thinking_level",
+            "thinkingLevel",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             IncludeThoughts,
             ThinkingBudget,
+            ThinkingLevel,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -15204,6 +15223,7 @@ impl<'de> serde::Deserialize<'de> for ThinkingConfig {
                         match value {
                             "includeThoughts" | "include_thoughts" => Ok(GeneratedField::IncludeThoughts),
                             "thinkingBudget" | "thinking_budget" => Ok(GeneratedField::ThinkingBudget),
+                            "thinkingLevel" | "thinking_level" => Ok(GeneratedField::ThinkingLevel),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -15225,6 +15245,7 @@ impl<'de> serde::Deserialize<'de> for ThinkingConfig {
             {
                 let mut include_thoughts__ = None;
                 let mut thinking_budget__ = None;
+                let mut thinking_level__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::IncludeThoughts => {
@@ -15241,15 +15262,102 @@ impl<'de> serde::Deserialize<'de> for ThinkingConfig {
                                 map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
                             ;
                         }
+                        GeneratedField::ThinkingLevel => {
+                            if thinking_level__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("thinkingLevel"));
+                            }
+                            thinking_level__ = map_.next_value::<::std::option::Option<ThinkingLevel>>()?.map(|x| x as i32);
+                        }
                     }
                 }
                 Ok(ThinkingConfig {
                     include_thoughts: include_thoughts__,
                     thinking_budget: thinking_budget__,
+                    thinking_level: thinking_level__,
                 })
             }
         }
         deserializer.deserialize_struct("google.ai.generativelanguage.v1beta.ThinkingConfig", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ThinkingLevel {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let variant = match self {
+            Self::Unspecified => "THINKING_LEVEL_UNSPECIFIED",
+            Self::Low => "LOW",
+            Self::Medium => "MEDIUM",
+            Self::High => "HIGH",
+            Self::Minimal => "MINIMAL",
+        };
+        serializer.serialize_str(variant)
+    }
+}
+impl<'de> serde::Deserialize<'de> for ThinkingLevel {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "THINKING_LEVEL_UNSPECIFIED",
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "MINIMAL",
+        ];
+
+        struct GeneratedVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ThinkingLevel;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(formatter, "expected one of: {:?}", &FIELDS)
+            }
+
+            fn visit_i64<E>(self, v: i64) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                i32::try_from(v)
+                    .ok()
+                    .and_then(|x| x.try_into().ok())
+                    .ok_or_else(|| {
+                        serde::de::Error::invalid_value(serde::de::Unexpected::Signed(v), &self)
+                    })
+            }
+
+            fn visit_u64<E>(self, v: u64) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                i32::try_from(v)
+                    .ok()
+                    .and_then(|x| x.try_into().ok())
+                    .ok_or_else(|| {
+                        serde::de::Error::invalid_value(serde::de::Unexpected::Unsigned(v), &self)
+                    })
+            }
+
+            fn visit_str<E>(self, value: &str) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                match value {
+                    "THINKING_LEVEL_UNSPECIFIED" => Ok(ThinkingLevel::Unspecified),
+                    "LOW" => Ok(ThinkingLevel::Low),
+                    "MEDIUM" => Ok(ThinkingLevel::Medium),
+                    "HIGH" => Ok(ThinkingLevel::High),
+                    "MINIMAL" => Ok(ThinkingLevel::Minimal),
+                    _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
+                }
+            }
+        }
+        deserializer.deserialize_any(GeneratedVisitor)
     }
 }
 impl serde::Serialize for Tool {

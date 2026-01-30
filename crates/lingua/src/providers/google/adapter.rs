@@ -261,6 +261,7 @@ impl ProviderAdapter for GoogleAdapter {
                 Some(ThinkingConfig {
                     include_thoughts: Some(true),
                     thinking_budget: Some(budget as i32),
+                    thinking_level: None,
                 })
             });
 

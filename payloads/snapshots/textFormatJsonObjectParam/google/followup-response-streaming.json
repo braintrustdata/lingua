@@ -1,0 +1,61 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\n  \"status\": \"error\",\n  \"message\":"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 25,
+      "candidatesTokenCount": 14,
+      "totalTokenCount": 274,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 25
+        }
+      ],
+      "thoughtsTokenCount": 235
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8adSmA5KJ-sAP6_DhiQ4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " \"I am an AI assistant designed to generate JSON. I cannot provide advice or engage in conversation.\"\n}"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 25,
+      "candidatesTokenCount": 36,
+      "totalTokenCount": 296,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 25
+        }
+      ],
+      "thoughtsTokenCount": 235
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8adSmA5KJ-sAP6_DhiQ4"
+  }
+]

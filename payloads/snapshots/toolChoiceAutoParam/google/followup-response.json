@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can help with many things! To give you the best suggestion, I need a little more information. Are you looking for:\n\n*   **Activities or entertainment?** (e.g., movies, books, games, hobbies)\n*   **Tasks or productivity?** (e.g., work, chores, learning something new)\n*   **Help with a specific problem or question?**\n*   **Something else entirely?**\n\nTell me a bit about what you have in mind!",
+            "thoughtSignature": "CpMDAXLI2nyEAr5Y5aGHHJI29WlnuzSGM0E6roS2jMyQv3SZgHjLUG6Sx1v2qhkpLr8AICV7MQM/qvNRZ3Npwlxb72yKTv2DHl+2HUYMiJ6LqQkZP9LdpIpRKf6ul4QvRY2jizu6ljSeg8uOgOEkJrWWzDmSqT7HmhInJveCR2mFz8zKgDxZz5febK/vRbNSfDgDANxZKpzeZRoEQJQo3IonzUSExPeZ//pIoME4+h+3FwwjbLF9Mqy08JZU8Es5ObOicsYeFQctpEO6L1aElQYU0RwBEb1SKJkB2L21SFcYrt+JOgJ9n3ufw9roE4g0TOYKVN3fbZOPVjT8PhDrTgUFLHJt1jeX+juzm7gqqbhj1dPrkj2oAlwkIvIF+uz07PZyiFYhg0eJOPxVN0Q84FTim3n/ArRCCP6mozIbGiJejb5U5DFWJv2JpwnQ63slHQf0Rde8h/GDZO5uCEBWRukOpNhHHJqxJlVU6laRKX08HMF5erTXFyjgGnnopRVswMYxhCxq8Fw9XbAiACChDFHF5VeetQ=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 59,
+    "candidatesTokenCount": 104,
+    "totalTokenCount": 240,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 59
+      }
+    ],
+    "thoughtsTokenCount": 77
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "udF8aZqJNcKM-sAPwaDz0AM"
+}

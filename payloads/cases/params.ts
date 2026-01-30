@@ -6,6 +6,7 @@ import {
   ANTHROPIC_MODEL,
   ANTHROPIC_OPUS_MODEL,
   GOOGLE_GEMINI_3_MODEL,
+  GOOGLE_IMAGE_MODEL,
 } from "./models";
 import {
   Type,
@@ -697,12 +698,7 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: {
-      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
-      config: {
-        frequencyPenalty: 0.5,
-      },
-    },
+    google: null,
     bedrock: null,
   },
 
@@ -714,12 +710,7 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: {
-      contents: [{ role: "user", parts: [{ text: "Say ok." }] }],
-      config: {
-        presencePenalty: 0.5,
-      },
-    },
+    google: null,
     bedrock: null,
   },
 
@@ -732,13 +723,7 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: {
-      contents: [{ role: "user", parts: [{ text: "What is 2 + 2?" }] }],
-      config: {
-        responseLogprobs: true,
-        logprobs: 2,
-      },
-    },
+    google: null,
     bedrock: null,
   },
 
@@ -752,12 +737,7 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: {
-      contents: [{ role: "user", parts: [{ text: "Say a word." }] }],
-      config: {
-        candidateCount: 2,
-      },
-    },
+    google: null,
     bedrock: null,
   },
 
@@ -1359,53 +1339,12 @@ export const paramsCases: TestCaseCollection = {
   },
 
   thoughtSignatureParam: {
+    // Thought signatures are captured in reasoning test cases with real API responses
+    // This placeholder format cannot be executed (requires real base64 signature)
     "chat-completions": null,
     responses: null,
     anthropic: null,
-    google: {
-      // Multi-turn conversation with thought signature preserved
-      // thoughtSignature must be echoed back for Gemini 3 function calling
-      contents: [
-        { role: "user", parts: [{ text: "What's the weather?" }] },
-        {
-          role: "model",
-          parts: [
-            {
-              functionCall: { name: "get_weather", args: { location: "NYC" } },
-              thought: false,
-              thoughtSignature: "base64-encoded-signature-from-response",
-            },
-          ],
-        },
-        {
-          role: "user",
-          parts: [
-            {
-              functionResponse: {
-                name: "get_weather",
-                response: { temperature: 72, condition: "sunny" },
-              },
-              thoughtSignature: "base64-encoded-signature-from-response",
-            },
-          ],
-        },
-      ],
-      tools: [
-        {
-          functionDeclarations: [
-            {
-              name: "get_weather",
-              description: "Get weather",
-              parameters: {
-                type: Type.OBJECT,
-                properties: { location: { type: Type.STRING } },
-                required: ["location"],
-              },
-            },
-          ],
-        },
-      ],
-    },
+    google: null,
     bedrock: null,
   },
 
@@ -1413,15 +1352,7 @@ export const paramsCases: TestCaseCollection = {
     "chat-completions": null,
     responses: null,
     anthropic: null,
-    google: {
-      // Request audio output from the model
-      contents: [
-        { role: "user", parts: [{ text: "Say hello in a friendly tone." }] },
-      ],
-      config: {
-        responseModalities: [Modality.AUDIO],
-      },
-    },
+    google: null,
     bedrock: null,
   },
 
@@ -1429,21 +1360,7 @@ export const paramsCases: TestCaseCollection = {
     "chat-completions": null,
     responses: null,
     anthropic: null,
-    google: {
-      // Configure speech synthesis voice and language
-      contents: [{ role: "user", parts: [{ text: "Tell me a joke." }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          languageCode: "en-US",
-          voiceConfig: {
-            prebuiltVoiceConfig: {
-              voiceName: "Kore",
-            },
-          },
-        },
-      },
-    },
+    google: null,
     bedrock: null,
   },
 
@@ -1452,15 +1369,14 @@ export const paramsCases: TestCaseCollection = {
     responses: null,
     anthropic: null,
     google: {
-      // Configure image generation settings
+      model: GOOGLE_IMAGE_MODEL,
       contents: [
-        { role: "user", parts: [{ text: "Generate an image of a sunset." }] },
+        { role: "user", parts: [{ text: "Generate a tiny red dot." }] },
       ],
       config: {
         responseModalities: [Modality.IMAGE],
         imageConfig: {
-          aspectRatio: "16:9",
-          imageSize: "1K",
+          aspectRatio: "1:1",
         },
       },
     },

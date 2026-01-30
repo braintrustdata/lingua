@@ -1,0 +1,293 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a great open-ended question! To give you the best suggestion, it would help to know a little more about what you'"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 29,
+      "totalTokenCount": 1260,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "re looking for. For example:\n\n*   **What were you doing just before you asked?** (Are we continuing a conversation, or are you just looking for a general idea?)\n*   **What's your current mood"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 77,
+      "totalTokenCount": 1308,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " or goal?** (Are you looking to relax, be productive, learn something new, be entertained, connect with someone, or something else?)\n*   **What kind of activities do you usually enjoy?**\n\nIn the meantime,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 125,
+      "totalTokenCount": 1356,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " here are some general ideas, depending on what you're in the mood for:\n\n**If you want to relax or be entertained:**\n*   Read a book or an article.\n*   Listen to music, a podcast,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 173,
+      "totalTokenCount": 1404,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " or an audiobook.\n*   Watch a show, movie, or some funny videos.\n*   Play a game (video game, board game, puzzle).\n*   Meditate or do some deep breathing exercises.\n\n**If"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 221,
+      "totalTokenCount": 1452,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you want to be productive or accomplish something:**\n*   Make a to-do list for the day/week.\n*   Tackle a small chore or task you've been putting off.\n*   Organize something (your"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 270,
+      "totalTokenCount": 1501,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " desk, a folder on your computer).\n*   Plan something (a meal, a trip, a project).\n*   Learn a new word or fact.\n\n**If you want to be creative or learn:**\n*   Write"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 318,
+      "totalTokenCount": 1549,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " a journal entry, a short story, or a poem.\n*   Draw, doodle, or color.\n*   Learn a new skill online (e.g., a few words in a new language, a simple coding concept)."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 366,
+      "totalTokenCount": 1597,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "\n*   Research a topic you're curious about.\n\n**If you want to connect with others:**\n*   Send a message to a friend or family member.\n*   Call someone you haven't spoken to in a"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 413,
+      "totalTokenCount": 1644,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " while.\n*   Check in on a social media feed (if you enjoy it).\n\nJust let me know what kind of vibe you're going for, and I can give you more tailored suggestions!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 455,
+      "totalTokenCount": 1686,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1217
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8adqXL96J-sAPufSBoAY"
+  }
+]

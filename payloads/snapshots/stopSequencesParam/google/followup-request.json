@@ -1,0 +1,34 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Count from 1 to 20."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, "
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "stopSequences": [
+      "10",
+      "ten"
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I can help with that! To give you the most accurate weather information, I need to know your **location**.\n\nWhat city or region are you interested in?"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 33,
+      "totalTokenCount": 496,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 426
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abvyEIfRjMcPopDL-QM"
+  }
+]

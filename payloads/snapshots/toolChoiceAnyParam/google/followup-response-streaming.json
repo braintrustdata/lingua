@@ -1,0 +1,39 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_weather",
+                "args": {
+                  "location": "London"
+                }
+              },
+              "thoughtSignature": "CiQBcsjafKwh1tEi46DL/VNY4V/+uuxpI5NegR+misiR/QMfS8MKfgFyyNp8Ib8HUZF6SwdddOqowhnkd6ZHgLjeubsV03pehU69MSfUQuY3W+QeoirtLmZjxT4NoKGO59qJoU8bRlvaRgwSMnjjQq2kmHo4yhUsnWZKsIqPKvcjAe7/L6kmCb+zrxJ53Q+cT7/MyGKjfg2DVlbI/KqTn9/vIBSjKwrtAQFyyNp8BulRgCeGUPG7BH0KxV7Tc/WtDM1G/9eqEE9Vi9iac5hnmVy68KSdhMINHN5V28ebtKHgE851xkK5qVOFKF+fY7A5jFLWqmIztH5UG91Px4A6SrQQaK5SI/icm2yA3c8sIKHbVEJA5Uhr/yGL/Z0Sn8Un1oNGuHKqyNe74xzJt1i7xq9TW3NaEG2lc5szfFCrhwENY/mK2BxMmLcH7S98cWwvPuJxBWeIa3Zij2F7Py1pFxM7WhcVZdRerg/zLRhK0jPPflN9px91/KkjLlK8oP2i2+xGaX6Ia70zgDOg+LrbJYwOcC6MfwqKAgFyyNp855ksBf3ZreQ3wnyvvdp5VSWvJS5jXcTDd471ictEMrlwPpAl7SErCSXhMRdW8kb5cjceEw+JESgXvX7NpwDWqfvXCA265fiwN9ipKuaf3mJYN64FkxwV7+y3NGXoF96u9NPBp63RJh9kLEQzVrJQ9aqLWUub/fW4leaJeC4RaaBDvxvLlOaDd4Jp+Dhbb/egPlybV8eovkdiuxR1oM4jvsoIzVCETNknfXjnwg320xRDSPtO7TqlffxgPopLCkRrUwSIoHP0LrCLPyxa8khzXn1MZEnnJWzKf5j7CaoUyphnDvXqD5X80czgl7weSY64JERv4sBzzuVJwrG5QmKhjPUqjAWFCisBcsjafClZJ0KjV0v4Y1CK0AcUJgYZk5oZ+e5u3vW9SZyfkc2m1f+8lU8M"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "finishMessage": "Model generated function call(s)."
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 132,
+      "candidatesTokenCount": 15,
+      "totalTokenCount": 265,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 132
+        }
+      ],
+      "thoughtsTokenCount": 118
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "udF8adTkBbHTjMcP0Pbw6Qo"
+  }
+]

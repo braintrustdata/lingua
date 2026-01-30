@@ -1,0 +1,148 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Ok. That depends entirely on what you're looking to do! To give you the best suggestion, I"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 16,
+      "candidatesTokenCount": 22,
+      "totalTokenCount": 133,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 16
+        }
+      ],
+      "thoughtsTokenCount": 95
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aY2jKfqNjMcP-O7MsAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "'d need a little more information.\n\nAre you looking for something:\n*   **Productive?** (e.g., work, learning, chores)\n*   **Relaxing?** (e.g., entertainment"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 16,
+      "candidatesTokenCount": 70,
+      "totalTokenCount": 181,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 16
+        }
+      ],
+      "thoughtsTokenCount": 95
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aY2jKfqNjMcP-O7MsAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", self-care)\n*   **Creative?** (e.g., hobbies, brainstorming)\n*   **Physical?** (e.g., exercise, outdoor activity)\n*   **Social?** (e.g"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 16,
+      "candidatesTokenCount": 119,
+      "totalTokenCount": 230,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 16
+        }
+      ],
+      "thoughtsTokenCount": 95
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aY2jKfqNjMcP-O7MsAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "., connect with friends/family)\n\nIn the meantime, some general ideas include:\n*   Take a short walk.\n*   Read a chapter of a book.\n*   Listen to some music or a podcast.\n*"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 16,
+      "candidatesTokenCount": 167,
+      "totalTokenCount": 278,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 16
+        }
+      ],
+      "thoughtsTokenCount": 95
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aY2jKfqNjMcP-O7MsAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "   Check your to-do list for the next priority.\n*   Do a quick stretch.\n*   Brainstorm something you'd like to achieve this week."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 16,
+      "candidatesTokenCount": 201,
+      "totalTokenCount": 312,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 16
+        }
+      ],
+      "thoughtsTokenCount": 95
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aY2jKfqNjMcP-O7MsAI"
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Ok. That's a very broad question, so to give you the best suggestion, I need a little more context!\n\nTo help you figure out what to do next, could you tell me:\n\n1.  **What were you doing just before you asked this?** (e.g., working, browsing, thinking, finishing a task)\n2.  **What kind of \"next\" are you looking for?**\n    *   **Productivity/Work?** (e.g., what task to do, how to organize)\n    *   **Learning/Self-improvement?** (e.g., what to study, a new skill)\n    *   **Leisure/Entertainment?** (e.g., what to watch, read, play)\n    *   **Personal?** (e.g., what to cook, an errand)\n    *   **Something else entirely?**\n3.  **What's your current energy level or mood?** (e.g., energetic, tired, bored, creative)\n\nOnce I have a bit more information, I can give you some tailored ideas!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 16,
+    "candidatesTokenCount": 239,
+    "totalTokenCount": 394,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 16
+      }
+    ],
+    "thoughtsTokenCount": 139
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "utF8adPeIPWSjMcPrbqK-AM"
+}

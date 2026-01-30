@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That's a fun question, but it really depends on what you'd like to do next!\n\nSince we just did a math problem, perhaps you'd like to:\n\n*   **Try another math problem?** (Maybe a harder one, or a different type of calculation?)\n*   **Ask me another question about anything at all?** (Science, history, current events, trivia, etc.)\n*   **Have a conversation about a specific topic?**\n*   **Get some help with writing or brainstorming?**\n*   **Learn something new?**\n*   **Play a simple word game?**\n\nJust tell me what's on your mind or what you're in the mood for!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 23,
+    "candidatesTokenCount": 152,
+    "totalTokenCount": 1178,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 23
+      }
+    ],
+    "thoughtsTokenCount": 1003
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "vtF8aaXTIdmJ-sAPz8CCoAY"
+}

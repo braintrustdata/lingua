@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\n  \"error\": \"I am an AI assistant specialized in generating JSON. I cannot answer general questions or provide advice. Please ask me to generate JSON.\"\n}"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 25,
+    "candidatesTokenCount": 35,
+    "totalTokenCount": 140,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 25
+      }
+    ],
+    "thoughtsTokenCount": 80
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "udF8aYK3IPbAjMcP17WPwA8"
+}

@@ -1,0 +1,65 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Weather?"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "functionCall": {
+            "name": "get_weather",
+            "args": {
+              "location": "London"
+            }
+          },
+          "thoughtSignature": "CrgCAXLI2nwzwe4Hgpf+ZUaBymq37T1XbGUZZgH1OklJUG3hEiFYgweDJqn0S1A7o/lAVacpef2/xOd2nMY3bNYxbgoNBCZ+iCOrnsLzwwHGnwn13aIWJWu/znCksGxYWqGnTpZ2fAacvI8eY6Dp8AGK6fh0PTj0qBn23FpC9YvPl/3y36yQ41AmdQMGU2X+JGFYJ/q52ww3vSVZWehO4Yps6Oob6Zxaw81dop2CZ6Um8N5ocE88JTkp4JW7UPHd0SnzIBV6MxUdMesxzL6NdFv8v89FL1msYnXmvNlkmqjHGBzPNfMkNLXVRrzs/90+9j2xyRlAaMjyTYzVmZq9GSrM9YXaVOrHSTNJ8F7GynDnHYkkgXw0V+SB9dG+qPVij63dZ9y423BLuUi9WWk55EpRaCh9AdH4NEGW"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_weather",
+            "response": {
+              "temperature": "71 degrees"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get weather",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "location": {
+                "type": "STRING"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY"
+    }
+  }
+}

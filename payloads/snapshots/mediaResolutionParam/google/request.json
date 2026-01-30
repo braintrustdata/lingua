@@ -1,0 +1,15 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Describe this image briefly."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "mediaResolution": "MEDIA_RESOLUTION_LOW"
+  }
+}

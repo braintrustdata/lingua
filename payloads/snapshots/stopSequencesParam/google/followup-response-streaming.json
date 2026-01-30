@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "You should continue counting from where we left off!\n\n..."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 45,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 100,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 45
+        }
+      ],
+      "thoughtsTokenCount": 43
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aaLoMeKVjMcPmPjGaA"
+  }
+]

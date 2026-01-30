@@ -71,12 +71,14 @@ impl TryFromLLM<GoogleContent> for Message {
                     if let Some(data) = &part.data {
                         match data {
                             part::Data::Text(t) => {
-                                if !part.thought_signature.is_empty() {
+                                if part.thought || !part.thought_signature.is_empty() {
                                     parts.push(AssistantContentPart::Reasoning {
                                         text: t.clone(),
-                                        encrypted_content: Some(
-                                            STANDARD.encode(&part.thought_signature),
-                                        ),
+                                        encrypted_content: if !part.thought_signature.is_empty() {
+                                            Some(STANDARD.encode(&part.thought_signature))
+                                        } else {
+                                            None
+                                        },
                                     });
                                 } else {
                                     parts.push(AssistantContentPart::Text(TextContentPart {
@@ -110,6 +112,14 @@ impl TryFromLLM<GoogleContent> for Message {
                                     encrypted_content,
                                     provider_options: None,
                                     provider_executed: None,
+                                });
+                            }
+                            part::Data::InlineData(blob) => {
+                                parts.push(AssistantContentPart::File {
+                                    data: Value::String(STANDARD.encode(&blob.data)),
+                                    filename: None,
+                                    media_type: blob.mime_type.clone(),
+                                    provider_options: None,
                                 });
                             }
                             _ => {}
@@ -333,12 +343,29 @@ impl TryFromLLM<Message> for GoogleContent {
                                     };
 
                                     converted.push(GooglePart {
-                                        thought: false,
+                                        thought: thought_signature.is_empty(),
                                         thought_signature,
                                         part_metadata: None,
                                         data: Some(part::Data::Text(text)),
                                         metadata: None,
                                     });
+                                }
+                                AssistantContentPart::File {
+                                    data: Value::String(base64_data),
+                                    media_type,
+                                    ..
+                                } => {
+                                    let bytes = STANDARD.decode(base64_data.as_bytes()).map_err(
+                                        |e| ConvertError::ContentConversionFailed {
+                                            reason: format!("Invalid base64 file data: {e}"),
+                                        },
+                                    )?;
+                                    converted.push(part_from_data(part::Data::InlineData(
+                                        GoogleBlob {
+                                            mime_type: media_type,
+                                            data: bytes,
+                                        },
+                                    )));
                                 }
                                 _ => {}
                             }

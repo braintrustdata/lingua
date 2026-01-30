@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That's a wonderfully open-ended question! To give you the *best* suggestion, I need a little more context. Tell me:\n\n*   **What's your current mood?** (Energetic, tired, bored, restless, focused?)\n*   **How much time do you have?** (5 minutes, an hour, all day?)\n*   **What did you just finish doing?** (Work, relaxing, eating, chores?)\n*   **Are you looking for something productive, relaxing, creative, social, or just to kill time?**\n*   **What are your general interests?**\n\nIn the meantime, here are a few general ideas:\n\n*   **Take a short break:** Stand up, stretch, get a drink of water.\n*   **Listen to some music or a podcast.**\n*   **Plan out your next hour or day.**\n*   **Quickly tidy a small area around you.**\n*   **Learn something new:** Read an interesting article or watch a short educational video.\n*   **Engage your creativity:** Doodle, free-write, or brainstorm some ideas.\n*   **Talk to me more!** Ask me another question, tell me about your day, or brainstorm something with me.\n\nOnce I know a bit more, I can give you a more tailored recommendation!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 14,
+    "candidatesTokenCount": 283,
+    "totalTokenCount": 1381,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 14
+      }
+    ],
+    "thoughtsTokenCount": 1084
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "v9F8abLdGt6J-sAPufSBoAY"
+}

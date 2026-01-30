@@ -1,0 +1,264 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a very open-ended question! To give you a good suggestion, I need a"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 20,
+      "totalTokenCount": 864,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " little more context.\n\nWhat kind of \"next\" are you thinking about?\n\n*   Are you looking for something to do right now to pass the time?\n*   Are you thinking about a bigger life decision or a goal?\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 68,
+      "totalTokenCount": 912,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   Are you bored and looking for inspiration?\n*   Are you trying to be productive?\n*   Are you looking for a creative outlet?\n\nIn the meantime, here are some general ideas, depending on what you're looking"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 117,
+      "totalTokenCount": 961,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " for:\n\n**If you're looking to relax or unwind:**\n*   Listen to music or a podcast.\n*   Read a book, an article, or browse a topic of interest online.\n*   Watch a short video or a"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 168,
+      "totalTokenCount": 1012,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " TV show.\n*   Take a short walk.\n*   Meditate or do some deep breathing exercises.\n\n**If you're feeling productive:**\n*   Make a to-do list for your day or week.\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 215,
+      "totalTokenCount": 1059,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   Organize something small (your desk, your digital files, a drawer).\n*   Learn something new (a new word, a fact, a quick tutorial for a skill).\n*   Plan your next meal or activity.\n\n**If"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 266,
+      "totalTokenCount": 1110,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you're feeling creative or curious:**\n*   Write a short story, a poem, or journal your thoughts.\n*   Draw, doodle, or try a simple craft.\n*   Explore a new topic online (history, science, art"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 317,
+      "totalTokenCount": 1161,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", etc.).\n*   Ask me another question about something you're curious about!\n\n**If you're looking to connect:**\n*   Text a friend or family member.\n*   Check in on social media (mindfully"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 366,
+      "totalTokenCount": 1210,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ").\n\nTell me a bit more about what you're hoping for, and I can give you a more tailored suggestion!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 391,
+      "totalTokenCount": 1235,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 830
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aePgK8OPjMcPqoGfmQI"
+  }
+]

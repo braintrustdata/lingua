@@ -1,0 +1,39 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_weather",
+                "args": {
+                  "location": "London"
+                }
+              },
+              "thoughtSignature": "CiQBcsjafKN9KYIpa1L/4zviVubWOgoSpOCbpZDN24iinZqtAwQKcwFyyNp8Nfldfh4xMGLD5DFydF0an/9EqJpQEQ2kdk3pAnXkLTy10xS1zBpiwko7hymIZHs5AxHYVz8bHWEwY4+eMc98H7Jl5DkC9JqC+HaHWgAJr5ZH95K+gH706xM7yeoYEGsAYsU0ZqVrCozILz+uyxQK+wEBcsjafM0KaTZUeQ0eOmcdRnXNYjPNycAC3M0VbWGaOKQ6KektcgocuyfoYqysnQZGoxtoI+W5p06fYQx67Y90BrEqrv6jUMnV7dEDL2DwwFw7X+qAYsNFUzgomxeEVR+hM4Rbm5gKFCm8+vfK94pFm8l34ibgRG6U3gFDgmE198htEqo90nMjnJe2WRL+i1VKRx4MwLRjC5os7oJusmOAUQyhdGkSM6OtUhO5Y3FGFawpU1JPuPh+raNosezHISMZo7SigSBdW5zV14fmKZl93CG/MknYGscG4RS9ijfe5ejd60Yz1RJ4kcb4VU/cd9V1itRRTKH2K2JLowp4AXLI2nzKEzOY5obp3Jnuk1N80YdlZd39E+e2UgnRtM52gBPPcS5CfUPNA6glcrxXop0y5ehD8aVnBkFRoAaRIcvAJfcVb2RKR9aItGdDWiT9MFSNU+mxO9TZM9WSXJlho7Gbk7+xJUG/Cx8G2aJqvIUWcyYOdg8g"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "finishMessage": "Model generated function call(s)."
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 15,
+      "totalTokenCount": 136,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 84
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aYDjDOLpjMcPhLWlqQ0"
+  }
+]

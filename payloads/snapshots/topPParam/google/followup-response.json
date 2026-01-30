@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That's a very open question! To give you the best suggestion, I need a little more information about what you're looking for.\n\nAre you looking for something:\n\n*   **Productive?** (e.g., chores, work, planning)\n*   **Relaxing?** (e.g., reading, watching something)\n*   **Creative?** (e.g., drawing, writing, making music)\n*   **Entertaining?** (e.g., games, movies, social media)\n*   **To learn something new?**\n*   **To pass the time?**\n*   **Something active?**\n\nOr tell me a bit about:\n\n*   **Your mood right now?**\n*   **How much time you have?**\n*   **Where you are (at home, outside, at work)?**\n*   **What you generally enjoy?**\n\nIn the meantime, here are some general ideas:\n\n*   **Take a quick break:** Get a drink, stretch, look out a window.\n*   **Tackle a tiny task:** Respond to an email, make a quick to-do list, tidy one small area.\n*   **Learn something random:** Look up a fun fact, browse an interesting Wikipedia page.\n*   **Listen to something:** Put on some music, a podcast, or an audiobook.\n*   **Get creative:** Doodle, write a short thought, brainstorm ideas.\n\nOnce I know more, I can give you a more tailored recommendation!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 14,
+    "candidatesTokenCount": 327,
+    "totalTokenCount": 1244,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 14
+      }
+    ],
+    "thoughtsTokenCount": 903
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "vtF8aa-mKJ2-jMcPif-owAM"
+}

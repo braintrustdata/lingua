@@ -1,0 +1,33 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Please tell me the location to get the weather.",
+              "thoughtSignature": "CiQBcsjafNSItx3GtyHWweLMHOGipXpFn6m3DOFkf8Z//2VLyh0KZgFyyNp8Nm+Yk6b08UGXLPUHvMkX14l2c4oO9iiEWin2eqkiZydbM/6ImFFZKWlnBeIzXEvhsXqATGrzG0J2DilQTSTebMCYUbHfXdzjARUrUyZq+zkboU+VXn4crX0N/o6PgxAG6AqJAQFyyNp8l1in3aOppnT32iTTtdE8LM5M+zSWJRR0UD3nL8Qx2/pkL9tpYef9p0UTKWlQ+rzwAPS9zOQWXS4jRRCS8goqRm7o+GUbO1YkfNt3oqMXP6BaTTNXOrgEY8+nCw0h6i/nwcGokohrwhrKTnGI1GX03Ae2anlTDceAOic8A66BASNw1lSF"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 10,
+      "totalTokenCount": 89,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 42
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8aYn0EsHdjMcP9celgA4"
+  }
+]

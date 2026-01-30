@@ -1,0 +1,148 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 1107,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1092
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8afeMM7fSjMcP3rTbmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " depends! What are you in the mood for?\n\nWe could:\n\n*   **Chat about something interesting:** Tell me about your day, a hobby you have, a random thought, or a topic you're curious about.\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 48,
+      "totalTokenCount": 1154,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1092
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8afeMM7fSjMcP3rTbmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   **Learn something new:** Ask me a question about history, science, current events, or anything else you'd like to know.\n*   **Brainstorm ideas:** Need help coming up with names, story plots, project"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 96,
+      "totalTokenCount": 1202,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1092
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8afeMM7fSjMcP3rTbmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " ideas, or solutions to a problem?\n*   **Get help with a task:** I can assist with writing, summarizing, planning, or organizing information.\n*   **Play a game or a creative prompt:** We could do a"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 144,
+      "totalTokenCount": 1250,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1092
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8afeMM7fSjMcP3rTbmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " 'would you rather,' a short story prompt, or a silly challenge.\n\nJust let me know what sounds good, or tell me anything that's on your mind!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 179,
+      "totalTokenCount": 1285,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 1092
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8afeMM7fSjMcP3rTbmQE"
+  }
+]

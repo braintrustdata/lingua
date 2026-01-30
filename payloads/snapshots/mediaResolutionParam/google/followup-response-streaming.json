@@ -1,0 +1,206 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends entirely on what you're trying to achieve or what you're interested in! Here are a few ideas for what you could do next:\n\n1.  **Ask more questions about the image or utensils:**\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 66,
+      "candidatesTokenCount": 45,
+      "totalTokenCount": 1113,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 66
+        }
+      ],
+      "thoughtsTokenCount": 1002
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "vdF8acCOHvnRjMcPy-m0sAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "    *   \"What are these tools typically used for?\"\n    *   \"Can you tell me more about the materials they're made from?\"\n    *   \"Are there any specific cleaning instructions for these types of utensils?\"\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 66,
+      "candidatesTokenCount": 92,
+      "totalTokenCount": 1160,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 66
+        }
+      ],
+      "thoughtsTokenCount": 1002
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "vdF8acCOHvnRjMcPy-m0sAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "    *   \"What are some common recipes that use a whisk, spatula, and slotted spoon?\"\n\n2.  **Ask for related information:**\n    *   \"What are other essential kitchen tools?\"\n    *   \"Tell me"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 66,
+      "candidatesTokenCount": 140,
+      "totalTokenCount": 1208,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 66
+        }
+      ],
+      "thoughtsTokenCount": 1002
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "vdF8acCOHvnRjMcPy-m0sAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " about different types of spatulas.\"\n    *   \"What's the difference between a slotted spoon and a regular spoon?\"\n\n3.  **Provide context or a task:**\n    *   \"I'm trying to organize"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 66,
+      "candidatesTokenCount": 188,
+      "totalTokenCount": 1256,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 66
+        }
+      ],
+      "thoughtsTokenCount": 1002
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "vdF8acCOHvnRjMcPy-m0sAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " my kitchen. What's the best way to store these?\"\n    *   \"I'm making a shopping list. Which brand would you recommend for these items?\"\n    *   \"I'm writing an article about kitchen essentials"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 66,
+      "candidatesTokenCount": 237,
+      "totalTokenCount": 1305,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 66
+        }
+      ],
+      "thoughtsTokenCount": 1002
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "vdF8acCOHvnRjMcPy-m0sAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ". Can you help me brainstorm some points?\"\n\n4.  **Give me another image to describe.**\n\n5.  **Shift to a completely different topic.**\n\nWhat's on your mind? Just let me know what you'"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 66,
+      "candidatesTokenCount": 285,
+      "totalTokenCount": 1353,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 66
+        }
+      ],
+      "thoughtsTokenCount": 1002
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "vdF8acCOHvnRjMcPy-m0sAI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "d like to explore!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 66,
+      "candidatesTokenCount": 290,
+      "totalTokenCount": 1358,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 66
+        }
+      ],
+      "thoughtsTokenCount": 1002
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "vdF8acCOHvnRjMcPy-m0sAI"
+  }
+]

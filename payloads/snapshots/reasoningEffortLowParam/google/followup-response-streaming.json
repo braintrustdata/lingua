@@ -1,0 +1,235 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a very open-ended question! To give you the best suggestion, I need a little more context.\n\nWhat you should do next depends entirely on:\n\n*   "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 36,
+      "totalTokenCount": 1224,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1165
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abSzM-KVjMcP1MG6kA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**What were you doing before you asked \"What is 2+2?\"** (Were you testing me? Doing math homework? Just curious?)\n*   **What are you trying to achieve?** (Are you looking for something productive"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 85,
+      "totalTokenCount": 1273,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1165
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abSzM-KVjMcP1MG6kA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "? Something fun? Something educational? Something to relax?)\n*   **What are your current interests or mood?**\n\n**Please tell me more! For example:**\n\n*   \"I'm bored, suggest something fun.\"\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 132,
+      "totalTokenCount": 1320,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1165
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abSzM-KVjMcP1MG6kA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   \"I need to be productive, what should I tackle?\"\n*   \"I want to learn something new, any ideas?\"\n*   \"I'm working on a project about X, what's my next step?\"\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 181,
+      "totalTokenCount": 1369,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1165
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abSzM-KVjMcP1MG6kA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   \"I just finished [activity], what's a good follow-up?\"\n\n**In the meantime, here are some very general ideas:**\n\n1.  **Plan your day/week:** Make a to-do list or"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 230,
+      "totalTokenCount": 1418,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1165
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abSzM-KVjMcP1MG6kA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " set some goals.\n2.  **Learn something new:** Read an article, watch a documentary, or look up a topic that interests you.\n3.  **Take a break:** Go for a walk, listen to music,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 278,
+      "totalTokenCount": 1466,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1165
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abSzM-KVjMcP1MG6kA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " or do some light stretching.\n4.  **Organize something:** Clean up your desk, declutter a room, or sort through your files.\n5.  **Engage your creativity:** Write, draw, brainstorm ideas, or work"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 328,
+      "totalTokenCount": 1516,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1165
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abSzM-KVjMcP1MG6kA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " on a hobby.\n\nOnce you give me a bit more information, I can give you a more tailored and helpful suggestion!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 353,
+      "totalTokenCount": 1541,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1165
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "uNF8abSzM-KVjMcP1MG6kA8"
+  }
+]

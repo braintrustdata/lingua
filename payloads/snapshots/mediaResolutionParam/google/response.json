@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "This image displays three common kitchen utensils standing upright against a clean, plain white background. A stainless steel whisk is prominently centered, flanked by a black silicone spatula with a wooden handle on the left, and a metal slotted spoon with a wooden handle on the right."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 6,
+    "candidatesTokenCount": 52,
+    "totalTokenCount": 921,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 6
+      }
+    ],
+    "thoughtsTokenCount": 863
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "vNF8aZyFM_qNjMcPlrnMIA"
+}

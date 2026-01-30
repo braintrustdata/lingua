@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, here's my interpretation of that thought process, tailored for an expert user:\n\n**Direct and Concise Response is Key**\n\nAlright, I see the user has posed a very straightforward arithmetic question. It's fundamental, almost trivial. My primary goal here is to provide the answer as efficiently and clearly as possible. There's no need for elaborate explanations or contextualization – the user is likely already well-versed in this area. A simple, correct statement of the fact is all that's required. I'll focus on delivering that with absolute clarity.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 41,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 25
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "udF8afeVF7HTjMcP0Pbw6Qo"
+}

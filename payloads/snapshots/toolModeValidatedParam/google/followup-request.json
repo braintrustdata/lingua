@@ -1,0 +1,65 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Weather in Tokyo?"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "functionCall": {
+            "name": "get_weather",
+            "args": {
+              "location": "Tokyo"
+            }
+          },
+          "thoughtSignature": "CpECAXLI2nxKyEUUs3t3/Hl6BS1TJQwJi1/pJIZzPmX4upTeGXXCZJgY5pcXiBoloT+B4L1r7Yczgm93kWiR/hs7NFo/Hsytwwu5IuU0+NxP46/UdTnFJ57U5DqAuFp64NDDU8zC8H639ARcVoueqDrnL+533sc80WZ87Bpun/11E2gWKLv04gAzKO0ZhidIJyW4DNMU9iSkt47d+uENkf/oLbTuBURQfwJWFRKJQzxUI9VuIwQQ2ikjIAuBw2uMOHQ/sND9Y1omxkx+Tb24V0hsoBZivSk0mt6kFXWPE9795ar2Fxo3HPvyMidOlpxsbjc1bM7RPzbMfkrQQ5zF6Viefw9ERTTwp2SqWF1KHa8eBi1j"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_weather",
+            "response": {
+              "temperature": "71 degrees"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get weather",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "location": {
+                "type": "STRING"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "VALIDATED"
+    }
+  }
+}

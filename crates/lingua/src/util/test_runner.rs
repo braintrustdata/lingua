@@ -115,10 +115,12 @@ where
             .map_err(|e| format!("Failed to serialize roundtripped response: {}", e))?;
 
         if original_json != roundtripped_json {
+            use crate::util::testutil::truncate_large_values;
             return Err(format!(
                 "Response roundtrip conversion failed:\nOriginal: {}\nRoundtripped: {}",
-                serde_json::to_string_pretty(&original_json).unwrap(),
-                serde_json::to_string_pretty(&roundtripped_json).unwrap()
+                serde_json::to_string_pretty(&truncate_large_values(original_json, 1000)).unwrap(),
+                serde_json::to_string_pretty(&truncate_large_values(roundtripped_json, 1000))
+                    .unwrap()
             ));
         }
 
