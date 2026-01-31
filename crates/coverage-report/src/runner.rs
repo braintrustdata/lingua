@@ -4,12 +4,8 @@ Test execution for coverage-report.
 
 use std::collections::HashMap;
 
-use bytes::Bytes;
 use lingua::capabilities::ProviderFormat;
 use lingua::processing::adapters::ProviderAdapter;
-use lingua::processing::transform::{
-    transform_request, transform_response, transform_stream_chunk,
-};
 use lingua::serde_json::Value;
 use lingua::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
 
@@ -117,56 +113,16 @@ pub fn test_request_transformation(
     target_adapter.apply_defaults(&mut expected_universal);
     let expected_universal_value = universal_request_to_value(&expected_universal);
 
-    match transform_request(payload, target_adapter.format(), model) {
-        Ok(result) => {
-            // Parse result bytes to Value for validation
-            let output_bytes = result.into_bytes();
-            let transformed: Value = match lingua::serde_json::from_slice(&output_bytes) {
-                Ok(v) => v,
-                Err(e) => {
-                    return TransformResult {
-                        level: ValidationLevel::Fail,
-                        error: Some(format!("Failed to parse transformed output: {}", e)),
-                        diff: None,
-                        limitation_reason: None,
-                    }
-                }
-            };
-
-            // Use request_to_universal to validate - gives detailed error info
-            match target_adapter.request_to_universal(transformed) {
-                Ok(target_universal) => {
-                    let target_universal_value = universal_request_to_value(&target_universal);
-                    let context = CompareContext::for_cross_provider(
-                        TestCategory::Requests,
-                        source_adapter,
-                        target_adapter,
-                        test_case,
-                    );
-                    let roundtrip_result = compare_values(
-                        &expected_universal_value,
-                        &target_universal_value,
-                        context.as_ref(),
-                    );
-                    diff_to_transform_result(roundtrip_result)
-                }
-                Err(e) => TransformResult {
-                    level: ValidationLevel::Fail,
-                    error: Some(format!("Conversion from universal format failed: {}", e)),
-                    diff: None,
-                    limitation_reason: None,
-                },
-            }
-        }
+    let provider_value = match target_adapter.request_from_universal(&expected_universal) {
+        Ok(v) => v,
         Err(e) => {
-            let error_msg = e.to_string();
+            let error_msg = format!("Conversion from universal failed: {}", e);
             let context = CompareContext::for_cross_provider(
                 TestCategory::Requests,
                 source_adapter,
                 target_adapter,
                 test_case,
             );
-            // For roundtrip tests (context=None), all errors are real failures
             let reason = context.as_ref().and_then(|ctx| {
                 ctx.is_test_case_limitation().or_else(|| {
                     is_expected_error(
@@ -185,13 +141,50 @@ pub fn test_request_transformation(
                 ValidationLevel::Fail
             };
 
-            TransformResult {
+            return TransformResult {
                 level,
                 error: Some(error_msg),
                 diff: None,
                 limitation_reason: reason.map(|r| r.to_string()),
-            }
+            };
         }
+    };
+
+    let transformed: Value = match lingua::serde_json::to_value(&provider_value) {
+        Ok(v) => v,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Failed to serialize provider value: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            };
+        }
+    };
+
+    // Use request_to_universal to validate - gives detailed error info
+    match target_adapter.request_to_universal(transformed) {
+        Ok(target_universal) => {
+            let target_universal_value = universal_request_to_value(&target_universal);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Requests,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let roundtrip_result = compare_values(
+                &expected_universal_value,
+                &target_universal_value,
+                context.as_ref(),
+            );
+            diff_to_transform_result(roundtrip_result)
+        }
+        Err(e) => TransformResult {
+            level: ValidationLevel::Fail,
+            error: Some(format!("Conversion from universal format failed: {}", e)),
+            diff: None,
+            limitation_reason: None,
+        },
     }
 }
 
@@ -239,56 +232,16 @@ pub fn test_response_transformation(
 
     let expected_universal_value = universal_response_to_value(&expected_universal);
 
-    match transform_response(payload, target_adapter.format()) {
-        Ok(result) => {
-            // Parse result bytes to Value for validation
-            let output_bytes = result.into_bytes();
-            let transformed: Value = match lingua::serde_json::from_slice(&output_bytes) {
-                Ok(v) => v,
-                Err(e) => {
-                    return TransformResult {
-                        level: ValidationLevel::Fail,
-                        error: Some(format!("Failed to parse transformed output: {}", e)),
-                        diff: None,
-                        limitation_reason: None,
-                    }
-                }
-            };
-
-            // Use response_to_universal to validate - gives detailed error info
-            match target_adapter.response_to_universal(transformed) {
-                Ok(target_universal) => {
-                    let target_universal_value = universal_response_to_value(&target_universal);
-                    let context = CompareContext::for_cross_provider(
-                        TestCategory::Responses,
-                        source_adapter,
-                        target_adapter,
-                        test_case,
-                    );
-                    let roundtrip_result = compare_values(
-                        &expected_universal_value,
-                        &target_universal_value,
-                        context.as_ref(),
-                    );
-                    diff_to_transform_result(roundtrip_result)
-                }
-                Err(e) => TransformResult {
-                    level: ValidationLevel::Fail,
-                    error: Some(format!("Conversion from universal format failed: {}", e)),
-                    diff: None,
-                    limitation_reason: None,
-                },
-            }
-        }
+    let provider_value = match target_adapter.response_from_universal(&expected_universal) {
+        Ok(v) => v,
         Err(e) => {
-            let error_msg = e.to_string();
+            let error_msg = format!("Conversion from universal failed: {}", e);
             let context = CompareContext::for_cross_provider(
                 TestCategory::Responses,
                 source_adapter,
                 target_adapter,
                 test_case,
             );
-            // For roundtrip tests (context=None), all errors are real failures
             let reason = context.as_ref().and_then(|ctx| {
                 ctx.is_test_case_limitation().or_else(|| {
                     is_expected_error(
@@ -307,13 +260,49 @@ pub fn test_response_transformation(
                 ValidationLevel::Fail
             };
 
-            TransformResult {
+            return TransformResult {
                 level,
                 error: Some(error_msg),
                 diff: None,
                 limitation_reason: reason.map(|r| r.to_string()),
-            }
+            };
         }
+    };
+
+    let transformed: Value = match lingua::serde_json::to_value(&provider_value) {
+        Ok(v) => v,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Failed to serialize provider value: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            };
+        }
+    };
+
+    match target_adapter.response_to_universal(transformed) {
+        Ok(target_universal) => {
+            let target_universal_value = universal_response_to_value(&target_universal);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Responses,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let roundtrip_result = compare_values(
+                &expected_universal_value,
+                &target_universal_value,
+                context.as_ref(),
+            );
+            diff_to_transform_result(roundtrip_result)
+        }
+        Err(e) => TransformResult {
+            level: ValidationLevel::Fail,
+            error: Some(format!("Conversion from universal format failed: {}", e)),
+            diff: None,
+            limitation_reason: None,
+        },
     }
 }
 
@@ -406,56 +395,48 @@ fn test_single_stream_event(
         }
     };
 
-    // Serialize each event back to bytes for the transform function
-    let event_bytes = match lingua::serde_json::to_vec(event) {
-        Ok(b) => Bytes::from(b),
-        Err(e) => {
-            return TransformResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("failed to serialize: {}", e)),
-                diff: None,
-                limitation_reason: None,
+    let target_universal = match &source_universal {
+        Some(chunk) => {
+            let provider_value = match target_adapter.stream_from_universal(chunk) {
+                Ok(v) => v,
+                Err(e) => {
+                    return TransformResult {
+                        level: ValidationLevel::Fail,
+                        error: Some(format!("Conversion from universal failed: {}", e)),
+                        diff: None,
+                        limitation_reason: None,
+                    };
+                }
             };
-        }
-    };
 
-    // Transform the event to target format
-    let result = match transform_stream_chunk(event_bytes, target_adapter.format()) {
-        Ok(r) => r,
-        Err(e) => {
-            return TransformResult {
-                level: ValidationLevel::Fail,
-                error: Some(e.to_string()),
-                diff: None,
-                limitation_reason: None,
+            let transformed: Value = match lingua::serde_json::to_value(&provider_value) {
+                Ok(v) => v,
+                Err(e) => {
+                    return TransformResult {
+                        level: ValidationLevel::Fail,
+                        error: Some(format!("Failed to serialize provider value: {}", e)),
+                        diff: None,
+                        limitation_reason: None,
+                    };
+                }
+            };
+
+            // Convert back to universal for comparison
+            match target_adapter.stream_to_universal(transformed) {
+                Ok(u) => u,
+                Err(e) => {
+                    return TransformResult {
+                        level: ValidationLevel::Fail,
+                        error: Some(format!("Conversion from universal format failed: {}", e)),
+                        diff: None,
+                        limitation_reason: None,
+                    };
+                }
             }
         }
-    };
-
-    // Parse result bytes to Value for validation
-    let output_bytes = result.into_bytes();
-    let transformed: Value = match lingua::serde_json::from_slice(&output_bytes) {
-        Ok(v) => v,
-        Err(e) => {
-            return TransformResult {
-                level: ValidationLevel::Fail,
-                error: Some(e.to_string()),
-                diff: None,
-                limitation_reason: None,
-            }
-        }
-    };
-
-    // Validate transformed output can be parsed by target adapter
-    let target_universal = match target_adapter.stream_to_universal(transformed) {
-        Ok(u) => u,
-        Err(e) => {
-            return TransformResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("Conversion from universal format failed: {}", e)),
-                diff: None,
-                limitation_reason: None,
-            }
+        None => {
+            // Keep-alive event with no universal representation - pass through
+            None
         }
     };
 

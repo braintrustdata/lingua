@@ -225,20 +225,30 @@ impl UniversalParams {
 
 /// Configuration for extended thinking / reasoning capabilities.
 ///
-/// Uses `budget_tokens` as the canonical field for cross-provider conversion.
-/// When converting TO a provider, values are converted at the adapter boundary.
-/// OpenAI's `reasoning_effort` levels are converted to/from budget_tokens using heuristics.
+/// Both `effort` and `budget_tokens` are always populated when reasoning is enabled.
+/// The `canonical` field indicates which was the original source of truth:
+/// - `Effort`: From OpenAI (effort is canonical, budget_tokens derived)
+/// - `BudgetTokens`: From Anthropic/Google (budget_tokens is canonical, effort derived)
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ReasoningConfig {
     /// Whether reasoning/thinking is enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
 
-    /// Token budget for thinking (canonical field).
-    /// All providers' reasoning configurations are normalized to this field.
-    /// OpenAI effort levels are converted to budget_tokens at adapter boundaries.
+    /// Reasoning effort level (low/medium/high).
+    /// Always populated when enabled. Used by OpenAI Chat/Responses API.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effort: Option<ReasoningEffort>,
+
+    /// Token budget for thinking.
+    /// Always populated when enabled. Used by Anthropic/Google.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub budget_tokens: Option<i64>,
+
+    /// Which field is the canonical source of truth.
+    /// Indicates whether `effort` or `budget_tokens` was the original value.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub canonical: Option<ReasoningCanonical>,
 
     /// Summary mode for reasoning output.
     /// Maps to OpenAI Responses API's `reasoning.summary` field.
@@ -255,7 +265,10 @@ impl ReasoningConfig {
             return true;
         }
         // Empty config (no meaningful fields set)
-        self.enabled.is_none() && self.budget_tokens.is_none() && self.summary.is_none()
+        self.enabled.is_none()
+            && self.effort.is_none()
+            && self.budget_tokens.is_none()
+            && self.summary.is_none()
     }
 }
 
@@ -269,7 +282,8 @@ fn reasoning_should_skip(reasoning: &Option<ReasoningConfig>) -> bool {
 }
 
 /// Reasoning effort level (portable across providers).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum ReasoningEffort {
     Low,
     Medium,
@@ -313,6 +327,19 @@ impl AsRef<str> for ReasoningEffort {
     fn as_ref(&self) -> &str {
         self.as_str()
     }
+}
+
+/// Indicates which field is the canonical source of truth for reasoning configuration.
+///
+/// When converting between providers, both `effort` and `budget_tokens` are always populated
+/// (one derived from the other). This field indicates which was the original source.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReasoningCanonical {
+    /// `effort` is the source of truth (from OpenAI Chat/Responses API)
+    Effort,
+    /// `budget_tokens` is the source of truth (from Anthropic/Google)
+    BudgetTokens,
 }
 
 /// Summary mode for reasoning output.

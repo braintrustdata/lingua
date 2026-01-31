@@ -4,8 +4,8 @@ use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, REFUSAL_TEXT};
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
-    ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, ProviderOptions, TextContentPart,
+    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 use serde::{Deserialize, Serialize};
@@ -1321,6 +1321,7 @@ pub fn universal_to_responses_input(
                     AssistantContent::Array(parts) => {
                         // Categorize all parts into separate collections
                         let mut reasoning_parts: Vec<openai::SummaryText> = vec![];
+                        let mut has_reasoning = false;
                         let mut encrypted_content = None;
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
                         let mut tool_calls: Vec<(String, String, ToolCallArguments, Option<bool>)> =
@@ -1332,6 +1333,7 @@ pub fn universal_to_responses_input(
                                     text,
                                     encrypted_content: ec,
                                 } => {
+                                    has_reasoning = true;
                                     encrypted_content = ec.clone();
                                     if !text.is_empty() {
                                         reasoning_parts.push(openai::SummaryText {
@@ -1360,8 +1362,8 @@ pub fn universal_to_responses_input(
                             }
                         }
 
-                        // 1. Emit reasoning item if present
-                        if !reasoning_parts.is_empty() || encrypted_content.is_some() {
+                        // 1. Emit reasoning item if any reasoning part existed (even with empty text)
+                        if has_reasoning {
                             result.push(openai::InputItem {
                                 role: None,
                                 content: None,
@@ -1381,7 +1383,8 @@ pub fn universal_to_responses_input(
                                     normal_parts,
                                 )),
                                 input_item_type: Some(openai::InputItemType::Message),
-                                id: None, // id was used for reasoning if present
+                                // Only clear id if reasoning was emitted (it used the id)
+                                id: if has_reasoning { None } else { id.clone() },
                                 status: Some(openai::FunctionCallItemStatus::Completed),
                                 ..Default::default()
                             });
@@ -1659,32 +1662,585 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
     }
 }
 
+/// Convert OpenAI OutputItem collection to universal Message collection.
+/// Each OutputItem becomes a separate Message to preserve the structure.
 impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
     type Error = ConvertError;
 
-    fn try_from(messages: Vec<openai::OutputItem>) -> Result<Vec<Message>, Self::Error> {
-        let input_items: Vec<openai::InputItem> = messages
-            .into_iter()
-            .map(TryFromLLM::try_from)
-            .collect::<Result<_, _>>()?;
-        TryFromLLM::try_from(input_items)
+    fn try_from(items: Vec<openai::OutputItem>) -> Result<Vec<Message>, Self::Error> {
+        let mut messages: Vec<Message> = Vec::new();
+
+        for mut item in items {
+            let item_id = item.id.clone();
+
+            let parts: Vec<AssistantContentPart> = match item.output_item_type {
+                Some(openai::OutputItemType::Message) => {
+                    // Extract text content from message output items
+                    let mut text_parts = Vec::new();
+                    if let Some(content) = item.content {
+                        for c in content {
+                            if let Some(text) = c.text {
+                                // Preserve annotations and logprobs in provider_options
+                                let provider_options =
+                                    if c.annotations.is_some() || c.logprobs.is_some() {
+                                        let mut options = serde_json::Map::new();
+                                        if let Some(annotations) = c.annotations {
+                                            if let Ok(value) = serde_json::to_value(&annotations) {
+                                                options.insert("annotations".to_string(), value);
+                                            }
+                                        }
+                                        if let Some(logprobs) = c.logprobs {
+                                            if let Ok(value) = serde_json::to_value(&logprobs) {
+                                                options.insert("logprobs".to_string(), value);
+                                            }
+                                        }
+                                        if options.is_empty() {
+                                            None
+                                        } else {
+                                            Some(ProviderOptions { options })
+                                        }
+                                    } else {
+                                        None
+                                    };
+                                text_parts.push(AssistantContentPart::Text(TextContentPart {
+                                    text,
+                                    provider_options,
+                                }));
+                            }
+                        }
+                    }
+                    text_parts
+                }
+                Some(openai::OutputItemType::Reasoning) => {
+                    // Convert reasoning output to reasoning content parts
+                    let mut reasoning_parts = Vec::new();
+                    let mut first = true;
+                    for summary in item.summary.unwrap_or_default() {
+                        reasoning_parts.push(AssistantContentPart::Reasoning {
+                            text: summary.text,
+                            encrypted_content: if first {
+                                first = false;
+                                item.encrypted_content.take()
+                            } else {
+                                None
+                            },
+                        });
+                    }
+                    // Handle empty reasoning (still preserve encrypted content)
+                    if first {
+                        reasoning_parts.push(AssistantContentPart::Reasoning {
+                            text: String::new(),
+                            encrypted_content: item.encrypted_content.take(),
+                        });
+                    }
+                    reasoning_parts
+                }
+                Some(openai::OutputItemType::FunctionCall) => {
+                    let tool_call_id =
+                        item.call_id
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call call_id".to_string(),
+                            })?;
+                    let tool_name =
+                        item.name
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "function call name".to_string(),
+                            })?;
+                    let arguments_str = item
+                        .arguments
+                        .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string());
+
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name,
+                        arguments: arguments_str.into(),
+                        provider_options: None,
+                        provider_executed: None,
+                    }]
+                }
+                Some(openai::OutputItemType::CodeInterpreterCall) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "code_interpreter".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "code": item.code,
+                            "container_id": item.container_id,
+                            "outputs": item.outputs,
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                Some(openai::OutputItemType::WebSearchCall) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "web_search".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "action": item.action,
+                            "queries": item.queries,
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                Some(openai::OutputItemType::FileSearchCall) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "file_search".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "queries": item.queries,
+                            "results": item.results,
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                Some(openai::OutputItemType::ComputerCall) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "computer".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "action": item.action,
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                Some(openai::OutputItemType::ImageGenerationCall) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "image_generation".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "result": item.result,
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                Some(openai::OutputItemType::LocalShellCall) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "local_shell".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "action": item.action,
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                Some(openai::OutputItemType::McpCall) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "mcp_call".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "server_label": item.server_label,
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                Some(openai::OutputItemType::McpListTools) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "mcp_list_tools".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "server_label": item.server_label,
+                            "tools": item.tools,
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                Some(openai::OutputItemType::McpApprovalRequest) => {
+                    vec![AssistantContentPart::ToolCall {
+                        tool_call_id: item.id.clone().unwrap_or_default(),
+                        tool_name: "mcp_approval_request".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "status": item.status,
+                        })),
+                        provider_options: None,
+                        provider_executed: Some(true),
+                    }]
+                }
+                _ => {
+                    // Skip unknown output item types
+                    continue;
+                }
+            };
+
+            // Only create a message if there are parts
+            if !parts.is_empty() {
+                messages.push(Message::Assistant {
+                    content: AssistantContent::Array(parts),
+                    id: item_id,
+                });
+            }
+        }
+
+        Ok(messages)
     }
 }
 
 /// Convert universal Message collection to OpenAI OutputItem collection
 /// This leverages the Message -> InputItem -> OutputItem conversion chain
+/// Convert universal Message collection to OpenAI OutputItem collection.
+/// This directly converts content parts to OutputItems, preserving order.
 impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
     type Error = ConvertError;
 
     fn try_from(messages: Vec<Message>) -> Result<Self, Self::Error> {
-        // Convert each message to InputItem first, then to OutputItem
-        let input_items: Vec<openai::InputItem> = messages
-            .into_iter()
-            .map(TryFromLLM::try_from)
-            .collect::<Result<_, _>>()?;
+        let mut result = Vec::new();
 
-        // Then convert InputItems to OutputItems
-        input_items.into_iter().map(TryFromLLM::try_from).collect()
+        for msg in messages {
+            if let Message::Assistant { content, id } = msg {
+                match content {
+                    AssistantContent::String(text) => {
+                        result.push(openai::OutputItem {
+                            output_item_type: Some(openai::OutputItemType::Message),
+                            role: Some(openai::MessageRole::Assistant),
+                            content: Some(vec![openai::OutputMessageContent {
+                                output_message_content_type: openai::ContentType::OutputText,
+                                text: Some(text),
+                                annotations: None,
+                                logprobs: None,
+                                refusal: None,
+                            }]),
+                            id,
+                            status: Some(openai::FunctionCallItemStatus::Completed),
+                            ..Default::default()
+                        });
+                    }
+                    AssistantContent::Array(parts) => {
+                        // Track whether we've assigned the id to prevent duplicate IDs
+                        let mut id_used = false;
+                        let use_id = |used: &mut bool, id: &Option<String>| -> Option<String> {
+                            if *used {
+                                None
+                            } else {
+                                *used = true;
+                                id.clone()
+                            }
+                        };
+
+                        // Collect consecutive reasoning parts into a single OutputItem
+                        let mut pending_reasoning_summaries: Vec<openai::SummaryText> = vec![];
+                        let mut pending_encrypted_content: Option<String> = None;
+                        let mut has_pending_reasoning = false;
+
+                        let flush_reasoning =
+                            |result: &mut Vec<openai::OutputItem>,
+                             summaries: &mut Vec<openai::SummaryText>,
+                             encrypted: &mut Option<String>,
+                             has_reasoning: &mut bool,
+                             id_used: &mut bool,
+                             id: &Option<String>| {
+                                if *has_reasoning {
+                                    let use_id_inner =
+                                        |used: &mut bool, id: &Option<String>| -> Option<String> {
+                                            if *used {
+                                                None
+                                            } else {
+                                                *used = true;
+                                                id.clone()
+                                            }
+                                        };
+                                    result.push(openai::OutputItem {
+                                        output_item_type: Some(openai::OutputItemType::Reasoning),
+                                        summary: Some(std::mem::take(summaries)),
+                                        encrypted_content: encrypted.take(),
+                                        id: use_id_inner(id_used, id),
+                                        ..Default::default()
+                                    });
+                                    *has_reasoning = false;
+                                }
+                            };
+
+                        for part in parts {
+                            match part {
+                                AssistantContentPart::Text(text_part) => {
+                                    // Flush any pending reasoning before text
+                                    flush_reasoning(
+                                        &mut result,
+                                        &mut pending_reasoning_summaries,
+                                        &mut pending_encrypted_content,
+                                        &mut has_pending_reasoning,
+                                        &mut id_used,
+                                        &id,
+                                    );
+                                    // Extract annotations and logprobs from provider_options
+                                    let (annotations, logprobs) = if let Some(ref opts) =
+                                        text_part.provider_options
+                                    {
+                                        let annotations =
+                                            opts.options.get("annotations").and_then(|v| {
+                                                serde_json::from_value::<Vec<openai::Annotation>>(
+                                                    v.clone(),
+                                                )
+                                                .ok()
+                                            });
+                                        let logprobs = opts.options.get("logprobs").and_then(|v| {
+                                            serde_json::from_value::<Vec<openai::LogProbability>>(
+                                                v.clone(),
+                                            )
+                                            .ok()
+                                        });
+                                        (annotations, logprobs)
+                                    } else {
+                                        (None, None)
+                                    };
+                                    result.push(openai::OutputItem {
+                                        output_item_type: Some(openai::OutputItemType::Message),
+                                        role: Some(openai::MessageRole::Assistant),
+                                        content: Some(vec![openai::OutputMessageContent {
+                                            output_message_content_type:
+                                                openai::ContentType::OutputText,
+                                            text: Some(text_part.text),
+                                            annotations,
+                                            logprobs,
+                                            refusal: None,
+                                        }]),
+                                        id: use_id(&mut id_used, &id),
+                                        status: Some(openai::FunctionCallItemStatus::Completed),
+                                        ..Default::default()
+                                    });
+                                }
+                                AssistantContentPart::Reasoning {
+                                    text,
+                                    encrypted_content,
+                                } => {
+                                    // Accumulate reasoning summaries
+                                    has_pending_reasoning = true;
+                                    if !text.is_empty() {
+                                        pending_reasoning_summaries.push(openai::SummaryText {
+                                            text,
+                                            summary_text_type: openai::SummaryType::SummaryText,
+                                        });
+                                    }
+                                    if encrypted_content.is_some() {
+                                        pending_encrypted_content = encrypted_content;
+                                    }
+                                }
+                                AssistantContentPart::ToolCall {
+                                    tool_call_id,
+                                    tool_name,
+                                    arguments,
+                                    provider_executed,
+                                    ..
+                                } => {
+                                    // Flush any pending reasoning before tool call
+                                    flush_reasoning(
+                                        &mut result,
+                                        &mut pending_reasoning_summaries,
+                                        &mut pending_encrypted_content,
+                                        &mut has_pending_reasoning,
+                                        &mut id_used,
+                                        &id,
+                                    );
+                                    if provider_executed == Some(true) {
+                                        // Built-in tool: convert to appropriate OutputItem type
+                                        let args_value = match &arguments {
+                                            ToolCallArguments::Valid(map) => {
+                                                serde_json::Value::Object(map.clone())
+                                            }
+                                            ToolCallArguments::Invalid(s) => {
+                                                serde_json::Value::String(s.clone())
+                                            }
+                                        };
+
+                                        let item = match tool_name.as_str() {
+                                            "code_interpreter" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::CodeInterpreterCall,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                code: args_value
+                                                    .get("code")
+                                                    .and_then(|v| v.as_str())
+                                                    .map(|s| s.to_string()),
+                                                container_id: args_value
+                                                    .get("container_id")
+                                                    .and_then(|v| v.as_str())
+                                                    .map(|s| s.to_string()),
+                                                outputs: args_value.get("outputs").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            "web_search" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::WebSearchCall,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                action: args_value.get("action").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                queries: args_value.get("queries").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            "file_search" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::FileSearchCall,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                queries: args_value.get("queries").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                results: args_value.get("results").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            "computer" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::ComputerCall,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                action: args_value.get("action").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            "image_generation" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::ImageGenerationCall,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                result: args_value
+                                                    .get("result")
+                                                    .and_then(|v| v.as_str())
+                                                    .map(|s| s.to_string()),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            "local_shell" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::LocalShellCall,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                action: args_value.get("action").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            "mcp_call" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::McpCall,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                server_label: args_value
+                                                    .get("server_label")
+                                                    .and_then(|v| v.as_str())
+                                                    .map(|s| s.to_string()),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            "mcp_list_tools" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::McpListTools,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                server_label: args_value
+                                                    .get("server_label")
+                                                    .and_then(|v| v.as_str())
+                                                    .map(|s| s.to_string()),
+                                                tools: args_value.get("tools").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            "mcp_approval_request" => openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::McpApprovalRequest,
+                                                ),
+                                                id: Some(tool_call_id),
+                                                status: args_value.get("status").and_then(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                }),
+                                                ..Default::default()
+                                            },
+                                            _ => {
+                                                // Unknown provider-executed tool - fall back to FunctionCall
+                                                openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::FunctionCall,
+                                                    ),
+                                                    call_id: Some(tool_call_id),
+                                                    name: Some(tool_name),
+                                                    arguments: Some(arguments.to_string()),
+                                                    status: Some(
+                                                        openai::FunctionCallItemStatus::Completed,
+                                                    ),
+                                                    ..Default::default()
+                                                }
+                                            }
+                                        };
+                                        result.push(item);
+                                    } else {
+                                        // Regular function call
+                                        result.push(openai::OutputItem {
+                                            output_item_type: Some(
+                                                openai::OutputItemType::FunctionCall,
+                                            ),
+                                            id: use_id(&mut id_used, &id),
+                                            call_id: Some(tool_call_id),
+                                            name: Some(tool_name),
+                                            arguments: Some(arguments.to_string()),
+                                            status: Some(openai::FunctionCallItemStatus::Completed),
+                                            ..Default::default()
+                                        });
+                                    }
+                                }
+                                // Skip File and ToolResult variants as they don't map to OutputItems
+                                _ => {}
+                            }
+                        }
+                        // Flush any remaining pending reasoning at the end
+                        flush_reasoning(
+                            &mut result,
+                            &mut pending_reasoning_summaries,
+                            &mut pending_encrypted_content,
+                            &mut has_pending_reasoning,
+                            &mut id_used,
+                            &id,
+                        );
+                    }
+                }
+            }
+        }
+
+        Ok(result)
     }
 }
 

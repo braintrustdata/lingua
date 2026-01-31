@@ -39,6 +39,21 @@
       "fields": [
         { "pattern": "model", "reason": "Bedrock streaming format doesn't include model in events" }
       ]
+    },
+    {
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic doesn't expose reasoning tokens separately (included in output_tokens)" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "id", "reason": "Responses API response IDs don't map to Anthropic streaming format" },
+        { "pattern": "model", "reason": "Responses API model field isn't preserved in Anthropic streaming events" }
+      ]
     }
   ],
   "perTestCase": [

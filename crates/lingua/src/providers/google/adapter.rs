@@ -70,9 +70,15 @@ impl ProviderAdapter for GoogleAdapter {
                 // thinkingBudget: 0 means disabled
                 let reasoning = config.thinking_config.as_ref().map(|tc| {
                     let is_disabled = tc.thinking_budget == Some(0);
+                    let budget_tokens = tc.thinking_budget.map(|b| b as i64);
+                    // Derive effort from budget_tokens
+                    let effort = budget_tokens
+                        .map(|b| crate::universal::reasoning::budget_to_effort(b, None));
                     crate::universal::ReasoningConfig {
                         enabled: Some(!is_disabled),
-                        budget_tokens: tc.thinking_budget.map(|b| b as i64),
+                        effort,
+                        budget_tokens,
+                        canonical: Some(crate::universal::ReasoningCanonical::BudgetTokens),
                         ..Default::default()
                     }
                 });

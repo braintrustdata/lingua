@@ -535,38 +535,59 @@ fn build_reasoning_config(
     reasoning_effort: Option<OpenAIReasoningEffort>,
     max_tokens: Option<i64>,
 ) -> Option<ReasoningConfig> {
-    // Check if any reasoning field is set
+    use crate::universal::reasoning::budget_to_effort;
+    use crate::universal::ReasoningCanonical;
+
     if reasoning_enabled.is_none() && reasoning_budget.is_none() && reasoning_effort.is_none() {
         return None;
     }
 
-    // Determine if reasoning is disabled
-    // reasoning_enabled: false OR reasoning_budget: 0 means disabled
     let is_disabled = reasoning_enabled == Some(false) || reasoning_budget == Some(0);
 
     if is_disabled {
         return Some(ReasoningConfig {
             enabled: Some(false),
+            effort: None,
             budget_tokens: None,
+            canonical: None,
             ..Default::default()
         });
     }
 
-    // Calculate budget_tokens: reasoning_budget takes precedence over reasoning_effort
-    let budget_tokens = reasoning_budget.or_else(|| {
-        reasoning_effort.map(|effort| {
-            let universal_effort = match effort {
-                OpenAIReasoningEffort::Low | OpenAIReasoningEffort::Minimal => ReasoningEffort::Low,
-                OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
-                OpenAIReasoningEffort::High => ReasoningEffort::High,
-            };
-            effort_to_budget(universal_effort, max_tokens)
-        })
-    });
+    let (effort, budget_tokens, canonical) = if let Some(budget) = reasoning_budget {
+        let derived_effort = budget_to_effort(budget, max_tokens);
+        (
+            Some(derived_effort),
+            Some(budget),
+            Some(ReasoningCanonical::BudgetTokens),
+        )
+    } else if let Some(openai_effort) = reasoning_effort {
+        let universal_effort = match openai_effort {
+            OpenAIReasoningEffort::Low | OpenAIReasoningEffort::Minimal => ReasoningEffort::Low,
+            OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
+            OpenAIReasoningEffort::High => ReasoningEffort::High,
+        };
+        let derived_budget = effort_to_budget(universal_effort, max_tokens);
+        (
+            Some(universal_effort),
+            Some(derived_budget),
+            Some(ReasoningCanonical::Effort),
+        )
+    } else {
+        let default_effort = ReasoningEffort::Medium;
+        let derived_budget = effort_to_budget(default_effort, max_tokens);
+        (
+            Some(default_effort),
+            Some(derived_budget),
+            Some(ReasoningCanonical::Effort),
+        )
+    };
 
     Some(ReasoningConfig {
         enabled: Some(true),
+        effort,
         budget_tokens,
+        canonical,
         ..Default::default()
     })
 }

@@ -25,9 +25,9 @@ pub mod transform;
 pub use defaults::*;
 pub use message::*;
 pub use request::{
-    parse_stop_sequences, JsonSchemaConfig, ReasoningConfig, ReasoningEffort, ResponseFormatConfig,
-    ResponseFormatType, SummaryMode, ToolChoiceConfig, ToolChoiceMode, UniversalParams,
-    UniversalRequest,
+    parse_stop_sequences, JsonSchemaConfig, ReasoningCanonical, ReasoningConfig, ReasoningEffort,
+    ResponseFormatConfig, ResponseFormatType, SummaryMode, ToolChoiceConfig, ToolChoiceMode,
+    UniversalParams, UniversalRequest,
 };
 pub use response::{FinishReason, UniversalResponse, UniversalUsage};
 pub use stream::{UniversalStreamChoice, UniversalStreamChunk};

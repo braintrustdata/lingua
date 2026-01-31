@@ -312,103 +312,39 @@ impl ProviderAdapter for ResponsesAdapter {
     }
 
     fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
-        let output = payload
+        use crate::providers::openai::generated::OutputItem;
+
+        let output_items: Vec<OutputItem> = payload
             .get("output")
             .and_then(Value::as_array)
+            .map(|arr| serde_json::from_value(Value::Array(arr.clone())))
+            .transpose()
+            .map_err(|e| {
+                TransformError::ToUniversalFailed(format!("Failed to parse output items: {}", e))
+            })?
             .ok_or_else(|| TransformError::ToUniversalFailed("missing output".to_string()))?;
 
-        // Convert output items to messages
-        // Responses API has multiple output types: message, function_call, reasoning, etc.
-        let mut messages: Vec<Message> = Vec::new();
-        let mut tool_calls: Vec<Value> = Vec::new();
+        let messages: Vec<Message> = TryFromLLM::try_from(output_items)
+            .map_err(|e: ConvertError| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        for item in output {
-            let item_type = item.get("type").and_then(Value::as_str);
-
-            match item_type {
-                Some("message") => {
-                    // Message type - extract text content
-                    if let Some(content) = item.get("content") {
-                        if let Some(content_arr) = content.as_array() {
-                            let text: String = content_arr
-                                .iter()
-                                .filter_map(|c| {
-                                    if c.get("type").and_then(Value::as_str) == Some("output_text")
-                                    {
-                                        c.get("text").and_then(Value::as_str).map(String::from)
-                                    } else {
-                                        None
-                                    }
-                                })
-                                .collect::<Vec<_>>()
-                                .join("");
-                            if !text.is_empty() {
-                                messages.push(Message::Assistant {
-                                    content: AssistantContent::String(text),
-                                    id: None,
-                                });
-                            }
-                        }
-                    }
-                }
-                Some("function_call") => {
-                    // Function call - collect for later conversion to tool calls
-                    tool_calls.push(item.clone());
-                }
-                _ => {
-                    // Skip reasoning and other types for now
-                }
-            }
-        }
-
-        // If we have tool calls but no messages, create an assistant message with tool calls
-        if !tool_calls.is_empty() && messages.is_empty() {
-            // Convert function_call items to tool call format
-            use crate::universal::message::{AssistantContentPart, ToolCallArguments};
-            let parts: Vec<AssistantContentPart> = tool_calls
-                .iter()
-                .filter_map(|tc| {
-                    let name = tc.get("name").and_then(Value::as_str)?;
-                    let call_id = tc.get("call_id").and_then(Value::as_str)?;
-                    let arguments = tc.get("arguments").and_then(Value::as_str)?;
-
-                    // Try to parse arguments as JSON, fall back to invalid string
-                    let args = serde_json::from_str::<Map<String, Value>>(arguments)
-                        .map(ToolCallArguments::Valid)
-                        .unwrap_or_else(|_| ToolCallArguments::Invalid(arguments.to_string()));
-
-                    Some(AssistantContentPart::ToolCall {
-                        tool_call_id: call_id.to_string(),
-                        tool_name: name.to_string(),
-                        arguments: args,
-                        provider_options: None,
-                        provider_executed: None,
-                    })
+        let has_tool_calls = messages.iter().any(|m| {
+            if let Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } = m
+            {
+                parts.iter().any(|p| {
+                    matches!(
+                        p,
+                        crate::universal::message::AssistantContentPart::ToolCall { .. }
+                    )
                 })
-                .collect();
-
-            if !parts.is_empty() {
-                messages.push(Message::Assistant {
-                    content: AssistantContent::Array(parts),
-                    id: None,
-                });
+            } else {
+                false
             }
-        }
+        });
 
-        // If still no messages, try output_text field as fallback
-        // Include empty string to preserve message structure from source
-        if messages.is_empty() {
-            if let Some(text) = payload.get("output_text").and_then(Value::as_str) {
-                messages.push(Message::Assistant {
-                    content: AssistantContent::String(text.to_string()),
-                    id: None,
-                });
-            }
-        }
-
-        // Map status to finish_reason
-        // If we have tool calls, the finish reason should be ToolCalls regardless of status
-        let finish_reason = if !tool_calls.is_empty() {
+        let finish_reason = if has_tool_calls {
             Some(FinishReason::ToolCalls)
         } else {
             match payload.get("status").and_then(Value::as_str) {
@@ -434,15 +370,9 @@ impl ProviderAdapter for ResponsesAdapter {
     }
 
     fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError> {
-        // Convert messages to InputItems (handles 1:N expansion for mixed content)
-        let input_items = universal_to_responses_input(&resp.messages)
-            .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+        use crate::providers::openai::generated::OutputItem;
 
-        // Convert InputItems to OutputItems using existing infrastructure
-        let output_items: Vec<crate::providers::openai::generated::OutputItem> = input_items
-            .into_iter()
-            .map(TryFromLLM::try_from)
-            .collect::<Result<_, _>>()
+        let output_items: Vec<OutputItem> = TryFromLLM::try_from(resp.messages.clone())
             .map_err(|e: ConvertError| TransformError::FromUniversalFailed(e.to_string()))?;
 
         // Serialize OutputItems to JSON values
@@ -602,6 +532,7 @@ impl ProviderAdapter for ResponsesAdapter {
                 let response = payload.get("response");
                 let usage = response
                     .and_then(|r| r.get("usage"))
+                    .filter(|u| !u.is_null())
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
 
                 let model = response
@@ -632,6 +563,7 @@ impl ProviderAdapter for ResponsesAdapter {
                 let response = payload.get("response");
                 let usage = response
                     .and_then(|r| r.get("usage"))
+                    .filter(|u| !u.is_null())
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
 
                 Ok(Some(UniversalStreamChunk::new(
@@ -656,6 +588,12 @@ impl ProviderAdapter for ResponsesAdapter {
                 } else {
                     payload.get("response")
                 };
+
+                // If no response data, this is a keep-alive roundtrip
+                if response.is_none() {
+                    return Ok(Some(UniversalStreamChunk::keep_alive()));
+                }
+
                 let model = response
                     .and_then(|r| r.get("model"))
                     .and_then(Value::as_str)
@@ -666,6 +604,7 @@ impl ProviderAdapter for ResponsesAdapter {
                     .map(String::from);
                 let usage = response
                     .and_then(|r| r.get("usage"))
+                    .filter(|u| !u.is_null())
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
 
                 Ok(Some(UniversalStreamChunk::new(

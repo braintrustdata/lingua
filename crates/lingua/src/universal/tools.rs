@@ -496,11 +496,22 @@ fn detect_tools_format(tools: &Value) -> ToolsFormat {
 
         // Has type, no function wrapper → check if Anthropic builtin or Responses API
         (Some(t), false, _) => {
+            // OpenAI Responses builtins (check these first since some overlap with Anthropic)
+            if t == "code_interpreter"
+                || t == "file_search"
+                || t == "mcp"
+                || t == "computer_use_preview"
+                || t.starts_with("web_search_preview")
+            // web_search_preview, web_search_preview_2025_03_11
+            {
+                ToolsFormat::OpenAIResponses
+            }
             // Anthropic built-in tools use versioned type names (e.g., bash_20250124).
             // Update this list when Anthropic adds new built-in tool types.
-            if t.starts_with("bash_")
+            else if t.starts_with("bash_")
                 || t.starts_with("text_editor_")
                 || t.starts_with("web_search_")
+            // Anthropic's web_search_YYYYMMDD format
             {
                 ToolsFormat::AnthropicBuiltin
             } else {

@@ -52,7 +52,7 @@ use crate::providers::openai::generated::{
 use crate::serde_json::{json, Map, Value};
 #[cfg(test)]
 use crate::universal::request::SummaryMode;
-use crate::universal::request::{ReasoningConfig, ReasoningEffort};
+use crate::universal::request::{ReasoningCanonical, ReasoningConfig, ReasoningEffort};
 
 // =============================================================================
 // Heuristic Constants
@@ -82,9 +82,6 @@ pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 /// Default reasoning effort when enabled but no budget specified
 pub const DEFAULT_REASONING_EFFORT: ReasoningEffort = ReasoningEffort::Medium;
 
-/// Required temperature for Anthropic when thinking is enabled
-pub const ANTHROPIC_THINKING_TEMPERATURE: f64 = 1.0;
-
 // =============================================================================
 // Effort ↔ Budget Conversion
 // =============================================================================
@@ -105,7 +102,6 @@ pub const ANTHROPIC_THINKING_TEMPERATURE: f64 = 1.0;
 /// # Validation
 /// - If `max_tokens` is None, zero, or negative, uses `DEFAULT_MAX_TOKENS` (4096)
 pub fn effort_to_budget(effort: ReasoningEffort, max_tokens: Option<i64>) -> i64 {
-    // Validate max_tokens - must be strictly positive
     let max = match max_tokens {
         Some(value) if value > 0 => value,
         _ => DEFAULT_MAX_TOKENS, // Use default for None, zero, or negative
@@ -163,12 +159,18 @@ pub fn budget_to_effort(budget: i64, max_tokens: Option<i64>) -> ReasoningEffort
 
 /// Convert Anthropic Thinking to ReasoningConfig.
 ///
-/// Anthropic's thinking is already normalized on `budget_tokens`, so this is a direct mapping.
+/// Anthropic's thinking uses `budget_tokens` as canonical. Effort is derived.
 impl From<&Thinking> for ReasoningConfig {
     fn from(thinking: &Thinking) -> Self {
+        let enabled = matches!(thinking.thinking_type, ThinkingType::Enabled);
+        let budget_tokens = thinking.budget_tokens;
+        let effort = budget_tokens.map(|b| budget_to_effort(b, None));
+
         ReasoningConfig {
-            enabled: Some(matches!(thinking.thinking_type, ThinkingType::Enabled)),
-            budget_tokens: thinking.budget_tokens,
+            enabled: Some(enabled),
+            effort,
+            budget_tokens,
+            canonical: Some(ReasoningCanonical::BudgetTokens),
             ..Default::default()
         }
     }
@@ -176,8 +178,8 @@ impl From<&Thinking> for ReasoningConfig {
 
 /// Convert OpenAI ReasoningEffort to ReasoningConfig with context (for Chat API).
 ///
+/// OpenAI's effort is canonical. Budget_tokens is derived.
 /// Takes max_tokens as context to compute accurate budget_tokens.
-/// Uses DEFAULT_MAX_TOKENS if max_tokens is None.
 impl From<(OpenAIReasoningEffort, Option<i64>)> for ReasoningConfig {
     fn from((effort, max_tokens): (OpenAIReasoningEffort, Option<i64>)) -> Self {
         let universal_effort = match effort {
@@ -185,9 +187,14 @@ impl From<(OpenAIReasoningEffort, Option<i64>)> for ReasoningConfig {
             OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
             OpenAIReasoningEffort::High => ReasoningEffort::High,
         };
+        // Derive budget_tokens from effort
+        let budget_tokens = effort_to_budget(universal_effort, max_tokens);
+
         ReasoningConfig {
             enabled: Some(true),
-            budget_tokens: Some(effort_to_budget(universal_effort, max_tokens)),
+            effort: Some(universal_effort),
+            budget_tokens: Some(budget_tokens),
+            canonical: Some(ReasoningCanonical::Effort),
             ..Default::default()
         }
     }
@@ -195,18 +202,27 @@ impl From<(OpenAIReasoningEffort, Option<i64>)> for ReasoningConfig {
 
 /// Convert OpenAI Reasoning to ReasoningConfig (for Responses API) - fallback.
 ///
+/// OpenAI's effort is canonical. Budget_tokens is derived.
 /// Uses DEFAULT_MAX_TOKENS for effort→budget conversion when max_tokens is not available.
 /// For context-aware conversion, use the tuple-based From impl.
 impl From<&OpenAIReasoning> for ReasoningConfig {
     fn from(reasoning: &OpenAIReasoning) -> Self {
-        let budget_tokens = reasoning.effort.as_ref().map(|e| {
-            let universal_effort = match e {
-                OpenAIReasoningEffort::Low | OpenAIReasoningEffort::Minimal => ReasoningEffort::Low,
-                OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
-                OpenAIReasoningEffort::High => ReasoningEffort::High,
-            };
-            effort_to_budget(universal_effort, None) // Uses DEFAULT_MAX_TOKENS
-        });
+        // Extract effort and derive budget_tokens
+        let (effort, budget_tokens) = reasoning
+            .effort
+            .as_ref()
+            .map(|e| {
+                let universal_effort = match e {
+                    OpenAIReasoningEffort::Low | OpenAIReasoningEffort::Minimal => {
+                        ReasoningEffort::Low
+                    }
+                    OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
+                    OpenAIReasoningEffort::High => ReasoningEffort::High,
+                };
+                let budget = effort_to_budget(universal_effort, None); // Uses DEFAULT_MAX_TOKENS
+                (universal_effort, budget)
+            })
+            .map_or((None, None), |(e, b)| (Some(e), Some(b)));
 
         let summary = reasoning
             .summary
@@ -220,7 +236,9 @@ impl From<&OpenAIReasoning> for ReasoningConfig {
 
         ReasoningConfig {
             enabled: Some(true),
+            effort,
             budget_tokens,
+            canonical: Some(ReasoningCanonical::Effort),
             summary,
         }
     }
@@ -228,18 +246,26 @@ impl From<&OpenAIReasoning> for ReasoningConfig {
 
 /// Convert OpenAI Reasoning to ReasoningConfig with context (for Responses API).
 ///
+/// OpenAI's effort is canonical. Budget_tokens is derived.
 /// Takes max_tokens as context to compute accurate budget_tokens.
-/// Uses provided max_tokens or DEFAULT_MAX_TOKENS if None.
 impl From<(&OpenAIReasoning, Option<i64>)> for ReasoningConfig {
     fn from((reasoning, max_tokens): (&OpenAIReasoning, Option<i64>)) -> Self {
-        let budget_tokens = reasoning.effort.as_ref().map(|e| {
-            let universal_effort = match e {
-                OpenAIReasoningEffort::Low | OpenAIReasoningEffort::Minimal => ReasoningEffort::Low,
-                OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
-                OpenAIReasoningEffort::High => ReasoningEffort::High,
-            };
-            effort_to_budget(universal_effort, max_tokens)
-        });
+        // Extract effort and derive budget_tokens
+        let (effort, budget_tokens) = reasoning
+            .effort
+            .as_ref()
+            .map(|e| {
+                let universal_effort = match e {
+                    OpenAIReasoningEffort::Low | OpenAIReasoningEffort::Minimal => {
+                        ReasoningEffort::Low
+                    }
+                    OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
+                    OpenAIReasoningEffort::High => ReasoningEffort::High,
+                };
+                let budget = effort_to_budget(universal_effort, max_tokens);
+                (universal_effort, budget)
+            })
+            .map_or((None, None), |(e, b)| (Some(e), Some(b)));
 
         let summary = reasoning
             .summary
@@ -253,7 +279,9 @@ impl From<(&OpenAIReasoning, Option<i64>)> for ReasoningConfig {
 
         ReasoningConfig {
             enabled: Some(true),
+            effort,
             budget_tokens,
+            canonical: Some(ReasoningCanonical::Effort),
             summary,
         }
     }
@@ -310,10 +338,13 @@ pub fn from_google(config: &Value) -> ReasoningConfig {
         });
 
     let budget_tokens = config.get("thinkingBudget").and_then(Value::as_i64);
+    let effort = budget_tokens.map(|b| budget_to_effort(b, None));
 
     ReasoningConfig {
         enabled,
+        effort,
         budget_tokens,
+        canonical: Some(ReasoningCanonical::BudgetTokens),
         ..Default::default()
     }
 }
@@ -328,7 +359,12 @@ fn to_openai_chat(config: &ReasoningConfig, max_tokens: Option<i64>) -> Option<S
         return None;
     }
 
-    // Convert budget_tokens → effort at adapter boundary
+    // Use effort directly (always populated when enabled)
+    if let Some(effort) = config.effort {
+        return Some(effort.to_string());
+    }
+
+    // Fallback: convert budget_tokens → effort
     if let Some(budget) = config.budget_tokens {
         let effort = budget_to_effort(budget, max_tokens);
         return Some(effort.to_string());
@@ -346,14 +382,17 @@ fn to_openai_responses(config: &ReasoningConfig, max_tokens: Option<i64>) -> Opt
 
     let mut obj = Map::new();
 
-    // Convert budget_tokens → effort at adapter boundary
-    let effort = if let Some(budget) = config.budget_tokens {
+    // Use effort directly (always populated when enabled)
+    let effort_str = if let Some(effort) = config.effort {
+        effort.to_string()
+    } else if let Some(budget) = config.budget_tokens {
+        // Fallback: convert budget_tokens → effort
         budget_to_effort(budget, max_tokens).to_string()
     } else {
         DEFAULT_REASONING_EFFORT.to_string() // Default if only enabled=true
     };
 
-    obj.insert("effort".into(), Value::String(effort));
+    obj.insert("effort".into(), Value::String(effort_str));
 
     // Summary
     if let Some(summary) = config.summary {
@@ -369,13 +408,20 @@ fn to_openai_responses(config: &ReasoningConfig, max_tokens: Option<i64>) -> Opt
 /// - `Some({ type: "disabled" })` when explicitly disabled
 /// - `Some({ type: "enabled", budget_tokens: N })` when enabled
 /// - `None` when not specified (no thinking field)
-fn to_anthropic(config: &ReasoningConfig, _max_tokens: Option<i64>) -> Option<Value> {
+fn to_anthropic(config: &ReasoningConfig, max_tokens: Option<i64>) -> Option<Value> {
     match config.enabled {
         // Explicitly disabled - return disabled payload
         Some(false) => Some(json!({ "type": "disabled" })),
         // Enabled - return enabled payload with budget
         Some(true) => {
-            let budget = config.budget_tokens.unwrap_or(MIN_THINKING_BUDGET);
+            // Use budget_tokens directly (always populated when enabled)
+            // Fallback: derive from effort
+            let budget = config.budget_tokens.unwrap_or_else(|| {
+                config
+                    .effort
+                    .map(|e| effort_to_budget(e, max_tokens))
+                    .unwrap_or(MIN_THINKING_BUDGET)
+            });
             Some(json!({
                 "type": "enabled",
                 "budget_tokens": budget
@@ -392,13 +438,20 @@ fn to_anthropic(config: &ReasoningConfig, _max_tokens: Option<i64>) -> Option<Va
 /// - `Some({ thinkingBudget: 0 })` when explicitly disabled
 /// - `Some({ includeThoughts: true, thinkingBudget: N })` when enabled
 /// - `None` when not specified (no thinkingConfig field)
-fn to_google(config: &ReasoningConfig, _max_tokens: Option<i64>) -> Option<Value> {
+fn to_google(config: &ReasoningConfig, max_tokens: Option<i64>) -> Option<Value> {
     match config.enabled {
         // Explicitly disabled - return disabled payload
         Some(false) => Some(json!({ "thinkingBudget": 0 })),
         // Enabled - return enabled payload with budget
         Some(true) => {
-            let budget = config.budget_tokens.unwrap_or(MIN_THINKING_BUDGET);
+            // Use budget_tokens directly (always populated when enabled)
+            // Fallback: derive from effort
+            let budget = config.budget_tokens.unwrap_or_else(|| {
+                config
+                    .effort
+                    .map(|e| effort_to_budget(e, max_tokens))
+                    .unwrap_or(MIN_THINKING_BUDGET)
+            });
             Some(json!({
                 "includeThoughts": true,
                 "thinkingBudget": budget

@@ -18,7 +18,6 @@ use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent};
-use crate::universal::reasoning::ANTHROPIC_THINKING_TEMPERATURE;
 use crate::universal::tools::{tools_to_anthropic_value, UniversalTool};
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
@@ -162,24 +161,18 @@ impl ProviderAdapter for AnthropicAdapter {
         let max_tokens = req.params.max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
         obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
 
-        // Check if reasoning/thinking is enabled (needed for temperature override)
+        // Check if reasoning/thinking is enabled
         // Note: thinking_val can be { type: "disabled" } or { type: "enabled", ... }
-        // Only override temperature when type is "enabled"
         let thinking_val = req.params.reasoning_for(ProviderFormat::Anthropic);
         let reasoning_enabled = thinking_val
             .as_ref()
             .and_then(|v| v.get("type"))
             .and_then(|t| t.as_str())
             .is_some_and(|t| t == "enabled");
+        if !reasoning_enabled {
+            insert_opt_f64(&mut obj, "temperature", req.params.temperature);
+        }
 
-        // Insert other params
-        // Anthropic requires temperature=1.0 when extended thinking is enabled
-        let temperature = if reasoning_enabled {
-            Some(ANTHROPIC_THINKING_TEMPERATURE)
-        } else {
-            req.params.temperature
-        };
-        insert_opt_f64(&mut obj, "temperature", temperature);
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
         insert_opt_i64(&mut obj, "top_k", req.params.top_k);
 
@@ -687,7 +680,7 @@ mod tests {
     }
 
     #[test]
-    fn test_anthropic_auto_corrects_temperature_with_thinking() {
+    fn test_anthropic_omits_temperature_with_thinking() {
         use crate::universal::message::UserContent;
         use crate::universal::request::ReasoningConfig;
 
@@ -700,7 +693,7 @@ mod tests {
                 content: UserContent::String("Hello".to_string()),
             }],
             params: UniversalParams {
-                temperature: Some(0.5), // User specified, but should be overridden
+                temperature: Some(0.5), // User specified, but should be omitted
                 reasoning: Some(ReasoningConfig {
                     enabled: Some(true),
                     budget_tokens: Some(2048),
@@ -713,14 +706,10 @@ mod tests {
 
         let result = adapter.request_from_universal(&req).unwrap();
 
-        // Temperature should be auto-corrected to 1.0 (ANTHROPIC_THINKING_TEMPERATURE)
-        assert_eq!(
-            result.get("temperature").unwrap().as_f64().unwrap(),
-            1.0,
-            "Temperature should be auto-corrected to 1.0 when thinking is enabled"
+        assert!(
+            result.get("temperature").is_none(),
+            "Temperature should be omitted when thinking is enabled"
         );
-
-        // Thinking should be present
         assert!(
             result.get("thinking").is_some(),
             "thinking field should be present"
@@ -748,14 +737,11 @@ mod tests {
 
         let result = adapter.request_from_universal(&req).unwrap();
 
-        // Temperature should be preserved as user specified
         assert_eq!(
             result.get("temperature").unwrap().as_f64().unwrap(),
             0.7,
             "Temperature should be preserved when thinking is not enabled"
         );
-
-        // No thinking field
         assert!(
             result.get("thinking").is_none(),
             "thinking field should not be present"

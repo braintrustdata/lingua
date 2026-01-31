@@ -19,7 +19,6 @@ use crate::providers::bedrock::try_parse_bedrock;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
-use crate::universal::reasoning::ANTHROPIC_THINKING_TEMPERATURE;
 use crate::universal::request::ReasoningConfig;
 use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
@@ -178,20 +177,16 @@ impl ProviderAdapter for BedrockAdapter {
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
 
-        // Check if reasoning/thinking is enabled (for temperature override)
+        // Check if reasoning/thinking is enabled
         // Note: thinking_config can be { type: "disabled" } or { type: "enabled", ... }
-        // Only override temperature when type is "enabled"
         let thinking_config = req.params.reasoning_for(ProviderFormat::Converse);
         let reasoning_enabled = thinking_config
             .as_ref()
             .and_then(|v| v.get("type"))
             .and_then(|t| t.as_str())
             .is_some_and(|t| t == "enabled");
-
-        // Build inferenceConfig if any params are set
-        // Note: Claude on Bedrock requires temperature=1.0 when extended thinking is enabled
         let temperature = if reasoning_enabled {
-            Some(ANTHROPIC_THINKING_TEMPERATURE)
+            None
         } else {
             req.params.temperature
         };
@@ -684,7 +679,7 @@ mod tests {
     }
 
     #[test]
-    fn test_bedrock_reasoning_sets_temperature_to_1() {
+    fn test_bedrock_reasoning_omits_temperature() {
         use crate::universal::request::ReasoningConfig;
 
         let adapter = BedrockAdapter;
@@ -699,7 +694,7 @@ mod tests {
                     budget_tokens: Some(2048),
                     ..Default::default()
                 }),
-                temperature: Some(0.5), // This should be overridden to 1.0
+                temperature: Some(0.5), // This should be omitted when thinking is enabled
                 max_tokens: Some(4096),
                 ..Default::default()
             },
@@ -707,9 +702,12 @@ mod tests {
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
 
-        // Temperature should be 1.0 when thinking is enabled
+        // Temperature should be omitted when thinking is enabled (let Bedrock default to 1.0)
         let inference_config = reconstructed.get("inferenceConfig").unwrap();
-        assert_eq!(inference_config.get("temperature").unwrap(), 1.0);
+        assert!(
+            inference_config.get("temperature").is_none(),
+            "Temperature should be omitted when thinking is enabled"
+        );
     }
 
     #[test]
@@ -752,8 +750,11 @@ mod tests {
         assert_eq!(thinking.get("type").unwrap(), "enabled");
         assert_eq!(thinking.get("budget_tokens").unwrap(), 2500);
 
-        // Verify temperature is set to 1.0
+        // Temperature should be omitted when thinking is enabled
         let inference_config = reconstructed.get("inferenceConfig").unwrap();
-        assert_eq!(inference_config.get("temperature").unwrap(), 1.0);
+        assert!(
+            inference_config.get("temperature").is_none(),
+            "Temperature should be omitted when thinking is enabled"
+        );
     }
 }

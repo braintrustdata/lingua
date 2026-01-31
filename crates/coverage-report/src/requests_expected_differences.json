@@ -5,7 +5,8 @@
       "target": "*",
       "fields": [
         { "pattern": "params.service_tier", "reason": "OpenAI-specific billing tier not universal across providers" },
-        { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific (OpenAI uses response-level IDs, Anthropic uses message-level IDs, Bedrock has none)" }
+        { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific (OpenAI uses response-level IDs, Anthropic uses message-level IDs, Bedrock has none)" },
+        { "pattern": "params.reasoning.canonical", "reason": "Metadata indicating source format (effort vs budget_tokens) - changes when converting between providers with different canonical representations" }
       ]
     },
     {
@@ -95,7 +96,9 @@
       "fields": [
         { "pattern": "params.temperature", "reason": "Bedrock requires temperature=1.0 for extended thinking" },
         { "pattern": "params.stream", "reason": "Bedrock uses endpoint-based streaming" },
-        { "pattern": "params.metadata", "reason": "Bedrock doesn't support metadata" }
+        { "pattern": "params.metadata", "reason": "Bedrock doesn't support metadata" },
+        { "pattern": "params.reasoning.effort", "reason": "Cross-canonical conversion (effort→budget_tokens) may quantize when max_tokens is very small" },
+        { "pattern": "params.reasoning.summary", "reason": "Bedrock doesn't support reasoning summary" }
       ]
     },
     {
@@ -103,7 +106,9 @@
       "target": "Google",
       "fields": [
         { "pattern": "params.stream", "reason": "Google uses endpoint-based streaming" },
-        { "pattern": "params.metadata", "reason": "Google doesn't support metadata" }
+        { "pattern": "params.metadata", "reason": "Google doesn't support metadata" },
+        { "pattern": "params.reasoning.effort", "reason": "Cross-canonical conversion (effort→budget_tokens) may quantize when max_tokens is very small" },
+        { "pattern": "params.reasoning.summary", "reason": "Google doesn't support reasoning summary" }
       ]
     }
   ],
