@@ -9,6 +9,28 @@
       ]
     },
     {
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Responses API annotations/logprobs have no Google equivalent" },
+        { "pattern": "messages[*].content[*].provider_executed", "reason": "Responses API provider_executed flag has no Google equivalent" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "Google thoughtSignature doesn't roundtrip through other providers" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "usage.prompt_cached_tokens", "reason": "Responses usage always includes input_tokens_details.cached_tokens; Google does not report a separate cached prompt token count" }
+      ]
+    },
+    {
       "source": "Anthropic",
       "target": "*",
       "fields": [
@@ -151,6 +173,108 @@
       "target": "Responses",
       "fields": [
         { "pattern": "messages.length", "reason": "Responses API doesn't support n>1 (multiple completions)" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Anthropic web search content blocks don't map 1:1 to Google structure" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Anthropic web search content blocks don't map 1:1 to Google structure" }
+      ]
+    },
+    {
+      "testCase": "thinkingLevelParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "ChatCompletions doesn't support thinking/reasoning content blocks" }
+      ]
+    },
+    {
+      "testCase": "imageConfigParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "Google assistant image content not supported in ChatCompletions" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google assistant image content not supported in ChatCompletions" },
+        { "pattern": "messages[*].content[*].data", "reason": "Google assistant image content not supported in ChatCompletions" },
+        { "pattern": "messages[*].content[*].text", "reason": "Google assistant image content converted to text fallback in ChatCompletions" }
+      ]
+    },
+    {
+      "testCase": "imageConfigParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "Google assistant image content not supported in Anthropic" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google assistant image content not supported in Anthropic" },
+        { "pattern": "messages[*].content[*].data", "reason": "Google assistant image content not supported in Anthropic" },
+        { "pattern": "messages[*].content[*].text", "reason": "Google assistant image content converted to text fallback in Anthropic" }
+      ]
+    },
+    {
+      "testCase": "imageConfigParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google assistant image content not supported in Responses" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "finish_reason", "reason": "Google infers finish_reason from content - presence of tool calls yields ToolCalls" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "finish_reason", "reason": "Google infers finish_reason from content - presence of tool calls yields ToolCalls" }
+      ]
+    },
+    {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "finish_reason", "reason": "Google infers finish_reason from content - presence of tool calls yields ToolCalls" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "finish_reason", "reason": "Google infers finish_reason from content - presence of tool calls yields ToolCalls" }
+      ]
+    },
+    {
+      "testCase": "reasoningSummaryParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google reasoning summary creates additional messages in Responses format" }
+      ]
+    },
+    {
+      "testCase": "thinkingLevelParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google reasoning content expands to separate output items in Responses format" }
       ]
     }
   ]

@@ -10,7 +10,7 @@
                 "location": "Tokyo"
               }
             },
-            "thoughtSignature": "Cu4BAb4+9vvVsUlBoJtDqf06QRzLpVHWKCjtPoGhYQ13tnXonK3rGVFbCzeA25MREYl8tsJigP2A52fdjNPt1rRpS2cBbdMM6iGzFKj93Zbd+TBqbxEI1nrpB4xeterkGBTIXGvD6lOU6lEhTjNk9nGzz+GRgWD3DvCG3KvQqEZCwrbuVXxsdx7RN2SNNr8YV2PsXIcnv7ZIlTDctLA5WFygyzWtvh974OyfLVNQkVfScABo2UaLW5qcrDL/cxBapfvy2eSL0Xvx1pHwPn5mI9Hw+iO7DYiTJc40KEP97c/XLRCMsV/KpT2VYx67KWkBNQ=="
+            "thoughtSignature": "Ct0BAb4+9vtRZlUwK+KMvOLq+3YvDr1zL7vGQtuviEA2LahBOJdvrYmIHCvXzDa815x9DCfkKA2QBfKQUeE2WGyr6wE3ezY3Auq0JaSmahL+tQrceLvwh+6l2P1GrxJzPUEpew5FXoy4XQ/Mr8g7fm83AgCkBz7wvK0nNcj7XwFN8XaRNzMnbGi8WfXGfzJefp6DHMbQSDqGtlh+bjnlfGtscfAQ4Us9JO7R9XnDmdZZO4g4QyA6vsQuB0JzMv/TFptJUgy/gejcpkKsRSQKKpOU2wBn7/XwmjfHzrshBhk="
           }
         ],
         "role": "model"
@@ -33,5 +33,5 @@
     "thoughtsTokenCount": 47
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "OPyPaZrLDoiNjMcPoLXr-Q8"
+  "responseId": "wnmWaZOTHK-ojMcP-NChsAU"
 }

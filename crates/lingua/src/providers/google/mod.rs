@@ -2,6 +2,7 @@
 // Generated from Discovery REST API spec
 
 pub mod adapter;
+pub mod capabilities;
 pub mod convert;
 pub mod detect;
 pub mod generated;
@@ -12,6 +13,9 @@ pub mod test_google;
 
 // Re-export adapter
 pub use adapter::GoogleAdapter;
+
+// Re-export capabilities
+pub use capabilities::{GoogleCapabilities, GoogleThinkingStyle};
 
 // Re-export detection functions
 pub use detect::{try_parse_google, DetectionError};

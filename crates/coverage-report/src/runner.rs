@@ -100,7 +100,10 @@ pub fn test_request_transformation(
         Err(e) => {
             return TransformResult {
                 level: ValidationLevel::Fail,
-                error: Some(format!("Conversion to universal format failed: {}", e)),
+                error: Some(truncate_error(
+                    format!("Conversion to universal format failed: {}", e),
+                    500,
+                )),
                 diff: None,
                 limitation_reason: None,
             };
@@ -234,7 +237,10 @@ pub fn test_response_transformation(
         Err(e) => {
             return TransformResult {
                 level: ValidationLevel::Fail,
-                error: Some(format!("Conversion to universal format failed: {}", e)),
+                error: Some(truncate_error(
+                    format!("Conversion to universal format failed: {}", e),
+                    500,
+                )),
                 diff: None,
                 limitation_reason: None,
             };
@@ -399,7 +405,10 @@ fn test_single_stream_event(
         Err(e) => {
             return TransformResult {
                 level: ValidationLevel::Fail,
-                error: Some(format!("Conversion to universal format failed: {}", e)),
+                error: Some(truncate_error(
+                    format!("Conversion to universal format failed: {}", e),
+                    500,
+                )),
                 diff: None,
                 limitation_reason: None,
             }
@@ -696,6 +705,16 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>], filter: &TestFilter)
 
 use crate::expected::{is_expected_error, is_expected_field, is_expected_test_case};
 use crate::types::{RoundtripDiff, RoundtripResult};
+use lingua::util::testutil::truncate_large_values;
+
+/// Truncate an error message to avoid massive output from debug representations
+pub fn truncate_error(msg: String, max_len: usize) -> String {
+    if msg.len() <= max_len {
+        msg
+    } else {
+        format!("{}...", &msg[..max_len])
+    }
+}
 use std::collections::HashSet;
 
 /// Diff two JSON values and return a structured diff with lost/added/changed fields.
@@ -868,8 +887,11 @@ fn compare_recursive(
                 };
                 // Track expected differences as limitations
                 if let Some(reason) = context.and_then(|ctx| ctx.is_expected(&field_path)) {
-                    let before = lingua::serde_json::to_string(&orig[*key])
-                        .unwrap_or_else(|_| "?".to_string());
+                    let before = lingua::serde_json::to_string(&truncate_large_values(
+                        orig[*key].clone(),
+                        200,
+                    ))
+                    .unwrap_or_else(|_| "?".to_string());
                     diff.expected_diffs.push((
                         field_path,
                         before,
@@ -890,8 +912,11 @@ fn compare_recursive(
                 };
                 // Track expected differences as limitations
                 if let Some(reason) = context.and_then(|ctx| ctx.is_expected(&field_path)) {
-                    let after = lingua::serde_json::to_string(&round[*key])
-                        .unwrap_or_else(|_| "?".to_string());
+                    let after = lingua::serde_json::to_string(&truncate_large_values(
+                        round[*key].clone(),
+                        200,
+                    ))
+                    .unwrap_or_else(|_| "?".to_string());
                     diff.expected_diffs.push((
                         field_path,
                         "(missing)".to_string(),
@@ -948,9 +973,11 @@ fn compare_recursive(
         _ => {
             // Values differ - track expected differences as limitations
             let before =
-                lingua::serde_json::to_string(original).unwrap_or_else(|_| "?".to_string());
+                lingua::serde_json::to_string(&truncate_large_values(original.clone(), 200))
+                    .unwrap_or_else(|_| "?".to_string());
             let after =
-                lingua::serde_json::to_string(roundtripped).unwrap_or_else(|_| "?".to_string());
+                lingua::serde_json::to_string(&truncate_large_values(roundtripped.clone(), 200))
+                    .unwrap_or_else(|_| "?".to_string());
             if let Some(reason) = context.and_then(|ctx| ctx.is_expected(path)) {
                 diff.expected_diffs
                     .push((path.to_string(), before, after, reason.to_string()));

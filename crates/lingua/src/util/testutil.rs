@@ -281,6 +281,29 @@ pub fn discover_test_cases(
     discover_test_cases_typed::<Value, Value, Value>(provider, test_name_filter)
 }
 
+/// Truncate large string values in a JSON Value to a given max length.
+/// Useful for keeping diff output readable when values contain large base64 data, etc.
+pub fn truncate_large_values(value: Value, max_len: usize) -> Value {
+    match value {
+        Value::String(s) if s.len() > max_len => Value::String(format!(
+            "{}...[truncated, {} chars]",
+            &s[..max_len],
+            s.len()
+        )),
+        Value::Array(arr) => Value::Array(
+            arr.into_iter()
+                .map(|v| truncate_large_values(v, max_len))
+                .collect(),
+        ),
+        Value::Object(map) => Value::Object(
+            map.into_iter()
+                .map(|(k, v)| (k, truncate_large_values(v, max_len)))
+                .collect(),
+        ),
+        other => other,
+    }
+}
+
 /// Generic differ that compares any two serializable types using a professional JSON diff library
 pub fn diff_serializable<T, U>(original: &[T], roundtripped: &[U], item_name: &str) -> String
 where

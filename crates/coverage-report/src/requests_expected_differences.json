@@ -42,7 +42,9 @@
       "errors": [
         { "pattern": "is not supported by OpenAI Chat Completions", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
         { "pattern": "is not supported by openai", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
-        { "pattern": "Unsupported input type: UserContentPart variant: File", "reason": "Anthropic document blocks not supported in OpenAI" }
+        { "pattern": "Unsupported input type: UserContentPart variant: File", "reason": "Anthropic document blocks not supported in OpenAI" },
+        { "pattern": "UserContentPart::File", "reason": "OpenAI doesn't support File content parts" },
+        { "pattern": "AssistantContentPart::File", "reason": "OpenAI doesn't support File content in assistant messages" }
       ]
     },
     {
@@ -64,6 +66,8 @@
         { "pattern": "is not supported by OpenAI Responses API", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
         { "pattern": "is not supported by responses", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
         { "pattern": "Unsupported input type: UserContentPart variant: File", "reason": "Anthropic document blocks not supported in OpenAI" },
+        { "pattern": "UserContentPart::File", "reason": "OpenAI doesn't support File content parts" },
+        { "pattern": "AssistantContentPart::File", "reason": "OpenAI doesn't support File content in assistant messages" },
         { "pattern": "ToolResult { tool_name: \"web_search\"", "reason": "Anthropic web_search encrypted results cannot be transformed to OpenAI" }
       ]
     },
@@ -122,7 +126,61 @@
         { "pattern": "params.stream", "reason": "Google uses endpoint-based streaming" },
         { "pattern": "params.metadata", "reason": "Google doesn't support metadata" },
         { "pattern": "params.reasoning.effort", "reason": "Cross-canonical conversion (effort→budget_tokens) may quantize when max_tokens is very small" },
-        { "pattern": "params.reasoning.summary", "reason": "Google doesn't support reasoning summary" }
+        { "pattern": "params.reasoning.summary", "reason": "Google doesn't support reasoning summary" },
+        { "pattern": "params.parallel_tool_calls", "reason": "Google doesn't support parallel_tool_calls parameter" },
+        { "pattern": "params.store", "reason": "Google doesn't support store parameter" },
+        { "pattern": "params.frequency_penalty", "reason": "Google doesn't support frequency_penalty" },
+        { "pattern": "params.presence_penalty", "reason": "Google doesn't support presence_penalty" },
+        { "pattern": "params.seed", "reason": "Google doesn't support seed" },
+        { "pattern": "params.logprobs", "reason": "Google doesn't support logprobs" },
+        { "pattern": "params.top_logprobs", "reason": "Google doesn't support top_logprobs" },
+        { "pattern": "params.tools[*].strict", "reason": "Google doesn't support strict mode for tools" },
+        { "pattern": "messages[*].content[*].output", "reason": "Google wraps string tool result output in an object ({\"output\": ...})" },
+        { "pattern": "params.tool_choice.disable_parallel", "reason": "Google doesn't support disable_parallel in tool_choice" },
+        { "pattern": "params.temperature", "reason": "Google uses f32 for temperature, causing precision loss (0.7 → 0.699999988079071)" },
+        { "pattern": "params.top_p", "reason": "Google uses f32 for top_p, causing precision loss (0.9 → 0.8999999761581421)" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google requires mime_type for images; null defaults to image/jpeg" },
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Google doesn't support provider_options on content parts" },
+        { "pattern": "messages.length", "reason": "Google moves system messages to systemInstruction and merges consecutive same-role messages" }
+      ],
+      "errors": [
+        { "pattern": "is not supported by Google", "reason": "Provider-specific built-in tool has no Google equivalent" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "params.tools", "reason": "OpenAI built-in tools (code_interpreter, web_search) not supported in Google" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "params.tools", "reason": "Anthropic built-in tools (bash, text_editor, web_search) not supported in Google" },
+        { "pattern": "params.reasoning.budget_tokens", "reason": "Cross-canonical conversion (budget_tokens→effort→thinkingBudget) derives budget from effort level" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "Google thoughtSignature doesn't roundtrip through other providers" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].tool_name", "reason": "ChatCompletions tool messages don't include tool_name, only tool_call_id" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].tool_name", "reason": "Anthropic tool_result doesn't include tool name, only tool_use_id" }
       ]
     }
   ],
@@ -231,6 +289,108 @@
       "target": "ChatCompletions",
       "skip": true,
       "reason": "Anthropic document blocks not supported in OpenAI ChatCompletions"
+    },
+    {
+      "testCase": "reasoningEffortLowParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, thinkingBudget gets quantized" }
+      ]
+    },
+    {
+      "testCase": "reasoningEffortLowParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, thinkingBudget gets quantized" }
+      ]
+    },
+    {
+      "testCase": "reasoningSummaryParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, thinkingBudget gets quantized" }
+      ]
+    },
+    {
+      "testCase": "reasoningSummaryParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, thinkingBudget gets quantized" }
+      ]
+    },
+    {
+      "testCase": "thinkingLevelParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "ChatCompletions doesn't support thinking/reasoning content blocks" }
+      ]
+    },
+    {
+      "testCase": "imageConfigParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "Google assistant image content not supported in ChatCompletions" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google assistant image content not supported in ChatCompletions" },
+        { "pattern": "messages[*].content[*].data", "reason": "Google assistant image content not supported in ChatCompletions" },
+        { "pattern": "messages[*].content[*].text", "reason": "Google assistant image content converted to text fallback in ChatCompletions" }
+      ]
+    },
+    {
+      "testCase": "imageConfigParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "Google assistant image content not supported in Anthropic" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google assistant image content not supported in Anthropic" },
+        { "pattern": "messages[*].content[*].data", "reason": "Google assistant image content not supported in Anthropic" },
+        { "pattern": "messages[*].content[*].text", "reason": "Google assistant image content converted to text fallback in Anthropic" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Anthropic web search content blocks don't map 1:1 to Google structure" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Anthropic web search content blocks don't map 1:1 to Google structure" }
+      ]
+    },
+    {
+      "testCase": "documentContentParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Anthropic document blocks not supported in Google" }
+      ]
+    },
+    {
+      "testCase": "reasoningSummaryParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google reasoning summary creates additional messages in Responses format" }
+      ]
+    },
+    {
+      "testCase": "thinkingLevelParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google reasoning content expands to separate output items in Responses format" }
+      ]
     }
   ]
 }

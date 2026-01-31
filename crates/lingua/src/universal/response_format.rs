@@ -35,6 +35,7 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::generated::JsonOutputFormat;
+use crate::providers::google::generated::GenerationConfig;
 use crate::serde_json::{self, json, Map, Value};
 use crate::universal::request::{JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType};
 
@@ -52,6 +53,7 @@ impl<'a> TryFrom<(ProviderFormat, &'a Value)> for ResponseFormatConfig {
             ProviderFormat::Anthropic => serde_json::from_value::<JsonOutputFormat>(value.clone())
                 .map(|f| ResponseFormatConfig::from(&f))
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string())),
+            ProviderFormat::Google => Ok(from_google(value)?),
             _ => Ok(Self::default()),
         }
     }
@@ -78,6 +80,7 @@ impl ResponseFormatConfig {
             ProviderFormat::Anthropic => Ok(JsonOutputFormat::try_from(self)
                 .ok()
                 .and_then(|f| serde_json::to_value(&f).ok())),
+            ProviderFormat::Google => to_google(self),
             _ => Ok(None),
         }
     }
@@ -124,6 +127,22 @@ fn from_openai_chat(value: &Value) -> Result<ResponseFormatConfig, ConvertError>
         format_type,
         json_schema,
     })
+}
+
+/// Parse Google `generationConfig` response format fields into ResponseFormatConfig.
+///
+/// Handles:
+/// - `responseMimeType: "text/plain"` → Text
+/// - `responseMimeType: "application/json"` → JsonObject or JsonSchema (if responseSchema present)
+/// - `responseSchema: {...}` → JsonSchema
+/// - No responseMimeType → None (no response format specified)
+fn from_google(value: &Value) -> Result<ResponseFormatConfig, ConvertError> {
+    let config: GenerationConfig = serde_json::from_value(value.clone()).map_err(|e| {
+        ConvertError::ContentConversionFailed {
+            reason: format!("Failed to parse Google generationConfig: {}", e),
+        }
+    })?;
+    Ok(ResponseFormatConfig::from(&config))
 }
 
 /// Parse OpenAI Responses API `text.format` into ResponseFormatConfig.
@@ -228,10 +247,42 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Option<Value> {
     Some(json!({ "format": format_obj }))
 }
 
+/// Convert ResponseFormatConfig to Google generationConfig fields.
+///
+/// Output format (as partial generationConfig object):
+/// - Text → `{ responseMimeType: "text/plain" }`
+/// - JsonObject → `{ responseMimeType: "application/json" }`
+/// - JsonSchema → `{ responseMimeType: "application/json", responseJsonSchema: {...} }`
+///
+/// Note: This returns fields to merge into generationConfig, not a standalone value.
+fn to_google(config: &ResponseFormatConfig) -> Result<Option<Value>, TransformError> {
+    if config.format_type.is_none() {
+        return Ok(None);
+    }
+
+    let generation_config = GenerationConfig::try_from(config)
+        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+    let value = serde_json::to_value(generation_config)
+        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+    Ok(Some(value))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::GenerationConfig;
+    use serde::Deserialize;
     use std::convert::TryInto;
+
+    #[derive(Debug, Deserialize)]
+    struct JsonSchemaMetadataView {
+        #[serde(default)]
+        title: Option<String>,
+        #[serde(default)]
+        description: Option<String>,
+        #[serde(rename = "additionalProperties", default)]
+        additional_properties: Option<bool>,
+    }
 
     #[test]
     fn test_from_openai_chat_text() {
@@ -370,5 +421,115 @@ mod tests {
         assert!(anthropic_format.get("schema").is_some());
         // Anthropic format doesn't have nested json_schema wrapper
         assert!(anthropic_format.get("json_schema").is_none());
+    }
+
+    #[test]
+    fn test_from_google_json_schema() {
+        let value = json!({
+            "responseMimeType": "application/json",
+            "responseJsonSchema": {
+                "type": "object",
+                "title": "person_info",
+                "description": "Person schema",
+                "properties": {
+                    "name": { "type": "string" }
+                }
+            }
+        });
+        let config: ResponseFormatConfig = (ProviderFormat::Google, &value).try_into().unwrap();
+        assert_eq!(config.format_type, Some(ResponseFormatType::JsonSchema));
+        let js = config.json_schema.unwrap();
+        assert_eq!(js.name, "person_info");
+        assert_eq!(js.description, Some("Person schema".to_string()));
+        assert_eq!(
+            js.schema,
+            json!({
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" }
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn test_from_google_json_object() {
+        let value = json!({ "responseMimeType": "application/json" });
+        let config: ResponseFormatConfig = (ProviderFormat::Google, &value).try_into().unwrap();
+        assert_eq!(config.format_type, Some(ResponseFormatType::JsonObject));
+        assert!(config.json_schema.is_none());
+    }
+
+    #[test]
+    fn test_from_google_text() {
+        let value = json!({ "responseMimeType": "text/plain" });
+        let config: ResponseFormatConfig = (ProviderFormat::Google, &value).try_into().unwrap();
+        assert_eq!(config.format_type, Some(ResponseFormatType::Text));
+        assert!(config.json_schema.is_none());
+    }
+
+    #[test]
+    fn test_to_google_formats() {
+        let text = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::Text),
+            json_schema: None,
+        };
+        let text_value = text.to_provider(ProviderFormat::Google).unwrap().unwrap();
+        let text_generation_config: GenerationConfig =
+            serde_json::from_value(text_value).expect("google generationConfig should deserialize");
+        assert_eq!(
+            text_generation_config.response_mime_type.as_deref(),
+            Some("text/plain")
+        );
+
+        let json_object = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonObject),
+            json_schema: None,
+        };
+        let value = json_object
+            .to_provider(ProviderFormat::Google)
+            .unwrap()
+            .unwrap();
+        let google_generation_config: GenerationConfig =
+            serde_json::from_value(value).expect("google generationConfig should deserialize");
+        assert_eq!(
+            google_generation_config.response_mime_type.as_deref(),
+            Some("application/json")
+        );
+        assert!(google_generation_config
+            .generation_config_response_json_schema
+            .is_none());
+
+        let json_schema = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonSchema),
+            json_schema: Some(JsonSchemaConfig {
+                name: "response".into(),
+                schema: json!({ "type": "object", "additionalProperties": false }),
+                strict: Some(true),
+                description: Some("Structured output".to_string()),
+            }),
+        };
+        let value = json_schema
+            .to_provider(ProviderFormat::Google)
+            .unwrap()
+            .unwrap();
+        let google_generation_config: GenerationConfig =
+            serde_json::from_value(value).expect("google generationConfig should deserialize");
+        assert_eq!(
+            google_generation_config.response_mime_type.as_deref(),
+            Some("application/json")
+        );
+        assert!(
+            google_generation_config.response_schema.is_none(),
+            "typed responseSchema should be absent when responseJsonSchema is canonical"
+        );
+        let schema_value = google_generation_config
+            .generation_config_response_json_schema
+            .expect("responseJsonSchema should be emitted");
+        let schema: JsonSchemaMetadataView = serde_json::from_value(schema_value)
+            .expect("responseJsonSchema should deserialize into metadata view");
+        assert_eq!(schema.title.as_deref(), Some("response"));
+        assert_eq!(schema.description.as_deref(), Some("Structured output"));
+        assert_eq!(schema.additional_properties, Some(false));
     }
 }

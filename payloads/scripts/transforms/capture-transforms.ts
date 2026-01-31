@@ -92,7 +92,7 @@ async function callProvider(
 export async function captureTransforms(
   filter?: string,
   force?: boolean,
-  pair?: { source: string; target: string }
+  requestedPair?: { source: string; target: string }
 ): Promise<{ captured: number; skipped: number; failed: number }> {
   mkdirSync(TRANSFORMS_DIR, { recursive: true });
 
@@ -101,7 +101,10 @@ export async function captureTransforms(
     failed = 0;
 
   for (const p of TRANSFORM_PAIRS) {
-    if (pair && (p.source !== pair.source || p.target !== pair.target)) {
+    if (
+      requestedPair &&
+      (p.source !== requestedPair.source || p.target !== requestedPair.target)
+    ) {
       continue;
     }
     const cases = getTransformableCases(p, filter);
@@ -160,13 +163,24 @@ export async function captureTransforms(
   }
 
   // Capture streaming responses (chat-completions → anthropic, simple cases only)
-  for (const pair of STREAMING_PAIRS) {
-    const streamingCases = getStreamingTransformableCases(pair, filter);
+  for (const streamingPair of STREAMING_PAIRS) {
+    if (
+      requestedPair &&
+      (streamingPair.source !== requestedPair.source ||
+        streamingPair.target !== requestedPair.target)
+    ) {
+      continue;
+    }
+
+    const streamingCases = getStreamingTransformableCases(
+      streamingPair,
+      filter
+    );
 
     for (const caseName of streamingCases) {
       const streamingPath = getStreamingResponsePath(
-        pair.source,
-        pair.target,
+        streamingPair.source,
+        streamingPair.target,
         caseName
       );
       mkdirSync(dirname(streamingPath), { recursive: true });
@@ -176,25 +190,29 @@ export async function captureTransforms(
         continue;
       }
 
-      const input = getCaseForProvider(allTestCases, caseName, pair.source);
+      const input = getCaseForProvider(
+        allTestCases,
+        caseName,
+        streamingPair.source
+      );
 
       try {
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
         const streamRequest = transformAndValidateRequest(
           input,
-          pair.wasmTarget,
-          pair.target
+          streamingPair.wasmTarget,
+          streamingPair.target
         ) as Record<string, unknown>;
 
         const targetCase = getCaseForProvider(
           allTestCases,
           caseName,
-          pair.target
+          streamingPair.target
         );
         streamRequest.model =
           targetCase && typeof targetCase === "object" && "model" in targetCase
             ? targetCase.model
-            : TARGET_MODELS[pair.target];
+            : TARGET_MODELS[streamingPair.target];
 
         /* eslint-disable @typescript-eslint/consistent-type-assertions -- SDK requires specific param type */
         const streamResponse = await getAnthropic().messages.create(
@@ -215,12 +233,12 @@ export async function captureTransforms(
 
         writeFileSync(streamingPath, JSON.stringify(chunks, null, 2));
         console.log(
-          `✅ ${pair.source} → ${pair.target} / ${caseName} (streaming)`
+          `✅ ${streamingPair.source} → ${streamingPair.target} / ${caseName} (streaming)`
         );
         captured++;
       } catch (e) {
         console.error(
-          `❌ ${pair.source} → ${pair.target} / ${caseName} (streaming): ${e}`
+          `❌ ${streamingPair.source} → ${streamingPair.target} / ${caseName} (streaming): ${e}`
         );
         failed++;
       }

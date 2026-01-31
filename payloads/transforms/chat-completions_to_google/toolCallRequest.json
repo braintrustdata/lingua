@@ -10,7 +10,7 @@
                 "location": "San Francisco, CA"
               }
             },
-            "thoughtSignature": "CvUCAb4+9vuqzQ7Oh0rNncK+/h2DpHhPFwcyMu0WV4UuDppvjPws6szEtkbY73PTCD8k2XTOklkCKbDTuxsF7kwaqqg4ivm5UDGTL36duQOaM7go38xKpAgf2ab9hsqLvzitiI03YGgU+Bz7RsyK1y0kP3i1rj/QIUU5OPESrhcEgyYWlO+fRro10cCRwlG7gw+06ZLnM7fFkCjvlrr8YZ46FJT/ZWOrkEr+LNn+5ARlQKdwJrAgmh6fVNTvKm53ufmimL1CYUpKa3kMVXGfRGgNS+bxb+cNAu9NzGEjU+LDeB9i8khAzPjQGx7NbooUppR2jpxvtEsBL/o6WshbV5BWw7I+sP86L9TwVWMYsiQo69B4CiFvPFZWeD9v9npMPkHTGB+hBCq6sJ+MtGInPvXigyYLBGadLpmOKd6M3WeWsFmmZp19te1Y5Jrpp+Vb0oF2HRSuxB5FT8eRV+JTro9/TYW2f+WzcT+gtHlVvH+a7r2lzVkPLg=="
+            "thoughtSignature": "CrwDAb4+9vtget04bgK+Z0e/3MzKyVnTizt5/K6kuwV6DoSExDiwDzpspiGjz7lhc8hNQrUNtdN18IW0Be3vPe2PamT8PQ7mBXDE1CJA5tVVYlw3seRoUQXP2pkNzVbbl6v2Z4+b0hjifrk+qY+veGDZc18iNtSOpzUb0LT3XHiZRyTFhc8PGZ9Rio3EUnKcMp/j9xNzl2WoqHTN6c91QZfFgVRzZdK+wWkqOvms7o6s/dBVnF/ntTUmF0E21dxlXeo2T6/KBaOtjBF8zBLlbebklVCyfMVtYwQVvX/qpKIdB3PaiwR74NOJaJznDbkWUp7AVBf9o8ONakV6n7OoMAC6sLH5fIsXSeShr9dMZ1WgOF5GJgQavWQLPE3sa6Ci3BTBoVopUvNE+BA6NkGyMwO2eLIy6FDPo/XR5pAHrnMA2EfNATtNnC7NwXLE8p1o8h7LxmAR12RleH6H4XNx8YtvlVOFMcNCKb+hn0J0TaJgNtss0naWdnokzR1YMjNGGALeNEKt4sWMkq68rAReykPwgTTt4zfIQoOz58ut0IzAqs1kD7Si+UjwaTC9Op5Z2E9eM5F4I0OyUL1QGYhR"
           }
         ],
         "role": "model"
@@ -23,15 +23,15 @@
   "usageMetadata": {
     "promptTokenCount": 62,
     "candidatesTokenCount": 18,
-    "totalTokenCount": 156,
+    "totalTokenCount": 176,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 62
       }
     ],
-    "thoughtsTokenCount": 76
+    "thoughtsTokenCount": 96
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "MfyPaf2gCfDhjMcPgdKh8AE"
+  "responseId": "koGWaYWiL-LCjMcPxszQ0Qc"
 }
