@@ -1,0 +1,257 @@
+{
+  "global": [
+    {
+      "source": "*",
+      "target": "*",
+      "fields": [
+        { "pattern": "params.service_tier", "reason": "OpenAI-specific billing tier not universal across providers" },
+        { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific (OpenAI uses response-level IDs, Anthropic uses message-level IDs, Bedrock has none)" },
+        { "pattern": "params.reasoning.canonical", "reason": "Metadata indicating source format (effort vs budget_tokens) - changes when converting between providers with different canonical representations" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.reasoning.summary", "reason": "Anthropic doesn't support reasoning summary" },
+        { "pattern": "params.response_format.format_type", "reason": "Anthropic converts json_object to json_schema" },
+        { "pattern": "params.response_format.json_schema.name", "reason": "Anthropic rejects 'name' field" },
+        { "pattern": "params.response_format.json_schema.strict", "reason": "Anthropic rejects 'strict' field" },
+        { "pattern": "params.response_format.json_schema", "reason": "Anthropic uses different json_schema format" },
+        { "pattern": "params.response_format", "reason": "Anthropic doesn't support Text format type" },
+        { "pattern": "params.metadata", "reason": "Anthropic only accepts user_id in metadata" },
+        { "pattern": "params.parallel_tool_calls", "reason": "Anthropic only supports disable_parallel via tool_choice" },
+        { "pattern": "params.tool_choice", "reason": "Anthropic requires tool_choice to express disable_parallel_tool_use" },
+        { "pattern": "params.logprobs", "reason": "Anthropic doesn't support logprobs (silently dropped)" },
+        { "pattern": "params.top_logprobs", "reason": "Anthropic doesn't support top_logprobs (silently dropped)" },
+        { "pattern": "params.frequency_penalty", "reason": "Anthropic doesn't support frequency_penalty (silently dropped)" },
+        { "pattern": "params.presence_penalty", "reason": "Anthropic doesn't support presence_penalty (silently dropped)" },
+        { "pattern": "params.seed", "reason": "Anthropic doesn't support seed (silently dropped)" },
+        { "pattern": "params.store", "reason": "Anthropic doesn't support store (silently dropped)" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.reasoning.summary", "reason": "ChatCompletions doesn't support reasoning summary" },
+        { "pattern": "params.top_k", "reason": "ChatCompletions doesn't support top_k (silently dropped)" }
+      ],
+      "errors": [
+        { "pattern": "is not supported by OpenAI Chat Completions", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
+        { "pattern": "Unsupported input type: UserContentPart variant: File", "reason": "Anthropic document blocks not supported in OpenAI" }
+      ]
+    },
+    {
+      "source": "ChatCompletions",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].refusal", "reason": "ChatCompletions refusal field has no equivalent in other providers" },
+        { "pattern": "messages[*].annotations", "reason": "ChatCompletions annotations field has no equivalent in other providers" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.top_k", "reason": "Responses API doesn't support top_k (silently dropped)" },
+        { "pattern": "params.stop", "reason": "Responses API doesn't support stop sequences (silently dropped)" }
+      ],
+      "errors": [
+        { "pattern": "is not supported by OpenAI Responses API", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
+        { "pattern": "Unsupported input type: UserContentPart variant: File", "reason": "Anthropic document blocks not supported in OpenAI" },
+        { "pattern": "ToolResult { tool_name: \"web_search\"", "reason": "Anthropic web_search encrypted results cannot be transformed to OpenAI" }
+      ]
+    },
+    {
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.frequency_penalty", "reason": "Responses API doesn't support frequency_penalty" },
+        { "pattern": "params.presence_penalty", "reason": "Responses API doesn't support presence_penalty" },
+        { "pattern": "params.seed", "reason": "Responses API doesn't support seed" },
+        { "pattern": "params.logprobs", "reason": "Responses API doesn't support logprobs boolean (use top_logprobs)" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, budget_tokens gets quantized" },
+        { "pattern": "params.tools", "reason": "Anthropic built-in tools not supported in OpenAI" },
+        { "pattern": "messages.length", "reason": "Responses API expands tool messages to separate function_call_output items" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, budget_tokens gets quantized" },
+        { "pattern": "params.tools", "reason": "Anthropic built-in tools not supported in OpenAI" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "params.temperature", "reason": "Bedrock requires temperature=1.0 for extended thinking" },
+        { "pattern": "params.stream", "reason": "Bedrock uses endpoint-based streaming" },
+        { "pattern": "params.metadata", "reason": "Bedrock doesn't support metadata" },
+        { "pattern": "params.reasoning.effort", "reason": "Cross-canonical conversion (effort→budget_tokens) may quantize when max_tokens is very small" },
+        { "pattern": "params.reasoning.summary", "reason": "Bedrock doesn't support reasoning summary" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "params.stream", "reason": "Google uses endpoint-based streaming" },
+        { "pattern": "params.metadata", "reason": "Google doesn't support metadata" },
+        { "pattern": "params.reasoning.effort", "reason": "Cross-canonical conversion (effort→budget_tokens) may quantize when max_tokens is very small" },
+        { "pattern": "params.reasoning.summary", "reason": "Google doesn't support reasoning summary" }
+      ]
+    }
+  ],
+  "perTestCase": [
+    {
+      "testCase": "imageContentParam",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic assistant messages don't support image content"
+    },
+    {
+      "testCase": "documentContentParam",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic assistant messages don't support document content"
+    },
+    {
+      "testCase": "multimodalRequest",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic assistant messages don't support image content"
+    },
+    {
+      "testCase": "complexReasoningRequest",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic requires temperature=1.0 for extended thinking"
+    },
+    {
+      "testCase": "reasoningEffortLowParam",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic requires temperature=1.0 for extended thinking"
+    },
+    {
+      "testCase": "reasoningRequest",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic requires temperature=1.0 for extended thinking"
+    },
+    {
+      "testCase": "reasoningRequestTruncated",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic requires temperature=1.0 for extended thinking"
+    },
+    {
+      "testCase": "reasoningSummaryParam",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic requires temperature=1.0 for extended thinking"
+    },
+    {
+      "testCase": "reasoningWithOutput",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic requires temperature=1.0 for extended thinking"
+    },
+    {
+      "testCase": "simpleRequest",
+      "source": "*",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic requires temperature=1.0 for extended thinking"
+    },
+    {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "OpenAI code_interpreter tool has no Anthropic equivalent"
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "OpenAI web_search_preview tool has no Anthropic equivalent"
+    },
+    {
+      "testCase": "multimodalRequest",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "skip": true,
+      "reason": "Image media_type normalization artifact"
+    },
+    {
+      "testCase": "instructionsParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic extracts system messages to separate system parameter"
+    },
+    {
+      "testCase": "instructionsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic extracts system messages to separate system parameter"
+    },
+    {
+      "testCase": "multimodalRequest",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "Image provider_options not preserved in cross-provider transformation"
+    },
+    {
+      "testCase": "complexReasoningRequest",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "ChatCompletions collapses reasoning summary blocks to single string"
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "skip": true,
+      "reason": "Anthropic web_search encrypted results cannot be transformed to OpenAI"
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "skip": true,
+      "reason": "Anthropic web_search encrypted results cannot be transformed to OpenAI"
+    },
+    {
+      "testCase": "documentContentParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "Anthropic document blocks not supported in OpenAI ChatCompletions"
+    }
+  ]
+}

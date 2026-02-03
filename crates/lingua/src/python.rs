@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 // Import our types and conversion traits
 use crate::providers::anthropic::generated as anthropic;
+use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::universal::{convert::TryFromLLM, Message};
@@ -76,13 +77,13 @@ where
 /// Convert array of Chat Completions messages to Lingua Messages
 #[pyfunction]
 fn chat_completions_messages_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_to_lingua::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(py, value)
+    convert_to_lingua::<Vec<ChatCompletionRequestMessageExt>, Vec<Message>>(py, value)
 }
 
 /// Convert array of Lingua Messages to Chat Completions messages
 #[pyfunction]
 fn lingua_to_chat_completions_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
-    convert_from_lingua::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(py, value)
+    convert_from_lingua::<Vec<Message>, Vec<ChatCompletionRequestMessageExt>>(py, value)
 }
 
 /// Convert array of Responses API messages to Lingua Messages

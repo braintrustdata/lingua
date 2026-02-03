@@ -55,6 +55,7 @@ test-typescript-integration: typescript ## Run TypeScript integration tests
 
 test-python: ## Run Python tests
 	@echo "Running Python tests..."
+	cd bindings/python && uv run maturin develop --features python
 	cd bindings/python && uv run pytest tests/ -v
 
 clean: ## Clean build artifacts

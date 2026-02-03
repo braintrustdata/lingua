@@ -7,41 +7,27 @@ Anthropic's Messages API has some unique requirements:
 */
 
 use crate::capabilities::ProviderFormat;
+use crate::error::ConvertError;
 use crate::processing::adapters::{
-    collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value,
-    ProviderAdapter,
+    insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
-use crate::providers::anthropic::generated::{ContentBlock, CreateMessageParams, InputMessage};
+use crate::providers::anthropic::generated::{ContentBlock, InputMessage};
+use crate::providers::anthropic::params::AnthropicParams;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent};
+use crate::universal::tools::{tools_to_anthropic_value, UniversalTool};
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    parse_stop_sequences, FinishReason, UniversalParams, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
+use std::convert::TryInto;
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
-
-/// Known request fields for Anthropic Messages API.
-/// Fields not in this list go into `extras`.
-const ANTHROPIC_KNOWN_KEYS: &[&str] = &[
-    "model",
-    "messages",
-    "system",
-    "max_tokens",
-    "temperature",
-    "top_p",
-    "top_k",
-    "stop_sequences",
-    "stream",
-    "metadata",
-    "tools",
-    "tool_choice",
-];
 
 /// Adapter for Anthropic Messages API.
 pub struct AnthropicAdapter;
@@ -64,37 +50,74 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let extras = collect_extras(&payload, ANTHROPIC_KNOWN_KEYS);
-        let stop = payload.get("stop_sequences").cloned();
-
-        let request: CreateMessageParams = serde_json::from_value(payload)
+        // Single parse: typed params now includes typed messages via #[serde(flatten)]
+        let typed_params: AnthropicParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(request.messages)
+        // Extract typed messages (partial move - other fields remain accessible)
+        let input_messages = typed_params.messages.ok_or_else(|| {
+            TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
+        })?;
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let params = UniversalParams {
-            temperature: request.temperature,
-            top_p: request.top_p,
-            top_k: request.top_k,
-            max_tokens: Some(request.max_tokens),
-            stop,
-            tools: request.tools.and_then(|t| serde_json::to_value(t).ok()),
-            tool_choice: request
+        let mut params = UniversalParams {
+            temperature: typed_params.temperature,
+            top_p: typed_params.top_p,
+            top_k: typed_params.top_k,
+            max_tokens: typed_params.max_tokens,
+            stop: typed_params
+                .stop_sequences
+                .as_ref()
+                .and_then(parse_stop_sequences),
+            tools: typed_params
+                .tools
+                .as_ref()
+                .map(UniversalTool::from_value_array),
+            tool_choice: typed_params
                 .tool_choice
-                .and_then(|t| serde_json::to_value(t).ok()),
-            response_format: None,  // Anthropic doesn't use response_format
+                .as_ref()
+                .and_then(|v| (ProviderFormat::Anthropic, v).try_into().ok()),
+            response_format: typed_params
+                .output_format
+                .as_ref()
+                .and_then(|v| (ProviderFormat::Anthropic, v).try_into().ok()),
             seed: None,             // Anthropic doesn't support seed
             presence_penalty: None, // Anthropic doesn't support these
             frequency_penalty: None,
-            stream: request.stream,
+            stream: typed_params.stream,
+            // Extract parallel_tool_calls from Anthropic's disable_parallel_tool_use in tool_choice
+            parallel_tool_calls: typed_params
+                .tool_choice
+                .as_ref()
+                .and_then(|tc| tc.get("disable_parallel_tool_use"))
+                .and_then(Value::as_bool)
+                .map(|disabled| !disabled), // disable_parallel_tool_use: true → parallel_tool_calls: false
+            reasoning: typed_params
+                .thinking
+                .as_ref()
+                .map(crate::universal::request::ReasoningConfig::from),
+            metadata: typed_params.metadata,
+            store: None, // Anthropic doesn't support store
+            service_tier: typed_params.service_tier,
+            logprobs: None,     // Anthropic doesn't support logprobs
+            top_logprobs: None, // Anthropic doesn't support top_logprobs
+            extras: Default::default(),
         };
 
+        // Use extras captured automatically via #[serde(flatten)]
+        if !typed_params.extras.is_empty() {
+            params.extras.insert(
+                ProviderFormat::Anthropic,
+                typed_params.extras.into_iter().collect(),
+            );
+        }
+
         Ok(UniversalRequest {
-            model: Some(request.model),
+            model: typed_params.model,
             messages,
             params,
-            extras,
         })
     }
 
@@ -138,26 +161,85 @@ impl ProviderAdapter for AnthropicAdapter {
         let max_tokens = req.params.max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
         obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
 
-        // Insert other params
-        insert_opt_f64(&mut obj, "temperature", req.params.temperature);
+        // Check if reasoning/thinking is enabled
+        // Note: thinking_val can be { type: "disabled" } or { type: "enabled", ... }
+        let thinking_val = req.params.reasoning_for(ProviderFormat::Anthropic);
+        let reasoning_enabled = thinking_val
+            .as_ref()
+            .and_then(|v| v.get("type"))
+            .and_then(|t| t.as_str())
+            .is_some_and(|t| t == "enabled");
+        if !reasoning_enabled {
+            insert_opt_f64(&mut obj, "temperature", req.params.temperature);
+        }
+
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
         insert_opt_i64(&mut obj, "top_k", req.params.top_k);
 
         // Anthropic uses stop_sequences instead of stop
-        if let Some(stop) = &req.params.stop {
-            obj.insert("stop_sequences".into(), stop.clone());
+        if let Some(ref stop) = req.params.stop {
+            if !stop.is_empty() {
+                obj.insert(
+                    "stop_sequences".into(),
+                    Value::Array(stop.iter().map(|s| Value::String(s.clone())).collect()),
+                );
+            }
         }
 
-        insert_opt_value(&mut obj, "tools", req.params.tools.clone());
-        insert_opt_value(&mut obj, "tool_choice", req.params.tool_choice.clone());
+        // Convert tools to Anthropic format
+        if let Some(tools) = &req.params.tools {
+            if let Some(tools_value) = tools_to_anthropic_value(tools)? {
+                obj.insert("tools".into(), tools_value);
+            }
+        }
+
+        // Convert tool_choice using helper method (handles parallel_tool_calls internally)
+        if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Anthropic) {
+            obj.insert("tool_choice".into(), tool_choice_val);
+        }
         insert_opt_bool(&mut obj, "stream", req.params.stream);
 
-        // Merge extras - only include Anthropic-known fields
-        // This filters out OpenAI-specific fields like stream_options that would cause
-        // Anthropic to reject the request with "extra inputs are not permitted"
-        for (k, v) in &req.extras {
-            if ANTHROPIC_KNOWN_KEYS.contains(&k.as_str()) {
-                obj.insert(k.clone(), v.clone());
+        // Add reasoning as thinking if present (use pre-computed value from temperature override)
+        if let Some(thinking) = thinking_val {
+            obj.insert("thinking".into(), thinking);
+        }
+
+        // Add metadata from canonical params
+        // Anthropic only accepts user_id in metadata, so filter out other fields
+        if let Some(metadata) = req.params.metadata.as_ref() {
+            if let Some(obj_map) = metadata.as_object() {
+                if let Some(user_id) = obj_map.get("user_id") {
+                    obj.insert("metadata".into(), serde_json::json!({ "user_id": user_id }));
+                }
+                // Skip metadata entirely if no user_id present
+            }
+        }
+
+        // Add service_tier from canonical params
+        // Map OpenAI's "default" to Anthropic's "auto" (Anthropic only accepts "auto" or "standard_only")
+        if let Some(ref service_tier) = req.params.service_tier {
+            let anthropic_tier = match service_tier.as_str() {
+                "default" => "auto",
+                other => other,
+            };
+            obj.insert(
+                "service_tier".into(),
+                Value::String(anthropic_tier.to_string()),
+            );
+        }
+
+        // Add output_format for structured outputs (beta feature)
+        if let Some(output_format_val) = req.params.response_format_for(ProviderFormat::Anthropic) {
+            obj.insert("output_format".into(), output_format_val);
+        }
+
+        // Merge back provider-specific extras (only for Anthropic)
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::Anthropic) {
+            for (k, v) in extras {
+                // Don't overwrite canonical fields we already handled
+                if !obj.contains_key(k) {
+                    obj.insert(k.clone(), v.clone());
+                }
             }
         }
 
@@ -197,20 +279,15 @@ impl ProviderAdapter for AnthropicAdapter {
         let messages = <Vec<Message> as TryFromLLM<Vec<ContentBlock>>>::try_from(content_blocks)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let finish_reason = payload
-            .get("stop_reason")
-            .and_then(Value::as_str)
-            .map(|s| s.parse().unwrap());
+        let finish_reason = match payload.get("stop_reason").and_then(Value::as_str) {
+            Some(s) => Some(s.parse().map_err(|_| ConvertError::InvalidEnumValue {
+                type_name: "FinishReason",
+                value: s.to_string(),
+            })?),
+            None => None,
+        };
 
-        let usage = payload.get("usage").map(|u| UniversalUsage {
-            prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
-            completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
-            prompt_cached_tokens: u.get("cache_read_input_tokens").and_then(Value::as_i64),
-            prompt_cache_creation_tokens: u
-                .get("cache_creation_input_tokens")
-                .and_then(Value::as_i64),
-            completion_reasoning_tokens: None, // Anthropic doesn't expose thinking tokens separately
-        });
+        let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
             model: payload
@@ -231,40 +308,31 @@ impl ProviderAdapter for AnthropicAdapter {
         let content_value = serde_json::to_value(&content_blocks)
             .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
-        let stop_reason = self
-            .map_finish_reason(resp.finish_reason.as_ref())
+        let stop_reason = resp
+            .finish_reason
+            .as_ref()
+            .map(|r| r.to_provider_string(self.format()).to_string())
             .unwrap_or_else(|| "end_turn".to_string());
 
-        let mut obj = serde_json::json!({
-            "id": format!("msg_{}", PLACEHOLDER_ID),
-            "type": "message",
-            "role": "assistant",
-            "content": content_value,
-            "model": resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-            "stop_reason": stop_reason
-        });
+        let mut map = serde_json::Map::new();
+        map.insert(
+            "id".into(),
+            Value::String(format!("msg_{}", PLACEHOLDER_ID)),
+        );
+        map.insert("type".into(), Value::String("message".into()));
+        map.insert("role".into(), Value::String("assistant".into()));
+        map.insert("content".into(), content_value);
+        map.insert(
+            "model".into(),
+            Value::String(resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL).into()),
+        );
+        map.insert("stop_reason".into(), Value::String(stop_reason));
 
         if let Some(usage) = &resp.usage {
-            obj.as_object_mut().unwrap().insert(
-                "usage".into(),
-                serde_json::json!({
-                    "input_tokens": usage.prompt_tokens.unwrap_or(0),
-                    "output_tokens": usage.completion_tokens.unwrap_or(0)
-                }),
-            );
+            map.insert("usage".into(), usage.to_provider_value(self.format()));
         }
 
-        Ok(obj)
-    }
-
-    fn map_finish_reason(&self, reason: Option<&FinishReason>) -> Option<String> {
-        reason.map(|r| match r {
-            FinishReason::Stop => "end_turn".to_string(),
-            FinishReason::Length => "max_tokens".to_string(),
-            FinishReason::ToolCalls => "tool_use".to_string(),
-            FinishReason::ContentFilter => "content_filter".to_string(),
-            FinishReason::Other(s) => s.clone(),
-        })
+        Ok(Value::Object(map))
     }
 
     // =========================================================================
@@ -305,10 +373,13 @@ impl ProviderAdapter for AnthropicAdapter {
                 let delta_type = delta.and_then(|d| d.get("type")).and_then(Value::as_str);
 
                 if delta_type == Some("text_delta") {
-                    let text = delta
-                        .and_then(|d| d.get("text"))
-                        .and_then(Value::as_str)
-                        .unwrap_or("");
+                    let text = delta.and_then(|d| d.get("text")).and_then(Value::as_str);
+
+                    // Use null for empty/missing text, preserving semantic equivalence with source
+                    let content_value = match text {
+                        Some(t) if !t.is_empty() => Value::String(t.to_string()),
+                        _ => Value::Null, // Empty or missing text becomes null
+                    };
 
                     let index = payload.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
 
@@ -319,7 +390,7 @@ impl ProviderAdapter for AnthropicAdapter {
                             index,
                             delta: Some(serde_json::json!({
                                 "role": "assistant",
-                                "content": text
+                                "content": content_value
                             })),
                             finish_reason: None,
                         }],
@@ -339,22 +410,10 @@ impl ProviderAdapter for AnthropicAdapter {
                     .and_then(|d| d.get("stop_reason"))
                     .and_then(Value::as_str);
 
-                let finish_reason = stop_reason.map(|r| match r {
-                    "end_turn" | "stop_sequence" => "stop".to_string(),
-                    "max_tokens" => "length".to_string(),
-                    "tool_use" => "tool_calls".to_string(),
-                    other => other.to_string(),
-                });
+                let finish_reason = stop_reason
+                    .map(|r| FinishReason::from_provider_string(r, self.format()).to_string());
 
-                let usage = payload.get("usage").map(|u| UniversalUsage {
-                    prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
-                    completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
-                    prompt_cached_tokens: u.get("cache_read_input_tokens").and_then(Value::as_i64),
-                    prompt_cache_creation_tokens: u
-                        .get("cache_creation_input_tokens")
-                        .and_then(Value::as_i64),
-                    completion_reasoning_tokens: None,
-                });
+                let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
                 if finish_reason.is_some() || usage.is_some() {
                     return Ok(Some(UniversalStreamChunk::new(
@@ -386,17 +445,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     .map(String::from);
                 let usage = message
                     .and_then(|m| m.get("usage"))
-                    .map(|u| UniversalUsage {
-                        prompt_tokens: u.get("input_tokens").and_then(Value::as_i64),
-                        completion_tokens: u.get("output_tokens").and_then(Value::as_i64),
-                        prompt_cached_tokens: u
-                            .get("cache_read_input_tokens")
-                            .and_then(Value::as_i64),
-                        prompt_cache_creation_tokens: u
-                            .get("cache_creation_input_tokens")
-                            .and_then(Value::as_i64),
-                        completion_reasoning_tokens: None,
-                    });
+                    .map(|u| UniversalUsage::from_provider_value(u, self.format()));
 
                 // Return chunk with metadata but mark as role initialization
                 Ok(Some(UniversalStreamChunk::new(
@@ -442,6 +491,50 @@ impl ProviderAdapter for AnthropicAdapter {
             .and_then(|c| c.finish_reason.as_ref())
             .is_some();
 
+        // Check if this is an initial metadata chunk (has model/id/usage but no content)
+        let is_initial_metadata =
+            (chunk.model.is_some() || chunk.id.is_some() || chunk.usage.is_some())
+                && !has_finish
+                && chunk
+                    .choices
+                    .first()
+                    .and_then(|c| c.delta.as_ref())
+                    .is_none_or(|d| {
+                        // Initial chunk has role but empty/no content
+                        d.get("content")
+                            .and_then(Value::as_str)
+                            .is_none_or(|s| s.is_empty())
+                    });
+
+        if is_initial_metadata {
+            // Return message_start with model/id/usage
+            let id = chunk
+                .id
+                .clone()
+                .unwrap_or_else(|| format!("msg_{}", PLACEHOLDER_ID));
+
+            let mut message = serde_json::json!({
+                "id": id,
+                "type": "message",
+                "role": "assistant",
+                "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
+                "content": [],
+                "stop_reason": null,
+                "stop_sequence": null
+            });
+
+            if let Some(usage) = &chunk.usage {
+                if let Some(obj) = message.as_object_mut() {
+                    obj.insert("usage".into(), usage.to_provider_value(self.format()));
+                }
+            }
+
+            return Ok(serde_json::json!({
+                "type": "message_start",
+                "message": message
+            }));
+        }
+
         if has_finish {
             // Generate message_delta with stop_reason
             let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
@@ -460,13 +553,9 @@ impl ProviderAdapter for AnthropicAdapter {
             });
 
             if let Some(usage) = &chunk.usage {
-                obj.as_object_mut().unwrap().insert(
-                    "usage".into(),
-                    serde_json::json!({
-                        "input_tokens": usage.prompt_tokens.unwrap_or(0),
-                        "output_tokens": usage.completion_tokens.unwrap_or(0)
-                    }),
-                );
+                if let Some(obj_map) = obj.as_object_mut() {
+                    obj_map.insert("usage".into(), usage.to_provider_value(self.format()));
+                }
             }
 
             return Ok(obj);
@@ -486,13 +575,21 @@ impl ProviderAdapter for AnthropicAdapter {
                     }));
                 }
 
-                // Role-only delta (initial chunk) - return content_block_start
-                if delta.get("role").is_some() && delta.get("content").is_none() {
+                // Role-only delta or null content - return empty text_delta
+                // Treat null content the same as missing content (semantically equivalent)
+                // Using text_delta (instead of content_block_start) ensures proper roundtrip
+                // since our stream_to_universal converts empty text back to null
+                // Note: When tool_calls are present with null content, this will emit empty text
+                // which is documented as an expected limitation in streaming_expected_differences.json
+                let content_is_missing_or_null =
+                    delta.get("content").is_none() || delta.get("content") == Some(&Value::Null);
+
+                if delta.get("role").is_some() && content_is_missing_or_null {
                     return Ok(serde_json::json!({
-                        "type": "content_block_start",
+                        "type": "content_block_delta",
                         "index": choice.index,
-                        "content_block": {
-                            "type": "text",
+                        "delta": {
+                            "type": "text_delta",
                             "text": ""
                         }
                     }));
@@ -559,7 +656,6 @@ mod tests {
             model: Some("claude-3-5-sonnet-20241022".to_string()),
             messages: vec![],
             params: UniversalParams::default(),
-            extras: Map::new(),
         };
 
         assert!(req.params.max_tokens.is_none());
@@ -577,10 +673,187 @@ mod tests {
                 max_tokens: Some(8192),
                 ..Default::default()
             },
-            extras: Map::new(),
         };
 
         adapter.apply_defaults(&mut req);
         assert_eq!(req.params.max_tokens, Some(8192));
+    }
+
+    #[test]
+    fn test_anthropic_omits_temperature_with_thinking() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::ReasoningConfig;
+
+        let adapter = AnthropicAdapter;
+
+        // Request with thinking enabled and user-specified temperature
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-4-20250514".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                temperature: Some(0.5), // User specified, but should be omitted
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    budget_tokens: Some(2048),
+                    ..Default::default()
+                }),
+                max_tokens: Some(4096),
+                ..Default::default()
+            },
+        };
+
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert!(
+            result.get("temperature").is_none(),
+            "Temperature should be omitted when thinking is enabled"
+        );
+        assert!(
+            result.get("thinking").is_some(),
+            "thinking field should be present"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_preserves_temperature_without_thinking() {
+        use crate::universal::message::UserContent;
+
+        let adapter = AnthropicAdapter;
+
+        // Request without thinking - temperature should be preserved
+        let req = UniversalRequest {
+            model: Some("claude-3-5-sonnet-20241022".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                temperature: Some(0.7),
+                max_tokens: Some(1024),
+                ..Default::default()
+            },
+        };
+
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert_eq!(
+            result.get("temperature").unwrap().as_f64().unwrap(),
+            0.7,
+            "Temperature should be preserved when thinking is not enabled"
+        );
+        assert!(
+            result.get("thinking").is_none(),
+            "thinking field should not be present"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_output_format_roundtrip() {
+        let adapter = AnthropicAdapter;
+
+        // Anthropic request with output_format (structured outputs)
+        let payload = json!({
+            "model": "claude-sonnet-4-5-20250929",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Extract: John is 25."}],
+            "output_format": {
+                "type": "json_schema",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" },
+                        "age": { "type": "number" }
+                    },
+                    "required": ["name", "age"],
+                    "additionalProperties": false
+                }
+            }
+        });
+
+        // Parse to universal
+        let universal = adapter.request_to_universal(payload.clone()).unwrap();
+
+        // Verify response_format is parsed
+        assert!(
+            universal.params.response_format.is_some(),
+            "response_format should be parsed from output_format"
+        );
+
+        // Convert back to Anthropic
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+
+        // Verify output_format is preserved
+        assert!(
+            reconstructed.get("output_format").is_some(),
+            "output_format should be present in reconstructed request"
+        );
+        let output_format = reconstructed.get("output_format").unwrap();
+        assert_eq!(output_format.get("type").unwrap(), "json_schema");
+        assert!(output_format.get("schema").is_some());
+    }
+
+    #[test]
+    fn test_anthropic_cross_provider_output_format() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::adapter::OpenAIAdapter;
+        use crate::universal::request::ResponseFormatType;
+
+        let openai_adapter = OpenAIAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+
+        // OpenAI request with response_format
+        let openai_payload = json!({
+            "model": "gpt-4o",
+            "messages": [{"role": "user", "content": "Extract: John is 25."}],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "person_info",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "name": { "type": "string" },
+                            "age": { "type": "number" }
+                        },
+                        "required": ["name", "age"]
+                    },
+                    "strict": true
+                }
+            }
+        });
+
+        // Parse OpenAI to universal
+        let universal = openai_adapter.request_to_universal(openai_payload).unwrap();
+        assert!(universal.params.response_format.is_some());
+        assert_eq!(
+            universal
+                .params
+                .response_format
+                .as_ref()
+                .unwrap()
+                .format_type,
+            Some(ResponseFormatType::JsonSchema)
+        );
+
+        // Convert to Anthropic
+        let mut universal_for_anthropic = universal;
+        universal_for_anthropic.model = Some("claude-sonnet-4-5-20250929".to_string());
+        anthropic_adapter.apply_defaults(&mut universal_for_anthropic);
+
+        let anthropic_request = anthropic_adapter
+            .request_from_universal(&universal_for_anthropic)
+            .unwrap();
+
+        // Verify Anthropic output_format structure
+        let output_format = anthropic_request.get("output_format").unwrap();
+        assert_eq!(output_format.get("type").unwrap(), "json_schema");
+        assert!(output_format.get("schema").is_some());
+        // Name should NOT be included (Anthropic doesn't support it)
+        assert!(output_format.get("name").is_none());
+        // strict is NOT supported in Anthropic output_format (it's for tools only)
+        assert!(output_format.get("strict").is_none());
+        // Anthropic format doesn't have nested json_schema wrapper
+        assert!(output_format.get("json_schema").is_none());
     }
 }

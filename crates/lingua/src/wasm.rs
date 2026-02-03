@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 // Import our types and conversion traits
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::openai::generated as openai;
+use crate::providers::openai::ChatCompletionRequestMessageExt;
 use crate::universal::{convert::TryFromLLM, Message};
 
 fn convert_to_lingua<T, U>(value: JsValue) -> Result<JsValue, JsValue>
@@ -53,13 +54,13 @@ where
 /// Convert array of Chat Completions messages to Lingua Messages
 #[wasm_bindgen]
 pub fn chat_completions_messages_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_to_lingua::<Vec<openai::ChatCompletionRequestMessage>, Vec<Message>>(value)
+    convert_to_lingua::<Vec<ChatCompletionRequestMessageExt>, Vec<Message>>(value)
 }
 
 /// Convert array of Lingua Messages to Chat Completions messages
 #[wasm_bindgen]
 pub fn lingua_to_chat_completions_messages(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_from_lingua::<Vec<Message>, Vec<openai::ChatCompletionRequestMessage>>(value)
+    convert_from_lingua::<Vec<Message>, Vec<ChatCompletionRequestMessageExt>>(value)
 }
 
 /// Convert array of Responses API messages to Lingua Messages

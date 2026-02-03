@@ -42,11 +42,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
 
+      - name: Verify no unexpected failures
+        run: |
+          cargo test -p coverage-report --test cross_provider_test -- --nocapture
+
       - name: Generate coverage report
         run: |
           cargo run -p coverage-report > coverage_report.md
-        # This job is informational only - it always succeeds
-        # Click into the job summary to see the actual coverage report
 
       - name: Post coverage to job summary
         run: |

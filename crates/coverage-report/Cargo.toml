@@ -5,6 +5,10 @@ edition.workspace = true
 publish = false
 description = "Cross-provider transformation coverage report generator for Lingua"
 
+[lib]
+name = "coverage_report"
+path = "src/lib.rs"
+
 [[bin]]
 name = "coverage-report"
 path = "src/main.rs"
@@ -14,3 +18,4 @@ lingua = { path = "../lingua", features = ["openai", "anthropic", "google", "bed
 serde.workspace = true
 big_serde_json.workspace = true
 bytes.workspace = true
+regex = "1"

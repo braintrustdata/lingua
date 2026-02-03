@@ -4,41 +4,52 @@ Test execution for coverage-report.
 
 use std::collections::HashMap;
 
-use bytes::Bytes;
 use lingua::capabilities::ProviderFormat;
 use lingua::processing::adapters::ProviderAdapter;
-use lingua::processing::transform::{
-    transform_request, transform_response, transform_stream_chunk,
-};
 use lingua::serde_json::Value;
+use lingua::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
 
-use crate::discovery::{discover_test_cases, load_payload};
-use crate::types::{PairResult, TransformResult, ValidationLevel};
+use crate::discovery::{discover_test_cases_filtered, load_payload};
+use crate::expected::TestCategory;
+use crate::normalizers::{
+    normalize_request_for_comparison, normalize_response_for_comparison,
+    normalize_stream_chunk_for_comparison,
+};
+use crate::types::{PairResult, TestFilter, TransformResult, ValidationLevel};
 
 type PairResults = HashMap<(usize, usize), PairResult>;
 type AllResults = (PairResults, PairResults, PairResults);
 
-// Patterns that indicate provider limitations (real gaps, not bugs)
-const LIMITATION_PATTERNS: &[&str] = &[
-    "Provider limitation",
-    "has no OpenAI equivalent",
-    "has no Anthropic equivalent",
-    "has no Bedrock equivalent",
-    "has no Google equivalent",
-    "Unsupported",
-];
+fn universal_request_to_value(req: &UniversalRequest) -> Value {
+    lingua::serde_json::to_value(normalize_request_for_comparison(req)).unwrap_or(Value::Null)
+}
 
-// Patterns that indicate missing test fixtures (test coverage gaps)
-const MISSING_FIXTURE_PATTERNS: &[&str] = &["Source payload not found"];
+fn universal_response_to_value(resp: &UniversalResponse) -> Value {
+    lingua::serde_json::to_value(normalize_response_for_comparison(resp)).unwrap_or(Value::Null)
+}
 
-/// Classify an error into failure, limitation, or missing fixture.
-fn classify_error(error: &str) -> ValidationLevel {
-    if MISSING_FIXTURE_PATTERNS.iter().any(|p| error.contains(p)) {
-        ValidationLevel::MissingFixture
-    } else if LIMITATION_PATTERNS.iter().any(|p| error.contains(p)) {
-        ValidationLevel::Limitation
+fn universal_stream_to_value(chunk: &UniversalStreamChunk) -> Value {
+    lingua::serde_json::to_value(normalize_stream_chunk_for_comparison(chunk))
+        .unwrap_or(Value::Null)
+}
+
+fn diff_to_transform_result(result: RoundtripResult) -> TransformResult {
+    // For limitations, extract reason from expected_diffs if available
+    let limitation_reason = if result.level == ValidationLevel::Limitation {
+        result
+            .diff
+            .as_ref()
+            .and_then(|d| d.expected_diffs.first())
+            .map(|(_, _, _, reason)| reason.clone())
     } else {
-        ValidationLevel::Fail
+        None
+    };
+
+    TransformResult {
+        level: result.level,
+        error: result.error,
+        diff: result.diff,
+        limitation_reason,
     }
 }
 
@@ -56,8 +67,10 @@ pub fn test_request_transformation(
         None => {
             let error = format!("Source payload not found: {}", filename);
             return TransformResult {
-                level: ValidationLevel::MissingFixture,
+                level: ValidationLevel::Skipped,
                 error: Some(error),
+                diff: None,
+                limitation_reason: None,
             };
         }
     };
@@ -69,47 +82,109 @@ pub fn test_request_transformation(
         _ => None,
     };
 
-    match transform_request(payload, target_adapter.format(), model) {
-        Ok(result) => {
-            if result.is_passthrough() && source_adapter.format() == target_adapter.format() {
-                return TransformResult {
-                    level: ValidationLevel::Pass,
-                    error: None,
-                };
-            }
+    let payload_value: Value = match lingua::serde_json::from_slice(&payload) {
+        Ok(v) => v,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Failed to parse source payload: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            };
+        }
+    };
 
-            // Parse result bytes to Value for validation
-            let output_bytes = result.into_bytes();
-            let transformed: Value = match lingua::serde_json::from_slice(&output_bytes) {
-                Ok(v) => v,
-                Err(e) => {
-                    return TransformResult {
-                        level: ValidationLevel::Fail,
-                        error: Some(format!("Failed to parse transformed output: {}", e)),
-                    }
-                }
+    let mut expected_universal = match source_adapter.request_to_universal(payload_value) {
+        Ok(u) => u,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Conversion to universal format failed: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            };
+        }
+    };
+
+    if model.is_some() && expected_universal.model.is_none() {
+        expected_universal.model = model.map(String::from);
+    }
+
+    target_adapter.apply_defaults(&mut expected_universal);
+    let expected_universal_value = universal_request_to_value(&expected_universal);
+
+    let provider_value = match target_adapter.request_from_universal(&expected_universal) {
+        Ok(v) => v,
+        Err(e) => {
+            let error_msg = format!("Conversion from universal failed: {}", e);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Requests,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let reason = context.as_ref().and_then(|ctx| {
+                ctx.is_test_case_limitation().or_else(|| {
+                    is_expected_error(
+                        ctx.category,
+                        ctx.source,
+                        ctx.target,
+                        Some(ctx.test_case),
+                        &error_msg,
+                    )
+                })
+            });
+
+            let level = if reason.is_some() {
+                ValidationLevel::Limitation
+            } else {
+                ValidationLevel::Fail
             };
 
-            // Use request_to_universal to validate - gives detailed error info
-            match target_adapter.request_to_universal(transformed) {
-                Ok(_) => TransformResult {
-                    level: ValidationLevel::Pass,
-                    error: None,
-                },
-                Err(e) => TransformResult {
-                    level: ValidationLevel::Fail,
-                    error: Some(e.to_string()),
-                },
-            }
-        }
-        Err(e) => {
-            let error = format!("{}", e);
-            let level = classify_error(&error);
-            TransformResult {
+            return TransformResult {
                 level,
-                error: Some(error),
-            }
+                error: Some(error_msg),
+                diff: None,
+                limitation_reason: reason.map(|r| r.to_string()),
+            };
         }
+    };
+
+    let transformed: Value = match lingua::serde_json::to_value(&provider_value) {
+        Ok(v) => v,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Failed to serialize provider value: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            };
+        }
+    };
+
+    // Use request_to_universal to validate - gives detailed error info
+    match target_adapter.request_to_universal(transformed) {
+        Ok(target_universal) => {
+            let target_universal_value = universal_request_to_value(&target_universal);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Requests,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let roundtrip_result = compare_values(
+                &expected_universal_value,
+                &target_universal_value,
+                context.as_ref(),
+            );
+            diff_to_transform_result(roundtrip_result)
+        }
+        Err(e) => TransformResult {
+            level: ValidationLevel::Fail,
+            error: Some(format!("Conversion from universal format failed: {}", e)),
+            diff: None,
+            limitation_reason: None,
+        },
     }
 }
 
@@ -123,41 +198,110 @@ pub fn test_response_transformation(
         Some(p) => p,
         None => {
             return TransformResult {
-                level: ValidationLevel::Fail,
+                level: ValidationLevel::Skipped,
                 error: Some(format!("Response payload not found: {}", filename)),
+                diff: None,
+                limitation_reason: None,
             }
         }
     };
 
-    match transform_response(payload, target_adapter.format()) {
-        Ok(result) => {
-            // Parse result bytes to Value for validation
-            let output_bytes = result.into_bytes();
-            let transformed: Value = match lingua::serde_json::from_slice(&output_bytes) {
-                Ok(v) => v,
-                Err(e) => {
-                    return TransformResult {
-                        level: ValidationLevel::Fail,
-                        error: Some(format!("Failed to parse transformed output: {}", e)),
-                    }
-                }
+    let payload_value: Value = match lingua::serde_json::from_slice(&payload) {
+        Ok(v) => v,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Failed to parse source payload: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            };
+        }
+    };
+
+    let expected_universal = match source_adapter.response_to_universal(payload_value) {
+        Ok(u) => u,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Conversion to universal format failed: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            };
+        }
+    };
+
+    let expected_universal_value = universal_response_to_value(&expected_universal);
+
+    let provider_value = match target_adapter.response_from_universal(&expected_universal) {
+        Ok(v) => v,
+        Err(e) => {
+            let error_msg = format!("Conversion from universal failed: {}", e);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Responses,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let reason = context.as_ref().and_then(|ctx| {
+                ctx.is_test_case_limitation().or_else(|| {
+                    is_expected_error(
+                        ctx.category,
+                        ctx.source,
+                        ctx.target,
+                        Some(ctx.test_case),
+                        &error_msg,
+                    )
+                })
+            });
+
+            let level = if reason.is_some() {
+                ValidationLevel::Limitation
+            } else {
+                ValidationLevel::Fail
             };
 
-            // Use response_to_universal to validate - gives detailed error info
-            match target_adapter.response_to_universal(transformed) {
-                Ok(_) => TransformResult {
-                    level: ValidationLevel::Pass,
-                    error: None,
-                },
-                Err(e) => TransformResult {
-                    level: ValidationLevel::Fail,
-                    error: Some(e.to_string()),
-                },
-            }
+            return TransformResult {
+                level,
+                error: Some(error_msg),
+                diff: None,
+                limitation_reason: reason.map(|r| r.to_string()),
+            };
+        }
+    };
+
+    let transformed: Value = match lingua::serde_json::to_value(&provider_value) {
+        Ok(v) => v,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Failed to serialize provider value: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            };
+        }
+    };
+
+    match target_adapter.response_to_universal(transformed) {
+        Ok(target_universal) => {
+            let target_universal_value = universal_response_to_value(&target_universal);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Responses,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let roundtrip_result = compare_values(
+                &expected_universal_value,
+                &target_universal_value,
+                context.as_ref(),
+            );
+            diff_to_transform_result(roundtrip_result)
         }
         Err(e) => TransformResult {
             level: ValidationLevel::Fail,
-            error: Some(format!("{}", e)),
+            error: Some(format!("Conversion from universal format failed: {}", e)),
+            diff: None,
+            limitation_reason: None,
         },
     }
 }
@@ -173,10 +317,12 @@ pub fn test_streaming_transformation(
     let payload_bytes = match load_payload(test_case, source_adapter.directory_name(), filename) {
         Some(p) => p,
         None => {
-            // No streaming file - report as not found
+            // No streaming file - skip this test
             return TransformResult {
-                level: ValidationLevel::Fail,
+                level: ValidationLevel::Skipped,
                 error: Some(format!("Streaming payload not found: {}", filename)),
+                diff: None,
+                limitation_reason: None,
             };
         }
     };
@@ -188,6 +334,8 @@ pub fn test_streaming_transformation(
             return TransformResult {
                 level: ValidationLevel::Fail,
                 error: Some(format!("Failed to parse streaming payload: {}", e)),
+                diff: None,
+                limitation_reason: None,
             };
         }
     };
@@ -198,27 +346,24 @@ pub fn test_streaming_transformation(
             return TransformResult {
                 level: ValidationLevel::Fail,
                 error: Some("Streaming payload is not an array".to_string()),
+                diff: None,
+                limitation_reason: None,
             };
         }
     };
 
     // Test all events - fail if any event fails
     for (idx, event) in events.iter().enumerate() {
-        // Serialize each event back to bytes for the transform function
-        let event_bytes = match lingua::serde_json::to_vec(event) {
-            Ok(b) => Bytes::from(b),
-            Err(e) => {
-                return TransformResult {
-                    level: ValidationLevel::Fail,
-                    error: Some(format!("Event {}: failed to serialize: {}", idx, e)),
-                };
-            }
-        };
-
-        if let Err(e) = test_single_stream_event(event_bytes, target_adapter) {
+        let result = test_single_stream_event(event, source_adapter, target_adapter, test_case);
+        if result.level != ValidationLevel::Pass {
             return TransformResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("Event {}: {}", idx, e)),
+                level: result.level,
+                error: result
+                    .error
+                    .map(|e| format!("Event {}: {}", idx, e))
+                    .or(Some(format!("Event {} failed", idx))),
+                diff: result.diff,
+                limitation_reason: result.limitation_reason,
             };
         }
     }
@@ -226,42 +371,121 @@ pub fn test_streaming_transformation(
     TransformResult {
         level: ValidationLevel::Pass,
         error: None,
+        diff: None,
+        limitation_reason: None,
     }
 }
 
 /// Test a single streaming event transformation
 fn test_single_stream_event(
-    event: Bytes,
+    event: &Value,
+    source_adapter: &dyn ProviderAdapter,
     target_adapter: &dyn ProviderAdapter,
-) -> Result<(), String> {
-    // Transform the event to target format
-    let result =
-        transform_stream_chunk(event, target_adapter.format()).map_err(|e| e.to_string())?;
+    test_case: &str,
+) -> TransformResult {
+    let source_universal = match source_adapter.stream_to_universal(event.clone()) {
+        Ok(u) => u,
+        Err(e) => {
+            return TransformResult {
+                level: ValidationLevel::Fail,
+                error: Some(format!("Conversion to universal format failed: {}", e)),
+                diff: None,
+                limitation_reason: None,
+            }
+        }
+    };
 
-    // Parse result bytes to Value for validation
-    let output_bytes = result.into_bytes();
-    let transformed: Value =
-        lingua::serde_json::from_slice(&output_bytes).map_err(|e| e.to_string())?;
+    let target_universal = match &source_universal {
+        Some(chunk) => {
+            let provider_value = match target_adapter.stream_from_universal(chunk) {
+                Ok(v) => v,
+                Err(e) => {
+                    return TransformResult {
+                        level: ValidationLevel::Fail,
+                        error: Some(format!("Conversion from universal failed: {}", e)),
+                        diff: None,
+                        limitation_reason: None,
+                    };
+                }
+            };
 
-    // Validate transformed output can be parsed by target adapter
-    match target_adapter.stream_to_universal(transformed) {
-        Ok(Some(_chunk)) => Ok(()),
-        Ok(None) => Ok(()), // Keep-alive events are valid
-        Err(e) => Err(e.to_string()),
+            let transformed: Value = match lingua::serde_json::to_value(&provider_value) {
+                Ok(v) => v,
+                Err(e) => {
+                    return TransformResult {
+                        level: ValidationLevel::Fail,
+                        error: Some(format!("Failed to serialize provider value: {}", e)),
+                        diff: None,
+                        limitation_reason: None,
+                    };
+                }
+            };
+
+            // Convert back to universal for comparison
+            match target_adapter.stream_to_universal(transformed) {
+                Ok(u) => u,
+                Err(e) => {
+                    return TransformResult {
+                        level: ValidationLevel::Fail,
+                        error: Some(format!("Conversion from universal format failed: {}", e)),
+                        diff: None,
+                        limitation_reason: None,
+                    };
+                }
+            }
+        }
+        None => {
+            // Keep-alive event with no universal representation - pass through
+            None
+        }
+    };
+
+    let context = CompareContext::for_cross_provider(
+        TestCategory::Streaming,
+        source_adapter,
+        target_adapter,
+        test_case,
+    );
+
+    match (source_universal, target_universal) {
+        (None, None) => TransformResult {
+            level: ValidationLevel::Pass,
+            error: None,
+            diff: None,
+            limitation_reason: None,
+        },
+        (Some(source_chunk), Some(target_chunk)) => {
+            let source_value = universal_stream_to_value(&source_chunk);
+            let target_value = universal_stream_to_value(&target_chunk);
+            let roundtrip_result = compare_values(&source_value, &target_value, context.as_ref());
+            diff_to_transform_result(roundtrip_result)
+        }
+        (source, target) => {
+            let source_value = source
+                .as_ref()
+                .map(universal_stream_to_value)
+                .unwrap_or(Value::Null);
+            let target_value = target
+                .as_ref()
+                .map(universal_stream_to_value)
+                .unwrap_or(Value::Null);
+            let roundtrip_result = compare_values(&source_value, &target_value, context.as_ref());
+            diff_to_transform_result(roundtrip_result)
+        }
     }
 }
 
 /// Run all cross-transformation tests and collect results
-pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
-    let test_cases = discover_test_cases();
+pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>], filter: &TestFilter) -> AllResults {
+    let test_cases = discover_test_cases_filtered(filter);
     let mut request_results: PairResults = HashMap::new();
     let mut response_results: PairResults = HashMap::new();
     let mut streaming_results: PairResults = HashMap::new();
 
-    // Initialize results for all pairs
-    for (source_idx, _) in adapters.iter().enumerate() {
-        for (target_idx, _) in adapters.iter().enumerate() {
-            if source_idx != target_idx {
+    // Initialize results for all pairs that match the filter (including self-pairs for roundtrip)
+    for (source_idx, source_adapter) in adapters.iter().enumerate() {
+        for (target_idx, target_adapter) in adapters.iter().enumerate() {
+            if filter.matches_provider_pair(source_adapter.format(), target_adapter.format()) {
                 request_results.insert((source_idx, target_idx), PairResult::default());
                 response_results.insert((source_idx, target_idx), PairResult::default());
                 streaming_results.insert((source_idx, target_idx), PairResult::default());
@@ -269,11 +493,12 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
         }
     }
 
-    // Test each source→target pair for each test case
+    // Test each source→target pair for each test case (including self-pairs for roundtrip)
     for test_case in &test_cases {
         for (source_idx, source) in adapters.iter().enumerate() {
             for (target_idx, target) in adapters.iter().enumerate() {
-                if source_idx == target_idx {
+                // Skip pairs that don't match the filter
+                if !filter.matches_provider_pair(source.format(), target.format()) {
                     continue;
                 }
 
@@ -285,67 +510,59 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                 let pair_result = request_results.get_mut(&(source_idx, target_idx)).unwrap();
 
                 match result.level {
+                    ValidationLevel::Skipped => { /* do nothing */ }
                     ValidationLevel::Pass => pair_result.passed += 1,
                     ValidationLevel::Fail => {
                         pair_result.failed += 1;
-                        if let Some(error) = result.error {
-                            pair_result
-                                .failures
-                                .push((format!("{} (request)", test_case), error));
-                        }
+                        let error = result.error.unwrap_or_else(|| "Unknown error".to_string());
+                        pair_result.failures.push((
+                            format!("{} (request)", test_case),
+                            error,
+                            result.diff,
+                        ));
                     }
                     ValidationLevel::Limitation => {
                         pair_result.limitations += 1;
-                        if let Some(error) = result.error {
-                            pair_result
-                                .limitation_details
-                                .push((format!("{} (request)", test_case), error));
-                        }
-                    }
-                    ValidationLevel::MissingFixture => {
-                        pair_result.missing_fixtures += 1;
-                        if let Some(error) = result.error {
-                            pair_result
-                                .missing_fixture_details
-                                .push((format!("{} (request)", test_case), error));
-                        }
+                        let detail = result
+                            .limitation_reason
+                            .or(result.error)
+                            .unwrap_or_else(|| "Unknown limitation".to_string());
+                        pair_result.limitation_details.push((
+                            format!("{} (request)", test_case),
+                            detail,
+                            result.diff,
+                        ));
                     }
                 }
 
                 // Test followup request if exists
                 let followup_result =
                     test_request_transformation(test_case, source, target, "followup-request.json");
-                if followup_result
-                    .error
-                    .as_ref()
-                    .is_none_or(|e| !e.contains("not found"))
-                {
-                    match followup_result.level {
-                        ValidationLevel::Pass => pair_result.passed += 1,
-                        ValidationLevel::Fail => {
-                            pair_result.failed += 1;
-                            if let Some(error) = followup_result.error {
-                                pair_result
-                                    .failures
-                                    .push((format!("{} (followup)", test_case), error));
-                            }
-                        }
-                        ValidationLevel::Limitation => {
-                            pair_result.limitations += 1;
-                            if let Some(error) = followup_result.error {
-                                pair_result
-                                    .limitation_details
-                                    .push((format!("{} (followup)", test_case), error));
-                            }
-                        }
-                        ValidationLevel::MissingFixture => {
-                            pair_result.missing_fixtures += 1;
-                            if let Some(error) = followup_result.error {
-                                pair_result
-                                    .missing_fixture_details
-                                    .push((format!("{} (followup)", test_case), error));
-                            }
-                        }
+                match followup_result.level {
+                    ValidationLevel::Skipped => { /* do nothing */ }
+                    ValidationLevel::Pass => pair_result.passed += 1,
+                    ValidationLevel::Fail => {
+                        pair_result.failed += 1;
+                        let error = followup_result
+                            .error
+                            .unwrap_or_else(|| "Unknown error".to_string());
+                        pair_result.failures.push((
+                            format!("{} (followup)", test_case),
+                            error,
+                            followup_result.diff,
+                        ));
+                    }
+                    ValidationLevel::Limitation => {
+                        pair_result.limitations += 1;
+                        let detail = followup_result
+                            .limitation_reason
+                            .or(followup_result.error)
+                            .unwrap_or_else(|| "Unknown limitation".to_string());
+                        pair_result.limitation_details.push((
+                            format!("{} (followup)", test_case),
+                            detail,
+                            followup_result.diff,
+                        ));
                     }
                 }
 
@@ -354,37 +571,31 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                     test_response_transformation(test_case, source, target, "response.json");
                 let resp_pair_result = response_results.get_mut(&(source_idx, target_idx)).unwrap();
 
-                if response_result
-                    .error
-                    .as_ref()
-                    .is_none_or(|e| !e.contains("not found"))
-                {
-                    match response_result.level {
-                        ValidationLevel::Pass => resp_pair_result.passed += 1,
-                        ValidationLevel::Fail => {
-                            resp_pair_result.failed += 1;
-                            if let Some(error) = response_result.error {
-                                resp_pair_result
-                                    .failures
-                                    .push((format!("{} (response)", test_case), error));
-                            }
-                        }
-                        ValidationLevel::Limitation => {
-                            resp_pair_result.limitations += 1;
-                            if let Some(error) = response_result.error {
-                                resp_pair_result
-                                    .limitation_details
-                                    .push((format!("{} (response)", test_case), error));
-                            }
-                        }
-                        ValidationLevel::MissingFixture => {
-                            resp_pair_result.missing_fixtures += 1;
-                            if let Some(error) = response_result.error {
-                                resp_pair_result
-                                    .missing_fixture_details
-                                    .push((format!("{} (response)", test_case), error));
-                            }
-                        }
+                match response_result.level {
+                    ValidationLevel::Skipped => { /* do nothing */ }
+                    ValidationLevel::Pass => resp_pair_result.passed += 1,
+                    ValidationLevel::Fail => {
+                        resp_pair_result.failed += 1;
+                        let error = response_result
+                            .error
+                            .unwrap_or_else(|| "Unknown error".to_string());
+                        resp_pair_result.failures.push((
+                            format!("{} (response)", test_case),
+                            error,
+                            response_result.diff,
+                        ));
+                    }
+                    ValidationLevel::Limitation => {
+                        resp_pair_result.limitations += 1;
+                        let detail = response_result
+                            .limitation_reason
+                            .or(response_result.error)
+                            .unwrap_or_else(|| "Unknown limitation".to_string());
+                        resp_pair_result.limitation_details.push((
+                            format!("{} (response)", test_case),
+                            detail,
+                            response_result.diff,
+                        ));
                     }
                 }
 
@@ -399,37 +610,31 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                     target,
                     "response-streaming.json",
                 );
-                if streaming_result
-                    .error
-                    .as_ref()
-                    .is_none_or(|e| !e.contains("not found"))
-                {
-                    match streaming_result.level {
-                        ValidationLevel::Pass => stream_pair_result.passed += 1,
-                        ValidationLevel::Fail => {
-                            stream_pair_result.failed += 1;
-                            if let Some(error) = streaming_result.error {
-                                stream_pair_result
-                                    .failures
-                                    .push((format!("{} (streaming)", test_case), error));
-                            }
-                        }
-                        ValidationLevel::Limitation => {
-                            stream_pair_result.limitations += 1;
-                            if let Some(error) = streaming_result.error {
-                                stream_pair_result
-                                    .limitation_details
-                                    .push((format!("{} (streaming)", test_case), error));
-                            }
-                        }
-                        ValidationLevel::MissingFixture => {
-                            stream_pair_result.missing_fixtures += 1;
-                            if let Some(error) = streaming_result.error {
-                                stream_pair_result
-                                    .missing_fixture_details
-                                    .push((format!("{} (streaming)", test_case), error));
-                            }
-                        }
+                match streaming_result.level {
+                    ValidationLevel::Skipped => { /* do nothing */ }
+                    ValidationLevel::Pass => stream_pair_result.passed += 1,
+                    ValidationLevel::Fail => {
+                        stream_pair_result.failed += 1;
+                        let error = streaming_result
+                            .error
+                            .unwrap_or_else(|| "Unknown error".to_string());
+                        stream_pair_result.failures.push((
+                            format!("{} (streaming)", test_case),
+                            error,
+                            streaming_result.diff,
+                        ));
+                    }
+                    ValidationLevel::Limitation => {
+                        stream_pair_result.limitations += 1;
+                        let detail = streaming_result
+                            .limitation_reason
+                            .or(streaming_result.error)
+                            .unwrap_or_else(|| "Unknown limitation".to_string());
+                        stream_pair_result.limitation_details.push((
+                            format!("{} (streaming)", test_case),
+                            detail,
+                            streaming_result.diff,
+                        ));
                     }
                 }
 
@@ -440,37 +645,31 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
                     target,
                     "followup-response-streaming.json",
                 );
-                if followup_streaming_result
-                    .error
-                    .as_ref()
-                    .is_none_or(|e| !e.contains("not found"))
-                {
-                    match followup_streaming_result.level {
-                        ValidationLevel::Pass => stream_pair_result.passed += 1,
-                        ValidationLevel::Fail => {
-                            stream_pair_result.failed += 1;
-                            if let Some(error) = followup_streaming_result.error {
-                                stream_pair_result
-                                    .failures
-                                    .push((format!("{} (followup-streaming)", test_case), error));
-                            }
-                        }
-                        ValidationLevel::Limitation => {
-                            stream_pair_result.limitations += 1;
-                            if let Some(error) = followup_streaming_result.error {
-                                stream_pair_result
-                                    .limitation_details
-                                    .push((format!("{} (followup-streaming)", test_case), error));
-                            }
-                        }
-                        ValidationLevel::MissingFixture => {
-                            stream_pair_result.missing_fixtures += 1;
-                            if let Some(error) = followup_streaming_result.error {
-                                stream_pair_result
-                                    .missing_fixture_details
-                                    .push((format!("{} (followup-streaming)", test_case), error));
-                            }
-                        }
+                match followup_streaming_result.level {
+                    ValidationLevel::Skipped => { /* do nothing */ }
+                    ValidationLevel::Pass => stream_pair_result.passed += 1,
+                    ValidationLevel::Fail => {
+                        stream_pair_result.failed += 1;
+                        let error = followup_streaming_result
+                            .error
+                            .unwrap_or_else(|| "Unknown error".to_string());
+                        stream_pair_result.failures.push((
+                            format!("{} (followup-streaming)", test_case),
+                            error,
+                            followup_streaming_result.diff,
+                        ));
+                    }
+                    ValidationLevel::Limitation => {
+                        stream_pair_result.limitations += 1;
+                        let detail = followup_streaming_result
+                            .limitation_reason
+                            .or(followup_streaming_result.error)
+                            .unwrap_or_else(|| "Unknown limitation".to_string());
+                        stream_pair_result.limitation_details.push((
+                            format!("{} (followup-streaming)", test_case),
+                            detail,
+                            followup_streaming_result.diff,
+                        ));
                     }
                 }
             }
@@ -484,34 +683,117 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>]) -> AllResults {
 // Roundtrip testing (Provider → Universal → Provider)
 // ============================================================================
 
-use crate::types::{ProviderRoundtripResult, RoundtripDiff, RoundtripResult};
+use crate::expected::{is_expected_error, is_expected_field, is_expected_test_case};
+use crate::types::{RoundtripDiff, RoundtripResult};
 use std::collections::HashSet;
 
-/// Type alias for roundtrip results indexed by adapter index
-pub type RoundtripResults = HashMap<usize, ProviderRoundtripResult>;
+/// Context for value comparison, carrying provider names for expected-difference filtering.
+struct CompareContext<'a> {
+    category: TestCategory,
+    source: &'a str,
+    target: &'a str,
+    test_case: &'a str,
+}
 
-/// Fields that are expected to change during roundtrip and should be ignored.
-/// These are typically metadata fields set by providers or computed values.
-const IGNORED_FIELDS: &[&str] = &[
-    "id",
-    "created",
-    "system_fingerprint",
-    "service_tier",
-    "object",
-];
+impl<'a> CompareContext<'a> {
+    fn new(category: TestCategory, source: &'a str, target: &'a str, test_case: &'a str) -> Self {
+        Self {
+            category,
+            source,
+            target,
+            test_case,
+        }
+    }
+
+    /// Create context for cross-provider comparison, or None for roundtrip tests.
+    /// Roundtrip tests (source == target) don't use expected differences because
+    /// any data loss in Format→Universal→Format is a real bug, not a "limitation".
+    fn for_cross_provider(
+        category: TestCategory,
+        source_adapter: &'a dyn ProviderAdapter,
+        target_adapter: &'a dyn ProviderAdapter,
+        test_case: &'a str,
+    ) -> Option<Self> {
+        if source_adapter.format() == target_adapter.format() {
+            None
+        } else {
+            Some(Self::new(
+                category,
+                source_adapter.display_name(),
+                target_adapter.display_name(),
+                test_case,
+            ))
+        }
+    }
+
+    /// Check if this entire test case is an expected limitation.
+    fn is_test_case_limitation(&self) -> Option<String> {
+        is_expected_test_case(self.category, self.source, self.target, self.test_case)
+    }
+
+    /// Check if a field difference is expected for this source→target translation.
+    /// Returns the reason if expected, None otherwise.
+    fn is_expected(&self, field: &str) -> Option<String> {
+        is_expected_field(
+            self.category,
+            self.source,
+            self.target,
+            Some(self.test_case),
+            field,
+        )
+    }
+}
 
 /// Compare two JSON values and produce a RoundtripDiff.
-fn compare_values(original: &Value, roundtripped: &Value) -> RoundtripResult {
-    let mut diff = RoundtripDiff::default();
-    compare_recursive(original, roundtripped, "", &mut diff);
+///
+/// When `context` is provided, expected differences (based on source/target provider)
+/// are filtered out and tracked as limitations. When `context` is None, all differences are reported.
+fn compare_values(
+    original: &Value,
+    roundtripped: &Value,
+    context: Option<&CompareContext>,
+) -> RoundtripResult {
+    // Check if entire test case is a known limitation (coarsest check)
+    let test_case_limitation = context.and_then(|ctx| ctx.is_test_case_limitation());
 
-    if diff.is_empty() {
-        RoundtripResult {
-            level: ValidationLevel::Pass,
-            error: None,
-            diff: None,
+    // Always run comparison to capture the actual diffs
+    let mut diff = RoundtripDiff::default();
+    compare_recursive(original, roundtripped, "", &mut diff, context);
+
+    // If this is a test-case-level limitation, move all diffs to expected_diffs
+    if let Some(reason) = &test_case_limitation {
+        // Move lost fields to expected_diffs
+        for field in diff.lost_fields.drain(..) {
+            diff.expected_diffs.push((
+                field,
+                "(had value)".to_string(),
+                "(missing)".to_string(),
+                reason.clone(),
+            ));
         }
-    } else {
+        // Move added fields to expected_diffs
+        for field in diff.added_fields.drain(..) {
+            diff.expected_diffs.push((
+                field,
+                "(missing)".to_string(),
+                "(has value)".to_string(),
+                reason.clone(),
+            ));
+        }
+        // Move changed fields to expected_diffs
+        for (field, before, after) in diff.changed_fields.drain(..) {
+            diff.expected_diffs
+                .push((field, before, after, reason.clone()));
+        }
+    }
+
+    let has_real_diffs = !diff.lost_fields.is_empty()
+        || !diff.added_fields.is_empty()
+        || !diff.changed_fields.is_empty();
+    let has_expected_diffs = !diff.expected_diffs.is_empty();
+
+    if has_real_diffs {
+        // Real failures - report as Fail
         RoundtripResult {
             level: ValidationLevel::Fail,
             error: Some(format!(
@@ -522,11 +804,38 @@ fn compare_values(original: &Value, roundtripped: &Value) -> RoundtripResult {
             )),
             diff: Some(diff),
         }
+    } else if has_expected_diffs {
+        // Only expected differences - report as Limitation
+        let error_msg = if let Some(reason) = test_case_limitation {
+            format!("Expected limitation: {}", reason)
+        } else {
+            format!("{} expected limitation(s)", diff.expected_diffs.len())
+        };
+        RoundtripResult {
+            level: ValidationLevel::Limitation,
+            error: Some(error_msg),
+            diff: Some(diff),
+        }
+    } else {
+        // No differences at all - Pass
+        RoundtripResult {
+            level: ValidationLevel::Pass,
+            error: None,
+            diff: None,
+        }
     }
 }
 
 /// Recursively compare two JSON values and accumulate differences.
-fn compare_recursive(original: &Value, roundtripped: &Value, path: &str, diff: &mut RoundtripDiff) {
+///
+/// When `context` is provided, expected differences are filtered out.
+fn compare_recursive(
+    original: &Value,
+    roundtripped: &Value,
+    path: &str,
+    diff: &mut RoundtripDiff,
+    context: Option<&CompareContext>,
+) {
     match (original, roundtripped) {
         (Value::Object(orig), Value::Object(round)) => {
             let orig_keys: HashSet<_> = orig.keys().collect();
@@ -539,8 +848,17 @@ fn compare_recursive(original: &Value, roundtripped: &Value, path: &str, diff: &
                 } else {
                     format!("{}.{}", path, key)
                 };
-                // Skip ignored fields
-                if !IGNORED_FIELDS.contains(&key.as_str()) {
+                // Track expected differences as limitations
+                if let Some(reason) = context.and_then(|ctx| ctx.is_expected(&field_path)) {
+                    let before = lingua::serde_json::to_string(&orig[*key])
+                        .unwrap_or_else(|_| "?".to_string());
+                    diff.expected_diffs.push((
+                        field_path,
+                        before,
+                        "(missing)".to_string(),
+                        reason.to_string(),
+                    ));
+                } else {
                     diff.lost_fields.push(field_path);
                 }
             }
@@ -552,8 +870,17 @@ fn compare_recursive(original: &Value, roundtripped: &Value, path: &str, diff: &
                 } else {
                     format!("{}.{}", path, key)
                 };
-                // Skip ignored fields
-                if !IGNORED_FIELDS.contains(&key.as_str()) {
+                // Track expected differences as limitations
+                if let Some(reason) = context.and_then(|ctx| ctx.is_expected(&field_path)) {
+                    let after = lingua::serde_json::to_string(&round[*key])
+                        .unwrap_or_else(|_| "?".to_string());
+                    diff.expected_diffs.push((
+                        field_path,
+                        "(missing)".to_string(),
+                        after,
+                        reason.to_string(),
+                    ));
+                } else {
                     diff.added_fields.push(field_path);
                 }
             }
@@ -565,24 +892,35 @@ fn compare_recursive(original: &Value, roundtripped: &Value, path: &str, diff: &
                 } else {
                     format!("{}.{}", path, key)
                 };
-                compare_recursive(&orig[*key], &round[*key], &new_path, diff);
+                compare_recursive(&orig[*key], &round[*key], &new_path, diff, context);
             }
         }
         (Value::Array(orig), Value::Array(round)) => {
             // Compare array lengths
             if orig.len() != round.len() {
-                diff.changed_fields.push((
-                    format!("{}.length", path),
-                    orig.len().to_string(),
-                    round.len().to_string(),
-                ));
+                let len_path = format!("{}.length", path);
+                // Track expected differences as limitations
+                if let Some(reason) = context.and_then(|ctx| ctx.is_expected(&len_path)) {
+                    diff.expected_diffs.push((
+                        len_path,
+                        orig.len().to_string(),
+                        round.len().to_string(),
+                        reason.to_string(),
+                    ));
+                } else {
+                    diff.changed_fields.push((
+                        len_path,
+                        orig.len().to_string(),
+                        round.len().to_string(),
+                    ));
+                }
                 return;
             }
 
             // Compare element by element
             for (idx, (o, r)) in orig.iter().zip(round.iter()).enumerate() {
                 let new_path = format!("{}[{}]", path, idx);
-                compare_recursive(o, r, &new_path, diff);
+                compare_recursive(o, r, &new_path, diff, context);
             }
         }
         (Value::Null, Value::Null) => {}
@@ -590,181 +928,17 @@ fn compare_recursive(original: &Value, roundtripped: &Value, path: &str, diff: &
         (Value::Number(o), Value::Number(r)) if o == r => {}
         (Value::String(o), Value::String(r)) if o == r => {}
         _ => {
-            // Values differ - skip if this is an ignored field
-            let field_name = path.rsplit('.').next().unwrap_or(path);
-            if !IGNORED_FIELDS.contains(&field_name) {
-                diff.changed_fields.push((
-                    path.to_string(),
-                    lingua::serde_json::to_string(original).unwrap_or_else(|_| "?".to_string()),
-                    lingua::serde_json::to_string(roundtripped).unwrap_or_else(|_| "?".to_string()),
-                ));
+            // Values differ - track expected differences as limitations
+            let before =
+                lingua::serde_json::to_string(original).unwrap_or_else(|_| "?".to_string());
+            let after =
+                lingua::serde_json::to_string(roundtripped).unwrap_or_else(|_| "?".to_string());
+            if let Some(reason) = context.and_then(|ctx| ctx.is_expected(path)) {
+                diff.expected_diffs
+                    .push((path.to_string(), before, after, reason.to_string()));
+            } else {
+                diff.changed_fields.push((path.to_string(), before, after));
             }
         }
     }
-}
-
-/// Test request roundtrip: Provider → Universal → Provider
-pub fn test_request_roundtrip(
-    test_case: &str,
-    adapter: &dyn ProviderAdapter,
-    filename: &str,
-) -> Option<RoundtripResult> {
-    // 1. Load payload
-    let payload = load_payload(test_case, adapter.directory_name(), filename)?;
-
-    // 2. Parse to Value
-    let original: Value = match lingua::serde_json::from_slice(&payload) {
-        Ok(v) => v,
-        Err(e) => {
-            return Some(RoundtripResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("Failed to parse payload: {}", e)),
-                diff: None,
-            });
-        }
-    };
-
-    // 3. Convert to Universal
-    let universal = match adapter.request_to_universal(original.clone()) {
-        Ok(u) => u,
-        Err(e) => {
-            return Some(RoundtripResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("request_to_universal failed: {}", e)),
-                diff: None,
-            });
-        }
-    };
-
-    // 4. Convert back to provider format
-    let roundtripped = match adapter.request_from_universal(&universal) {
-        Ok(r) => r,
-        Err(e) => {
-            return Some(RoundtripResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("request_from_universal failed: {}", e)),
-                diff: None,
-            });
-        }
-    };
-
-    // 5. Compare original vs roundtripped
-    Some(compare_values(&original, &roundtripped))
-}
-
-/// Test response roundtrip: Provider → Universal → Provider
-pub fn test_response_roundtrip(
-    test_case: &str,
-    adapter: &dyn ProviderAdapter,
-    filename: &str,
-) -> Option<RoundtripResult> {
-    // 1. Load payload
-    let payload = load_payload(test_case, adapter.directory_name(), filename)?;
-
-    // 2. Parse to Value
-    let original: Value = match lingua::serde_json::from_slice(&payload) {
-        Ok(v) => v,
-        Err(e) => {
-            return Some(RoundtripResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("Failed to parse payload: {}", e)),
-                diff: None,
-            });
-        }
-    };
-
-    // 3. Convert to Universal
-    let universal = match adapter.response_to_universal(original.clone()) {
-        Ok(u) => u,
-        Err(e) => {
-            return Some(RoundtripResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("response_to_universal failed: {}", e)),
-                diff: None,
-            });
-        }
-    };
-
-    // 4. Convert back to provider format
-    let roundtripped = match adapter.response_from_universal(&universal) {
-        Ok(r) => r,
-        Err(e) => {
-            return Some(RoundtripResult {
-                level: ValidationLevel::Fail,
-                error: Some(format!("response_from_universal failed: {}", e)),
-                diff: None,
-            });
-        }
-    };
-
-    // 5. Compare original vs roundtripped
-    Some(compare_values(&original, &roundtripped))
-}
-
-/// Run all roundtrip tests for all providers.
-pub fn run_roundtrip_tests(adapters: &[Box<dyn ProviderAdapter>]) -> RoundtripResults {
-    let test_cases = discover_test_cases();
-    let mut results: RoundtripResults = HashMap::new();
-
-    // Initialize results for each adapter
-    for (adapter_idx, _) in adapters.iter().enumerate() {
-        results.insert(adapter_idx, ProviderRoundtripResult::default());
-    }
-
-    // Test each provider's roundtrip for each test case
-    for test_case in &test_cases {
-        for (adapter_idx, adapter) in adapters.iter().enumerate() {
-            let adapter = adapter.as_ref();
-            let provider_result = results.get_mut(&adapter_idx).unwrap();
-
-            // Test request roundtrip
-            if let Some(result) = test_request_roundtrip(test_case, adapter, "request.json") {
-                match result.level {
-                    ValidationLevel::Pass => provider_result.request_passed += 1,
-                    ValidationLevel::Fail
-                    | ValidationLevel::Limitation
-                    | ValidationLevel::MissingFixture => {
-                        provider_result.request_failed += 1;
-                        provider_result
-                            .request_failures
-                            .push((format!("{} (request)", test_case), result));
-                    }
-                }
-            }
-
-            // Test followup request roundtrip if exists
-            if let Some(result) =
-                test_request_roundtrip(test_case, adapter, "followup-request.json")
-            {
-                match result.level {
-                    ValidationLevel::Pass => provider_result.request_passed += 1,
-                    ValidationLevel::Fail
-                    | ValidationLevel::Limitation
-                    | ValidationLevel::MissingFixture => {
-                        provider_result.request_failed += 1;
-                        provider_result
-                            .request_failures
-                            .push((format!("{} (followup-request)", test_case), result));
-                    }
-                }
-            }
-
-            // Test response roundtrip
-            if let Some(result) = test_response_roundtrip(test_case, adapter, "response.json") {
-                match result.level {
-                    ValidationLevel::Pass => provider_result.response_passed += 1,
-                    ValidationLevel::Fail
-                    | ValidationLevel::Limitation
-                    | ValidationLevel::MissingFixture => {
-                        provider_result.response_failed += 1;
-                        provider_result
-                            .response_failures
-                            .push((format!("{} (response)", test_case), result));
-                    }
-                }
-            }
-        }
-    }
-
-    results
 }
