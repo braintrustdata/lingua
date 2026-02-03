@@ -14,6 +14,7 @@ passthrough in async contexts.
 use bytes::Bytes;
 
 use crate::capabilities::ProviderFormat;
+use crate::error::ConvertError;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
 use crate::serde_json::Value;
 use crate::universal::{UniversalResponse, UniversalStreamChunk};
@@ -55,6 +56,33 @@ pub enum TransformError {
 
     #[error("Streaming not implemented: {0}")]
     StreamingNotImplemented(String),
+}
+
+impl TransformError {
+    /// Returns true if this is a client-side error (user's fault).
+    ///
+    /// Client errors indicate invalid input or unsupported configurations
+    /// that the user should fix in their request. This includes conversion
+    /// failures which typically mean the user tried to use features that
+    /// the target provider doesn't support.
+    pub fn is_client_error(&self) -> bool {
+        matches!(
+            self,
+            TransformError::UnableToDetectFormat
+                | TransformError::ValidationFailed { .. }
+                | TransformError::DeserializationFailed(_)
+                | TransformError::UnsupportedTargetFormat(_)
+                | TransformError::UnsupportedSourceFormat(_)
+                | TransformError::ToUniversalFailed(_)
+                | TransformError::FromUniversalFailed(_)
+        )
+    }
+}
+
+impl From<ConvertError> for TransformError {
+    fn from(err: ConvertError) -> Self {
+        TransformError::FromUniversalFailed(err.to_string())
+    }
 }
 
 /// Result of a transformation operation.
@@ -213,6 +241,7 @@ pub fn transform_request(
     // Apply target provider defaults (e.g., Anthropic's required max_tokens)
     target_adapter.apply_defaults(&mut universal);
 
+    // Convert to target format (validation happens in adapter)
     let transformed = target_adapter.request_from_universal(&universal)?;
 
     let bytes = crate::serde_json::to_vec(&transformed)

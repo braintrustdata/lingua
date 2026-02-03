@@ -32,7 +32,7 @@ use crate::streaming::RawResponseStream;
 use lingua::ProviderFormat;
 
 /// Header prefixes blocked from forwarding to upstream LLM providers.
-pub const BLOCKED_HEADER_PREFIXES: &[&str] = &["x-amzn", "x-bt", "sec-"];
+pub const BLOCKED_HEADER_PREFIXES: &[&str] = &["x-amzn", "x-bt", "sec-", "cf-"];
 
 /// Exact header names blocked from forwarding to upstream LLM providers
 /// from https://github.com/braintrustdata/braintrust-proxy/blob/e992f51734c71e689ea0090f9e0a6759c9a593a4/packages/proxy/src/proxy.ts#L247
@@ -50,6 +50,11 @@ pub const BLOCKED_HEADERS: &[&str] = &[
     // Block accept-encoding so reqwest handles compression internally.
     // If client's Accept-Encoding is forwarded, reqwest skips auto-decompression.
     "accept-encoding",
+    // Block proxy/forwarding headers to avoid conflicts with upstream CDNs (e.g., Cloudflare Error 1000)
+    "x-forwarded-for",
+    "x-forwarded-proto",
+    "x-forwarded-host",
+    "x-real-ip",
 ];
 
 #[derive(Debug, Clone, Default)]

@@ -21,6 +21,20 @@ export type AnthropicMessageCreateParams =
     output_format?: Anthropic.Beta.Messages.BetaJSONOutputFormat | null;
   };
 
+// Expectation-based validation for proxy compatibility tests
+// When present, capture.ts skips the case and validate.ts checks expectations
+export interface TestExpectation {
+  // Expected HTTP status code
+  status?: number;
+  // Expected field values using dot notation paths (e.g., "choices[0].logprobs")
+  fields?: Record<string, unknown>;
+  // Expected error response shape
+  error?: {
+    type?: string;
+    message?: string;
+  };
+}
+
 // Well-defined types for test cases
 export interface TestCase {
   "chat-completions": OpenAI.Chat.Completions.ChatCompletionCreateParams | null;
@@ -28,6 +42,8 @@ export interface TestCase {
   anthropic: AnthropicMessageCreateParams | null;
   google: GoogleGenerateContentRequest | null;
   bedrock: BedrockConverseRequest | null;
+  // Optional expectations for proxy compatibility tests
+  expect?: TestExpectation;
 }
 
 // Collection of test cases organized by name

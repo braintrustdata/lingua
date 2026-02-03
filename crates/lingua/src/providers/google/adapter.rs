@@ -9,33 +9,23 @@ Google's API has some unique characteristics:
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::{collect_extras, ProviderAdapter};
+use crate::error::ConvertError;
+use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
-    candidate, generate_content_response, part, Content as GoogleContent, GenerateContentRequest,
-    GenerateContentResponse, GenerationConfig,
+    Content as GoogleContent, GenerationConfig, ThinkingConfig,
 };
+use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
+use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, UniversalParams,
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
     UniversalUsage, UserContent,
 };
-
-/// Known request fields for Google GenerateContent API.
-/// Fields not in this list go into `extras`.
-const GOOGLE_KNOWN_KEYS: &[&str] = &[
-    "contents",
-    "generationConfig",
-    "systemInstruction",
-    "safetySettings",
-    "tools",
-    "toolConfig",
-    "model",
-];
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
@@ -58,60 +48,134 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let extras = collect_extras(&payload, GOOGLE_KNOWN_KEYS);
-        let model = payload
-            .get("model")
-            .and_then(Value::as_str)
-            .map(String::from);
-
-        let request: GenerateContentRequest = serde_json::from_value(payload)
+        // Single parse: typed params now includes typed contents and generation_config
+        let typed_params: GoogleParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(request.contents)
+        let model = typed_params.model.clone();
+
+        // Extract typed contents (partial move - other fields remain accessible)
+        let contents = typed_params.contents.ok_or_else(|| {
+            TransformError::ToUniversalFailed("Google: missing 'contents' field".to_string())
+        })?;
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(contents)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        // Extract params from generationConfig
-        let (temperature, top_p, top_k, max_tokens, stop) =
-            if let Some(config) = &request.generation_config {
+        // Extract params from generationConfig (now typed in params struct)
+        let (temperature, top_p, top_k, max_tokens, stop, reasoning) =
+            if let Some(config) = &typed_params.generation_config {
+                let max_tokens = config.max_output_tokens.map(|t| t as i64);
+                // Convert Google's thinkingConfig to ReasoningConfig
+                // thinkingBudget: 0 means disabled
+                let reasoning = config.thinking_config.as_ref().map(|tc| {
+                    let is_disabled = tc.thinking_budget == Some(0);
+                    let budget_tokens = tc.thinking_budget.map(|b| b as i64);
+                    // Derive effort from budget_tokens
+                    let effort = budget_tokens
+                        .map(|b| crate::universal::reasoning::budget_to_effort(b, None));
+                    crate::universal::ReasoningConfig {
+                        enabled: Some(!is_disabled),
+                        effort,
+                        budget_tokens,
+                        canonical: Some(crate::universal::ReasoningCanonical::BudgetTokens),
+                        ..Default::default()
+                    }
+                });
+                // Generated type has stop_sequences as Vec<String>, convert to Option
+                let stop = if config.stop_sequences.is_empty() {
+                    None
+                } else {
+                    Some(config.stop_sequences.clone())
+                };
                 (
                     config.temperature.map(|t| t as f64),
                     config.top_p.map(|p| p as f64),
                     config.top_k.map(|k| k as i64),
-                    config.max_output_tokens.map(|t| t as i64),
-                    if config.stop_sequences.is_empty() {
-                        None
-                    } else {
-                        serde_json::to_value(&config.stop_sequences).ok()
-                    },
+                    max_tokens,
+                    stop,
+                    reasoning,
                 )
             } else {
-                (None, None, None, None, None)
+                (None, None, None, None, None, None)
             };
 
-        let params = UniversalParams {
+        let mut params = UniversalParams {
             temperature,
             top_p,
             top_k,
             max_tokens,
             stop,
-            tools: if request.tools.is_empty() {
-                None
-            } else {
-                serde_json::to_value(&request.tools).ok()
-            },
+            tools: typed_params.tools.and_then(|t| {
+                // Google uses [{functionDeclarations: [{name, description, parameters}]}]
+                // Parse into UniversalTools
+                let value = serde_json::to_value(&t).ok()?;
+                let tools_arr = value.as_array()?;
+
+                let mut universal_tools = Vec::new();
+                for tool_group in tools_arr {
+                    if let Some(func_decls) = tool_group.get("functionDeclarations") {
+                        if let Some(decls) = func_decls.as_array() {
+                            for decl in decls {
+                                let name = decl.get("name").and_then(|v| v.as_str())?;
+                                let description = decl
+                                    .get("description")
+                                    .and_then(|v| v.as_str())
+                                    .map(String::from);
+                                let parameters = decl.get("parameters").cloned();
+
+                                universal_tools.push(UniversalTool::function(
+                                    name,
+                                    description,
+                                    parameters,
+                                    None,
+                                ));
+                            }
+                        }
+                    }
+                }
+
+                if universal_tools.is_empty() {
+                    // Fallback: store as builtin for unknown format
+                    Some(vec![UniversalTool::builtin(
+                        "google_tools",
+                        "google",
+                        "unknown",
+                        Some(value),
+                    )])
+                } else {
+                    Some(universal_tools)
+                }
+            }),
             tool_choice: None, // Google uses different mechanism
             response_format: None,
             seed: None, // Google doesn't support seed
             presence_penalty: None,
             frequency_penalty: None,
             stream: None, // Google uses endpoint-based streaming
+            // New canonical fields - Google doesn't support most of these
+            parallel_tool_calls: None,
+            reasoning,
+            metadata: None,
+            store: None,
+            service_tier: None,
+            logprobs: None,
+            top_logprobs: None,
+            extras: Default::default(),
         };
+
+        // Use extras captured automatically via #[serde(flatten)]
+        if !typed_params.extras.is_empty() {
+            params.extras.insert(
+                ProviderFormat::Google,
+                typed_params.extras.into_iter().collect(),
+            );
+        }
 
         Ok(UniversalRequest {
             model,
             messages,
             params,
-            extras,
         })
     }
 
@@ -171,58 +235,112 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Build generationConfig if any params are set
-        let stop_sequences = req
+        let has_reasoning = req
             .params
-            .stop
+            .reasoning
             .as_ref()
-            .map(|stop| match stop {
-                Value::Array(arr) => arr
-                    .iter()
-                    .filter_map(|s| s.as_str().map(|v| v.to_string()))
-                    .collect::<Vec<_>>(),
-                Value::String(s) => vec![s.clone()],
-                _ => Vec::new(),
-            })
-            .unwrap_or_default();
+            .map(|r| !r.is_effectively_disabled())
+            .unwrap_or(false);
+        let has_params = req.params.temperature.is_some()
+            || req.params.top_p.is_some()
+            || req.params.top_k.is_some()
+            || req.params.max_tokens.is_some()
+            || req.params.stop.is_some()
+            || has_reasoning;
 
-        let config = GenerationConfig {
-            temperature: req.params.temperature.map(|t| t as f32),
-            top_p: req.params.top_p.map(|p| p as f32),
-            top_k: req.params.top_k.map(|k| k as i32),
-            max_output_tokens: req.params.max_tokens.map(|t| t as i32),
-            stop_sequences,
-            ..GenerationConfig::default()
-        };
+        if has_params {
+            // Convert ReasoningConfig to Google's thinkingConfig
+            let thinking_config = req.params.reasoning.as_ref().and_then(|r| {
+                if r.is_effectively_disabled() {
+                    return None;
+                }
+                // Use budget_tokens or default minimum
+                let budget = r
+                    .budget_tokens
+                    .unwrap_or(crate::universal::reasoning::MIN_THINKING_BUDGET);
+                Some(ThinkingConfig {
+                    include_thoughts: Some(true),
+                    thinking_budget: Some(budget as i32),
+                })
+            });
 
-        let config_value = serde_json::to_value(config)
-            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-        if !config_value
-            .as_object()
-            .map(|map| map.is_empty())
-            .unwrap_or(true)
-        {
-            obj.insert("generationConfig".into(), config_value);
+            // Generated type has stop_sequences as Vec<String>, not Option
+            let stop_sequences = req.params.stop.clone().unwrap_or_default();
+
+            let config = GenerationConfig {
+                temperature: req.params.temperature.map(|t| t as f32),
+                top_p: req.params.top_p.map(|p| p as f32),
+                top_k: req.params.top_k.map(|k| k as i32),
+                max_output_tokens: req.params.max_tokens.map(|t| t as i32),
+                stop_sequences,
+                thinking_config,
+                ..Default::default()
+            };
+
+            obj.insert(
+                "generationConfig".into(),
+                serde_json::to_value(config)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
         }
 
         // Add tools if present
+        // Google uses functionDeclarations format: [{name, description, parameters}]
         if let Some(tools) = &req.params.tools {
-            obj.insert("tools".into(), tools.clone());
+            // First check for Google builtins (pass through original config)
+            let mut google_builtin_found = false;
+            for tool in tools {
+                if let UniversalToolType::Builtin {
+                    provider, config, ..
+                } = &tool.tool_type
+                {
+                    if provider == "google" {
+                        if let Some(config_value) = config {
+                            obj.insert("tools".into(), config_value.clone());
+                            google_builtin_found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // If no Google builtin, convert function tools to Google format
+            if !google_builtin_found {
+                let function_declarations: Vec<serde_json::Value> = tools
+                    .iter()
+                    .filter_map(|tool| {
+                        if tool.is_function() {
+                            Some(serde_json::json!({
+                                "name": tool.name,
+                                "description": tool.description,
+                                "parameters": tool.parameters.clone().unwrap_or(serde_json::json!({}))
+                            }))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+
+                if !function_declarations.is_empty() {
+                    obj.insert(
+                        "tools".into(),
+                        serde_json::json!([{"functionDeclarations": function_declarations}]),
+                    );
+                }
+            }
         }
 
-        // Merge extras - only include Google-known fields
-        // This filters out OpenAI-specific fields like stream_options that would cause
-        // Google to reject the request with "Unknown name: stream_options"
-        for (k, v) in &req.extras {
-            if GOOGLE_KNOWN_KEYS.contains(&k.as_str()) {
-                obj.insert(k.clone(), v.clone());
+        // Merge back provider-specific extras (only for Google)
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::Google) {
+            for (k, v) in extras {
+                // Don't overwrite canonical fields we already handled
+                if !obj.contains_key(k) {
+                    obj.insert(k.clone(), v.clone());
+                }
             }
         }
 
         Ok(Value::Object(obj))
-    }
-
-    fn apply_defaults(&self, _req: &mut UniversalRequest) {
-        // Google doesn't require any specific defaults
     }
 
     fn detect_response(&self, payload: &Value) -> bool {
@@ -234,52 +352,42 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
-        let response: GenerateContentResponse = serde_json::from_value(payload)
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-        let GenerateContentResponse {
-            candidates,
-            usage_metadata,
-            model_version,
-            ..
-        } = response;
+        let candidates = payload
+            .get("candidates")
+            .and_then(Value::as_array)
+            .ok_or_else(|| TransformError::ToUniversalFailed("missing candidates".to_string()))?;
 
         let mut messages = Vec::new();
         let mut finish_reason = None;
 
         for candidate in candidates {
-            let content = candidate.content;
-            let finish_reason_value = candidate.finish_reason;
-
-            if let Some(content) = content {
+            if let Some(content_val) = candidate.get("content") {
+                let content: GoogleContent = serde_json::from_value(content_val.clone())
+                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
                 let universal = <Message as TryFromLLM<GoogleContent>>::try_from(content)
                     .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
                 messages.push(universal);
             }
 
             // Get finishReason from first candidate
-            if finish_reason.is_none() && finish_reason_value != 0 {
-                let reason = candidate::FinishReason::try_from(finish_reason_value)
-                    .ok()
-                    .map(|r| r.as_str_name())
-                    .unwrap_or("FINISH_REASON_UNSPECIFIED");
-                finish_reason = Some(reason.parse().unwrap());
+            if finish_reason.is_none() {
+                if let Some(reason) = candidate.get("finishReason").and_then(Value::as_str) {
+                    finish_reason =
+                        Some(reason.parse().map_err(|_| ConvertError::InvalidEnumValue {
+                            type_name: "FinishReason",
+                            value: reason.to_string(),
+                        })?);
+                }
             }
         }
 
-        let usage = usage_metadata.map(|u| UniversalUsage {
-            prompt_tokens: Some(u.prompt_token_count as i64),
-            completion_tokens: Some(u.candidates_token_count as i64),
-            prompt_cached_tokens: Some(u.cached_content_token_count as i64),
-            prompt_cache_creation_tokens: None, // Google doesn't report cache creation tokens
-            completion_reasoning_tokens: Some(u.thoughts_token_count as i64),
-        });
+        let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
-            model: if model_version.is_empty() {
-                None
-            } else {
-                Some(model_version)
-            },
+            model: payload
+                .get("modelVersion")
+                .and_then(Value::as_str)
+                .map(String::from),
             messages,
             usage,
             finish_reason,
@@ -287,73 +395,42 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError> {
-        let finish_reason = map_finish_reason_to_candidate_enum(
-            self.map_finish_reason(resp.finish_reason.as_ref()),
-        );
+        let finish_reason = resp
+            .finish_reason
+            .as_ref()
+            .map(|r| r.to_provider_string(self.format()).to_string())
+            .unwrap_or_else(|| "STOP".to_string());
 
-        let candidates = resp
+        let candidates: Vec<Value> = resp
             .messages
             .iter()
             .enumerate()
             .map(|(i, msg)| {
                 let content = <GoogleContent as TryFromLLM<Message>>::try_from(msg.clone())
                     .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
-                Ok(crate::providers::google::generated::Candidate {
-                    index: Some(i as i32),
-                    content: Some(content),
-                    finish_reason,
-                    finish_message: None,
-                    safety_ratings: Vec::new(),
-                    citation_metadata: None,
-                    token_count: 0,
-                    grounding_attributions: Vec::new(),
-                    grounding_metadata: None,
-                    avg_logprobs: 0.0,
-                    logprobs_result: None,
-                    url_context_metadata: None,
-                })
+
+                let content_value = serde_json::to_value(&content)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+
+                Ok(serde_json::json!({
+                    "index": i,
+                    "content": content_value,
+                    "finishReason": finish_reason
+                }))
             })
             .collect::<Result<Vec<_>, TransformError>>()?;
 
-        let usage_metadata = resp.usage.as_ref().map(|usage| {
-            let prompt = usage.prompt_tokens.unwrap_or(0) as i32;
-            let completion = usage.completion_tokens.unwrap_or(0) as i32;
-            generate_content_response::UsageMetadata {
-                prompt_token_count: prompt,
-                cached_content_token_count: usage.prompt_cached_tokens.unwrap_or(0) as i32,
-                candidates_token_count: completion,
-                tool_use_prompt_token_count: 0,
-                thoughts_token_count: usage.completion_reasoning_tokens.unwrap_or(0) as i32,
-                total_token_count: prompt + completion,
-                prompt_tokens_details: Vec::new(),
-                cache_tokens_details: Vec::new(),
-                candidates_tokens_details: Vec::new(),
-                tool_use_prompt_tokens_details: Vec::new(),
-            }
-        });
+        let mut map = serde_json::Map::new();
+        map.insert("candidates".into(), Value::Array(candidates));
 
-        let response = GenerateContentResponse {
-            candidates,
-            prompt_feedback: None,
-            usage_metadata,
-            model_version: resp.model.clone().unwrap_or_default(),
-            response_id: String::new(),
-        };
+        if let Some(usage) = &resp.usage {
+            map.insert(
+                "usageMetadata".into(),
+                usage.to_provider_value(self.format()),
+            );
+        }
 
-        let mut value = serde_json::to_value(response)
-            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-        ensure_candidates_field(&mut value);
-        Ok(value)
-    }
-
-    fn map_finish_reason(&self, reason: Option<&FinishReason>) -> Option<String> {
-        reason.map(|r| match r {
-            FinishReason::Stop => "STOP".to_string(),
-            FinishReason::Length => "MAX_TOKENS".to_string(),
-            FinishReason::ToolCalls => "TOOL_CALLS".to_string(),
-            FinishReason::ContentFilter => "SAFETY".to_string(),
-            FinishReason::Other(s) => s.clone(),
-        })
+        Ok(Value::Object(map))
     }
 
     // =========================================================================
@@ -370,48 +447,35 @@ impl ProviderAdapter for GoogleAdapter {
         &self,
         payload: Value,
     ) -> Result<Option<UniversalStreamChunk>, TransformError> {
-        let response: GenerateContentResponse = serde_json::from_value(payload)
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-        let GenerateContentResponse {
-            candidates,
-            usage_metadata,
-            model_version,
-            response_id,
-            ..
-        } = response;
+        let candidates = payload
+            .get("candidates")
+            .and_then(Value::as_array)
+            .ok_or_else(|| TransformError::ToUniversalFailed("missing candidates".to_string()))?;
 
         let mut choices = Vec::new();
 
         for candidate in candidates {
-            let index = candidate.index.unwrap_or(0) as u32;
+            let index = candidate.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
 
             // Extract text from content.parts
             let text: String = candidate
-                .content
-                .as_ref()
-                .map(|content| {
-                    content
-                        .parts
+                .get("content")
+                .and_then(|c| c.get("parts"))
+                .and_then(Value::as_array)
+                .map(|parts| {
+                    parts
                         .iter()
-                        .filter_map(|part| match &part.data {
-                            Some(part::Data::Text(text)) => Some(text.as_str()),
-                            _ => None,
-                        })
+                        .filter_map(|p| p.get("text").and_then(Value::as_str))
                         .collect::<Vec<_>>()
                         .join("")
                 })
                 .unwrap_or_default();
 
-            // Map finish reason
-            let finish_reason = candidate::FinishReason::try_from(candidate.finish_reason)
-                .ok()
-                .map(|r| r.as_str_name())
-                .map(|r| match r {
-                    "STOP" => "stop".to_string(),
-                    "MAX_TOKENS" => "length".to_string(),
-                    "SAFETY" | "RECITATION" | "OTHER" => "content_filter".to_string(),
-                    other => other.to_lowercase(),
-                });
+            // Map finish reason using centralized helper
+            let finish_reason = candidate
+                .get("finishReason")
+                .and_then(Value::as_str)
+                .map(|r| FinishReason::from_provider_string(r, self.format()).to_string());
 
             choices.push(UniversalStreamChoice {
                 index,
@@ -424,24 +488,17 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Extract usage from usageMetadata
-        let usage = usage_metadata.map(|u| UniversalUsage {
-            prompt_tokens: Some(u.prompt_token_count as i64),
-            completion_tokens: Some(u.candidates_token_count as i64),
-            prompt_cached_tokens: Some(u.cached_content_token_count as i64),
-            prompt_cache_creation_tokens: None,
-            completion_reasoning_tokens: Some(u.thoughts_token_count as i64),
-        });
+        let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
-        let model = if model_version.is_empty() {
-            None
-        } else {
-            Some(model_version)
-        };
-        let id = if response_id.is_empty() {
-            None
-        } else {
-            Some(response_id)
-        };
+        let model = payload
+            .get("modelVersion")
+            .and_then(Value::as_str)
+            .map(String::from);
+
+        let id = payload
+            .get("responseId")
+            .and_then(Value::as_str)
+            .map(String::from);
 
         Ok(Some(UniversalStreamChunk::new(
             id, model, choices, None, usage,
@@ -449,123 +506,69 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
-        let candidates = if chunk.is_keep_alive() {
-            Vec::new()
-        } else {
-            chunk
-                .choices
-                .iter()
-                .map(|c| {
-                    // Extract text content from delta
-                    let text = c
-                        .delta
-                        .as_ref()
-                        .and_then(|d| d.get("content"))
-                        .and_then(Value::as_str)
-                        .unwrap_or("");
-
-                    let finish_reason =
-                        map_stream_finish_reason_to_candidate_enum(c.finish_reason.as_deref());
-
-                    crate::providers::google::generated::Candidate {
-                        index: Some(c.index as i32),
-                        content: Some(GoogleContent {
-                            role: "model".to_string(),
-                            parts: vec![crate::providers::google::generated::Part {
-                                thought: false,
-                                thought_signature: Vec::new(),
-                                part_metadata: None,
-                                data: Some(part::Data::Text(text.to_string())),
-                                metadata: None,
-                            }],
-                        }),
-                        finish_reason,
-                        finish_message: None,
-                        safety_ratings: Vec::new(),
-                        citation_metadata: None,
-                        token_count: 0,
-                        grounding_attributions: Vec::new(),
-                        grounding_metadata: None,
-                        avg_logprobs: 0.0,
-                        logprobs_result: None,
-                        url_context_metadata: None,
-                    }
-                })
-                .collect::<Vec<_>>()
-        };
-
-        let usage_metadata = chunk.usage.as_ref().map(|usage| {
-            let prompt = usage.prompt_tokens.unwrap_or(0) as i32;
-            let completion = usage.completion_tokens.unwrap_or(0) as i32;
-            generate_content_response::UsageMetadata {
-                prompt_token_count: prompt,
-                cached_content_token_count: usage.prompt_cached_tokens.unwrap_or(0) as i32,
-                candidates_token_count: completion,
-                tool_use_prompt_token_count: 0,
-                thoughts_token_count: usage.completion_reasoning_tokens.unwrap_or(0) as i32,
-                total_token_count: prompt + completion,
-                prompt_tokens_details: Vec::new(),
-                cache_tokens_details: Vec::new(),
-                candidates_tokens_details: Vec::new(),
-                tool_use_prompt_tokens_details: Vec::new(),
-            }
-        });
-
-        let response = GenerateContentResponse {
-            candidates,
-            prompt_feedback: None,
-            usage_metadata,
-            model_version: chunk.model.clone().unwrap_or_default(),
-            response_id: chunk.id.clone().unwrap_or_default(),
-        };
-
-        let mut value = serde_json::to_value(response)
-            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-        ensure_candidates_field(&mut value);
-        Ok(value)
-    }
-}
-
-fn map_finish_reason_to_candidate_enum(reason_str: Option<String>) -> i32 {
-    if let Some(reason_str) = reason_str {
-        if let Some(mapped) = candidate::FinishReason::from_str_name(&reason_str) {
-            return mapped as i32;
+        if chunk.is_keep_alive() {
+            // Google doesn't have a keep-alive event, return empty candidates
+            return Ok(serde_json::json!({
+                "candidates": []
+            }));
         }
-        if reason_str == "TOOL_CALLS" {
-            return candidate::FinishReason::Other as i32;
+
+        let candidates: Vec<Value> = chunk
+            .choices
+            .iter()
+            .map(|c| {
+                // Extract text content from delta
+                let text = c
+                    .delta
+                    .as_ref()
+                    .and_then(|d| d.get("content"))
+                    .and_then(Value::as_str)
+                    .unwrap_or("");
+
+                // Map finish reason to Google format
+                let finish_reason = c.finish_reason.as_ref().map(|r| match r.as_str() {
+                    "stop" => "STOP",
+                    "length" => "MAX_TOKENS",
+                    "tool_calls" => "TOOL_CALLS",
+                    "content_filter" => "SAFETY",
+                    other => other,
+                });
+
+                let mut candidate_map = serde_json::Map::new();
+                candidate_map.insert("index".into(), serde_json::json!(c.index));
+                candidate_map.insert(
+                    "content".into(),
+                    serde_json::json!({
+                        "parts": [{"text": text}],
+                        "role": "model"
+                    }),
+                );
+
+                if let Some(reason) = finish_reason {
+                    candidate_map.insert("finishReason".into(), Value::String(reason.to_string()));
+                }
+
+                Value::Object(candidate_map)
+            })
+            .collect();
+
+        let mut map = serde_json::Map::new();
+        map.insert("candidates".into(), Value::Array(candidates));
+
+        if let Some(ref id) = chunk.id {
+            map.insert("responseId".into(), Value::String(id.clone()));
         }
-    }
-    0
-}
+        if let Some(ref model) = chunk.model {
+            map.insert("modelVersion".into(), Value::String(model.clone()));
+        }
+        if let Some(ref usage) = chunk.usage {
+            map.insert(
+                "usageMetadata".into(),
+                usage.to_provider_value(self.format()),
+            );
+        }
 
-fn map_stream_finish_reason_to_candidate_enum(reason: Option<&str>) -> i32 {
-    let reason = match reason {
-        Some(value) => value,
-        None => return 0,
-    };
-
-    if reason.eq_ignore_ascii_case("stop") {
-        return candidate::FinishReason::Stop as i32;
-    }
-    if reason.eq_ignore_ascii_case("length") || reason.eq_ignore_ascii_case("max_tokens") {
-        return candidate::FinishReason::MaxTokens as i32;
-    }
-    if reason.eq_ignore_ascii_case("content_filter") {
-        return candidate::FinishReason::Safety as i32;
-    }
-    if reason.eq_ignore_ascii_case("tool_calls") || reason.eq_ignore_ascii_case("tool_use") {
-        return candidate::FinishReason::Other as i32;
-    }
-    if let Some(mapped) = candidate::FinishReason::from_str_name(reason) {
-        return mapped as i32;
-    }
-    candidate::FinishReason::Other as i32
-}
-
-fn ensure_candidates_field(value: &mut Value) {
-    if let Value::Object(map) = value {
-        map.entry("candidates".to_string())
-            .or_insert_with(|| Value::Array(Vec::new()));
+        Ok(Value::Object(map))
     }
 }
 
@@ -601,8 +604,8 @@ mod tests {
         });
 
         let universal = adapter.request_to_universal(payload).unwrap();
-        let temperature = universal.params.temperature.unwrap();
-        assert_eq!(temperature as f32, 0.7f32);
+        // Use approximate comparison due to f32->f64 conversion precision
+        assert!((universal.params.temperature.unwrap() - 0.7).abs() < 0.001);
         assert_eq!(universal.params.max_tokens, Some(1024));
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();

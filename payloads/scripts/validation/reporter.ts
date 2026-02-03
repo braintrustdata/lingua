@@ -58,8 +58,8 @@ export function createStreamingPrinter(options: PrinterOptions) {
       const duration = `${colors.dim}(${result.durationMs}ms)${colors.reset}`;
       const modelLabel =
         result.model !== "default"
-          ? ` ${colors.cyan}[${result.model}]${colors.reset}`
-          : "";
+          ? ` ${colors.cyan}[${result.format} - ${result.model}]${colors.reset}`
+          : ` ${colors.cyan}[${result.format}]${colors.reset}`;
 
       if (result.success && !result.warning) {
         // Clean pass - no diffs
@@ -102,6 +102,17 @@ export function createStreamingPrinter(options: PrinterOptions) {
             `      ${colors.dim}... and ${result.diff.diffs.length - 5} more differences${colors.reset}`
           );
         }
+      }
+
+      // Print actual response when verbose mode is on
+      if (verbose && result.actualResponse !== undefined) {
+        console.log(`    ${colors.cyan}Actual response:${colors.reset}`);
+        console.log(
+          JSON.stringify(result.actualResponse, null, 2)
+            .split("\n")
+            .map((line) => `      ${colors.dim}${line}${colors.reset}`)
+            .join("\n")
+        );
       }
     },
 

@@ -1,0 +1,157 @@
+{
+  "global": [
+    {
+      "source": "*",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific and represent different concepts across providers" },
+        { "pattern": "params.service_tier", "reason": "OpenAI-specific billing tier not universal" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "*",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic reports cache creation tokens" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic doesn't expose reasoning tokens separately (included in output_tokens)" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Responses API annotations/logprobs have no Anthropic equivalent" },
+        { "pattern": "messages.length", "reason": "Responses API OutputItems map to separate Messages; Anthropic consolidates into one" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Anthropic single message expands to multiple OutputItems in Responses API" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Responses API annotations/logprobs have no ChatCompletions equivalent" },
+        { "pattern": "messages[*].content[*].provider_executed", "reason": "Responses API provider_executed flag has no ChatCompletions equivalent" },
+        { "pattern": "messages.length", "reason": "Responses API OutputItems map to separate Messages; ChatCompletions consolidates into one" },
+        { "pattern": "messages[*].content.length", "reason": "Responses API reasoning content parts have no ChatCompletions equivalent" }
+      ]
+    }
+  ],
+  "perTestCase": [
+    {
+      "testCase": "nMultipleCompletionsParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Anthropic doesn't support n>1 (multiple completions), only first choice is preserved" }
+      ]
+    },
+    {
+      "testCase": "reasoningEffortLowParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic thinking blocks become separate 'reasoning' output items in Responses API" }
+      ]
+    },
+    {
+      "testCase": "reasoningSummaryParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic thinking blocks become separate 'reasoning' output items in Responses API" }
+      ]
+    },
+    {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic thinking blocks become separate 'reasoning' output items in Responses API" }
+      ]
+    },
+    {
+      "testCase": "parallelToolCallsDisabledParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic thinking blocks become separate 'reasoning' output items in Responses API" }
+      ]
+    },
+    {
+      "testCase": "toolCallRequest",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic thinking blocks become separate 'reasoning' output items in Responses API" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic web search content blocks become 'web_search_call' output items in Responses API" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic web search content blocks become 'web_search_call' output items in Responses API" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic web search content blocks don't map 1:1 to ChatCompletions structure" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic web search content blocks don't map 1:1 to ChatCompletions structure" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "finish_reason", "reason": "Anthropic web search tool responses have different finish_reason mapping" }
+      ]
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "finish_reason", "reason": "Anthropic web search tool responses have different finish_reason mapping" }
+      ]
+    },
+    {
+      "testCase": "nMultipleCompletionsParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Responses API doesn't support n>1 (multiple completions)" }
+      ]
+    }
+  ]
+}

@@ -154,7 +154,7 @@ impl Router {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(Error::Lingua(e.to_string())),
+            Err(e) => return Err(e.into()),
         };
 
         let response_bytes = self
@@ -168,8 +168,7 @@ impl Router {
             )
             .await?;
 
-        let result = lingua::transform_response(response_bytes.clone(), output_format)
-            .map_err(|e| Error::Lingua(e.to_string()))?;
+        let result = lingua::transform_response(response_bytes.clone(), output_format)?;
 
         let response = match result {
             TransformResult::PassThrough(bytes) => bytes,
@@ -211,7 +210,7 @@ impl Router {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(Error::Lingua(e.to_string())),
+            Err(e) => return Err(e.into()),
         };
 
         let raw_stream = provider

@@ -8,6 +8,7 @@ using the official AWS SDK types for maximum compatibility.
 pub mod adapter;
 pub mod convert;
 pub mod detect;
+pub mod params;
 pub mod request;
 pub mod response;
 
