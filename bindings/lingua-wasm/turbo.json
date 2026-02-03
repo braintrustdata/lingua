@@ -5,11 +5,14 @@
     "build": {
       "outputs": ["nodejs/**", "web/**"],
       "inputs": [
-        "$TURBO_DEFAULT$",
-        "../../**/Cargo.toml",
-        "../../**/Cargo.lock",
-        "../../**/build.rs",
-        "../../**/src/**"
+        "package.json",
+        "../../Cargo.toml",
+        "../../Cargo.lock",
+        "../../.cargo/config.toml",
+        "../../crates/lingua/Cargo.toml",
+        "../../crates/lingua/src/**/*.rs",
+        "../../serde_json/Cargo.toml",
+        "../../serde_json/src/**/*.rs"
       ]
     }
   }
