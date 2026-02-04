@@ -17,7 +17,7 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
 #[cfg(feature = "openai")]
-use crate::providers::openai::is_reasoning_model_name;
+use crate::providers::openai::model_supports_max_tokens;
 use crate::serde_json::Value;
 use crate::universal::{UniversalResponse, UniversalStreamChunk};
 use thiserror::Error;
@@ -502,7 +502,6 @@ fn detect_adapter(
 }
 
 /// Check if a request needs forced translation even when source == target format.
-/// Reasoning models (gpt-5.*, o1-*, etc.) require `max_completion_tokens` instead of `max_tokens`.
 fn needs_forced_translation(payload: &Value, model: Option<&str>, target: ProviderFormat) -> bool {
     if target != ProviderFormat::OpenAI {
         return false;
@@ -510,8 +509,11 @@ fn needs_forced_translation(payload: &Value, model: Option<&str>, target: Provid
 
     #[cfg(feature = "openai")]
     {
+        // If the model doesn't support max_tokens, we need to force translation
         let request_model = payload.get("model").and_then(Value::as_str).or(model);
-        return request_model.map(is_reasoning_model_name).unwrap_or(false);
+        return request_model
+            .map(|m| !model_supports_max_tokens(m))
+            .unwrap_or(false);
     }
 
     #[cfg(not(feature = "openai"))]
