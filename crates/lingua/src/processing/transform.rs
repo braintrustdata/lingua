@@ -511,9 +511,9 @@ fn needs_forced_translation(payload: &Value, model: Option<&str>, target: Provid
     {
         // If the model doesn't support max_tokens, we need to force translation
         let request_model = payload.get("model").and_then(Value::as_str).or(model);
-        return request_model
+        request_model
             .map(|m| !model_supports_max_tokens(m))
-            .unwrap_or(false);
+            .unwrap_or(false)
     }
 
     #[cfg(not(feature = "openai"))]
