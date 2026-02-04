@@ -110,8 +110,11 @@ impl BedrockProvider {
     }
 
     /// Determine which Bedrock API mode to use based on model name.
+    ///
+    /// Handles both direct model IDs (`anthropic.claude-*`) and inference profiles
+    /// (`us.anthropic.claude-*`, `global.anthropic.claude-*`, etc.).
     pub fn determine_mode(&self, model: &str) -> BedrockMode {
-        if model.starts_with("anthropic.") {
+        if model.starts_with("anthropic.") || model.contains(".anthropic.") {
             BedrockMode::AnthropicMessages
         } else {
             BedrockMode::Converse
@@ -446,6 +449,26 @@ mod tests {
         ));
         assert!(matches!(
             provider.determine_mode("anthropic.claude-3-haiku-20240307-v1:0"),
+            BedrockMode::AnthropicMessages
+        ));
+    }
+
+    #[test]
+    fn selects_anthropic_mode_for_inference_profiles() {
+        let provider = provider();
+        // US inference profile
+        assert!(matches!(
+            provider.determine_mode("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
+            BedrockMode::AnthropicMessages
+        ));
+        // Global inference profile
+        assert!(matches!(
+            provider.determine_mode("global.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+            BedrockMode::AnthropicMessages
+        ));
+        // EU inference profile
+        assert!(matches!(
+            provider.determine_mode("eu.anthropic.claude-3-sonnet"),
             BedrockMode::AnthropicMessages
         ));
     }
