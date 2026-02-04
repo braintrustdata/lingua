@@ -108,6 +108,10 @@ const REASONING_MODEL_PREFIXES: &[&str] = &["o1", "o2", "o3", "o4", "gpt-5"];
 /// Legacy o1 models that need special handling.
 const LEGACY_O1_MODELS: &[&str] = &["o1-preview", "o1-mini", "o1-preview-2024-09-12"];
 
+/// Model prefixes that do NOT support the `max_tokens` parameter.
+/// These models require `max_completion_tokens` instead.
+const MODELS_WITHOUT_MAX_TOKENS_SUPPORT: &[&str] = &["o1", "o3", "o4", "gpt-5"];
+
 fn supports_native_structured_output(model: &str, target: TargetProvider) -> bool {
     STRUCTURED_OUTPUT_PREFIXES
         .iter()
@@ -124,4 +128,13 @@ fn is_reasoning_model_name(model: &str) -> bool {
 
 fn is_legacy_o1_model(model: &str) -> bool {
     LEGACY_O1_MODELS.contains(&model)
+}
+
+/// Check if a model supports the `max_tokens` parameter.
+/// Returns false for models that require `max_completion_tokens` instead.
+pub fn model_supports_max_tokens(model: &str) -> bool {
+    let lower = model.to_ascii_lowercase();
+    !MODELS_WITHOUT_MAX_TOKENS_SUPPORT
+        .iter()
+        .any(|prefix| lower.starts_with(prefix))
 }

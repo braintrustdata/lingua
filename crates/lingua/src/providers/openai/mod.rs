@@ -27,6 +27,9 @@ pub mod test_chat_completions;
 // Re-export detection functions
 pub use detect::{try_parse_openai, try_parse_responses, DetectionError};
 
+// Re-export capability functions
+pub use capabilities::model_supports_max_tokens;
+
 // Re-export conversion functions and extension types
 pub use convert::{
     universal_to_responses_input, ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
