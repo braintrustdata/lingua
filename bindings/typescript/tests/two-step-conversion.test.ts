@@ -8,7 +8,6 @@
 
 import { describe, test, expect } from "vitest";
 import { importMessagesFromSpans } from "../src/index";
-import * as fs from "fs";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
