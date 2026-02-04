@@ -115,7 +115,11 @@ fn supports_native_structured_output(model: &str, target: TargetProvider) -> boo
         || matches!(target, TargetProvider::Fireworks)
 }
 
-fn is_reasoning_model_name(model: &str) -> bool {
+/// Check if a model name indicates a reasoning model that requires special handling.
+///
+/// Reasoning models (o1, o2, o3, o4, gpt-5) require `max_completion_tokens` instead
+/// of `max_tokens`, so passthrough must be disabled to ensure proper conversion.
+pub fn is_reasoning_model_name(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
     REASONING_MODEL_PREFIXES
         .iter()
