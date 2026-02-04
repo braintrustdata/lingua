@@ -151,8 +151,7 @@ impl Router {
         let (provider, auth, spec, strategy) = self.resolve_provider(model)?;
         // Use spec.format for transformation - this allows composite providers
         // (like Bedrock) to handle multiple formats based on the model's catalog entry
-        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model))
-        {
+        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
@@ -210,8 +209,7 @@ impl Router {
         let (provider, auth, spec, _) = self.resolve_provider(model)?;
         // Use spec.format for transformation - this allows composite providers
         // (like Bedrock) to handle multiple formats based on the model's catalog entry
-        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model))
-        {
+        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),

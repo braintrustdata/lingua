@@ -121,7 +121,12 @@ impl BedrockProvider {
     }
 
     /// Build the invoke URL for a specific mode.
-    pub fn invoke_url_for_mode(&self, model: &str, mode: &BedrockMode, stream: bool) -> Result<Url> {
+    pub fn invoke_url_for_mode(
+        &self,
+        model: &str,
+        mode: &BedrockMode,
+        stream: bool,
+    ) -> Result<Url> {
         let path = match (mode, stream) {
             (BedrockMode::Converse, false) => format!("model/{model}/converse"),
             (BedrockMode::Converse, true) => format!("model/{model}/converse-stream"),
@@ -451,7 +456,11 @@ mod tests {
     fn builds_invoke_endpoint_for_anthropic() {
         let provider = provider();
         let url = provider
-            .invoke_url_for_mode("anthropic.claude-3-sonnet", &BedrockMode::AnthropicMessages, false)
+            .invoke_url_for_mode(
+                "anthropic.claude-3-sonnet",
+                &BedrockMode::AnthropicMessages,
+                false,
+            )
             .unwrap();
         assert_eq!(
             url.as_str(),
@@ -463,7 +472,11 @@ mod tests {
     fn builds_invoke_stream_endpoint_for_anthropic() {
         let provider = provider();
         let url = provider
-            .invoke_url_for_mode("anthropic.claude-3-sonnet", &BedrockMode::AnthropicMessages, true)
+            .invoke_url_for_mode(
+                "anthropic.claude-3-sonnet",
+                &BedrockMode::AnthropicMessages,
+                true,
+            )
             .unwrap();
         assert_eq!(
             url.as_str(),
