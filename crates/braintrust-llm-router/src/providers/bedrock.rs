@@ -108,18 +108,6 @@ impl BedrockProvider {
         }
     }
 
-    fn invoke_url(&self, model: &str, stream: bool) -> Result<Url> {
-        let path = if stream {
-            format!("model/{model}/converse-stream")
-        } else {
-            format!("model/{model}/converse")
-        };
-        self.config
-            .endpoint
-            .join(&path)
-            .map_err(|e| Error::InvalidRequest(format!("failed to build invoke url: {e}")))
-    }
-
     /// Build the invoke URL for a specific mode.
     pub fn invoke_url_for_mode(
         &self,
@@ -244,7 +232,13 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         _client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.invoke_url(&spec.model, false)?;
+        let mode = self.determine_mode(&spec.model);
+        let url = self.invoke_url_for_mode(&spec.model, &mode, false)?;
+        let payload = if mode == BedrockMode::AnthropicMessages {
+            prepare_anthropic_payload(payload)?
+        } else {
+            payload
+        };
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -307,7 +301,13 @@ impl crate::providers::Provider for BedrockProvider {
         }
 
         // Router should have already added stream options to payload
-        let url = self.invoke_url(&spec.model, true)?;
+        let mode = self.determine_mode(&spec.model);
+        let url = self.invoke_url_for_mode(&spec.model, &mode, true)?;
+        let payload = if mode == BedrockMode::AnthropicMessages {
+            prepare_anthropic_payload(payload)?
+        } else {
+            payload
+        };
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
