@@ -224,17 +224,10 @@ This process is fully automated and generates only essential types to minimize c
 
 ## Development workflow
 
-**Run `make verify` before committing.** This runs the same checks as CI:
-- `cargo fmt --all -- --check` - formatting
-- `cargo clippy --all-targets --all-features -- -D warnings` - lints (warnings are errors)
-- `cargo test` with `-D warnings` (includes build)
-
-**Run `make check-quick` for fast iteration.** Skips build/test, just runs fmt + clippy (catches most issues like dead code, unused imports).
-
-CI runs with `-D warnings` which treats all warnings as errors. Common issues:
-- `dead_code` - unused functions, methods, or types
-- `unused_imports` - imports that aren't used
-- `unused_variables` - variables that aren't used (prefix with `_` if intentional)
+1. Write a failing test or repro
+2. Make the change
+3. Run tests (`cargo test`)
+4. Before committing, run `make verify` (runs tests and lint)
 
 ## Development setup
 
