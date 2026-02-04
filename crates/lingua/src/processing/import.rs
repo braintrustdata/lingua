@@ -26,19 +26,25 @@ pub struct Span {
 /// Returns early to avoid expensive deserialization attempts on non-message data
 fn has_message_structure(data: &Value) -> bool {
     match data {
-        // Check if it's an array where first element has "role" field or is a choice object
+        // Check if it's an array where ANY element has "role" field or is a choice object
         Value::Array(arr) => {
             if arr.is_empty() {
                 return false;
             }
-            if let Some(Value::Object(first)) = arr.first() {
-                // Direct message format: has "role" field
-                if first.contains_key("role") {
-                    return true;
-                }
-                // Chat completions response choices format: has "message" field with role inside
-                if let Some(Value::Object(msg)) = first.get("message") {
-                    return msg.contains_key("role");
+            // Check if ANY element in the array looks like a message (not just the first)
+            // This handles mixed-type arrays from Responses API
+            for item in arr {
+                if let Value::Object(obj) = item {
+                    // Direct message format: has "role" field
+                    if obj.contains_key("role") {
+                        return true;
+                    }
+                    // Chat completions response choices format: has "message" field with role inside
+                    if let Some(Value::Object(msg)) = obj.get("message") {
+                        if msg.contains_key("role") {
+                            return true;
+                        }
+                    }
                 }
             }
             false
@@ -99,6 +105,7 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     }
 
     // Try Responses API format
+    // First try to parse the entire array as InputItems (for uniform arrays)
     if let Ok(provider_messages) =
         serde_json::from_value::<Vec<openai::InputItem>>(data_to_parse.clone())
     {
@@ -108,6 +115,48 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
             if !messages.is_empty() {
                 return messages;
             }
+        }
+    }
+
+    // If that fails, try parsing individual items (for mixed-type arrays like Responses API output)
+    // This handles arrays with reasoning, function calls, and messages mixed together
+    if let Value::Array(arr) = data_to_parse {
+        let mut messages = Vec::new();
+        for item in arr {
+            // Check if this item has type: "message" and extract it using lenient parsing
+            if let Some(obj) = item.as_object() {
+                if let Some(Value::String(type_str)) = obj.get("type") {
+                    if type_str == "message" {
+                        // This is a message item, try lenient parsing
+                        if let Some(msg) = parse_lenient_message_item(item) {
+                            messages.push(msg);
+                            continue;
+                        }
+                        // If lenient parsing fails, log why (temporarily for debugging)
+                        eprintln!("Failed to parse message item with type='message': {:?}", item);
+                    }
+                }
+            }
+
+            // Try to parse as InputItem
+            if let Ok(input_item) = serde_json::from_value::<openai::InputItem>(item.clone()) {
+                if let Ok(msg_vec) =
+                    <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![input_item])
+                {
+                    messages.extend(msg_vec);
+                }
+            }
+            // Also try to parse as OutputItem (for output arrays)
+            else if let Ok(output_item) = serde_json::from_value::<openai::OutputItem>(item.clone()) {
+                if let Ok(msg_vec) =
+                    <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![output_item])
+                {
+                    messages.extend(msg_vec);
+                }
+            }
+        }
+        if !messages.is_empty() {
+            return messages;
         }
     }
 
@@ -198,7 +247,8 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
             for item in arr {
                 if let Some(obj) = item.as_object() {
                     if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "text" {
+                        // Handle both "text" and "input_text" (Responses API format)
+                        if text_type == "text" || text_type == "input_text" {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(UserContentPart::Text(TextContentPart {
                                     text: text.clone(),
@@ -228,7 +278,8 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
             for item in arr {
                 if let Some(obj) = item.as_object() {
                     if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "text" {
+                        // Handle both "text" and "output_text" (Responses API format)
+                        if text_type == "text" || text_type == "output_text" {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(crate::universal::AssistantContentPart::Text(
                                     TextContentPart {
