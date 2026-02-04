@@ -149,7 +149,9 @@ impl Router {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let (provider, auth, spec, strategy) = self.resolve_provider(model)?;
-        let payload = match lingua::transform_request(body.clone(), provider.format(), Some(model))
+        // Use spec.format for transformation - this allows composite providers
+        // (like Bedrock) to handle multiple formats based on the model's catalog entry
+        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model))
         {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
@@ -206,7 +208,9 @@ impl Router {
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
         let (provider, auth, spec, _) = self.resolve_provider(model)?;
-        let payload = match lingua::transform_request(body.clone(), provider.format(), Some(model))
+        // Use spec.format for transformation - this allows composite providers
+        // (like Bedrock) to handle multiple formats based on the model's catalog entry
+        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model))
         {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
@@ -366,6 +370,20 @@ impl RouterBuilder {
         let format = provider.format();
         self.formats.insert(format, alias.clone());
         self.providers.insert(alias, provider);
+        self
+    }
+
+    /// Register an additional format for an existing provider alias.
+    ///
+    /// This allows a single provider to handle multiple formats, which is useful
+    /// for composite providers like Bedrock that can handle both Converse and
+    /// Anthropic formats.
+    pub fn add_provider_for_format(
+        mut self,
+        alias: impl Into<String>,
+        format: ProviderFormat,
+    ) -> Self {
+        self.formats.insert(format, alias.into());
         self
     }
 

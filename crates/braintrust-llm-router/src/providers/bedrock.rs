@@ -39,6 +39,15 @@ impl Default for BedrockConfig {
     }
 }
 
+/// Bedrock API mode - determines which endpoint to use.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BedrockMode {
+    /// AWS Converse API - unified format for all Bedrock models
+    Converse,
+    /// Anthropic Messages API - native format for Claude models on Bedrock
+    AnthropicMessages,
+}
+
 #[derive(Debug, Clone)]
 pub struct BedrockProvider {
     client: Client,
@@ -90,11 +99,36 @@ impl BedrockProvider {
         Self::new(config)
     }
 
+    /// Determine which Bedrock API mode to use based on model name.
+    pub fn determine_mode(&self, model: &str) -> BedrockMode {
+        if model.starts_with("anthropic.") {
+            BedrockMode::AnthropicMessages
+        } else {
+            BedrockMode::Converse
+        }
+    }
+
     fn invoke_url(&self, model: &str, stream: bool) -> Result<Url> {
         let path = if stream {
             format!("model/{model}/converse-stream")
         } else {
             format!("model/{model}/converse")
+        };
+        self.config
+            .endpoint
+            .join(&path)
+            .map_err(|e| Error::InvalidRequest(format!("failed to build invoke url: {e}")))
+    }
+
+    /// Build the invoke URL for a specific mode.
+    pub fn invoke_url_for_mode(&self, model: &str, mode: &BedrockMode, stream: bool) -> Result<Url> {
+        let path = match (mode, stream) {
+            (BedrockMode::Converse, false) => format!("model/{model}/converse"),
+            (BedrockMode::Converse, true) => format!("model/{model}/converse-stream"),
+            (BedrockMode::AnthropicMessages, false) => format!("model/{model}/invoke"),
+            (BedrockMode::AnthropicMessages, true) => {
+                format!("model/{model}/invoke-with-response-stream")
+            }
         };
         self.config
             .endpoint
@@ -356,5 +390,104 @@ fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
         Some(Duration::from_secs(2))
     } else {
         None
+    }
+}
+
+/// Prepare an Anthropic-format payload for Bedrock by adding anthropic_version.
+pub fn prepare_anthropic_payload(payload: Bytes) -> Result<Bytes> {
+    let mut body: lingua::serde_json::Value = lingua::serde_json::from_slice(&payload)
+        .map_err(|e| Error::InvalidRequest(format!("failed to parse payload: {e}")))?;
+    if let Some(obj) = body.as_object_mut() {
+        obj.insert(
+            "anthropic_version".into(),
+            lingua::serde_json::Value::String("bedrock-2023-05-31".into()),
+        );
+    }
+    let bytes = lingua::serde_json::to_vec(&body)
+        .map_err(|e| Error::InvalidRequest(format!("failed to serialize payload: {e}")))?;
+    Ok(Bytes::from(bytes))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn provider() -> BedrockProvider {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
+            service: "bedrock".into(),
+            timeout: None,
+        };
+        BedrockProvider::new(config).unwrap()
+    }
+
+    #[test]
+    fn selects_anthropic_mode_for_claude_models() {
+        let provider = provider();
+        assert!(matches!(
+            provider.determine_mode("anthropic.claude-3-sonnet-20240229-v1:0"),
+            BedrockMode::AnthropicMessages
+        ));
+        assert!(matches!(
+            provider.determine_mode("anthropic.claude-3-haiku-20240307-v1:0"),
+            BedrockMode::AnthropicMessages
+        ));
+    }
+
+    #[test]
+    fn selects_converse_mode_for_other_models() {
+        let provider = provider();
+        assert!(matches!(
+            provider.determine_mode("amazon.titan-text-express-v1"),
+            BedrockMode::Converse
+        ));
+        assert!(matches!(
+            provider.determine_mode("meta.llama3-70b-instruct-v1:0"),
+            BedrockMode::Converse
+        ));
+    }
+
+    #[test]
+    fn builds_invoke_endpoint_for_anthropic() {
+        let provider = provider();
+        let url = provider
+            .invoke_url_for_mode("anthropic.claude-3-sonnet", &BedrockMode::AnthropicMessages, false)
+            .unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/anthropic.claude-3-sonnet/invoke"
+        );
+    }
+
+    #[test]
+    fn builds_invoke_stream_endpoint_for_anthropic() {
+        let provider = provider();
+        let url = provider
+            .invoke_url_for_mode("anthropic.claude-3-sonnet", &BedrockMode::AnthropicMessages, true)
+            .unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/anthropic.claude-3-sonnet/invoke-with-response-stream"
+        );
+    }
+
+    #[test]
+    fn builds_converse_endpoint_for_others() {
+        let provider = provider();
+        let url = provider
+            .invoke_url_for_mode("amazon.titan-text-express", &BedrockMode::Converse, false)
+            .unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/amazon.titan-text-express/converse"
+        );
+    }
+
+    #[test]
+    fn prepares_anthropic_payload_with_version() {
+        let payload = Bytes::from(r#"{"model":"claude","messages":[]}"#);
+        let result = prepare_anthropic_payload(payload).unwrap();
+        let body: lingua::serde_json::Value = lingua::serde_json::from_slice(&result).unwrap();
+        assert_eq!(body.get("anthropic_version").unwrap(), "bedrock-2023-05-31");
     }
 }

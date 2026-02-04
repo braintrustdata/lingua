@@ -383,3 +383,111 @@ async fn router_retries_and_propagates_terminal_error() {
     assert!(matches!(err, Error::Timeout));
     assert_eq!(attempts.load(Ordering::SeqCst), 3);
 }
+
+/// Test that a provider can be registered for multiple formats via add_provider_for_format().
+/// This enables composite providers like Bedrock that handle both Converse and Anthropic formats.
+#[tokio::test]
+async fn router_supports_multi_format_provider() {
+    let mut catalog = ModelCatalog::empty();
+    // Model A uses OpenAI format (primary format of the provider)
+    catalog.insert(
+        "model-a".into(),
+        ModelSpec {
+            model: "model-a".into(),
+            format: ProviderFormat::OpenAI,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+        },
+    );
+    // Model B uses Anthropic format (secondary format via add_provider_for_format)
+    catalog.insert(
+        "model-b".into(),
+        ModelSpec {
+            model: "model-b".into(),
+            format: ProviderFormat::Anthropic,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+        },
+    );
+    let catalog = Arc::new(catalog);
+
+    // StubProvider returns OpenAI format from format()
+    // We register it for both OpenAI (via add_provider) and Anthropic (via add_provider_for_format)
+    let router = RouterBuilder::new()
+        .with_catalog(Arc::clone(&catalog))
+        .add_provider("multi", StubProvider)
+        .add_provider_for_format("multi", ProviderFormat::Anthropic)
+        .add_auth(
+            "multi",
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: None,
+                prefix: None,
+            },
+        )
+        .build()
+        .expect("router builds");
+
+    // Model A (OpenAI format) should route to "multi" provider
+    let body = to_body(json!({
+        "model": "model-a",
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+    let bytes = router
+        .complete(
+            body,
+            "model-a",
+            ProviderFormat::OpenAI,
+            &ClientHeaders::default(),
+        )
+        .await
+        .expect("model-a should route to multi provider");
+    let response: Value =
+        braintrust_llm_router::serde_json::from_slice(&bytes).expect("valid json");
+    assert_eq!(
+        response.get("model").and_then(Value::as_str),
+        Some("model-a")
+    );
+
+    // Model B (Anthropic format) should ALSO route to "multi" provider
+    // This verifies add_provider_for_format() registered the provider for Anthropic format
+    let body = to_body(json!({
+        "model": "model-b",
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+    let bytes = router
+        .complete(
+            body,
+            "model-b",
+            ProviderFormat::OpenAI,
+            &ClientHeaders::default(),
+        )
+        .await
+        .expect("model-b should also route to multi provider via add_provider_for_format");
+    let response: Value =
+        braintrust_llm_router::serde_json::from_slice(&bytes).expect("valid json");
+    assert_eq!(
+        response.get("model").and_then(Value::as_str),
+        Some("model-b")
+    );
+}
