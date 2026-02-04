@@ -1,5 +1,8 @@
 name: CI
 
+# TODO: This workflow should be calling make targets instead of duplicating commands.
+# See `make verify` for the local equivalent of these checks.
+
 on:
   push:
     branches: [ main ]

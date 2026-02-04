@@ -1,4 +1,4 @@
-.PHONY: all lingua-wasm typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup
+.PHONY: all lingua-wasm typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup verify clippy
 
 all: typescript python ## Build all bindings
 
@@ -77,6 +77,20 @@ fmt: ## Format all code
 	cargo fmt
 	@echo "Formatting TypeScript code..."
 	cd bindings/typescript && pnpm run lint
+
+clippy: ## Run clippy with warnings as errors (matches CI)
+	cargo clippy --all-targets --all-features -- -D warnings
+
+verify: ## Run all CI checks locally (run before committing)
+	@echo "Checking formatting..."
+	cargo fmt --all -- --check
+	@echo "Running clippy..."
+	cargo clippy --all-targets --all-features -- -D warnings
+	@echo "Building..."
+	RUSTFLAGS="-D warnings" cargo build --verbose
+	@echo "Running tests..."
+	RUSTFLAGS="-D warnings" cargo test --verbose
+	@echo "All checks passed!"
 
 install-hooks: ## Install git pre-commit hooks
 	@echo "Installing git hooks..."
