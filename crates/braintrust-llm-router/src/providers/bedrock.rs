@@ -21,11 +21,16 @@ use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, single_bytes_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
+/// Default anthropic_version for Bedrock's Anthropic Messages API.
+/// See: https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages.html
+pub const DEFAULT_ANTHROPIC_VERSION: &str = "bedrock-2023-05-31";
+
 #[derive(Debug, Clone)]
 pub struct BedrockConfig {
     pub endpoint: Url,
     pub service: String,
     pub timeout: Option<Duration>,
+    pub anthropic_version: String,
 }
 
 impl Default for BedrockConfig {
@@ -35,6 +40,7 @@ impl Default for BedrockConfig {
                 .expect("valid Bedrock endpoint"),
             service: "bedrock".to_string(),
             timeout: None,
+            anthropic_version: DEFAULT_ANTHROPIC_VERSION.to_string(),
         }
     }
 }
@@ -73,6 +79,7 @@ impl BedrockProvider {
     /// Extracts Bedrock-specific options from metadata:
     /// - `region`: AWS region (used to construct endpoint if not provided)
     /// - `service`: AWS service name (defaults to "bedrock")
+    /// - `anthropic_version`: API version for Anthropic models (defaults to "bedrock-2023-05-31")
     pub fn from_config(
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
@@ -91,6 +98,9 @@ impl BedrockProvider {
 
         if let Some(service) = metadata.get("service").and_then(Value::as_str) {
             config.service = service.to_string();
+        }
+        if let Some(version) = metadata.get("anthropic_version").and_then(Value::as_str) {
+            config.anthropic_version = version.to_string();
         }
         if let Some(t) = timeout {
             config.timeout = Some(t);
@@ -235,7 +245,7 @@ impl crate::providers::Provider for BedrockProvider {
         let mode = self.determine_mode(&spec.model);
         let url = self.invoke_url_for_mode(&spec.model, &mode, false)?;
         let payload = if mode == BedrockMode::AnthropicMessages {
-            prepare_anthropic_payload(payload)?
+            prepare_anthropic_payload(payload, &self.config.anthropic_version)?
         } else {
             payload
         };
@@ -304,7 +314,7 @@ impl crate::providers::Provider for BedrockProvider {
         let mode = self.determine_mode(&spec.model);
         let url = self.invoke_url_for_mode(&spec.model, &mode, true)?;
         let payload = if mode == BedrockMode::AnthropicMessages {
-            prepare_anthropic_payload(payload)?
+            prepare_anthropic_payload(payload, &self.config.anthropic_version)?
         } else {
             payload
         };
@@ -399,13 +409,13 @@ fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
 }
 
 /// Prepare an Anthropic-format payload for Bedrock by adding anthropic_version.
-pub fn prepare_anthropic_payload(payload: Bytes) -> Result<Bytes> {
+fn prepare_anthropic_payload(payload: Bytes, anthropic_version: &str) -> Result<Bytes> {
     let mut body: lingua::serde_json::Value = lingua::serde_json::from_slice(&payload)
         .map_err(|e| Error::InvalidRequest(format!("failed to parse payload: {e}")))?;
     if let Some(obj) = body.as_object_mut() {
         obj.insert(
             "anthropic_version".into(),
-            lingua::serde_json::Value::String("bedrock-2023-05-31".into()),
+            lingua::serde_json::Value::String(anthropic_version.into()),
         );
     }
     let bytes = lingua::serde_json::to_vec(&body)
@@ -422,6 +432,7 @@ mod tests {
             endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
             service: "bedrock".into(),
             timeout: None,
+            anthropic_version: DEFAULT_ANTHROPIC_VERSION.to_string(),
         };
         BedrockProvider::new(config).unwrap()
     }
@@ -499,8 +510,11 @@ mod tests {
     #[test]
     fn prepares_anthropic_payload_with_version() {
         let payload = Bytes::from(r#"{"model":"claude","messages":[]}"#);
-        let result = prepare_anthropic_payload(payload).unwrap();
+        let result = prepare_anthropic_payload(payload, DEFAULT_ANTHROPIC_VERSION).unwrap();
         let body: lingua::serde_json::Value = lingua::serde_json::from_slice(&result).unwrap();
-        assert_eq!(body.get("anthropic_version").unwrap(), "bedrock-2023-05-31");
+        assert_eq!(
+            body.get("anthropic_version").unwrap(),
+            DEFAULT_ANTHROPIC_VERSION
+        );
     }
 }
