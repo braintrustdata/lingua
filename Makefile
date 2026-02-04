@@ -86,7 +86,6 @@ clippy: ## Run clippy with warnings as errors (matches CI)
 
 verify: fmt-check clippy ## Run all CI checks locally (run before committing)
 	RUSTFLAGS="-D warnings" $(MAKE) test-rust
-	@echo "All checks passed!"
 
 install-hooks: ## Install git pre-commit hooks
 	@echo "Installing git hooks..."
