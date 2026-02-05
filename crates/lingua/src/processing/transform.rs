@@ -16,6 +16,8 @@ use bytes::Bytes;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
+#[cfg(feature = "openai")]
+use crate::providers::openai::model_supports_max_tokens;
 use crate::serde_json::Value;
 use crate::universal::{UniversalResponse, UniversalStreamChunk};
 use thiserror::Error;
@@ -223,7 +225,9 @@ pub fn transform_request(
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
-    if source_adapter.format() == target_format {
+    if source_adapter.format() == target_format
+        && !needs_forced_translation(&payload, model, target_format)
+    {
         return Ok(TransformResult::PassThrough(input));
     }
 
@@ -497,6 +501,25 @@ fn detect_adapter(
         .ok_or(TransformError::UnableToDetectFormat)
 }
 
+/// Check if a request needs forced translation even when source == target format.
+fn needs_forced_translation(payload: &Value, model: Option<&str>, target: ProviderFormat) -> bool {
+    if target != ProviderFormat::OpenAI {
+        return false;
+    }
+
+    #[cfg(feature = "openai")]
+    {
+        // If the model doesn't support max_tokens, we need to force translation
+        let request_model = payload.get("model").and_then(Value::as_str).or(model);
+        request_model
+            .map(|m| !model_supports_max_tokens(m))
+            .unwrap_or(false)
+    }
+
+    #[cfg(not(feature = "openai"))]
+    false
+}
+
 /// Sanitize a payload for a target format by parsing and re-serializing.
 ///
 /// This strips unknown fields that strict providers (like Anthropic) would reject.
@@ -679,5 +702,60 @@ mod tests {
         // Should be passthrough with same bytes
         assert!(result.is_passthrough());
         assert_eq!(result.into_bytes().as_ptr(), input_ptr);
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_reasoning_model_forces_translation() {
+        // Reasoning models (gpt-5.*, o1-*, o3-*) require max_completion_tokens
+        // Even for OpenAI → OpenAI, we must translate to convert max_tokens → max_completion_tokens
+        // Note: Include an OpenAI-only field (seed) to ensure detection as OpenAI format
+        let payload = json!({
+            "model": "gpt-5.1-mini",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "max_tokens": 1000,
+            "seed": 42
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::OpenAI, None).unwrap();
+
+        // Should NOT passthrough - reasoning models need max_completion_tokens
+        assert!(
+            !result.is_passthrough(),
+            "Reasoning models should force translation"
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(
+            output.get("max_completion_tokens").is_some(),
+            "Should have max_completion_tokens"
+        );
+        assert!(
+            output.get("max_tokens").is_none(),
+            "Should not have max_tokens"
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_non_reasoning_model_still_passthroughs() {
+        // Non-reasoning models should still passthrough for efficiency
+        // Note: Include an OpenAI-only field (seed) to ensure detection as OpenAI format
+        let payload = json!({
+            "model": "gpt-4o",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "max_tokens": 1000,
+            "seed": 42
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::OpenAI, None).unwrap();
+
+        // Should passthrough - gpt-4o is not a reasoning model
+        assert!(
+            result.is_passthrough(),
+            "Non-reasoning models should passthrough"
+        );
     }
 }
