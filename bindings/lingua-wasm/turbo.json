@@ -10,6 +10,7 @@
         "../../Cargo.lock",
         "../../.cargo/config.toml",
         "../../crates/lingua/Cargo.toml",
+        "../../crates/lingua/build.rs",
         "../../crates/lingua/src/**/*.rs",
         "../../serde_json/Cargo.toml",
         "../../serde_json/src/**/*.rs"
