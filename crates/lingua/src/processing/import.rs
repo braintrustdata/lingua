@@ -111,6 +111,19 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         }
     }
 
+    // Try Responses API output format
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<openai::OutputItem>>(data_to_parse.clone())
+    {
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(provider_messages)
+        {
+            if !messages.is_empty() {
+                return messages;
+            }
+        }
+    }
+
     // Try Anthropic format
     if let Ok(provider_messages) =
         serde_json::from_value::<Vec<anthropic::InputMessage>>(data_to_parse.clone())
