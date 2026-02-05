@@ -15,7 +15,7 @@ pub mod params;
 pub mod responses_adapter;
 
 // Re-export adapters and transformations
-pub use adapter::{apply_target_transforms, OpenAIAdapter, OpenAITransformError};
+pub use adapter::OpenAIAdapter;
 pub use responses_adapter::ResponsesAdapter;
 
 #[cfg(test)]
@@ -28,7 +28,7 @@ pub mod test_chat_completions;
 pub use detect::{try_parse_openai, try_parse_responses, DetectionError};
 
 // Re-export capability functions
-pub use capabilities::model_supports_max_tokens;
+pub use capabilities::model_needs_transforms;
 
 // Re-export conversion functions and extension types
 pub use convert::{
