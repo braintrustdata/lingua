@@ -49,7 +49,7 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
             ForceMaxCompletionTokens => {
                 // (Responses API) max_output_tokens is valid.
                 if obj.contains_key("max_output_tokens") {
-                    return;
+                    continue;
                 }
 
                 // (Chat Completions API) max_tokens is deprecated - convert to max_completion_tokens.
@@ -58,5 +58,156 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::serde_json::json;
+
+    #[test]
+    fn test_get_model_transforms() {
+        let cases = [
+            ("o1", &[StripTemperature, ForceMaxCompletionTokens][..]),
+            ("o1-mini", &[StripTemperature, ForceMaxCompletionTokens][..]),
+            ("o3", &[StripTemperature, ForceMaxCompletionTokens][..]),
+            (
+                "o4-preview",
+                &[StripTemperature, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "gpt-5-mini",
+                &[StripTemperature, ForceMaxCompletionTokens][..],
+            ),
+            ("gpt-4", &[][..]),
+            ("gpt-4o", &[][..]),
+            ("claude-3", &[][..]),
+        ];
+        for (model, expected) in cases {
+            assert_eq!(get_model_transforms(model), expected, "model: {}", model);
+        }
+    }
+
+    #[test]
+    fn test_model_needs_transforms() {
+        let needs = ["o1", "o3", "gpt-5"];
+        let no_needs = ["gpt-4", "gpt-4o", "claude-3"];
+        for model in needs {
+            assert!(model_needs_transforms(model), "should need: {}", model);
+        }
+        for model in no_needs {
+            assert!(!model_needs_transforms(model), "should not need: {}", model);
+        }
+    }
+
+    #[test]
+    fn test_strip_temperature() {
+        let reasoning_models = ["o1", "o1-mini", "o3", "gpt-5-mini"];
+        let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
+
+        // Reasoning models: temperature should be stripped
+        for model in reasoning_models {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "temperature": 0.7
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("temperature"),
+                "{} should strip temperature",
+                model
+            );
+        }
+
+        // Non-reasoning models: temperature should be preserved
+        for model in non_reasoning_models {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "temperature": 0.7
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                obj.contains_key("temperature"),
+                "{} should preserve temperature",
+                model
+            );
+        }
+    }
+
+    #[test]
+    fn test_force_max_completion_tokens() {
+        // Reasoning models: max_tokens → max_completion_tokens
+        for model in ["o1", "gpt-5"] {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "max_tokens": 100
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                obj.contains_key("max_completion_tokens"),
+                "{} should add max_completion_tokens",
+                model
+            );
+            assert!(
+                !obj.contains_key("max_tokens"),
+                "{} should remove max_tokens",
+                model
+            );
+        }
+
+        // Non-reasoning models: max_tokens stays as-is
+        for model in ["gpt-4", "gpt-4o"] {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "max_tokens": 100
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("max_completion_tokens"),
+                "{} should not add max_completion_tokens",
+                model
+            );
+            assert!(
+                obj.contains_key("max_tokens"),
+                "{} should preserve max_tokens",
+                model
+            );
+        }
+
+        // max_output_tokens is valid for Responses API - not converted
+        let mut obj = json!({
+            "model": "o3",
+            "input": [{"role": "user", "content": "Hello"}],
+            "max_output_tokens": 100
+        })
+        .as_object()
+        .unwrap()
+        .clone();
+        apply_model_transforms("o3", &mut obj);
+        assert!(
+            obj.contains_key("max_output_tokens"),
+            "max_output_tokens should be preserved"
+        );
+        assert!(
+            !obj.contains_key("max_completion_tokens"),
+            "should not convert max_output_tokens"
+        );
     }
 }
