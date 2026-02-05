@@ -29,8 +29,7 @@
       "source": "ChatCompletions",
       "target": "*",
       "fields": [
-        { "pattern": "choices[*].delta.refusal", "reason": "ChatCompletions refusal field has no equivalent in other providers" },
-        { "pattern": "choices[*].delta.tool_calls", "reason": "Streaming tool_calls transformation not yet implemented" }
+        { "pattern": "choices[*].delta.refusal", "reason": "ChatCompletions refusal field has no equivalent in other providers" }
       ]
     },
     {
@@ -48,11 +47,11 @@
       ]
     },
     {
-      "source": "Responses",
+      "source": "*",
       "target": "Anthropic",
       "fields": [
-        { "pattern": "id", "reason": "Responses API response IDs don't map to Anthropic streaming format" },
-        { "pattern": "model", "reason": "Responses API model field isn't preserved in Anthropic streaming events" }
+        { "pattern": "id", "reason": "Anthropic streaming separates metadata (message_start) from content events; id may be lost when tool_calls prevent emitting message_start" },
+        { "pattern": "model", "reason": "Anthropic streaming separates metadata (message_start) from content events; model may be lost when tool_calls prevent emitting message_start" }
       ]
     }
   ],
@@ -60,17 +59,19 @@
     {
       "testCase": "toolCallRequest",
       "source": "ChatCompletions",
-      "target": "*",
+      "target": "Responses",
       "fields": [
-        { "pattern": "choices[*].delta.content", "reason": "ChatCompletions sends null content when tool_calls are present; not preserved in transformation" }
+        { "pattern": "id", "reason": "Responses streaming separates metadata from content events; id lost when first chunk has tool_calls" },
+        { "pattern": "model", "reason": "Responses streaming separates metadata from content events; model lost when first chunk has tool_calls" }
       ]
     },
     {
       "testCase": "toolChoiceRequiredParam",
       "source": "ChatCompletions",
-      "target": "*",
+      "target": "Responses",
       "fields": [
-        { "pattern": "choices[*].delta.content", "reason": "ChatCompletions sends null content when tool_calls are present; not preserved in transformation" }
+        { "pattern": "id", "reason": "Responses streaming separates metadata from content events; id lost when first chunk has tool_calls" },
+        { "pattern": "model", "reason": "Responses streaming separates metadata from content events; model lost when first chunk has tool_calls" }
       ]
     }
   ]
