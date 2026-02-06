@@ -58,6 +58,7 @@ tokio-test.workspace = true
 paste.workspace = true
 log.workspace = true
 env_logger.workspace = true
+proptest.workspace = true
 
 [lib]
 name = "lingua"

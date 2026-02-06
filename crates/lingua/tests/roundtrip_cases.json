@@ -1,0 +1,159 @@
+[
+  {
+    "description": "PR #83 regression: system message with array content (OpenAI format)",
+    "source_format": "openai",
+    "payload": {
+      "model": "gpt-4",
+      "messages": [
+        {
+          "role": "system",
+          "content": [
+            {"type": "text", "text": "You are a helpful assistant."},
+            {"type": "text", "text": "Always be concise."}
+          ]
+        },
+        {
+          "role": "user",
+          "content": "Hello"
+        }
+      ]
+    },
+    "roundtrip_through": ["openai", "anthropic", "google"]
+  },
+  {
+    "description": "PR #83 regression: system message with string content (baseline)",
+    "source_format": "openai",
+    "payload": {
+      "model": "gpt-4",
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a helpful assistant."
+        },
+        {
+          "role": "user",
+          "content": "Hello"
+        }
+      ]
+    },
+    "roundtrip_through": ["openai", "anthropic", "google"]
+  },
+  {
+    "description": "Multi-turn conversation with tool calls (OpenAI format)",
+    "source_format": "openai",
+    "payload": {
+      "model": "gpt-4",
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a helpful assistant."
+        },
+        {
+          "role": "user",
+          "content": "What is the weather in San Francisco?"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "id": "call_abc123",
+              "type": "function",
+              "function": {
+                "name": "get_weather",
+                "arguments": "{\"city\":\"San Francisco\"}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_abc123",
+          "content": "{\"temperature\":65,\"unit\":\"F\"}"
+        }
+      ]
+    },
+    "roundtrip_through": ["openai", "anthropic"]
+  },
+  {
+    "description": "Anthropic native format with system + multi-turn",
+    "source_format": "anthropic",
+    "payload": {
+      "model": "claude-3-5-sonnet-20241022",
+      "max_tokens": 1024,
+      "system": "You are a helpful assistant.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hello"
+        },
+        {
+          "role": "assistant",
+          "content": "Hi there! How can I help?"
+        },
+        {
+          "role": "user",
+          "content": "Tell me a joke."
+        }
+      ]
+    },
+    "roundtrip_through": ["anthropic", "openai"]
+  },
+  {
+    "description": "Anthropic native format with array user content",
+    "source_format": "anthropic",
+    "payload": {
+      "model": "claude-3-5-sonnet-20241022",
+      "max_tokens": 1024,
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {"type": "text", "text": "Hello, how are you?"}
+          ]
+        }
+      ]
+    },
+    "roundtrip_through": ["anthropic", "openai"]
+  },
+  {
+    "description": "Google native format with system instruction",
+    "source_format": "google",
+    "payload": {
+      "model": "gemini-1.5-flash",
+      "systemInstruction": {
+        "parts": [
+          {"text": "You are a helpful assistant."}
+        ]
+      },
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {"text": "Hello"}
+          ]
+        }
+      ],
+      "generationConfig": {
+        "maxOutputTokens": 1024
+      }
+    },
+    "roundtrip_through": ["google", "openai", "anthropic"]
+  },
+  {
+    "description": "OpenAI multi-part user content",
+    "source_format": "openai",
+    "payload": {
+      "model": "gpt-4",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {"type": "text", "text": "Part one."},
+            {"type": "text", "text": "Part two."}
+          ]
+        }
+      ]
+    },
+    "roundtrip_through": ["openai", "anthropic"]
+  }
+]

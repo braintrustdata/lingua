@@ -2080,6 +2080,7 @@ dependencies = [
  "paste",
  "pbjson",
  "pbjson-types",
+ "proptest",
  "prost",
  "prost-types",
  "pyo3",
