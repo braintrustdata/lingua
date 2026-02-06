@@ -12,8 +12,10 @@
 use lingua::processing::adapter_for_format;
 use lingua::serde_json::{self, json, Value};
 use lingua::universal::message::*;
-use lingua::{ProviderFormat, UniversalParams, UniversalRequest};
+use lingua::{ProviderFormat, UniversalRequest};
 use std::path::PathBuf;
+
+mod schema_strategy;
 
 // ============================================================================
 // Roundtrip harness (test-case-agnostic)
@@ -407,122 +409,134 @@ fn saved_cases_cross_provider() {
 }
 
 // ============================================================================
-// Proptest strategies
+// Proptest strategies: generate provider-native JSON payloads
 // ============================================================================
 
 mod strategies {
+    use super::schema_strategy::{load_openapi_definitions, strategy_for_schema_name};
     use super::*;
     use proptest::prelude::*;
 
+    // -- Shared primitives --
+
     pub fn arb_text() -> impl Strategy<Value = String> {
         "[a-zA-Z0-9 .!?,]{1,80}"
-    }
-
-    fn arb_text_part() -> impl Strategy<Value = TextContentPart> {
-        arb_text().prop_map(|text| TextContentPart {
-            text,
-            provider_options: None,
-        })
-    }
-
-    pub fn arb_user_content() -> impl Strategy<Value = UserContent> {
-        prop_oneof![
-            arb_text().prop_map(UserContent::String),
-            proptest::collection::vec(arb_text_part().prop_map(UserContentPart::Text), 1..=3)
-                .prop_map(UserContent::Array),
-        ]
-    }
-
-    fn arb_tool_call_arguments() -> impl Strategy<Value = ToolCallArguments> {
-        prop_oneof![
-            proptest::collection::hash_map("[a-z]{2,8}", arb_json_value(), 0..=3).prop_map(|m| {
-                let map: serde_json::Map<String, Value> = m.into_iter().collect();
-                ToolCallArguments::Valid(map)
-            }),
-            "[^{}]{1,30}".prop_map(ToolCallArguments::Invalid),
-        ]
     }
 
     fn arb_json_value() -> impl Strategy<Value = Value> {
         prop_oneof![
             Just(Value::Null),
             any::<bool>().prop_map(Value::Bool),
-            any::<i32>().prop_map(|i| Value::Number(i.into())),
+            any::<i32>().prop_map(|i| json!(i)),
             arb_text().prop_map(Value::String),
         ]
     }
 
-    fn arb_assistant_content() -> impl Strategy<Value = AssistantContent> {
-        prop_oneof![
-            3 => arb_text().prop_map(AssistantContent::String),
-            1 => proptest::collection::vec(
-                prop_oneof![
-                    3 => arb_text_part().prop_map(AssistantContentPart::Text),
-                    1 => (
-                        "call_[a-zA-Z0-9]{8}",
-                        "[a-z_]{3,12}",
-                        arb_tool_call_arguments(),
-                    ).prop_map(|(id, name, args)| AssistantContentPart::ToolCall {
-                        tool_call_id: id,
-                        tool_name: name,
-                        arguments: args,
-                        provider_options: None,
-                        provider_executed: None,
-                    }),
-                ],
-                1..=3,
-            ).prop_map(AssistantContent::Array),
-        ]
+    fn arb_json_object() -> impl Strategy<Value = Value> {
+        proptest::collection::hash_map("[a-z]{2,8}", arb_json_value(), 0..=3)
+            .prop_map(|m| json!(m.into_iter().collect::<serde_json::Map<String, Value>>()))
     }
 
-    fn arb_tool_content() -> impl Strategy<Value = ToolContent> {
-        proptest::collection::vec(
-            ("call_[a-zA-Z0-9]{8}", "[a-z_]{3,12}", arb_json_value()).prop_map(
-                |(id, name, output)| {
-                    ToolContentPart::ToolResult(ToolResultContentPart {
-                        tool_call_id: id,
-                        tool_name: name,
-                        output,
-                        provider_options: None,
-                    })
-                },
-            ),
-            1..=2,
+    fn arb_function_name() -> impl Strategy<Value = String> {
+        "[a-z_]{3,12}"
+    }
+
+    // ========================================================================
+    // Schema-driven strategies (OpenAI + Anthropic from OpenAPI specs)
+    // ========================================================================
+
+    fn specs_dir() -> String {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        // specs/ is at the repo root, two levels up from crates/lingua/
+        format!("{}/../..", manifest_dir)
+    }
+
+    pub fn arb_openai_payload() -> BoxedStrategy<Value> {
+        let defs = load_openapi_definitions(&format!("{}/specs/openai/openapi.yml", specs_dir()));
+        strategy_for_schema_name("CreateChatCompletionRequest", &defs)
+    }
+
+    pub fn arb_anthropic_payload() -> BoxedStrategy<Value> {
+        let defs =
+            load_openapi_definitions(&format!("{}/specs/anthropic/openapi.yml", specs_dir()));
+        strategy_for_schema_name("CreateMessageParams", &defs)
+    }
+
+    // ========================================================================
+    // Google GenerateContent JSON strategies (hand-written, no OpenAPI spec)
+    // ========================================================================
+
+    fn google_text_part() -> impl Strategy<Value = Value> {
+        arb_text().prop_map(|t| json!({"text": t}))
+    }
+
+    fn google_function_call_part() -> impl Strategy<Value = Value> {
+        (arb_function_name(), arb_json_object())
+            .prop_map(|(name, args)| json!({"functionCall": {"name": name, "args": args}}))
+    }
+
+    fn google_function_response_part() -> impl Strategy<Value = Value> {
+        (arb_function_name(), arb_json_object()).prop_map(
+            |(name, response)| json!({"functionResponse": {"name": name, "response": response}}),
         )
     }
 
-    pub fn arb_message() -> impl Strategy<Value = Message> {
+    fn google_user_content() -> impl Strategy<Value = Value> {
+        proptest::collection::vec(google_text_part(), 1..=3)
+            .prop_map(|parts| json!({"role": "user", "parts": parts}))
+    }
+
+    fn google_model_content() -> impl Strategy<Value = Value> {
         prop_oneof![
-            2 => arb_user_content().prop_map(|c| Message::System { content: c }),
-            3 => arb_user_content().prop_map(|c| Message::User { content: c }),
-            3 => arb_assistant_content().prop_map(|c| Message::Assistant {
-                content: c,
-                id: None,
-            }),
-            1 => arb_tool_content().prop_map(|c| Message::Tool { content: c }),
+            // Text-only
+            3 => proptest::collection::vec(google_text_part(), 1..=3)
+                .prop_map(|parts| json!({"role": "model", "parts": parts})),
+            // Function calls
+            1 => proptest::collection::vec(google_function_call_part(), 1..=2)
+                .prop_map(|parts| json!({"role": "model", "parts": parts})),
         ]
     }
 
-    /// Generate a valid-ish message thread (doesn't enforce strict role alternation).
-    pub fn arb_message_thread() -> impl Strategy<Value = Vec<Message>> {
-        proptest::collection::vec(arb_message(), 1..=8)
+    fn google_tool_response_content() -> impl Strategy<Value = Value> {
+        proptest::collection::vec(google_function_response_part(), 1..=2)
+            .prop_map(|parts| json!({"role": "user", "parts": parts}))
     }
 
-    pub fn arb_universal_request() -> impl Strategy<Value = UniversalRequest> {
+    fn google_content() -> impl Strategy<Value = Value> {
+        prop_oneof![
+            3 => google_user_content(),
+            3 => google_model_content(),
+            1 => google_tool_response_content(),
+        ]
+    }
+
+    pub fn arb_google_payload() -> impl Strategy<Value = Value> {
         (
-            arb_message_thread(),
-            prop::option::of(0.0..=2.0_f64),
-            prop::option::of(1i64..=8192),
+            proptest::collection::vec(google_content(), 1..=6),
+            prop::option::of(arb_text()), // optional systemInstruction
         )
-            .prop_map(|(messages, temperature, max_tokens)| UniversalRequest {
-                model: None,
-                messages,
-                params: UniversalParams {
-                    temperature,
-                    max_tokens,
-                    ..Default::default()
-                },
+            .prop_map(|(contents, system)| {
+                let mut payload = json!({
+                    "contents": contents,
+                    "generationConfig": {"maxOutputTokens": 1024},
+                });
+                if let Some(s) = system {
+                    payload["systemInstruction"] = json!({"parts": [{"text": s}]});
+                }
+                payload
             })
+    }
+
+    // ========================================================================
+    // Combined: generate (format, payload) pairs
+    // ========================================================================
+
+    pub fn arb_provider_payload() -> impl Strategy<Value = (ProviderFormat, Value)> {
+        prop_oneof![
+            arb_openai_payload().prop_map(|p| (ProviderFormat::OpenAI, p)),
+            arb_anthropic_payload().prop_map(|p| (ProviderFormat::Anthropic, p)),
+            arb_google_payload().prop_map(|p| (ProviderFormat::Google, p)),
+        ]
     }
 }
 
@@ -532,150 +546,147 @@ mod strategies {
 
 use proptest::prelude::*;
 
-proptest! {
-    #![proptest_config(ProptestConfig::with_cases(256))]
+/// Shared helper: parse provider JSON to Universal, roundtrip through each target,
+/// and check assertions. Returns Err with saveable JSON on failure.
+fn run_roundtrips(
+    source_format: ProviderFormat,
+    payload: &Value,
+    targets: &[ProviderFormat],
+) -> Result<(), String> {
+    let universal = RoundtripHarness::from_provider_json(source_format, payload.clone())?;
 
-    /// OpenAI self-roundtrip: Universal -> OpenAI -> Universal preserves non-system messages.
-    #[test]
-    fn prop_openai_self_roundtrip(req in strategies::arb_universal_request()) {
-        if let Ok(result) = RoundtripHarness::self_roundtrip(&req, ProviderFormat::OpenAI) {
-            let orig = summarize_messages(&req.messages);
-            let rt = summarize_messages(&result.roundtripped.messages);
-            prop_assert_eq!(
-                non_system(&orig), non_system(&rt),
-                "OpenAI self-roundtrip lost messages.\n\
-                 To save as a test case, add to roundtrip_cases.json:\n{}",
-                format_as_saved_case(
-                    "proptest: OpenAI roundtrip failure",
-                    ProviderFormat::OpenAI,
-                    &result.provider_json,
-                    &["openai"],
-                )
-            );
-        }
+    // Self-roundtrip
+    let self_result = RoundtripHarness::self_roundtrip(&universal, source_format)?;
+    let orig = summarize_messages(&universal.messages);
+    let rt = summarize_messages(&self_result.roundtripped.messages);
+    if non_system(&orig) != non_system(&rt) {
+        return Err(format!(
+            "Self-roundtrip through {:?} lost messages.\n\
+             Original:     {:#?}\n\
+             Roundtripped: {:#?}\n\
+             To save:\n{}",
+            source_format,
+            non_system(&orig),
+            non_system(&rt),
+            format_as_saved_case(
+                &format!("proptest: {:?} self-roundtrip failure", source_format),
+                source_format,
+                payload,
+                &[&format!("{}", source_format).to_lowercase()],
+            ),
+        ));
     }
 
-    /// Anthropic self-roundtrip: system messages must not be silently dropped.
-    #[test]
-    fn prop_anthropic_self_roundtrip(req in strategies::arb_universal_request()) {
-        if let Ok(result) = RoundtripHarness::self_roundtrip(&req, ProviderFormat::Anthropic) {
-            let system_text = extract_system_text(&req.messages);
-            if !system_text.is_empty() {
-                let system_field = result.provider_json.get("system");
-                let saved = format_as_saved_case(
-                    "proptest: Anthropic system dropped",
-                    ProviderFormat::Anthropic,
-                    &result.provider_json,
-                    &["anthropic"],
-                );
-                prop_assert!(
-                    system_field.is_some(),
-                    "Anthropic should have 'system' field. Original: {:?}\n\
-                     To save:\n{}", system_text, saved
-                );
-                let field_text = system_field.unwrap().as_str().unwrap_or("");
-                prop_assert!(
-                    !field_text.is_empty(),
-                    "Anthropic 'system' should not be empty. Original: {:?}\n\
-                     To save:\n{}", system_text, saved
-                );
+    // Cross-provider roundtrips
+    for &target in targets {
+        if let Ok(result) = RoundtripHarness::cross_provider(&universal, source_format, target) {
+            let rt = summarize_messages(&result.roundtripped.messages);
+            if non_system(&orig) != non_system(&rt) {
+                return Err(format!(
+                    "{:?} -> {:?} lost messages.\n\
+                     Original:     {:#?}\n\
+                     Roundtripped: {:#?}\n\
+                     To save:\n{}",
+                    source_format,
+                    target,
+                    non_system(&orig),
+                    non_system(&rt),
+                    format_as_saved_case(
+                        &format!("proptest: {:?}->{:?} failure", source_format, target),
+                        source_format,
+                        payload,
+                        &[
+                            &format!("{}", source_format).to_lowercase(),
+                            &format!("{}", target).to_lowercase(),
+                        ],
+                    ),
+                ));
             }
 
-            let orig = summarize_messages(&req.messages);
-            let rt = summarize_messages(&result.roundtripped.messages);
-            prop_assert_eq!(
-                non_system(&orig), non_system(&rt),
-                "Anthropic self-roundtrip lost non-system messages.\n\
-                 To save:\n{}",
-                format_as_saved_case(
-                    "proptest: Anthropic roundtrip failure",
-                    ProviderFormat::Anthropic,
-                    &result.provider_json,
-                    &["anthropic"],
-                )
-            );
+            if target == ProviderFormat::Anthropic {
+                let sys = extract_system_text(&universal.messages);
+                if !sys.is_empty() {
+                    let s = result.provider_json.get("system");
+                    if s.is_none() || s.unwrap().as_str().unwrap_or("").is_empty() {
+                        return Err(format!(
+                            "Anthropic system dropped! Original: {:?}\nTo save:\n{}",
+                            sys,
+                            format_as_saved_case(
+                                "proptest: Anthropic system dropped",
+                                source_format,
+                                payload,
+                                &[&format!("{}", source_format).to_lowercase(), "anthropic",],
+                            ),
+                        ));
+                    }
+                }
+            }
         }
     }
 
-    /// Cross-provider: OpenAI -> Anthropic preserves non-system message content.
+    Ok(())
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig {
+        cases: 256,
+        // Don't write .proptest-regressions files; we use roundtrip_cases.json instead.
+        failure_persistence: None,
+        ..ProptestConfig::default()
+    })]
+
+    /// OpenAI Chat Completions JSON -> roundtrip through all providers.
     #[test]
-    fn prop_openai_to_anthropic(req in strategies::arb_universal_request()) {
-        if let Ok(result) = RoundtripHarness::cross_provider(
-            &req, ProviderFormat::OpenAI, ProviderFormat::Anthropic,
-        ) {
-            let orig = summarize_messages(&req.messages);
-            let rt = summarize_messages(&result.roundtripped.messages);
-            prop_assert_eq!(
-                non_system(&orig), non_system(&rt),
-                "OpenAI->Anthropic lost non-system messages.\n\
-                 To save:\n{}",
-                format_as_saved_case(
-                    "proptest: OpenAI->Anthropic failure",
-                    ProviderFormat::Anthropic,
-                    &result.provider_json,
-                    &["anthropic", "openai"],
-                )
-            );
+    fn prop_openai_payload(payload in strategies::arb_openai_payload()) {
+        if let Ok(universal) = RoundtripHarness::from_provider_json(ProviderFormat::OpenAI, payload.clone()) {
+            let _ = universal; // parsed ok
+            if let Err(e) = run_roundtrips(
+                ProviderFormat::OpenAI, &payload,
+                &[ProviderFormat::Anthropic, ProviderFormat::Google],
+            ) {
+                prop_assert!(false, "{}", e);
+            }
         }
     }
 
-    /// Cross-provider: Anthropic -> OpenAI preserves non-system message content.
+    /// Anthropic Messages JSON -> roundtrip through all providers.
     #[test]
-    fn prop_anthropic_to_openai(req in strategies::arb_universal_request()) {
-        if let Ok(result) = RoundtripHarness::cross_provider(
-            &req, ProviderFormat::Anthropic, ProviderFormat::OpenAI,
-        ) {
-            let orig = summarize_messages(&req.messages);
-            let rt = summarize_messages(&result.roundtripped.messages);
-            prop_assert_eq!(
-                non_system(&orig), non_system(&rt),
-                "Anthropic->OpenAI lost non-system messages.\n\
-                 To save:\n{}",
-                format_as_saved_case(
-                    "proptest: Anthropic->OpenAI failure",
-                    ProviderFormat::OpenAI,
-                    &result.provider_json,
-                    &["openai", "anthropic"],
-                )
-            );
+    fn prop_anthropic_payload(payload in strategies::arb_anthropic_payload()) {
+        if let Ok(universal) = RoundtripHarness::from_provider_json(ProviderFormat::Anthropic, payload.clone()) {
+            let _ = universal;
+            if let Err(e) = run_roundtrips(
+                ProviderFormat::Anthropic, &payload,
+                &[ProviderFormat::OpenAI, ProviderFormat::Google],
+            ) {
+                prop_assert!(false, "{}", e);
+            }
         }
     }
 
-    /// Targeted: random UserContent variants for system messages are never dropped by Anthropic.
+    /// Google GenerateContent JSON -> roundtrip through all providers.
     #[test]
-    fn prop_system_message_variants_not_dropped(
-        content in strategies::arb_user_content()
-    ) {
-        let req = UniversalRequest {
-            model: Some("claude-3-5-sonnet-20241022".into()),
-            messages: vec![
-                Message::System { content },
-                Message::User {
-                    content: UserContent::String("Hello".into()),
-                },
-            ],
-            params: UniversalParams {
-                max_tokens: Some(1024),
-                ..Default::default()
-            },
-        };
+    fn prop_google_payload(payload in strategies::arb_google_payload()) {
+        if let Ok(universal) = RoundtripHarness::from_provider_json(ProviderFormat::Google, payload.clone()) {
+            let _ = universal;
+            if let Err(e) = run_roundtrips(
+                ProviderFormat::Google, &payload,
+                &[ProviderFormat::OpenAI, ProviderFormat::Anthropic],
+            ) {
+                prop_assert!(false, "{}", e);
+            }
+        }
+    }
 
-        let result = RoundtripHarness::self_roundtrip(&req, ProviderFormat::Anthropic).unwrap();
-        let system_text = extract_system_text(&req.messages);
-        let saved = format_as_saved_case(
-            "proptest: system variant dropped",
-            ProviderFormat::Anthropic,
-            &result.provider_json,
-            &["anthropic"],
-        );
-        prop_assert!(
-            result.provider_json.get("system").is_some(),
-            "Anthropic should have 'system' field. Original: {:?}\nTo save:\n{}", system_text, saved
-        );
-        let field_text = result.provider_json.get("system").unwrap().as_str().unwrap_or("");
-        prop_assert!(
-            !field_text.is_empty(),
-            "Anthropic 'system' should not be empty. Original: {:?}\nTo save:\n{}", system_text, saved
-        );
+    /// Any provider JSON -> all roundtrips (maximum coverage).
+    #[test]
+    fn prop_any_provider((format, payload) in strategies::arb_provider_payload()) {
+        let all_targets = [ProviderFormat::OpenAI, ProviderFormat::Anthropic, ProviderFormat::Google];
+        let targets: Vec<_> = all_targets.iter().copied().filter(|&t| t != format).collect();
+
+        if let Ok(_) = RoundtripHarness::from_provider_json(format, payload.clone()) {
+            if let Err(e) = run_roundtrips(format, &payload, &targets) {
+                prop_assert!(false, "{}", e);
+            }
+        }
     }
 }

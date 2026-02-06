@@ -155,5 +155,92 @@
       ]
     },
     "roundtrip_through": ["openai", "anthropic"]
+  },
+  {
+    "description": "Developer message with array content -> Anthropic system dropped (schema-fuzz)",
+    "source_format": "openai",
+    "payload": {
+      "model": "gpt-4",
+      "messages": [
+        {
+          "role": "developer",
+          "content": [
+            {"type": "text", "text": "You are a helpful assistant."}
+          ]
+        },
+        {
+          "role": "user",
+          "content": "Hello"
+        }
+      ]
+    },
+    "roundtrip_through": ["openai", "anthropic"]
+  },
+  {
+    "description": "Anthropic thinking block text lost in cross-provider conversion (schema-fuzz)",
+    "source_format": "anthropic",
+    "payload": {
+      "model": "claude-3-5-sonnet-20241022",
+      "max_tokens": 1024,
+      "messages": [
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "thinking",
+              "thinking": "Let me think about this carefully.",
+              "signature": "sig_abc123"
+            }
+          ]
+        }
+      ]
+    },
+    "roundtrip_through": ["anthropic", "google"]
+  },
+  {
+    "description": "Google consecutive same-role messages merged on roundtrip (schema-fuzz)",
+    "source_format": "google",
+    "payload": {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [{"text": "First message"}]
+        },
+        {
+          "role": "user",
+          "parts": [{"text": "Second message"}]
+        }
+      ],
+      "generationConfig": {"maxOutputTokens": 1024}
+    },
+    "roundtrip_through": ["google"]
+  },
+  {
+    "description": "Google multiple functionResponse parts reduced to one in OpenAI (schema-fuzz)",
+    "source_format": "google",
+    "payload": {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [{"text": "Call two functions"}]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {"functionCall": {"name": "get_weather", "args": {"city": "SF"}}},
+            {"functionCall": {"name": "get_time", "args": {"city": "SF"}}}
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {"functionResponse": {"name": "get_weather", "response": {"temp": 65}}},
+            {"functionResponse": {"name": "get_time", "response": {"time": "3pm"}}}
+          ]
+        }
+      ],
+      "generationConfig": {"maxOutputTokens": 1024}
+    },
+    "roundtrip_through": ["google", "openai"]
   }
 ]
