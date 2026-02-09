@@ -508,7 +508,7 @@ fn detect_adapter(
 
 /// Check if a model name indicates a Bedrock Anthropic model
 /// (e.g. `us.anthropic.claude-3-5-sonnet-20241022-v2:0` or `anthropic.claude-3-haiku-20240307-v1:0`).
-fn is_bedrock_anthropic_model(model: Option<&str>) -> bool {
+pub fn is_bedrock_anthropic_model(model: Option<&str>) -> bool {
     model.is_some_and(|m| m.starts_with("anthropic.") || m.contains(".anthropic."))
 }
 
@@ -518,6 +518,18 @@ fn is_bedrock_anthropic_model(model: Option<&str>) -> bool {
 /// - No `model` field (model is in the URL path)
 /// - No `stream` field (streaming is determined by endpoint choice)
 /// - `anthropic_version` header injected into the body
+///
+/// # Lossy: whitespace-only stop sequences
+///
+/// Bedrock's Anthropic Messages API has an undocumented restriction that rejects
+/// stop sequences containing only whitespace (e.g. `"\n"`, `"\t"`, `" "`). The
+/// direct Anthropic API and OpenAI both accept these -- `"\n"` is commonly used
+/// to get single-line responses.
+///
+/// There is no Bedrock equivalent or workaround, so we silently strip
+/// whitespace-only entries. This is a lossy transformation: the caller asked the
+/// model to stop on newline but Bedrock simply cannot honor that request.
+///
 // FIXME[matt] this should technically be its own format (bedrock-anthropic)
 fn apply_bedrock_anthropic_mutations(value: &mut Value) {
     if let Some(obj) = value.as_object_mut() {
@@ -527,6 +539,14 @@ fn apply_bedrock_anthropic_mutations(value: &mut Value) {
             "anthropic_version".to_string(),
             Value::String("bedrock-2023-05-31".to_string()),
         );
+
+        // See doc comment above -- Bedrock rejects whitespace-only stop sequences.
+        if let Some(Value::Array(seqs)) = obj.get_mut("stop_sequences") {
+            seqs.retain(|s| s.as_str().is_some_and(|s| s.contains(|c: char| !c.is_whitespace())));
+            if seqs.is_empty() {
+                obj.remove("stop_sequences");
+            }
+        }
     }
 }
 
@@ -846,6 +866,50 @@ mod tests {
         assert!(
             result.is_passthrough(),
             "Non-Bedrock Anthropic models should passthrough"
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_bedrock_anthropic_strips_whitespace_stop_sequences() {
+        let payload = json!({
+            "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "max_tokens": 50,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stop_sequences": ["\n", "end", "\t"]
+        });
+        let input = to_bytes(&payload);
+        let model = "us.anthropic.claude-haiku-4-5-20251001-v1:0";
+
+        let result = transform_request(input, ProviderFormat::Anthropic, Some(model)).unwrap();
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+
+        let stop_seqs = output
+            .get("stop_sequences")
+            .and_then(Value::as_array)
+            .expect("stop_sequences should be present");
+        assert_eq!(stop_seqs.len(), 1);
+        assert_eq!(stop_seqs[0].as_str(), Some("end"));
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_bedrock_anthropic_removes_all_whitespace_stop_sequences() {
+        let payload = json!({
+            "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "max_tokens": 50,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stop_sequences": ["\n", "\t", " "]
+        });
+        let input = to_bytes(&payload);
+        let model = "us.anthropic.claude-haiku-4-5-20251001-v1:0";
+
+        let result = transform_request(input, ProviderFormat::Anthropic, Some(model)).unwrap();
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+
+        assert!(
+            output.get("stop_sequences").is_none(),
+            "stop_sequences should be removed when all entries are whitespace-only"
         );
     }
 
