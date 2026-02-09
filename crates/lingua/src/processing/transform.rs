@@ -17,7 +17,7 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
 #[cfg(feature = "openai")]
-use crate::providers::openai::model_supports_max_tokens;
+use crate::providers::openai::model_needs_transforms;
 use crate::serde_json::Value;
 use crate::universal::{UniversalResponse, UniversalStreamChunk};
 use thiserror::Error;
@@ -509,11 +509,9 @@ fn needs_forced_translation(payload: &Value, model: Option<&str>, target: Provid
 
     #[cfg(feature = "openai")]
     {
-        // If the model doesn't support max_tokens, we need to force translation
+        // Force translation if model needs any transforms (temperature stripping, max_tokens conversion, etc.)
         let request_model = payload.get("model").and_then(Value::as_str).or(model);
-        request_model
-            .map(|m| !model_supports_max_tokens(m))
-            .unwrap_or(false)
+        request_model.map(model_needs_transforms).unwrap_or(false)
     }
 
     #[cfg(not(feature = "openai"))]

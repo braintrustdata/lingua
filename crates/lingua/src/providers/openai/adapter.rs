@@ -13,16 +13,9 @@ use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
-use crate::providers::openai::capabilities::{OpenAICapabilities, TargetProvider};
+use crate::providers::openai::capabilities::apply_model_transforms;
 use crate::providers::openai::convert::{
     ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
-};
-use crate::providers::openai::generated::{
-    AllowedToolsFunction, ChatCompletionRequestMessageContent,
-    ChatCompletionRequestMessageContentPart, ChatCompletionRequestMessageRole,
-    ChatCompletionToolChoiceOption, CreateChatCompletionRequestClass, File, FunctionObject,
-    FunctionToolChoiceClass, FunctionToolChoiceType, PurpleType, ResponseFormatType, ToolElement,
-    ToolType,
 };
 use crate::providers::openai::params::OpenAIChatParams;
 use crate::providers::openai::try_parse_openai;
@@ -36,7 +29,6 @@ use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
-use crate::util::media::parse_base64_data_url;
 use std::convert::TryInto;
 
 /// Adapter for OpenAI Chat Completions API.
@@ -203,7 +195,6 @@ impl ProviderAdapter for OpenAIAdapter {
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
 
-        // Insert params
         insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
         insert_opt_i64(&mut obj, "max_completion_tokens", req.params.max_tokens);
@@ -281,6 +272,8 @@ impl ProviderAdapter for OpenAIAdapter {
                 obj.insert(k.clone(), v.clone());
             }
         }
+
+        apply_model_transforms(model, &mut obj);
 
         Ok(Value::Object(obj))
     }
@@ -590,272 +583,6 @@ fn build_reasoning_config(
         canonical,
         ..Default::default()
     })
-}
-
-// =============================================================================
-// OpenAI Target-Specific Transformations
-// =============================================================================
-
-/// Error type for transformation operations.
-#[derive(Debug, thiserror::Error)]
-pub enum OpenAITransformError {
-    #[error("missing required field: {field}")]
-    MissingField { field: &'static str },
-    #[error("invalid value: {message}")]
-    InvalidValue { message: String },
-    #[error("unsupported feature: {feature}")]
-    Unsupported { feature: String },
-    #[error("serialization failed: {0}")]
-    SerializationFailed(String),
-}
-
-/// Apply target-specific transformations to an OpenAI-format request payload.
-///
-/// This function applies transformations needed to make an OpenAI-format request
-/// work with different target providers (Azure, Vertex, Mistral, etc.).
-///
-/// # Arguments
-///
-/// * `payload` - The OpenAI-format request payload (modified in place)
-/// * `target_provider` - The target provider that will receive the request
-/// * `provider_metadata` - Optional provider-specific metadata (e.g., api_version for Azure)
-///
-/// # Returns
-///
-/// The transformed payload, or an error if transformation fails.
-pub fn apply_target_transforms(
-    payload: &Value,
-    target_provider: TargetProvider,
-    provider_metadata: Option<&Map<String, Value>>,
-) -> Result<Value, OpenAITransformError> {
-    // Parse as OpenAI request
-    let mut request: CreateChatCompletionRequestClass = serde_json::from_value(payload.clone())
-        .map_err(|e| OpenAITransformError::SerializationFailed(e.to_string()))?;
-
-    // Detect capabilities based on request and target
-    let capabilities = OpenAICapabilities::detect(&request, target_provider);
-
-    // Apply reasoning model transformations
-    if capabilities.requires_reasoning_transforms() {
-        apply_reasoning_transforms(&mut request, &capabilities);
-    }
-
-    // Apply provider-specific field sanitization
-    apply_provider_sanitization(
-        &mut request,
-        &capabilities,
-        target_provider,
-        provider_metadata,
-    );
-
-    // Apply model name normalization if needed
-    if capabilities.requires_model_normalization {
-        apply_model_normalization(&mut request, target_provider);
-    }
-
-    // Normalize user messages (handle non-image base64 content)
-    normalize_user_messages(&mut request)?;
-
-    // Apply response format transformations
-    apply_response_format(&mut request, &capabilities)?;
-
-    // Serialize back to Value
-    serde_json::to_value(&request)
-        .map_err(|e| OpenAITransformError::SerializationFailed(e.to_string()))
-}
-
-fn apply_reasoning_transforms(
-    request: &mut CreateChatCompletionRequestClass,
-    capabilities: &OpenAICapabilities,
-) {
-    // Remove unsupported fields for reasoning models
-    request.temperature = None;
-    request.parallel_tool_calls = None;
-
-    // For legacy o1 models, convert system messages to user messages
-    if capabilities.is_legacy_o1_model {
-        for message in &mut request.messages {
-            if matches!(message.role, ChatCompletionRequestMessageRole::System) {
-                message.role = ChatCompletionRequestMessageRole::User;
-            }
-        }
-    }
-}
-
-fn apply_provider_sanitization(
-    request: &mut CreateChatCompletionRequestClass,
-    capabilities: &OpenAICapabilities,
-    target_provider: TargetProvider,
-    provider_metadata: Option<&Map<String, Value>>,
-) {
-    // Remove stream_options for providers that don't support it
-    if !capabilities.supports_stream_options {
-        request.stream_options = None;
-    }
-
-    // Remove parallel_tool_calls for providers that don't support it
-    if !capabilities.supports_parallel_tools {
-        request.parallel_tool_calls = None;
-    }
-
-    // Remove seed field for Azure with API version
-    let has_api_version = provider_metadata
-        .and_then(|meta| meta.get("api_version"))
-        .is_some();
-
-    if capabilities.should_remove_seed_for_azure(target_provider, has_api_version) {
-        request.seed = None;
-    }
-}
-
-fn apply_model_normalization(
-    request: &mut CreateChatCompletionRequestClass,
-    target_provider: TargetProvider,
-) {
-    // Normalize Vertex model names
-    if target_provider == TargetProvider::Vertex {
-        if request.model.starts_with("publishers/meta/models/") {
-            // Strip to "meta/..." format
-            request.model = request
-                .model
-                .strip_prefix("publishers/")
-                .and_then(|s| s.strip_prefix("meta/models/"))
-                .map(|s| format!("meta/{}", s))
-                .unwrap_or_else(|| request.model.clone());
-        } else if let Some(stripped) = request.model.strip_prefix("publishers/") {
-            // Strip "publishers/X/models/Y" to "Y"
-            if let Some(model_part) = stripped.split("/models/").nth(1) {
-                request.model = model_part.to_string();
-            }
-        }
-    }
-}
-
-fn normalize_user_messages(
-    request: &mut CreateChatCompletionRequestClass,
-) -> Result<(), OpenAITransformError> {
-    for message in &mut request.messages {
-        if matches!(message.role, ChatCompletionRequestMessageRole::User) {
-            if let Some(
-                ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(
-                    parts,
-                ),
-            ) = message.content.as_mut()
-            {
-                for part in parts.iter_mut() {
-                    normalize_content_part(part)?;
-                }
-            }
-        }
-    }
-    Ok(())
-}
-
-fn normalize_content_part(
-    part: &mut ChatCompletionRequestMessageContentPart,
-) -> Result<(), OpenAITransformError> {
-    if !matches!(
-        part.chat_completion_request_message_content_part_type,
-        PurpleType::ImageUrl
-    ) {
-        return Ok(());
-    }
-
-    let Some(image_url_value) = part
-        .image_url
-        .as_ref()
-        .map(|image_url| image_url.url.clone())
-    else {
-        return Ok(());
-    };
-
-    // Handle base64 data URLs - convert non-images to file type
-    if let Some(data_url) = parse_base64_data_url(&image_url_value) {
-        if !data_url.media_type.starts_with("image/") {
-            part.chat_completion_request_message_content_part_type = PurpleType::File;
-            part.image_url = None;
-            part.file = Some(File {
-                file_data: Some(image_url_value),
-                file_id: None,
-                filename: Some(if data_url.media_type == "application/pdf" {
-                    "file_from_base64.pdf".to_string()
-                } else {
-                    "file_from_base64".to_string()
-                }),
-            });
-        }
-    }
-
-    Ok(())
-}
-
-fn apply_response_format(
-    request: &mut CreateChatCompletionRequestClass,
-    capabilities: &OpenAICapabilities,
-) -> Result<(), OpenAITransformError> {
-    let Some(response_format) = request.response_format.take() else {
-        return Ok(());
-    };
-
-    match response_format.text_type {
-        ResponseFormatType::Text => Ok(()),
-        ResponseFormatType::JsonSchema => {
-            if capabilities.supports_native_structured_output {
-                request.response_format = Some(response_format);
-                return Ok(());
-            }
-
-            // Check if tools are already being used
-            if request
-                .tools
-                .as_ref()
-                .is_some_and(|tools| !tools.is_empty())
-                || request.function_call.is_some()
-                || request.tool_choice.is_some()
-            {
-                return Err(OpenAITransformError::Unsupported {
-                    feature: "tools_with_structured_output".to_string(),
-                });
-            }
-
-            // Convert json_schema to a tool call
-            match response_format.json_schema {
-                Some(schema) => {
-                    request.tools = Some(vec![ToolElement {
-                        function: Some(FunctionObject {
-                            description: Some("Output the result in JSON format".to_string()),
-                            name: "json".to_string(),
-                            parameters: schema.schema.clone(),
-                            strict: schema.strict,
-                        }),
-                        tool_type: ToolType::Function,
-                        custom: None,
-                    }]);
-
-                    request.tool_choice =
-                        Some(ChatCompletionToolChoiceOption::FunctionToolChoiceClass(
-                            FunctionToolChoiceClass {
-                                allowed_tools: None,
-                                allowed_tools_type: FunctionToolChoiceType::Function,
-                                function: Some(AllowedToolsFunction {
-                                    name: "json".to_string(),
-                                }),
-                                custom: None,
-                            },
-                        ));
-
-                    Ok(())
-                }
-                None => Err(OpenAITransformError::InvalidValue {
-                    message: "json_schema response_format is missing schema".to_string(),
-                }),
-            }
-        }
-        ResponseFormatType::JsonObject => {
-            request.response_format = Some(response_format);
-            Ok(())
-        }
-    }
 }
 
 #[cfg(test)]
@@ -1257,5 +984,62 @@ mod tests {
         let thinking = anthropic_thinking.unwrap();
         assert_eq!(thinking.get("type").unwrap(), "enabled");
         assert_eq!(thinking.get("budget_tokens").unwrap(), 3000);
+    }
+
+    // =========================================================================
+    // Temperature stripping for reasoning models
+    // =========================================================================
+
+    #[test]
+    fn test_openai_omits_temperature_for_reasoning_models() {
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+
+        // gpt-5-mini is a reasoning model - temperature should be omitted
+        let req = UniversalRequest {
+            model: Some("gpt-5-mini".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                temperature: Some(0.0), // User specified, but should be omitted
+                ..Default::default()
+            },
+        };
+
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert!(
+            result.get("temperature").is_none(),
+            "Temperature should be omitted for reasoning models (gpt-5-mini)"
+        );
+    }
+
+    #[test]
+    fn test_openai_preserves_temperature_for_non_reasoning_models() {
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+
+        // gpt-4 is not a reasoning model - temperature should be preserved
+        let req = UniversalRequest {
+            model: Some("gpt-4".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                temperature: Some(0.7),
+                ..Default::default()
+            },
+        };
+
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert_eq!(
+            result.get("temperature").unwrap().as_f64().unwrap(),
+            0.7,
+            "Temperature should be preserved for non-reasoning models"
+        );
     }
 }

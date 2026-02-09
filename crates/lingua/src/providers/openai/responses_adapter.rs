@@ -12,6 +12,7 @@ use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
+use crate::providers::openai::capabilities::apply_model_transforms;
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
 };
@@ -28,14 +29,6 @@ use crate::universal::{
     UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use std::convert::TryInto;
-
-/// Check if a model is a reasoning model that doesn't support temperature.
-fn is_reasoning_model(model: &str) -> bool {
-    let model_lower = model.to_lowercase();
-    model_lower.starts_with("o1")
-        || model_lower.starts_with("o3")
-        || model_lower.starts_with("gpt-5")
-}
 
 fn system_text(message: &Message) -> Option<&str> {
     match message {
@@ -233,11 +226,7 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
 
-        // Pass temperature through for non-reasoning models
-        // Reasoning models (o1-*, o3-*, gpt-5-*) don't support temperature
-        if !is_reasoning_model(model) {
-            insert_opt_f64(&mut obj, "temperature", req.params.temperature);
-        }
+        insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
         insert_opt_i64(&mut obj, "max_output_tokens", req.params.max_tokens);
         insert_opt_i64(&mut obj, "top_logprobs", req.params.top_logprobs);
@@ -298,6 +287,9 @@ impl ProviderAdapter for ResponsesAdapter {
                 }
             }
         }
+
+        // Apply capability-based transforms (e.g., strip temperature for reasoning models)
+        apply_model_transforms(model, &mut obj);
 
         Ok(Value::Object(obj))
     }

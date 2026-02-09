@@ -241,6 +241,140 @@ fn validate_anthropic_response(py: Python, json: &str) -> PyResult<PyObject> {
 }
 
 // ============================================================================
+// Transform functions
+// ============================================================================
+
+/// Transform a request payload to the target format.
+///
+/// Takes a JSON string and target format, auto-detects the source format,
+/// and transforms to the target format.
+///
+/// Returns a dict with either:
+/// - `{ "pass_through": True, "data": ... }` if payload is already valid for target
+/// - `{ "transformed": True, "data": ..., "source_format": "..." }` if transformed
+#[pyfunction]
+#[pyo3(signature = (json, target_format, model=None))]
+fn transform_request(
+    py: Python,
+    json: &str,
+    target_format: &str,
+    model: Option<String>,
+) -> PyResult<PyObject> {
+    use crate::capabilities::ProviderFormat;
+    use crate::processing::transform::{transform_request as transform, TransformResult};
+    use bytes::Bytes;
+
+    let target: ProviderFormat = target_format.parse().map_err(|_| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+            "Unknown target format: {}",
+            target_format
+        ))
+    })?;
+
+    let input_bytes = Bytes::from(json.to_owned());
+    let result = transform(input_bytes, target, model.as_deref())
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+
+    match result {
+        TransformResult::PassThrough(bytes) => {
+            let data: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Failed to parse result: {}",
+                    e
+                ))
+            })?;
+            let dict = pyo3::types::PyDict::new(py);
+            dict.set_item("pass_through", true)?;
+            dict.set_item("data", rust_to_py(py, &data)?)?;
+            Ok(dict.into())
+        }
+        TransformResult::Transformed {
+            bytes,
+            source_format,
+        } => {
+            let data: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Failed to parse result: {}",
+                    e
+                ))
+            })?;
+            let dict = pyo3::types::PyDict::new(py);
+            dict.set_item("transformed", true)?;
+            dict.set_item("data", rust_to_py(py, &data)?)?;
+            dict.set_item("source_format", source_format.to_string())?;
+            Ok(dict.into())
+        }
+    }
+}
+
+/// Transform a response payload from one format to another.
+///
+/// Takes a JSON string and target format, auto-detects the source format,
+/// and transforms to the target format.
+///
+/// Returns a dict with either:
+/// - `{ "pass_through": True, "data": ... }` if payload is already valid for target
+/// - `{ "transformed": True, "data": ..., "source_format": "..." }` if transformed
+#[pyfunction]
+fn transform_response(py: Python, json: &str, target_format: &str) -> PyResult<PyObject> {
+    use crate::capabilities::ProviderFormat;
+    use crate::processing::transform::{transform_response as transform, TransformResult};
+    use bytes::Bytes;
+
+    let target: ProviderFormat = target_format.parse().map_err(|_| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+            "Unknown target format: {}",
+            target_format
+        ))
+    })?;
+
+    let input_bytes = Bytes::from(json.to_owned());
+    let result = transform(input_bytes, target)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+
+    match result {
+        TransformResult::PassThrough(bytes) => {
+            let data: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Failed to parse result: {}",
+                    e
+                ))
+            })?;
+            let dict = pyo3::types::PyDict::new(py);
+            dict.set_item("pass_through", true)?;
+            dict.set_item("data", rust_to_py(py, &data)?)?;
+            Ok(dict.into())
+        }
+        TransformResult::Transformed {
+            bytes,
+            source_format,
+        } => {
+            let data: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| {
+                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Failed to parse result: {}",
+                    e
+                ))
+            })?;
+            let dict = pyo3::types::PyDict::new(py);
+            dict.set_item("transformed", true)?;
+            dict.set_item("data", rust_to_py(py, &data)?)?;
+            dict.set_item("source_format", source_format.to_string())?;
+            Ok(dict.into())
+        }
+    }
+}
+
+/// Extract model name from request without full transformation.
+///
+/// This is a fast path for routing decisions that only need the model name.
+/// Returns the model string if found, or None if not present.
+#[pyfunction]
+fn extract_model(json: &str) -> Option<String> {
+    use crate::processing::transform::extract_model as extract;
+    extract(json.as_bytes())
+}
+
+// ============================================================================
 // Python module definition
 // ============================================================================
 
@@ -276,6 +410,11 @@ fn _lingua(_py: Python, m: &PyModule) -> PyResult<()> {
         m.add_function(wrap_pyfunction!(validate_anthropic_request, m)?)?;
         m.add_function(wrap_pyfunction!(validate_anthropic_response, m)?)?;
     }
+
+    // Transform functions
+    m.add_function(wrap_pyfunction!(transform_request, m)?)?;
+    m.add_function(wrap_pyfunction!(transform_response, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_model, m)?)?;
 
     Ok(())
 }
