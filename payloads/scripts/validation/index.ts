@@ -14,7 +14,8 @@ import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
   GOOGLE_MODEL,
-  BEDROCK_MODEL,
+  BEDROCK_ANTH_MODEL,
+  BEDROCK_CONVERSE_MODEL,
 } from "../../cases/models";
 import {
   proxyCases,
@@ -226,7 +227,8 @@ const PROVIDER_REGISTRY: Record<string, string> = {
   openai: OPENAI_CHAT_COMPLETIONS_MODEL,
   anthropic: ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
   google: GOOGLE_MODEL,
-  bedrock: BEDROCK_MODEL,
+  bedrock: BEDROCK_ANTH_MODEL,
+  "bedrock-converse": BEDROCK_CONVERSE_MODEL,
 };
 
 /**
@@ -451,22 +453,16 @@ export async function runValidation(
             return result;
           }
 
-          // Override model only for cross-provider testing
-          // OpenAI formats (chat-completions, responses) with non-OpenAI providers
+          // Override model for cross-provider testing (any format with non-default provider)
           if (
             providerAlias !== "default" &&
             providerAlias !== "openai" && // Don't override for OpenAI - tests have correct models
             PROVIDER_REGISTRY[providerAlias]
           ) {
-            const isOpenAIFormat =
-              format === "chat-completions" || format === "responses";
-            if (isOpenAIFormat) {
-              // Override for cross-provider translation testing
-              request = {
-                ...request,
-                model: PROVIDER_REGISTRY[providerAlias],
-              };
-            }
+            request = {
+              ...request,
+              model: PROVIDER_REGISTRY[providerAlias],
+            };
           }
 
           // Execute through proxy

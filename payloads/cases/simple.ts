@@ -4,7 +4,7 @@ import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
-  BEDROCK_MODEL,
+  BEDROCK_ANTH_MODEL,
 } from "./models";
 
 // Simple test cases - basic functionality testing
@@ -54,7 +54,7 @@ export const simpleCases: TestCaseCollection = {
     },
 
     bedrock: {
-      modelId: BEDROCK_MODEL,
+      modelId: BEDROCK_ANTH_MODEL,
       messages: [
         {
           role: "user",
@@ -113,7 +113,7 @@ export const simpleCases: TestCaseCollection = {
     },
 
     bedrock: {
-      modelId: BEDROCK_MODEL,
+      modelId: BEDROCK_ANTH_MODEL,
       messages: [
         {
           role: "user",
@@ -181,7 +181,7 @@ export const simpleCases: TestCaseCollection = {
     },
 
     bedrock: {
-      modelId: BEDROCK_MODEL,
+      modelId: BEDROCK_ANTH_MODEL,
       messages: [
         {
           role: "user",
@@ -313,7 +313,7 @@ export const simpleCases: TestCaseCollection = {
     },
 
     bedrock: {
-      modelId: BEDROCK_MODEL,
+      modelId: BEDROCK_ANTH_MODEL,
       messages: [
         {
           role: "user",

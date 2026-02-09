@@ -79,6 +79,10 @@ impl TransformError {
                 | TransformError::FromUniversalFailed(_)
         )
     }
+
+    pub fn is_unsupported_target_format(&self) -> bool {
+        matches!(self, TransformError::UnsupportedTargetFormat(_))
+    }
 }
 
 impl From<ConvertError> for TransformError {
@@ -237,16 +241,17 @@ pub fn transform_request(
 
     let mut universal = source_adapter.request_to_universal(payload)?;
 
-    // Inject model from parameter if not present
     if model.is_some() && universal.model.is_none() {
         universal.model = model.map(String::from);
     }
 
-    // Apply target provider defaults (e.g., Anthropic's required max_tokens)
     target_adapter.apply_defaults(&mut universal);
 
-    // Convert to target format (validation happens in adapter)
-    let transformed = target_adapter.request_from_universal(&universal)?;
+    let mut transformed = target_adapter.request_from_universal(&universal)?;
+
+    if target_format == ProviderFormat::Anthropic && is_bedrock_anthropic_model(model) {
+        apply_bedrock_anthropic_mutations(&mut transformed);
+    }
 
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
@@ -501,8 +506,37 @@ fn detect_adapter(
         .ok_or(TransformError::UnableToDetectFormat)
 }
 
+/// Check if a model name indicates a Bedrock Anthropic model
+/// (e.g. `us.anthropic.claude-3-5-sonnet-20241022-v2:0` or `anthropic.claude-3-haiku-20240307-v1:0`).
+fn is_bedrock_anthropic_model(model: Option<&str>) -> bool {
+    model.is_some_and(|m| m.starts_with("anthropic.") || m.contains(".anthropic."))
+}
+
+/// Apply Bedrock-specific mutations to an Anthropic-format payload.
+///
+/// Bedrock's Anthropic Messages API requires:
+/// - No `model` field (model is in the URL path)
+/// - No `stream` field (streaming is determined by endpoint choice)
+/// - `anthropic_version` header injected into the body
+// FIXME[matt] this should technically be its own format (bedrock-anthropic)
+fn apply_bedrock_anthropic_mutations(value: &mut Value) {
+    if let Some(obj) = value.as_object_mut() {
+        obj.remove("model");
+        obj.remove("stream");
+        obj.insert(
+            "anthropic_version".to_string(),
+            Value::String("bedrock-2023-05-31".to_string()),
+        );
+    }
+}
+
 /// Check if a request needs forced translation even when source == target format.
 fn needs_forced_translation(payload: &Value, model: Option<&str>, target: ProviderFormat) -> bool {
+    // Bedrock Anthropic models need translation so we can apply mutations
+    if target == ProviderFormat::Anthropic && is_bedrock_anthropic_model(model) {
+        return true;
+    }
+
     if target != ProviderFormat::OpenAI {
         return false;
     }
@@ -755,5 +789,80 @@ mod tests {
             result.is_passthrough(),
             "Non-reasoning models should passthrough"
         );
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_bedrock_anthropic_mutations_applied() {
+        let payload = json!({
+            "model": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "max_tokens": 1024,
+            "stream": true,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+        let model = "us.anthropic.claude-3-5-sonnet-20241022-v2:0";
+
+        let result = transform_request(input, ProviderFormat::Anthropic, Some(model)).unwrap();
+
+        assert!(
+            !result.is_passthrough(),
+            "Bedrock Anthropic models should force translation"
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(
+            output.get("model").is_none(),
+            "model should be stripped for Bedrock Anthropic"
+        );
+        assert!(
+            output.get("stream").is_none(),
+            "stream should be stripped for Bedrock Anthropic"
+        );
+        assert_eq!(
+            output.get("anthropic_version").and_then(Value::as_str),
+            Some("bedrock-2023-05-31"),
+            "anthropic_version should be injected"
+        );
+        assert_eq!(
+            output.get("max_tokens").and_then(Value::as_i64),
+            Some(1024),
+            "max_tokens should be preserved"
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_non_bedrock_anthropic_passthrough() {
+        let payload = json!({
+            "model": "claude-3-5-sonnet",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert!(
+            result.is_passthrough(),
+            "Non-Bedrock Anthropic models should passthrough"
+        );
+    }
+
+    #[test]
+    fn test_is_bedrock_anthropic_model() {
+        assert!(super::is_bedrock_anthropic_model(Some(
+            "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+        )));
+        assert!(super::is_bedrock_anthropic_model(Some(
+            "anthropic.claude-3-haiku-20240307-v1:0"
+        )));
+        assert!(!super::is_bedrock_anthropic_model(Some(
+            "claude-3-5-sonnet"
+        )));
+        assert!(!super::is_bedrock_anthropic_model(Some(
+            "amazon.nova-micro-v1:0"
+        )));
+        assert!(!super::is_bedrock_anthropic_model(None));
     }
 }

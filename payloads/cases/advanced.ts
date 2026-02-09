@@ -4,7 +4,7 @@ import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
-  BEDROCK_MODEL,
+  BEDROCK_ANTH_MODEL,
 } from "./models";
 
 const IMAGE_BASE64 =
@@ -100,7 +100,7 @@ export const advancedCases: TestCaseCollection = {
     },
 
     bedrock: {
-      modelId: BEDROCK_MODEL,
+      modelId: BEDROCK_ANTH_MODEL,
       messages: [
         {
           role: "user",
@@ -178,7 +178,7 @@ export const advancedCases: TestCaseCollection = {
     },
 
     bedrock: {
-      modelId: BEDROCK_MODEL,
+      modelId: BEDROCK_ANTH_MODEL,
       messages: [
         {
           role: "user",
@@ -236,7 +236,7 @@ export const advancedCases: TestCaseCollection = {
     },
 
     bedrock: {
-      modelId: BEDROCK_MODEL,
+      modelId: BEDROCK_ANTH_MODEL,
       messages: [
         {
           role: "user",
@@ -364,7 +364,7 @@ export const advancedCases: TestCaseCollection = {
     },
 
     bedrock: {
-      modelId: BEDROCK_MODEL,
+      modelId: BEDROCK_ANTH_MODEL,
       messages: [
         {
           role: "user",

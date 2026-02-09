@@ -311,7 +311,7 @@ impl ReasoningConfig {
             ProviderFormat::OpenAI => Ok(to_openai_chat(self, max_tokens).map(Value::String)),
             ProviderFormat::Responses => Ok(to_openai_responses(self, max_tokens)),
             ProviderFormat::Anthropic => Ok(to_anthropic(self, max_tokens)),
-            ProviderFormat::Converse => Ok(to_anthropic(self, max_tokens)), // Bedrock uses same format as Anthropic
+            ProviderFormat::Converse => Ok(to_anthropic(self, max_tokens)), // Bedrock Converse uses same thinking format as Anthropic
             ProviderFormat::Google => Ok(to_google(self, max_tokens)),
             _ => Ok(None),
         }

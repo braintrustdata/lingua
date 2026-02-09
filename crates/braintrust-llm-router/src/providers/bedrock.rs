@@ -11,6 +11,7 @@ use bytes::Bytes;
 use http::Request as HttpRequest;
 use lingua::serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
+
 use reqwest::{Client, StatusCode, Url};
 
 use crate::auth::AuthConfig;
@@ -18,7 +19,9 @@ use crate::catalog::ModelSpec;
 use crate::client::{default_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{bedrock_event_stream, single_bytes_stream, RawResponseStream};
+use crate::streaming::{
+    bedrock_event_stream, bedrock_messages_event_stream, single_bytes_stream, RawResponseStream,
+};
 use lingua::ProviderFormat;
 
 #[derive(Debug, Clone)]
@@ -90,11 +93,22 @@ impl BedrockProvider {
         Self::new(config)
     }
 
-    fn invoke_url(&self, model: &str, stream: bool) -> Result<Url> {
-        let path = if stream {
-            format!("model/{model}/converse-stream")
-        } else {
-            format!("model/{model}/converse")
+    fn invoke_url(&self, model: &str, stream: bool, format: ProviderFormat) -> Result<Url> {
+        let path = match format {
+            ProviderFormat::Anthropic => {
+                if stream {
+                    format!("model/{model}/invoke-with-response-stream")
+                } else {
+                    format!("model/{model}/invoke")
+                }
+            }
+            _ => {
+                if stream {
+                    format!("model/{model}/converse-stream")
+                } else {
+                    format!("model/{model}/converse")
+                }
+            }
         };
         self.config
             .endpoint
@@ -205,13 +219,14 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         _client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.invoke_url(&spec.model, false)?;
+        let url = self.invoke_url(&spec.model, false, spec.format)?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
             target: "bt.router.provider.http",
             llm_provider = "bedrock",
             http_url = %url,
+            bedrock_format = %spec.format,
             "sending request to Bedrock"
         );
 
@@ -267,8 +282,7 @@ impl crate::providers::Provider for BedrockProvider {
             return Ok(single_bytes_stream(response));
         }
 
-        // Router should have already added stream options to payload
-        let url = self.invoke_url(&spec.model, true)?;
+        let url = self.invoke_url(&spec.model, true, spec.format)?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -276,6 +290,7 @@ impl crate::providers::Provider for BedrockProvider {
             llm_provider = "bedrock",
             http_url = %url,
             llm_streaming = true,
+            bedrock_format = %spec.format,
             "sending streaming request to Bedrock"
         );
 
@@ -317,7 +332,10 @@ impl crate::providers::Provider for BedrockProvider {
             });
         }
 
-        Ok(bedrock_event_stream(response))
+        match spec.format {
+            ProviderFormat::Anthropic => Ok(bedrock_messages_event_stream(response)),
+            _ => Ok(bedrock_event_stream(response)),
+        }
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
@@ -356,5 +374,60 @@ fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
         Some(Duration::from_secs(2))
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn invoke_url_converse_mode() {
+        let provider = BedrockProvider::new(BedrockConfig::default()).unwrap();
+
+        let url = provider
+            .invoke_url("amazon.nova-micro-v1:0", false, ProviderFormat::Converse)
+            .unwrap();
+        assert!(url
+            .as_str()
+            .contains("/model/amazon.nova-micro-v1:0/converse"));
+
+        let url = provider
+            .invoke_url("amazon.nova-micro-v1:0", true, ProviderFormat::Converse)
+            .unwrap();
+        assert!(url
+            .as_str()
+            .contains("/model/amazon.nova-micro-v1:0/converse-stream"));
+    }
+
+    #[test]
+    fn invoke_url_anthropic_messages_mode() {
+        let provider = BedrockProvider::new(BedrockConfig::default()).unwrap();
+
+        let url = provider
+            .invoke_url(
+                "anthropic.claude-3-5-sonnet-20241022-v2:0",
+                false,
+                ProviderFormat::Anthropic,
+            )
+            .unwrap();
+        assert!(url
+            .as_str()
+            .contains("/model/anthropic.claude-3-5-sonnet-20241022-v2:0/invoke"));
+        assert!(
+            !url.as_str().contains("converse"),
+            "Anthropic messages mode should not use converse endpoints"
+        );
+
+        let url = provider
+            .invoke_url(
+                "anthropic.claude-3-5-sonnet-20241022-v2:0",
+                true,
+                ProviderFormat::Anthropic,
+            )
+            .unwrap();
+        assert!(url.as_str().contains(
+            "/model/anthropic.claude-3-5-sonnet-20241022-v2:0/invoke-with-response-stream"
+        ));
     }
 }
