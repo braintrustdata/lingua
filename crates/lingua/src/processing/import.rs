@@ -26,19 +26,25 @@ pub struct Span {
 /// Returns early to avoid expensive deserialization attempts on non-message data
 fn has_message_structure(data: &Value) -> bool {
     match data {
-        // Check if it's an array where first element has "role" field or is a choice object
+        // Check if it's an array where ANY element has "role" field or is a choice object
         Value::Array(arr) => {
             if arr.is_empty() {
                 return false;
             }
-            if let Some(Value::Object(first)) = arr.first() {
-                // Direct message format: has "role" field
-                if first.contains_key("role") {
-                    return true;
-                }
-                // Chat completions response choices format: has "message" field with role inside
-                if let Some(Value::Object(msg)) = first.get("message") {
-                    return msg.contains_key("role");
+            // Check if ANY element in the array looks like a message (not just the first)
+            // This handles mixed-type arrays from Responses API
+            for item in arr {
+                if let Value::Object(obj) = item {
+                    // Direct message format: has "role" field
+                    if obj.contains_key("role") {
+                        return true;
+                    }
+                    // Chat completions response choices format: has "message" field with role inside
+                    if let Some(Value::Object(msg)) = obj.get("message") {
+                        if msg.contains_key("role") {
+                            return true;
+                        }
+                    }
                 }
             }
             false
