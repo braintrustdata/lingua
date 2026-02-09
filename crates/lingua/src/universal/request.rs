@@ -34,6 +34,7 @@ use std::fmt;
 use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
@@ -44,7 +45,8 @@ use crate::universal::tools::UniversalTool;
 /// Universal request envelope for LLM API calls.
 ///
 /// This type captures the common structure across all provider request formats.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export)]
 pub struct UniversalRequest {
     /// Model identifier (may be None for providers that use endpoint-based model selection)
     pub model: Option<String>,
@@ -60,7 +62,8 @@ pub struct UniversalRequest {
 ///
 /// Uses canonical names - adapters handle mapping to provider-specific names.
 /// Provider-specific fields without canonical mappings are stored in `extras`.
-#[derive(Debug, Clone, Default, Serialize)]
+#[derive(Debug, Clone, Default, Serialize, TS)]
+#[ts(export)]
 pub struct UniversalParams {
     // === Sampling parameters ===
     /// Controls randomness: 0 = deterministic, 2 = maximum randomness.
@@ -147,6 +150,7 @@ pub struct UniversalParams {
     /// Key-value metadata attached to the request.
     ///
     /// **Providers:** OpenAI, Anthropic (only `user_id`)
+    #[ts(type = "Record<string, unknown> | null")]
     pub metadata: Option<Value>,
 
     /// Store the completion for later use in fine-tuning or evals.
@@ -171,6 +175,7 @@ pub struct UniversalParams {
     /// Keyed by source `ProviderFormat` - only restored when converting back to
     /// the same provider (no cross-provider contamination).
     #[serde(skip)]
+    #[ts(skip)]
     pub extras: HashMap<ProviderFormat, Map<String, Value>>,
 }
 
@@ -229,7 +234,8 @@ impl UniversalParams {
 /// The `canonical` field indicates which was the original source of truth:
 /// - `Effort`: From OpenAI (effort is canonical, budget_tokens derived)
 /// - `BudgetTokens`: From Anthropic/Google (budget_tokens is canonical, effort derived)
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct ReasoningConfig {
     /// Whether reasoning/thinking is enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -282,8 +288,9 @@ fn reasoning_should_skip(reasoning: &Option<ReasoningConfig>) -> bool {
 }
 
 /// Reasoning effort level (portable across providers).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(export)]
 pub enum ReasoningEffort {
     Low,
     Medium,
@@ -333,8 +340,9 @@ impl AsRef<str> for ReasoningEffort {
 ///
 /// When converting between providers, both `effort` and `budget_tokens` are always populated
 /// (one derived from the other). This field indicates which was the original source.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export)]
 pub enum ReasoningCanonical {
     /// `effort` is the source of truth (from OpenAI Chat/Responses API)
     Effort,
@@ -343,7 +351,8 @@ pub enum ReasoningCanonical {
 }
 
 /// Summary mode for reasoning output.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum SummaryMode {
     /// No summary included in response.
     None,
@@ -404,7 +413,8 @@ impl AsRef<str> for SummaryMode {
 /// - OpenAI Chat: `"auto"` | `"none"` | `"required"` | `{ type: "function", function: { name } }`
 /// - OpenAI Responses: `"auto"` | `{ type: "function", name }`
 /// - Anthropic: `{ type: "auto" | "any" | "none" | "tool", name?, disable_parallel_tool_use? }`
-#[derive(Debug, Clone, Default, Serialize)]
+#[derive(Debug, Clone, Default, Serialize, TS)]
+#[ts(export)]
 pub struct ToolChoiceConfig {
     /// Selection mode - the semantic intent of the tool choice
     pub mode: Option<ToolChoiceMode>,
@@ -419,7 +429,8 @@ pub struct ToolChoiceConfig {
 }
 
 /// Tool selection mode (portable across providers).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[ts(export)]
 pub enum ToolChoiceMode {
     /// Provider decides whether to use tools
     Auto,
@@ -493,7 +504,8 @@ impl AsRef<str> for ToolChoiceMode {
 /// - OpenAI Responses: nested under `text.format`
 /// - Google: `response_mime_type` + `response_schema`
 /// - Anthropic: `{ type: "json_schema", schema, name?, strict?, description? }`
-#[derive(Debug, Clone, Default, Serialize)]
+#[derive(Debug, Clone, Default, Serialize, TS)]
+#[ts(export)]
 pub struct ResponseFormatConfig {
     /// Output format type
     pub format_type: Option<ResponseFormatType>,
@@ -503,7 +515,8 @@ pub struct ResponseFormatConfig {
 }
 
 /// Response format type (portable across providers).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[ts(export)]
 pub enum ResponseFormatType {
     /// Plain text output (default)
     Text,
@@ -553,12 +566,14 @@ impl AsRef<str> for ResponseFormatType {
 }
 
 /// JSON schema configuration for structured output.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export)]
 pub struct JsonSchemaConfig {
     /// Schema name (required by OpenAI)
     pub name: String,
 
     /// The JSON schema definition
+    #[ts(type = "Record<string, unknown>")]
     pub schema: Value,
 
     /// Whether to enable strict schema validation
