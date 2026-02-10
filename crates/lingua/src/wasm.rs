@@ -167,6 +167,16 @@ pub fn validate_chat_completions_response(json: &str) -> Result<JsValue, JsValue
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
+/// Validate a JSON string as a Chat Completions stream chunk
+#[wasm_bindgen]
+#[cfg(feature = "openai")]
+pub fn validate_chat_completions_stream_chunk(json: &str) -> Result<JsValue, JsValue> {
+    use crate::validation::openai::validate_chat_completions_stream_chunk as validate;
+    validate(json)
+        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
 /// Validate a JSON string as a Responses API request
 #[wasm_bindgen]
 #[cfg(feature = "openai")]
@@ -343,6 +353,52 @@ pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, J
 
     // Use JS native JSON.parse to avoid serde_wasm_bindgen serialization issues
     // (Map objects, $serde_json::private::Number from arbitrary_precision)
+    let (pass_through, bytes, source_format) = match result {
+        TransformResult::PassThrough(bytes) => (true, bytes, None),
+        TransformResult::Transformed {
+            bytes,
+            source_format,
+        } => (false, bytes, Some(source_format)),
+    };
+
+    let data_str = String::from_utf8_lossy(&bytes);
+    let data =
+        js_sys::JSON::parse(&data_str).map_err(|_| JsValue::from_str("Failed to parse JSON"))?;
+
+    let obj = js_sys::Object::new();
+    if pass_through {
+        js_sys::Reflect::set(&obj, &"passThrough".into(), &JsValue::TRUE)?;
+    } else {
+        js_sys::Reflect::set(&obj, &"transformed".into(), &JsValue::TRUE)?;
+        if let Some(sf) = source_format {
+            js_sys::Reflect::set(&obj, &"sourceFormat".into(), &sf.to_string().into())?;
+        }
+    }
+    js_sys::Reflect::set(&obj, &"data".into(), &data)?;
+    Ok(obj.into())
+}
+
+/// Transform a streaming chunk payload from one format to another.
+///
+/// Takes a JSON string chunk and target format, auto-detects the source format,
+/// and transforms to the target format.
+///
+/// Returns an object with either:
+/// - `{ passThrough: true, data: ... }` if chunk is already valid for target
+/// - `{ transformed: true, data: ..., sourceFormat: "..." }` if transformed
+#[wasm_bindgen]
+pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValue, JsValue> {
+    use crate::capabilities::ProviderFormat;
+    use crate::processing::transform::{transform_stream_chunk as transform, TransformResult};
+    use bytes::Bytes;
+
+    let target: ProviderFormat = target_format
+        .parse()
+        .map_err(|_| JsValue::from_str(&format!("Unknown target format: {}", target_format)))?;
+
+    let input_bytes = Bytes::from(input.to_owned());
+    let result = transform(input_bytes, target).map_err(|e| JsValue::from_str(&e.to_string()))?;
+
     let (pass_through, bytes, source_format) = match result {
         TransformResult::PassThrough(bytes) => (true, bytes, None),
         TransformResult::Transformed {
