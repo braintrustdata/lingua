@@ -542,7 +542,10 @@ fn apply_bedrock_anthropic_mutations(value: &mut Value) {
 
         // See doc comment above -- Bedrock rejects whitespace-only stop sequences.
         if let Some(Value::Array(seqs)) = obj.get_mut("stop_sequences") {
-            seqs.retain(|s| s.as_str().is_some_and(|s| s.contains(|c: char| !c.is_whitespace())));
+            seqs.retain(|s| {
+                s.as_str()
+                    .is_some_and(|s| s.contains(|c: char| !c.is_whitespace()))
+            });
             if seqs.is_empty() {
                 obj.remove("stop_sequences");
             }
