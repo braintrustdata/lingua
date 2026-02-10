@@ -38,7 +38,11 @@ export {
   // Anthropic validation
   validateAnthropicRequest,
   validateAnthropicResponse,
+
+  // Stream chunk validation and transformation
+  validateChatCompletionsStreamChunk,
+  transformStreamChunk,
 } from "./converters";
 
 // Re-export types
-export type { ValidationResult } from "./converters";
+export type { ValidationResult, TransformStreamChunkResult } from "./converters";
