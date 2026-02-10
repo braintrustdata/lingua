@@ -244,8 +244,8 @@ mod tests {
     #[cfg(feature = "openai")]
     #[test]
     fn test_adapter_caching_is_stable() {
-        let a1 = adapter_for_format(ProviderFormat::OpenAI).unwrap();
-        let a2 = adapter_for_format(ProviderFormat::OpenAI).unwrap();
+        let a1 = adapter_for_format(ProviderFormat::ChatCompletions).unwrap();
+        let a2 = adapter_for_format(ProviderFormat::ChatCompletions).unwrap();
         assert!(std::ptr::eq(a1, a2));
     }
 }

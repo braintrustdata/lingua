@@ -36,7 +36,7 @@ pub struct OpenAIAdapter;
 
 impl ProviderAdapter for OpenAIAdapter {
     fn format(&self) -> ProviderFormat {
-        ProviderFormat::OpenAI
+        ProviderFormat::ChatCompletions
     }
 
     fn directory_name(&self) -> &'static str {
@@ -106,11 +106,11 @@ impl ProviderAdapter for OpenAIAdapter {
             tool_choice: typed_params
                 .tool_choice
                 .as_ref()
-                .and_then(|v| (ProviderFormat::OpenAI, v).try_into().ok()),
+                .and_then(|v| (ProviderFormat::ChatCompletions, v).try_into().ok()),
             response_format: typed_params
                 .response_format
                 .as_ref()
-                .and_then(|v| (ProviderFormat::OpenAI, v).try_into().ok()),
+                .and_then(|v| (ProviderFormat::ChatCompletions, v).try_into().ok()),
             seed: typed_params.seed,
             presence_penalty: typed_params.presence_penalty,
             frequency_penalty: typed_params.frequency_penalty,
@@ -165,7 +165,9 @@ impl ProviderAdapter for OpenAIAdapter {
         }
 
         if !extras_map.is_empty() {
-            params.extras.insert(ProviderFormat::OpenAI, extras_map);
+            params
+                .extras
+                .insert(ProviderFormat::ChatCompletions, extras_map);
         }
 
         Ok(UniversalRequest {
@@ -177,7 +179,7 @@ impl ProviderAdapter for OpenAIAdapter {
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
         let model = req.model.as_ref().ok_or(TransformError::ValidationFailed {
-            target: ProviderFormat::OpenAI,
+            target: ProviderFormat::ChatCompletions,
             reason: "missing model".to_string(),
         })?;
 
@@ -217,12 +219,13 @@ impl ProviderAdapter for OpenAIAdapter {
         insert_opt_value(
             &mut obj,
             "tool_choice",
-            req.params.tool_choice_for(ProviderFormat::OpenAI),
+            req.params.tool_choice_for(ProviderFormat::ChatCompletions),
         );
         insert_opt_value(
             &mut obj,
             "response_format",
-            req.params.response_format_for(ProviderFormat::OpenAI),
+            req.params
+                .response_format_for(ProviderFormat::ChatCompletions),
         );
         insert_opt_i64(&mut obj, "seed", req.params.seed);
         insert_opt_f64(&mut obj, "presence_penalty", req.params.presence_penalty);
@@ -237,7 +240,7 @@ impl ProviderAdapter for OpenAIAdapter {
         }
 
         // Add reasoning_effort from canonical params
-        if let Some(effort_value) = req.params.reasoning_for(ProviderFormat::OpenAI) {
+        if let Some(effort_value) = req.params.reasoning_for(ProviderFormat::ChatCompletions) {
             obj.insert("reasoning_effort".into(), effort_value);
         }
 
@@ -267,7 +270,7 @@ impl ProviderAdapter for OpenAIAdapter {
         }
 
         // Merge back provider-specific extras (only for OpenAI)
-        if let Some(extras) = req.params.extras.get(&ProviderFormat::OpenAI) {
+        if let Some(extras) = req.params.extras.get(&ProviderFormat::ChatCompletions) {
             for (k, v) in extras {
                 obj.insert(k.clone(), v.clone());
             }
@@ -501,7 +504,7 @@ impl ProviderAdapter for OpenAIAdapter {
         if let Some(ref usage) = chunk.usage {
             map.insert(
                 "usage".into(),
-                usage.to_provider_value(ProviderFormat::OpenAI),
+                usage.to_provider_value(ProviderFormat::ChatCompletions),
             );
         }
 
@@ -631,7 +634,7 @@ mod tests {
         let openai_extras = universal
             .params
             .extras
-            .get(&ProviderFormat::OpenAI)
+            .get(&ProviderFormat::ChatCompletions)
             .expect("should have OpenAI extras");
         assert!(openai_extras.contains_key("user"));
         assert!(openai_extras.contains_key("custom_field"));

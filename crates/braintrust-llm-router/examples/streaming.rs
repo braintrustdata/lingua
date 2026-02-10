@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
         .complete_stream(
             body,
             model,
-            ProviderFormat::OpenAI,
+            ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
         .await?;
@@ -136,7 +136,7 @@ async fn main() -> Result<()> {
             .complete_stream(
                 body,
                 model,
-                ProviderFormat::OpenAI,
+                ProviderFormat::ChatCompletions,
                 &ClientHeaders::default(),
             )
             .await?;

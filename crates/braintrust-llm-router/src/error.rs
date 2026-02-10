@@ -162,13 +162,19 @@ mod tests {
         // Client errors
         assert!(TransformError::UnableToDetectFormat.is_client_error());
         assert!(TransformError::ValidationFailed {
-            target: ProviderFormat::OpenAI,
+            target: ProviderFormat::ChatCompletions,
             reason: "test".into()
         }
         .is_client_error());
         assert!(TransformError::DeserializationFailed("invalid json".into()).is_client_error());
-        assert!(TransformError::UnsupportedTargetFormat(ProviderFormat::OpenAI).is_client_error());
-        assert!(TransformError::UnsupportedSourceFormat(ProviderFormat::OpenAI).is_client_error());
+        assert!(
+            TransformError::UnsupportedTargetFormat(ProviderFormat::ChatCompletions)
+                .is_client_error()
+        );
+        assert!(
+            TransformError::UnsupportedSourceFormat(ProviderFormat::ChatCompletions)
+                .is_client_error()
+        );
 
         // Conversion errors are client errors (user sent unsupported content)
         assert!(TransformError::FromUniversalFailed("test".into()).is_client_error());
@@ -183,7 +189,7 @@ mod tests {
     fn router_error_classification() {
         // Client errors
         assert!(Error::UnknownModel("gpt-5".into()).is_client_error());
-        assert!(Error::NoProvider(ProviderFormat::OpenAI).is_client_error());
+        assert!(Error::NoProvider(ProviderFormat::ChatCompletions).is_client_error());
         assert!(Error::InvalidRequest("bad".into()).is_client_error());
         assert!(Error::Lingua(lingua::TransformError::UnableToDetectFormat).is_client_error());
 

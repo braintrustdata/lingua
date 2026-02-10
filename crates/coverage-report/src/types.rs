@@ -111,7 +111,7 @@ pub fn parse_provider(name: &str) -> Result<ProviderFormat, String> {
     match name.to_lowercase().as_str() {
         "responses" | "response" | "openai-responses" => Ok(ProviderFormat::Responses),
         "chat-completions" | "chatcompletions" | "completions" | "openai" => {
-            Ok(ProviderFormat::OpenAI)
+            Ok(ProviderFormat::ChatCompletions)
         }
         "anthropic" => Ok(ProviderFormat::Anthropic),
         "google" | "gemini" => Ok(ProviderFormat::Google),

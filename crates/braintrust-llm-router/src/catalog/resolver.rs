@@ -45,7 +45,7 @@ impl ModelResolver {
 
 fn format_identifier(format: ProviderFormat) -> String {
     match format {
-        ProviderFormat::OpenAI => "openai",
+        ProviderFormat::ChatCompletions => "openai",
         ProviderFormat::Anthropic => "anthropic",
         ProviderFormat::Google => "google",
         ProviderFormat::Mistral => "mistral",
@@ -87,11 +87,14 @@ mod tests {
     #[test]
     fn resolve_returns_default_alias() {
         let mut catalog = ModelCatalog::empty();
-        catalog.insert("model".into(), spec("model", ProviderFormat::OpenAI));
+        catalog.insert(
+            "model".into(),
+            spec("model", ProviderFormat::ChatCompletions),
+        );
         let resolver = ModelResolver::new(Arc::new(catalog));
 
         let (_, format, alias) = resolver.resolve("model").expect("resolves");
-        assert_eq!(format, ProviderFormat::OpenAI);
+        assert_eq!(format, ProviderFormat::ChatCompletions);
         assert_eq!(alias, "openai");
     }
 

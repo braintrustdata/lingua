@@ -52,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
     }))?);
 
     // Route request - auto-extracts model, returns pre-serialized response
-    let result = router.handle(body, ProviderFormat::OpenAI, None).await?;
+    let result = router.handle(body, ProviderFormat::ChatCompletions, None).await?;
 
     match result.response {
         RouterResponse::Sync(bytes) => {
@@ -113,11 +113,11 @@ Two entry points:
 
 ```rust
 // handle() - auto-extracts model from body, detects streaming
-let result = router.handle(body, ProviderFormat::OpenAI, None).await?;
+let result = router.handle(body, ProviderFormat::ChatCompletions, None).await?;
 
 // complete() / complete_stream() - explicit model parameter
-let bytes = router.complete(body, "gpt-4", ProviderFormat::OpenAI, None).await?;
-let stream = router.complete_stream(body, "gpt-4", ProviderFormat::OpenAI, None).await?;
+let bytes = router.complete(body, "gpt-4", ProviderFormat::ChatCompletions, None).await?;
+let stream = router.complete_stream(body, "gpt-4", ProviderFormat::ChatCompletions, None).await?;
 ```
 
 ### Authentication

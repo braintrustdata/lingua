@@ -141,7 +141,7 @@ impl crate::providers::Provider for AzureProvider {
     }
 
     fn format(&self) -> ProviderFormat {
-        ProviderFormat::OpenAI
+        ProviderFormat::ChatCompletions
     }
 
     async fn complete(
