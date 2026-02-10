@@ -93,22 +93,17 @@ impl BedrockProvider {
         Self::new(config)
     }
 
-    fn invoke_url(&self, model: &str, stream: bool, format: ProviderFormat) -> Result<Url> {
-        let path = match format {
-            ProviderFormat::Anthropic => {
-                if stream {
-                    format!("model/{model}/invoke-with-response-stream")
-                } else {
-                    format!("model/{model}/invoke")
-                }
+    fn invoke_url(&self, model: &str, stream: bool) -> Result<Url> {
+        let path = if lingua::is_bedrock_anthropic_model(Some(model)) {
+            if stream {
+                format!("model/{model}/invoke-with-response-stream")
+            } else {
+                format!("model/{model}/invoke")
             }
-            _ => {
-                if stream {
-                    format!("model/{model}/converse-stream")
-                } else {
-                    format!("model/{model}/converse")
-                }
-            }
+        } else if stream {
+            format!("model/{model}/converse-stream")
+        } else {
+            format!("model/{model}/converse")
         };
         self.config
             .endpoint
@@ -219,14 +214,13 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         _client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.invoke_url(&spec.model, false, spec.format)?;
+        let url = self.invoke_url(&spec.model, false)?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
             target: "bt.router.provider.http",
             llm_provider = "bedrock",
             http_url = %url,
-            bedrock_format = %spec.format,
             "sending request to Bedrock"
         );
 
@@ -282,7 +276,7 @@ impl crate::providers::Provider for BedrockProvider {
             return Ok(single_bytes_stream(response));
         }
 
-        let url = self.invoke_url(&spec.model, true, spec.format)?;
+        let url = self.invoke_url(&spec.model, true)?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -290,7 +284,6 @@ impl crate::providers::Provider for BedrockProvider {
             llm_provider = "bedrock",
             http_url = %url,
             llm_streaming = true,
-            bedrock_format = %spec.format,
             "sending streaming request to Bedrock"
         );
 
@@ -332,9 +325,10 @@ impl crate::providers::Provider for BedrockProvider {
             });
         }
 
-        match spec.format {
-            ProviderFormat::Anthropic => Ok(bedrock_messages_event_stream(response)),
-            _ => Ok(bedrock_event_stream(response)),
+        if lingua::is_bedrock_anthropic_model(Some(&spec.model)) {
+            Ok(bedrock_messages_event_stream(response))
+        } else {
+            Ok(bedrock_event_stream(response))
         }
     }
 
@@ -386,14 +380,14 @@ mod tests {
         let provider = BedrockProvider::new(BedrockConfig::default()).unwrap();
 
         let url = provider
-            .invoke_url("amazon.nova-micro-v1:0", false, ProviderFormat::Converse)
+            .invoke_url("amazon.nova-micro-v1:0", false)
             .unwrap();
         assert!(url
             .as_str()
             .contains("/model/amazon.nova-micro-v1:0/converse"));
 
         let url = provider
-            .invoke_url("amazon.nova-micro-v1:0", true, ProviderFormat::Converse)
+            .invoke_url("amazon.nova-micro-v1:0", true)
             .unwrap();
         assert!(url
             .as_str()
@@ -405,11 +399,7 @@ mod tests {
         let provider = BedrockProvider::new(BedrockConfig::default()).unwrap();
 
         let url = provider
-            .invoke_url(
-                "anthropic.claude-3-5-sonnet-20241022-v2:0",
-                false,
-                ProviderFormat::Anthropic,
-            )
+            .invoke_url("anthropic.claude-3-5-sonnet-20241022-v2:0", false)
             .unwrap();
         assert!(url
             .as_str()
@@ -420,11 +410,7 @@ mod tests {
         );
 
         let url = provider
-            .invoke_url(
-                "anthropic.claude-3-5-sonnet-20241022-v2:0",
-                true,
-                ProviderFormat::Anthropic,
-            )
+            .invoke_url("anthropic.claude-3-5-sonnet-20241022-v2:0", true)
             .unwrap();
         assert!(url.as_str().contains(
             "/model/anthropic.claude-3-5-sonnet-20241022-v2:0/invoke-with-response-stream"

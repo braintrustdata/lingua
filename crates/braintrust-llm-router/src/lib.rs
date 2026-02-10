@@ -21,7 +21,7 @@ pub use catalog::{
     default_catalog, ModelCatalog, ModelFlavor, ModelResolver, ModelSpec, BUNDLED_CATALOG_JSON,
 };
 pub use error::{Error, Result, UpstreamHttpError};
-pub use lingua::{is_bedrock_anthropic_model, ProviderFormat};
+pub use lingua::ProviderFormat;
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};
 pub use providers::{
     is_openai_compatible, openai_compatible_endpoint, AnthropicConfig, AnthropicProvider,

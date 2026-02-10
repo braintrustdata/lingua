@@ -229,15 +229,23 @@ pub fn transform_request(
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
-    if source_adapter.format() == target_format
-        && !needs_forced_translation(&payload, model, target_format)
+    // Bedrock Anthropic models are cataloged as Converse but use the Anthropic wire format
+    let effective_format =
+        if target_format == ProviderFormat::Converse && is_bedrock_anthropic_model(model) {
+            ProviderFormat::Anthropic
+        } else {
+            target_format
+        };
+
+    if source_adapter.format() == effective_format
+        && !needs_forced_translation(&payload, model, effective_format)
     {
         return Ok(TransformResult::PassThrough(input));
     }
 
     let source_format = source_adapter.format();
-    let target_adapter = adapter_for_format(target_format)
-        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+    let target_adapter = adapter_for_format(effective_format)
+        .ok_or(TransformError::UnsupportedTargetFormat(effective_format))?;
 
     let mut universal = source_adapter.request_to_universal(payload)?;
 
@@ -249,7 +257,7 @@ pub fn transform_request(
 
     let mut transformed = target_adapter.request_from_universal(&universal)?;
 
-    if target_format == ProviderFormat::Anthropic && is_bedrock_anthropic_model(model) {
+    if effective_format == ProviderFormat::Anthropic && is_bedrock_anthropic_model(model) {
         apply_bedrock_anthropic_mutations(&mut transformed);
     }
 
@@ -530,7 +538,9 @@ pub fn is_bedrock_anthropic_model(model: Option<&str>) -> bool {
 /// whitespace-only entries. This is a lossy transformation: the caller asked the
 /// model to stop on newline but Bedrock simply cannot honor that request.
 ///
-// FIXME[matt] this should technically be its own format (bedrock-anthropic)
+// Bedrock Anthropic models are cataloged as Converse but routed to the Anthropic
+// adapter via `effective_format`. These mutations finalize the payload for Bedrock's
+// Anthropic Messages API (model/stream stripped, anthropic_version injected).
 fn apply_bedrock_anthropic_mutations(value: &mut Value) {
     if let Some(obj) = value.as_object_mut() {
         obj.remove("model");
@@ -555,7 +565,8 @@ fn apply_bedrock_anthropic_mutations(value: &mut Value) {
 
 /// Check if a request needs forced translation even when source == target format.
 fn needs_forced_translation(payload: &Value, model: Option<&str>, target: ProviderFormat) -> bool {
-    // Bedrock Anthropic models need translation so we can apply mutations
+    // Bedrock Anthropic models use Anthropic wire format (via effective_format) and
+    // always need translation so we can apply bedrock-specific mutations.
     if target == ProviderFormat::Anthropic && is_bedrock_anthropic_model(model) {
         return true;
     }
@@ -826,7 +837,8 @@ mod tests {
         let input = to_bytes(&payload);
         let model = "us.anthropic.claude-3-5-sonnet-20241022-v2:0";
 
-        let result = transform_request(input, ProviderFormat::Anthropic, Some(model)).unwrap();
+        // Target is Converse (from catalog), but effective_format promotes to Anthropic
+        let result = transform_request(input, ProviderFormat::Converse, Some(model)).unwrap();
 
         assert!(
             !result.is_passthrough(),
@@ -884,7 +896,7 @@ mod tests {
         let input = to_bytes(&payload);
         let model = "us.anthropic.claude-haiku-4-5-20251001-v1:0";
 
-        let result = transform_request(input, ProviderFormat::Anthropic, Some(model)).unwrap();
+        let result = transform_request(input, ProviderFormat::Converse, Some(model)).unwrap();
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
 
         let stop_seqs = output
@@ -907,12 +919,40 @@ mod tests {
         let input = to_bytes(&payload);
         let model = "us.anthropic.claude-haiku-4-5-20251001-v1:0";
 
-        let result = transform_request(input, ProviderFormat::Anthropic, Some(model)).unwrap();
+        let result = transform_request(input, ProviderFormat::Converse, Some(model)).unwrap();
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
 
         assert!(
             output.get("stop_sequences").is_none(),
             "stop_sequences should be removed when all entries are whitespace-only"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "bedrock"))]
+    fn test_non_bedrock_converse_uses_converse_adapter() {
+        let payload = json!({
+            "model": "amazon.nova-micro-v1:0",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+        let model = "amazon.nova-micro-v1:0";
+
+        let result = transform_request(input, ProviderFormat::Converse, Some(model)).unwrap();
+
+        assert!(
+            !result.is_passthrough(),
+            "OpenAI -> Converse should transform"
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(
+            output.get("modelId").is_some(),
+            "non-Bedrock Converse model should use Converse adapter (has modelId)"
+        );
+        assert!(
+            output.get("anthropic_version").is_none(),
+            "non-Bedrock model should not get anthropic_version"
         );
     }
 

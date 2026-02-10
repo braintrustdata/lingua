@@ -109,7 +109,6 @@ pub struct Router {
     resolver: ModelResolver,
     providers: HashMap<String, Arc<dyn Provider>>, // alias -> provider
     formats: HashMap<ProviderFormat, String>,      // format -> alias
-    model_overrides: HashMap<String, String>,      // model -> alias (takes priority over formats)
     auth_configs: HashMap<String, AuthConfig>,     // alias -> auth
     retry_policy: RetryPolicy,
 }
@@ -221,23 +220,13 @@ impl Router {
 
     pub fn provider_alias(&self, model: &str) -> Result<String> {
         let (_, format, alias) = self.resolver.resolve(model)?;
-        let alias = self
-            .model_overrides
-            .get(model)
-            .cloned()
-            .or_else(|| self.formats.get(&format).cloned())
-            .unwrap_or(alias);
+        let alias = self.formats.get(&format).cloned().unwrap_or(alias);
         Ok(alias)
     }
 
     fn resolve_provider(&self, model: &str) -> Result<ResolvedRoute<'_>> {
         let (spec, format, alias) = self.resolver.resolve(model)?;
-        let alias = self
-            .model_overrides
-            .get(model)
-            .cloned()
-            .or_else(|| self.formats.get(&format).cloned())
-            .unwrap_or(alias);
+        let alias = self.formats.get(&format).cloned().unwrap_or(alias);
         let provider = self
             .providers
             .get(&alias)
@@ -317,7 +306,6 @@ pub struct RouterBuilder {
     catalog: Option<Arc<ModelCatalog>>,
     providers: HashMap<String, Arc<dyn Provider>>,
     formats: HashMap<ProviderFormat, String>,
-    model_overrides: HashMap<String, String>,
     auth_configs: HashMap<String, AuthConfig>,
     retry_policy: RetryPolicy,
 }
@@ -334,7 +322,6 @@ impl RouterBuilder {
             catalog: Some(default_catalog()),
             providers: HashMap::new(),
             formats: HashMap::new(),
-            model_overrides: HashMap::new(),
             auth_configs: HashMap::new(),
             retry_policy: RetryPolicy::default(),
         }
@@ -380,33 +367,6 @@ impl RouterBuilder {
         self
     }
 
-    /// Register an existing provider alias for an additional format.
-    ///
-    /// This allows a single provider to serve models with different catalog formats.
-    /// The provider must already have been added via `add_provider` or `add_provider_arc`.
-    pub fn add_provider_for_format(
-        mut self,
-        alias: impl Into<String>,
-        format: ProviderFormat,
-    ) -> Self {
-        self.formats.insert(format, alias.into());
-        self
-    }
-
-    /// Register a model-level routing override.
-    ///
-    /// Model overrides take priority over format-based routing. This allows a
-    /// specific model to route to a different provider than its format would
-    /// normally select.
-    pub fn add_model_override(
-        mut self,
-        model: impl Into<String>,
-        alias: impl Into<String>,
-    ) -> Self {
-        self.model_overrides.insert(model.into(), alias.into());
-        self
-    }
-
     pub fn add_auth(mut self, alias: impl Into<String>, auth: AuthConfig) -> Self {
         self.auth_configs.insert(alias.into(), auth);
         self
@@ -435,7 +395,6 @@ impl RouterBuilder {
             resolver,
             providers: self.providers,
             formats: self.formats,
-            model_overrides: self.model_overrides,
             auth_configs: self.auth_configs,
             retry_policy: self.retry_policy,
         })

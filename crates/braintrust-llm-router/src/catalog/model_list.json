@@ -2991,7 +2991,7 @@
     "max_output_tokens": 4000
   },
   "anthropic.claude-sonnet-4-5-20250929-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3005,7 +3005,7 @@
     "max_output_tokens": 64000
   },
   "us.anthropic.claude-sonnet-4-5-20250929-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3020,7 +3020,7 @@
     "max_output_tokens": 64000
   },
   "anthropic.claude-sonnet-4-20250514-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3034,7 +3034,7 @@
     "max_output_tokens": 64000
   },
   "us.anthropic.claude-sonnet-4-20250514-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3049,7 +3049,7 @@
     "max_output_tokens": 64000
   },
   "anthropic.claude-3-7-sonnet-20250219-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3063,7 +3063,7 @@
     "max_output_tokens": 8192
   },
   "us.anthropic.claude-3-7-sonnet-20250219-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3078,7 +3078,7 @@
     "max_output_tokens": 8192
   },
   "anthropic.claude-haiku-4-5-20251001-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 0.8,
@@ -3090,7 +3090,7 @@
     "max_output_tokens": 64000
   },
   "us.anthropic.claude-haiku-4-5-20251001-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 0.8,
@@ -3103,7 +3103,7 @@
     "max_output_tokens": 64000
   },
   "anthropic.claude-3-5-haiku-20241022-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 0.8,
@@ -3115,7 +3115,7 @@
     "max_output_tokens": 8192
   },
   "us.anthropic.claude-3-5-haiku-20241022-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 0.8,
@@ -3128,7 +3128,7 @@
     "max_output_tokens": 8192
   },
   "anthropic.claude-3-5-sonnet-20241022-v2:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3140,7 +3140,7 @@
     "max_output_tokens": 8192
   },
   "us.anthropic.claude-3-5-sonnet-20241022-v2:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3153,7 +3153,7 @@
     "max_output_tokens": 8192
   },
   "apac.anthropic.claude-3-5-sonnet-20241022-v2:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3162,7 +3162,7 @@
     "parent": "anthropic.claude-3-5-sonnet-20241022-v2:0"
   },
   "anthropic.claude-3-5-sonnet-20240620-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3172,7 +3172,7 @@
     "max_output_tokens": 4096
   },
   "us.anthropic.claude-3-5-sonnet-20240620-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3183,7 +3183,7 @@
     "max_output_tokens": 4096
   },
   "apac.anthropic.claude-3-5-sonnet-20240620-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3192,7 +3192,7 @@
     "parent": "anthropic.claude-3-5-sonnet-20240620-v1:0"
   },
   "eu.anthropic.claude-3-5-sonnet-20240620-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3203,7 +3203,7 @@
     "max_output_tokens": 4096
   },
   "anthropic.claude-opus-4-1-20250805-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 15,
@@ -3217,7 +3217,7 @@
     "max_output_tokens": 32000
   },
   "us.anthropic.claude-opus-4-1-20250805-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 15,
@@ -3232,7 +3232,7 @@
     "max_output_tokens": 32000
   },
   "anthropic.claude-opus-4-20250514-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 15,
@@ -3246,7 +3246,7 @@
     "max_output_tokens": 32000
   },
   "us.anthropic.claude-opus-4-20250514-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 15,
@@ -3261,7 +3261,7 @@
     "max_output_tokens": 32000
   },
   "anthropic.claude-3-opus-20240229-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 15,
@@ -3271,7 +3271,7 @@
     "max_output_tokens": 4096
   },
   "us.anthropic.claude-3-opus-20240229-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 15,
@@ -3282,7 +3282,7 @@
     "max_output_tokens": 4096
   },
   "anthropic.claude-3-sonnet-20240229-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3292,7 +3292,7 @@
     "max_output_tokens": 4096
   },
   "us.anthropic.claude-3-sonnet-20240229-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3303,7 +3303,7 @@
     "max_output_tokens": 4096
   },
   "apac.anthropic.claude-3-sonnet-20240229-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3312,7 +3312,7 @@
     "parent": "anthropic.claude-3-sonnet-20240229-v1:0"
   },
   "eu.anthropic.claude-3-sonnet-20240229-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 3,
@@ -3323,7 +3323,7 @@
     "max_output_tokens": 4096
   },
   "anthropic.claude-3-haiku-20240307-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 0.25,
@@ -3333,7 +3333,7 @@
     "max_output_tokens": 4096
   },
   "us.anthropic.claude-3-haiku-20240307-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 0.25,
@@ -3344,7 +3344,7 @@
     "max_output_tokens": 4096
   },
   "apac.anthropic.claude-3-haiku-20240307-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 0.25,
@@ -3353,7 +3353,7 @@
     "parent": "anthropic.claude-3-haiku-20240307-v1:0"
   },
   "eu.anthropic.claude-3-haiku-20240307-v1:0": {
-    "format": "anthropic",
+    "format": "converse",
     "flavor": "chat",
     "multimodal": true,
     "input_cost_per_mil_tokens": 0.25,

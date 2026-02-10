@@ -438,51 +438,13 @@ impl Provider for PayloadCapturingProvider {
 }
 
 #[tokio::test]
-async fn router_supports_multi_format_provider() {
+async fn router_transforms_to_target_format() {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
         "openai-model".into(),
         ModelSpec {
             model: "openai-model".into(),
             format: ProviderFormat::OpenAI,
-            flavor: ModelFlavor::Chat,
-            display_name: None,
-            parent: None,
-            input_cost_per_mil_tokens: None,
-            output_cost_per_mil_tokens: None,
-            input_cache_read_cost_per_mil_tokens: None,
-            multimodal: None,
-            reasoning: None,
-            max_input_tokens: None,
-            max_output_tokens: None,
-            supports_streaming: true,
-            extra: Default::default(),
-        },
-    );
-    catalog.insert(
-        "anthropic-model".into(),
-        ModelSpec {
-            model: "anthropic-model".into(),
-            format: ProviderFormat::Anthropic,
-            flavor: ModelFlavor::Chat,
-            display_name: None,
-            parent: None,
-            input_cost_per_mil_tokens: None,
-            output_cost_per_mil_tokens: None,
-            input_cache_read_cost_per_mil_tokens: None,
-            multimodal: None,
-            reasoning: None,
-            max_input_tokens: None,
-            max_output_tokens: None,
-            supports_streaming: true,
-            extra: Default::default(),
-        },
-    );
-    catalog.insert(
-        "converse-model".into(),
-        ModelSpec {
-            model: "converse-model".into(),
-            format: ProviderFormat::Converse,
             flavor: ModelFlavor::Chat,
             display_name: None,
             parent: None,
@@ -506,11 +468,9 @@ async fn router_supports_multi_format_provider() {
 
     let router = RouterBuilder::new()
         .with_catalog(catalog)
-        .add_provider("multi", provider)
-        .add_provider_for_format("multi", ProviderFormat::Anthropic)
-        .add_provider_for_format("multi", ProviderFormat::Converse)
+        .add_provider("openai", provider)
         .add_auth(
-            "multi",
+            "openai",
             AuthConfig::ApiKey {
                 key: "test".into(),
                 header: None,
@@ -520,37 +480,7 @@ async fn router_supports_multi_format_provider() {
         .build()
         .expect("router builds");
 
-    // Send OpenAI-format request targeting an Anthropic-format model.
-    // The router should transform the request to Anthropic format using spec.format.
-    let body = to_body(json!({
-        "model": "anthropic-model",
-        "messages": [{"role": "user", "content": "hello"}]
-    }));
-
-    let _ = router
-        .complete(
-            body,
-            "anthropic-model",
-            ProviderFormat::OpenAI,
-            &ClientHeaders::default(),
-        )
-        .await;
-
-    let payload_bytes = received
-        .lock()
-        .unwrap()
-        .take()
-        .expect("provider received payload");
-    let payload: Value = braintrust_llm_router::serde_json::from_slice(&payload_bytes).unwrap();
-
-    // The payload should have been transformed to Anthropic format
-    assert!(
-        payload.get("max_tokens").is_some(),
-        "payload should be in Anthropic format (has max_tokens)"
-    );
-
-    // Now test OpenAI-format model through the same provider
-    *received.lock().unwrap() = None;
+    // Send OpenAI-format request — should pass through
     let body = to_body(json!({
         "model": "openai-model",
         "messages": [{"role": "user", "content": "hello"}]
@@ -572,67 +502,8 @@ async fn router_supports_multi_format_provider() {
         .expect("provider received payload");
     let payload: Value = braintrust_llm_router::serde_json::from_slice(&payload_bytes).unwrap();
 
-    // The payload should pass through as OpenAI format (no max_tokens added by Anthropic transform)
     assert!(
         payload.get("model").is_some(),
-        "payload should still be in OpenAI format"
-    );
-
-    // Now test Converse-format model through the same provider
-    *received.lock().unwrap() = None;
-    let body = to_body(json!({
-        "model": "converse-model",
-        "messages": [{"role": "user", "content": "hello"}]
-    }));
-
-    let _ = router
-        .complete(
-            body,
-            "converse-model",
-            ProviderFormat::OpenAI,
-            &ClientHeaders::default(),
-        )
-        .await;
-
-    let payload_bytes = received
-        .lock()
-        .unwrap()
-        .take()
-        .expect("provider received payload");
-    let payload: Value = braintrust_llm_router::serde_json::from_slice(&payload_bytes).unwrap();
-
-    // The payload should have been transformed to Converse format
-    assert!(
-        payload.get("modelId").is_some(),
-        "payload should be in Converse format (has modelId)"
-    );
-
-    // Now test Converse → Converse passthrough
-    *received.lock().unwrap() = None;
-    let body = to_body(json!({
-        "modelId": "converse-model",
-        "messages": [{"role": "user", "content": [{"text": "hello"}]}]
-    }));
-
-    let _ = router
-        .complete(
-            body,
-            "converse-model",
-            ProviderFormat::Converse,
-            &ClientHeaders::default(),
-        )
-        .await;
-
-    let payload_bytes = received
-        .lock()
-        .unwrap()
-        .take()
-        .expect("provider received payload");
-    let payload: Value = braintrust_llm_router::serde_json::from_slice(&payload_bytes).unwrap();
-
-    // The payload should pass through as Converse format
-    assert!(
-        payload.get("modelId").is_some(),
-        "Converse passthrough should preserve modelId"
+        "payload should be in OpenAI format"
     );
 }
