@@ -22,10 +22,10 @@ use crate::capabilities::ProviderFormat;
 use crate::universal::request::ResponseFormatConfig;
 
 // FROM: Parse provider-specific value to universal config
-let config: ResponseFormatConfig = (ProviderFormat::OpenAI, &raw_json).try_into()?;
+let config: ResponseFormatConfig = (ProviderFormat::ChatCompletions, &raw_json).try_into()?;
 
 // TO: Convert universal config to provider-specific value
-let output = config.to_provider(ProviderFormat::OpenAI)?;
+let output = config.to_provider(ProviderFormat::ChatCompletions)?;
 ```
 */
 
@@ -46,7 +46,7 @@ impl<'a> TryFrom<(ProviderFormat, &'a Value)> for ResponseFormatConfig {
 
     fn try_from((provider, value): (ProviderFormat, &'a Value)) -> Result<Self, Self::Error> {
         match provider {
-            ProviderFormat::OpenAI => Ok(from_openai_chat(value)?),
+            ProviderFormat::ChatCompletions => Ok(from_openai_chat(value)?),
             ProviderFormat::Responses => Ok(from_openai_responses(value)?),
             ProviderFormat::Anthropic => Ok(from_anthropic(value)?),
             _ => Ok(Self::default()),
@@ -70,7 +70,7 @@ impl ResponseFormatConfig {
     /// `Err(_)` if conversion failed
     pub fn to_provider(&self, provider: ProviderFormat) -> Result<Option<Value>, TransformError> {
         match provider {
-            ProviderFormat::OpenAI => Ok(to_openai_chat(self)),
+            ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)),
             ProviderFormat::Responses => Ok(to_openai_responses_text(self)),
             ProviderFormat::Anthropic => Ok(to_anthropic(self)),
             _ => Ok(None),
@@ -304,7 +304,9 @@ mod tests {
     #[test]
     fn test_from_openai_chat_text() {
         let value = json!({ "type": "text" });
-        let config: ResponseFormatConfig = (ProviderFormat::OpenAI, &value).try_into().unwrap();
+        let config: ResponseFormatConfig = (ProviderFormat::ChatCompletions, &value)
+            .try_into()
+            .unwrap();
         assert_eq!(config.format_type, Some(ResponseFormatType::Text));
         assert!(config.json_schema.is_none());
     }
@@ -324,7 +326,9 @@ mod tests {
                 "strict": true
             }
         });
-        let config: ResponseFormatConfig = (ProviderFormat::OpenAI, &value).try_into().unwrap();
+        let config: ResponseFormatConfig = (ProviderFormat::ChatCompletions, &value)
+            .try_into()
+            .unwrap();
         assert_eq!(config.format_type, Some(ResponseFormatType::JsonSchema));
         let js = config.json_schema.unwrap();
         assert_eq!(js.name, "person_info");
@@ -342,7 +346,10 @@ mod tests {
                 description: None,
             }),
         };
-        let value = config.to_provider(ProviderFormat::OpenAI).unwrap().unwrap();
+        let value = config
+            .to_provider(ProviderFormat::ChatCompletions)
+            .unwrap()
+            .unwrap();
         assert_eq!(value.get("type").unwrap(), "json_schema");
         assert!(value.get("json_schema").is_some());
         assert_eq!(
@@ -367,8 +374,13 @@ mod tests {
                 "strict": true
             }
         });
-        let config: ResponseFormatConfig = (ProviderFormat::OpenAI, &original).try_into().unwrap();
-        let back = config.to_provider(ProviderFormat::OpenAI).unwrap().unwrap();
+        let config: ResponseFormatConfig = (ProviderFormat::ChatCompletions, &original)
+            .try_into()
+            .unwrap();
+        let back = config
+            .to_provider(ProviderFormat::ChatCompletions)
+            .unwrap()
+            .unwrap();
         assert_eq!(original, back);
     }
 
@@ -408,8 +420,9 @@ mod tests {
                 "strict": true
             }
         });
-        let config: ResponseFormatConfig =
-            (ProviderFormat::OpenAI, &openai_format).try_into().unwrap();
+        let config: ResponseFormatConfig = (ProviderFormat::ChatCompletions, &openai_format)
+            .try_into()
+            .unwrap();
 
         // Convert to Anthropic format
         let anthropic_format = config
