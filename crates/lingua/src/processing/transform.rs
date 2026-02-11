@@ -225,15 +225,29 @@ pub fn transform_request(
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
+    // Bedrock anthropic models use the Anthropic adapter instead of Converse,
+    // since they support the native Messages API via the invoke endpoint.
+    #[cfg(all(feature = "bedrock", feature = "anthropic"))]
+    let is_bedrock_anthropic = target_format == ProviderFormat::Converse
+        && model.is_some_and(crate::providers::bedrock::is_bedrock_anthropic_model);
+
+    #[cfg(not(all(feature = "bedrock", feature = "anthropic")))]
+    let is_bedrock_anthropic = false;
+
     if source_adapter.format() == target_format
+        && !is_bedrock_anthropic
         && !needs_forced_translation(&payload, model, target_format)
     {
         return Ok(TransformResult::PassThrough(input));
     }
 
     let source_format = source_adapter.format();
-    let target_adapter = adapter_for_format(target_format)
-        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+    let target_adapter = if is_bedrock_anthropic {
+        adapter_for_format(ProviderFormat::Anthropic)
+    } else {
+        adapter_for_format(target_format)
+    }
+    .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
     let mut universal = source_adapter.request_to_universal(payload)?;
 
@@ -247,6 +261,15 @@ pub fn transform_request(
 
     // Convert to target format (validation happens in adapter)
     let transformed = target_adapter.request_from_universal(&universal)?;
+
+    // For bedrock anthropic models, prepare the Anthropic payload for the
+    // invoke endpoint: remove model (it's in the URL), add anthropic_version.
+    #[cfg(all(feature = "bedrock", feature = "anthropic"))]
+    let transformed = if is_bedrock_anthropic {
+        crate::providers::bedrock::anthropic::prepare_request(transformed)
+    } else {
+        transformed
+    };
 
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
@@ -754,6 +777,104 @@ mod tests {
         assert!(
             result.is_passthrough(),
             "Non-reasoning models should passthrough"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "bedrock", feature = "anthropic"))]
+    fn test_bedrock_anthropic_model_anthropic_input() {
+        // Anthropic-format input targeting a bedrock anthropic model should produce
+        // Anthropic-format output prepared for the invoke endpoint (fast path).
+        let payload = json!({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::Converse,
+            Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Anthropic));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        // model field should be removed (it's in the URL path)
+        assert!(output.get("model").is_none());
+        // anthropic_version should be added
+        assert_eq!(
+            output.get("anthropic_version").unwrap().as_str().unwrap(),
+            "bedrock-2023-05-31"
+        );
+        // Original fields preserved
+        assert_eq!(output.get("max_tokens").unwrap().as_i64().unwrap(), 1024);
+        assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "bedrock", feature = "anthropic"))]
+    fn test_bedrock_anthropic_model_openai_input() {
+        // OpenAI-format input targeting a bedrock anthropic model should be
+        // translated to Anthropic format and prepared for the invoke endpoint.
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::Converse,
+            Some("anthropic.claude-sonnet-4-5-20250929-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::OpenAI));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        // model field should be removed
+        assert!(output.get("model").is_none());
+        // anthropic_version should be added
+        assert_eq!(
+            output.get("anthropic_version").unwrap().as_str().unwrap(),
+            "bedrock-2023-05-31"
+        );
+        // Should have Anthropic-format fields
+        assert!(output.get("max_tokens").is_some());
+        assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "bedrock"))]
+    fn test_non_anthropic_bedrock_model_uses_converse() {
+        // Non-anthropic bedrock models should still go through the normal
+        // Converse translation path (unchanged behavior).
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::Converse,
+            Some("amazon.nova-pro-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::OpenAI));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        // Should be Converse format (has modelId, messages array with Bedrock structure)
+        assert!(
+            output.get("anthropic_version").is_none(),
+            "Non-anthropic models should not have anthropic_version"
         );
     }
 }

@@ -42,3 +42,7 @@ pub use universal::{
     FinishReason, Message, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage,
 };
+
+// Re-export bedrock utilities for router integration
+#[cfg(feature = "bedrock")]
+pub use providers::bedrock::is_bedrock_anthropic_model;
