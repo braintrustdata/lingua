@@ -96,10 +96,7 @@ mod tests {
             result.get("system").unwrap().as_str().unwrap(),
             "You are helpful."
         );
-        assert_eq!(
-            result.get("temperature").unwrap().as_f64().unwrap(),
-            0.7
-        );
+        assert_eq!(result.get("temperature").unwrap().as_f64().unwrap(), 0.7);
         assert_eq!(result.get("top_p").unwrap().as_f64().unwrap(), 0.9);
         assert_eq!(result.get("top_k").unwrap().as_i64().unwrap(), 40);
         assert!(result.get("stop_sequences").is_some());

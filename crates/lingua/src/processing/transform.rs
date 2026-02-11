@@ -516,7 +516,11 @@ fn needs_provider_post_processing(_target_format: ProviderFormat, _model: Option
 
 /// Apply provider-specific post-processing to the transformed payload.
 #[cfg(all(feature = "bedrock", feature = "anthropic"))]
-fn provider_post_process(value: Value, target_format: ProviderFormat, model: Option<&str>) -> Value {
+fn provider_post_process(
+    value: Value,
+    target_format: ProviderFormat,
+    model: Option<&str>,
+) -> Value {
     if crate::providers::bedrock::is_bedrock_anthropic_target(target_format, model) {
         return crate::providers::bedrock::anthropic::convert_to_anthropic(value);
     }
