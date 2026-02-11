@@ -78,6 +78,45 @@ mod tests {
         }
     }"#;
 
+    // Google uses contents/parts structure (not messages/content)
+    #[cfg(feature = "google")]
+    const GOOGLE_REQUEST: &str = r#"{
+        "model": "gemini-2.5-flash",
+        "contents": [
+            {
+                "role": "user",
+                "parts": [
+                    {
+                        "text": "Hello"
+                    }
+                ]
+            }
+        ]
+    }"#;
+
+    #[cfg(feature = "google")]
+    const GOOGLE_RESPONSE: &str = r#"{
+        "candidates": [
+            {
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "Hello!"
+                        }
+                    ]
+                },
+                "finishReason": "STOP",
+                "index": 0
+            }
+        ],
+        "usageMetadata": {
+            "promptTokenCount": 5,
+            "candidatesTokenCount": 10,
+            "totalTokenCount": 15
+        }
+    }"#;
+
     // Bedrock uses camelCase field names (modelId, not model_id)
     // and untagged content blocks ({"text": "Hello"}, not {"type": "text", "text": "Hello"})
     #[cfg(feature = "bedrock")]
@@ -163,6 +202,18 @@ mod tests {
         }
 
         #[test]
+        #[cfg(feature = "google")]
+        fn test_google_request_fails_as_openai() {
+            assert!(validate_openai_request(GOOGLE_REQUEST).is_err());
+        }
+
+        #[test]
+        #[cfg(feature = "google")]
+        fn test_google_response_fails_as_openai() {
+            assert!(validate_openai_response(GOOGLE_RESPONSE).is_err());
+        }
+
+        #[test]
         #[cfg(feature = "bedrock")]
         fn test_bedrock_request_fails_as_openai() {
             assert!(validate_openai_request(BEDROCK_REQUEST).is_err());
@@ -211,6 +262,18 @@ mod tests {
         }
 
         #[test]
+        #[cfg(feature = "google")]
+        fn test_google_request_fails_as_anthropic() {
+            assert!(validate_anthropic_request(GOOGLE_REQUEST).is_err());
+        }
+
+        #[test]
+        #[cfg(feature = "google")]
+        fn test_google_response_fails_as_anthropic() {
+            assert!(validate_anthropic_response(GOOGLE_RESPONSE).is_err());
+        }
+
+        #[test]
         #[cfg(feature = "bedrock")]
         fn test_bedrock_request_fails_as_anthropic() {
             assert!(validate_anthropic_request(BEDROCK_REQUEST).is_err());
@@ -220,6 +283,55 @@ mod tests {
         #[cfg(feature = "bedrock")]
         fn test_bedrock_response_fails_as_anthropic() {
             assert!(validate_anthropic_response(BEDROCK_RESPONSE).is_err());
+        }
+    }
+
+    // Google validation tests
+    #[cfg(feature = "google")]
+    mod google_tests {
+        use super::*;
+        use crate::validation::google::{validate_google_request, validate_google_response};
+
+        #[test]
+        fn test_google_request_validates() {
+            assert!(validate_google_request(GOOGLE_REQUEST).is_ok());
+        }
+
+        #[test]
+        fn test_google_response_validates() {
+            assert!(validate_google_response(GOOGLE_RESPONSE).is_ok());
+        }
+
+        #[test]
+        fn test_openai_request_fails_as_google() {
+            assert!(validate_google_request(OPENAI_REQUEST).is_err());
+        }
+
+        #[test]
+        fn test_openai_response_fails_as_google() {
+            assert!(validate_google_response(OPENAI_RESPONSE).is_err());
+        }
+
+        #[test]
+        fn test_anthropic_request_fails_as_google() {
+            assert!(validate_google_request(ANTHROPIC_REQUEST).is_err());
+        }
+
+        #[test]
+        fn test_anthropic_response_fails_as_google() {
+            assert!(validate_google_response(ANTHROPIC_RESPONSE).is_err());
+        }
+
+        #[test]
+        #[cfg(feature = "bedrock")]
+        fn test_bedrock_request_fails_as_google() {
+            assert!(validate_google_request(BEDROCK_REQUEST).is_err());
+        }
+
+        #[test]
+        #[cfg(feature = "bedrock")]
+        fn test_bedrock_response_fails_as_google() {
+            assert!(validate_google_response(BEDROCK_RESPONSE).is_err());
         }
     }
 
@@ -257,6 +369,18 @@ mod tests {
         #[test]
         fn test_anthropic_response_fails_as_bedrock() {
             assert!(validate_bedrock_response(ANTHROPIC_RESPONSE).is_err());
+        }
+
+        #[test]
+        #[cfg(feature = "google")]
+        fn test_google_request_fails_as_bedrock() {
+            assert!(validate_bedrock_request(GOOGLE_REQUEST).is_err());
+        }
+
+        #[test]
+        #[cfg(feature = "google")]
+        fn test_google_response_fails_as_bedrock() {
+            assert!(validate_bedrock_response(GOOGLE_RESPONSE).is_err());
         }
     }
 }

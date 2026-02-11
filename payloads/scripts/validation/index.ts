@@ -4,6 +4,7 @@ import { compareResponses, DiffResult, hasOnlyMinorDiffs } from "./diff-utils";
 import { openaiExecutor } from "../providers/openai";
 import { openaiResponsesExecutor } from "../providers/openai-responses";
 import { anthropicExecutor } from "../providers/anthropic";
+import { googleProxyExecutor } from "../providers/google-proxy";
 import {
   allTestCases,
   getCaseNames,
@@ -44,6 +45,7 @@ const formatRegistry: Record<string, ExecutorEntry> = {
   "chat-completions": openaiExecutor as ExecutorEntry,
   responses: openaiResponsesExecutor as ExecutorEntry,
   anthropic: anthropicExecutor as ExecutorEntry,
+  google: googleProxyExecutor as ExecutorEntry,
 };
 
 /**
@@ -250,6 +252,24 @@ function getAvailableCases(format: string): string[] {
 }
 
 /**
+ * Map a format name to its proxy endpoint path.
+ */
+function getEndpointForFormat(format: string): string {
+  switch (format) {
+    case "chat-completions":
+      return "/v1/chat/completions";
+    case "responses":
+      return "/v1/responses";
+    case "anthropic":
+      return "/v1/messages";
+    case "google":
+      return "/v1/generateContent";
+    default:
+      return `/v1/${format}`;
+  }
+}
+
+/**
  * Get executor for a format.
  */
 function getExecutorForFormat(format: string): ExecutorEntry | null {
@@ -355,10 +375,7 @@ export async function runValidation(
           // For proxy test cases, use direct HTTP validation with expectations
           if (isProxyCase) {
             const expectations = proxyCase.expect;
-            const endpoint =
-              format === "chat-completions"
-                ? "/v1/chat/completions"
-                : "/v1/responses";
+            const endpoint = getEndpointForFormat(format);
             const fetchResponse = await fetch(
               `${options.proxyUrl}${endpoint}`,
               {

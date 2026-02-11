@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { Type } from "@google/genai";
+import { GOOGLE_MODEL } from "../cases/models";
 import { ProxyTestCaseCollection } from "./types";
 
 const TEXT_BASE64 = "SGVsbG8gd29ybGQhCg==";
@@ -911,5 +913,110 @@ export const proxyCases: ProxyTestCaseCollection = {
       max_tokens: 1000,
     },
     expect: { status: 200 },
+  },
+
+  proxyGoogleNativeBasic: {
+    format: "google",
+    request: {
+      model: GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Say 'hello' and nothing else." }],
+        },
+      ],
+      config: { maxOutputTokens: 50 },
+    },
+    expect: {
+      status: 200,
+      fields: {
+        "candidates[0].content.role": "model",
+      },
+    },
+  },
+
+  proxyGoogleNativeSystemInstruction: {
+    format: "google",
+    request: {
+      model: GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What is your role?" }],
+        },
+      ],
+      systemInstruction: {
+        parts: [{ text: "You are a helpful assistant." }],
+      },
+      config: { maxOutputTokens: 100 },
+    },
+    expect: {
+      status: 200,
+      fields: {
+        "candidates[0].content.role": "model",
+      },
+    },
+  },
+
+  proxyGoogleNativeMultiTurn: {
+    format: "google",
+    request: {
+      model: GOOGLE_MODEL,
+      contents: [
+        { role: "user", parts: [{ text: "My name is Alice." }] },
+        {
+          role: "model",
+          parts: [{ text: "Hello Alice! Nice to meet you." }],
+        },
+        { role: "user", parts: [{ text: "What is my name?" }] },
+      ],
+      config: { maxOutputTokens: 50 },
+    },
+    expect: {
+      status: 200,
+      fields: {
+        "candidates[0].content.role": "model",
+      },
+    },
+  },
+
+  proxyGoogleNativeToolCall: {
+    format: "google",
+    request: {
+      model: GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What is the weather in Paris?" }],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get the current weather for a location",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  location: {
+                    type: Type.STRING,
+                    description: "City name",
+                  },
+                },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+      config: { maxOutputTokens: 200 },
+    },
+    expect: {
+      status: 200,
+      fields: {
+        "candidates[0].content.role": "model",
+      },
+    },
   },
 };

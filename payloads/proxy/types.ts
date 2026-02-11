@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { type GoogleGenerateContentRequest } from "../cases/types";
 
 export interface ProxyTestExpectation {
   status?: number;
@@ -18,6 +19,11 @@ export type ProxyTestCase =
   | {
       format: "responses";
       request: OpenAI.Responses.ResponseCreateParams;
+      expect: ProxyTestExpectation;
+    }
+  | {
+      format: "google";
+      request: GoogleGenerateContentRequest & { model: string };
       expect: ProxyTestExpectation;
     };
 
