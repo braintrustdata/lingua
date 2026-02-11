@@ -226,6 +226,7 @@ pub fn transform_request(
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
     if source_adapter.format() == target_format
+        && !needs_provider_post_processing(target_format, model)
         && !needs_forced_translation(&payload, model, target_format)
     {
         return Ok(TransformResult::PassThrough(input));
@@ -247,6 +248,7 @@ pub fn transform_request(
 
     // Convert to target format (validation happens in adapter)
     let transformed = target_adapter.request_from_universal(&universal)?;
+    let transformed = provider_post_process(transformed, target_format, model);
 
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
@@ -499,6 +501,35 @@ fn detect_adapter(
         })
         .map(|a| a.as_ref())
         .ok_or(TransformError::UnableToDetectFormat)
+}
+
+/// Check if the target provider needs post-processing that prevents passthrough.
+#[cfg(all(feature = "bedrock", feature = "anthropic"))]
+fn needs_provider_post_processing(target_format: ProviderFormat, model: Option<&str>) -> bool {
+    crate::providers::bedrock::is_bedrock_anthropic_target(target_format, model)
+}
+
+#[cfg(not(all(feature = "bedrock", feature = "anthropic")))]
+fn needs_provider_post_processing(_target_format: ProviderFormat, _model: Option<&str>) -> bool {
+    false
+}
+
+/// Apply provider-specific post-processing to the transformed payload.
+#[cfg(all(feature = "bedrock", feature = "anthropic"))]
+fn provider_post_process(value: Value, target_format: ProviderFormat, model: Option<&str>) -> Value {
+    if crate::providers::bedrock::is_bedrock_anthropic_target(target_format, model) {
+        return crate::providers::bedrock::anthropic::convert_to_anthropic(value);
+    }
+    value
+}
+
+#[cfg(not(all(feature = "bedrock", feature = "anthropic")))]
+fn provider_post_process(
+    value: Value,
+    _target_format: ProviderFormat,
+    _model: Option<&str>,
+) -> Value {
+    value
 }
 
 /// Check if a request needs forced translation even when source == target format.
@@ -758,10 +789,10 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "openai", feature = "anthropic"))]
-    fn test_bedrock_anthropic_model_uses_anthropic_format() {
-        // When the model_list declares format=anthropic for bedrock anthropic models,
-        // transform_request with target Anthropic produces standard Anthropic output.
+    #[cfg(all(feature = "openai", feature = "bedrock", feature = "anthropic"))]
+    fn test_bedrock_anthropic_model_openai_input() {
+        // OpenAI input targeting a bedrock anthropic model produces Anthropic output
+        // with prepare_request applied (model removed, anthropic_version added).
         let payload = json!({
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "Hello"}]
@@ -779,7 +810,44 @@ mod tests {
         assert_eq!(result.source_format(), Some(ProviderFormat::OpenAI));
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
+        assert_eq!(
+            output.get("anthropic_version").unwrap().as_str().unwrap(),
+            "bedrock-2023-05-31"
+        );
         assert!(output.get("max_tokens").is_some());
+        assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "bedrock", feature = "anthropic"))]
+    fn test_bedrock_anthropic_model_anthropic_input() {
+        // Anthropic input targeting a bedrock anthropic model skips passthrough
+        // and still applies prepare_request.
+        let payload = json!({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::Anthropic,
+            Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Anthropic));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
+        assert_eq!(
+            output.get("anthropic_version").unwrap().as_str().unwrap(),
+            "bedrock-2023-05-31"
+        );
+        assert_eq!(output.get("max_tokens").unwrap().as_i64().unwrap(), 1024);
         assert!(output.get("messages").is_some());
     }
 

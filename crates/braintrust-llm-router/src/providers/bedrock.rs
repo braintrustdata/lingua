@@ -217,17 +217,10 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         _client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let (url, payload) = if spec.format == ProviderFormat::Anthropic {
-            let url = self.invoke_model_url(&spec.model, false)?;
-            let val: Value = lingua::serde_json::from_slice(&payload)
-                .map_err(|e| Error::InvalidRequest(format!("invalid JSON payload: {e}")))?;
-            let prepared = lingua::providers::bedrock::anthropic::prepare_request(val);
-            let bytes = lingua::serde_json::to_vec(&prepared)
-                .map_err(|e| Error::InvalidRequest(format!("failed to serialize payload: {e}")))?;
-            (url, Bytes::from(bytes))
+        let url = if spec.format == ProviderFormat::Anthropic {
+            self.invoke_model_url(&spec.model, false)?
         } else {
-            let url = self.converse_url(&spec.model, false)?;
-            (url, payload)
+            self.converse_url(&spec.model, false)?
         };
 
         #[cfg(feature = "tracing")]
@@ -291,17 +284,10 @@ impl crate::providers::Provider for BedrockProvider {
         }
 
         let is_anthropic = spec.format == ProviderFormat::Anthropic;
-        let (url, payload) = if is_anthropic {
-            let url = self.invoke_model_url(&spec.model, true)?;
-            let val: Value = lingua::serde_json::from_slice(&payload)
-                .map_err(|e| Error::InvalidRequest(format!("invalid JSON payload: {e}")))?;
-            let prepared = lingua::providers::bedrock::anthropic::prepare_streaming_request(val);
-            let bytes = lingua::serde_json::to_vec(&prepared)
-                .map_err(|e| Error::InvalidRequest(format!("failed to serialize payload: {e}")))?;
-            (url, Bytes::from(bytes))
+        let url = if is_anthropic {
+            self.invoke_model_url(&spec.model, true)?
         } else {
-            let url = self.converse_url(&spec.model, true)?;
-            (url, payload)
+            self.converse_url(&spec.model, true)?
         };
 
         #[cfg(feature = "tracing")]

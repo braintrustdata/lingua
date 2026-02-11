@@ -45,4 +45,4 @@ pub use universal::{
 
 // Re-export bedrock utilities for router integration
 #[cfg(feature = "bedrock")]
-pub use providers::bedrock::is_bedrock_anthropic_model;
+pub use providers::bedrock::{is_bedrock_anthropic_model, is_bedrock_anthropic_target};

@@ -40,6 +40,16 @@ pub fn is_bedrock_anthropic_model(model: &str) -> bool {
     model.starts_with("anthropic.") || model.contains(".anthropic.")
 }
 
+/// Returns true if the given format + model combination targets a Bedrock
+/// Anthropic invoke endpoint (format is Anthropic and model is a Bedrock Anthropic model).
+pub fn is_bedrock_anthropic_target(
+    format: crate::capabilities::ProviderFormat,
+    model: Option<&str>,
+) -> bool {
+    format == crate::capabilities::ProviderFormat::Anthropic
+        && model.is_some_and(is_bedrock_anthropic_model)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
