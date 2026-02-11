@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01YSTN6KwdeBLJqvrBRaB7QE",
+      "id": "msg_bdrk_01VdSrMrsmdL75bW32AyUfp1",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -26,7 +26,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_bdrk_01GzjGf8YV2BVXxR4nCHm8Wf",
+      "id": "toolu_bdrk_01RDCiDKaV17jGhQhsoCLka2",
       "name": "get_weather",
       "input": {}
     }
@@ -44,7 +44,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"loc"
+      "partial_json": "{\"locatio"
     }
   },
   {
@@ -52,7 +52,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "ation\": \"Sa"
+      "partial_json": "n\": \""
     }
   },
   {
@@ -60,7 +60,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "n Fran"
+      "partial_json": "San Francis"
     }
   },
   {
@@ -68,7 +68,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "cis"
+      "partial_json": "co"
     }
   },
   {
@@ -76,15 +76,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "co,"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "input_json_delta",
-      "partial_json": " CA\"}"
+      "partial_json": ", CA\"}"
     }
   },
   {
@@ -106,8 +98,8 @@
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 585,
       "outputTokenCount": 57,
-      "invocationLatency": 866,
-      "firstByteLatency": 723
+      "invocationLatency": 1360,
+      "firstByteLatency": 1117
     }
   }
 ]

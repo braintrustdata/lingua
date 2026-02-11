@@ -57,7 +57,7 @@ impl std::fmt::Display for ProviderFormat {
             ProviderFormat::Mistral => "mistral",
             ProviderFormat::Converse => "converse",
             ProviderFormat::Responses => "responses",
-            ProviderFormat::BedrockAnthropic => "bedrock_anthropic_internal",
+            ProviderFormat::BedrockAnthropic => "bedrock_anthropic",
             ProviderFormat::Unknown => "unknown",
         };
         write!(f, "{}", s)

@@ -163,8 +163,8 @@ impl crate::providers::Provider for OpenAIProvider {
         "openai"
     }
 
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::ChatCompletions
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::ChatCompletions]
     }
 
     async fn complete(
@@ -172,6 +172,7 @@ impl crate::providers::Provider for OpenAIProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        _format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let url = self.chat_url(Some(&spec.model))?;
@@ -230,10 +231,13 @@ impl crate::providers::Provider for OpenAIProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self.complete(payload, auth, spec, client_headers).await?;
+            let response = self
+                .complete(payload, auth, spec, format, client_headers)
+                .await?;
             return Ok(single_bytes_stream(response));
         }
 

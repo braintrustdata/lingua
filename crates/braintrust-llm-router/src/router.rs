@@ -162,6 +162,7 @@ impl Router {
                 provider.clone(),
                 auth,
                 spec,
+                format,
                 payload,
                 strategy,
                 client_headers,
@@ -213,7 +214,7 @@ impl Router {
         };
 
         let raw_stream = provider
-            .complete_stream(payload, auth, &spec, client_headers)
+            .complete_stream(payload, auth, &spec, format, client_headers)
             .await?;
 
         Ok(transform_stream(raw_stream, output_format))
@@ -240,11 +241,13 @@ impl Router {
         Ok((provider, auth, spec, format, strategy))
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn execute_with_retry(
         &self,
         provider: Arc<dyn Provider>,
         auth: &AuthConfig,
         spec: Arc<ModelSpec>,
+        format: ProviderFormat,
         payload: Bytes,
         mut strategy: RetryStrategy,
         client_headers: &ClientHeaders,
@@ -267,7 +270,7 @@ impl Router {
                 );
                 async {
                     provider
-                        .complete(payload.clone(), auth, &spec, client_headers)
+                        .complete(payload.clone(), auth, &spec, format, client_headers)
                         .await
                 }
                 .instrument(span)
@@ -276,7 +279,7 @@ impl Router {
 
             #[cfg(not(feature = "tracing"))]
             let result = provider
-                .complete(payload.clone(), auth, &spec, client_headers)
+                .complete(payload.clone(), auth, &spec, format, client_headers)
                 .await;
 
             match result {
@@ -348,8 +351,9 @@ impl RouterBuilder {
         P: Provider + 'static,
     {
         let alias = alias.into();
-        let format = provider.format();
-        self.formats.insert(format, alias.clone());
+        for format in provider.provider_formats() {
+            self.formats.insert(format, alias.clone());
+        }
         self.providers.insert(alias, Arc::new(provider));
         self
     }
@@ -361,8 +365,9 @@ impl RouterBuilder {
         provider: Arc<dyn Provider>,
     ) -> Self {
         let alias = alias.into();
-        let format = provider.format();
-        self.formats.insert(format, alias.clone());
+        for format in provider.provider_formats() {
+            self.formats.insert(format, alias.clone());
+        }
         self.providers.insert(alias, provider);
         self
     }

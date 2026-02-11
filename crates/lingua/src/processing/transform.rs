@@ -782,18 +782,19 @@ mod tests {
         .unwrap();
 
         assert!(!result.is_passthrough());
-        assert_eq!(result.source_format(), Some(ProviderFormat::OpenAI));
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
-        assert!(output.get("modelId").unwrap().as_str().is_some());
-        let body = output.get("body").unwrap();
-        assert!(body.get("model").is_none());
+        assert!(output.get("model").is_none());
         assert_eq!(
-            body.get("anthropic_version").unwrap().as_str().unwrap(),
+            output.get("anthropic_version").unwrap().as_str().unwrap(),
             "bedrock-2023-05-31"
         );
-        assert!(body.get("max_tokens").is_some());
-        assert!(body.get("messages").is_some());
+        assert!(output.get("max_tokens").is_some());
+        assert!(output.get("messages").is_some());
     }
 
     #[test]
@@ -819,18 +820,13 @@ mod tests {
         assert_eq!(result.source_format(), Some(ProviderFormat::Anthropic));
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
         assert_eq!(
-            output.get("modelId").unwrap().as_str().unwrap(),
-            "claude-sonnet-4-20250514"
-        );
-        let body = output.get("body").unwrap();
-        assert!(body.get("model").is_none());
-        assert_eq!(
-            body.get("anthropic_version").unwrap().as_str().unwrap(),
+            output.get("anthropic_version").unwrap().as_str().unwrap(),
             "bedrock-2023-05-31"
         );
-        assert_eq!(body.get("max_tokens").unwrap().as_i64().unwrap(), 1024);
-        assert!(body.get("messages").is_some());
+        assert_eq!(output.get("max_tokens").unwrap().as_i64().unwrap(), 1024);
+        assert!(output.get("messages").is_some());
     }
 
     #[test]
@@ -851,7 +847,10 @@ mod tests {
         .unwrap();
 
         assert!(!result.is_passthrough());
-        assert_eq!(result.source_format(), Some(ProviderFormat::OpenAI));
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
         assert!(

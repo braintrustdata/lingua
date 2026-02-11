@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01Cndbutyh13TkCj8wJVPdrf",
+      "id": "msg_bdrk_01BabgKhnB4Fm1iC2tHrqaPK",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -58,23 +58,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Step"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " 1: Fin"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d the distance"
+      "text": " Step 1: Find distance"
     }
   },
   {
@@ -186,7 +170,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\n## Step 2: Calculate total"
+      "text": "\n\n## Step 2: Calculate tot"
     }
   },
   {
@@ -194,7 +178,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " distance"
+      "text": "als"
     }
   },
   {
@@ -216,8 +200,8 @@
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 45,
       "outputTokenCount": 100,
-      "invocationLatency": 1680,
-      "firstByteLatency": 1151
+      "invocationLatency": 1923,
+      "firstByteLatency": 1416
     }
   }
 ]

@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01ExxVjUpZGxnnXCNxcabZBt",
+      "id": "msg_bdrk_01KMpW659rAAtJ6ZPswgwqv7",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -42,7 +42,15 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " weather in San Francisco is currently"
+      "text": " weather in San Francisco,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " CA is currently"
     }
   },
   {
@@ -58,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "71 degrees**. It"
+      "text": "71 degrees"
     }
   },
   {
@@ -66,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "'s"
+      "text": " Fahrenheit**. That"
     }
   },
   {
@@ -74,7 +82,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " a pleasant temperature"
+      "text": "'s pleasant"
     }
   },
   {
@@ -82,39 +90,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", typical"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " for San"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " Francisco's"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " mil"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d climate!"
+      "text": " weather!"
     }
   },
   {
@@ -128,16 +104,16 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 30
+      "output_tokens": 26
     }
   },
   {
     "type": "message_stop",
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 657,
-      "outputTokenCount": 30,
-      "invocationLatency": 909,
-      "firstByteLatency": 584
+      "outputTokenCount": 26,
+      "invocationLatency": 826,
+      "firstByteLatency": 602
     }
   }
 ]

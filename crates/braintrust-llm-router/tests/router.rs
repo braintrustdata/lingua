@@ -24,8 +24,8 @@ impl Provider for StubProvider {
         "stub"
     }
 
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::ChatCompletions
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::ChatCompletions]
     }
 
     async fn complete(
@@ -33,6 +33,7 @@ impl Provider for StubProvider {
         payload: Bytes,
         _auth: &AuthConfig,
         _spec: &ModelSpec,
+        _format: ProviderFormat,
         _client_headers: &ClientHeaders,
     ) -> braintrust_llm_router::Result<Bytes> {
         // Parse the incoming payload to extract model name
@@ -72,6 +73,7 @@ impl Provider for StubProvider {
         _payload: Bytes,
         _auth: &AuthConfig,
         _spec: &ModelSpec,
+        _format: ProviderFormat,
         _client_headers: &ClientHeaders,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(Box::pin(tokio_stream::empty()))
@@ -290,8 +292,8 @@ impl Provider for FailingProvider {
         "failing"
     }
 
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::ChatCompletions
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::ChatCompletions]
     }
 
     async fn complete(
@@ -299,6 +301,7 @@ impl Provider for FailingProvider {
         _payload: Bytes,
         _auth: &AuthConfig,
         _spec: &ModelSpec,
+        _format: ProviderFormat,
         _client_headers: &ClientHeaders,
     ) -> braintrust_llm_router::Result<Bytes> {
         self.attempts.fetch_add(1, Ordering::SeqCst);
@@ -310,6 +313,7 @@ impl Provider for FailingProvider {
         _payload: Bytes,
         _auth: &AuthConfig,
         _spec: &ModelSpec,
+        _format: ProviderFormat,
         _client_headers: &ClientHeaders,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Err(Error::Timeout)

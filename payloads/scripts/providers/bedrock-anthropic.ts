@@ -61,7 +61,7 @@ function createBedrockClient(): BedrockRuntimeClient {
 function buildInvokeBody(payload: AnthropicMessageCreateParams): {
   modelId: string;
   body: string;
-  bodyObj: Record<string, unknown>;
+  bodyObj: BedrockAnthropicBody;
 } {
   const { model, stream: _stream, ...rest } = payload;
   const bodyObj = {
@@ -81,18 +81,18 @@ type ParallelResult =
       data: Array<unknown>;
     };
 
-type BedrockInvokeWireFormat = {
-  modelId: string;
-  body: Record<string, unknown>;
-};
+type BedrockAnthropicBody = Omit<
+  AnthropicMessageCreateParams,
+  "model" | "stream"
+> & { anthropic_version: string };
 
 export async function executeBedrockAnthropic(
   _caseName: string,
-  payload: AnthropicMessageCreateParams | BedrockInvokeWireFormat,
+  payload: AnthropicMessageCreateParams | BedrockAnthropicBody,
   options?: ExecuteOptions
 ): Promise<
   CaptureResult<
-    AnthropicMessageCreateParams | BedrockInvokeWireFormat,
+    AnthropicMessageCreateParams | BedrockAnthropicBody,
     Anthropic.Messages.Message,
     unknown
   >
@@ -105,15 +105,14 @@ export async function executeBedrockAnthropic(
   const anthropicPayload = payload;
   const { stream } = options ?? {};
   const client = createBedrockClient();
+  const { modelId, body, bodyObj } = buildInvokeBody(anthropicPayload);
   const result: CaptureResult<
-    AnthropicMessageCreateParams | BedrockInvokeWireFormat,
+    AnthropicMessageCreateParams | BedrockAnthropicBody,
     Anthropic.Messages.Message,
     unknown
-  > = { request: { modelId: "", body: {} } };
+  > = { request: bodyObj };
 
   try {
-    const { modelId, body, bodyObj } = buildInvokeBody(anthropicPayload);
-    result.request = { modelId, body: bodyObj };
     const promises: Promise<ParallelResult>[] = [];
 
     if (stream !== true) {
@@ -235,10 +234,7 @@ export async function executeBedrockAnthropic(
         body: followupBody,
         bodyObj: followupBodyObj,
       } = buildInvokeBody(followUpPayload);
-      result.followupRequest = {
-        modelId: followupModelId,
-        body: followupBodyObj,
-      };
+      result.followupRequest = followupBodyObj;
 
       type FollowupResult =
         | {
@@ -320,7 +316,7 @@ export async function executeBedrockAnthropic(
 }
 
 export const bedrockAnthropicExecutor: ProviderExecutor<
-  AnthropicMessageCreateParams | BedrockInvokeWireFormat,
+  AnthropicMessageCreateParams | BedrockAnthropicBody,
   Anthropic.Messages.Message,
   unknown
 > = {

@@ -18,7 +18,7 @@ use crate::catalog::ModelSpec;
 use crate::client::{default_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{bedrock_event_stream, single_bytes_stream, sse_stream, RawResponseStream};
+use crate::streaming::{bedrock_event_stream, single_bytes_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
 #[derive(Debug, Clone)]
@@ -258,8 +258,8 @@ impl crate::providers::Provider for BedrockProvider {
         "bedrock"
     }
 
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::Converse
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::Converse, ProviderFormat::BedrockAnthropic]
     }
 
     async fn complete(
@@ -267,9 +267,10 @@ impl crate::providers::Provider for BedrockProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        format: ProviderFormat,
         _client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let use_invoke = matches!(spec.format, ProviderFormat::BedrockAnthropic);
+        let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
         let url = if use_invoke {
             self.invoke_model_url(&spec.model, false)?
         } else {
@@ -284,14 +285,17 @@ impl crate::providers::Provider for BedrockProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self.complete(payload, auth, spec, client_headers).await?;
+            let response = self
+                .complete(payload, auth, spec, format, client_headers)
+                .await?;
             return Ok(single_bytes_stream(response));
         }
 
-        let use_invoke = matches!(spec.format, ProviderFormat::BedrockAnthropic);
+        let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
         let url = if use_invoke {
             self.invoke_model_url(&spec.model, true)?
         } else {
@@ -299,11 +303,7 @@ impl crate::providers::Provider for BedrockProvider {
         };
 
         let response = self.send_signed(url, payload, auth, true).await?;
-        if use_invoke {
-            Ok(sse_stream(response))
-        } else {
-            Ok(bedrock_event_stream(response))
-        }
+        Ok(bedrock_event_stream(response))
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {

@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_011ELW3t4TXzwcu5wjAHWNat",
+      "id": "msg_bdrk_01RyWveqY1K3bixAFmKF7qYs",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -50,15 +50,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Spee"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d Calculation\n\n##"
+      "text": " Speed Calculation\n\n##"
     }
   },
   {
@@ -74,7 +66,15 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " 1: Calculate distance for"
+      "text": " 1: Fin"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d the distance for"
     }
   },
   {
@@ -90,7 +90,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\n**First"
+      "text": "\n\n**First part"
     }
   },
   {
@@ -98,7 +98,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " segment:**"
+      "text": ":**"
     }
   },
   {
@@ -106,7 +106,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n- Speed ="
+      "text": "\n- Spee"
     }
   },
   {
@@ -114,7 +114,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " 60 mph,"
+      "text": "d = 60 mph,"
     }
   },
   {
@@ -122,7 +122,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Time"
+      "text": " Time = 2 hours\n-"
     }
   },
   {
@@ -130,15 +130,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " = 2 hours\n- Distance"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " = "
+      "text": " Distance = "
     }
   },
   {
@@ -162,7 +154,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "120 miles**\n\n**Second segment"
+      "text": "120 miles**\n\n**Second part"
     }
   },
   {
@@ -186,7 +178,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n- Distance = 80 × "
+      "text": "\n- Distance = 80 ×"
     }
   },
   {
@@ -194,7 +186,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "1 = **80 miles**"
+      "text": " 1 = **80 miles"
     }
   },
   {
@@ -202,7 +194,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\n## Step 2: Fin"
+      "text": "**\n\n## Step 2: Calculate"
     }
   },
   {
@@ -210,7 +202,15 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d total distance an"
+      "text": " total"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " distance an"
     }
   },
   {
@@ -226,7 +226,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " **"
+      "text": " Total distance = 120 + "
     }
   },
   {
@@ -234,7 +234,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "Total distance**"
+      "text": "80 = **200 miles**"
     }
   },
   {
@@ -242,23 +242,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " = 120 + 80 "
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "= **200 miles**\n-"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " **Total time** = 2 "
+      "text": "\n- Total time = 2 "
     }
   },
   {
@@ -314,7 +298,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "frac{200 \\text{"
+      "text": "frac{200}{"
     }
   },
   {
@@ -322,23 +306,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " miles}}{3 \\text{"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " hours}} = "
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "66.\\"
+      "text": "3} = 66.\\"
     }
   },
   {
@@ -354,7 +322,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " mph}$$\n\n## Answer"
+      "text": " mph}$$\n\n**"
     }
   },
   {
@@ -362,7 +330,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\nThe average speed is **66"
+      "text": "Answer"
     }
   },
   {
@@ -370,7 +338,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "⅔ mph** ("
+      "text": ": The average speed is approximately"
     }
   },
   {
@@ -378,7 +346,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "or approximately"
+      "text": " 66.67 mph**"
     }
   },
   {
@@ -386,7 +354,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " **"
+      "text": " ("
     }
   },
   {
@@ -394,7 +362,23 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "66.67 mph**)"
+      "text": "or 66⅔ mph"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " exactly"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ")"
     }
   },
   {
@@ -408,16 +392,16 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 240
+      "output_tokens": 226
     }
   },
   {
     "type": "message_stop",
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 45,
-      "outputTokenCount": 240,
-      "invocationLatency": 1897,
-      "firstByteLatency": 750
+      "outputTokenCount": 226,
+      "invocationLatency": 2034,
+      "firstByteLatency": 973
     }
   }
 ]

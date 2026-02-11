@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01Hj3uHxHxXmtJqNrKtrWLQr",
+      "id": "msg_bdrk_01Ngaz8LWsqpZscaFXkgDcNH",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -56,8 +56,8 @@
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 14,
       "outputTokenCount": 10,
-      "invocationLatency": 812,
-      "firstByteLatency": 758
+      "invocationLatency": 713,
+      "firstByteLatency": 621
     }
   }
 ]

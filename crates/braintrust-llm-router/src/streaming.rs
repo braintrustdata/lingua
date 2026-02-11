@@ -1,6 +1,8 @@
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+#[cfg(feature = "provider-bedrock")]
+use base64::Engine as _;
 use bytes::{Bytes, BytesMut};
 use futures::Stream;
 use reqwest::Response;
@@ -254,6 +256,12 @@ where
                         continue;
                     }
 
+                    if event_type.as_deref() == Some("chunk") {
+                        if let Some(decoded_chunk) = decode_bedrock_chunk_payload(payload) {
+                            return Poll::Ready(Some(Ok(decoded_chunk)));
+                        }
+                    }
+
                     // Wrap the payload with event type as JSON bytes
                     // For Bedrock, we need to wrap: { "eventType": <payload> }
                     let json_bytes = if let Some(event_type) = event_type {
@@ -303,6 +311,16 @@ where
 #[cfg(feature = "provider-bedrock")]
 pub fn bedrock_event_stream(response: Response) -> RawResponseStream {
     Box::pin(RawBedrockEventStream::new(response.bytes_stream()))
+}
+
+#[cfg(feature = "provider-bedrock")]
+fn decode_bedrock_chunk_payload(payload: &[u8]) -> Option<Bytes> {
+    let chunk_envelope: lingua::serde_json::Value = lingua::serde_json::from_slice(payload).ok()?;
+    let encoded_chunk = chunk_envelope.get("bytes")?.as_str()?;
+    let decoded_bytes = base64::engine::general_purpose::STANDARD
+        .decode(encoded_chunk)
+        .ok()?;
+    Some(Bytes::from(decoded_bytes))
 }
 
 fn split_event(buffer: &BytesMut) -> Option<(Bytes, BytesMut)> {
