@@ -308,7 +308,9 @@ impl ReasoningConfig {
         max_tokens: Option<i64>,
     ) -> Result<Option<Value>, TransformError> {
         match provider {
-            ProviderFormat::OpenAI => Ok(to_openai_chat(self, max_tokens).map(Value::String)),
+            ProviderFormat::ChatCompletions => {
+                Ok(to_openai_chat(self, max_tokens).map(Value::String))
+            }
             ProviderFormat::Responses => Ok(to_openai_responses(self, max_tokens)),
             ProviderFormat::Anthropic => Ok(to_anthropic(self, max_tokens)),
             ProviderFormat::Converse => Ok(to_anthropic(self, max_tokens)), // Bedrock uses same format as Anthropic
@@ -542,7 +544,7 @@ mod tests {
         };
 
         let effort = config
-            .to_provider(ProviderFormat::OpenAI, Some(4096))
+            .to_provider(ProviderFormat::ChatCompletions, Some(4096))
             .unwrap()
             .unwrap();
         assert_eq!(effort.as_str().unwrap(), "medium"); // 2048/4096 = 0.5 → medium

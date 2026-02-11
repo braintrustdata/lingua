@@ -1,0 +1,45 @@
+{
+  "sdkHttpResponse": {
+    "headers": {
+      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "content-encoding": "gzip",
+      "content-type": "application/json; charset=UTF-8",
+      "date": "Fri, 06 Feb 2026 01:56:22 GMT",
+      "server": "scaffolding on HTTPServer2",
+      "server-timing": "gfet4t7; dur=1660",
+      "transfer-encoding": "chunked",
+      "vary": "Origin, X-Origin, Referer",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "0"
+    }
+  },
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "To give you the best advice on what to do next, I need a little more context!\n\nCould you tell me:\n\n1.  **What were you just doing or working on?** (e.g., analyzing data, looking at errors, planning a project, reviewing a report)\n2.  **What is your main goal or objective right now?**\n3.  **What problem are"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "RkqFaYHdEfWu_uMP-73PkQ4",
+  "usageMetadata": {
+    "promptTokenCount": 49,
+    "candidatesTokenCount": 84,
+    "totalTokenCount": 345,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 49
+      }
+    ],
+    "thoughtsTokenCount": 212
+  }
+}

@@ -172,13 +172,13 @@ impl FinishReason {
             (Self::Stop, ProviderFormat::Responses) => "completed",
             (
                 Self::Stop,
-                ProviderFormat::OpenAI | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
             ) => "stop",
 
             // Length variants
             (
                 Self::Length,
-                ProviderFormat::OpenAI | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
             ) => "length",
             (Self::Length, ProviderFormat::Responses) => "incomplete",
             (Self::Length, ProviderFormat::Google) => "MAX_TOKENS",
@@ -200,7 +200,7 @@ impl FinishReason {
             (Self::ToolCalls, ProviderFormat::Responses) => "completed", // Tool calls also complete
             (
                 Self::ToolCalls,
-                ProviderFormat::OpenAI | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
             ) => "tool_calls",
 
             // ContentFilter variants
@@ -209,7 +209,7 @@ impl FinishReason {
             (Self::ContentFilter, ProviderFormat::Responses) => "incomplete",
             (
                 Self::ContentFilter,
-                ProviderFormat::OpenAI
+                ProviderFormat::ChatCompletions
                 | ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
                 | ProviderFormat::Mistral
@@ -235,19 +235,21 @@ impl UniversalUsage {
     pub fn from_provider_value(usage: &Value, provider: ProviderFormat) -> Self {
         match provider {
             // OpenAI, Mistral, and Unknown use OpenAI format
-            ProviderFormat::OpenAI | ProviderFormat::Mistral | ProviderFormat::Unknown => Self {
-                prompt_tokens: usage.get("prompt_tokens").and_then(Value::as_i64),
-                completion_tokens: usage.get("completion_tokens").and_then(Value::as_i64),
-                prompt_cached_tokens: usage
-                    .get("prompt_tokens_details")
-                    .and_then(|d| d.get("cached_tokens"))
-                    .and_then(Value::as_i64),
-                prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
-                completion_reasoning_tokens: usage
-                    .get("completion_tokens_details")
-                    .and_then(|d| d.get("reasoning_tokens"))
-                    .and_then(Value::as_i64),
-            },
+            ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
+                Self {
+                    prompt_tokens: usage.get("prompt_tokens").and_then(Value::as_i64),
+                    completion_tokens: usage.get("completion_tokens").and_then(Value::as_i64),
+                    prompt_cached_tokens: usage
+                        .get("prompt_tokens_details")
+                        .and_then(|d| d.get("cached_tokens"))
+                        .and_then(Value::as_i64),
+                    prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
+                    completion_reasoning_tokens: usage
+                        .get("completion_tokens_details")
+                        .and_then(|d| d.get("reasoning_tokens"))
+                        .and_then(Value::as_i64),
+                }
+            }
             ProviderFormat::Responses => Self {
                 prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
                 completion_tokens: usage.get("output_tokens").and_then(Value::as_i64),
@@ -313,7 +315,7 @@ impl UniversalUsage {
 
         match provider {
             // OpenAI, Mistral, and Unknown use OpenAI format
-            ProviderFormat::OpenAI | ProviderFormat::Mistral | ProviderFormat::Unknown => {
+            ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
                 let mut map = serde_json::Map::new();
                 map.insert("prompt_tokens".into(), serde_json::json!(prompt));
                 map.insert("completion_tokens".into(), serde_json::json!(completion));

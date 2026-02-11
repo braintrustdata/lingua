@@ -612,6 +612,80 @@ impl ProviderAdapter for ResponsesAdapter {
                 )))
             }
 
+            "response.output_item.added" => {
+                // Tool call start - extract call_id, name, and output_index
+                let item = payload.get("item");
+                let item_type = item.and_then(|i| i.get("type")).and_then(Value::as_str);
+
+                if item_type == Some("function_call") {
+                    let call_id = item
+                        .and_then(|i| i.get("call_id"))
+                        .and_then(Value::as_str)
+                        .unwrap_or("");
+                    let name = item
+                        .and_then(|i| i.get("name"))
+                        .and_then(Value::as_str)
+                        .unwrap_or("");
+                    let output_index = payload
+                        .get("output_index")
+                        .and_then(Value::as_u64)
+                        .unwrap_or(0) as u32;
+
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({
+                                "role": "assistant",
+                                "content": Value::Null,
+                                "tool_calls": [{
+                                    "index": output_index,
+                                    "id": call_id,
+                                    "type": "function",
+                                    "function": {
+                                        "name": name,
+                                        "arguments": ""
+                                    }
+                                }]
+                            })),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )));
+                }
+
+                Ok(Some(UniversalStreamChunk::keep_alive()))
+            }
+
+            "response.function_call_arguments.delta" => {
+                let arguments = payload.get("delta").and_then(Value::as_str).unwrap_or("");
+                let output_index = payload
+                    .get("output_index")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0) as u32;
+
+                Ok(Some(UniversalStreamChunk::new(
+                    None,
+                    None,
+                    vec![UniversalStreamChoice {
+                        index: 0,
+                        delta: Some(serde_json::json!({
+                            "tool_calls": [{
+                                "index": output_index,
+                                "function": {
+                                    "arguments": arguments
+                                }
+                            }]
+                        })),
+                        finish_reason: None,
+                    }],
+                    None,
+                    None,
+                )))
+            }
+
             // All other events are metadata/keep-alive
             _ => Ok(Some(UniversalStreamChunk::keep_alive())),
         }
@@ -633,16 +707,26 @@ impl ProviderAdapter for ResponsesAdapter {
             .and_then(|c| c.finish_reason.as_ref())
             .is_some();
 
+        // Check if delta has tool_calls
+        let has_tool_calls = chunk
+            .choices
+            .first()
+            .and_then(|c| c.delta.as_ref())
+            .and_then(|d| d.get("tool_calls"))
+            .and_then(Value::as_array)
+            .is_some_and(|arr| !arr.is_empty());
+
         // Check if this is an initial metadata chunk (has model/id/usage but no content)
+        // Exclude chunks with tool_calls - those must be handled by the tool call path
         let is_initial_metadata =
             (chunk.model.is_some() || chunk.id.is_some() || chunk.usage.is_some())
                 && !has_finish
+                && !has_tool_calls
                 && chunk
                     .choices
                     .first()
                     .and_then(|c| c.delta.as_ref())
                     .is_none_or(|d| {
-                        // Initial chunk has role but empty/no content
                         d.get("content")
                             .and_then(Value::as_str)
                             .is_none_or(|s| s.is_empty())
@@ -709,6 +793,48 @@ impl ProviderAdapter for ResponsesAdapter {
         // Check for content delta
         if let Some(choice) = chunk.choices.first() {
             if let Some(delta) = &choice.delta {
+                // Check for tool_calls in the delta
+                if let Some(tool_calls) = delta.get("tool_calls").and_then(Value::as_array) {
+                    if let Some(tc) = tool_calls.first() {
+                        let output_index =
+                            tc.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+
+                        // Initial tool call chunk has an id field
+                        if let Some(call_id) = tc.get("id").and_then(Value::as_str) {
+                            let name = tc
+                                .get("function")
+                                .and_then(|f| f.get("name"))
+                                .and_then(Value::as_str)
+                                .unwrap_or("");
+
+                            return Ok(serde_json::json!({
+                                "type": "response.output_item.added",
+                                "output_index": output_index,
+                                "item": {
+                                    "type": "function_call",
+                                    "status": "in_progress",
+                                    "call_id": call_id,
+                                    "name": name,
+                                    "arguments": ""
+                                }
+                            }));
+                        }
+
+                        // Subsequent chunks have only function.arguments
+                        if let Some(arguments) = tc
+                            .get("function")
+                            .and_then(|f| f.get("arguments"))
+                            .and_then(Value::as_str)
+                        {
+                            return Ok(serde_json::json!({
+                                "type": "response.function_call_arguments.delta",
+                                "output_index": output_index,
+                                "delta": arguments
+                            }));
+                        }
+                    }
+                }
+
                 if let Some(content) = delta.get("content").and_then(Value::as_str) {
                     return Ok(serde_json::json!({
                         "type": "response.output_text.delta",
@@ -718,15 +844,11 @@ impl ProviderAdapter for ResponsesAdapter {
                     }));
                 }
 
-                // If content is null or missing, return empty text delta
-                // Using text delta (instead of output_item.start) ensures proper roundtrip
-                // since our stream_to_universal converts empty text back to null
-                // Note: When tool_calls are present with null content, this will emit empty text
-                // which is documented as an expected limitation in streaming_expected_differences.json
+                // If content is null or missing and no tool_calls, return empty text delta
                 let content_is_missing_or_null =
                     delta.get("content").is_none() || delta.get("content") == Some(&Value::Null);
 
-                if content_is_missing_or_null {
+                if content_is_missing_or_null && !has_tool_calls {
                     return Ok(serde_json::json!({
                         "type": "response.output_text.delta",
                         "output_index": choice.index,

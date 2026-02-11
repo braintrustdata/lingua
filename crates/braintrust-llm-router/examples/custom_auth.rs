@@ -132,7 +132,7 @@ async fn main() -> Result<()> {
         .complete(
             body,
             model,
-            ProviderFormat::OpenAI,
+            ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
         .await?;

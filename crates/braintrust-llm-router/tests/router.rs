@@ -25,7 +25,7 @@ impl Provider for StubProvider {
     }
 
     fn format(&self) -> ProviderFormat {
-        ProviderFormat::OpenAI
+        ProviderFormat::ChatCompletions
     }
 
     async fn complete(
@@ -89,7 +89,7 @@ async fn router_routes_to_stub_provider() {
         "stub-model".into(),
         ModelSpec {
             model: "stub-model".into(),
-            format: ProviderFormat::OpenAI,
+            format: ProviderFormat::ChatCompletions,
             flavor: ModelFlavor::Chat,
             display_name: None,
             parent: None,
@@ -134,7 +134,7 @@ async fn router_routes_to_stub_provider() {
         .complete(
             body,
             model,
-            ProviderFormat::OpenAI,
+            ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
         .await
@@ -156,7 +156,7 @@ async fn router_requires_auth_for_provider() {
         "stub-model".into(),
         ModelSpec {
             model: "stub-model".into(),
-            format: ProviderFormat::OpenAI,
+            format: ProviderFormat::ChatCompletions,
             flavor: ModelFlavor::Chat,
             display_name: None,
             parent: None,
@@ -189,7 +189,7 @@ async fn router_requires_auth_for_provider() {
         .complete(
             body,
             model,
-            ProviderFormat::OpenAI,
+            ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
         .await
@@ -204,7 +204,7 @@ async fn router_reports_missing_provider() {
         "lonely-model".into(),
         ModelSpec {
             model: "lonely-model".into(),
-            format: ProviderFormat::OpenAI,
+            format: ProviderFormat::ChatCompletions,
             flavor: ModelFlavor::Chat,
             display_name: None,
             parent: None,
@@ -235,12 +235,15 @@ async fn router_reports_missing_provider() {
         .complete(
             body,
             model,
-            ProviderFormat::OpenAI,
+            ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
         .await
         .expect_err("missing provider");
-    assert!(matches!(err, Error::NoProvider(ProviderFormat::OpenAI)));
+    assert!(matches!(
+        err,
+        Error::NoProvider(ProviderFormat::ChatCompletions)
+    ));
 }
 
 #[tokio::test]
@@ -264,7 +267,12 @@ async fn router_propagates_validation_errors() {
         "messages": []
     }));
     let err = router
-        .complete(body, "", ProviderFormat::OpenAI, &ClientHeaders::default())
+        .complete(
+            body,
+            "",
+            ProviderFormat::ChatCompletions,
+            &ClientHeaders::default(),
+        )
         .await
         .expect_err("validation");
     // Empty model is treated as unknown model, not invalid request
@@ -283,7 +291,7 @@ impl Provider for FailingProvider {
     }
 
     fn format(&self) -> ProviderFormat {
-        ProviderFormat::OpenAI
+        ProviderFormat::ChatCompletions
     }
 
     async fn complete(
@@ -319,7 +327,7 @@ async fn router_retries_and_propagates_terminal_error() {
         "retry-model".into(),
         ModelSpec {
             model: "retry-model".into(),
-            format: ProviderFormat::OpenAI,
+            format: ProviderFormat::ChatCompletions,
             flavor: ModelFlavor::Chat,
             display_name: None,
             parent: None,
@@ -375,7 +383,7 @@ async fn router_retries_and_propagates_terminal_error() {
         .complete(
             body,
             model,
-            ProviderFormat::OpenAI,
+            ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
         .await

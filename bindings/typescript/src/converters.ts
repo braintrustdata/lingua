@@ -496,6 +496,64 @@ export function validateAnthropicResponse(
 }
 
 // ============================================================================
+// Stream chunk validation and transformation
+// ============================================================================
+
+/**
+ * Validate a JSON string as a Chat Completions stream chunk
+ * @returns Zod-style result: `{ ok: true, data: T }` or `{ ok: false, error: {...} }`
+ */
+export function validateChatCompletionsStreamChunk(
+  json: string
+): ValidationResult<unknown> {
+  try {
+    const data = getWasm().validate_chat_completions_stream_chunk(json);
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error: { message: String(error) },
+    };
+  }
+}
+
+/**
+ * Result from transforming a stream chunk
+ */
+export type TransformStreamChunkResult =
+  | { passThrough: true; data: unknown }
+  | { transformed: true; data: unknown; sourceFormat: string };
+
+/**
+ * Transform a streaming chunk from one provider format to another.
+ *
+ * Auto-detects the source format and transforms to the target format.
+ *
+ * @param input - JSON string of the stream chunk
+ * @param targetFormat - Target provider format (e.g. "chat_completions", "anthropic")
+ * @returns Object with either `{ passThrough: true, data }` or `{ transformed: true, data, sourceFormat }`
+ * @throws {ConversionError} If transformation fails
+ */
+export function transformStreamChunk(
+  input: string,
+  targetFormat: string
+): TransformStreamChunkResult {
+  try {
+    return getWasm().transform_stream_chunk(
+      input,
+      targetFormat
+    ) as TransformStreamChunkResult;
+  } catch (error: unknown) {
+    throw new ConversionError(
+      `Failed to transform stream chunk to ${targetFormat}`,
+      undefined,
+      undefined,
+      error
+    );
+  }
+}
+
+// ============================================================================
 // Type re-exports
 // ============================================================================
 

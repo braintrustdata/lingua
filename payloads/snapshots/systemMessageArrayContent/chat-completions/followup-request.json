@@ -1,0 +1,29 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "text",
+          "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What errors occurred recently?"
+    },
+    {
+      "role": "assistant",
+      "content": "To provide information on recent errors from the project_logs (id abc-123), I would typically query the data for entries marked as errors in the last few days or weeks. Unfortunately, I don’t have direct access to the data source to perform queries. \n\nYou can check for recent errors by looking for entries with an \"error\" status or keyword in your project_logs. If you have any specific queries or logs that you would like to analyze further, feel free to share!",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_completion_tokens": 300
+}

@@ -1,0 +1,38 @@
+{
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123."
+      }
+    ]
+  },
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What errors occurred recently?"
+        }
+      ]
+    },
+    {
+      "parts": [
+        {
+          "text": "I can help with that! I'll query the `"
+        }
+      ],
+      "role": "model"
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "maxOutputTokens": 300
+  }
+}

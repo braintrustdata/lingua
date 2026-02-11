@@ -43,7 +43,7 @@ impl<'a> TryFrom<(ProviderFormat, &'a Value)> for ToolChoiceConfig {
 
     fn try_from((provider, value): (ProviderFormat, &'a Value)) -> Result<Self, Self::Error> {
         match provider {
-            ProviderFormat::OpenAI => from_openai_chat(value),
+            ProviderFormat::ChatCompletions => from_openai_chat(value),
             ProviderFormat::Responses => from_openai_responses(value),
             ProviderFormat::Anthropic => from_anthropic(value),
             _ => Ok(Self::default()),
@@ -72,7 +72,7 @@ impl ToolChoiceConfig {
         parallel_tool_calls: Option<bool>,
     ) -> Result<Option<Value>, TransformError> {
         match provider {
-            ProviderFormat::OpenAI => Ok(to_openai_chat(self)),
+            ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)),
             ProviderFormat::Responses => Ok(to_openai_responses(self)),
             ProviderFormat::Anthropic => Ok(to_anthropic(self, parallel_tool_calls)),
             _ => Ok(None),
@@ -299,7 +299,9 @@ mod tests {
     #[test]
     fn test_from_openai_chat_string() {
         let value = json!("auto");
-        let config: ToolChoiceConfig = (ProviderFormat::OpenAI, &value).try_into().unwrap();
+        let config: ToolChoiceConfig = (ProviderFormat::ChatCompletions, &value)
+            .try_into()
+            .unwrap();
         assert_eq!(config.mode, Some(ToolChoiceMode::Auto));
         assert_eq!(config.tool_name, None);
     }
@@ -310,7 +312,9 @@ mod tests {
             "type": "function",
             "function": { "name": "get_weather" }
         });
-        let config: ToolChoiceConfig = (ProviderFormat::OpenAI, &value).try_into().unwrap();
+        let config: ToolChoiceConfig = (ProviderFormat::ChatCompletions, &value)
+            .try_into()
+            .unwrap();
         assert_eq!(config.mode, Some(ToolChoiceMode::Tool));
         assert_eq!(config.tool_name, Some("get_weather".into()));
     }
@@ -344,7 +348,7 @@ mod tests {
             ..Default::default()
         };
         let value = config
-            .to_provider(ProviderFormat::OpenAI, None)
+            .to_provider(ProviderFormat::ChatCompletions, None)
             .unwrap()
             .unwrap();
         assert_eq!(value, json!("auto"));
@@ -358,7 +362,7 @@ mod tests {
             ..Default::default()
         };
         let value = config
-            .to_provider(ProviderFormat::OpenAI, None)
+            .to_provider(ProviderFormat::ChatCompletions, None)
             .unwrap()
             .unwrap();
         assert_eq!(
@@ -404,9 +408,11 @@ mod tests {
             "type": "function",
             "function": { "name": "get_weather" }
         });
-        let config: ToolChoiceConfig = (ProviderFormat::OpenAI, &original).try_into().unwrap();
+        let config: ToolChoiceConfig = (ProviderFormat::ChatCompletions, &original)
+            .try_into()
+            .unwrap();
         let back = config
-            .to_provider(ProviderFormat::OpenAI, None)
+            .to_provider(ProviderFormat::ChatCompletions, None)
             .unwrap()
             .unwrap();
         assert_eq!(original, back);
@@ -416,7 +422,9 @@ mod tests {
     fn test_cross_provider_openai_to_anthropic() {
         // OpenAI required → Anthropic any
         let openai_value = json!("required");
-        let config: ToolChoiceConfig = (ProviderFormat::OpenAI, &openai_value).try_into().unwrap();
+        let config: ToolChoiceConfig = (ProviderFormat::ChatCompletions, &openai_value)
+            .try_into()
+            .unwrap();
         let anthropic_value = config
             .to_provider(ProviderFormat::Anthropic, None)
             .unwrap()
@@ -428,7 +436,8 @@ mod tests {
     fn test_invalid_string_mode_errors() {
         // Unrecognized string mode should error
         let value = json!("invalid_mode");
-        let result: Result<ToolChoiceConfig, _> = (ProviderFormat::OpenAI, &value).try_into();
+        let result: Result<ToolChoiceConfig, _> =
+            (ProviderFormat::ChatCompletions, &value).try_into();
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("invalid_mode"));
     }

@@ -219,6 +219,20 @@
       "reason": "Anthropic extracts system messages to separate system parameter"
     },
     {
+      "testCase": "systemMessageArrayContent",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic extracts system messages to separate system parameter"
+    },
+    {
+      "testCase": "systemMessageArrayContent",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Anthropic extracts system messages to separate system parameter"
+    },
+    {
       "testCase": "multimodalRequest",
       "source": "Responses",
       "target": "ChatCompletions",

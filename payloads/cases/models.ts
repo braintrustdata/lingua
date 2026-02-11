@@ -1,5 +1,5 @@
 // Canonical model configuration - change these to update all test cases
-export const OPENAI_CHAT_COMPLETIONS_MODEL = "gpt-4o-mini";
+export const OPENAI_CHAT_COMPLETIONS_MODEL = "gpt-5-nano";
 export const OPENAI_RESPONSES_MODEL = "gpt-5-nano";
 // For parameters not supported by reasoning models (temperature, top_p, logprobs)
 export const OPENAI_NON_REASONING_MODEL = "gpt-4o-mini";

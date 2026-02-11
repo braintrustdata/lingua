@@ -15,7 +15,7 @@ use lingua::processing::adapters::adapters;
 /// this is temporary as we make incremental progress.
 const REQUIRED_PROVIDERS: &[ProviderFormat] = &[
     ProviderFormat::Responses,
-    ProviderFormat::OpenAI, // ChatCompletions
+    ProviderFormat::ChatCompletions, // ChatCompletions
     ProviderFormat::Anthropic,
     ProviderFormat::BedrockAnthropic,
 ];

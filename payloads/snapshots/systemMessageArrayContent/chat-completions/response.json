@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-D65MwZXOspuaBKVMeAtmKvZJJ0aiz",
+  "object": "chat.completion",
+  "created": 1770342978,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "To provide information on recent errors from the project_logs (id abc-123), I would typically query the data for entries marked as errors in the last few days or weeks. Unfortunately, I don’t have direct access to the data source to perform queries. \n\nYou can check for recent errors by looking for entries with an \"error\" status or keyword in your project_logs. If you have any specific queries or logs that you would like to analyze further, feel free to share!",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 36,
+    "completion_tokens": 96,
+    "total_tokens": 132,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_f4ae844694"
+}
