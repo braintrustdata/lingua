@@ -33,23 +33,27 @@ impl ModelResolver {
             .catalog
             .get(model)
             .ok_or_else(|| Error::UnknownModel(model.to_string()))?;
-        let format = spec.format;
+        let format = if spec.format == ProviderFormat::Anthropic
+            && lingua::is_bedrock_anthropic_model(model)
+        {
+            ProviderFormat::BedrockAnthropic
+        } else {
+            spec.format
+        };
         let provider_alias = self
             .aliases
             .get(model)
             .cloned()
-            .unwrap_or_else(|| format_identifier(format, model));
+            .unwrap_or_else(|| format_identifier(format));
         Ok((spec, format, provider_alias))
     }
 }
 
-fn format_identifier(format: ProviderFormat, model: &str) -> String {
-    if lingua::is_bedrock_anthropic_model(model) {
-        return "bedrock".to_string();
-    }
+fn format_identifier(format: ProviderFormat) -> String {
     match format {
         ProviderFormat::OpenAI => "openai",
         ProviderFormat::Anthropic => "anthropic",
+        ProviderFormat::BedrockAnthropic => "bedrock",
         ProviderFormat::Google => "google",
         ProviderFormat::Mistral => "mistral",
         ProviderFormat::Converse => "bedrock",
@@ -125,7 +129,19 @@ mod tests {
         let resolver = ModelResolver::new(Arc::new(catalog));
 
         let (_, format, alias) = resolver.resolve(model).expect("resolves");
-        assert_eq!(format, ProviderFormat::Anthropic);
+        assert_eq!(format, ProviderFormat::BedrockAnthropic);
         assert_eq!(alias, "bedrock");
+    }
+
+    #[test]
+    fn resolve_non_bedrock_anthropic_stays_anthropic() {
+        let model = "claude-sonnet-4-20250514";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec(model, ProviderFormat::Anthropic));
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::Anthropic);
+        assert_eq!(alias, "anthropic");
     }
 }

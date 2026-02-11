@@ -198,6 +198,58 @@ impl BedrockProvider {
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         Ok(headers)
     }
+
+    async fn send_signed(
+        &self,
+        url: Url,
+        payload: Bytes,
+        auth: &AuthConfig,
+        stream: bool,
+    ) -> Result<reqwest::Response> {
+        #[cfg(not(feature = "tracing"))]
+        let _ = stream;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            target: "bt.router.provider.http",
+            llm_provider = "bedrock",
+            http_url = %url,
+            llm_streaming = stream,
+            "sending request to Bedrock"
+        );
+
+        let headers = self.build_headers(&url, payload.as_ref(), auth)?;
+        let response = self
+            .client
+            .post(url)
+            .headers(headers)
+            .body(payload)
+            .send()
+            .await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            target: "bt.router.provider.http",
+            llm_provider = "bedrock",
+            http_status_code = response.status().as_u16(),
+            llm_streaming = stream,
+            "received response from Bedrock"
+        );
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let headers = response.headers().clone();
+            let text = response.text().await.unwrap_or_default();
+            return Err(Error::Provider {
+                provider: "bedrock".to_string(),
+                source: anyhow::anyhow!("HTTP {status}: {text}"),
+                retry_after: extract_retry_after(status, &text),
+                http: Some(UpstreamHttpError::new(status.as_u16(), headers, text)),
+            });
+        }
+
+        Ok(response)
+    }
 }
 
 #[async_trait]
@@ -217,57 +269,13 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         _client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = if spec.format == ProviderFormat::Anthropic {
+        let use_invoke = matches!(spec.format, ProviderFormat::BedrockAnthropic);
+        let url = if use_invoke {
             self.invoke_model_url(&spec.model, false)?
         } else {
             self.converse_url(&spec.model, false)?
         };
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "bedrock",
-            http_url = %url,
-            "sending request to Bedrock"
-        );
-
-        let headers = self.build_headers(&url, payload.as_ref(), auth)?;
-
-        let response = self
-            .client
-            .post(url)
-            .headers(headers)
-            .body(payload)
-            .send()
-            .await?;
-
-        #[cfg(feature = "tracing")]
-        let status_code = response.status().as_u16();
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "bedrock",
-            http_status_code = status_code,
-            "received response from Bedrock"
-        );
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let headers = response.headers().clone();
-            let text = response.text().await.unwrap_or_default();
-            return Err(Error::Provider {
-                provider: "bedrock".to_string(),
-                source: anyhow::anyhow!("HTTP {status}: {text}"),
-                retry_after: extract_retry_after(status, &text),
-                http: Some(UpstreamHttpError::new(
-                    status.as_u16(),
-                    headers,
-                    text.clone(),
-                )),
-            });
-        }
-
+        let response = self.send_signed(url, payload, auth, false).await?;
         Ok(response.bytes().await?)
     }
 
@@ -283,61 +291,15 @@ impl crate::providers::Provider for BedrockProvider {
             return Ok(single_bytes_stream(response));
         }
 
-        let is_anthropic = spec.format == ProviderFormat::Anthropic;
-        let url = if is_anthropic {
+        let use_invoke = matches!(spec.format, ProviderFormat::BedrockAnthropic);
+        let url = if use_invoke {
             self.invoke_model_url(&spec.model, true)?
         } else {
             self.converse_url(&spec.model, true)?
         };
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "bedrock",
-            http_url = %url,
-            llm_streaming = true,
-            "sending streaming request to Bedrock"
-        );
-
-        let headers = self.build_headers(&url, payload.as_ref(), auth)?;
-
-        let response = self
-            .client
-            .post(url)
-            .headers(headers)
-            .body(payload)
-            .send()
-            .await?;
-
-        #[cfg(feature = "tracing")]
-        let status_code = response.status().as_u16();
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "bedrock",
-            http_status_code = status_code,
-            llm_streaming = true,
-            "received streaming response from Bedrock"
-        );
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let headers = response.headers().clone();
-            let text = response.text().await.unwrap_or_default();
-            return Err(Error::Provider {
-                provider: "bedrock".to_string(),
-                source: anyhow::anyhow!("HTTP {status}: {text}"),
-                retry_after: extract_retry_after(status, &text),
-                http: Some(UpstreamHttpError::new(
-                    status.as_u16(),
-                    headers,
-                    text.clone(),
-                )),
-            });
-        }
-
-        if is_anthropic {
+        let response = self.send_signed(url, payload, auth, true).await?;
+        if use_invoke {
             Ok(sse_stream(response))
         } else {
             Ok(bedrock_event_stream(response))

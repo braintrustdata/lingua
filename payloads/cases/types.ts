@@ -42,6 +42,7 @@ export interface TestCase {
   anthropic: AnthropicMessageCreateParams | null;
   google: GoogleGenerateContentRequest | null;
   bedrock: BedrockConverseRequest | null;
+  "bedrock-anthropic"?: AnthropicMessageCreateParams | null;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
 }
@@ -60,4 +61,5 @@ export const PROVIDER_TYPES = [
   "anthropic",
   "google",
   "bedrock",
+  "bedrock-anthropic",
 ] as const;

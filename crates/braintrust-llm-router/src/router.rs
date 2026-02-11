@@ -101,6 +101,7 @@ type ResolvedRoute<'a> = (
     Arc<dyn Provider>,
     &'a AuthConfig,
     Arc<ModelSpec>,
+    ProviderFormat,
     RetryStrategy,
 );
 
@@ -148,8 +149,8 @@ impl Router {
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let (provider, auth, spec, strategy) = self.resolve_provider(model)?;
-        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model)) {
+        let (provider, auth, spec, format, strategy) = self.resolve_provider(model)?;
+        let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
@@ -203,8 +204,8 @@ impl Router {
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
-        let (provider, auth, spec, _) = self.resolve_provider(model)?;
-        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model)) {
+        let (provider, auth, spec, format, _) = self.resolve_provider(model)?;
+        let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
@@ -236,7 +237,7 @@ impl Router {
             .get(&alias)
             .ok_or_else(|| Error::NoAuth(alias.clone()))?;
         let strategy = self.retry_policy.strategy();
-        Ok((provider, auth, spec, strategy))
+        Ok((provider, auth, spec, format, strategy))
     }
 
     async fn execute_with_retry(

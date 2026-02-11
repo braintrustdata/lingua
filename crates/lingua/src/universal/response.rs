@@ -111,20 +111,32 @@ impl FinishReason {
             // Stop variants
             (
                 "end_turn" | "stop_sequence",
-                ProviderFormat::Anthropic | ProviderFormat::Converse,
+                ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::Converse,
             ) => Self::Stop,
             ("STOP", ProviderFormat::Google) => Self::Stop,
             ("completed", ProviderFormat::Responses) => Self::Stop,
             ("stop", _) => Self::Stop,
 
             // Length variants
-            ("max_tokens", ProviderFormat::Anthropic | ProviderFormat::Converse) => Self::Length,
+            (
+                "max_tokens",
+                ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::Converse,
+            ) => Self::Length,
             ("MAX_TOKENS", ProviderFormat::Google) => Self::Length,
             ("incomplete", ProviderFormat::Responses) => Self::Length,
             ("length", _) => Self::Length,
 
             // ToolCalls variants
-            ("tool_use", ProviderFormat::Anthropic | ProviderFormat::Converse) => Self::ToolCalls,
+            (
+                "tool_use",
+                ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::Converse,
+            ) => Self::ToolCalls,
             ("TOOL_CALLS", ProviderFormat::Google) => Self::ToolCalls,
             ("tool_calls", _) => Self::ToolCalls,
 
@@ -150,7 +162,12 @@ impl FinishReason {
     pub fn to_provider_string(&self, provider: ProviderFormat) -> &str {
         match (self, provider) {
             // Stop variants
-            (Self::Stop, ProviderFormat::Anthropic | ProviderFormat::Converse) => "end_turn",
+            (
+                Self::Stop,
+                ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::Converse,
+            ) => "end_turn",
             (Self::Stop, ProviderFormat::Google) => "STOP",
             (Self::Stop, ProviderFormat::Responses) => "completed",
             (
@@ -165,10 +182,20 @@ impl FinishReason {
             ) => "length",
             (Self::Length, ProviderFormat::Responses) => "incomplete",
             (Self::Length, ProviderFormat::Google) => "MAX_TOKENS",
-            (Self::Length, ProviderFormat::Anthropic | ProviderFormat::Converse) => "max_tokens",
+            (
+                Self::Length,
+                ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::Converse,
+            ) => "max_tokens",
 
             // ToolCalls variants
-            (Self::ToolCalls, ProviderFormat::Anthropic | ProviderFormat::Converse) => "tool_use",
+            (
+                Self::ToolCalls,
+                ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::Converse,
+            ) => "tool_use",
             (Self::ToolCalls, ProviderFormat::Google) => "TOOL_CALLS",
             (Self::ToolCalls, ProviderFormat::Responses) => "completed", // Tool calls also complete
             (
@@ -184,6 +211,7 @@ impl FinishReason {
                 Self::ContentFilter,
                 ProviderFormat::OpenAI
                 | ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
                 | ProviderFormat::Mistral
                 | ProviderFormat::Unknown,
             ) => "content_filter",
@@ -233,7 +261,7 @@ impl UniversalUsage {
                     .and_then(|d| d.get("reasoning_tokens"))
                     .and_then(Value::as_i64),
             },
-            ProviderFormat::Anthropic => Self {
+            ProviderFormat::Anthropic | ProviderFormat::BedrockAnthropic => Self {
                 prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
                 completion_tokens: usage.get("output_tokens").and_then(Value::as_i64),
                 prompt_cached_tokens: usage.get("cache_read_input_tokens").and_then(Value::as_i64),
@@ -335,10 +363,14 @@ impl UniversalUsage {
 
                 Value::Object(map)
             }
-            ProviderFormat::Anthropic => {
+            ProviderFormat::Anthropic | ProviderFormat::BedrockAnthropic => {
                 let mut map = serde_json::Map::new();
-                map.insert("input_tokens".into(), serde_json::json!(prompt));
-                map.insert("output_tokens".into(), serde_json::json!(completion));
+                if let Some(p) = self.prompt_tokens {
+                    map.insert("input_tokens".into(), serde_json::json!(p));
+                }
+                if let Some(c) = self.completion_tokens {
+                    map.insert("output_tokens".into(), serde_json::json!(c));
+                }
 
                 if let Some(cache_creation) = self.prompt_cache_creation_tokens {
                     map.insert(

@@ -17,6 +17,7 @@ const REQUIRED_PROVIDERS: &[ProviderFormat] = &[
     ProviderFormat::Responses,
     ProviderFormat::OpenAI, // ChatCompletions
     ProviderFormat::Anthropic,
+    ProviderFormat::BedrockAnthropic,
 ];
 
 #[test]

@@ -5,6 +5,7 @@ import {
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
   BEDROCK_MODEL,
+  BEDROCK_ANTHROPIC_MODEL,
 } from "./models";
 
 // Simple test cases - basic functionality testing
@@ -59,6 +60,17 @@ export const simpleCases: TestCaseCollection = {
         {
           role: "user",
           content: [{ text: "What is the capital of France?" }],
+        },
+      ],
+    },
+
+    "bedrock-anthropic": {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 20_000,
+      messages: [
+        {
+          role: "user",
+          content: "What is the capital of France?",
         },
       ],
     },
@@ -122,6 +134,18 @@ export const simpleCases: TestCaseCollection = {
               text: "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
             },
           ],
+        },
+      ],
+    },
+
+    "bedrock-anthropic": {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 20_000,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
     },
@@ -195,6 +219,18 @@ export const simpleCases: TestCaseCollection = {
       inferenceConfig: {
         maxTokens: 100,
       },
+    },
+
+    "bedrock-anthropic": {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 100,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
     },
   },
 
@@ -342,6 +378,33 @@ export const simpleCases: TestCaseCollection = {
           },
         ],
       },
+    },
+
+    "bedrock-anthropic": {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 20_000,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+        },
+      ],
     },
   },
 };

@@ -1,0 +1,57 @@
+{
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "body": {
+    "anthropic_version": "bedrock-2023-05-31",
+    "max_tokens": 20000,
+    "messages": [
+      {
+        "role": "user",
+        "content": "What's the weather like in San Francisco?"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "toolu_bdrk_01Psif2f3Xf5TECRKQgFViie",
+            "name": "get_weather",
+            "input": {
+              "location": "San Francisco, CA"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "toolu_bdrk_01Psif2f3Xf5TECRKQgFViie",
+            "content": "71 degrees"
+          }
+        ]
+      }
+    ],
+    "tools": [
+      {
+        "name": "get_weather",
+        "description": "Get the current weather for a location",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string",
+              "description": "The city and state, e.g. San Francisco, CA"
+            }
+          },
+          "required": [
+            "location"
+          ]
+        }
+      }
+    ],
+    "tool_choice": {
+      "type": "auto"
+    }
+  }
+}

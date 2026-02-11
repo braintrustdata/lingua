@@ -1,0 +1,26 @@
+{
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "body": {
+    "anthropic_version": "bedrock-2023-05-31",
+    "max_tokens": 20000,
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the capital of France?"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "The capital of France is Paris."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "What should I do next?"
+      }
+    ]
+  }
+}

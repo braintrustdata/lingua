@@ -6,7 +6,6 @@ using the official AWS SDK types for maximum compatibility.
 */
 
 pub mod adapter;
-pub mod anthropic;
 pub mod convert;
 pub mod detect;
 pub mod params;
@@ -31,26 +30,12 @@ pub use convert::{bedrock_to_universal, universal_to_bedrock};
 pub use request::{ConverseRequest, ConverseStreamRequest};
 pub use response::{ConverseResponse, ConverseStreamResponse};
 
-/// Returns true if the model ID represents a Bedrock-hosted Anthropic model
-/// that supports the native Anthropic Messages API via the invoke endpoint.
-///
-/// These models have IDs starting with `anthropic.` or containing `.anthropic.`
-/// (for cross-region inference profiles like `us.anthropic.claude-*`).
-pub fn is_bedrock_anthropic_model(model: &str) -> bool {
-    model.starts_with("anthropic.") || model.contains(".anthropic.")
-}
+#[cfg(feature = "anthropic")]
+pub use crate::providers::bedrock_anthropic::{
+    is_bedrock_anthropic_model, is_bedrock_anthropic_target,
+};
 
-/// Returns true if the given format + model combination targets a Bedrock
-/// Anthropic invoke endpoint (format is Anthropic and model is a Bedrock Anthropic model).
-pub fn is_bedrock_anthropic_target(
-    format: crate::capabilities::ProviderFormat,
-    model: Option<&str>,
-) -> bool {
-    format == crate::capabilities::ProviderFormat::Anthropic
-        && model.is_some_and(is_bedrock_anthropic_model)
-}
-
-#[cfg(test)]
+#[cfg(all(test, feature = "anthropic"))]
 mod tests {
     use super::*;
 

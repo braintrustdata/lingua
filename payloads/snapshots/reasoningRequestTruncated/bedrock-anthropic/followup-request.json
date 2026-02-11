@@ -1,0 +1,26 @@
+{
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "body": {
+    "anthropic_version": "bedrock-2023-05-31",
+    "max_tokens": 100,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "# Average Speed Calculation\n\n## Step 1: Find the distance for each segment\n\n**First segment:**\n- Speed = 60 mph, Time = 2 hours\n- Distance = 60 × 2 = **120 miles**\n\n**Second segment:**\n- Speed = 80 mph, Time = 1 hour\n- Distance = 80 × 1 = **80 miles**\n\n## Step 2: Calculate total distance"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "What should I do next?"
+      }
+    ]
+  }
+}
