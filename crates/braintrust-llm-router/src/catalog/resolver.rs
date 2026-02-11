@@ -38,12 +38,15 @@ impl ModelResolver {
             .aliases
             .get(model)
             .cloned()
-            .unwrap_or_else(|| format_identifier(format));
+            .unwrap_or_else(|| format_identifier(format, model));
         Ok((spec, format, provider_alias))
     }
 }
 
-fn format_identifier(format: ProviderFormat) -> String {
+fn format_identifier(format: ProviderFormat, model: &str) -> String {
+    if lingua::is_bedrock_anthropic_model(model) {
+        return "bedrock".to_string();
+    }
     match format {
         ProviderFormat::OpenAI => "openai",
         ProviderFormat::Anthropic => "anthropic",
@@ -112,5 +115,17 @@ mod tests {
         let resolver = ModelResolver::new(Arc::new(ModelCatalog::empty()));
         let err = resolver.resolve("missing").expect_err("unknown model");
         assert!(matches!(err, Error::UnknownModel(name) if name == "missing"));
+    }
+
+    #[test]
+    fn resolve_bedrock_anthropic_routes_to_bedrock() {
+        let model = "us.anthropic.claude-haiku-4-5-20251001-v1:0";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec(model, ProviderFormat::Anthropic));
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::Anthropic);
+        assert_eq!(alias, "bedrock");
     }
 }

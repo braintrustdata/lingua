@@ -18,7 +18,7 @@ use crate::catalog::ModelSpec;
 use crate::client::{default_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{bedrock_event_stream, single_bytes_stream, RawResponseStream};
+use crate::streaming::{bedrock_event_stream, single_bytes_stream, sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
 #[derive(Debug, Clone)]
@@ -90,11 +90,23 @@ impl BedrockProvider {
         Self::new(config)
     }
 
-    fn invoke_url(&self, model: &str, stream: bool) -> Result<Url> {
+    fn converse_url(&self, model: &str, stream: bool) -> Result<Url> {
         let path = if stream {
             format!("model/{model}/converse-stream")
         } else {
             format!("model/{model}/converse")
+        };
+        self.config
+            .endpoint
+            .join(&path)
+            .map_err(|e| Error::InvalidRequest(format!("failed to build converse url: {e}")))
+    }
+
+    fn invoke_model_url(&self, model: &str, stream: bool) -> Result<Url> {
+        let path = if stream {
+            format!("model/{model}/invoke-with-response-stream")
+        } else {
+            format!("model/{model}/invoke")
         };
         self.config
             .endpoint
@@ -205,7 +217,18 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         _client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.invoke_url(&spec.model, false)?;
+        let (url, payload) = if spec.format == ProviderFormat::Anthropic {
+            let url = self.invoke_model_url(&spec.model, false)?;
+            let val: Value = lingua::serde_json::from_slice(&payload)
+                .map_err(|e| Error::InvalidRequest(format!("invalid JSON payload: {e}")))?;
+            let prepared = lingua::providers::bedrock::anthropic::prepare_request(val);
+            let bytes = lingua::serde_json::to_vec(&prepared)
+                .map_err(|e| Error::InvalidRequest(format!("failed to serialize payload: {e}")))?;
+            (url, Bytes::from(bytes))
+        } else {
+            let url = self.converse_url(&spec.model, false)?;
+            (url, payload)
+        };
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -267,8 +290,19 @@ impl crate::providers::Provider for BedrockProvider {
             return Ok(single_bytes_stream(response));
         }
 
-        // Router should have already added stream options to payload
-        let url = self.invoke_url(&spec.model, true)?;
+        let is_anthropic = spec.format == ProviderFormat::Anthropic;
+        let (url, payload) = if is_anthropic {
+            let url = self.invoke_model_url(&spec.model, true)?;
+            let val: Value = lingua::serde_json::from_slice(&payload)
+                .map_err(|e| Error::InvalidRequest(format!("invalid JSON payload: {e}")))?;
+            let prepared = lingua::providers::bedrock::anthropic::prepare_streaming_request(val);
+            let bytes = lingua::serde_json::to_vec(&prepared)
+                .map_err(|e| Error::InvalidRequest(format!("failed to serialize payload: {e}")))?;
+            (url, Bytes::from(bytes))
+        } else {
+            let url = self.converse_url(&spec.model, true)?;
+            (url, payload)
+        };
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -317,7 +351,11 @@ impl crate::providers::Provider for BedrockProvider {
             });
         }
 
-        Ok(bedrock_event_stream(response))
+        if is_anthropic {
+            Ok(sse_stream(response))
+        } else {
+            Ok(bedrock_event_stream(response))
+        }
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {

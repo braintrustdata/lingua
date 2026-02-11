@@ -149,8 +149,7 @@ impl Router {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let (provider, auth, spec, strategy) = self.resolve_provider(model)?;
-        let payload = match lingua::transform_request(body.clone(), provider.format(), Some(model))
-        {
+        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
@@ -205,8 +204,7 @@ impl Router {
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
         let (provider, auth, spec, _) = self.resolve_provider(model)?;
-        let payload = match lingua::transform_request(body.clone(), provider.format(), Some(model))
-        {
+        let payload = match lingua::transform_request(body.clone(), spec.format, Some(model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
