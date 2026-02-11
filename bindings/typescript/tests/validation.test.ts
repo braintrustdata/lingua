@@ -11,8 +11,10 @@ import { describe, test, expect } from "vitest";
 import {
   validateChatCompletionsRequest,
   validateChatCompletionsResponse,
+  validateChatCompletionsStreamChunk,
   validateAnthropicRequest,
   validateAnthropicResponse,
+  transformStreamChunk,
 } from "../src";
 import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
 import type { ChatCompletion } from "openai/resources/chat/completions";
@@ -224,5 +226,80 @@ describe("Cross-provider validation", () => {
       expect(result.error).toBeDefined();
       expect(result.error.message).toContain("Deserialization failed");
     }
+  });
+});
+
+// Stream chunk test data
+// Note: finish_reason is required (non-nullable) in the generated OpenAPI types,
+// so only final chunks with a real finish_reason pass strict validation.
+const STREAM_CHUNK_FINAL = JSON.stringify({
+  id: "chatcmpl-abc123",
+  object: "chat.completion.chunk",
+  created: 1677652288,
+  model: "gpt-4",
+  choices: [
+    {
+      index: 0,
+      delta: {},
+      finish_reason: "stop",
+    },
+  ],
+});
+
+const STREAM_CHUNK_CONTENT = JSON.stringify({
+  id: "chatcmpl-abc123",
+  object: "chat.completion.chunk",
+  created: 1677652288,
+  model: "gpt-4",
+  choices: [
+    {
+      index: 0,
+      delta: { content: "Paris" },
+      finish_reason: null,
+    },
+  ],
+});
+
+describe("Chat Completions stream chunk validation", () => {
+  test("validates final chunk with finish_reason", () => {
+    const result = validateChatCompletionsStreamChunk(STREAM_CHUNK_FINAL);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toBeDefined();
+    }
+  });
+
+  test("rejects invalid JSON", () => {
+    const result = validateChatCompletionsStreamChunk("{bad json}");
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toBeDefined();
+    }
+  });
+
+  test("rejects non-streaming response", () => {
+    const result = validateChatCompletionsStreamChunk(OPENAI_RESPONSE);
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe("Stream chunk transformation", () => {
+  test("passthrough when source matches target format", () => {
+    const result = transformStreamChunk(STREAM_CHUNK_CONTENT, "openai");
+    expect(result).toHaveProperty("passThrough", true);
+    expect(result.data).toBeDefined();
+  });
+
+  test("transforms to different format", () => {
+    const result = transformStreamChunk(STREAM_CHUNK_CONTENT, "anthropic");
+    expect(result).toHaveProperty("transformed", true);
+    if ("sourceFormat" in result) {
+      expect(result.sourceFormat).toBe("openai");
+    }
+    expect(result.data).toBeDefined();
+  });
+
+  test("throws on invalid target format", () => {
+    expect(() => transformStreamChunk(STREAM_CHUNK_CONTENT, "not_a_format")).toThrow();
   });
 });

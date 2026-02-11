@@ -17,7 +17,7 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
 #[cfg(feature = "openai")]
-use crate::providers::openai::model_supports_max_tokens;
+use crate::providers::openai::model_needs_transforms;
 use crate::serde_json::Value;
 use crate::universal::{UniversalResponse, UniversalStreamChunk};
 use thiserror::Error;
@@ -503,17 +503,15 @@ fn detect_adapter(
 
 /// Check if a request needs forced translation even when source == target format.
 fn needs_forced_translation(payload: &Value, model: Option<&str>, target: ProviderFormat) -> bool {
-    if target != ProviderFormat::OpenAI {
+    if target != ProviderFormat::ChatCompletions {
         return false;
     }
 
     #[cfg(feature = "openai")]
     {
-        // If the model doesn't support max_tokens, we need to force translation
+        // Force translation if model needs any transforms (temperature stripping, max_tokens conversion, etc.)
         let request_model = payload.get("model").and_then(Value::as_str).or(model);
-        request_model
-            .map(|m| !model_supports_max_tokens(m))
-            .unwrap_or(false)
+        request_model.map(model_needs_transforms).unwrap_or(false)
     }
 
     #[cfg(not(feature = "openai"))]
@@ -589,7 +587,7 @@ mod tests {
         let input = to_bytes(&payload);
         let input_ptr = input.as_ptr();
 
-        let result = transform_request(input, ProviderFormat::OpenAI, None).unwrap();
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
 
         // Should be passthrough
         assert!(result.is_passthrough());
@@ -612,7 +610,10 @@ mod tests {
 
         // Should be transformed
         assert!(!result.is_passthrough());
-        assert_eq!(result.source_format(), Some(ProviderFormat::OpenAI));
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
 
         // Parse output and verify
         let output_bytes = result.into_bytes();
@@ -644,7 +645,7 @@ mod tests {
     fn test_transform_request_invalid_json() {
         let input = Bytes::from("not valid json");
 
-        let result = transform_request(input, ProviderFormat::OpenAI, None);
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None);
 
         assert!(result.is_err());
         assert!(matches!(
@@ -673,7 +674,10 @@ mod tests {
         let result = transform_response(input, ProviderFormat::Anthropic).unwrap();
 
         assert!(!result.is_passthrough());
-        assert_eq!(result.source_format(), Some(ProviderFormat::OpenAI));
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
 
         // Verify output is valid JSON
         let output_bytes = result.into_bytes();
@@ -697,7 +701,7 @@ mod tests {
         let input = to_bytes(&payload);
         let input_ptr = input.as_ptr();
 
-        let result = transform_response(input, ProviderFormat::OpenAI).unwrap();
+        let result = transform_response(input, ProviderFormat::ChatCompletions).unwrap();
 
         // Should be passthrough with same bytes
         assert!(result.is_passthrough());
@@ -718,7 +722,7 @@ mod tests {
         });
         let input = to_bytes(&payload);
 
-        let result = transform_request(input, ProviderFormat::OpenAI, None).unwrap();
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
 
         // Should NOT passthrough - reasoning models need max_completion_tokens
         assert!(
@@ -750,7 +754,7 @@ mod tests {
         });
         let input = to_bytes(&payload);
 
-        let result = transform_request(input, ProviderFormat::OpenAI, None).unwrap();
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
 
         // Should passthrough - gpt-4o is not a reasoning model
         assert!(

@@ -5,6 +5,7 @@ This enum represents the different LLM provider API formats that lingua can hand
 */
 
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 /// Represents the API format/protocol used by an LLM provider.
 ///
@@ -13,11 +14,13 @@ use serde::{Deserialize, Serialize};
 /// 1. Add a variant here
 /// 2. Update detection heuristics in `processing/detect.rs`
 /// 3. Add conversion logic in `providers/<name>/convert.rs` if needed
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default, TS)]
+#[ts(export)]
 #[serde(rename_all = "lowercase")]
 pub enum ProviderFormat {
     /// OpenAI Chat Completions API format (also used by OpenAI-compatible providers)
-    OpenAI,
+    #[serde(rename = "openai", alias = "chat-completions")]
+    ChatCompletions,
     /// Anthropic Messages API format
     Anthropic,
     /// Google AI / Gemini GenerateContent API format
@@ -44,7 +47,7 @@ impl ProviderFormat {
 impl std::fmt::Display for ProviderFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            ProviderFormat::OpenAI => "openai",
+            ProviderFormat::ChatCompletions => "openai",
             ProviderFormat::Anthropic => "anthropic",
             ProviderFormat::Google => "google",
             ProviderFormat::Mistral => "mistral",
@@ -61,7 +64,7 @@ impl std::str::FromStr for ProviderFormat {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "openai" => Ok(ProviderFormat::OpenAI),
+            "openai" | "chat-completions" => Ok(ProviderFormat::ChatCompletions),
             "anthropic" => Ok(ProviderFormat::Anthropic),
             "google" => Ok(ProviderFormat::Google),
             "mistral" => Ok(ProviderFormat::Mistral),
@@ -80,7 +83,11 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "openai".parse::<ProviderFormat>().unwrap(),
-            ProviderFormat::OpenAI
+            ProviderFormat::ChatCompletions
+        );
+        assert_eq!(
+            "chat-completions".parse::<ProviderFormat>().unwrap(),
+            ProviderFormat::ChatCompletions
         );
         assert_eq!(
             "ANTHROPIC".parse::<ProviderFormat>().unwrap(),

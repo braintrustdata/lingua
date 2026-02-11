@@ -1,140 +1,213 @@
 /*!
 OpenAI-specific capability detection used by the transformation pipeline.
 */
+use crate::serde_json::{Map, Value};
 
-use crate::providers::openai::generated::CreateChatCompletionRequestClass;
-
-/// Target provider that will receive a translated OpenAI payload.
+/// Transforms required for specific model families.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TargetProvider {
-    OpenAI,
-    Azure,
-    Vertex,
-    Fireworks,
-    Mistral,
-    Databricks,
-    Lepton,
-    Other,
+pub enum ModelTransform {
+    /// Strip temperature parameter (reasoning models don't support it)
+    StripTemperature,
+    /// Convert max_tokens to max_completion_tokens
+    ForceMaxCompletionTokens,
 }
 
-impl std::str::FromStr for TargetProvider {
-    type Err = std::convert::Infallible;
+use ModelTransform::*;
 
-    fn from_str(provider: &str) -> Result<Self, Self::Err> {
-        Ok(match provider {
-            "openai" => Self::OpenAI,
-            "azure" => Self::Azure,
-            "vertex" => Self::Vertex,
-            "fireworks" => Self::Fireworks,
-            "mistral" => Self::Mistral,
-            "databricks" => Self::Databricks,
-            "lepton" => Self::Lepton,
-            _ => Self::Other,
-        })
+/// Model prefixes and their required transforms.
+/// Order matters - more specific prefixes must come first.
+const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
+    ("o1", &[StripTemperature, ForceMaxCompletionTokens]),
+    ("o3", &[StripTemperature, ForceMaxCompletionTokens]),
+    ("o4", &[StripTemperature, ForceMaxCompletionTokens]),
+    ("gpt-5", &[StripTemperature, ForceMaxCompletionTokens]),
+];
+
+/// Get the transforms required for a model.
+pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
+    let lower = model.to_ascii_lowercase();
+    for (prefix, transforms) in MODEL_TRANSFORM_RULES {
+        if lower.starts_with(prefix) {
+            return transforms;
+        }
+    }
+    &[]
+}
+
+/// Check if a model requires any transforms.
+pub fn model_needs_transforms(model: &str) -> bool {
+    !get_model_transforms(model).is_empty()
+}
+
+/// Apply all transforms for a model to a request object.
+pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
+    for transform in get_model_transforms(model) {
+        match transform {
+            StripTemperature => {
+                obj.remove("temperature");
+            }
+            ForceMaxCompletionTokens => {
+                // (Responses API) max_output_tokens is valid.
+                if obj.contains_key("max_output_tokens") {
+                    continue;
+                }
+
+                // (Chat Completions API) max_tokens is deprecated - convert to max_completion_tokens.
+                if let Some(max_tokens) = obj.remove("max_tokens") {
+                    obj.entry("max_completion_tokens").or_insert(max_tokens);
+                }
+            }
+        }
     }
 }
 
-/// Capability view derived from a request/model combination.
-#[derive(Debug, Clone)]
-pub struct OpenAICapabilities {
-    pub uses_reasoning_mode: bool,
-    pub is_legacy_o1_model: bool,
-    pub supports_native_structured_output: bool,
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::serde_json::json;
 
-    // Provider-specific limitations
-    pub supports_stream_options: bool,
-    pub supports_parallel_tools: bool,
-    pub supports_seed_field: bool,
-    pub requires_model_normalization: bool,
-}
-
-impl OpenAICapabilities {
-    pub fn detect(
-        request: &CreateChatCompletionRequestClass,
-        target: TargetProvider,
-    ) -> OpenAICapabilities {
-        let model = request.model.to_ascii_lowercase();
-        let uses_reasoning_mode =
-            request.reasoning_effort.is_some() || is_reasoning_model_name(&model);
-
-        // Provider-specific capability detection
-        let (
-            supports_stream_options,
-            supports_parallel_tools,
-            supports_seed_field,
-            requires_model_normalization,
-        ) = match target {
-            TargetProvider::Mistral => (false, false, true, false),
-            TargetProvider::Fireworks => (false, true, true, false),
-            TargetProvider::Databricks => (false, false, true, false),
-            TargetProvider::Azure => (true, false, true, false),
-            TargetProvider::Vertex => (true, true, true, true),
-            TargetProvider::OpenAI | TargetProvider::Lepton | TargetProvider::Other => {
-                (true, true, true, false)
-            }
-        };
-
-        OpenAICapabilities {
-            uses_reasoning_mode,
-            is_legacy_o1_model: is_legacy_o1_model(&model),
-            supports_native_structured_output: supports_native_structured_output(&model, target),
-            supports_stream_options,
-            supports_parallel_tools,
-            supports_seed_field,
-            requires_model_normalization,
+    #[test]
+    fn test_get_model_transforms() {
+        let cases = [
+            ("o1", &[StripTemperature, ForceMaxCompletionTokens][..]),
+            ("o1-mini", &[StripTemperature, ForceMaxCompletionTokens][..]),
+            ("o3", &[StripTemperature, ForceMaxCompletionTokens][..]),
+            (
+                "o4-preview",
+                &[StripTemperature, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "gpt-5-mini",
+                &[StripTemperature, ForceMaxCompletionTokens][..],
+            ),
+            ("gpt-4", &[][..]),
+            ("gpt-4o", &[][..]),
+            ("claude-3", &[][..]),
+        ];
+        for (model, expected) in cases {
+            assert_eq!(get_model_transforms(model), expected, "model: {}", model);
         }
     }
 
-    pub fn requires_reasoning_transforms(&self) -> bool {
-        self.uses_reasoning_mode
+    #[test]
+    fn test_model_needs_transforms() {
+        let needs = ["o1", "o3", "gpt-5"];
+        let no_needs = ["gpt-4", "gpt-4o", "claude-3"];
+        for model in needs {
+            assert!(model_needs_transforms(model), "should need: {}", model);
+        }
+        for model in no_needs {
+            assert!(!model_needs_transforms(model), "should not need: {}", model);
+        }
     }
 
-    /// Check if seed field should be removed for Azure with API version
-    pub fn should_remove_seed_for_azure(
-        &self,
-        target: TargetProvider,
-        has_api_version: bool,
-    ) -> bool {
-        matches!(target, TargetProvider::Azure) && has_api_version
+    #[test]
+    fn test_strip_temperature() {
+        let reasoning_models = ["o1", "o1-mini", "o3", "gpt-5-mini"];
+        let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
+
+        // Reasoning models: temperature should be stripped
+        for model in reasoning_models {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "temperature": 0.7
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("temperature"),
+                "{} should strip temperature",
+                model
+            );
+        }
+
+        // Non-reasoning models: temperature should be preserved
+        for model in non_reasoning_models {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "temperature": 0.7
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                obj.contains_key("temperature"),
+                "{} should preserve temperature",
+                model
+            );
+        }
     }
-}
 
-/// Model prefixes that support native structured output.
-const STRUCTURED_OUTPUT_PREFIXES: &[&str] = &["gpt", "o1", "o3"];
+    #[test]
+    fn test_force_max_completion_tokens() {
+        // Reasoning models: max_tokens → max_completion_tokens
+        for model in ["o1", "gpt-5"] {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "max_tokens": 100
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                obj.contains_key("max_completion_tokens"),
+                "{} should add max_completion_tokens",
+                model
+            );
+            assert!(
+                !obj.contains_key("max_tokens"),
+                "{} should remove max_tokens",
+                model
+            );
+        }
 
-/// Model prefixes that indicate reasoning models.
-const REASONING_MODEL_PREFIXES: &[&str] = &["o1", "o2", "o3", "o4", "gpt-5"];
+        // Non-reasoning models: max_tokens stays as-is
+        for model in ["gpt-4", "gpt-4o"] {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "max_tokens": 100
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("max_completion_tokens"),
+                "{} should not add max_completion_tokens",
+                model
+            );
+            assert!(
+                obj.contains_key("max_tokens"),
+                "{} should preserve max_tokens",
+                model
+            );
+        }
 
-/// Legacy o1 models that need special handling.
-const LEGACY_O1_MODELS: &[&str] = &["o1-preview", "o1-mini", "o1-preview-2024-09-12"];
-
-/// Model prefixes that do NOT support the `max_tokens` parameter.
-/// These models require `max_completion_tokens` instead.
-const MODELS_WITHOUT_MAX_TOKENS_SUPPORT: &[&str] = &["o1", "o3", "o4", "gpt-5"];
-
-fn supports_native_structured_output(model: &str, target: TargetProvider) -> bool {
-    STRUCTURED_OUTPUT_PREFIXES
-        .iter()
-        .any(|prefix| model.starts_with(prefix))
-        || matches!(target, TargetProvider::Fireworks)
-}
-
-fn is_reasoning_model_name(model: &str) -> bool {
-    let lower = model.to_ascii_lowercase();
-    REASONING_MODEL_PREFIXES
-        .iter()
-        .any(|prefix| lower.starts_with(prefix))
-}
-
-fn is_legacy_o1_model(model: &str) -> bool {
-    LEGACY_O1_MODELS.contains(&model)
-}
-
-/// Check if a model supports the `max_tokens` parameter.
-/// Returns false for models that require `max_completion_tokens` instead.
-pub fn model_supports_max_tokens(model: &str) -> bool {
-    let lower = model.to_ascii_lowercase();
-    !MODELS_WITHOUT_MAX_TOKENS_SUPPORT
-        .iter()
-        .any(|prefix| lower.starts_with(prefix))
+        // max_output_tokens is valid for Responses API - not converted
+        let mut obj = json!({
+            "model": "o3",
+            "input": [{"role": "user", "content": "Hello"}],
+            "max_output_tokens": 100
+        })
+        .as_object()
+        .unwrap()
+        .clone();
+        apply_model_transforms("o3", &mut obj);
+        assert!(
+            obj.contains_key("max_output_tokens"),
+            "max_output_tokens should be preserved"
+        );
+        assert!(
+            !obj.contains_key("max_completion_tokens"),
+            "should not convert max_output_tokens"
+        );
+    }
 }
