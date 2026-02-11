@@ -395,4 +395,73 @@ export const advancedCases: TestCaseCollection = {
       },
     },
   },
+
+  systemMessageArrayContent: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "system",
+          content: [
+            {
+              type: "text",
+              text: "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: "What errors occurred recently?",
+        },
+      ],
+      max_completion_tokens: 300,
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      instructions:
+        "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      input: [
+        {
+          role: "user",
+          content: "What errors occurred recently?",
+        },
+      ],
+      max_output_tokens: 300,
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 300,
+      system: [
+        {
+          type: "text",
+          text: "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: "What errors occurred recently?",
+        },
+      ],
+    },
+    google: {
+      systemInstruction: {
+        parts: [
+          {
+            text: "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+          },
+        ],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What errors occurred recently?" }],
+        },
+      ],
+      config: {
+        maxOutputTokens: 300,
+      },
+    },
+    bedrock: null,
+  },
 };

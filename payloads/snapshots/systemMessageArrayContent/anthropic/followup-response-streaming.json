@@ -1,0 +1,798 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_01FxniCizr6mz5qxGwZCeXM4",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 300,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "Based on the error"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " analysis"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ", here are"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " recommended"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " next steps:\n\n##"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Immediate Actions:"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n1. **Execute"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the query** I"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " provided to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " see"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the actual"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " recent"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " errors\n2. **"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "Assess"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " severity"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "** - Look"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " CRITICAL/"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "FATAL errors first\n3. **"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "Check for"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " patterns** - Are"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " multiple"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " errors related"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " to the"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " same root"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " cause?"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n## Once"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you have"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the error"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " data"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " priorit"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "ize by"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ":"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n### "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "🔴"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " **High"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Priority**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Errors"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " affecting"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " user"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "facing features"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- Database"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " connectivity issues\n- Authentication"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "/security"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " errors"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- Payment"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " processing failures"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n### 🟡 **Medium"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Priority**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " \n- Performance"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " degrad"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "ation warnings"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- Third"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "-party service time"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "outs\n- Non"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "-critical feature"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " failures\n\n### 🟢 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "**Low Priority**\n- Logging"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "/"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "monitoring issues"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- Deprecated"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " feature"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " warnings"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n## Suggested"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " follow"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "-up queries"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ":\n\n```"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "sql\n-- Get"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " error"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " frequency"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " by type"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\nSELECT "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n    error_code"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ",\n    COUNT(*) as error"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "_count,\n    MIN"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "(timestamp) as first_seen"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ",\n    MAX(timestamp) as"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " last_seen\nFROM project_logs"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\nWHERE level ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " 'ERROR'"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " \n    AND timestamp >= DATETIME"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "_SUB(CURRENT_"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "TIMESTAMP(), INTERVAL 7"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "DAYS)\nGROUP BY error_code"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\nORDER BY error_count DESC;"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n```\n\nWould"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you like me to run"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "max_tokens",
+      "stop_sequence": null
+    },
+    "usage": {
+      "input_tokens": 300,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 300
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

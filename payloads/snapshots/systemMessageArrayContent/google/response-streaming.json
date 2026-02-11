@@ -1,0 +1,47 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "To find errors that occurred recently, I'll query"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "Q0qFaZyzA76o_uMP_tm1oA8",
+    "usageMetadata": {
+      "promptTokenCount": 29,
+      "candidatesTokenCount": 11,
+      "totalTokenCount": 325,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 29
+        }
+      ],
+      "thoughtsTokenCount": 285
+    },
+    "sdkHttpResponse": {
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "content-disposition": "attachment",
+        "content-type": "text/event-stream",
+        "date": "Fri, 06 Feb 2026 01:56:20 GMT",
+        "server": "scaffolding on HTTPServer2",
+        "server-timing": "gfet4t7; dur=1906",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      }
+    }
+  }
+]

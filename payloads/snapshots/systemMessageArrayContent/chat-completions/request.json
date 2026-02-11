@@ -1,0 +1,19 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "text",
+          "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What errors occurred recently?"
+    }
+  ],
+  "max_completion_tokens": 300
+}

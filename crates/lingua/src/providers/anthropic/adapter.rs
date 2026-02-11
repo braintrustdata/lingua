@@ -17,7 +17,7 @@ use crate::providers::anthropic::params::AnthropicParams;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{Message, UserContent};
+use crate::universal::message::{Message, UserContent, UserContentPart};
 use crate::universal::tools::{tools_to_anthropic_value, UniversalTool};
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
@@ -147,10 +147,20 @@ impl ProviderAdapter for AnthropicAdapter {
         // Add system message if present
         if !system_contents.is_empty() {
             let system_text: String = system_contents
-                .iter()
-                .filter_map(|c| match c {
-                    UserContent::String(s) => Some(s.as_str()),
-                    _ => None,
+                .into_iter()
+                .map(|c| match c {
+                    UserContent::String(s) => s,
+                    UserContent::Array(parts) => parts
+                        .into_iter()
+                        .filter_map(|p| {
+                            if let UserContentPart::Text(t) = p {
+                                Some(t.text)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n"),
                 })
                 .collect::<Vec<_>>()
                 .join("\n\n");

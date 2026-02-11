@@ -1,0 +1,65 @@
+{
+  "id": "resp_00702b63501d070d0069854a42de80819cb08bb924e1552dd0",
+  "object": "response",
+  "created_at": 1770342978,
+  "status": "incomplete",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": null,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": {
+    "reason": "max_output_tokens"
+  },
+  "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_00702b63501d070d0069854a43203c819caf8f2c929dc9f8b7",
+      "type": "reasoning",
+      "summary": []
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 35,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 256,
+    "output_tokens_details": {
+      "reasoning_tokens": 256
+    },
+    "total_tokens": 291
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}
