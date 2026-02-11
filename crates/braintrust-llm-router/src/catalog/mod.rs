@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use std::sync::{Arc, OnceLock};
+use std::sync::Arc;
 
 use crate::error::Result;
 
@@ -125,17 +125,8 @@ pub fn load_catalog_from_disk<P: AsRef<Path>>(path: P) -> Result<Arc<ModelCatalo
     Ok(Arc::new(ModelCatalog::from_file(path)?))
 }
 
-/// The bundled model catalog JSON string (model_list.json).
-pub const BUNDLED_CATALOG_JSON: &str = include_str!("model_list.json");
-
-static DEFAULT_CATALOG: OnceLock<Arc<ModelCatalog>> = OnceLock::new();
-
-pub fn default_catalog() -> Arc<ModelCatalog> {
-    DEFAULT_CATALOG
-        .get_or_init(|| {
-            let catalog = ModelCatalog::from_json_str(include_str!("model_list.json"))
-                .expect("embedded model_list.json must be valid");
-            Arc::new(catalog)
-        })
-        .clone()
-}
+// The canonical model catalog lives in the braintrust-proxy repository:
+// https://github.com/braintrustdata/braintrust-proxy/blob/main/packages/proxy/schema/model_list.json
+//
+// Consumers must load it explicitly via ModelCatalog::from_file() or
+// ModelCatalog::from_json_str(). There is no bundled/default catalog.

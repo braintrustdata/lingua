@@ -17,9 +17,7 @@ pub use auth::{
     google::{GoogleServiceAccountConfig, GoogleTokenManager, ServiceAccountKey},
     AuthConfig, AuthType,
 };
-pub use catalog::{
-    default_catalog, ModelCatalog, ModelFlavor, ModelResolver, ModelSpec, BUNDLED_CATALOG_JSON,
-};
+pub use catalog::{ModelCatalog, ModelFlavor, ModelResolver, ModelSpec};
 pub use error::{Error, Result, UpstreamHttpError};
 pub use lingua::ProviderFormat;
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};

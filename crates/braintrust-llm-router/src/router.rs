@@ -9,9 +9,7 @@ use tracing::Instrument;
 use bytes::Bytes;
 
 use crate::auth::AuthConfig;
-use crate::catalog::{
-    default_catalog, load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec,
-};
+use crate::catalog::{load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec};
 use crate::error::{Error, Result};
 use crate::providers::{ClientHeaders, Provider};
 use crate::retry::{RetryPolicy, RetryStrategy};
@@ -322,7 +320,7 @@ impl Default for RouterBuilder {
 impl RouterBuilder {
     pub fn new() -> Self {
         Self {
-            catalog: Some(default_catalog()),
+            catalog: None,
             providers: HashMap::new(),
             formats: HashMap::new(),
             auth_configs: HashMap::new(),

@@ -251,6 +251,7 @@ async fn router_reports_missing_provider() {
 #[tokio::test]
 async fn router_propagates_validation_errors() {
     let router = RouterBuilder::new()
+        .with_catalog(Arc::new(ModelCatalog::empty()))
         .add_provider("stub", StubProvider)
         .add_auth(
             "stub",
