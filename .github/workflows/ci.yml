@@ -119,6 +119,12 @@ jobs:
     - name: Run TypeScript tests
       run: make test-typescript
 
+    - name: Install payloads dependencies
+      run: cd payloads && pnpm install
+
+    - name: Run payloads tests
+      run: cd payloads && pnpm test
+
   test-python:
     runs-on: ubuntu-latest
 
