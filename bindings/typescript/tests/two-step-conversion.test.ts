@@ -1,74 +1,75 @@
-/**
- * Two-step conversion test: Responses API format -> Lingua Messages -> Thread
- *
- * This test demonstrates the full conversion pipeline:
- * 1. Import messages from spans (Responses API format -> Lingua Messages)
- * 2. Thread preprocessor extracts and filters messages
- */
-
 import { describe, test, expect } from "vitest";
+import * as fs from "fs";
+import * as path from "path";
 import { importMessagesFromSpans } from "../src/index";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+type ImportAssertionCase = {
+  expectedMessageCount?: number;
+  expectedRolesInOrder?: string[];
+  mustContainText?: string[];
+};
 
-describe("Two-step conversion: Responses API to Thread", () => {
-  test("should extract messages from Responses API output format", () => {
-    // Your actual trace data - focusing on the output field
-    const outputFromTrace = [
-      {
-        id: "rs_0c7105cd8354f2660069824fe9039081938557c4fcb69a4d1a",
-        summary: [],
-        type: "reasoning",
-      },
-      {
-        content: [
-          {
-            annotations: [],
-            logprobs: [],
-            text: "I consulted the magic 8-ball for you (I will not reveal its exact words). Its guidance leans positively — so take this as a hopeful, mystical nudge toward yes.",
-            type: "output_text",
-          },
-        ],
-        id: "msg_0c7105cd8354f2660069824fef675481938a1fde9d9e5917b9",
-        role: "assistant",
-        status: "completed",
-        type: "message",
-      },
-    ];
+function getCaseNameFromFixturePath(filePath: string): string {
+  return path.basename(filePath, ".spans.json");
+}
 
-    // Step 1: Try importing from just the output field
-    console.log("\n=== Testing Output Field Conversion ===");
-    const messagesFromOutput = importMessagesFromSpans([
-      { output: outputFromTrace },
-    ]);
-    console.log(
-      "Messages from output:",
-      JSON.stringify(messagesFromOutput, null, 2)
+function loadJsonFile<T>(filePath: string): T {
+  return JSON.parse(fs.readFileSync(filePath, "utf-8")) as T;
+}
+
+function discoverImportCaseFixtures(): string[] {
+  const fixturesDir = path.join(__dirname, "../../../payloads/import-cases");
+  if (!fs.existsSync(fixturesDir)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(fixturesDir)
+    .filter((name) => name.endsWith(".spans.json"))
+    .map((name) => path.join(fixturesDir, name))
+    .sort();
+}
+
+describe("Import from spans fixtures", () => {
+  const caseFixturePaths = discoverImportCaseFixtures();
+
+  if (caseFixturePaths.length === 0) {
+    test("No import fixtures found", () => {
+      expect(caseFixturePaths.length).toBeGreaterThan(0);
+    });
+    return;
+  }
+
+  for (const spansFixturePath of caseFixturePaths) {
+    const caseName = getCaseNameFromFixturePath(spansFixturePath);
+    const assertionsPath = spansFixturePath.replace(
+      ".spans.json",
+      ".assertions.json",
     );
 
-    // Check if assistant message was extracted
-    const assistantMessages = messagesFromOutput.filter(
-      (m: any) => m.role === "assistant"
-    );
-    console.log(`Found ${assistantMessages.length} assistant message(s)`);
+    test(caseName, () => {
+      const spans = loadJsonFile<unknown[]>(spansFixturePath);
+      const assertions = loadJsonFile<ImportAssertionCase>(assertionsPath);
 
-    if (assistantMessages.length > 0) {
-      // Find the message with actual text content (not reasoning)
-      const messageWithText = assistantMessages.find((m: any) => {
-        const content = JSON.stringify(m.content);
-        return content.includes("magic 8-ball");
-      });
+      const messages = importMessagesFromSpans(spans);
+      const serializedMessages = JSON.stringify(messages);
 
-      if (messageWithText) {
-        console.log("✅ Found assistant message with magic 8-ball content");
-        expect(messageWithText).toBeDefined();
-      } else {
-        console.log("❌ No assistant message contains 'magic 8-ball'");
-        expect(messageWithText).toBeDefined();
+      if (assertions.expectedMessageCount !== undefined) {
+        expect(messages).toHaveLength(assertions.expectedMessageCount);
       }
-    } else {
-      console.log("❌ No assistant messages found from output field!");
-      expect(assistantMessages.length).toBeGreaterThan(0);
-    }
-  });
+
+      if (assertions.expectedRolesInOrder) {
+        const roles = messages.map((message) =>
+          message && typeof message === "object" && "role" in message
+            ? String(message.role)
+            : "",
+        );
+        expect(roles).toEqual(assertions.expectedRolesInOrder);
+      }
+
+      for (const requiredText of assertions.mustContainText ?? []) {
+        expect(serializedMessages).toContain(requiredText);
+      }
+    });
+  }
 });

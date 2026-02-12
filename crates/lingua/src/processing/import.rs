@@ -400,6 +400,10 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 mod tests {
     use super::*;
 
+    fn spans_from_fixture(json: &str) -> Vec<Span> {
+        serde_json::from_str(json).expect("fixture should deserialize into Vec<Span>")
+    }
+
     #[test]
     fn test_import_empty_spans() {
         let spans = vec![];
@@ -577,5 +581,20 @@ mod tests {
 
         let messages = import_messages_from_spans(vec![span]);
         assert_eq!(messages.len(), 5);
+    }
+
+    #[test]
+    fn test_import_from_responses_output_field_fixture() {
+        let spans = spans_from_fixture(include_str!(
+            "../../../../payloads/import-cases/responses-output-field.spans.json"
+        ));
+        let messages = import_messages_from_spans(spans);
+
+        assert_eq!(messages.len(), 2);
+        assert!(matches!(messages.first(), Some(Message::User { .. })));
+        assert!(matches!(messages.get(1), Some(Message::Assistant { .. })));
+
+        let serialized = serde_json::to_string(&messages).expect("messages should serialize");
+        assert!(serialized.contains("magic 8-ball"));
     }
 }
