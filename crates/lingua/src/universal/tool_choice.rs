@@ -31,7 +31,8 @@ use std::convert::TryFrom;
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::transform::TransformError;
-use crate::serde_json::{json, Map, Value};
+use crate::providers::anthropic::generated::ToolChoice;
+use crate::serde_json::{self, json, Value};
 use crate::universal::request::{ToolChoiceConfig, ToolChoiceMode};
 
 // =============================================================================
@@ -45,7 +46,9 @@ impl<'a> TryFrom<(ProviderFormat, &'a Value)> for ToolChoiceConfig {
         match provider {
             ProviderFormat::ChatCompletions => from_openai_chat(value),
             ProviderFormat::Responses => from_openai_responses(value),
-            ProviderFormat::Anthropic => from_anthropic(value),
+            ProviderFormat::Anthropic => serde_json::from_value::<ToolChoice>(value.clone())
+                .map(|tc| ToolChoiceConfig::from(&tc))
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string())),
             _ => Ok(Self::default()),
         }
     }
@@ -74,7 +77,15 @@ impl ToolChoiceConfig {
         match provider {
             ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)),
             ProviderFormat::Responses => Ok(to_openai_responses(self)),
-            ProviderFormat::Anthropic => Ok(to_anthropic(self, parallel_tool_calls)),
+            ProviderFormat::Anthropic => {
+                let mut config = self.clone();
+                if parallel_tool_calls == Some(false) {
+                    config.disable_parallel = Some(true);
+                }
+                Ok(ToolChoice::try_from(&config)
+                    .ok()
+                    .and_then(|tc| serde_json::to_value(&tc).ok()))
+            }
             _ => Ok(None),
         }
     }
@@ -172,41 +183,6 @@ fn from_openai_responses(value: &Value) -> Result<ToolChoiceConfig, TransformErr
     }
 }
 
-/// Parse Anthropic `tool_choice` into ToolChoiceConfig.
-///
-/// Handles:
-/// - `{ type: "auto" }`
-/// - `{ type: "any" }`
-/// - `{ type: "none" }`
-/// - `{ type: "tool", name: "..." }`
-/// - `{ ..., disable_parallel_tool_use: true }`
-fn from_anthropic(value: &Value) -> Result<ToolChoiceConfig, TransformError> {
-    let obj = match value.as_object() {
-        Some(o) => o,
-        None => return Ok(ToolChoiceConfig::default()),
-    };
-
-    let mode = match obj.get("type").and_then(Value::as_str) {
-        Some(s) => Some(
-            s.parse()
-                .map_err(|e| TransformError::ToUniversalFailed(format!("{}", e)))?,
-        ),
-        None => None,
-    };
-
-    let tool_name = obj.get("name").and_then(Value::as_str).map(String::from);
-
-    let disable_parallel = obj
-        .get("disable_parallel_tool_use")
-        .and_then(Value::as_bool);
-
-    Ok(ToolChoiceConfig {
-        mode,
-        tool_name,
-        disable_parallel,
-    })
-}
-
 // =============================================================================
 // Private Helper Functions - TO Provider Formats
 // =============================================================================
@@ -255,40 +231,6 @@ fn to_openai_responses(config: &ToolChoiceConfig) -> Option<Value> {
             }))
         }
     }
-}
-
-/// Convert ToolChoiceConfig to Anthropic `tool_choice` value.
-///
-/// Output format:
-/// - `{ type: "auto" }`, `{ type: "any" }`, `{ type: "none" }`
-/// - `{ type: "tool", name: "..." }`
-/// - Includes `disable_parallel_tool_use` if set
-fn to_anthropic(config: &ToolChoiceConfig, parallel_tool_calls: Option<bool>) -> Option<Value> {
-    // If parallel_tool_calls is explicitly false, we MUST emit tool_choice with disable_parallel_tool_use
-    let needs_disable_parallel =
-        parallel_tool_calls == Some(false) || config.disable_parallel == Some(true);
-
-    // Get mode, defaulting to Auto if we need to disable parallel (so we can emit the field)
-    let mode = match config.mode {
-        Some(m) => m,
-        None if needs_disable_parallel => ToolChoiceMode::Auto,
-        None => return None,
-    };
-
-    let mut obj = Map::new();
-    obj.insert("type".into(), Value::String(mode.as_anthropic_str().into()));
-
-    if mode == ToolChoiceMode::Tool {
-        if let Some(ref name) = config.tool_name {
-            obj.insert("name".into(), Value::String(name.clone()));
-        }
-    }
-
-    if needs_disable_parallel {
-        obj.insert("disable_parallel_tool_use".into(), Value::Bool(true));
-    }
-
-    Some(Value::Object(obj))
 }
 
 #[cfg(test)]

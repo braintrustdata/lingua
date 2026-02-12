@@ -28,7 +28,8 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use crate::error::ConvertError;
-use crate::serde_json::{json, Map, Value};
+use crate::providers::anthropic::generated::Tool;
+use crate::serde_json::{self, json, Map, Value};
 
 // =============================================================================
 // Universal Tool Types
@@ -151,44 +152,6 @@ impl UniversalTool {
 // =============================================================================
 
 impl UniversalTool {
-    /// Parse a tool from Anthropic format (JSON Value).
-    ///
-    /// Handles both custom tools and built-in tools (bash, text_editor, web_search).
-    pub fn from_anthropic_value(value: &Value) -> Option<Self> {
-        // Check for built-in tools first (have "type" field)
-        if let Some(tool_type) = value.get("type").and_then(Value::as_str) {
-            let name = value
-                .get("name")
-                .and_then(Value::as_str)
-                .unwrap_or(tool_type)
-                .to_string();
-
-            // Determine builtin type from the type field
-            if tool_type.starts_with("bash_")
-                || tool_type.starts_with("text_editor_")
-                || tool_type.starts_with("web_search_")
-            {
-                return Some(Self::builtin(
-                    name,
-                    "anthropic",
-                    tool_type,
-                    Some(value.clone()),
-                ));
-            }
-        }
-
-        // Custom tool format: {"name", "description", "input_schema", "strict"}
-        let name = value.get("name").and_then(Value::as_str)?;
-        let description = value
-            .get("description")
-            .and_then(Value::as_str)
-            .map(String::from);
-        let parameters = value.get("input_schema").cloned();
-        let strict = value.get("strict").and_then(Value::as_bool);
-
-        Some(Self::function(name, description, parameters, strict))
-    }
-
     /// Parse a tool from OpenAI Chat Completions format (JSON Value).
     ///
     /// Format: `{"type": "function", "function": {"name", "description", "parameters"}}`
@@ -260,13 +223,19 @@ impl UniversalTool {
                 ToolsFormat::OpenAIChat => Self::from_openai_chat_value(tool),
                 ToolsFormat::OpenAIResponses => Self::from_responses_value(tool),
                 ToolsFormat::AnthropicCustom | ToolsFormat::AnthropicBuiltin => {
-                    Self::from_anthropic_value(tool)
+                    serde_json::from_value::<Tool>(tool.clone())
+                        .ok()
+                        .map(|t| UniversalTool::from(&t))
                 }
                 ToolsFormat::Unknown => {
                     // Try each format in order
                     Self::from_openai_chat_value(tool)
                         .or_else(|| Self::from_responses_value(tool))
-                        .or_else(|| Self::from_anthropic_value(tool))
+                        .or_else(|| {
+                            serde_json::from_value::<Tool>(tool.clone())
+                                .ok()
+                                .map(|t| UniversalTool::from(&t))
+                        })
                 }
             })
             .collect()
@@ -278,52 +247,6 @@ impl UniversalTool {
 // =============================================================================
 
 impl UniversalTool {
-    /// Convert to Anthropic format (JSON Value).
-    ///
-    /// Returns an error if the tool is a builtin from a different provider.
-    pub fn to_anthropic_value(&self) -> Result<Value, ConvertError> {
-        match &self.tool_type {
-            UniversalToolType::Function => {
-                let mut obj = Map::new();
-                obj.insert("name".into(), Value::String(self.name.clone()));
-
-                if let Some(desc) = &self.description {
-                    obj.insert("description".into(), Value::String(desc.clone()));
-                }
-
-                obj.insert(
-                    "input_schema".into(),
-                    self.parameters.clone().unwrap_or_else(|| json!({})),
-                );
-
-                if let Some(strict) = self.strict {
-                    obj.insert("strict".into(), Value::Bool(strict));
-                }
-
-                Ok(Value::Object(obj))
-            }
-            UniversalToolType::Builtin {
-                provider,
-                builtin_type,
-                config,
-            } => {
-                if provider != "anthropic" {
-                    return Err(ConvertError::UnsupportedToolType {
-                        tool_name: self.name.clone(),
-                        tool_type: builtin_type.clone(),
-                        target_provider: "Anthropic".to_string(),
-                    });
-                }
-                // Return the original config for Anthropic builtins
-                config
-                    .clone()
-                    .ok_or_else(|| ConvertError::MissingRequiredField {
-                        field: format!("config for Anthropic builtin tool '{}'", self.name),
-                    })
-            }
-        }
-    }
-
     /// Convert to OpenAI Chat Completions format (JSON Value).
     ///
     /// Returns an error if the tool is a builtin (Chat Completions doesn't support builtins).
@@ -412,20 +335,6 @@ impl UniversalTool {
 // =============================================================================
 // Batch Conversion Utilities
 // =============================================================================
-
-/// Convert a slice of UniversalTools to Anthropic format Value array.
-///
-/// Returns an error if any tool cannot be converted (e.g., non-Anthropic builtins).
-pub fn tools_to_anthropic_value(tools: &[UniversalTool]) -> Result<Option<Value>, ConvertError> {
-    if tools.is_empty() {
-        return Ok(None);
-    }
-    let converted: Vec<Value> = tools
-        .iter()
-        .map(|t| t.to_anthropic_value())
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(Some(Value::Array(converted)))
-}
 
 /// Convert a slice of UniversalTools to OpenAI Chat format Value array.
 ///
@@ -576,7 +485,8 @@ mod tests {
             "input_schema": {"type": "object", "properties": {"location": {"type": "string"}}}
         });
 
-        let tool = UniversalTool::from_anthropic_value(&anthropic).unwrap();
+        let typed: Tool = serde_json::from_value(anthropic).unwrap();
+        let tool = UniversalTool::from(&typed);
 
         assert_eq!(tool.name, "get_weather");
         assert_eq!(tool.description, Some("Get weather info".to_string()));
@@ -591,7 +501,8 @@ mod tests {
             "name": "bash"
         });
 
-        let tool = UniversalTool::from_anthropic_value(&anthropic).unwrap();
+        let typed: Tool = serde_json::from_value(anthropic).unwrap();
+        let tool = UniversalTool::from(&typed);
 
         assert_eq!(tool.name, "bash");
         assert!(tool.is_builtin());
@@ -660,7 +571,8 @@ mod tests {
             None,
         );
 
-        let value = tool.to_anthropic_value().unwrap();
+        let typed = Tool::try_from(&tool).unwrap();
+        let value = serde_json::to_value(&typed).unwrap();
 
         assert_eq!(value["name"], "get_weather");
         assert_eq!(value["description"], "Get weather");
@@ -677,7 +589,8 @@ mod tests {
         let tool =
             UniversalTool::builtin("bash", "anthropic", "bash_20250124", Some(config.clone()));
 
-        let value = tool.to_anthropic_value().unwrap();
+        let typed = Tool::try_from(&tool).unwrap();
+        let value = serde_json::to_value(&typed).unwrap();
         assert_eq!(value, config);
     }
 
@@ -690,7 +603,7 @@ mod tests {
             Some(json!({})),
         );
 
-        let result = tool.to_anthropic_value();
+        let result = Tool::try_from(&tool);
         assert!(result.is_err());
     }
 
@@ -773,12 +686,13 @@ mod tests {
             "input_schema": {"type": "object", "properties": {"location": {"type": "string"}}}
         });
 
-        let tool = UniversalTool::from_anthropic_value(&original).unwrap();
-        let back = tool.to_anthropic_value().unwrap();
+        let typed: Tool = serde_json::from_value(original.clone()).unwrap();
+        let tool = UniversalTool::from(&typed);
+        let typed_back = Tool::try_from(&tool).unwrap();
+        let back = serde_json::to_value(&typed_back).unwrap();
 
         assert_eq!(back["name"], original["name"]);
         assert_eq!(back["description"], original["description"]);
-        // Note: input_schema may have empty object default if original was missing
     }
 
     #[test]
@@ -811,7 +725,8 @@ mod tests {
             "input_schema": {"type": "object"}
         });
 
-        let tool = UniversalTool::from_anthropic_value(&anthropic).unwrap();
+        let typed: Tool = serde_json::from_value(anthropic).unwrap();
+        let tool = UniversalTool::from(&typed);
         let openai = tool.to_openai_chat_value().unwrap();
 
         assert_eq!(openai["type"], "function");
@@ -831,7 +746,8 @@ mod tests {
         });
 
         let tool = UniversalTool::from_openai_chat_value(&openai).unwrap();
-        let anthropic = tool.to_anthropic_value().unwrap();
+        let typed = Tool::try_from(&tool).unwrap();
+        let anthropic = serde_json::to_value(&typed).unwrap();
 
         assert_eq!(anthropic["name"], "get_weather");
         assert_eq!(anthropic["description"], "Get weather");
@@ -845,8 +761,9 @@ mod tests {
             UniversalTool::function("tool2", Some("desc2".to_string()), None, None),
         ];
 
-        let result = tools_to_anthropic_value(&tools).unwrap();
-        let arr = result.unwrap().as_array().cloned().unwrap();
+        let anthropic_tools: Vec<Tool> = tools.iter().map(|t| Tool::try_from(t).unwrap()).collect();
+        let value = serde_json::to_value(&anthropic_tools).unwrap();
+        let arr = value.as_array().cloned().unwrap();
 
         assert_eq!(arr.len(), 2);
         assert_eq!(arr[0]["name"], "tool1");
@@ -865,7 +782,7 @@ mod tests {
             ),
         ];
 
-        let result = tools_to_anthropic_value(&tools);
+        let result: Result<Vec<Tool>, _> = tools.iter().map(Tool::try_from).collect();
         assert!(result.is_err());
     }
 

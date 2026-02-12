@@ -88,7 +88,7 @@ impl std::str::FromStr for FinishReason {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s.to_lowercase().as_str() {
-            "stop" | "end_turn" | "completed" => FinishReason::Stop,
+            "stop" | "end_turn" | "stop_sequence" | "completed" => FinishReason::Stop,
             "length" | "max_tokens" | "max_output_tokens" | "incomplete" => FinishReason::Length,
             "tool_calls" | "tool_use" => FinishReason::ToolCalls,
             "content_filter" | "content_filtered" | "safety" => FinishReason::ContentFilter,
