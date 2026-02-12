@@ -129,9 +129,8 @@ fn openai_roundtrip() {
         ..ProptestConfig::default()
     };
     proptest!(config, |(payload in strategies::arb_openai_payload())| {
-        match assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, &payload) {
-            Err(e) => prop_assert!(false, "{}", e),
-            _ => {}
+        if let Err(e) = assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, &payload) {
+            prop_assert!(false, "{}", e);
         }
     });
 }
