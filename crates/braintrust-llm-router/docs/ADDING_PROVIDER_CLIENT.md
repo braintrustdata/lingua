@@ -363,7 +363,8 @@ Err(Error::Provider {
 
 ## Model catalog
 
-The catalog maps model names to providers. Edit `src/catalog/model_list.json`:
+The catalog maps model names to providers. Edit the canonical model catalog in the braintrust-proxy repo:
+https://github.com/braintrustdata/braintrust-proxy/blob/main/packages/proxy/schema/model_list.json
 
 ### ModelSpec fields
 
@@ -415,15 +416,10 @@ The catalog maps model names to providers. Edit `src/catalog/model_list.json`:
 
 ### Loading catalogs
 
-The bundled catalog is included at compile time:
-```rust
-pub const BUNDLED_CATALOG_JSON: &str = include_str!("model_list.json");
-```
-
-Load a custom catalog at runtime:
+The model catalog is loaded from disk at runtime (not bundled):
 ```rust
 let router = Router::builder()
-    .load_models("path/to/custom_models.json")?
+    .load_models("path/to/model_list.json")?
     .add_provider("myprovider", MyProviderProvider::new(config)?)
     .add_api_key("myprovider", api_key)
     .build()?;
@@ -445,7 +441,7 @@ let router = Router::builder()
 - [ ] Handle errors with `retry_after` hints
 - [ ] Export in `src/providers/mod.rs`
 - [ ] Add case to `create_provider()` in `src/router.rs`
-- [ ] Add model entries to `src/catalog/model_list.json`
+- [ ] Add model entries to the canonical model catalog (braintrust-proxy repo)
 - [ ] Ensure `format` field in catalog matches `ProviderFormat`
 
 ---

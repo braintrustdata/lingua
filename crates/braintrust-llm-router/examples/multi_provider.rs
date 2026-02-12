@@ -10,18 +10,18 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders, OpenAIConfig,
-    OpenAIProvider, ProviderFormat, Router,
+    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders, ModelCatalog,
+    OpenAIConfig, OpenAIProvider, ProviderFormat, Router,
 };
 use bytes::Bytes;
 use serde_json::Value;
 use std::env;
+use std::sync::Arc;
+
+const MODEL_CATALOG_URL: &str = "https://raw.githubusercontent.com/braintrustdata/braintrust-proxy/main/packages/proxy/schema/model_list.json";
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let model_path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/catalog/model_list.json");
-
-    // Get API keys from environment
     let openai_key = env::var("OPENAI_API_KEY").ok();
     let anthropic_key = env::var("ANTHROPIC_API_KEY").ok();
 
@@ -32,8 +32,10 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    // Build router with multiple providers
-    let mut builder = Router::builder().load_models(model_path)?;
+    let catalog_json = reqwest::get(MODEL_CATALOG_URL).await?.text().await?;
+    let catalog = Arc::new(ModelCatalog::from_json_str(&catalog_json)?);
+
+    let mut builder = Router::builder().with_catalog(catalog);
 
     // Add OpenAI provider if key is available
     if let Some(key) = &openai_key {

@@ -7,7 +7,7 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders,
+    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders, ModelCatalog,
     ProviderFormat, ResponseStream, Router,
 };
 use bytes::Bytes;
@@ -15,15 +15,21 @@ use futures::StreamExt;
 use serde_json::Value;
 use std::env;
 use std::io::{self, Write};
+use std::sync::Arc;
+
+const MODEL_CATALOG_URL: &str = "https://raw.githubusercontent.com/braintrustdata/braintrust-proxy/main/packages/proxy/schema/model_list.json";
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize router
+    let catalog_json = reqwest::get(MODEL_CATALOG_URL).await?.text().await?;
+    let catalog = Arc::new(ModelCatalog::from_json_str(&catalog_json)?);
+
     let anthropic_provider = AnthropicProvider::new(AnthropicConfig::default())?;
 
     let anthropic_api_key = env::var("ANTHROPIC_API_KEY")?;
 
     let router = Router::builder()
+        .with_catalog(catalog)
         .add_provider("anthropic", anthropic_provider)
         .add_auth(
             "anthropic",

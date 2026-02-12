@@ -7,17 +7,18 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, ClientHeaders, OpenAIConfig, OpenAIProvider, ProviderFormat, Router,
+    serde_json::json, ClientHeaders, ModelCatalog, OpenAIConfig, OpenAIProvider, ProviderFormat,
+    Router,
 };
 use bytes::Bytes;
 use serde_json::Value;
 use std::env;
+use std::sync::Arc;
+
+const MODEL_CATALOG_URL: &str = "https://raw.githubusercontent.com/braintrustdata/braintrust-proxy/main/packages/proxy/schema/model_list.json";
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize router with model catalog and API keys
-    let model_path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/catalog/model_list.json");
-
     let api_key = match env::var("OPENAI_API_KEY") {
         Ok(value) => value,
         Err(_) => {
@@ -29,10 +30,13 @@ async fn main() -> Result<()> {
         }
     };
 
+    let catalog_json = reqwest::get(MODEL_CATALOG_URL).await?.text().await?;
+    let catalog = Arc::new(ModelCatalog::from_json_str(&catalog_json)?);
+
     let openai_provider = OpenAIProvider::new(OpenAIConfig::default())?;
 
     let router = Router::builder()
-        .load_models(model_path)?
+        .with_catalog(catalog)
         .add_provider("openai", openai_provider)
         .add_api_key("openai", api_key)
         .build()?;
