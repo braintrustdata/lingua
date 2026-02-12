@@ -783,6 +783,11 @@ impl TryFromLLM<Message> for openai::InputItem {
                 content: Some(TryFromLLM::try_from(content)?),
                 ..Default::default()
             }),
+            Message::Developer { content } => Ok(openai::InputItem {
+                role: Some(openai::InputItemRole::Developer),
+                content: Some(TryFromLLM::try_from(content)?),
+                ..Default::default()
+            }),
             Message::User { content } => Ok(openai::InputItem {
                 role: Some(openai::InputItemRole::User),
                 content: Some(TryFromLLM::try_from(content)?),
@@ -2460,7 +2465,6 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                 Ok(Message::Assistant { content, id: None })
             }
             openai::ChatCompletionRequestMessageRole::Developer => {
-                // Treat developer messages as system messages in universal format
                 let content = match msg.base.content {
                     Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
                         UserContent::String(text)
@@ -2474,7 +2478,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     }
                     None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
                 };
-                Ok(Message::System { content })
+                Ok(Message::Developer { content })
             }
             openai::ChatCompletionRequestMessageRole::Tool => {
                 // Tool messages should extract tool_call_id and content
@@ -2587,6 +2591,20 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
             Message::System { content } => Ok(ChatCompletionRequestMessageExt {
                 base: openai::ChatCompletionRequestMessage {
                     role: openai::ChatCompletionRequestMessageRole::System,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                },
+                reasoning: None,
+                reasoning_signature: None,
+            }),
+            Message::Developer { content } => Ok(ChatCompletionRequestMessageExt {
+                base: openai::ChatCompletionRequestMessage {
+                    role: openai::ChatCompletionRequestMessageRole::Developer,
                     content: Some(convert_user_content_to_chat_completion_content(content)?),
                     name: None,
                     tool_calls: None,

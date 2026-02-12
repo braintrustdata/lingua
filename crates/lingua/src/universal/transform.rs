@@ -57,13 +57,12 @@ use crate::universal::{
 /// ```
 pub fn extract_system_messages(messages: &mut Vec<Message>) -> Vec<UserContent> {
     let mut system_contents = Vec::new();
-    messages.retain(|msg| {
-        if let Message::System { content } = msg {
+    messages.retain(|msg| match msg {
+        Message::System { content } | Message::Developer { content } => {
             system_contents.push(content.clone());
             false
-        } else {
-            true
         }
+        _ => true,
     });
     system_contents
 }
@@ -117,6 +116,7 @@ fn can_merge(a: &Message, b: &Message) -> bool {
         (Message::User { .. }, Message::User { .. })
             | (Message::Assistant { .. }, Message::Assistant { .. })
             | (Message::System { .. }, Message::System { .. })
+            | (Message::Developer { .. }, Message::Developer { .. })
             | (Message::Tool { .. }, Message::Tool { .. })
     )
 }
@@ -138,6 +138,9 @@ fn merge_messages(a: &mut Message, b: Message) {
             merge_assistant_content(a_content, b_content);
         }
         (Message::System { content: a_content }, Message::System { content: b_content }) => {
+            merge_user_content(a_content, b_content);
+        }
+        (Message::Developer { content: a_content }, Message::Developer { content: b_content }) => {
             merge_user_content(a_content, b_content);
         }
         (Message::Tool { content: a_content }, Message::Tool { content: b_content }) => {

@@ -1045,4 +1045,26 @@ mod tests {
             "Temperature should be preserved for non-reasoning models"
         );
     }
+
+    #[test]
+    fn test_openai_developer_role_roundtrip() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "model": "o1",
+            "messages": [
+                {"role": "developer", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+
+        let messages = reconstructed.get("messages").unwrap().as_array().unwrap();
+        assert_eq!(
+            messages[0].get("role").unwrap().as_str().unwrap(),
+            "developer",
+            "Developer role should be preserved through roundtrip"
+        );
+    }
 }

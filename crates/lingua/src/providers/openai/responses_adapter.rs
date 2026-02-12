@@ -32,7 +32,7 @@ use std::convert::TryInto;
 
 fn system_text(message: &Message) -> Option<&str> {
     match message {
-        Message::System { content } => match content {
+        Message::System { content } | Message::Developer { content } => match content {
             UserContent::String(text) => Some(text.as_str()),
             UserContent::Array(parts) => {
                 if parts.len() != 1 {

@@ -180,6 +180,9 @@ fn parse_lenient_message_item(item: &Value) -> Option<Message> {
         "system" => Some(Message::System {
             content: parse_user_content(content_value)?,
         }),
+        "developer" => Some(Message::Developer {
+            content: parse_user_content(content_value)?,
+        }),
         "assistant" => Some(Message::Assistant {
             content: parse_assistant_content(content_value)?,
             id: None,
