@@ -170,9 +170,9 @@ fn openai_roundtrip_stats() {
             Some(issues) => {
                 errored += 1;
                 for issue in issues {
-                    let entry = failures.entry(issue).or_insert_with(|| {
-                        (0, serde_json::to_string_pretty(&payload).unwrap())
-                    });
+                    let entry = failures
+                        .entry(issue)
+                        .or_insert_with(|| (0, serde_json::to_string_pretty(&payload).unwrap()));
                     entry.0 += 1;
                 }
             }

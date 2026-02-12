@@ -213,12 +213,14 @@ impl UniversalTool {
                 // Non-function tools (e.g. "custom") are stored as builtins
                 // with the original value preserved for lossless roundtrip.
                 let nested = value.get(other)?;
-                let name = nested
-                    .get("name")
-                    .and_then(Value::as_str)
-                    .unwrap_or(other);
+                let name = nested.get("name").and_then(Value::as_str).unwrap_or(other);
 
-                Some(Self::builtin(name, "openai_chat", other, Some(value.clone())))
+                Some(Self::builtin(
+                    name,
+                    "openai_chat",
+                    other,
+                    Some(value.clone()),
+                ))
             }
         }
     }
@@ -379,10 +381,7 @@ impl UniversalTool {
                 config
                     .clone()
                     .ok_or_else(|| ConvertError::MissingRequiredField {
-                        field: format!(
-                            "config for OpenAI Chat builtin tool '{}'",
-                            self.name
-                        ),
+                        field: format!("config for OpenAI Chat builtin tool '{}'", self.name),
                     })
             }
         }
