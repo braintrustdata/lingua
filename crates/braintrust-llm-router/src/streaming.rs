@@ -11,13 +11,37 @@ use crate::error::{Error, Result};
 use lingua::ProviderFormat;
 use lingua::TransformResult;
 
-/// Stream of transformed chunks ready for output (yields pre-serialized bytes).
-/// Serialized using lingua's serde_json at the boundary.
-pub type ResponseStream = Pin<Box<dyn Stream<Item = Result<Bytes>> + Send>>;
+/// A single chunk in a streaming response, carrying the JSON data and
+/// an optional SSE event type (e.g. `"message_start"` for Anthropic).
+#[derive(Debug, Clone)]
+pub struct StreamChunk {
+    pub data: Bytes,
+    pub event_type: Option<String>,
+}
 
-/// Stream of raw bytes chunks from providers.
-/// Each chunk contains the JSON bytes for a single SSE event (no parsing done).
-pub type RawResponseStream = Pin<Box<dyn Stream<Item = Result<Bytes>> + Send>>;
+impl StreamChunk {
+    pub fn data(data: Bytes) -> Self {
+        Self {
+            data,
+            event_type: None,
+        }
+    }
+
+    pub fn with_event(data: Bytes, event_type: String) -> Self {
+        Self {
+            data,
+            event_type: Some(event_type),
+        }
+    }
+}
+
+/// Stream of transformed chunks ready for output.
+/// Serialized using lingua's serde_json at the boundary.
+pub type ResponseStream = Pin<Box<dyn Stream<Item = Result<StreamChunk>> + Send>>;
+
+/// Stream of raw chunks from providers.
+/// Each chunk contains the JSON bytes for a single SSE event.
+pub type RawResponseStream = Pin<Box<dyn Stream<Item = Result<StreamChunk>> + Send>>;
 
 /// Create a raw SSE stream that yields JSON bytes without transformation.
 ///
@@ -38,15 +62,18 @@ pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -
         let output_format = output_format;
         async move {
             match result {
-                Ok(bytes) => {
+                Ok(chunk) => {
+                    let StreamChunk { data, event_type } = chunk;
                     // Check for keep-alive marker (empty or whitespace-only bytes)
-                    if bytes.is_empty() || bytes.iter().all(|b| b.is_ascii_whitespace()) {
+                    if data.is_empty() || data.iter().all(|b| b.is_ascii_whitespace()) {
                         return None;
                     }
 
                     // Transform with lingua (bytes-based)
-                    match lingua::transform_stream_chunk(bytes.clone(), output_format) {
-                        Ok(TransformResult::PassThrough(pass_bytes)) => Some(Ok(pass_bytes)),
+                    match lingua::transform_stream_chunk(data.clone(), output_format) {
+                        Ok(TransformResult::PassThrough(pass_bytes)) => {
+                            Some(Ok(StreamChunk { data: pass_bytes, event_type }))
+                        }
                         Ok(TransformResult::Transformed {
                             bytes: out_bytes, ..
                         }) => {
@@ -54,12 +81,12 @@ pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -
                             if out_bytes.as_ref() == b"{}" {
                                 None
                             } else {
-                                Some(Ok(out_bytes))
+                                Some(Ok(StreamChunk { data: out_bytes, event_type }))
                             }
                         }
                         Err(lingua::TransformError::UnableToDetectFormat) => {
                             // Pass through unrecognized formats
-                            Some(Ok(bytes))
+                            Some(Ok(StreamChunk { data, event_type }))
                         }
                         Err(e) => Some(Err(Error::Lingua(e))),
                     }
@@ -83,11 +110,11 @@ struct SingleBytesStream {
 }
 
 impl Stream for SingleBytesStream {
-    type Item = Result<Bytes>;
+    type Item = Result<StreamChunk>;
 
     fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
-        Poll::Ready(this.bytes.take().map(Ok))
+        Poll::Ready(this.bytes.take().map(|b| Ok(StreamChunk::data(b))))
     }
 }
 
@@ -118,7 +145,7 @@ impl<S> Stream for RawSseStream<S>
 where
     S: Stream<Item = std::result::Result<Bytes, reqwest::Error>> + Unpin + Send + 'static,
 {
-    type Item = Result<Bytes>;
+    type Item = Result<StreamChunk>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
@@ -131,7 +158,7 @@ where
             if let Some((event, rest)) = split_event(&this.buffer) {
                 this.buffer = rest;
                 match extract_json_bytes_from_sse(event) {
-                    Ok(Some(json_bytes)) => return Poll::Ready(Some(Ok(json_bytes))),
+                    Ok(Some(chunk)) => return Poll::Ready(Some(Ok(chunk))),
                     Ok(None) => {
                         // [DONE] signal
                         this.finished = true;
@@ -154,7 +181,7 @@ where
 
                     let remaining = this.buffer.split().freeze();
                     match extract_json_bytes_from_sse(remaining) {
-                        Ok(Some(json_bytes)) => return Poll::Ready(Some(Ok(json_bytes))),
+                        Ok(Some(chunk)) => return Poll::Ready(Some(Ok(chunk))),
                         Ok(None) => {
                             this.finished = true;
                             return Poll::Ready(None);
@@ -168,11 +195,12 @@ where
     }
 }
 
-/// Extract JSON bytes from an SSE event without parsing.
-/// Returns None for [DONE] signal, Some(Bytes) for data events.
-fn extract_json_bytes_from_sse(event: Bytes) -> Result<Option<Bytes>> {
+/// Extract JSON bytes and optional event type from an SSE event without parsing.
+/// Returns None for [DONE] signal, Some(StreamChunk) for data events.
+fn extract_json_bytes_from_sse(event: Bytes) -> Result<Option<StreamChunk>> {
     let raw = String::from_utf8_lossy(&event);
     let mut data = String::new();
+    let mut event_type: Option<String> = None;
 
     for line in raw.lines() {
         if let Some(payload) = line.strip_prefix("data:") {
@@ -184,16 +212,20 @@ fn extract_json_bytes_from_sse(event: Bytes) -> Result<Option<Bytes>> {
                 data.push('\n');
             }
             data.push_str(payload);
+        } else if let Some(name) = line.strip_prefix("event:") {
+            event_type = Some(name.trim().to_string());
         }
     }
 
     if data.is_empty() {
-        // Empty event - skip (keep-alive)
-        return Ok(Some(Bytes::new()));
+        return Ok(Some(StreamChunk::data(Bytes::new())));
     }
 
-    // Return the JSON as bytes without parsing
-    Ok(Some(Bytes::from(data)))
+    let chunk = match event_type {
+        Some(et) => StreamChunk::with_event(Bytes::from(data), et),
+        None => StreamChunk::data(Bytes::from(data)),
+    };
+    Ok(Some(chunk))
 }
 
 /// Raw Bedrock event stream that yields JSON bytes without transformation.
@@ -228,7 +260,7 @@ impl<S> Stream for RawBedrockEventStream<S>
 where
     S: Stream<Item = std::result::Result<Bytes, reqwest::Error>> + Unpin + Send + 'static,
 {
-    type Item = Result<Bytes>;
+    type Item = Result<StreamChunk>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         use aws_smithy_eventstream::frame::DecodedFrame;
@@ -272,7 +304,7 @@ where
                         Bytes::copy_from_slice(payload)
                     };
 
-                    return Poll::Ready(Some(Ok(json_bytes)));
+                    return Poll::Ready(Some(Ok(StreamChunk::data(json_bytes))));
                 }
                 Ok(DecodedFrame::Incomplete) => {
                     // Need more data, fall through to poll inner stream
@@ -350,7 +382,19 @@ mod tests {
         let event = Bytes::from("data: {\"test\": 1}\n\n");
         let result = extract_json_bytes_from_sse(event).unwrap();
         assert!(result.is_some());
-        assert_eq!(result.unwrap().as_ref(), b"{\"test\": 1}");
+        let chunk = result.unwrap();
+        assert_eq!(chunk.data.as_ref(), b"{\"test\": 1}");
+        assert!(chunk.event_type.is_none());
+    }
+
+    #[test]
+    fn extract_json_bytes_preserves_event_type() {
+        let event = Bytes::from("event: message_start\ndata: {\"type\":\"message_start\"}\n\n");
+        let result = extract_json_bytes_from_sse(event).unwrap();
+        assert!(result.is_some());
+        let chunk = result.unwrap();
+        assert_eq!(chunk.data.as_ref(), b"{\"type\":\"message_start\"}");
+        assert_eq!(chunk.event_type.as_deref(), Some("message_start"));
     }
 
     #[test]
