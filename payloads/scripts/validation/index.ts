@@ -12,7 +12,7 @@ import {
 } from "../../cases";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
-  ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
+  ANTHROPIC_MODEL,
   GOOGLE_MODEL,
   BEDROCK_MODEL,
 } from "../../cases/models";
@@ -224,7 +224,7 @@ async function processBatches<T, R>(
 // Provider registry - maps provider aliases to actual model names (uses canonical models.ts)
 const PROVIDER_REGISTRY: Record<string, string> = {
   openai: OPENAI_CHAT_COMPLETIONS_MODEL,
-  anthropic: ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
+  anthropic: ANTHROPIC_MODEL,
   google: GOOGLE_MODEL,
   bedrock: BEDROCK_MODEL,
 };

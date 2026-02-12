@@ -4,7 +4,7 @@ import {
   OPENAI_RESPONSES_MODEL,
   OPENAI_NON_REASONING_MODEL,
   ANTHROPIC_MODEL,
-  ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
+  ANTHROPIC_OPUS_MODEL,
 } from "./models";
 
 // OpenAI Responses API and Chat Completions API parameter test cases
@@ -28,13 +28,10 @@ export const paramsCases: TestCaseCollection = {
       },
     },
     anthropic: {
-      model: ANTHROPIC_MODEL,
+      model: ANTHROPIC_OPUS_MODEL,
       max_tokens: 16000,
       messages: [{ role: "user", content: "What is 2+2?" }],
-      thinking: {
-        type: "enabled",
-        budget_tokens: 10000,
-      },
+      output_config: { effort: "medium" },
     },
     google: null,
     bedrock: null,
@@ -52,10 +49,10 @@ export const paramsCases: TestCaseCollection = {
       reasoning: { effort: "low" },
     },
     anthropic: {
-      model: ANTHROPIC_MODEL,
-      max_tokens: 8000,
+      model: ANTHROPIC_OPUS_MODEL,
+      max_tokens: 16000,
       messages: [{ role: "user", content: "What is 2+2?" }],
-      thinking: { type: "enabled", budget_tokens: 5000 }, // low effort budget
+      output_config: { effort: "low" },
     },
     google: null,
     bedrock: null,
@@ -130,19 +127,92 @@ export const paramsCases: TestCaseCollection = {
       },
     },
     anthropic: {
-      model: ANTHROPIC_STRUCTURED_OUTPUT_MODEL,
+      model: ANTHROPIC_MODEL,
       max_tokens: 1024,
       messages: [{ role: "user", content: "Extract: John is 25." }],
-      output_format: {
-        type: "json_schema",
-        schema: {
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            age: { type: "number" },
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              age: { type: "number" },
+            },
+            required: ["name", "age"],
+            additionalProperties: false,
           },
-          required: ["name", "age"],
-          additionalProperties: false,
+        },
+      },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  textFormatJsonSchemaWithDescriptionParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Extract: John is 25.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "person_info",
+          description: "Extract person information from text",
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              age: { type: "number" },
+            },
+            required: ["name", "age"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Name: John, Age: 25" }],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "person_info",
+          description: "Extract person information from text",
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              age: { type: "number" },
+            },
+            required: ["name", "age"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Extract: John is 25." }],
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              age: { type: "number" },
+            },
+            required: ["name", "age"],
+            additionalProperties: false,
+          },
         },
       },
     },
@@ -962,6 +1032,85 @@ export const paramsCases: TestCaseCollection = {
       max_tokens: 1024,
       messages: [{ role: "user", content: "2+2?" }],
       thinking: { type: "disabled" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  // === Output Config (structured output) ===
+
+  outputFormatJsonSchemaParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Extract: John is 25." }],
+      output_format: {
+        type: "json_schema",
+        schema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            age: { type: "number" },
+          },
+          required: ["name", "age"],
+          additionalProperties: false,
+        },
+      },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  outputConfigJsonSchemaParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Extract: John is 25." }],
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              age: { type: "number" },
+            },
+            required: ["name", "age"],
+            additionalProperties: false,
+          },
+        },
+      },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  outputConfigEffortWithJsonSchemaParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_OPUS_MODEL,
+      max_tokens: 16000,
+      messages: [{ role: "user", content: "Extract: John is 25." }],
+      output_config: {
+        effort: "medium",
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              age: { type: "number" },
+            },
+            required: ["name", "age"],
+            additionalProperties: false,
+          },
+        },
+      },
     },
     google: null,
     bedrock: null,

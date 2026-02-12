@@ -1,0 +1,31 @@
+{
+  "model": "claude-opus-4-6",
+  "id": "msg_01Po1kVQN7cKMVfyFqGCHmnU",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "4",
+      "signature": "EqkBCkYICxgCKkDo5w3BcOFDM2J7MsIKxgUfuba9NpwDavusotnNesPeZa7anZZRQjr0ND/Y4T9kgQgbRz4ipY8/DiooFD5PtwvCEgy1hlYQhGq5oP/pJ5waDD8zyZjJCk2MD2paFSIwHToLXMRKvKF83V+EvlScjQnoExEZemTiKGs6s0LAY6PyyEBCCoq6NDEMJMkmZaTFKhEpejqNqcBVQ00FkfWfconNyRgB"
+    },
+    {
+      "type": "text",
+      "text": "2+2 = **4**"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 43,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 20,
+    "service_tier": "standard",
+    "inference_geo": "global"
+  }
+}

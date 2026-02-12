@@ -161,7 +161,12 @@ export function getTransformableCases(
   filter?: string
 ): string[] {
   return getCaseNames(allTestCases).filter((caseName) => {
-    if (isParamCase(caseName)) return false;
+    // Only test param cases for chat-completions → anthropic for now
+    if (
+      caseName.endsWith("Param") &&
+      (pair.source !== "chat-completions" || pair.target !== "anthropic")
+    )
+      return false;
     if (filter && !caseName.includes(filter)) return false;
     const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
     const testCase = allTestCases[caseName];

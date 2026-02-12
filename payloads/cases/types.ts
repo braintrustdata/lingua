@@ -14,11 +14,12 @@ export interface GoogleGenerateContentRequest {
 // Re-export Bedrock type for convenience
 export type BedrockConverseRequest = ConverseCommandInput;
 
-// Extended Anthropic type that includes beta features like output_format
-// The executor uses regular client.messages.create() but test cases may define beta params
+// Extended Anthropic type that includes beta/new features
+// The executor uses regular client.messages.create() but test cases may define extra params
 export type AnthropicMessageCreateParams =
   Anthropic.Messages.MessageCreateParams & {
     output_format?: Anthropic.Beta.Messages.BetaJSONOutputFormat | null;
+    output_config?: Anthropic.Messages.OutputConfig;
   };
 
 // Expectation-based validation for proxy compatibility tests
