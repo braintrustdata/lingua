@@ -51,6 +51,44 @@ fn case_name_from_spans_path(path: &Path) -> String {
         .to_string()
 }
 
+fn parse_spans_fixture(case_name: &str, spans_path: &Path, spans_json: &str) -> Vec<Span> {
+    let parsed: serde_json::Value = serde_json::from_str(spans_json).unwrap_or_else(|e| {
+        panic!(
+            "failed to parse spans fixture json for case '{}': {} ({})",
+            case_name,
+            e,
+            spans_path.display()
+        )
+    });
+
+    match parsed {
+        serde_json::Value::Array(_) => serde_json::from_value(parsed).unwrap_or_else(|e| {
+            panic!(
+                "failed to parse spans fixture array for case '{}': {} ({})",
+                case_name,
+                e,
+                spans_path.display()
+            )
+        }),
+        serde_json::Value::Object(_) => {
+            let span: Span = serde_json::from_value(parsed).unwrap_or_else(|e| {
+                panic!(
+                    "failed to parse single span fixture for case '{}': {} ({})",
+                    case_name,
+                    e,
+                    spans_path.display()
+                )
+            });
+            vec![span]
+        }
+        _ => panic!(
+            "spans fixture for case '{}' must be a span object or an array of spans ({})",
+            case_name,
+            spans_path.display()
+        ),
+    }
+}
+
 fn message_role(message: &Message) -> &'static str {
     match message {
         Message::User { .. } => "user",
@@ -129,14 +167,7 @@ fn test_import_cases_from_shared_fixtures() {
             )
         });
 
-        let spans: Vec<Span> = serde_json::from_str(&spans_json).unwrap_or_else(|e| {
-            panic!(
-                "failed to parse spans fixture for case '{}': {} ({})",
-                case_name,
-                e,
-                spans_path.display()
-            )
-        });
+        let spans = parse_spans_fixture(&case_name, &spans_path, &spans_json);
 
         let assertions_path = spans_path.with_file_name(format!("{}.assertions.json", case_name));
         let messages = import_messages_from_spans(spans);

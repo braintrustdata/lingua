@@ -34,7 +34,7 @@ The test runner is:
 
 Notes:
 
-- Use an array even for a single span.
+- You can provide either a single span object or an array of spans.
 - Prefer stable fields (`input`, `output`) to reduce fixture churn.
 
 ### `*.assertions.json`
