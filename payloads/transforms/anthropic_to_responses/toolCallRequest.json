@@ -1,27 +1,32 @@
 {
-  "id": "resp_07a2d88aa9053a3d00697aafa91cc081a3af05f35e06744235",
+  "id": "resp_09f3770f700bd9f000698e2e7a9f64819cafd8da8883acc7f2",
   "object": "response",
-  "created_at": 1769648041,
+  "created_at": 1770925690,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1769648041,
+  "completed_at": 1770925694,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
   "instructions": null,
   "max_output_tokens": 20000,
   "max_tool_calls": null,
-  "model": "gpt-4o-mini-2024-07-18",
+  "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "fc_07a2d88aa9053a3d00697aafa9e3e081a3a1f9db335d7127d5",
+      "id": "rs_09f3770f700bd9f000698e2e7aef7c819c8ffc74abe45f3cab",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_09f3770f700bd9f000698e2e7c5308819ca1f3ac253215b469",
       "type": "function_call",
       "status": "completed",
       "arguments": "{\"location\":\"San Francisco, CA\"}",
-      "call_id": "call_1Tzb1VJiHdkBnXO3RVkOxGFL",
+      "call_id": "call_VJRqLXE6cVsKg12vyEBKK0Sm",
       "name": "get_weather"
     }
   ],
@@ -31,7 +36,7 @@
   "prompt_cache_key": null,
   "prompt_cache_retention": null,
   "reasoning": {
-    "effort": null,
+    "effort": "medium",
     "summary": null
   },
   "safety_identifier": null,
@@ -70,15 +75,15 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 61,
+    "input_tokens": 66,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 18,
+    "output_tokens": 169,
     "output_tokens_details": {
-      "reasoning_tokens": 0
+      "reasoning_tokens": 128
     },
-    "total_tokens": 79
+    "total_tokens": 235
   },
   "user": null,
   "metadata": {},

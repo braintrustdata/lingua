@@ -1,7 +1,7 @@
 {
-  "id": "resp_0f6a8c7916cef90800697aafa5f6088196931daecd19c99d8d",
+  "id": "resp_00be14d6bfe6ea9500698e2e7952a08194bb92eda8bc3dddd3",
   "object": "response",
-  "created_at": 1769648037,
+  "created_at": 1770925689,
   "status": "incomplete",
   "background": false,
   "billing": {
@@ -16,21 +16,12 @@
   "instructions": null,
   "max_output_tokens": 100,
   "max_tool_calls": null,
-  "model": "gpt-4o-mini-2024-07-18",
+  "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "msg_0f6a8c7916cef90800697aafa6f68c819699ca469f30219b7b",
-      "type": "message",
-      "status": "incomplete",
-      "content": [
-        {
-          "type": "output_text",
-          "annotations": [],
-          "logprobs": [],
-          "text": "To find the average speed of the train over the entire trip, we first need to calculate the total distance traveled and the total time taken.\n\n### Step 1: Calculate Distance for Each Segment\n\n1. **First Segment** (60 mph for 2 hours)\n   \\[\n   \\text{Distance}_1 = \\text{Speed} \\times \\text{Time} = 60 \\, \\text{mph} \\times 2 \\, \\text{hours} = 120"
-        }
-      ],
-      "role": "assistant"
+      "id": "rs_00be14d6bfe6ea9500698e2e79a28081948a4f5781e2084bef",
+      "type": "reasoning",
+      "summary": []
     }
   ],
   "parallel_tool_calls": true,
@@ -39,7 +30,7 @@
   "prompt_cache_key": null,
   "prompt_cache_retention": null,
   "reasoning": {
-    "effort": null,
+    "effort": "medium",
     "summary": null
   },
   "safety_identifier": null,
@@ -58,17 +49,17 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 39,
+    "input_tokens": 38,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 100,
+    "output_tokens": 64,
     "output_tokens_details": {
-      "reasoning_tokens": 0
+      "reasoning_tokens": 64
     },
-    "total_tokens": 139
+    "total_tokens": 102
   },
   "user": null,
   "metadata": {},
-  "output_text": "To find the average speed of the train over the entire trip, we first need to calculate the total distance traveled and the total time taken.\n\n### Step 1: Calculate Distance for Each Segment\n\n1. **First Segment** (60 mph for 2 hours)\n   \\[\n   \\text{Distance}_1 = \\text{Speed} \\times \\text{Time} = 60 \\, \\text{mph} \\times 2 \\, \\text{hours} = 120"
+  "output_text": ""
 }

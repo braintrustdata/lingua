@@ -11,6 +11,11 @@ import {
   validate_responses_response,
 } from "@braintrust/lingua-wasm";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
+import {
+  ANTHROPIC_MODEL,
+  OPENAI_CHAT_COMPLETIONS_MODEL,
+  OPENAI_RESPONSES_MODEL,
+} from "../../cases/models";
 
 export type SourceFormat = "chat-completions" | "responses" | "anthropic";
 export type WasmFormat = "OpenAI" | "Responses" | "Anthropic";
@@ -144,6 +149,12 @@ export function getResponsePath(
 ): string {
   return join(TRANSFORMS_DIR, `${source}_to_${target}`, `${caseName}.json`);
 }
+
+export const TARGET_MODELS: Record<SourceFormat, string> = {
+  anthropic: ANTHROPIC_MODEL,
+  "chat-completions": OPENAI_CHAT_COMPLETIONS_MODEL,
+  responses: OPENAI_RESPONSES_MODEL,
+};
 
 export function getTransformableCases(
   pair: TransformPair,

@@ -14,9 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:transforms": "vitest run scripts/transforms",
-    "test:transforms:update": "vitest run scripts/transforms -u",
-    "test:transforms:watch": "vitest scripts/transforms",
-    "lingua-capture": "tsx scripts/transforms/lingua-capture.ts"
+    "test:transforms:watch": "vitest scripts/transforms"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

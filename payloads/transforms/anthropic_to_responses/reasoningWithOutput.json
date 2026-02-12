@@ -1,23 +1,28 @@
 {
-  "id": "resp_05d74363027f2e8400697aafb2285881a39c4cd96ee6fd67c9",
+  "id": "resp_0e13a5d8d895821f00698e2ed95eac8191844495ab66e3050e",
   "object": "response",
-  "created_at": 1769648050,
+  "created_at": 1770925785,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1769648052,
+  "completed_at": 1770925789,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
   "instructions": null,
   "max_output_tokens": 20000,
   "max_tool_calls": null,
-  "model": "gpt-4o-mini-2024-07-18",
+  "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "msg_05d74363027f2e8400697aafb26dbc81a3a954957a3c2bcc5c",
+      "id": "rs_0e13a5d8d895821f00698e2ed992a48191813976a1dc1177e8",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0e13a5d8d895821f00698e2edc944881918a1f3172dcef52fd",
       "type": "message",
       "status": "completed",
       "content": [
@@ -25,7 +30,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "The color of the sky appears blue during the day due to Rayleigh scattering, where shorter wavelengths of light (blue) scatter more than longer wavelengths (red). At sunrise and sunset, the sky can exhibit shades of orange, pink, and purple due to the angle of the sun and atmospheric conditions. At night, the sky appears dark, often speckled with stars."
+          "text": "Typically blue during the day. The sky’s color comes from sunlight scattering in the atmosphere. It can change:\n\n- Clear daytime: blue\n- Sunrise/sunset: red/orange/pink\n- Cloudy/overcast: gray\n- Night: dark/black (with stars)\n- Other conditions: greenish around severe storms, yellow/brown if there’s a lot of dust or pollution\n\nIf you tell me the time and location, I can describe what the sky would look like then."
         }
       ],
       "role": "assistant"
@@ -37,7 +42,7 @@
   "prompt_cache_key": null,
   "prompt_cache_retention": null,
   "reasoning": {
-    "effort": null,
+    "effort": "medium",
     "summary": null
   },
   "safety_identifier": null,
@@ -56,17 +61,17 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 13,
+    "input_tokens": 12,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 76,
+    "output_tokens": 528,
     "output_tokens_details": {
-      "reasoning_tokens": 0
+      "reasoning_tokens": 384
     },
-    "total_tokens": 89
+    "total_tokens": 540
   },
   "user": null,
   "metadata": {},
-  "output_text": "The color of the sky appears blue during the day due to Rayleigh scattering, where shorter wavelengths of light (blue) scatter more than longer wavelengths (red). At sunrise and sunset, the sky can exhibit shades of orange, pink, and purple due to the angle of the sun and atmospheric conditions. At night, the sky appears dark, often speckled with stars."
+  "output_text": "Typically blue during the day. The sky’s color comes from sunlight scattering in the atmosphere. It can change:\n\n- Clear daytime: blue\n- Sunrise/sunset: red/orange/pink\n- Cloudy/overcast: gray\n- Night: dark/black (with stars)\n- Other conditions: greenish around severe storms, yellow/brown if there’s a lot of dust or pollution\n\nIf you tell me the time and location, I can describe what the sky would look like then."
 }
