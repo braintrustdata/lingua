@@ -33,13 +33,17 @@ pub struct AnthropicSchemas {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct CreateMessageParams {
+    /// Specifies the geographic region for inference processing. If not specified, the
+    /// workspace's `default_inference_geo` is used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub inference_geo: Option<String>,
     /// The maximum number of tokens to generate before stopping.
     ///
     /// Note that our models may stop _before_ reaching this maximum. This parameter only
     /// specifies the absolute maximum number of tokens to generate.
     ///
     /// Different models have different maximum values for this parameter.  See
-    /// [models](https://docs.anthropic.com/en/docs/models-overview) for details.
+    /// [models](https://docs.claude.com/en/docs/models-overview) for details.
     pub max_tokens: i64,
     /// Input messages.
     ///
@@ -95,10 +99,10 @@ pub struct CreateMessageParams {
     /// {"role": "user", "content": [{"type": "text", "text": "Hello, Claude"}]}
     /// ```
     ///
-    /// See [input examples](https://docs.anthropic.com/en/api/messages-examples).
+    /// See [input examples](https://docs.claude.com/en/api/messages-examples).
     ///
     /// Note that if you want to include a [system
-    /// prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use the top-level
+    /// prompt](https://docs.claude.com/en/docs/system-prompts), you can use the top-level
     /// `system` parameter — there is no `"system"` role for input messages in the Messages API.
     ///
     /// There is a limit of 100,000 messages in a single request.
@@ -107,11 +111,14 @@ pub struct CreateMessageParams {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Metadata>,
     pub model: String,
+    /// Configuration options for the model's output, such as the output format.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_config: Option<OutputConfig>,
     /// Determines whether to use priority capacity (if available) or standard capacity for this
     /// request.
     ///
     /// Anthropic offers different levels of service for your API requests. See
-    /// [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+    /// [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierEnum>,
     /// Custom text sequences that will cause the model to stop generating.
@@ -127,14 +134,14 @@ pub struct CreateMessageParams {
     pub stop_sequences: Option<Vec<String>>,
     /// Whether to incrementally stream the response using server-sent events.
     ///
-    /// See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for details.
+    /// See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     /// System prompt.
     ///
     /// A system prompt is a way of providing context and instructions to Claude, such as
     /// specifying a particular goal or role. See our [guide to system
-    /// prompts](https://docs.anthropic.com/en/docs/system-prompts).
+    /// prompts](https://docs.claude.com/en/docs/system-prompts).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<System>,
     /// Amount of randomness injected into the response.
@@ -158,9 +165,9 @@ pub struct CreateMessageParams {
     ///
     /// There are two types of tools: **client tools** and **server tools**. The behavior
     /// described below applies to client tools. For [server
-    /// tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview\#server-tools),
+    /// tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview\#server-tools),
     /// see their individual documentation as each has its own behavior (e.g., the [web search
-    /// tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+    /// tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
     ///
     /// Each tool definition includes:
     ///
@@ -221,7 +228,7 @@ pub struct CreateMessageParams {
     /// more generally whenever you want the model to produce a particular JSON structure of
     /// output.
     ///
-    /// See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
+    /// See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
     /// Only sample from the top K options for each subsequent token.
@@ -634,6 +641,8 @@ pub enum WebSearchToolResultErrorCode {
     MaxUsesExceeded,
     #[serde(rename = "query_too_long")]
     QueryTooLong,
+    #[serde(rename = "request_too_large")]
+    RequestTooLarge,
     #[serde(rename = "too_many_requests")]
     TooManyRequests,
     Unavailable,
@@ -690,11 +699,56 @@ pub struct Metadata {
     pub user_id: Option<String>,
 }
 
+/// Configuration options for the model's output, such as the output format.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct OutputConfig {
+    /// How much effort the model should put into its response. Higher effort levels may result
+    /// in more thorough analysis but take longer.
+    ///
+    /// Valid values are `low`, `medium`, `high`, or `max`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effort: Option<EffortLevel>,
+    /// A schema to specify Claude's output format in responses. See [structured
+    /// outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub format: Option<JsonOutputFormat>,
+}
+
+/// All possible effort levels.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum EffortLevel {
+    High,
+    Low,
+    Max,
+    Medium,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct JsonOutputFormat {
+    /// The JSON schema of the format
+    #[ts(type = "unknown")]
+    pub schema: serde_json::Map<String, serde_json::Value>,
+    #[serde(rename = "type")]
+    pub json_output_format_type: JsonOutputFormatType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum JsonOutputFormatType {
+    #[serde(rename = "json_schema")]
+    JsonSchema,
+}
+
 /// Determines whether to use priority capacity (if available) or standard capacity for this
 /// request.
 ///
 /// Anthropic offers different levels of service for your API requests. See
-/// [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+/// [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
@@ -708,7 +762,7 @@ pub enum ServiceTierEnum {
 ///
 /// A system prompt is a way of providing context and instructions to Claude, such as
 /// specifying a particular goal or role. See our [guide to system
-/// prompts](https://docs.anthropic.com/en/docs/system-prompts).
+/// prompts](https://docs.claude.com/en/docs/system-prompts).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "anthropic/")]
@@ -724,7 +778,7 @@ pub enum System {
 /// towards your `max_tokens` limit.
 ///
 /// See [extended
-/// thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking) for
+/// thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) for
 /// details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
@@ -736,7 +790,7 @@ pub struct Thinking {
     /// Must be ≥1024 and less than `max_tokens`.
     ///
     /// See [extended
-    /// thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking) for
+    /// thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) for
     /// details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub budget_tokens: Option<i64>,
@@ -748,6 +802,7 @@ pub struct Thinking {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
 pub enum ThinkingType {
+    Adaptive,
     Disabled,
     Enabled,
 }
@@ -803,6 +858,9 @@ pub struct CustomTool {
     /// Tool descriptions should be as detailed as possible. The more information that the model has about what the tool is and how to use it, the better it will perform. You can use natural language descriptions to reinforce important aspects of the tool input JSON schema.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// Enable eager input streaming for this tool. When true, tool input parameters will be streamed incrementally as they are generated, and types will be inferred on-the-fly rather than buffering the full JSON output. When false, streaming is disabled for this tool even if the fine-grained-tool-streaming beta is active. When null (default), uses the default behavior based on beta headers.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eager_input_streaming: Option<bool>,
     /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
     ///
     /// This defines the shape of the `input` that your tool accepts and that the model will produce.
@@ -812,6 +870,9 @@ pub struct CustomTool {
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -825,6 +886,9 @@ pub struct BashTool20250124 {
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -838,6 +902,9 @@ pub struct TextEditor20250124 {
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -851,6 +918,9 @@ pub struct TextEditor20250429 {
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -867,6 +937,9 @@ pub struct TextEditor20250728 {
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -889,6 +962,9 @@ pub struct WebSearchTool20250305 {
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
     pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
     /// Parameters for the user's location. Used to provide more relevant search results.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
@@ -1192,9 +1268,6 @@ pub enum ContentBlockType {
     WebSearchToolResult,
 }
 
-/// Object type.
-///
-/// For Messages, this is always `"message"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
@@ -1202,9 +1275,6 @@ pub enum ResponseType {
     Message,
 }
 
-/// Conversational role of the generated message.
-///
-/// This will always be `"assistant"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
@@ -1220,8 +1290,6 @@ pub enum StopReason {
     EndTurn,
     #[serde(rename = "max_tokens")]
     MaxTokens,
-    #[serde(rename = "model_context_window_exceeded")]
-    ModelContextWindowExceeded,
     #[serde(rename = "pause_turn")]
     PauseTurn,
     Refusal,
@@ -1258,6 +1326,9 @@ pub struct Usage {
     /// The number of input tokens read from the cache.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_read_input_tokens: Option<i64>,
+    /// The geographic region where inference was performed for this request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub inference_geo: Option<String>,
     /// The number of input tokens which were used.
     pub input_tokens: i64,
     /// The number of output tokens which were used.
@@ -1268,6 +1339,9 @@ pub struct Usage {
     /// If the request used the priority, standard, or batch tier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierServiceTier>,
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
