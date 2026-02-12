@@ -192,22 +192,35 @@ impl UniversalTool {
     /// Parse a tool from OpenAI Chat Completions format (JSON Value).
     ///
     /// Format: `{"type": "function", "function": {"name", "description", "parameters"}}`
+    /// Also handles: `{"type": "custom", "custom": {"name", "description", "format"}}`
     pub fn from_openai_chat_value(value: &Value) -> Option<Self> {
-        // OpenAI Chat format requires type: "function" and nested function object
-        if value.get("type").and_then(Value::as_str) != Some("function") {
-            return None;
+        let tool_type = value.get("type").and_then(Value::as_str)?;
+
+        match tool_type {
+            "function" => {
+                let func = value.get("function")?;
+                let name = func.get("name").and_then(Value::as_str)?;
+                let description = func
+                    .get("description")
+                    .and_then(Value::as_str)
+                    .map(String::from);
+                let parameters = func.get("parameters").cloned();
+                let strict = func.get("strict").and_then(Value::as_bool);
+
+                Some(Self::function(name, description, parameters, strict))
+            }
+            other => {
+                // Non-function tools (e.g. "custom") are stored as builtins
+                // with the original value preserved for lossless roundtrip.
+                let nested = value.get(other)?;
+                let name = nested
+                    .get("name")
+                    .and_then(Value::as_str)
+                    .unwrap_or(other);
+
+                Some(Self::builtin(name, "openai_chat", other, Some(value.clone())))
+            }
         }
-
-        let func = value.get("function")?;
-        let name = func.get("name").and_then(Value::as_str)?;
-        let description = func
-            .get("description")
-            .and_then(Value::as_str)
-            .map(String::from);
-        let parameters = func.get("parameters").cloned();
-        let strict = func.get("strict").and_then(Value::as_bool);
-
-        Some(Self::function(name, description, parameters, strict))
     }
 
     /// Parse a tool from OpenAI Responses API format (JSON Value).
@@ -326,7 +339,7 @@ impl UniversalTool {
 
     /// Convert to OpenAI Chat Completions format (JSON Value).
     ///
-    /// Returns an error if the tool is a builtin (Chat Completions doesn't support builtins).
+    /// Returns an error if the tool is a builtin from a different provider.
     pub fn to_openai_chat_value(&self) -> Result<Value, ConvertError> {
         match &self.tool_type {
             UniversalToolType::Function => {
@@ -351,12 +364,26 @@ impl UniversalTool {
                     "function": Value::Object(func)
                 }))
             }
-            UniversalToolType::Builtin { builtin_type, .. } => {
-                Err(ConvertError::UnsupportedToolType {
-                    tool_name: self.name.clone(),
-                    tool_type: builtin_type.clone(),
-                    target_provider: "OpenAI Chat Completions".to_string(),
-                })
+            UniversalToolType::Builtin {
+                provider,
+                builtin_type,
+                config,
+            } => {
+                if provider != "openai_chat" {
+                    return Err(ConvertError::UnsupportedToolType {
+                        tool_name: self.name.clone(),
+                        tool_type: builtin_type.clone(),
+                        target_provider: "OpenAI Chat Completions".to_string(),
+                    });
+                }
+                config
+                    .clone()
+                    .ok_or_else(|| ConvertError::MissingRequiredField {
+                        field: format!(
+                            "config for OpenAI Chat builtin tool '{}'",
+                            self.name
+                        ),
+                    })
             }
         }
     }
@@ -925,5 +952,30 @@ mod tests {
         let tools = UniversalTool::from_value_array(&responses);
         assert_eq!(tools.len(), 1);
         assert_eq!(tools[0].name, "test3");
+    }
+
+    #[test]
+    fn test_custom_tool_roundtrip_openai_chat() {
+        let tools_json = json!([
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "description": "Get weather",
+                    "parameters": {"type": "object"}
+                }
+            },
+            {
+                "type": "custom",
+                "custom": {
+                    "name": "translate",
+                    "description": "Translate text",
+                    "format": {"type": "text"}
+                }
+            }
+        ]);
+
+        let tools = UniversalTool::from_value_array(&tools_json);
+        assert_eq!(tools.len(), 2, "custom tool was silently dropped");
     }
 }
