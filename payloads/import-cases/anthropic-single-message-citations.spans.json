@@ -1,0 +1,24 @@
+[
+  {
+    "input": [
+      {
+        "content": "How do I create a custom scorer?",
+        "role": "user"
+      },
+      {
+        "content": "You are a helpful assistant.",
+        "role": "system"
+      }
+    ],
+    "output": {
+      "content": [
+        {
+          "citations": null,
+          "text": "A dataset record in Braintrust has the following fields...",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    }
+  }
+]

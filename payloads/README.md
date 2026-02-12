@@ -9,6 +9,7 @@ Scripts to capture OpenAI and Anthropic API payloads with TypeScript type safety
 - [Environment variables](#environment-variables)
 - [Capture usage](#usage)
 - [Validation tool](#validation-tool)
+- [Import span fixtures](#import-span-fixtures)
 - [Output structure](#output-structure)
 - [Example payloads](#example-payloads)
 - [Type checking](#type-checking)
@@ -145,6 +146,22 @@ chat-completions
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Summary: 4 passed, 0 failed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+## Import span fixtures
+
+For span-import tests (`input`/`output` -> Lingua messages), use:
+
+- `payloads/import-cases/`
+
+Detailed workflow and file format:
+
+- `payloads/import-cases/README.md`
+
+Generate missing assertions from spans (from repo root):
+
+```bash
+GENERATE_MISSING=1 cargo test -p lingua --test import_fixtures -- --nocapture
 ```
 
 ## Output structure

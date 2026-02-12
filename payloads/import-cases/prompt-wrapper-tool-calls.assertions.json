@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 5,
+  "expectedRolesInOrder": ["system", "user", "assistant", "tool", "assistant"],
+  "mustContainText": ["helpful assistant", "Done"]
+}
