@@ -718,7 +718,7 @@ exports[`chat-completions → anthropic > complexReasoningRequest > request 1`] 
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
 }
 `;
 
@@ -833,6 +833,253 @@ Now I'll total up for each digit across all 1440 minutes in a day (24 × 60):
 }
 `;
 
+exports[`chat-completions → anthropic > frequencyPenaltyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > frequencyPenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > instructionsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "system": "Always say ok.",
+}
+`;
+
+exports[`chat-completions → anthropic > instructionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok! Hello there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 15,
+    "prompt_tokens": 12,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 27,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > logitBiasParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hello.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > logitBiasParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello! It's nice to meet you. How are you doing today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 18,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 28,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > logprobsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2 + 2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > logprobsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 13,
+    "prompt_tokens": 16,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 29,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > maxCompletionTokensParam > request 1`] = `
+{
+  "max_tokens": 500,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > maxCompletionTokensParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > metadataParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > metadataParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > multimodalRequest > request 1`] = `
 {
   "max_tokens": 300,
@@ -854,7 +1101,7 @@ exports[`chat-completions → anthropic > multimodalRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
 }
 `;
 
@@ -886,6 +1133,364 @@ exports[`chat-completions → anthropic > multimodalRequest > response 1`] = `
 }
 `;
 
+exports[`chat-completions → anthropic > nMultipleCompletionsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say a word.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > nMultipleCompletionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 5,
+    "prompt_tokens": 11,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 16,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather in NYC and LA?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "disable_parallel_tool_use": true,
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"NYC"}",
+              "name": "get_weather",
+            },
+            "id": "toolu_01VyVdLXgyvkkBago1wtYnDh",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 44,
+    "prompt_tokens": 358,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 402,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > predictionParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Update this function to add error handling:
+
+function divide(a, b) {
+  return a / b;
+}",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > predictionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Here's the updated function with comprehensive error handling:
+
+\`\`\`javascript
+function divide(a, b) {
+  // Check if both parameters are provided
+  if (arguments.length < 2) {
+    throw new Error('Both dividend and divisor are required');
+  }
+  
+  // Check if both parameters are numbers
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new TypeError('Both arguments must be numbers');
+  }
+  
+  // Check for NaN values
+  if (isNaN(a) || isNaN(b)) {
+    throw new Error('Arguments cannot be NaN');
+  }
+  
+  // Check for division by zero
+  if (b === 0) {
+    throw new Error('Division by zero is not allowed');
+  }
+  
+  return a / b;
+}
+
+// Example usage with try-catch:
+try {
+  console.log(divide(10, 2));    // 5
+  console.log(divide(15, 3));    // 5
+  console.log(divide(10, 0));    // Throws error
+} catch (error) {
+  console.error('Error:', error.message);
+}
+\`\`\`
+
+**Alternative version with validation helper:**
+
+\`\`\`javascript
+function divide(a, b) {
+  // Validation helper function
+  function validateInput(value, paramName) {
+    if (typeof value !== 'number') {
+      throw new TypeError(\`\${paramName} must be a number\`);
+    }
+    if (isNaN(value)) {
+      throw new Error(\`\${paramName} cannot be NaN\`);
+    }
+  }
+  
+  validateInput(a, 'Dividend');
+  validateInput(b, 'Divisor');
+  
+  if (b === 0) {
+    throw new Error('Division by zero is not allowed');
+  }
+  
+  return a / b;
+}
+\`\`\`
+
+**Key error handling additions:**
+
+1. **Parameter validation** - Ensures both parameters are provided
+2. **Type checking** - Verifies both arguments are numbers
+3. **NaN validation** - Prevents invalid number operations
+4. **Division by zero** - Prevents mathematical errors
+5. **Descriptive error messages** - Makes debugging easier
+
+The function now throws appropriate errors instead of returning unexpected values like \`NaN\` or \`Infinity\`.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 556,
+    "prompt_tokens": 33,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 589,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > presencePenaltyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > presencePenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > promptCacheKeyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > promptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningEffortLowParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-6",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningEffortLowParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2+2 = **4**",
+        "reasoning": "4",
+        "reasoning_signature": "EqkBCkYICxgCKkDo5w3BcOFDM2J7MsIKxgUfuba9NpwDavusotnNesPeZa7anZZRQjr0ND/Y4T9kgQgbRz4ipY8/DiooFD5PtwvCEgy1hlYQhGq5oP/pJ5waDD8zyZjJCk2MD2paFSIwHToLXMRKvKF83V+EvlScjQnoExEZemTiKGs6s0LAY6PyyEBCCoq6NDEMJMkmZaTFKhEpejqNqcBVQ00FkfWfconNyRgB",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-opus-4-6",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 20,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 63,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > reasoningRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -895,7 +1500,7 @@ exports[`chat-completions → anthropic > reasoningRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
 }
 `;
 
@@ -958,7 +1563,7 @@ exports[`chat-completions → anthropic > reasoningRequestTruncated > request 1`
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
 }
 `;
 
@@ -998,6 +1603,53 @@ Segment 2: 80 mph for 1 hour
 }
 `;
 
+exports[`chat-completions → anthropic > reasoningSummaryParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-6",
+  "thinking": {
+    "budget_tokens": 2048,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningSummaryParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = **4**",
+        "reasoning": "4",
+        "reasoning_signature": "EqkBCkYICxgCKkDo5w3BcOFDM2J7MsIKxgUfuba9NpwDavusotnNesPeZa7anZZRQjr0ND/Y4T9kgQgbRz4ipY8/DiooFD5PtwvCEgxNeQ+pto9joPeH73MaDA9tTUpGztalgdSaaiIwUoRvdORYKB3aDndfIO3NukKYHZCWyiFJ9mh9SxxvpTljnKXsski8zzK1VTvR5lZtKhE2T/D3aq9M6qMOOlqKb/HpoxgB",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-opus-4-6",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 22,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 65,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > reasoningWithOutput > request 1`] = `
 {
   "max_tokens": 4096,
@@ -1007,7 +1659,7 @@ exports[`chat-completions → anthropic > reasoningWithOutput > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
 }
 `;
 
@@ -1041,6 +1693,132 @@ Of course, the sky can appear different colors depending on conditions - it migh
 }
 `;
 
+exports[`chat-completions → anthropic > safetyIdentifierParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > safetyIdentifierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 5,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 15,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > seedParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Pick a number.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > seedParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "42
+
+(A classic choice - it's the "Answer to the Ultimate Question of Life, the Universe, and Everything" according to Douglas Adams!)",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 34,
+    "prompt_tokens": 11,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 45,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > serviceTierParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "service_tier": "auto",
+}
+`;
+
+exports[`chat-completions → anthropic > serviceTierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > simpleRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -1050,7 +1828,7 @@ exports[`chat-completions → anthropic > simpleRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "thinking": {
     "budget_tokens": 1024,
     "type": "enabled",
@@ -1088,6 +1866,64 @@ exports[`chat-completions → anthropic > simpleRequest > response 1`] = `
 }
 `;
 
+exports[`chat-completions → anthropic > stopSequencesParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Count from 1 to 20.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "stop_sequences": [
+    "10",
+    "ten",
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > storeDisabledParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > storeDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 5,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 15,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > systemMessageArrayContent > request 1`] = `
 {
   "max_tokens": 300,
@@ -1097,7 +1933,7 @@ exports[`chat-completions → anthropic > systemMessageArrayContent > request 1`
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "system": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
 }
 `;
@@ -1159,6 +1995,230 @@ Let me know what specific aspects of the recent errors you'd like to explore fur
 }
 `;
 
+exports[`chat-completions → anthropic > temperatureParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "temperature": 0.7,
+}
+`;
+
+exports[`chat-completions → anthropic > temperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How are you doing today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 12,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 22,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonObjectParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return {"status": "ok"} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_format": {
+    "schema": {
+      "additionalProperties": false,
+      "type": "object",
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonObjectParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 6,
+    "prompt_tokens": 119,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 125,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonSchemaParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_format": {
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "object",
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonSchemaParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"age":25,"name":"John"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 12,
+    "prompt_tokens": 177,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 189,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_format": {
+    "description": "Extract person information from text",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "object",
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatTextParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hello.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatTextParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello! How are you doing today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 11,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 21,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > toolCallRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -1168,7 +2228,7 @@ exports[`chat-completions → anthropic > toolCallRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "tool_choice": {
     "type": "auto",
   },
@@ -1231,6 +2291,121 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
 }
 `;
 
+exports[`chat-completions → anthropic > toolChoiceRequiredParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > toolChoiceRequiredParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "toolu_014tEQdRC4Y4vWxHL3S2Jdmw",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 33,
+    "prompt_tokens": 659,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 692,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > topPParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "top_p": 0.9,
+}
+`;
+
+exports[`chat-completions → anthropic > topPParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! How are you doing today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 11,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 21,
+  },
+}
+`;
+
 exports[`responses → anthropic > complexReasoningRequest > request 1`] = `
 {
   "max_tokens": 20000,
@@ -1240,7 +2415,7 @@ exports[`responses → anthropic > complexReasoningRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "thinking": {
     "budget_tokens": 15000,
     "type": "enabled",
@@ -1444,7 +2619,7 @@ exports[`responses → anthropic > multimodalRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
 }
 `;
 
@@ -1495,7 +2670,7 @@ exports[`responses → anthropic > reasoningRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "thinking": {
     "budget_tokens": 3072,
     "type": "enabled",
@@ -1631,7 +2806,7 @@ exports[`responses → anthropic > reasoningRequestTruncated > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "thinking": {
     "budget_tokens": 1024,
     "type": "enabled",
@@ -1648,7 +2823,7 @@ exports[`responses → anthropic > reasoningWithOutput > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "thinking": {
     "budget_tokens": 1024,
     "type": "enabled",
@@ -1733,7 +2908,7 @@ exports[`responses → anthropic > simpleRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "thinking": {
     "budget_tokens": 1024,
     "type": "enabled",
@@ -1798,7 +2973,7 @@ exports[`responses → anthropic > systemMessageArrayContent > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "system": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
 }
 `;
@@ -1906,7 +3081,7 @@ exports[`responses → anthropic > toolCallRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "tool_choice": {
     "type": "auto",
   },

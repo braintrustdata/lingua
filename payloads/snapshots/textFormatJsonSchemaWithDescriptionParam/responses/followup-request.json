@@ -1,0 +1,56 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Name: John, Age: 25"
+    },
+    {
+      "id": "rs_0593c2fcaafbb9f300698e400eba288195873764952b4f4a5e",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0593c2fcaafbb9f300698e40149dd48195af87b48c9d25de34",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"name\":\"John\",\"age\":25}"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "person_info",
+      "description": "Extract person information from text",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "age"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  }
+}

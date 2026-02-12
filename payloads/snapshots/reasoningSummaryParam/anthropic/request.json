@@ -1,5 +1,5 @@
 {
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-opus-4-6",
   "max_tokens": 16000,
   "messages": [
     {
@@ -7,8 +7,7 @@
       "content": "What is 2+2?"
     }
   ],
-  "thinking": {
-    "type": "enabled",
-    "budget_tokens": 10000
+  "output_config": {
+    "effort": "medium"
   }
 }
