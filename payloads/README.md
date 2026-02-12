@@ -161,7 +161,7 @@ Detailed workflow and file format:
 Generate missing assertions from spans (from repo root):
 
 ```bash
-GENERATE_MISSING=1 cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
+GENERATE_MISSING=1 cargo test -p lingua --test import_fixtures -- --nocapture
 ```
 
 ## Output structure

@@ -9,7 +9,7 @@ Each case uses:
 
 The test runner is:
 
-- `crates/lingua/src/processing/import.rs`
+- `crates/lingua/tests/import_fixtures.rs`
 
 ## Quick workflow
 
@@ -58,25 +58,25 @@ Supported keys:
 Default mode (strict):
 
 ```bash
-cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
+cargo test -p lingua --test import_fixtures -- --nocapture
 ```
 
 Generate missing assertions:
 
 ```bash
-GENERATE_MISSING=1 cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
+GENERATE_MISSING=1 cargo test -p lingua --test import_fixtures -- --nocapture
 ```
 
 Refresh all existing assertions (keeps existing `mustContainText` values):
 
 ```bash
-ACCEPT=1 cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
+ACCEPT=1 cargo test -p lingua --test import_fixtures -- --nocapture
 ```
 
 Run only matching cases:
 
 ```bash
-CASE_FILTER=simpsons cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
+CASE_FILTER=simpsons cargo test -p lingua --test import_fixtures -- --nocapture
 ```
 
 Notes:
