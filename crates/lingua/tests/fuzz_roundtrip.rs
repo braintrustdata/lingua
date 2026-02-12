@@ -214,7 +214,7 @@ fn extract_system_text(messages: &[Message]) -> String {
 
 fn default_model(format: ProviderFormat) -> &'static str {
     match format {
-        ProviderFormat::OpenAI => "gpt-4",
+        ProviderFormat::ChatCompletions => "gpt-4",
         ProviderFormat::Anthropic => "claude-3-5-sonnet-20241022",
         ProviderFormat::Google => "gemini-1.5-flash",
         ProviderFormat::Responses => "gpt-4",
@@ -224,7 +224,7 @@ fn default_model(format: ProviderFormat) -> &'static str {
 
 fn parse_format(s: &str) -> ProviderFormat {
     match s {
-        "openai" => ProviderFormat::OpenAI,
+        "openai" => ProviderFormat::ChatCompletions,
         "anthropic" => ProviderFormat::Anthropic,
         "google" => ProviderFormat::Google,
         "responses" => ProviderFormat::Responses,
@@ -533,7 +533,7 @@ mod strategies {
 
     pub fn arb_provider_payload() -> impl Strategy<Value = (ProviderFormat, Value)> {
         prop_oneof![
-            arb_openai_payload().prop_map(|p| (ProviderFormat::OpenAI, p)),
+            arb_openai_payload().prop_map(|p| (ProviderFormat::ChatCompletions, p)),
             arb_anthropic_payload().prop_map(|p| (ProviderFormat::Anthropic, p)),
             arb_google_payload().prop_map(|p| (ProviderFormat::Google, p)),
         ]
@@ -638,10 +638,10 @@ proptest! {
     /// OpenAI Chat Completions JSON -> roundtrip through all providers.
     #[test]
     fn prop_openai_payload(payload in strategies::arb_openai_payload()) {
-        if let Ok(universal) = RoundtripHarness::from_provider_json(ProviderFormat::OpenAI, payload.clone()) {
+        if let Ok(universal) = RoundtripHarness::from_provider_json(ProviderFormat::ChatCompletions, payload.clone()) {
             let _ = universal; // parsed ok
             if let Err(e) = run_roundtrips(
-                ProviderFormat::OpenAI, &payload,
+                ProviderFormat::ChatCompletions, &payload,
                 &[ProviderFormat::Anthropic, ProviderFormat::Google],
             ) {
                 prop_assert!(false, "{}", e);
@@ -656,7 +656,7 @@ proptest! {
             let _ = universal;
             if let Err(e) = run_roundtrips(
                 ProviderFormat::Anthropic, &payload,
-                &[ProviderFormat::OpenAI, ProviderFormat::Google],
+                &[ProviderFormat::ChatCompletions, ProviderFormat::Google],
             ) {
                 prop_assert!(false, "{}", e);
             }
@@ -670,7 +670,7 @@ proptest! {
             let _ = universal;
             if let Err(e) = run_roundtrips(
                 ProviderFormat::Google, &payload,
-                &[ProviderFormat::OpenAI, ProviderFormat::Anthropic],
+                &[ProviderFormat::ChatCompletions, ProviderFormat::Anthropic],
             ) {
                 prop_assert!(false, "{}", e);
             }
@@ -680,7 +680,7 @@ proptest! {
     /// Any provider JSON -> all roundtrips (maximum coverage).
     #[test]
     fn prop_any_provider((format, payload) in strategies::arb_provider_payload()) {
-        let all_targets = [ProviderFormat::OpenAI, ProviderFormat::Anthropic, ProviderFormat::Google];
+        let all_targets = [ProviderFormat::ChatCompletions, ProviderFormat::Anthropic, ProviderFormat::Google];
         let targets: Vec<_> = all_targets.iter().copied().filter(|&t| t != format).collect();
 
         if let Ok(_) = RoundtripHarness::from_provider_json(format, payload.clone()) {
