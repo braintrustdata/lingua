@@ -59,6 +59,7 @@ paste.workspace = true
 log.workspace = true
 env_logger.workspace = true
 proptest.workspace = true
+coverage-report = { path = "../coverage-report" }
 
 [lib]
 name = "lingua"

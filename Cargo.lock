@@ -2074,6 +2074,7 @@ dependencies = [
  "base64 0.22.1",
  "big_serde_json",
  "bytes",
+ "coverage-report",
  "env_logger",
  "js-sys",
  "log",
