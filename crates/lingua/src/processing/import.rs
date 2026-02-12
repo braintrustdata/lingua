@@ -399,10 +399,12 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde::Serialize;
+    use std::env;
     use std::fs;
     use std::path::{Path, PathBuf};
 
-    #[derive(Debug, Deserialize)]
+    #[derive(Debug, Clone, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     struct ImportAssertionCase {
         expected_message_count: Option<usize>,
@@ -456,16 +458,66 @@ mod tests {
         }
     }
 
+    fn infer_assertions_from_messages(messages: &[Message]) -> ImportAssertionCase {
+        let roles = messages
+            .iter()
+            .map(|message| message_role(message).to_string())
+            .collect();
+
+        ImportAssertionCase {
+            expected_message_count: Some(messages.len()),
+            expected_roles_in_order: Some(roles),
+            must_contain_text: Some(vec![]),
+        }
+    }
+
+    fn write_assertions_fixture(assertions_path: &Path, assertions: &ImportAssertionCase) {
+        let json = serde_json::to_string_pretty(assertions)
+            .expect("assertions fixture should serialize")
+            + "\n";
+        fs::write(assertions_path, json).unwrap_or_else(|e| {
+            panic!(
+                "failed to write assertions fixture: {} ({})",
+                e,
+                assertions_path.display()
+            )
+        });
+    }
+
+    fn env_flag_enabled(flag: &str) -> bool {
+        env::var(flag)
+            .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+            .unwrap_or(false)
+    }
+
     #[test]
     fn test_import_cases_from_shared_fixtures() {
+        let generate_missing = env_flag_enabled("GENERATE_MISSING");
+        let accept = env_flag_enabled("ACCEPT");
+        let case_filter = env::var("CASE_FILTER").ok();
+
+        assert!(
+            !(env_flag_enabled("CI") && (generate_missing || accept)),
+            "GENERATE_MISSING/ACCEPT are disabled in CI"
+        );
+
         let case_paths = discover_import_case_paths();
         assert!(
             !case_paths.is_empty(),
             "no import case fixtures found in payloads/import-cases"
         );
 
+        let mut generated_count = 0usize;
+        let mut checked_count = 0usize;
+
         for spans_path in case_paths {
             let case_name = case_name_from_spans_path(&spans_path);
+            if let Some(filter) = &case_filter {
+                if !case_name.contains(filter) {
+                    continue;
+                }
+            }
+
             let spans_json = fs::read_to_string(&spans_path).unwrap_or_else(|e| {
                 panic!(
                     "failed to read spans fixture for case '{}': {} ({})",
@@ -486,27 +538,56 @@ mod tests {
 
             let assertions_path =
                 spans_path.with_file_name(format!("{}.assertions.json", case_name));
-            let assertions_json = fs::read_to_string(&assertions_path).unwrap_or_else(|e| {
-                panic!(
-                    "failed to read assertions fixture for case '{}': {} ({})",
-                    case_name,
-                    e,
-                    assertions_path.display()
-                )
-            });
-            let assertions: ImportAssertionCase = serde_json::from_str(&assertions_json)
-                .unwrap_or_else(|e| {
+            let messages = import_messages_from_spans(spans);
+            let serialized_messages =
+                serde_json::to_string(&messages).expect("messages should serialize to json");
+            let inferred = infer_assertions_from_messages(&messages);
+
+            let assertions = if assertions_path.exists() {
+                let assertions_json = fs::read_to_string(&assertions_path).unwrap_or_else(|e| {
                     panic!(
-                        "failed to parse assertions fixture for case '{}': {} ({})",
+                        "failed to read assertions fixture for case '{}': {} ({})",
                         case_name,
                         e,
                         assertions_path.display()
                     )
                 });
+                let existing: ImportAssertionCase = serde_json::from_str(&assertions_json)
+                    .unwrap_or_else(|e| {
+                        panic!(
+                            "failed to parse assertions fixture for case '{}': {} ({})",
+                            case_name,
+                            e,
+                            assertions_path.display()
+                        )
+                    });
 
-            let messages = import_messages_from_spans(spans);
-            let serialized_messages =
-                serde_json::to_string(&messages).expect("messages should serialize to json");
+                if accept {
+                    let updated = ImportAssertionCase {
+                        expected_message_count: inferred.expected_message_count,
+                        expected_roles_in_order: inferred.expected_roles_in_order,
+                        must_contain_text: existing.must_contain_text.clone(),
+                    };
+                    write_assertions_fixture(&assertions_path, &updated);
+                    generated_count += 1;
+                    println!("updated assertions fixture for case '{}'", case_name);
+                    updated
+                } else {
+                    existing
+                }
+            } else if generate_missing || accept {
+                write_assertions_fixture(&assertions_path, &inferred);
+                generated_count += 1;
+                println!("generated assertions fixture for case '{}'", case_name);
+                inferred
+            } else {
+                panic!(
+                    "missing assertions fixture for case '{}' at {}.\n\
+                     Re-run with GENERATE_MISSING=1 to create it.",
+                    case_name,
+                    assertions_path.display()
+                );
+            };
 
             if let Some(expected_count) = assertions.expected_message_count {
                 assert_eq!(
@@ -539,6 +620,20 @@ mod tests {
                     );
                 }
             }
+            checked_count += 1;
+        }
+
+        assert!(
+            checked_count > 0,
+            "no fixtures matched CASE_FILTER={:?}",
+            case_filter
+        );
+
+        if generated_count > 0 {
+            println!(
+                "wrote {} assertions fixture file(s) (generate_missing={}, accept={})",
+                generated_count, generate_missing, accept
+            );
         }
     }
 }

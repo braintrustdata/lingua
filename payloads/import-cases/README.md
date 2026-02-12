@@ -1,50 +1,23 @@
-# Import Cases: UI Span -> Test Fixture
+# Import Cases: UI Span -> Rust Fixture Test
 
-This folder holds fixtures for span-import testing.
+This folder holds fixtures for `import_messages_from_spans` Rust tests.
 
-Each test case uses two files:
+Each case uses:
 
-- `<name>.spans.json`: array of spans
-- `<name>.assertions.json`: expected outcomes
+- `<name>.spans.json`: required
+- `<name>.assertions.json`: optional when bootstrapping
 
-Current consumers:
+The test runner is:
 
-- TypeScript test: `bindings/typescript/tests/two-step-conversion.test.ts`
-- Rust test: `crates/lingua/src/processing/import.rs`
+- `crates/lingua/src/processing/import.rs`
 
 ## Quick workflow
 
 1. Copy a span object from the UI.
-2. Generate fixture files with `pnpm new-import-case`.
-3. Review and adjust assertions.
-4. Run TS and/or Rust fixture tests.
-
-## Fixture generator
-
-From `payloads/`:
-
-```bash
-pnpm new-import-case --name simpsons-cancelation --from /tmp/span.json
-```
-
-Or from pasted JSON on stdin:
-
-```bash
-pbpaste | pnpm new-import-case --name simpsons-cancelation
-```
-
-The generator creates:
-
-- `payloads/import-cases/<name>.spans.json`
-- `payloads/import-cases/<name>.assertions.json`
-
-Default behavior trims spans to stable fields (`input` and `output`).
-
-Useful flags:
-
-- `--keep-full-span`: keep all span keys from UI
-- `--force`: overwrite existing files
-- `--dry-run`: print generated files without writing
+2. Save a fixture as `payloads/import-cases/<name>.spans.json`.
+3. Run the Rust test with `GENERATE_MISSING=1` to create missing assertions.
+4. Review/edit the generated `*.assertions.json`.
+5. Run the Rust test without flags for strict assertion mode.
 
 ## File formats
 
@@ -61,8 +34,8 @@ Useful flags:
 
 Notes:
 
-- You can paste the full span from UI, but trimming to `input`/`output` keeps fixtures stable.
 - Use an array even for a single span.
+- Prefer stable fields (`input`, `output`) to reduce fixture churn.
 
 ### `*.assertions.json`
 
@@ -70,7 +43,7 @@ Notes:
 {
   "expectedMessageCount": 2,
   "expectedRolesInOrder": ["user", "assistant"],
-  "mustContainText": ["magic 8-ball"]
+  "mustContainText": []
 }
 ```
 
@@ -80,59 +53,33 @@ Supported keys:
 - `expectedRolesInOrder` (string array)
 - `mustContainText` (string array)
 
-Generator note:
+## Test modes
 
-- `expectedMessageCount` and `expectedRolesInOrder` are inferred with simple role scanning.
-- Always review inferred assertions before committing.
-
-## Using a copied UI span
-
-Given a large UI span object, extract:
-
-- `input`
-- `output`
-
-and create:
-
-```json
-[
-  {
-    "input": [
-      { "role": "user", "content": "will they cancel the Simpsons show soon?", "type": "message" }
-    ],
-    "output": [
-      {
-        "content": [
-          {
-            "type": "output_text",
-            "text": "I consulted my trusty magic 8-ball..."
-          }
-        ],
-        "role": "assistant",
-        "type": "message"
-      }
-    ]
-  }
-]
-```
-
-If you want an automated trim from a file containing one span object:
+Default mode (strict):
 
 ```bash
-jq '[{input, output}]' raw-span.json > payloads/import-cases/<name>.spans.json
+cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
 ```
 
-## Run tests
-
-Run the fixture-driven TS test:
+Generate missing assertions:
 
 ```bash
-cd bindings/typescript
-pnpm vitest run tests/two-step-conversion.test.ts
+GENERATE_MISSING=1 cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
 ```
 
-Run Rust import tests:
+Refresh all existing assertions (keeps existing `mustContainText` values):
 
 ```bash
-cargo test -p lingua processing::import::tests
+ACCEPT=1 cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
 ```
+
+Run only matching cases:
+
+```bash
+CASE_FILTER=simpsons cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
+```
+
+Notes:
+
+- `GENERATE_MISSING` and `ACCEPT` are disabled in CI.
+- Generated assertions infer message count and role order from current importer output.

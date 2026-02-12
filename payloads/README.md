@@ -158,10 +158,10 @@ Detailed workflow and file format:
 
 - `payloads/import-cases/README.md`
 
-Quick command (from `payloads/`):
+Generate missing assertions from spans (from repo root):
 
 ```bash
-pbpaste | pnpm new-import-case --name my-case-name
+GENERATE_MISSING=1 cargo test -p lingua processing::import::tests::test_import_cases_from_shared_fixtures -- --nocapture
 ```
 
 ## Output structure
