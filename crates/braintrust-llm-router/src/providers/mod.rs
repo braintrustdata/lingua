@@ -132,8 +132,8 @@ pub trait Provider: Send + Sync {
     /// Provider identifier (e.g., "openai", "anthropic").
     fn id(&self) -> &'static str;
 
-    /// The format this provider expects/produces.
-    fn format(&self) -> ProviderFormat;
+    /// All formats this provider can handle.
+    fn provider_formats(&self) -> Vec<ProviderFormat>;
 
     /// Execute a completion request.
     ///
@@ -151,6 +151,7 @@ pub trait Provider: Send + Sync {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes>;
 
@@ -170,6 +171,7 @@ pub trait Provider: Send + Sync {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream>;
 

@@ -146,8 +146,8 @@ impl crate::providers::Provider for VertexProvider {
         "vertex"
     }
 
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::Google
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::Google]
     }
 
     async fn complete(
@@ -155,6 +155,7 @@ impl crate::providers::Provider for VertexProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        _format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let mode = self.determine_mode(&spec.model);
@@ -214,10 +215,13 @@ impl crate::providers::Provider for VertexProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self.complete(payload, auth, spec, client_headers).await?;
+            let response = self
+                .complete(payload, auth, spec, format, client_headers)
+                .await?;
             return Ok(single_bytes_stream(response));
         }
 

@@ -11,6 +11,7 @@ import { openaiResponsesExecutor } from "./providers/openai-responses";
 import { anthropicExecutor } from "./providers/anthropic";
 import { googleExecutor } from "./providers/google";
 import { bedrockExecutor } from "./providers/bedrock";
+import { bedrockAnthropicExecutor } from "./providers/bedrock-anthropic";
 import { ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
@@ -20,6 +21,7 @@ const allProviders = [
   anthropicExecutor,
   googleExecutor,
   bedrockExecutor,
+  bedrockAnthropicExecutor,
 ] as const;
 
 interface CaptureOptions {

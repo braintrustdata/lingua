@@ -107,9 +107,21 @@ fn get_expected_differences(category: TestCategory) -> &'static ExpectedDifferen
     }
 }
 
+/// Whether `provider` inherits expected-difference rules from `parent`.
+///
+/// Bedrock Anthropic delegates all conversion to `AnthropicAdapter`, so it
+/// shares every known limitation with "Anthropic".
+fn inherits_from(provider: &str, parent: &str) -> bool {
+    matches!((provider, parent), ("Bedrock Anthropic", "Anthropic"))
+}
+
 /// Helper function for source/target matching with wildcard support.
 fn matches_source_target(rule_source: &str, rule_target: &str, source: &str, target: &str) -> bool {
-    (rule_source == "*" || rule_source == source) && (rule_target == "*" || rule_target == target)
+    let source_matches =
+        rule_source == "*" || rule_source == source || inherits_from(source, rule_source);
+    let target_matches =
+        rule_target == "*" || rule_target == target || inherits_from(target, rule_target);
+    source_matches && target_matches
 }
 
 /// Check if a test case is expected to be skipped for the given source→target.

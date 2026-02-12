@@ -75,10 +75,11 @@ pub fn test_request_transformation(
         }
     };
 
-    // Provide model for formats that have model in URL (Google, Bedrock)
+    // Provide model for formats that have model in URL, not in payload body
     let model: Option<&str> = match source_adapter.format() {
         ProviderFormat::Google => Some("gemini-1.5-pro"),
         ProviderFormat::Converse => Some("anthropic.claude-3-sonnet"),
+        ProviderFormat::BedrockAnthropic => Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
         _ => None,
     };
 
@@ -164,7 +165,17 @@ pub fn test_request_transformation(
 
     // Use request_to_universal to validate - gives detailed error info
     match target_adapter.request_to_universal(transformed) {
-        Ok(target_universal) => {
+        Ok(mut target_universal) => {
+            // For self-roundtrip tests, re-inject the synthetic model so both sides
+            // of the comparison match. Formats like BedrockAnthropic, Google, and
+            // Converse carry model in the URL path, not the payload body, so the
+            // roundtripped universal would otherwise lose the model we injected above.
+            if source_adapter.format() == target_adapter.format()
+                && model.is_some()
+                && target_universal.model.is_none()
+            {
+                target_universal.model = model.map(String::from);
+            }
             let target_universal_value = universal_request_to_value(&target_universal);
             let context = CompareContext::for_cross_provider(
                 TestCategory::Requests,

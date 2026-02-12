@@ -762,4 +762,100 @@ mod tests {
             "Non-reasoning models should passthrough"
         );
     }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_bedrock_anthropic_model_openai_input() {
+        // OpenAI input targeting internal BedrockAnthropic format should produce
+        // invoke-ready Anthropic body.
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::BedrockAnthropic,
+            Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
+        assert_eq!(
+            output.get("anthropic_version").unwrap().as_str().unwrap(),
+            "bedrock-2023-05-31"
+        );
+        assert!(output.get("max_tokens").is_some());
+        assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_bedrock_anthropic_model_anthropic_input() {
+        // Anthropic input targeting internal BedrockAnthropic format skips passthrough
+        // and emits invoke-ready body.
+        let payload = json!({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::BedrockAnthropic,
+            Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Anthropic));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
+        assert_eq!(
+            output.get("anthropic_version").unwrap().as_str().unwrap(),
+            "bedrock-2023-05-31"
+        );
+        assert_eq!(output.get("max_tokens").unwrap().as_i64().unwrap(), 1024);
+        assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "bedrock"))]
+    fn test_non_anthropic_bedrock_model_uses_converse() {
+        // Non-anthropic bedrock models still go through Converse translation.
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::Converse,
+            Some("amazon.nova-pro-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(
+            output.get("anthropic_version").is_none(),
+            "Non-anthropic models should not have anthropic_version"
+        );
+    }
 }

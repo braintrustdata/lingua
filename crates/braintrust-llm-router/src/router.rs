@@ -101,6 +101,7 @@ type ResolvedRoute<'a> = (
     Arc<dyn Provider>,
     &'a AuthConfig,
     Arc<ModelSpec>,
+    ProviderFormat,
     RetryStrategy,
 );
 
@@ -148,9 +149,8 @@ impl Router {
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let (provider, auth, spec, strategy) = self.resolve_provider(model)?;
-        let payload = match lingua::transform_request(body.clone(), provider.format(), Some(model))
-        {
+        let (provider, auth, spec, format, strategy) = self.resolve_provider(model)?;
+        let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
@@ -162,6 +162,7 @@ impl Router {
                 provider.clone(),
                 auth,
                 spec,
+                format,
                 payload,
                 strategy,
                 client_headers,
@@ -204,9 +205,8 @@ impl Router {
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
-        let (provider, auth, spec, _) = self.resolve_provider(model)?;
-        let payload = match lingua::transform_request(body.clone(), provider.format(), Some(model))
-        {
+        let (provider, auth, spec, format, _) = self.resolve_provider(model)?;
+        let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
@@ -214,7 +214,7 @@ impl Router {
         };
 
         let raw_stream = provider
-            .complete_stream(payload, auth, &spec, client_headers)
+            .complete_stream(payload, auth, &spec, format, client_headers)
             .await?;
 
         Ok(transform_stream(raw_stream, output_format))
@@ -238,14 +238,16 @@ impl Router {
             .get(&alias)
             .ok_or_else(|| Error::NoAuth(alias.clone()))?;
         let strategy = self.retry_policy.strategy();
-        Ok((provider, auth, spec, strategy))
+        Ok((provider, auth, spec, format, strategy))
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn execute_with_retry(
         &self,
         provider: Arc<dyn Provider>,
         auth: &AuthConfig,
         spec: Arc<ModelSpec>,
+        format: ProviderFormat,
         payload: Bytes,
         mut strategy: RetryStrategy,
         client_headers: &ClientHeaders,
@@ -268,7 +270,7 @@ impl Router {
                 );
                 async {
                     provider
-                        .complete(payload.clone(), auth, &spec, client_headers)
+                        .complete(payload.clone(), auth, &spec, format, client_headers)
                         .await
                 }
                 .instrument(span)
@@ -277,7 +279,7 @@ impl Router {
 
             #[cfg(not(feature = "tracing"))]
             let result = provider
-                .complete(payload.clone(), auth, &spec, client_headers)
+                .complete(payload.clone(), auth, &spec, format, client_headers)
                 .await;
 
             match result {
@@ -349,8 +351,9 @@ impl RouterBuilder {
         P: Provider + 'static,
     {
         let alias = alias.into();
-        let format = provider.format();
-        self.formats.insert(format, alias.clone());
+        for format in provider.provider_formats() {
+            self.formats.insert(format, alias.clone());
+        }
         self.providers.insert(alias, Arc::new(provider));
         self
     }
@@ -362,8 +365,9 @@ impl RouterBuilder {
         provider: Arc<dyn Provider>,
     ) -> Self {
         let alias = alias.into();
-        let format = provider.format();
-        self.formats.insert(format, alias.clone());
+        for format in provider.provider_formats() {
+            self.formats.insert(format, alias.clone());
+        }
         self.providers.insert(alias, provider);
         self
     }

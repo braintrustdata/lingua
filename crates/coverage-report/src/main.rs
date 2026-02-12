@@ -184,7 +184,7 @@ fn print_usage() {
     eprintln!("  --target <names>         Filter target providers");
     eprintln!("  -f, --format <format>    Output format: markdown (default), compact");
     eprintln!();
-    eprintln!("Provider names: responses, chat-completions, anthropic, google, bedrock");
+    eprintln!("Provider names: responses, chat-completions, anthropic, google, bedrock, bedrock-anthropic");
     eprintln!();
     eprintln!("Examples:");
     eprintln!("  coverage-report                                    # Run all tests");

@@ -53,6 +53,13 @@
         { "pattern": "id", "reason": "Anthropic streaming separates metadata (message_start) from content events; id may be lost when tool_calls prevent emitting message_start" },
         { "pattern": "model", "reason": "Anthropic streaming separates metadata (message_start) from content events; model may be lost when tool_calls prevent emitting message_start" }
       ]
+    },
+    {
+      "source": "Bedrock Anthropic",
+      "target": "*",
+      "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "Bedrock Anthropic message_delta only has output_tokens; prompt_tokens=0 added during roundtrip" }
+      ]
     }
   ],
   "perTestCase": [
