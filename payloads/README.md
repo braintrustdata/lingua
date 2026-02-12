@@ -61,6 +61,55 @@ make test-payloads                # Runs transform tests + sync check
 
 `cargo test -p coverage-report` (runs as part of `make test`) validates roundtrip transformations across all providers using the `snapshots/` data
 
+### 3. Auto-regenerate failed transforms
+
+When `make test-payloads` fails due to snapshot mismatches, automatically regenerate only the failed transform captures with real API calls:
+
+```bash
+make regenerate-failed-transforms   # Detect failures, recapture failed cases, re-run tests
+# or
+make test-payloads REGENERATE=1     # Same as above, combined with test run
+```
+
+#### How it works
+
+**The problem:** When you change transformation code (e.g., changing `output_format` → `output_config`), your tests fail with snapshot mismatches:
+
+```diff
+- Expected (old snapshot): "output_format": { ... }
++ Received (new code):      "output_config": { "format": { ... } }
+```
+
+**What `make regenerate-failed-transforms` does:**
+
+1. **Runs tests** and detects which cases failed
+2. **Extracts case names** from failed test names (e.g., `"chat-completions → anthropic > textFormatJsonObjectParam"` → `"textFormatJsonObjectParam"`)
+3. **Recaptures only those cases** by:
+   - Transforming the request via WASM (using your NEW code)
+   - Sending the transformed request to the real provider API (Anthropic, OpenAI, etc.)
+   - Verifying the provider accepts the new format (or errors if invalid)
+   - Saving the actual API response to `transforms/`
+4. **Updates vitest snapshots** to match the new format
+5. **Re-runs tests** to verify everything passes
+
+**Why recapture instead of just updating snapshots?**
+
+Because we need to verify that your code changes produce requests that the actual provider APIs accept. For example:
+- ✅ Anthropic accepts the new `output_config` format → tests pass
+- ❌ Anthropic rejects it → you see the error immediately
+
+Updating snapshots without API validation would make tests pass without verifying the new format works with real APIs.
+
+#### When to use each approach
+
+| Scenario | Command | Reason |
+|----------|---------|--------|
+| **Code changed transform logic** | `make regenerate-failed-transforms` | Verify new format works with real provider APIs |
+| **Added new test cases** | `make capture --force` | Capture responses for new cases across all providers |
+| **Manual regeneration of specific cases** | `make capture CASES=case1,case2 FORCE=1` | Target specific cases by exact name |
+
+**Note:** The `CASES` variable accepts exact case names (comma-separated), while `FILTER` does substring matching.
+
 ### Example: what happens for `simpleRequest`
 
 **`make capture FILTER=simpleRequest`** produces:

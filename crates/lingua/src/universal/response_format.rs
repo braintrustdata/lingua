@@ -6,7 +6,7 @@ response format configurations:
 - OpenAI Chat: `{ type: "text" | "json_object" | "json_schema", json_schema? }`
 - OpenAI Responses: nested under `text.format` with flattened schema
 - Google: `response_mime_type` + `response_schema`
-- Anthropic: `{ type: "json_schema", schema, description? }` (no name/strict)
+- Anthropic: `{ type: "json_schema", schema }` (no name/strict/description)
 
 ## Design
 
@@ -34,7 +34,8 @@ use std::convert::TryFrom;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::transform::TransformError;
-use crate::serde_json::{json, Map, Value};
+use crate::providers::anthropic::generated::JsonOutputFormat;
+use crate::serde_json::{self, json, Map, Value};
 use crate::universal::request::{JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType};
 
 // =============================================================================
@@ -48,7 +49,9 @@ impl<'a> TryFrom<(ProviderFormat, &'a Value)> for ResponseFormatConfig {
         match provider {
             ProviderFormat::ChatCompletions => Ok(from_openai_chat(value)?),
             ProviderFormat::Responses => Ok(from_openai_responses(value)?),
-            ProviderFormat::Anthropic => Ok(from_anthropic(value)?),
+            ProviderFormat::Anthropic => serde_json::from_value::<JsonOutputFormat>(value.clone())
+                .map(|f| ResponseFormatConfig::from(&f))
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string())),
             _ => Ok(Self::default()),
         }
     }
@@ -72,7 +75,9 @@ impl ResponseFormatConfig {
         match provider {
             ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)),
             ProviderFormat::Responses => Ok(to_openai_responses_text(self)),
-            ProviderFormat::Anthropic => Ok(to_anthropic(self)),
+            ProviderFormat::Anthropic => Ok(JsonOutputFormat::try_from(self)
+                .ok()
+                .and_then(|f| serde_json::to_value(&f).ok())),
             _ => Ok(None),
         }
     }
@@ -110,46 +115,6 @@ fn from_openai_chat(value: &Value) -> Result<ResponseFormatConfig, ConvertError>
                     .and_then(Value::as_str)
                     .map(String::from),
             })
-        })
-    } else {
-        None
-    };
-
-    Ok(ResponseFormatConfig {
-        format_type,
-        json_schema,
-    })
-}
-
-/// Parse Anthropic `output_format` into ResponseFormatConfig.
-///
-/// Handles:
-/// - `{ type: "json_schema", schema: {...}, name?, strict?, description? }`
-///
-/// Note: Anthropic's format is simpler - schema is directly at top level,
-/// not nested under a `json_schema` key like OpenAI.
-fn from_anthropic(value: &Value) -> Result<ResponseFormatConfig, ConvertError> {
-    let format_type = match value.get("type").and_then(Value::as_str) {
-        Some(s) => Some(s.parse().map_err(|_| ConvertError::InvalidEnumValue {
-            type_name: "ResponseFormatType",
-            value: s.to_string(),
-        })?),
-        None => None,
-    };
-
-    let json_schema = if format_type == Some(ResponseFormatType::JsonSchema) {
-        value.get("schema").cloned().map(|schema| JsonSchemaConfig {
-            name: value
-                .get("name")
-                .and_then(Value::as_str)
-                .map(String::from)
-                .unwrap_or_else(|| "response".to_string()),
-            schema,
-            strict: value.get("strict").and_then(Value::as_bool),
-            description: value
-                .get("description")
-                .and_then(Value::as_str)
-                .map(String::from),
         })
     } else {
         None
@@ -261,39 +226,6 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Option<Value> {
     };
 
     Some(json!({ "format": format_obj }))
-}
-
-/// Convert ResponseFormatConfig to Anthropic `output_format` value.
-///
-/// Output format:
-/// - `{ type: "json_schema", schema: {...}, description? }`
-///
-/// Note: Anthropic rejects `name` and `strict` fields with a 400 error.
-/// Returns `None` for Text type. JsonObject is converted to json_schema with generic schema.
-fn to_anthropic(config: &ResponseFormatConfig) -> Option<Value> {
-    let format_type = config.format_type?;
-
-    match format_type {
-        // Anthropic doesn't support text format for structured outputs
-        ResponseFormatType::Text => None,
-        // json_object is converted to json_schema with generic { type: "object" } schema
-        // Anthropic requires additionalProperties: false in the schema
-        ResponseFormatType::JsonObject => Some(json!({
-            "type": "json_schema",
-            "schema": { "type": "object", "additionalProperties": false }
-        })),
-        ResponseFormatType::JsonSchema => {
-            let js = config.json_schema.as_ref()?;
-            let mut obj = Map::new();
-            obj.insert("type".into(), Value::String("json_schema".into()));
-            obj.insert("schema".into(), js.schema.clone());
-            // Note: Anthropic doesn't support "name" or "strict" fields - it returns 400 if present
-            if let Some(ref desc) = js.description {
-                obj.insert("description".into(), Value::String(desc.clone()));
-            }
-            Some(Value::Object(obj))
-        }
-    }
 }
 
 #[cfg(test)]

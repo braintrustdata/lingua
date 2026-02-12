@@ -1883,6 +1883,34 @@ exports[`chat-completions → anthropic > stopSequencesParam > request 1`] = `
 }
 `;
 
+exports[`chat-completions → anthropic > stopSequencesParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, ",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 29,
+    "prompt_tokens": 16,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 45,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > storeDisabledParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -2047,12 +2075,14 @@ exports[`chat-completions → anthropic > textFormatJsonObjectParam > request 1`
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
-  "output_format": {
-    "schema": {
-      "additionalProperties": false,
-      "type": "object",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "type": "object",
+      },
+      "type": "json_schema",
     },
-    "type": "json_schema",
   },
 }
 `;
@@ -2075,12 +2105,12 @@ exports[`chat-completions → anthropic > textFormatJsonObjectParam > response 1
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 6,
+    "completion_tokens": 4,
     "prompt_tokens": 119,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 125,
+    "total_tokens": 123,
   },
 }
 `;
@@ -2095,24 +2125,26 @@ exports[`chat-completions → anthropic > textFormatJsonSchemaParam > request 1`
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
-  "output_format": {
-    "schema": {
-      "additionalProperties": false,
-      "properties": {
-        "age": {
-          "type": "number",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
         },
-        "name": {
-          "type": "string",
-        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
       },
-      "required": [
-        "name",
-        "age",
-      ],
-      "type": "object",
+      "type": "json_schema",
     },
-    "type": "json_schema",
   },
 }
 `;
@@ -2155,25 +2187,54 @@ exports[`chat-completions → anthropic > textFormatJsonSchemaWithDescriptionPar
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
-  "output_format": {
-    "description": "Extract person information from text",
-    "schema": {
-      "additionalProperties": false,
-      "properties": {
-        "age": {
-          "type": "number",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
         },
-        "name": {
-          "type": "string",
-        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
       },
-      "required": [
-        "name",
-        "age",
-      ],
-      "type": "object",
+      "type": "json_schema",
     },
-    "type": "json_schema",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"age":25,"name":"John"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 12,
+    "prompt_tokens": 177,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 189,
   },
 }
 `;
