@@ -1,4 +1,4 @@
 {
-  "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"`max_tokens` must be greater than `thinking.budget_tokens`. Please consult our documentation at https://docs.claude.com/en/docs/build-with-claude/extended-thinking#max-tokens-and-context-window-size\"},\"request_id\":\"req_011CXasVyLu26rs4f6bS7DRJ\"}",
+  "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"`max_tokens` must be greater than `thinking.budget_tokens`. Please consult our documentation at https://docs.claude.com/en/docs/build-with-claude/extended-thinking#max-tokens-and-context-window-size\"},\"request_id\":\"req_011CY4kTNa7EUi2ghSUdr5gT\"}",
   "name": "Error"
 }

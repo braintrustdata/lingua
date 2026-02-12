@@ -1,13 +1,13 @@
 {
   "model": "claude-sonnet-4-20250514",
-  "id": "msg_01RSPSbeb1syPbxTsgGSbVt6",
+  "id": "msg_0122ATGSrwyRYNBXF5VTcCNv",
   "type": "message",
   "role": "assistant",
   "content": [
     {
       "type": "thinking",
-      "thinking": "This is a straightforward factual question about geography. The capital of France is Paris. This is basic knowledge that I can answer directly.",
-      "signature": "ErgCCkYICxgCKkDAcAhMIaE3za7R+jLBO4RA0fkGL5aFbum0oHigdpj1dsb9boZ43P4FDr6LxJR254S2ywAopiH3X4j6ppTeWcW5EgzL+t1/IG5QQn3bIEgaDEAn4pb8I/rFYD96bSIwqKqtw1KIV1fLg2iUixWAa8I2tcjvsPNvjmdsJWrMNGr0pqDG+6sw5vk6I9xQom2LKp8B9qIqdQr6vAVEdJWQ2NCrdE/hQhe0O2wrQ3NCjRFDaB3F6sZe8vB0vFgGTGVJK7HdTO7eVnO6ydUDwqTjXRCYqTG0wLOthalPjvRDxzxPr3CacrcaNiU8a3AOcWzgmDZx/bU7tUwt3w53XbNTwCHJYqxs1WJyMdIB8iLs5M7SMcQ6+VOsUH9uVkxEFlfRYtiAio4DMsdt5Yn5e8YCOBAuGAE="
+      "thinking": "This is a straightforward factual question about geography. The capital of France is Paris. This is basic, well-established knowledge that I can answer directly.",
+      "signature": "EsoCCkYICxgCKkD5zM+jgIUOjDIU1NKWmzpNdQCwQNYUkunavnh72prMHBnjZcKGxtNT7MGMpcPg0oPpsj6mhkPR6WqafUiIZ5oXEgxZ3jOspYjQZ1/H2BkaDD2yEjUiKzYpFeL8hCIwsUxcqKLB15jz7steuNJ1I3E6zTBnL8mffUALE2O5kHsEMr66BT58XjJnu+2UDbhOKrEBTltQkF5iDAOchP5zay+8PZkvWQuoGKO2q9IMRvP/69sAXngSnbbp/kMpIfXmVRSC187MAB1RmURe0zzeQAcQz5hTyAOl5sAi00X6pYOgtz1YaDtkO/MSDwMWqIEQwB/kBj9Nat9WXXMH674G9gLcmJij5MumEuvPYcZ6NqfY8hQ0y/tO/Pxhp6gzgthGzQse1EzWI1Shh1LAaoFDRWCHbl/4Rcb4rpPGx0Xon5Qtnv67GAE="
     },
     {
       "type": "text",
@@ -24,7 +24,8 @@
       "ephemeral_5m_input_tokens": 0,
       "ephemeral_1h_input_tokens": 0
     },
-    "output_tokens": 46,
-    "service_tier": "standard"
+    "output_tokens": 50,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
   }
 }

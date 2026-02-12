@@ -1,7 +1,7 @@
 {
-  "id": "resp_09f07aa5ba64773500698bf5dad85881a3942781b1ba559b08",
+  "id": "resp_0ff4188070da971600698e2eddad4c8195bbddb496ef2255d5",
   "object": "response",
-  "created_at": 1770780122,
+  "created_at": 1770925789,
   "status": "incomplete",
   "background": false,
   "billing": {
@@ -19,7 +19,7 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_09f07aa5ba64773500698bf5db0ac081a3a01aa98837d5fd9e",
+      "id": "rs_0ff4188070da971600698e2ede56d08195bf3975ad0fe35544",
       "type": "reasoning",
       "summary": []
     }

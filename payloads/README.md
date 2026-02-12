@@ -4,6 +4,7 @@ Scripts to capture OpenAI and Anthropic API payloads with TypeScript type safety
 
 ## Table of contents
 
+- [Quick start](#quick-start)
 - [Purpose](#purpose)
 - [Installation](#installation)
 - [Environment variables](#environment-variables)
@@ -13,6 +14,81 @@ Scripts to capture OpenAI and Anthropic API payloads with TypeScript type safety
 - [Example payloads](#example-payloads)
 - [Type checking](#type-checking)
 - [Extending](#extending)
+
+## Quick start
+
+### 1. Define your case
+
+Add an entry to `cases/simple.ts` (or `advanced.ts`, `params.ts`) with provider definitions:
+
+```typescript
+myCase: {
+  "chat-completions": {
+    model: OPENAI_CHAT_COMPLETIONS_MODEL,
+    messages: [{ role: "user", content: "Hello" }],
+  },
+  responses: {
+    model: OPENAI_RESPONSES_MODEL,
+    input: [{ role: "user", content: "Hello" }],
+  },
+  anthropic: {
+    model: ANTHROPIC_MODEL,
+    max_tokens: 20_000,
+    messages: [{ role: "user", content: "Hello" }],
+  },
+  google: null,   // null = skip this provider
+  bedrock: null,
+},
+```
+
+### 2. Capture and test
+
+```bash
+make capture FILTER=myCase        # Captures snapshots + transforms + updates vitest snapshots
+make capture-transforms FORCE=1   # Re-capture only transforms (skips provider snapshots)
+make test-payloads                # Runs transform tests + sync check
+```
+
+`make capture` runs 3 phases automatically:
+1. **Provider snapshots** — calls each SDK (OpenAI, Anthropic, Google, Bedrock) and saves request/response pairs to `snapshots/`
+2. **Transform captures** — transforms requests across providers via WASM (e.g. chat-completions → anthropic), calls the target SDK, saves responses to `transforms/`
+3. **Vitest snapshot update** — auto-runs `vitest -u` to update transform test snapshots with new data
+
+`make test-payloads` runs:
+1. **Transform tests** — for each provider pair, transforms the request via WASM, validates against the target schema, loads the captured response, transforms it back, and snapshots both directions
+2. **Sync check** — verifies all test cases have snapshots and all transformable cases have transform captures
+
+`cargo test -p coverage-report` (runs as part of `make test`) validates roundtrip transformations across all providers using the `snapshots/` data
+
+### Example: what happens for `simpleRequest`
+
+**`make capture FILTER=simpleRequest`** produces:
+
+```
+snapshots/simpleRequest/
+├── chat-completions/        # Raw OpenAI chat completions request + response
+├── responses/               # Raw OpenAI responses request + response
+├── anthropic/               # Raw Anthropic request + response
+├── google/                  # Raw Google request + response
+└── bedrock/                 # Raw Bedrock request + response
+
+transforms/
+├── chat-completions_to_anthropic/simpleRequest.json   # OpenAI request → WASM → Anthropic request → Anthropic SDK → response
+├── chat-completions_to_responses/simpleRequest.json   # OpenAI request → WASM → Responses request → Responses SDK → response
+├── responses_to_anthropic/simpleRequest.json
+├── responses_to_chat-completions/simpleRequest.json
+├── anthropic_to_chat-completions/simpleRequest.json
+└── anthropic_to_responses/simpleRequest.json
+```
+
+**`make test-payloads`** then verifies for each transform pair (e.g. `chat-completions → anthropic`):
+1. Transform the chat-completions request → Anthropic format via WASM
+2. Validate the transformed request against Lingua's Anthropic schema
+3. Load the captured Anthropic response from `transforms/`
+4. Transform the response back → chat-completions format via WASM
+5. Snapshot both the transformed request and response for regression testing
+
+Note: Lingua's WASM transform passes the model name through unchanged, so both the capture script and the test override it to the target provider's model (e.g. `claude-sonnet-4-5-20250929` for Anthropic targets). This mapping lives in `TARGET_MODELS` in `scripts/transforms/helpers.ts`, sourced from `cases/models.ts`.
 
 ## Purpose
 
@@ -236,10 +312,10 @@ Validates that all TypeScript code is properly typed using the official SDK type
 
 ## Extending
 
-To add new payload types:
+To add a new test case:
 
-1. Add the payload definition to the appropriate script using the provider's TypeScript types
-2. Use `satisfies` to ensure type safety
-3. Run the capture script to generate the new payloads
+1. Define the case in `cases/simple.ts`, `cases/advanced.ts`, or `cases/params.ts` with provider definitions for each format
+2. Run `pnpm capture --filter yourCase` to capture snapshots, transform responses, and update vitest snapshots
+3. Run `pnpm test` to verify everything is in sync
 
-This approach ensures all captured payloads are valid according to the official API specifications.
+The sync test (`scripts/sync.test.ts`) will catch any missing snapshots or transform captures automatically.
