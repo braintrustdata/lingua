@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["tool", "assistant"],
+  "mustContainText": ["The scorer still returns"]
+}

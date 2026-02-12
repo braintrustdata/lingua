@@ -7,21 +7,44 @@ Each test case uses two files:
 - `<name>.spans.json`: array of spans
 - `<name>.assertions.json`: expected outcomes
 
-Current consumer:
+Current consumers:
 
 - TypeScript test: `bindings/typescript/tests/two-step-conversion.test.ts`
-
-Rust currently has one fixture-backed test in:
-
-- `crates/lingua/src/processing/import.rs`
+- Rust test: `crates/lingua/src/processing/import.rs`
 
 ## Quick workflow
 
 1. Copy a span object from the UI.
-2. Keep only stable fields you want to test (usually `input` and `output`).
-3. Wrap it in an array and save as `payloads/import-cases/<name>.spans.json`.
-4. Add `payloads/import-cases/<name>.assertions.json`.
-5. Run the TS import fixture test.
+2. Generate fixture files with `pnpm new-import-case`.
+3. Review and adjust assertions.
+4. Run TS and/or Rust fixture tests.
+
+## Fixture generator
+
+From `payloads/`:
+
+```bash
+pnpm new-import-case --name simpsons-cancelation --from /tmp/span.json
+```
+
+Or from pasted JSON on stdin:
+
+```bash
+pbpaste | pnpm new-import-case --name simpsons-cancelation
+```
+
+The generator creates:
+
+- `payloads/import-cases/<name>.spans.json`
+- `payloads/import-cases/<name>.assertions.json`
+
+Default behavior trims spans to stable fields (`input` and `output`).
+
+Useful flags:
+
+- `--keep-full-span`: keep all span keys from UI
+- `--force`: overwrite existing files
+- `--dry-run`: print generated files without writing
 
 ## File formats
 
@@ -56,6 +79,11 @@ Supported keys:
 - `expectedMessageCount` (number)
 - `expectedRolesInOrder` (string array)
 - `mustContainText` (string array)
+
+Generator note:
+
+- `expectedMessageCount` and `expectedRolesInOrder` are inferred with simple role scanning.
+- Always review inferred assertions before committing.
 
 ## Using a copied UI span
 

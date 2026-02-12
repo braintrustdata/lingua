@@ -158,6 +158,12 @@ Detailed workflow and file format:
 
 - `payloads/import-cases/README.md`
 
+Quick command (from `payloads/`):
+
+```bash
+pbpaste | pnpm new-import-case --name my-case-name
+```
+
 ## Output structure
 
 Payloads are saved to `snapshots/` directory with the following naming:

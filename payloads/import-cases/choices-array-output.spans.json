@@ -1,0 +1,18 @@
+[
+  {
+    "input": [
+      { "role": "user", "content": "Hello" }
+    ],
+    "output": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "Hi there!",
+          "role": "assistant"
+        }
+      }
+    ]
+  }
+]

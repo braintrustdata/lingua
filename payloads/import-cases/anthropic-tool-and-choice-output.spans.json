@@ -1,0 +1,28 @@
+[
+  {
+    "input": [
+      {
+        "content": [
+          {
+            "cache_control": { "type": "ephemeral" },
+            "text": "results:\n  ",
+            "type": "text"
+          }
+        ],
+        "role": "tool",
+        "tool_call_id": "call_uZG3WxdNadqhidWK9milQNxR"
+      }
+    ],
+    "output": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "The scorer still returns",
+          "role": "assistant"
+        }
+      }
+    ]
+  }
+]

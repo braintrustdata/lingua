@@ -399,202 +399,146 @@ pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use std::path::{Path, PathBuf};
 
-    fn spans_from_fixture(json: &str) -> Vec<Span> {
-        serde_json::from_str(json).expect("fixture should deserialize into Vec<Span>")
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct ImportAssertionCase {
+        expected_message_count: Option<usize>,
+        expected_roles_in_order: Option<Vec<String>>,
+        must_contain_text: Option<Vec<String>>,
     }
 
-    #[test]
-    fn test_import_empty_spans() {
-        let spans = vec![];
-        let messages = import_messages_from_spans(spans);
-        assert_eq!(messages.len(), 0);
+    fn workspace_root() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("crates directory should exist")
+            .parent()
+            .expect("workspace root should exist")
+            .to_path_buf()
     }
 
-    #[test]
-    fn test_import_spans_with_no_messages() {
-        let span = Span {
-            input: Some(crate::serde_json::json!({"random": "data"})),
-            output: None,
-            other: crate::serde_json::Map::new(),
-        };
-        let messages = import_messages_from_spans(vec![span]);
-        assert_eq!(messages.len(), 0);
-    }
-
-    #[test]
-    fn test_import_spans_with_chat_completion_messages() {
-        let span = Span {
-            input: Some(crate::serde_json::json!([
-                {"role": "user", "content": "Hello"},
-                {"role": "assistant", "content": "Hi there"}
-            ])),
-            output: None,
-            other: crate::serde_json::Map::new(),
-        };
-        let messages = import_messages_from_spans(vec![span]);
-        assert_eq!(messages.len(), 2);
-    }
-
-    #[test]
-    fn test_import_spans_with_choices_array_output() {
-        let span = Span {
-            input: Some(crate::serde_json::json!([
-                {"role": "user", "content": "Hello"}
-            ])),
-            output: Some(crate::serde_json::json!([
-                {
-                    "finish_reason": "stop",
-                    "index": 0,
-                    "logprobs": null,
-                    "message": {
-                        "content": "Hi there!",
-                        "role": "assistant"
-                    }
+    fn discover_import_case_paths() -> Vec<PathBuf> {
+        let import_cases_dir = workspace_root().join("payloads/import-cases");
+        let mut paths: Vec<PathBuf> = fs::read_dir(import_cases_dir)
+            .expect("payloads/import-cases should be readable")
+            .filter_map(|entry| {
+                let path = entry.ok()?.path();
+                let name = path.file_name()?.to_str()?;
+                if name.ends_with(".spans.json") {
+                    Some(path)
+                } else {
+                    None
                 }
-            ])),
-            other: crate::serde_json::Map::new(),
-        };
-        let messages = import_messages_from_spans(vec![span]);
-        assert_eq!(messages.len(), 2); // 1 from input, 1 from output
+            })
+            .collect();
+        paths.sort();
+        paths
+    }
+
+    fn case_name_from_spans_path(path: &Path) -> String {
+        let stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .expect("fixture filename must be valid utf-8");
+        stem.strip_suffix(".spans")
+            .expect("fixture name must end with .spans")
+            .to_string()
+    }
+
+    fn message_role(message: &Message) -> &'static str {
+        match message {
+            Message::User { .. } => "user",
+            Message::System { .. } => "system",
+            Message::Assistant { .. } => "assistant",
+            Message::Tool { .. } => "tool",
+        }
     }
 
     #[test]
-    fn test_import_spans_with_single_message_object() {
-        let span = Span {
-            input: Some(crate::serde_json::json!([
-                {"role": "user", "content": "Hello"}
-            ])),
-            output: Some(crate::serde_json::json!({
-                "role": "assistant",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Hi there!",
-                        "citations": null
-                    }
-                ]
-            })),
-            other: crate::serde_json::Map::new(),
-        };
-        let messages = import_messages_from_spans(vec![span]);
-        assert_eq!(messages.len(), 2); // 1 from input, 1 from output
-    }
+    fn test_import_cases_from_shared_fixtures() {
+        let case_paths = discover_import_case_paths();
+        assert!(
+            !case_paths.is_empty(),
+            "no import case fixtures found in payloads/import-cases"
+        );
 
-    #[test]
-    fn test_import_anthropic_tool_message_with_choice_output() {
-        // Mirrors "complex anthropic example" from TypeScript tests
-        let span = Span {
-            input: Some(crate::serde_json::json!([
-                {
-                    "content": [
-                        {
-                            "cache_control": {
-                                "type": "ephemeral"
-                            },
-                            "text": "results:\n  ",
-                            "type": "text"
-                        }
-                    ],
-                    "role": "tool",
-                    "tool_call_id": "call_uZG3WxdNadqhidWK9milQNxR"
+        for spans_path in case_paths {
+            let case_name = case_name_from_spans_path(&spans_path);
+            let spans_json = fs::read_to_string(&spans_path).unwrap_or_else(|e| {
+                panic!(
+                    "failed to read spans fixture for case '{}': {} ({})",
+                    case_name,
+                    e,
+                    spans_path.display()
+                )
+            });
+
+            let spans: Vec<Span> = serde_json::from_str(&spans_json).unwrap_or_else(|e| {
+                panic!(
+                    "failed to parse spans fixture for case '{}': {} ({})",
+                    case_name,
+                    e,
+                    spans_path.display()
+                )
+            });
+
+            let assertions_path =
+                spans_path.with_file_name(format!("{}.assertions.json", case_name));
+            let assertions_json = fs::read_to_string(&assertions_path).unwrap_or_else(|e| {
+                panic!(
+                    "failed to read assertions fixture for case '{}': {} ({})",
+                    case_name,
+                    e,
+                    assertions_path.display()
+                )
+            });
+            let assertions: ImportAssertionCase = serde_json::from_str(&assertions_json)
+                .unwrap_or_else(|e| {
+                    panic!(
+                        "failed to parse assertions fixture for case '{}': {} ({})",
+                        case_name,
+                        e,
+                        assertions_path.display()
+                    )
+                });
+
+            let messages = import_messages_from_spans(spans);
+            let serialized_messages =
+                serde_json::to_string(&messages).expect("messages should serialize to json");
+
+            if let Some(expected_count) = assertions.expected_message_count {
+                assert_eq!(
+                    messages.len(),
+                    expected_count,
+                    "message count mismatch for case '{}'",
+                    case_name
+                );
+            }
+
+            if let Some(expected_roles) = assertions.expected_roles_in_order {
+                let actual_roles: Vec<String> = messages
+                    .iter()
+                    .map(|message| message_role(message).to_string())
+                    .collect();
+                assert_eq!(
+                    actual_roles, expected_roles,
+                    "message roles mismatch for case '{}'",
+                    case_name
+                );
+            }
+
+            if let Some(required_texts) = assertions.must_contain_text {
+                for required_text in required_texts {
+                    assert!(
+                        serialized_messages.contains(&required_text),
+                        "missing required text '{}' for case '{}'",
+                        required_text,
+                        case_name
+                    );
                 }
-            ])),
-            output: Some(crate::serde_json::json!([
-                {
-                    "finish_reason": "stop",
-                    "index": 0,
-                    "logprobs": null,
-                    "message": {
-                        "content": "The scorer still returns",
-                        "role": "assistant"
-                    }
-                }
-            ])),
-            other: crate::serde_json::Map::new(),
-        };
-        let messages = import_messages_from_spans(vec![span]);
-        assert_eq!(messages.len(), 2); // 1 tool message from input, 1 assistant from output
-    }
-
-    #[test]
-    fn test_import_single_anthropic_message_with_citations() {
-        // Mirrors "complex anthropic example 2" from TypeScript tests
-        let span = Span {
-            input: Some(crate::serde_json::json!([
-                {
-                    "content": "How do I create a custom scorer?",
-                    "role": "user"
-                },
-                {
-                    "content": "You are a helpful assistant.",
-                    "role": "system"
-                }
-            ])),
-            output: Some(crate::serde_json::json!({
-                "content": [
-                    {
-                        "citations": null,
-                        "text": "A dataset record in Braintrust has the following fields...",
-                        "type": "text"
-                    }
-                ],
-                "role": "assistant"
-            })),
-            other: crate::serde_json::Map::new(),
-        };
-        let messages = import_messages_from_spans(vec![span]);
-        assert_eq!(messages.len(), 3); // 2 from input, 1 from output
-    }
-
-    #[test]
-    fn test_import_spans_with_prompt_wrapper_and_tool_calls() {
-        let span = Span {
-            input: Some(crate::serde_json::json!({
-                "prompt": [
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": [{"type": "text", "text": "Hello"}]},
-                    {
-                        "role": "assistant",
-                        "content": [{
-                            "type": "tool-call",
-                            "toolCallId": "call_1",
-                            "toolName": "bash",
-                            "input": {"command": "ls"}
-                        }]
-                    },
-                    {
-                        "role": "tool",
-                        "content": [{
-                            "type": "tool-result",
-                            "toolCallId": "call_1",
-                            "toolName": "bash",
-                            "output": {"stdout": "ok"}
-                        }]
-                    },
-                    {"role": "assistant", "content": [{"type": "text", "text": "Done"}]}
-                ]
-            })),
-            output: None,
-            other: crate::serde_json::Map::new(),
-        };
-
-        let messages = import_messages_from_spans(vec![span]);
-        assert_eq!(messages.len(), 5);
-    }
-
-    #[test]
-    fn test_import_from_responses_output_field_fixture() {
-        let spans = spans_from_fixture(include_str!(
-            "../../../../payloads/import-cases/responses-output-field.spans.json"
-        ));
-        let messages = import_messages_from_spans(spans);
-
-        assert_eq!(messages.len(), 2);
-        assert!(matches!(messages.first(), Some(Message::User { .. })));
-        assert!(matches!(messages.get(1), Some(Message::Assistant { .. })));
-
-        let serialized = serde_json::to_string(&messages).expect("messages should serialize");
-        assert!(serialized.contains("magic 8-ball"));
+            }
+        }
     }
 }

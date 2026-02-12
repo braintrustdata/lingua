@@ -5,6 +5,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "capture": "tsx scripts/capture.ts",
+    "new-import-case": "tsx scripts/new-import-case.ts",
     "validate": "tsx scripts/validate.ts",
     "prune": "tsx scripts/prune.ts",
     "lint": "eslint \"./**/*.{ts,tsx}\"",
