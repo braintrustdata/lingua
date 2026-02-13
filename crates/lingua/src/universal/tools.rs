@@ -756,7 +756,7 @@ mod tests {
 
     #[test]
     fn test_batch_conversion_to_anthropic() {
-        let tools = vec![
+        let tools = [
             UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
             UniversalTool::function("tool2", Some("desc2".to_string()), None, None),
         ];
@@ -772,7 +772,7 @@ mod tests {
 
     #[test]
     fn test_batch_conversion_to_anthropic_fails_on_wrong_provider() {
-        let tools = vec![
+        let tools = [
             UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
             UniversalTool::builtin(
                 "code_interpreter",

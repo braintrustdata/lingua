@@ -14,7 +14,7 @@ pub fn supports_output_config_effort(model: &str) -> bool {
     // Split on known separators and match hard-coded Anthropic model prefixes per part.
     lower
         .split(['.', '/', ':', '@'])
-        .any(|part| part_supports_output_config_effort(part))
+        .any(part_supports_output_config_effort)
 }
 
 fn part_supports_output_config_effort(model_part: &str) -> bool {
