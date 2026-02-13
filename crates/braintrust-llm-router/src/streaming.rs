@@ -71,9 +71,10 @@ pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -
 
                     // Transform with lingua (bytes-based)
                     match lingua::transform_stream_chunk(data.clone(), output_format) {
-                        Ok(TransformResult::PassThrough(pass_bytes)) => {
-                            Some(Ok(StreamChunk { data: pass_bytes, event_type }))
-                        }
+                        Ok(TransformResult::PassThrough(pass_bytes)) => Some(Ok(StreamChunk {
+                            data: pass_bytes,
+                            event_type,
+                        })),
                         Ok(TransformResult::Transformed {
                             bytes: out_bytes, ..
                         }) => {
@@ -81,7 +82,10 @@ pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -
                             if out_bytes.as_ref() == b"{}" {
                                 None
                             } else {
-                                Some(Ok(StreamChunk { data: out_bytes, event_type }))
+                                Some(Ok(StreamChunk {
+                                    data: out_bytes,
+                                    event_type,
+                                }))
                             }
                         }
                         Err(lingua::TransformError::UnableToDetectFormat) => {
@@ -290,7 +294,7 @@ where
 
                     if event_type.as_deref() == Some("chunk") {
                         if let Some(decoded_chunk) = decode_bedrock_chunk_payload(payload) {
-                            return Poll::Ready(Some(Ok(decoded_chunk)));
+                            return Poll::Ready(Some(Ok(StreamChunk::data(decoded_chunk))));
                         }
                     }
 
