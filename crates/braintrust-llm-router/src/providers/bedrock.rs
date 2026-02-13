@@ -115,9 +115,18 @@ impl BedrockProvider {
     }
 
     fn sign_request(&self, url: &Url, body: &[u8], auth: &AuthConfig) -> Result<HeaderMap> {
-        let (access_key, secret_key, session_token, region, service) = auth
-            .aws_credentials()
-            .ok_or_else(|| Error::Auth("AWS credentials required for Bedrock".into()))?;
+        if let AuthConfig::ApiKey { .. } = auth {
+            // TODO: should this instead be: `let mut headers =
+            // self.build_headers(client_headers)`?
+            let mut headers = HeaderMap::new();
+            auth.apply_headers(&mut headers)?;
+            return Ok(headers);
+        }
+
+        let (access_key, secret_key, session_token, region, service) =
+            auth.aws_credentials().ok_or_else(|| {
+                Error::Auth("AwsSignatureV4 or ApiKey credentials required for Bedrock".into())
+            })?;
         let service = if service.is_empty() {
             &self.config.service
         } else {
@@ -342,5 +351,62 @@ fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
         Some(Duration::from_secs(2))
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn provider() -> BedrockProvider {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
+            service: "bedrock".to_string(),
+            timeout: None,
+        };
+        BedrockProvider::new(config).unwrap()
+    }
+
+    #[test]
+    fn build_headers_supports_api_key_auth() {
+        let provider = provider();
+        let url = provider
+            .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
+            .unwrap();
+        let auth = AuthConfig::ApiKey {
+            key: "test-api-key".into(),
+            header: Some("x-api-key".into()),
+            prefix: None,
+        };
+
+        let headers = provider.build_headers(&url, b"{}", &auth).expect("headers");
+        assert_eq!(
+            headers.get("content-type"),
+            Some(&HeaderValue::from_static("application/json"))
+        );
+        assert_eq!(
+            headers.get("x-api-key"),
+            Some(&HeaderValue::from_static("test-api-key"))
+        );
+    }
+
+    #[test]
+    fn build_headers_rejects_unsupported_auth_modes() {
+        let provider = provider();
+        let url = provider
+            .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
+            .unwrap();
+        let auth = AuthConfig::OAuth {
+            access_token: "token".into(),
+            token_type: Some("Bearer".into()),
+        };
+
+        let err = provider.build_headers(&url, b"{}", &auth).unwrap_err();
+        match err {
+            Error::Auth(message) => {
+                assert!(message.contains("AwsSignatureV4 or ApiKey"));
+            }
+            other => panic!("expected Error::Auth, got {other:?}"),
+        }
     }
 }
