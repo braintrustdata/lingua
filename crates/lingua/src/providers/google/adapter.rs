@@ -12,15 +12,19 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
+use crate::providers::google::convert::{
+    apply_response_format_to_generation_config, response_format_from_generation_config,
+};
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
-    Content as GoogleContent, GenerationConfig, ThinkingConfig,
+    Content as GoogleContent, GenerationConfig, ThinkingConfig, Tool as GoogleTool, ToolConfig,
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
-use crate::universal::tools::{UniversalTool, UniversalToolType};
+use crate::universal::request::ToolChoiceConfig;
+use crate::universal::tools::UniversalTool;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, UniversalParams,
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
@@ -65,12 +69,12 @@ impl ProviderAdapter for GoogleAdapter {
         // Extract params from generationConfig (now typed in params struct)
         let (temperature, top_p, top_k, max_tokens, stop, reasoning) =
             if let Some(config) = &typed_params.generation_config {
-                let max_tokens = config.max_output_tokens.map(|t| t as i64);
+                let max_tokens = config.max_output_tokens;
                 // Convert Google's thinkingConfig to ReasoningConfig
                 // thinkingBudget: 0 means disabled
                 let reasoning = config.thinking_config.as_ref().map(|tc| {
                     let is_disabled = tc.thinking_budget == Some(0);
-                    let budget_tokens = tc.thinking_budget.map(|b| b as i64);
+                    let budget_tokens = tc.thinking_budget;
                     // Derive effort from budget_tokens
                     let effort = budget_tokens
                         .map(|b| crate::universal::reasoning::budget_to_effort(b, None));
@@ -82,16 +86,11 @@ impl ProviderAdapter for GoogleAdapter {
                         ..Default::default()
                     }
                 });
-                // Generated type has stop_sequences as Vec<String>, convert to Option
-                let stop = if config.stop_sequences.is_empty() {
-                    None
-                } else {
-                    Some(config.stop_sequences.clone())
-                };
+                let stop = config.stop_sequences.clone().filter(|s| !s.is_empty());
                 (
-                    config.temperature.map(|t| t as f64),
-                    config.top_p.map(|p| p as f64),
-                    config.top_k.map(|k| k as i64),
+                    config.temperature,
+                    config.top_p,
+                    config.top_k,
                     max_tokens,
                     stop,
                     reasoning,
@@ -100,55 +99,34 @@ impl ProviderAdapter for GoogleAdapter {
                 (None, None, None, None, None, None)
             };
 
+        // Convert tools using typed conversions
+        let tools = typed_params
+            .tools
+            .map(<Vec<UniversalTool> as TryFromLLM<Vec<_>>>::try_from)
+            .transpose()
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        // Convert tool_choice from Google's ToolConfig
+        let tool_choice = typed_params
+            .tool_config
+            .as_ref()
+            .map(ToolChoiceConfig::from);
+
+        // Convert response_format from GenerationConfig
+        let response_format = typed_params
+            .generation_config
+            .as_ref()
+            .and_then(response_format_from_generation_config);
+
         let mut params = UniversalParams {
             temperature,
             top_p,
             top_k,
             max_tokens,
             stop,
-            tools: typed_params.tools.and_then(|t| {
-                // Google uses [{functionDeclarations: [{name, description, parameters}]}]
-                // Parse into UniversalTools
-                let value = serde_json::to_value(&t).ok()?;
-                let tools_arr = value.as_array()?;
-
-                let mut universal_tools = Vec::new();
-                for tool_group in tools_arr {
-                    if let Some(func_decls) = tool_group.get("functionDeclarations") {
-                        if let Some(decls) = func_decls.as_array() {
-                            for decl in decls {
-                                let name = decl.get("name").and_then(|v| v.as_str())?;
-                                let description = decl
-                                    .get("description")
-                                    .and_then(|v| v.as_str())
-                                    .map(String::from);
-                                let parameters = decl.get("parameters").cloned();
-
-                                universal_tools.push(UniversalTool::function(
-                                    name,
-                                    description,
-                                    parameters,
-                                    None,
-                                ));
-                            }
-                        }
-                    }
-                }
-
-                if universal_tools.is_empty() {
-                    // Fallback: store as builtin for unknown format
-                    Some(vec![UniversalTool::builtin(
-                        "google_tools",
-                        "google",
-                        "unknown",
-                        Some(value),
-                    )])
-                } else {
-                    Some(universal_tools)
-                }
-            }),
-            tool_choice: None, // Google uses different mechanism
-            response_format: None,
+            tools,
+            tool_choice,
+            response_format,
             seed: None, // Google doesn't support seed
             presence_penalty: None,
             frequency_penalty: None,
@@ -241,12 +219,14 @@ impl ProviderAdapter for GoogleAdapter {
             .as_ref()
             .map(|r| !r.is_effectively_disabled())
             .unwrap_or(false);
+        let has_response_format = req.params.response_format.is_some();
         let has_params = req.params.temperature.is_some()
             || req.params.top_p.is_some()
             || req.params.top_k.is_some()
             || req.params.max_tokens.is_some()
             || req.params.stop.is_some()
-            || has_reasoning;
+            || has_reasoning
+            || has_response_format;
 
         if has_params {
             // Convert ReasoningConfig to Google's thinkingConfig
@@ -260,22 +240,27 @@ impl ProviderAdapter for GoogleAdapter {
                     .unwrap_or(crate::universal::reasoning::MIN_THINKING_BUDGET);
                 Some(ThinkingConfig {
                     include_thoughts: Some(true),
-                    thinking_budget: Some(budget as i32),
+                    thinking_budget: Some(budget),
+                    ..Default::default()
                 })
             });
 
-            // Generated type has stop_sequences as Vec<String>, not Option
-            let stop_sequences = req.params.stop.clone().unwrap_or_default();
+            let stop_sequences = req.params.stop.clone();
 
-            let config = GenerationConfig {
-                temperature: req.params.temperature.map(|t| t as f32),
-                top_p: req.params.top_p.map(|p| p as f32),
-                top_k: req.params.top_k.map(|k| k as i32),
-                max_output_tokens: req.params.max_tokens.map(|t| t as i32),
+            let mut config = GenerationConfig {
+                temperature: req.params.temperature,
+                top_p: req.params.top_p,
+                top_k: req.params.top_k,
+                max_output_tokens: req.params.max_tokens,
                 stop_sequences,
                 thinking_config,
                 ..Default::default()
             };
+
+            // Apply response format to generationConfig
+            if let Some(format) = &req.params.response_format {
+                apply_response_format_to_generation_config(&mut config, format);
+            }
 
             obj.insert(
                 "generationConfig".into(),
@@ -285,48 +270,26 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Add tools if present
-        // Google uses functionDeclarations format: [{name, description, parameters}]
         if let Some(tools) = &req.params.tools {
-            // First check for Google builtins (pass through original config)
-            let mut google_builtin_found = false;
-            for tool in tools {
-                if let UniversalToolType::Builtin {
-                    provider, config, ..
-                } = &tool.tool_type
-                {
-                    if provider == "google" {
-                        if let Some(config_value) = config {
-                            obj.insert("tools".into(), config_value.clone());
-                            google_builtin_found = true;
-                            break;
-                        }
-                    }
-                }
+            let google_tools = <Vec<GoogleTool> as TryFromLLM<Vec<_>>>::try_from(tools.clone())
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+            if !google_tools.is_empty() {
+                obj.insert(
+                    "tools".into(),
+                    serde_json::to_value(&google_tools)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
             }
+        }
 
-            // If no Google builtin, convert function tools to Google format
-            if !google_builtin_found {
-                let function_declarations: Vec<serde_json::Value> = tools
-                    .iter()
-                    .filter_map(|tool| {
-                        if tool.is_function() {
-                            Some(serde_json::json!({
-                                "name": tool.name,
-                                "description": tool.description,
-                                "parameters": tool.parameters.clone().unwrap_or(serde_json::json!({}))
-                            }))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-
-                if !function_declarations.is_empty() {
-                    obj.insert(
-                        "tools".into(),
-                        serde_json::json!([{"functionDeclarations": function_declarations}]),
-                    );
-                }
+        // Add tool_choice if present
+        if let Some(tool_choice) = &req.params.tool_choice {
+            if let Ok(tool_config) = ToolConfig::try_from(tool_choice) {
+                obj.insert(
+                    "toolConfig".into(),
+                    serde_json::to_value(&tool_config)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
             }
         }
 
