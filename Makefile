@@ -1,4 +1,4 @@
-.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms clean help generate-types generate-all-providers install-hooks install-wasm-tools setup
+.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit
 
 all: typescript python ## Build all bindings
 
@@ -111,5 +111,10 @@ install-dependencies: ## Install dependencies
 	./scripts/setup.sh
 
 setup: install-dependencies install-hooks ## Setup the project
+
+precommit: ## Run formatting, linting, and tests for Rust code
+	cargo fmt --all -- --check
+	cargo clippy --all-targets --all-features -- -D warnings
+	cargo test
 
 .DEFAULT_GOAL := all

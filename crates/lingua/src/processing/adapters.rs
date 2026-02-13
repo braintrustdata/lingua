@@ -202,15 +202,15 @@ static ADAPTERS: LazyLock<Vec<Box<dyn ProviderAdapter>>> = LazyLock::new(|| {
     list.push(Box::new(crate::providers::bedrock::BedrockAdapter));
 
     #[cfg(feature = "anthropic")]
+    list.push(Box::new(crate::providers::anthropic::AnthropicAdapter));
+
+    #[cfg(feature = "anthropic")]
     list.push(Box::new(
         crate::providers::bedrock_anthropic::BedrockAnthropicAdapter::new(),
     ));
 
     #[cfg(feature = "google")]
     list.push(Box::new(crate::providers::google::GoogleAdapter));
-
-    #[cfg(feature = "anthropic")]
-    list.push(Box::new(crate::providers::anthropic::AnthropicAdapter));
 
     #[cfg(feature = "openai")]
     list.push(Box::new(crate::providers::openai::OpenAIAdapter));

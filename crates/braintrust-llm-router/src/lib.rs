@@ -29,7 +29,7 @@ pub use providers::{
 };
 pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{create_provider, extract_request_hints, RequestHints, Router, RouterBuilder};
-pub use streaming::{RawResponseStream, ResponseStream};
+pub use streaming::{RawResponseStream, ResponseStream, StreamChunk};
 
 // Provider trait requirement (for custom provider implementations)
 pub use lingua::{UniversalResponse, UniversalUsage};

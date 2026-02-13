@@ -74,9 +74,9 @@ async fn main() -> Result<()> {
 
     while let Some(chunk_result) = stream.next().await {
         match chunk_result {
-            Ok(bytes) => {
+            Ok(stream_chunk) => {
                 // Parse bytes to Value
-                let chunk: Value = match serde_json::from_slice(&bytes) {
+                let chunk: Value = match serde_json::from_slice(&stream_chunk.data) {
                     Ok(v) => v,
                     Err(_) => continue,
                 };
@@ -155,8 +155,8 @@ async fn main() -> Result<()> {
         let mut response = String::new();
         while let Some(chunk_result) = stream.next().await {
             match chunk_result {
-                Ok(bytes) => {
-                    if let Ok(chunk) = serde_json::from_slice::<Value>(&bytes) {
+                Ok(stream_chunk) => {
+                    if let Ok(chunk) = serde_json::from_slice::<Value>(&stream_chunk.data) {
                         if let Some(text) = extract_chunk_text(&chunk) {
                             response.push_str(&text);
                         }
