@@ -114,8 +114,8 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
         self.inner.response_from_universal(resp)
     }
 
-    fn detect_stream_response(&self, payload: &Value) -> bool {
-        self.inner.detect_stream_response(payload)
+    fn detect_stream_response(&self, _payload: &Value) -> bool {
+        false
     }
 
     fn stream_to_universal(
