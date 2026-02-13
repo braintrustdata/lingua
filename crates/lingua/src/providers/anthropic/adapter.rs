@@ -59,8 +59,40 @@ impl ProviderAdapter for AnthropicAdapter {
             TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
         })?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
+        let mut messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        // Convert Anthropic's separate `system` field into a Message::System
+        if let Some(system_val) = &typed_params.system {
+            let system_content = match system_val {
+                Value::String(s) => UserContent::String(s.clone()),
+                Value::Array(arr) => {
+                    let parts: Vec<UserContentPart> = arr
+                        .iter()
+                        .filter_map(|block| {
+                            let text = block.get("text")?.as_str()?;
+                            Some(UserContentPart::Text(
+                                crate::universal::message::TextContentPart {
+                                    text: text.to_string(),
+                                    provider_options: None,
+                                },
+                            ))
+                        })
+                        .collect();
+                    if parts.len() == 1 {
+                        if let UserContentPart::Text(ref t) = parts[0] {
+                            UserContent::String(t.text.clone())
+                        } else {
+                            UserContent::Array(parts)
+                        }
+                    } else {
+                        UserContent::Array(parts)
+                    }
+                }
+                _ => UserContent::String(String::new()),
+            };
+            messages.insert(0, Message::System { content: system_content });
+        }
 
         let mut params = UniversalParams {
             temperature: typed_params.temperature,
@@ -876,6 +908,58 @@ mod tests {
             result.get("thinking").is_none(),
             "thinking field should not be present"
         );
+    }
+
+    #[test]
+    fn test_anthropic_system_string_roundtrip() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "system": "You are a helpful assistant."
+        });
+
+        let universal = adapter.request_to_universal(payload.clone()).unwrap();
+        assert!(
+            universal.messages.iter().any(|m| matches!(m, Message::System { .. })),
+            "System message should be present in universal messages"
+        );
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            reconstructed.get("system").unwrap().as_str().unwrap(),
+            "You are a helpful assistant.",
+        );
+    }
+
+    #[test]
+    fn test_anthropic_system_array_roundtrip() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "system": [
+                {"type": "text", "text": "You are a helpful assistant."},
+                {"type": "text", "text": "Today's date is 2024-06-01."}
+            ]
+        });
+
+        let universal = adapter.request_to_universal(payload.clone()).unwrap();
+        assert!(
+            universal.messages.iter().any(|m| matches!(m, Message::System { .. })),
+            "System message should be present in universal messages"
+        );
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        assert!(
+            reconstructed.get("system").is_some(),
+            "System field should be present in roundtrip"
+        );
+        let system = reconstructed.get("system").unwrap().as_str().unwrap();
+        assert!(system.contains("You are a helpful assistant."));
+        assert!(system.contains("Today's date is 2024-06-01."));
     }
 
     #[test]
