@@ -6,25 +6,32 @@ Anthropic's Messages API has some unique requirements:
 - System messages use a separate `system` parameter, not in `messages` array
 */
 
+use std::convert::TryFrom;
+
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
-use crate::providers::anthropic::generated::{ContentBlock, InputMessage};
+use crate::providers::anthropic::capabilities;
+use crate::providers::anthropic::generated::{
+    ContentBlock, EffortLevel, InputMessage, OutputConfig, Tool,
+};
 use crate::providers::anthropic::params::AnthropicParams;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent, UserContentPart};
-use crate::universal::tools::{tools_to_anthropic_value, UniversalTool};
+use crate::universal::request::{
+    ReasoningCanonical, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
+};
+use crate::universal::tools::UniversalTool;
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
-    parse_stop_sequences, FinishReason, UniversalParams, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
-use std::convert::TryInto;
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
@@ -67,42 +74,65 @@ impl ProviderAdapter for AnthropicAdapter {
             top_p: typed_params.top_p,
             top_k: typed_params.top_k,
             max_tokens: typed_params.max_tokens,
-            stop: typed_params
-                .stop_sequences
-                .as_ref()
-                .and_then(parse_stop_sequences),
-            tools: typed_params
-                .tools
-                .as_ref()
-                .map(UniversalTool::from_value_array),
+            stop: typed_params.stop_sequences.clone(),
+            tools: typed_params.tools.map(|tools| {
+                <Vec<UniversalTool> as TryFromLLM<Vec<_>>>::try_from(tools).unwrap_or_default()
+            }),
             tool_choice: typed_params
                 .tool_choice
                 .as_ref()
-                .and_then(|v| (ProviderFormat::Anthropic, v).try_into().ok()),
+                .map(ToolChoiceConfig::from),
             response_format: typed_params
-                .output_format
+                .output_config
                 .as_ref()
-                .and_then(|v| (ProviderFormat::Anthropic, v).try_into().ok()),
-            seed: None,             // Anthropic doesn't support seed
-            presence_penalty: None, // Anthropic doesn't support these
+                .and_then(|oc| oc.format.as_ref())
+                .or(typed_params.output_format.as_ref())
+                .map(ResponseFormatConfig::from),
+            seed: None,
+            presence_penalty: None,
             frequency_penalty: None,
             stream: typed_params.stream,
-            // Extract parallel_tool_calls from Anthropic's disable_parallel_tool_use in tool_choice
             parallel_tool_calls: typed_params
                 .tool_choice
                 .as_ref()
-                .and_then(|tc| tc.get("disable_parallel_tool_use"))
-                .and_then(Value::as_bool)
-                .map(|disabled| !disabled), // disable_parallel_tool_use: true → parallel_tool_calls: false
+                .and_then(|tc| tc.disable_parallel_tool_use)
+                .map(|disabled| !disabled),
             reasoning: typed_params
-                .thinking
+                .output_config
                 .as_ref()
-                .map(crate::universal::request::ReasoningConfig::from),
-            metadata: typed_params.metadata,
-            store: None, // Anthropic doesn't support store
+                .and_then(|oc| oc.effort.as_ref())
+                .map(|effort| {
+                    use crate::providers::anthropic::generated::EffortLevel;
+                    use crate::universal::request::{
+                        ReasoningCanonical, ReasoningConfig, ReasoningEffort,
+                    };
+                    let effort_level = match effort {
+                        EffortLevel::Low => ReasoningEffort::Low,
+                        EffortLevel::Medium => ReasoningEffort::Medium,
+                        EffortLevel::High => ReasoningEffort::High,
+                        EffortLevel::Max => ReasoningEffort::High,
+                    };
+                    ReasoningConfig {
+                        enabled: Some(true),
+                        effort: Some(effort_level),
+                        canonical: Some(ReasoningCanonical::Effort),
+                        ..Default::default()
+                    }
+                })
+                .or_else(|| {
+                    typed_params
+                        .thinking
+                        .as_ref()
+                        .map(crate::universal::request::ReasoningConfig::from)
+                }),
+            metadata: typed_params
+                .metadata
+                .as_ref()
+                .and_then(|m| serde_json::to_value(m).ok()),
+            store: None,
             service_tier: typed_params.service_tier,
-            logprobs: None,     // Anthropic doesn't support logprobs
-            top_logprobs: None, // Anthropic doesn't support top_logprobs
+            logprobs: None,
+            top_logprobs: None,
             extras: Default::default(),
         };
 
@@ -171,14 +201,29 @@ impl ProviderAdapter for AnthropicAdapter {
         let max_tokens = req.params.max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
         obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
 
-        // Check if reasoning/thinking is enabled
-        // Note: thinking_val can be { type: "disabled" } or { type: "enabled", ... }
-        let thinking_val = req.params.reasoning_for(ProviderFormat::Anthropic);
-        let reasoning_enabled = thinking_val
-            .as_ref()
-            .and_then(|v| v.get("type"))
-            .and_then(|t| t.as_str())
-            .is_some_and(|t| t == "enabled");
+        // Determine reasoning style based on model capability AND canonical source:
+        // - Opus 4.5+ with effort canonical → output_config.effort (new API)
+        // - All other cases → thinking object (legacy, broad model support)
+        // Both branches use output_config.format for structured output (never output_format).
+        let use_effort = capabilities::supports_output_config_effort(model)
+            && req
+                .params
+                .reasoning
+                .as_ref()
+                .is_some_and(|r| r.canonical == Some(ReasoningCanonical::Effort));
+
+        let thinking_val = if use_effort {
+            None
+        } else {
+            req.params.reasoning_for(ProviderFormat::Anthropic)
+        };
+
+        let reasoning_enabled = use_effort
+            || thinking_val
+                .as_ref()
+                .and_then(|v| v.get("type"))
+                .and_then(|t| t.as_str())
+                .is_some_and(|t| t == "enabled");
         if !reasoning_enabled {
             insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         }
@@ -198,8 +243,16 @@ impl ProviderAdapter for AnthropicAdapter {
 
         // Convert tools to Anthropic format
         if let Some(tools) = &req.params.tools {
-            if let Some(tools_value) = tools_to_anthropic_value(tools)? {
-                obj.insert("tools".into(), tools_value);
+            if !tools.is_empty() {
+                let anthropic_tools: Vec<Tool> = tools
+                    .iter()
+                    .map(Tool::try_from)
+                    .collect::<Result<Vec<_>, _>>()?;
+                obj.insert(
+                    "tools".into(),
+                    serde_json::to_value(&anthropic_tools)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
             }
         }
 
@@ -209,7 +262,39 @@ impl ProviderAdapter for AnthropicAdapter {
         }
         insert_opt_bool(&mut obj, "stream", req.params.stream);
 
-        // Add reasoning as thinking if present (use pre-computed value from temperature override)
+        // Build output_config (always used for structured output format, and for effort on Opus 4.5+)
+        let effort_level = if use_effort {
+            req.params
+                .reasoning
+                .as_ref()
+                .and_then(|r| r.effort)
+                .map(|e| match e {
+                    ReasoningEffort::Low => EffortLevel::Low,
+                    ReasoningEffort::Medium => EffortLevel::Medium,
+                    ReasoningEffort::High => EffortLevel::High,
+                })
+        } else {
+            None
+        };
+        let format = req
+            .params
+            .response_format
+            .as_ref()
+            .and_then(|rf| rf.try_into().ok());
+
+        if effort_level.is_some() || format.is_some() {
+            let output_config = OutputConfig {
+                effort: effort_level,
+                format,
+            };
+            obj.insert(
+                "output_config".into(),
+                serde_json::to_value(&output_config)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
+        }
+
+        // Add thinking for legacy reasoning (non-Opus models)
         if let Some(thinking) = thinking_val {
             obj.insert("thinking".into(), thinking);
         }
@@ -236,11 +321,6 @@ impl ProviderAdapter for AnthropicAdapter {
                 "service_tier".into(),
                 Value::String(anthropic_tier.to_string()),
             );
-        }
-
-        // Add output_format for structured outputs (beta feature)
-        if let Some(output_format_val) = req.params.response_format_for(ProviderFormat::Anthropic) {
-            obj.insert("output_format".into(), output_format_val);
         }
 
         // Merge back provider-specific extras (only for Anthropic)
@@ -910,17 +990,20 @@ mod tests {
             "response_format should be parsed from output_format"
         );
 
-        // Convert back to Anthropic
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
 
-        // Verify output_format is preserved
         assert!(
-            reconstructed.get("output_format").is_some(),
-            "output_format should be present in reconstructed request"
+            reconstructed.get("output_config").is_some(),
+            "output_config should be present in reconstructed request"
         );
-        let output_format = reconstructed.get("output_format").unwrap();
-        assert_eq!(output_format.get("type").unwrap(), "json_schema");
-        assert!(output_format.get("schema").is_some());
+        let output_config = reconstructed.get("output_config").unwrap();
+        let format = output_config.get("format").unwrap();
+        assert_eq!(format.get("type").unwrap(), "json_schema");
+        assert!(format.get("schema").is_some());
+        assert!(
+            reconstructed.get("output_format").is_none(),
+            "legacy output_format should not be present"
+        );
     }
 
     #[test]
@@ -975,15 +1058,18 @@ mod tests {
             .request_from_universal(&universal_for_anthropic)
             .unwrap();
 
-        // Verify Anthropic output_format structure
-        let output_format = anthropic_request.get("output_format").unwrap();
-        assert_eq!(output_format.get("type").unwrap(), "json_schema");
-        assert!(output_format.get("schema").is_some());
+        // Verify Anthropic output_config.format structure (GA API)
+        let output_config = anthropic_request.get("output_config").unwrap();
+        let format = output_config.get("format").unwrap();
+        assert_eq!(format.get("type").unwrap(), "json_schema");
+        assert!(format.get("schema").is_some());
         // Name should NOT be included (Anthropic doesn't support it)
-        assert!(output_format.get("name").is_none());
-        // strict is NOT supported in Anthropic output_format (it's for tools only)
-        assert!(output_format.get("strict").is_none());
+        assert!(format.get("name").is_none());
+        // strict is NOT supported in Anthropic (it's for tools only)
+        assert!(format.get("strict").is_none());
         // Anthropic format doesn't have nested json_schema wrapper
-        assert!(output_format.get("json_schema").is_none());
+        assert!(format.get("json_schema").is_none());
+        // Legacy output_format should NOT be present
+        assert!(anthropic_request.get("output_format").is_none());
     }
 }

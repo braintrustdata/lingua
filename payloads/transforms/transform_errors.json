@@ -1,9 +1,5 @@
 {
   "responses_to_anthropic": {
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)"
-  },
-  "chat-completions_to_anthropic": {
-    "textFormatJsonSchemaWithDescriptionParam": "JSON schema output format with description not supported in response transformation",
-    "stopSequencesParam": "Anthropic finish reason 'stop_sequence' not compatible with OpenAI finish reasons"
   }
 }

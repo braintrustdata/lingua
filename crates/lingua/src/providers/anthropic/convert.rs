@@ -1,6 +1,17 @@
+use std::convert::TryFrom;
+
 use crate::error::ConvertError;
 use crate::providers::anthropic::generated;
+use crate::providers::anthropic::generated::{
+    CustomTool, JsonOutputFormat, JsonOutputFormatType, Tool, ToolChoice, ToolChoiceType,
+};
 use crate::serde_json;
+use crate::serde_json::{json, Value};
+use crate::universal::request::{
+    JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
+};
+use crate::universal::tools::UniversalTool;
+use crate::universal::tools::UniversalToolType;
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart, Message,
     TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
@@ -1089,6 +1100,201 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
         }
 
         Ok(content_blocks)
+    }
+}
+
+impl From<&ToolChoice> for ToolChoiceConfig {
+    fn from(tc: &ToolChoice) -> Self {
+        let mode = Some(match tc.tool_choice_type {
+            ToolChoiceType::Auto => ToolChoiceMode::Auto,
+            ToolChoiceType::None => ToolChoiceMode::None,
+            ToolChoiceType::Any => ToolChoiceMode::Required,
+            ToolChoiceType::Tool => ToolChoiceMode::Tool,
+        });
+        ToolChoiceConfig {
+            mode,
+            tool_name: tc.name.clone(),
+            disable_parallel: tc.disable_parallel_tool_use,
+        }
+    }
+}
+
+impl TryFrom<&ToolChoiceConfig> for ToolChoice {
+    type Error = ();
+
+    fn try_from(config: &ToolChoiceConfig) -> Result<Self, Self::Error> {
+        let needs_disable_parallel = config.disable_parallel == Some(true);
+        let mode = match config.mode {
+            Some(m) => m,
+            None if needs_disable_parallel => ToolChoiceMode::Auto,
+            None => return Err(()),
+        };
+        Ok(ToolChoice {
+            tool_choice_type: match mode {
+                ToolChoiceMode::Auto => ToolChoiceType::Auto,
+                ToolChoiceMode::None => ToolChoiceType::None,
+                ToolChoiceMode::Required => ToolChoiceType::Any,
+                ToolChoiceMode::Tool => ToolChoiceType::Tool,
+            },
+            name: if mode == ToolChoiceMode::Tool {
+                config.tool_name.clone()
+            } else {
+                None
+            },
+            disable_parallel_tool_use: if needs_disable_parallel {
+                Some(true)
+            } else {
+                None
+            },
+        })
+    }
+}
+
+// =============================================================================
+// Response Format Conversions (Anthropic ↔ Universal)
+// =============================================================================
+
+impl From<&JsonOutputFormat> for ResponseFormatConfig {
+    fn from(format: &JsonOutputFormat) -> Self {
+        let format_type = match format.json_output_format_type {
+            JsonOutputFormatType::JsonSchema => Some(ResponseFormatType::JsonSchema),
+        };
+        let json_schema = format_type
+            .filter(|ft| *ft == ResponseFormatType::JsonSchema)
+            .map(|_| JsonSchemaConfig {
+                name: "response".to_string(),
+                schema: Value::Object(format.schema.clone()),
+                strict: None,
+                description: None,
+            });
+        ResponseFormatConfig {
+            format_type,
+            json_schema,
+        }
+    }
+}
+
+impl TryFrom<&ResponseFormatConfig> for JsonOutputFormat {
+    type Error = ();
+
+    fn try_from(config: &ResponseFormatConfig) -> Result<Self, Self::Error> {
+        match config.format_type.ok_or(())? {
+            ResponseFormatType::Text => Err(()),
+            ResponseFormatType::JsonObject => Ok(JsonOutputFormat {
+                schema: serde_json::from_value(json!({
+                    "type": "object",
+                    "additionalProperties": false
+                }))
+                .expect("static JSON object is always a valid Map"),
+                json_output_format_type: JsonOutputFormatType::JsonSchema,
+            }),
+            ResponseFormatType::JsonSchema => {
+                let js = config.json_schema.as_ref().ok_or(())?;
+                match &js.schema {
+                    Value::Object(m) => Ok(JsonOutputFormat {
+                        schema: m.clone(),
+                        json_output_format_type: JsonOutputFormatType::JsonSchema,
+                    }),
+                    _ => Err(()),
+                }
+            }
+        }
+    }
+}
+
+impl TryFrom<&UniversalTool> for CustomTool {
+    type Error = ConvertError;
+
+    fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
+        match &tool.tool_type {
+            UniversalToolType::Function => Ok(CustomTool {
+                name: tool.name.clone(),
+                description: tool.description.clone(),
+                input_schema: tool.parameters.clone().unwrap_or_else(|| json!({})),
+                strict: tool.strict,
+                cache_control: None,
+                eager_input_streaming: None,
+            }),
+            UniversalToolType::Builtin { builtin_type, .. } => {
+                Err(ConvertError::UnsupportedToolType {
+                    tool_name: tool.name.clone(),
+                    tool_type: builtin_type.clone(),
+                    target_provider: "Anthropic".to_string(),
+                })
+            }
+        }
+    }
+}
+
+impl From<&Tool> for UniversalTool {
+    fn from(tool: &Tool) -> Self {
+        match tool {
+            Tool::Custom(ct) => Self::function(
+                &ct.name,
+                ct.description.clone(),
+                Some(ct.input_schema.clone()),
+                ct.strict,
+            ),
+            other => {
+                let config = serde_json::to_value(other).ok();
+                let type_str = config
+                    .as_ref()
+                    .and_then(|v| v.get("type"))
+                    .and_then(Value::as_str)
+                    .unwrap_or("unknown")
+                    .to_string();
+                let name = config
+                    .as_ref()
+                    .and_then(|v| v.get("name"))
+                    .and_then(Value::as_str)
+                    .unwrap_or(&type_str)
+                    .to_string();
+                Self::builtin(name, "anthropic", type_str, config)
+            }
+        }
+    }
+}
+
+impl TryFrom<&UniversalTool> for Tool {
+    type Error = ConvertError;
+
+    fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
+        match &tool.tool_type {
+            UniversalToolType::Function => Ok(Tool::Custom(CustomTool::try_from(tool)?)),
+            UniversalToolType::Builtin {
+                provider,
+                builtin_type,
+                config,
+            } => {
+                if provider != "anthropic" {
+                    return Err(ConvertError::UnsupportedToolType {
+                        tool_name: tool.name.clone(),
+                        tool_type: builtin_type.clone(),
+                        target_provider: "Anthropic".to_string(),
+                    });
+                }
+                let config_val =
+                    config
+                        .clone()
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: format!("config for Anthropic builtin tool '{}'", tool.name),
+                        })?;
+                serde_json::from_value::<Tool>(config_val).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: format!("builtin tool '{}'", tool.name),
+                        error: e.to_string(),
+                    }
+                })
+            }
+        }
+    }
+}
+
+impl TryFromLLM<Vec<Tool>> for Vec<UniversalTool> {
+    type Error = ConvertError;
+
+    fn try_from(tools: Vec<Tool>) -> Result<Self, Self::Error> {
+        Ok(tools.iter().map(UniversalTool::from).collect())
     }
 }
 

@@ -53,15 +53,19 @@ test-typescript-integration: typescript ## Run TypeScript integration tests
 	@echo "Running TypeScript integration tests..."
 	cd bindings/typescript && pnpm run test:integration
 
-test-payloads: lingua-wasm ## Run payload transform tests (UPDATE=1 to update snapshots)
+test-payloads: lingua-wasm ## Run payload transform tests (REGENERATE=1 to auto-fix with API validation)
 	@echo "Running payload tests..."
-	cd payloads && pnpm vitest run scripts/transforms $(if $(UPDATE),-u)
+	@cd payloads && pnpm vitest run scripts/transforms $(if $(REGENERATE),|| pnpm tsx scripts/regenerate-failed.ts) \
+		|| (echo "\n❌ Tests failed! Run 'make regenerate-failed-transforms' to regenerate with real API calls" && exit 1)
 
 capture: lingua-wasm ## Capture payloads (snapshots + transforms + vitest snapshots)
-	cd payloads && pnpm capture $(if $(FILTER),--filter $(FILTER)) $(if $(FORCE),--force)
+	cd payloads && pnpm capture $(if $(FILTER),--filter $(FILTER)) $(if $(CASES),--cases $(CASES)) $(if $(FORCE),--force)
 
 capture-transforms: lingua-wasm ## Re-capture only transforms (e.g. make capture-transforms FORCE=1)
 	cd payloads && pnpm tsx scripts/transforms/capture-transforms.ts $(if $(FILTER),$(FILTER)) $(if $(FORCE),--force)
+
+regenerate-failed-transforms: lingua-wasm ## Auto-regenerate failed transform payloads
+	cd payloads && pnpm tsx scripts/regenerate-failed.ts
 
 test-python: ## Run Python tests
 	@echo "Running Python tests..."

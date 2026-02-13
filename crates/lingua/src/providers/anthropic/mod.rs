@@ -6,6 +6,7 @@ generated from the OpenAPI specification using quicktype.
 */
 
 pub mod adapter;
+pub mod capabilities;
 pub mod convert;
 pub mod detect;
 pub mod generated;
