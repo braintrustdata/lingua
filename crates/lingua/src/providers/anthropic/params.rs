@@ -5,23 +5,25 @@ These structs use `#[serde(flatten)]` to automatically capture unknown fields,
 eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
-use crate::providers::anthropic::generated::{InputMessage, Thinking};
+use crate::providers::anthropic::generated::{
+    InputMessage, JsonOutputFormat, Metadata, OutputConfig, System, Thinking, Tool, ToolChoice,
+};
 use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 /// Anthropic Messages API request parameters.
 ///
-/// All known fields are explicitly typed. Unknown fields automatically
-/// go into `extras` via `#[serde(flatten)]`.
+/// All known fields are explicitly typed using generated types from the Anthropic API spec.
+/// Unknown fields automatically go into `extras` via `#[serde(flatten)]`.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AnthropicParams {
     // === Core fields ===
     pub model: Option<String>,
     pub messages: Option<Vec<InputMessage>>,
 
-    // === System prompt (can be string or array with cache_control) ===
-    pub system: Option<Value>,
+    // === System prompt (string or array with cache_control) ===
+    pub system: Option<System>,
 
     // === Required output control ===
     pub max_tokens: Option<i64>,
@@ -30,25 +32,26 @@ pub struct AnthropicParams {
     pub temperature: Option<f64>,
     pub top_p: Option<f64>,
     pub top_k: Option<i64>,
-    pub stop_sequences: Option<Value>,
+    pub stop_sequences: Option<Vec<String>>,
 
     // === Streaming ===
     pub stream: Option<bool>,
 
     // === Tools and function calling ===
-    pub tools: Option<Value>,
-    pub tool_choice: Option<Value>,
+    pub tools: Option<Vec<Tool>>,
+    pub tool_choice: Option<ToolChoice>,
 
     // === Extended thinking ===
     pub thinking: Option<Thinking>,
 
-    // === Structured outputs (beta: structured-outputs-2025-11-13) ===
-    /// Output format for structured JSON responses.
-    /// Structure: `{ type: "json_schema", schema: {...} }`
-    pub output_format: Option<Value>,
+    // === Structured outputs ===
+    /// Legacy output format (beta: structured-outputs-2025-11-13).
+    pub output_format: Option<JsonOutputFormat>,
+    /// Output config with effort and format fields.
+    pub output_config: Option<OutputConfig>,
 
     // === Metadata and identification ===
-    pub metadata: Option<Value>,
+    pub metadata: Option<Metadata>,
     pub service_tier: Option<String>,
 
     /// Unknown fields - automatically captured by serde flatten.
