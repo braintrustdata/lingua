@@ -688,12 +688,19 @@ pub struct Schema {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export_to = "google/")]
 pub enum Type {
+    #[serde(alias = "array")]
     Array,
+    #[serde(alias = "boolean")]
     Boolean,
+    #[serde(alias = "integer")]
     Integer,
+    #[serde(alias = "null")]
     Null,
+    #[serde(alias = "number")]
     Number,
+    #[serde(alias = "object")]
     Object,
+    #[serde(alias = "string")]
     String,
     #[serde(rename = "TYPE_UNSPECIFIED")]
     TypeUnspecified,

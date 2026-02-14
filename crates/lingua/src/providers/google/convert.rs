@@ -8,10 +8,10 @@ Google's GenerateContent API format and Lingua's universal message format.
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::google::generated::{
-    Blob as GoogleBlob, Content as GoogleContent, FunctionCall as GoogleFunctionCall,
-    FunctionCallingConfig, FunctionCallingConfigMode, FunctionDeclaration,
-    FunctionResponse as GoogleFunctionResponse, GenerateContentRequest, GenerationConfig,
-    Part as GooglePart, Tool as GoogleTool, ToolConfig,
+    Blob as GoogleBlob, Content as GoogleContent, FileData as GoogleFileData,
+    FunctionCall as GoogleFunctionCall, FunctionCallingConfig, FunctionCallingConfigMode,
+    FunctionDeclaration, FunctionResponse as GoogleFunctionResponse, GenerateContentRequest,
+    GenerationConfig, Part as GooglePart, Tool as GoogleTool, ToolConfig,
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -129,6 +129,14 @@ impl TryFromLLM<GoogleContent> for Message {
                                 provider_options: None,
                             });
                         }
+                    } else if let Some(fd) = &part.file_data {
+                        if let Some(uri) = &fd.file_uri {
+                            user_parts.push(UserContentPart::Image {
+                                image: Value::String(uri.clone()),
+                                media_type: fd.mime_type.clone(),
+                                provider_options: None,
+                            });
+                        }
                     } else if let Some(fr) = &part.function_response {
                         if let Some(tool_name) = &fr.name {
                             let output = match fr.response.as_ref() {
@@ -209,26 +217,35 @@ impl TryFromLLM<Message> for GoogleContent {
                                     media_type,
                                     ..
                                 } => {
-                                    let mut inferred_media_type = None;
-                                    let base64_data =
-                                        if let Some(block) = parse_base64_data_url(&data) {
-                                            inferred_media_type = Some(block.media_type);
-                                            block.data
-                                        } else {
-                                            data
-                                        };
-
-                                    let mime_type = media_type
-                                        .or(inferred_media_type)
-                                        .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
-
-                                    converted.push(GooglePart {
-                                        inline_data: Some(GoogleBlob {
-                                            mime_type: Some(mime_type),
-                                            data: Some(base64_data),
-                                        }),
-                                        ..Default::default()
-                                    });
+                                    if let Some(block) = parse_base64_data_url(&data) {
+                                        converted.push(GooglePart {
+                                            inline_data: Some(GoogleBlob {
+                                                mime_type: Some(block.media_type),
+                                                data: Some(block.data),
+                                            }),
+                                            ..Default::default()
+                                        });
+                                    } else if data.starts_with("http://")
+                                        || data.starts_with("https://")
+                                    {
+                                        converted.push(GooglePart {
+                                            file_data: Some(GoogleFileData {
+                                                file_uri: Some(data),
+                                                mime_type: media_type,
+                                            }),
+                                            ..Default::default()
+                                        });
+                                    } else {
+                                        let mime_type = media_type
+                                            .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
+                                        converted.push(GooglePart {
+                                            inline_data: Some(GoogleBlob {
+                                                mime_type: Some(mime_type),
+                                                data: Some(data),
+                                            }),
+                                            ..Default::default()
+                                        });
+                                    }
                                 }
                                 _ => {}
                             }

@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "To find recent errors, I'll query the `project_logs` data source and look for entries with an error or critical log level.\n\n```sql\nSELECT\n  timestamp,\n  level,\n  message,\n  service,\n  trace_id\nFROM\n  project_logs\nWHERE\n  level IN ('error', 'critical')\nORDER BY\n  timestamp DESC\nLIMIT 20;\n```\n\nThis query will retrieve the 20 most recent log entries that have a level of"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 29,
+    "candidatesTokenCount": 107,
+    "totalTokenCount": 325,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 29
+      }
+    ],
+    "thoughtsTokenCount": 189
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "M_CPacnNNurSjMcPydfq4Qw"
+}
