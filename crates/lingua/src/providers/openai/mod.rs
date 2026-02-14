@@ -13,6 +13,7 @@ pub mod detect;
 pub mod generated;
 pub mod params;
 pub mod responses_adapter;
+pub(crate) mod tool_parsing;
 
 // Re-export adapters and transformations
 pub use adapter::OpenAIAdapter;

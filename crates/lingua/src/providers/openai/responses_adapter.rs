@@ -17,13 +17,14 @@ use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
 };
 use crate::providers::openai::params::OpenAIResponsesParams;
+use crate::providers::openai::tool_parsing::parse_openai_responses_tools_array;
 use crate::providers::openai::{try_parse_responses, universal_to_responses_input};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
     AssistantContent, Message, TextContentPart, UserContent, UserContentPart,
 };
-use crate::universal::tools::{tools_to_responses_value, UniversalTool};
+use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
     UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
@@ -129,7 +130,7 @@ impl ProviderAdapter for ResponsesAdapter {
             tools: typed_params
                 .tools
                 .as_ref()
-                .map(UniversalTool::from_value_array),
+                .map(parse_openai_responses_tools_array),
             tool_choice: typed_params
                 .tool_choice
                 .as_ref()
