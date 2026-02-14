@@ -1,6 +1,5 @@
 use std::convert::TryFrom;
 
-use crate::capabilities::format::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
@@ -1219,7 +1218,15 @@ impl TryFrom<&UniversalTool> for CustomTool {
                 cache_control: None,
                 eager_input_streaming: None,
             }),
-            UniversalToolType::Builtin { builtin_type, .. } => {
+            UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
+                tool_name: tool.name.clone(),
+                tool_type: "custom".to_string(),
+                target_provider: "Anthropic".to_string(),
+            }),
+            UniversalToolType::BuiltinAnthropic { builtin_type, .. }
+            | UniversalToolType::BuiltinResponses { builtin_type, .. }
+            | UniversalToolType::BuiltinGoogle { builtin_type, .. }
+            | UniversalToolType::BuiltinConverse { builtin_type, .. } => {
                 Err(ConvertError::UnsupportedToolType {
                     tool_name: tool.name.clone(),
                     tool_type: builtin_type.clone(),
@@ -1253,7 +1260,7 @@ impl From<&Tool> for UniversalTool {
                     .and_then(Value::as_str)
                     .unwrap_or(&type_str)
                     .to_string();
-                Self::builtin(name, ProviderFormat::Anthropic, type_str, config)
+                Self::builtin_anthropic(name, type_str, config)
             }
         }
     }
@@ -1265,18 +1272,15 @@ impl TryFrom<&UniversalTool> for Tool {
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
             UniversalToolType::Function => Ok(Tool::Custom(CustomTool::try_from(tool)?)),
-            UniversalToolType::Builtin {
-                provider,
-                builtin_type,
+            UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
+                tool_name: tool.name.clone(),
+                tool_type: "custom".to_string(),
+                target_provider: "Anthropic".to_string(),
+            }),
+            UniversalToolType::BuiltinAnthropic {
+                builtin_type: _,
                 config,
             } => {
-                if !matches!(provider, ProviderFormat::Anthropic) {
-                    return Err(ConvertError::UnsupportedToolType {
-                        tool_name: tool.name.clone(),
-                        tool_type: builtin_type.clone(),
-                        target_provider: "Anthropic".to_string(),
-                    });
-                }
                 let config_val =
                     config
                         .clone()
@@ -1288,6 +1292,15 @@ impl TryFrom<&UniversalTool> for Tool {
                         field: format!("builtin tool '{}'", tool.name),
                         error: e.to_string(),
                     }
+                })
+            }
+            UniversalToolType::BuiltinResponses { builtin_type, .. }
+            | UniversalToolType::BuiltinGoogle { builtin_type, .. }
+            | UniversalToolType::BuiltinConverse { builtin_type, .. } => {
+                Err(ConvertError::UnsupportedToolType {
+                    tool_name: tool.name.clone(),
+                    tool_type: builtin_type.clone(),
+                    target_provider: "Anthropic".to_string(),
                 })
             }
         }
