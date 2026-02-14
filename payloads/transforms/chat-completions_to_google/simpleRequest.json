@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, here's the summary of the thought process, as if I'm having these thoughts:\n\n**Addressing the Direct Inquiry**\n\nAlright, a clear and concise question has been presented. It's a matter of fact, and the expectation is a direct and accurate response. My primary focus is to ensure the information provided is correct and relevant to the user's specific inquiry. No room for ambiguity here; precision is key. I'll need to recall the relevant data or knowledge and communicate it in a straightforward manner. My expertise is relied upon here, so accuracy is of paramount importance. Let's get this right.\n",
+            "thought": true
+          },
+          {
+            "text": "The capital of France is **Paris**."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 33,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 17
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "FvCPaePvM_DTjMcPivvf4AY"
+}

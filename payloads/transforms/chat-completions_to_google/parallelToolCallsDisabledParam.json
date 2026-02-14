@@ -1,0 +1,3 @@
+{
+  "error": "Conversion from universal format failed: JSON serialization failed for field 'tool 'get_weather' parameters': unknown variant `string`, expected one of `ARRAY`, `BOOLEAN`, `INTEGER`, `NULL`, `NUMBER`, `OBJECT`, `STRING`, `TYPE_UNSPECIFIED`"
+}

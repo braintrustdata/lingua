@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here's a possible summary:\n\n**Addressing the Fundamentals**\n\nAlright, a straightforward arithmetic query. No need to overcomplicate things here. The goal is simply to provide the correct answer as clearly and concisely as possible. I'll get straight to the solution, assuming they're looking for a simple, direct response.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 33,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 17
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "NvCPaca0IPLkjMcPs-amqA8"
+}

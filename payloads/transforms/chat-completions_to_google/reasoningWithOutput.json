@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The sky is most commonly **blue**.\n\nHere's why, and when it can be other colors:\n\n1.  **Blue:** This is the most common color during the day. It's due to a phenomenon called **Rayleigh scattering**. Sunlight (which contains all colors) enters Earth's atmosphere. Blue and violet light have shorter wavelengths and are scattered more efficiently by the tiny molecules of nitrogen and oxygen in the atmosphere than the longer wavelengths (like red and yellow). Because blue light is scattered in all directions, it makes the sky appear blue to our eyes. Our eyes are also more sensitive to blue than violet.\n\n2.  **Red, Orange, Pink, Purple:** At **sunrise and sunset**, the sky often takes on these warm hues. This happens because the sun's light has to travel through much more of the atmosphere to reach our eyes. By the time it gets to us, most of the blue and violet light has been scattered away, allowing the longer wavelengths (red, orange, yellow) to pass through more directly. Dust and pollution can enhance these effects.\n\n3.  **Grey or White:** When it's **overcast or cloudy**, the sky often looks grey or white. Clouds are made of water droplets and ice crystals, which are much larger than the gas molecules in the atmosphere. These larger particles scatter all wavelengths of light more or less equally, resulting in a white or grey appearance. Thicker clouds appear darker grey as less light passes through them.\n\n4.  **Black:** At **night**, the sky appears black (with stars). This is because the side of Earth you are on is facing away from the sun, so there's no sunlight to be scattered by the atmosphere.\n\n5.  **Other Variations:**\n    *   **Yellow/Brownish:** Can be due to haze, dust, or heavy pollution.\n    *   **Greenish:** Very rarely, sometimes associated with severe thunderstorms (though this is more common with the lighting *within* the storm).\n\nSo, while **blue** is the most frequent answer, the sky's color is a dynamic and beautiful display influenced by the time of day, weather, and atmospheric conditions."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 7,
+    "candidatesTokenCount": 453,
+    "totalTokenCount": 1172,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "thoughtsTokenCount": 712
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "MvCPab2LCcCyjMcPsqnpwQw"
+}
