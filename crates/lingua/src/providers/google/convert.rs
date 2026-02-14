@@ -9,9 +9,10 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::google::generated::{
     Blob as GoogleBlob, Content as GoogleContent, FileData as GoogleFileData,
-    FunctionCall as GoogleFunctionCall, FunctionCallingConfig, FunctionCallingConfigMode,
-    FunctionDeclaration, FunctionResponse as GoogleFunctionResponse, GenerateContentRequest,
-    GenerationConfig, Part as GooglePart, Tool as GoogleTool, ToolConfig,
+    FinishReason as GoogleFinishReason, FunctionCall as GoogleFunctionCall, FunctionCallingConfig,
+    FunctionCallingConfigMode, FunctionDeclaration, FunctionResponse as GoogleFunctionResponse,
+    GenerateContentRequest, GenerationConfig, Part as GooglePart, Tool as GoogleTool, ToolConfig,
+    UsageMetadata,
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -23,6 +24,7 @@ use crate::universal::message::{
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
+use crate::universal::response::{FinishReason, UniversalUsage};
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::util::media::parse_base64_data_url;
 
@@ -684,6 +686,62 @@ pub fn apply_response_format_to_generation_config(
             config.response_mime_type = Some("text/plain".to_string());
         }
         None => {}
+    }
+}
+
+impl From<&GoogleFinishReason> for FinishReason {
+    fn from(reason: &GoogleFinishReason) -> Self {
+        match reason {
+            GoogleFinishReason::Stop => FinishReason::Stop,
+            GoogleFinishReason::MaxTokens => FinishReason::Length,
+            GoogleFinishReason::Safety
+            | GoogleFinishReason::Recitation
+            | GoogleFinishReason::Blocklist
+            | GoogleFinishReason::ProhibitedContent
+            | GoogleFinishReason::Spii
+            | GoogleFinishReason::ImageSafety => FinishReason::ContentFilter,
+            other => {
+                let s = serde_json::to_value(other)
+                    .ok()
+                    .and_then(|v| v.as_str().map(String::from))
+                    .unwrap_or_else(|| format!("{:?}", other));
+                FinishReason::Other(s)
+            }
+        }
+    }
+}
+
+impl From<&UsageMetadata> for UniversalUsage {
+    fn from(usage: &UsageMetadata) -> Self {
+        let candidates = usage.candidates_token_count.unwrap_or(0);
+        let thoughts = usage.thoughts_token_count.unwrap_or(0);
+
+        Self {
+            prompt_tokens: usage.prompt_token_count,
+            // In the universal format, completion_tokens includes reasoning (matching OpenAI convention).
+            // Google separates candidatesTokenCount and thoughtsTokenCount, so we add them.
+            completion_tokens: Some(candidates + thoughts),
+            prompt_cached_tokens: usage.cached_content_token_count,
+            prompt_cache_creation_tokens: None,
+            completion_reasoning_tokens: usage.thoughts_token_count,
+        }
+    }
+}
+
+impl From<&UniversalUsage> for UsageMetadata {
+    fn from(usage: &UniversalUsage) -> Self {
+        let completion = usage.completion_tokens.unwrap_or(0);
+        let reasoning = usage.completion_reasoning_tokens.unwrap_or(0);
+
+        Self {
+            prompt_token_count: usage.prompt_tokens,
+            // Google's candidatesTokenCount excludes thoughts, so subtract reasoning
+            candidates_token_count: Some((completion - reasoning).max(0)),
+            cached_content_token_count: usage.prompt_cached_tokens,
+            thoughts_token_count: usage.completion_reasoning_tokens,
+            total_token_count: Some(usage.prompt_tokens.unwrap_or(0) + completion),
+            ..Default::default()
+        }
     }
 }
 

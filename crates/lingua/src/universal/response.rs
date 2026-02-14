@@ -231,7 +231,6 @@ impl UniversalUsage {
     /// - OpenAI Responses: input_tokens, output_tokens, input_tokens_details.cached_tokens
     /// - Anthropic: input_tokens, output_tokens, cache_read_input_tokens
     /// - Bedrock: inputTokens, outputTokens, cacheReadInputTokens
-    /// - Google: promptTokenCount, candidatesTokenCount, cachedContentTokenCount
     /// - Mistral: uses OpenAI format
     pub fn from_provider_value(usage: &Value, provider: ProviderFormat) -> Self {
         match provider {
@@ -286,15 +285,7 @@ impl UniversalUsage {
                     .and_then(Value::as_i64),
                 completion_reasoning_tokens: None, // Bedrock doesn't expose thinking tokens separately
             },
-            ProviderFormat::Google => Self {
-                prompt_tokens: usage.get("promptTokenCount").and_then(Value::as_i64),
-                completion_tokens: usage.get("candidatesTokenCount").and_then(Value::as_i64),
-                prompt_cached_tokens: usage.get("cachedContentTokenCount").and_then(Value::as_i64),
-                prompt_cache_creation_tokens: None, // Google doesn't report cache creation tokens
-                completion_reasoning_tokens: usage
-                    .get("thoughtsTokenCount")
-                    .and_then(Value::as_i64),
-            },
+            ProviderFormat::Google => unreachable!("Google usage is handled via typed From trait"),
         }
     }
 
@@ -302,12 +293,8 @@ impl UniversalUsage {
     ///
     /// Most providers use "usage", but Google uses "usageMetadata".
     pub fn extract_from_response(payload: &Value, provider: ProviderFormat) -> Option<Self> {
-        let key = match provider {
-            ProviderFormat::Google => "usageMetadata",
-            _ => "usage",
-        };
         payload
-            .get(key)
+            .get("usage")
             .map(|u| Self::from_provider_value(u, provider))
     }
 
@@ -394,11 +381,7 @@ impl UniversalUsage {
                 "inputTokens": prompt,
                 "outputTokens": completion
             }),
-            ProviderFormat::Google => serde_json::json!({
-                "promptTokenCount": prompt,
-                "candidatesTokenCount": completion,
-                "totalTokenCount": prompt + completion
-            }),
+            ProviderFormat::Google => unreachable!("Google usage is handled via typed From trait"),
         }
     }
 }
