@@ -1,25 +1,10 @@
 {
-  "sdkHttpResponse": {
-    "headers": {
-      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-      "content-encoding": "gzip",
-      "content-type": "application/json; charset=UTF-8",
-      "date": "Tue, 30 Dec 2025 17:03:30 GMT",
-      "server": "scaffolding on HTTPServer2",
-      "server-timing": "gfet4t7; dur=2242",
-      "transfer-encoding": "chunked",
-      "vary": "Origin, X-Origin, Referer",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "SAMEORIGIN",
-      "x-xss-protection": "0"
-    }
-  },
   "candidates": [
     {
       "content": {
         "parts": [
           {
-            "text": "The image is completely black. There are no discernible objects"
+            "text": "The image is **completely black**.\n\nThere are no discernible"
           }
         ],
         "role": "model"
@@ -28,11 +13,9 @@
       "index": 0
     }
   ],
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "4gVUaZ7_BaCkjMcP6Pm50QM",
   "usageMetadata": {
     "promptTokenCount": 267,
-    "candidatesTokenCount": 11,
+    "candidatesTokenCount": 12,
     "totalTokenCount": 563,
     "promptTokensDetails": [
       {
@@ -44,6 +27,8 @@
         "tokenCount": 258
       }
     ],
-    "thoughtsTokenCount": 285
-  }
+    "thoughtsTokenCount": 284
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "ib58aYqFGt7TjMcP0b7jyA0"
 }

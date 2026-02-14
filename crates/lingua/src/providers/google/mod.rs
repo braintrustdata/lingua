@@ -7,6 +7,9 @@ pub mod detect;
 pub mod generated;
 pub mod params;
 
+#[cfg(test)]
+pub mod test_google;
+
 // Re-export adapter
 pub use adapter::GoogleAdapter;
 

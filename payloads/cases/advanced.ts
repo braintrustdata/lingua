@@ -95,7 +95,7 @@ export const advancedCases: TestCaseCollection = {
           ],
         },
       ],
-      config: {
+      generationConfig: {
         maxOutputTokens: 300,
       },
     },
@@ -173,7 +173,7 @@ export const advancedCases: TestCaseCollection = {
           ],
         },
       ],
-      config: {
+      generationConfig: {
         maxOutputTokens: 20_000,
       },
     },
@@ -489,7 +489,7 @@ export const advancedCases: TestCaseCollection = {
           parts: [{ text: "What errors occurred recently?" }],
         },
       ],
-      config: {
+      generationConfig: {
         maxOutputTokens: 300,
       },
     },

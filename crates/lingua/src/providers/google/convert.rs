@@ -52,113 +52,136 @@ fn json_to_struct(value: &Value) -> Result<Struct, ConvertError> {
     }
 }
 
-fn struct_to_json(value: &Struct) -> Value {
-    serde_json::to_value(value).unwrap_or(Value::Null)
+fn struct_to_json(value: &Struct) -> Result<Value, ConvertError> {
+    serde_json::to_value(value).map_err(|e| ConvertError::ContentConversionFailed {
+        reason: format!("Failed to serialize Struct to JSON: {e}"),
+    })
 }
 
 impl TryFromLLM<GoogleContent> for Message {
     type Error = ConvertError;
 
     fn try_from(content: GoogleContent) -> Result<Self, Self::Error> {
-        let role = if content.role.is_empty() {
-            "user"
-        } else {
-            content.role.as_str()
-        };
+        match content.role.as_str() {
+            "model" => {
+                // Collect into AssistantContentPart
+                let mut parts: Vec<AssistantContentPart> = Vec::new();
 
-        // Collect text parts
-        let mut text = String::new();
-        let mut function_calls = Vec::new();
-        let mut function_responses = Vec::new();
-
-        for part in &content.parts {
-            if let Some(data) = &part.data {
-                match data {
-                    part::Data::Text(t) => text.push_str(t),
-                    part::Data::FunctionCall(fc) => function_calls.push(fc.clone()),
-                    part::Data::FunctionResponse(fr) => function_responses.push(fr.clone()),
-                    _ => {}
+                for part in &content.parts {
+                    if let Some(data) = &part.data {
+                        match data {
+                            part::Data::Text(t) => {
+                                if !part.thought_signature.is_empty() {
+                                    parts.push(AssistantContentPart::Reasoning {
+                                        text: t.clone(),
+                                        encrypted_content: Some(
+                                            STANDARD.encode(&part.thought_signature),
+                                        ),
+                                    });
+                                } else {
+                                    parts.push(AssistantContentPart::Text(TextContentPart {
+                                        text: t.clone(),
+                                        provider_options: None,
+                                    }));
+                                }
+                            }
+                            part::Data::FunctionCall(fc) => {
+                                let args_value = match fc.args.as_ref() {
+                                    Some(s) => struct_to_json(s)?,
+                                    None => Value::Null,
+                                };
+                                let encrypted_content = if !part.thought_signature.is_empty() {
+                                    Some(STANDARD.encode(&part.thought_signature))
+                                } else {
+                                    None
+                                };
+                                let args_string =
+                                    serde_json::to_string(&args_value).map_err(|e| {
+                                        ConvertError::ContentConversionFailed {
+                                            reason: format!(
+                                                "Failed to serialize function call args: {e}"
+                                            ),
+                                        }
+                                    })?;
+                                parts.push(AssistantContentPart::ToolCall {
+                                    tool_call_id: fc.id.clone(),
+                                    tool_name: fc.name.clone(),
+                                    arguments: ToolCallArguments::from(args_string),
+                                    encrypted_content,
+                                    provider_options: None,
+                                    provider_executed: None,
+                                });
+                            }
+                            _ => {}
+                        }
+                    }
                 }
-            }
-        }
 
-        if !function_calls.is_empty() {
-            // Model message with function calls
-            let mut parts = Vec::new();
-
-            if !text.is_empty() {
-                parts.push(AssistantContentPart::Text(TextContentPart {
-                    text,
-                    provider_options: None,
-                }));
-            }
-
-            for fc in function_calls {
-                let args_value = fc.args.as_ref().map(struct_to_json).unwrap_or(Value::Null);
-                parts.push(AssistantContentPart::ToolCall {
-                    tool_call_id: if fc.id.is_empty() {
-                        fc.name.clone()
-                    } else {
-                        fc.id.clone()
-                    },
-                    tool_name: fc.name.clone(),
-                    arguments: ToolCallArguments::from(
-                        serde_json::to_string(&args_value).unwrap_or_default(),
-                    ),
-                    provider_options: None,
-                    provider_executed: None,
-                });
-            }
-
-            Ok(Message::Assistant {
-                content: AssistantContent::Array(parts),
-                id: None,
-            })
-        } else if !function_responses.is_empty() {
-            // User message with function responses (tool results)
-            let tool_parts: Vec<ToolContentPart> = function_responses
-                .iter()
-                .map(|fr| {
-                    let output = fr
-                        .response
-                        .as_ref()
-                        .map(struct_to_json)
-                        .unwrap_or(Value::Null);
-                    ToolContentPart::ToolResult(ToolResultContentPart {
-                        tool_call_id: if fr.id.is_empty() {
-                            fr.name.clone()
-                        } else {
-                            fr.id.clone()
-                        },
-                        tool_name: fr.name.clone(),
-                        output,
-                        provider_options: None,
-                    })
-                })
-                .collect();
-
-            Ok(Message::Tool {
-                content: tool_parts,
-            })
-        } else {
-            // Regular text message
-            match role {
-                "user" => Ok(Message::User {
-                    content: UserContent::String(text),
-                }),
-                "model" => Ok(Message::Assistant {
-                    content: AssistantContent::Array(vec![AssistantContentPart::Text(
-                        TextContentPart {
-                            text,
-                            provider_options: None,
-                        },
-                    )]),
+                Ok(Message::Assistant {
+                    content: AssistantContent::Array(parts),
                     id: None,
-                }),
-                _ => {
-                    // Treat unknown roles as user
+                })
+            }
+
+            // "user" or unknown roles
+            _ => {
+                // Collect into UserContentPart or ToolContentPart
+                let mut user_parts: Vec<UserContentPart> = Vec::new();
+                let mut tool_parts: Vec<ToolContentPart> = Vec::new();
+
+                for part in &content.parts {
+                    if let Some(data) = &part.data {
+                        match data {
+                            part::Data::Text(t) => {
+                                user_parts.push(UserContentPart::Text(TextContentPart {
+                                    text: t.clone(),
+                                    provider_options: None,
+                                }));
+                            }
+                            part::Data::InlineData(blob) => {
+                                user_parts.push(UserContentPart::Image {
+                                    image: Value::String(STANDARD.encode(&blob.data)),
+                                    media_type: Some(blob.mime_type.clone()),
+                                    provider_options: None,
+                                });
+                            }
+                            part::Data::FunctionResponse(fr) => {
+                                let output = match fr.response.as_ref() {
+                                    Some(s) => struct_to_json(s)?,
+                                    None => Value::Null,
+                                };
+                                tool_parts.push(ToolContentPart::ToolResult(
+                                    ToolResultContentPart {
+                                        tool_call_id: fr.id.clone(),
+                                        tool_name: fr.name.clone(),
+                                        output,
+                                        provider_options: None,
+                                    },
+                                ));
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+
+                if !tool_parts.is_empty() {
+                    Ok(Message::Tool {
+                        content: tool_parts,
+                    })
+                } else if user_parts.len() == 1
+                    && matches!(&user_parts[0], UserContentPart::Text(_))
+                {
+                    // Single text part -> String for simplicity
+                    let text = match user_parts.remove(0) {
+                        UserContentPart::Text(t) => t.text,
+                        _ => unreachable!(),
+                    };
                     Ok(Message::User {
                         content: UserContent::String(text),
+                    })
+                } else {
+                    Ok(Message::User {
+                        content: UserContent::Array(user_parts),
                     })
                 }
             }
@@ -246,37 +269,82 @@ impl TryFromLLM<Message> for GoogleContent {
             Message::Assistant { content, .. } => {
                 let parts = match content {
                     AssistantContent::String(s) => vec![part_from_data(part::Data::Text(s))],
-                    AssistantContent::Array(parts) => parts
-                        .into_iter()
-                        .filter_map(|p| match p {
-                            AssistantContentPart::Text(t) => {
-                                Some(part_from_data(part::Data::Text(t.text)))
-                            }
-                            AssistantContentPart::ToolCall {
-                                tool_name,
-                                arguments,
-                                ..
-                            } => {
-                                let value = match arguments {
-                                    ToolCallArguments::Valid(map) => Some(Value::Object(map)),
-                                    ToolCallArguments::Invalid(s) => serde_json::from_str(&s).ok(),
-                                };
-                                let args = value.and_then(|v| match v {
-                                    Value::Object(_) => json_to_struct(&v).ok(),
-                                    _ => None,
-                                });
+                    AssistantContent::Array(parts) => {
+                        let mut converted = Vec::new();
+                        for p in parts {
+                            match p {
+                                AssistantContentPart::Text(t) => {
+                                    converted.push(part_from_data(part::Data::Text(t.text)));
+                                }
+                                AssistantContentPart::ToolCall {
+                                    tool_call_id,
+                                    tool_name,
+                                    arguments,
+                                    encrypted_content,
+                                    ..
+                                } => {
+                                    let value = match arguments {
+                                        ToolCallArguments::Valid(map) => Some(Value::Object(map)),
+                                        ToolCallArguments::Invalid(s) => {
+                                            serde_json::from_str(&s).ok()
+                                        }
+                                    };
+                                    let args = match value {
+                                        Some(v @ Value::Object(_)) => Some(json_to_struct(&v)?),
+                                        _ => None,
+                                    };
 
-                                Some(part_from_data(part::Data::FunctionCall(
-                                    GoogleFunctionCall {
-                                        id: String::new(),
-                                        name: tool_name,
-                                        args,
-                                    },
-                                )))
+                                    let thought_signature = match encrypted_content.as_ref() {
+                                        Some(s) => STANDARD.decode(s).map_err(|e| {
+                                            ConvertError::ContentConversionFailed {
+                                                reason: format!(
+                                                    "Invalid base64 thought signature: {e}"
+                                                ),
+                                            }
+                                        })?,
+                                        None => Vec::new(),
+                                    };
+
+                                    converted.push(GooglePart {
+                                        thought: false,
+                                        thought_signature,
+                                        part_metadata: None,
+                                        data: Some(part::Data::FunctionCall(GoogleFunctionCall {
+                                            id: tool_call_id,
+                                            name: tool_name,
+                                            args,
+                                        })),
+                                        metadata: None,
+                                    });
+                                }
+                                AssistantContentPart::Reasoning {
+                                    text,
+                                    encrypted_content,
+                                } => {
+                                    let thought_signature = match encrypted_content.as_ref() {
+                                        Some(s) => STANDARD.decode(s).map_err(|e| {
+                                            ConvertError::ContentConversionFailed {
+                                                reason: format!(
+                                                    "Invalid base64 thought signature: {e}"
+                                                ),
+                                            }
+                                        })?,
+                                        None => Vec::new(),
+                                    };
+
+                                    converted.push(GooglePart {
+                                        thought: false,
+                                        thought_signature,
+                                        part_metadata: None,
+                                        data: Some(part::Data::Text(text)),
+                                        metadata: None,
+                                    });
+                                }
+                                _ => {}
                             }
-                            _ => None,
-                        })
-                        .collect(),
+                        }
+                        converted
+                    }
                 };
                 ("model".to_string(), parts)
             }
@@ -287,24 +355,26 @@ impl TryFromLLM<Message> for GoogleContent {
                         let ToolContentPart::ToolResult(result) = part;
                         let response = match &result.output {
                             Value::Null => None,
-                            Value::Object(_) => json_to_struct(&result.output).ok(),
+                            Value::Object(_) => Some(json_to_struct(&result.output)?),
                             other => {
                                 let mut wrapped = serde_json::Map::new();
                                 wrapped.insert("output".to_string(), other.clone());
-                                json_to_struct(&Value::Object(wrapped)).ok()
+                                Some(json_to_struct(&Value::Object(wrapped))?)
                             }
                         };
 
-                        part_from_data(part::Data::FunctionResponse(GoogleFunctionResponse {
-                            id: result.tool_call_id,
-                            name: result.tool_name,
-                            response,
-                            parts: Vec::new(),
-                            will_continue: false,
-                            scheduling: None,
-                        }))
+                        Ok(part_from_data(part::Data::FunctionResponse(
+                            GoogleFunctionResponse {
+                                id: result.tool_call_id,
+                                name: result.tool_name,
+                                response,
+                                parts: Vec::new(),
+                                will_continue: false,
+                                scheduling: None,
+                            },
+                        )))
                     })
-                    .collect();
+                    .collect::<Result<Vec<_>, ConvertError>>()?;
                 ("user".to_string(), parts)
             }
         };
@@ -411,7 +481,7 @@ mod tests {
                             ..
                         } => {
                             assert_eq!(tool_name, "get_weather");
-                            assert_eq!(tool_call_id, "get_weather");
+                            assert_eq!(tool_call_id, ""); // id was empty in original
                         }
                         _ => panic!("Expected tool call part"),
                     }
@@ -460,6 +530,7 @@ mod tests {
                 tool_call_id: "call_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
+                encrypted_content: None,
                 provider_options: None,
                 provider_executed: None,
             }]),

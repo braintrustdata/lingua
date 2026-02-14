@@ -1,25 +1,10 @@
 {
-  "sdkHttpResponse": {
-    "headers": {
-      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-      "content-encoding": "gzip",
-      "content-type": "application/json; charset=UTF-8",
-      "date": "Sun, 21 Dec 2025 13:12:01 GMT",
-      "server": "scaffolding on HTTPServer2",
-      "server-timing": "gfet4t7; dur=4010",
-      "transfer-encoding": "chunked",
-      "vary": "Origin, X-Origin, Referer",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "SAMEORIGIN",
-      "x-xss-protection": "0"
-    }
-  },
   "candidates": [
     {
       "content": {
         "parts": [
           {
-            "text": "The sky is most commonly **blue** during the day.\n\nThis is due to a phenomenon called **Rayleigh scattering**. Sunlight contains all the colors of the rainbow. When sunlight enters Earth's atmosphere, the shorter wavelengths (like blue and violet) are scattered more efficiently by the tiny nitrogen and oxygen molecules than the longer wavelengths (like red and yellow). Because blue light is scattered in all directions, it makes the sky appear blue to our eyes.\n\nHowever, the sky's color can vary greatly depending on several factors:\n\n*   **Sunrise and Sunset:** It often appears **red, orange, pink, or purple**. At these times, the sun's light has to travel through more of the atmosphere, scattering away most of the blue light, leaving the longer red and yellow wavelengths to reach our eyes.\n*   **Clouds:** On cloudy or stormy days, the sky can appear **grey** or even **white**.\n*   **Night:** At night, without the sun's light, the sky appears **black** (though we can see stars).\n*   **Pollution/Haze:** In some conditions, pollution or haze can give the sky a brownish, yellowish, or dull white tint.\n\nSo, while **blue** is the most typical answer, it's definitely not the only color the sky can be!"
+            "text": "Most commonly, the sky is **blue**.\n\nThis is due to a phenomenon called **Rayleigh scattering**. Sunlight, which is made up of all the colors of the rainbow, enters Earth's atmosphere. The tiny molecules of nitrogen and oxygen in our atmosphere scatter shorter-wavelength colors (like blue and violet) more efficiently than longer-wavelength colors (like red and yellow). Because blue light is scattered in all directions, it's the color we see predominantly when we look at the sky. Our eyes are also more sensitive to blue light than violet.\n\nHowever, the sky's color can vary greatly depending on several factors:\n\n*   **Sunrise and Sunset:** At these times, the sun's light has to travel through more of the atmosphere. Most of the blue light is scattered away, allowing the reds, oranges, and pinks to pass through more directly to our eyes.\n*   **Overcast/Stormy Weather:** When there are many clouds, especially thick ones, the sky often appears **grey** or even a dark, muted blue.\n*   **Pollution/Dust:** High levels of aerosols, dust, or pollution can scatter light differently, sometimes leading to more vibrant reds/oranges, or making the sky appear hazy or yellowish.\n*   **Time of Day:** The blue can range from a light, pale blue at midday to a deeper, more saturated blue closer to twilight.\n*   **Atmospheric Conditions:** Factors like humidity and the size of water droplets can also influence the specific shade of blue or other colors seen.\n\nSo, while **blue** is the default and most common answer, the sky can be a beautiful spectrum of colors!"
           }
         ],
         "role": "model"
@@ -28,18 +13,18 @@
       "index": 0
     }
   ],
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "IPJHaZGAPZ_I-8YP_oCuoAs",
   "usageMetadata": {
     "promptTokenCount": 7,
-    "candidatesTokenCount": 276,
-    "totalTokenCount": 715,
+    "candidatesTokenCount": 345,
+    "totalTokenCount": 841,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 7
       }
     ],
-    "thoughtsTokenCount": 432
-  }
+    "thoughtsTokenCount": 489
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "i758ad6uNPbAjMcP6bWPwA8"
 }

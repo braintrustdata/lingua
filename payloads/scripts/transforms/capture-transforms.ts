@@ -54,7 +54,8 @@ async function callProvider(
 
 export async function captureTransforms(
   filter?: string,
-  force?: boolean
+  force?: boolean,
+  providers?: string[]
 ): Promise<{ captured: number; skipped: number; failed: number }> {
   mkdirSync(TRANSFORMS_DIR, { recursive: true });
 
@@ -63,6 +64,14 @@ export async function captureTransforms(
     failed = 0;
 
   for (const pair of TRANSFORM_PAIRS) {
+    // Skip pairs that don't involve any of the specified providers
+    if (
+      providers &&
+      !providers.includes(pair.source) &&
+      !providers.includes(pair.target)
+    ) {
+      continue;
+    }
     const cases = getTransformableCases(pair, filter);
 
     for (const caseName of cases) {
@@ -137,4 +146,6 @@ async function main() {
   process.exit(failed > 0 ? 1 : 0);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
