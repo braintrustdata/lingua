@@ -1,17 +1,7 @@
 name: Cross-Transformation Coverage
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'crates/**'
-      - 'payloads/**'
-      - 'Cargo.toml'
-  pull_request:
-    paths:
-      - 'crates/**'
-      - 'payloads/**'
-      - 'Cargo.toml'
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
