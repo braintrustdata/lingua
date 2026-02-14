@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "lost: tool_choice"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

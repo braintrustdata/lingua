@@ -13,7 +13,7 @@ use lingua::serde_json::{self, Value};
 use lingua::ProviderFormat;
 use proptest::prelude::*;
 use proptest::test_runner::TestRunner;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -147,6 +147,164 @@ fn save_failing_snapshot(payload: &Value, issues: &[String]) -> Result<PathBuf, 
     Ok(payload_path)
 }
 
+fn snapshot_request_paths() -> Vec<PathBuf> {
+    let dir = fuzz_snapshot_dir();
+    if !dir.exists() {
+        return Vec::new();
+    }
+
+    let mut entries: Vec<PathBuf> = fs::read_dir(&dir)
+        .unwrap_or_else(|e| panic!("failed to read {}: {}", dir.display(), e))
+        .filter_map(|entry| {
+            let path = entry.ok()?.path();
+            if path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .is_some_and(|n| n.ends_with(".request.json"))
+            {
+                Some(path)
+            } else {
+                None
+            }
+        })
+        .collect();
+    entries.sort();
+    entries
+}
+
+fn snapshot_case_id(path: &Path, suffix: &str) -> Option<String> {
+    let name = path.file_name()?.to_str()?;
+    name.strip_suffix(suffix).map(str::to_string)
+}
+
+fn snapshot_meta_path(request_path: &Path) -> PathBuf {
+    let name = request_path
+        .file_name()
+        .and_then(|s| s.to_str())
+        .expect("request snapshot filename should be valid utf-8");
+    request_path.with_file_name(name.replace(".request.json", ".meta.json"))
+}
+
+fn delete_snapshot_pair(request_path: &Path) {
+    let _ = fs::remove_file(request_path);
+    let _ = fs::remove_file(snapshot_meta_path(request_path));
+}
+
+fn canonical_issue_signature(issues: &[String]) -> String {
+    let normalized: BTreeSet<String> = issues
+        .iter()
+        .map(|issue| normalize_issue_for_signature(issue))
+        .collect();
+    normalized.into_iter().collect::<Vec<_>>().join(" | ")
+}
+
+fn normalize_path_indices(path: &str) -> String {
+    let chars: Vec<char> = path.chars().collect();
+    let mut i = 0usize;
+    let mut out = String::new();
+    while i < chars.len() {
+        if chars[i] == '[' {
+            let mut j = i + 1;
+            let mut has_digits = false;
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                has_digits = true;
+                j += 1;
+            }
+            if has_digits && j < chars.len() && chars[j] == ']' {
+                out.push_str("[*]");
+                i = j + 1;
+                continue;
+            }
+        }
+        out.push(chars[i]);
+        i += 1;
+    }
+    out
+}
+
+fn normalize_issue_for_signature(issue: &str) -> String {
+    let trimmed = issue.trim();
+    let without_values = if trimmed.starts_with("changed: ") {
+        if let Some(idx) = trimmed.find(" (") {
+            &trimmed[..idx]
+        } else {
+            trimmed
+        }
+    } else {
+        trimmed
+    };
+
+    if let Some(path) = without_values.strip_prefix("lost: ") {
+        return format!("lost: {}", normalize_path_indices(path));
+    }
+    if let Some(path) = without_values.strip_prefix("added: ") {
+        return format!("added: {}", normalize_path_indices(path));
+    }
+    if let Some(path) = without_values.strip_prefix("changed: ") {
+        return format!("changed: {}", normalize_path_indices(path));
+    }
+
+    normalize_path_indices(without_values)
+}
+
+fn load_meta_issues(request_path: &Path) -> Option<Vec<String>> {
+    let meta_path = snapshot_meta_path(request_path);
+    let raw = fs::read_to_string(meta_path).ok()?;
+    let value: Value = serde_json::from_str(&raw).ok()?;
+    let issues = value.get("issues")?.as_array()?;
+    let parsed: Vec<String> = issues
+        .iter()
+        .filter_map(|v| v.as_str().map(str::to_string))
+        .collect();
+    if parsed.is_empty() {
+        None
+    } else {
+        Some(parsed)
+    }
+}
+
+fn prune_orphan_meta_files() -> usize {
+    let dir = fuzz_snapshot_dir();
+    if !dir.exists() {
+        return 0;
+    }
+
+    let mut request_cases = BTreeSet::new();
+    let mut meta_paths = Vec::new();
+
+    for entry in
+        fs::read_dir(&dir).unwrap_or_else(|e| panic!("failed to read {}: {}", dir.display(), e))
+    {
+        let path = match entry {
+            Ok(e) => e.path(),
+            Err(_) => continue,
+        };
+        let Some(name) = path.file_name().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        if name.ends_with(".request.json") {
+            if let Some(case_id) = snapshot_case_id(&path, ".request.json") {
+                request_cases.insert(case_id);
+            }
+        } else if name.ends_with(".meta.json") {
+            meta_paths.push(path);
+        }
+    }
+
+    let mut removed = 0usize;
+    for meta_path in meta_paths {
+        let Some(case_id) = snapshot_case_id(&meta_path, ".meta.json") else {
+            continue;
+        };
+        if !request_cases.contains(&case_id) {
+            if fs::remove_file(&meta_path).is_ok() {
+                removed += 1;
+            }
+        }
+    }
+    removed
+}
+
 // ============================================================================
 // Roundtrip assertion
 // ============================================================================
@@ -258,29 +416,7 @@ const CASES: u32 = 256;
 
 #[test]
 fn openai_roundtrip_saved_snapshots() {
-    let dir = fuzz_snapshot_dir();
-    if !dir.exists() {
-        return;
-    }
-
-    let mut entries: Vec<PathBuf> = fs::read_dir(&dir)
-        .unwrap_or_else(|e| panic!("failed to read {}: {}", dir.display(), e))
-        .filter_map(|entry| {
-            let path = entry.ok()?.path();
-            if path
-                .file_name()
-                .and_then(|s| s.to_str())
-                .is_some_and(|n| n.ends_with(".request.json"))
-            {
-                Some(path)
-            } else {
-                None
-            }
-        })
-        .collect();
-    entries.sort();
-
-    for path in entries {
+    for path in snapshot_request_paths() {
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("failed to read snapshot {}: {}", path.display(), e));
         let payload: Value = serde_json::from_str(&raw)
@@ -299,6 +435,88 @@ fn openai_roundtrip_saved_snapshots() {
             Err(e) => panic!("snapshot {} failed roundtrip:\n{}", path.display(), e),
         }
     }
+}
+
+/// Prune fuzz snapshots in a loop until stable:
+/// - remove malformed request/meta pairs
+/// - remove orphan meta files
+/// - dedupe snapshots that fail for the same reason
+///
+/// Conservative by default: keeps snapshots that pass or are out-of-scope.
+#[test]
+#[ignore]
+fn openai_roundtrip_prune_snapshots() {
+    let mut iterations = 0usize;
+    let mut removed_malformed = 0usize;
+    let mut removed_orphan_meta = 0usize;
+    let mut removed_duplicate_reason = 0usize;
+
+    loop {
+        iterations += 1;
+        let mut changed = false;
+
+        let orphan_removed = prune_orphan_meta_files();
+        if orphan_removed > 0 {
+            removed_orphan_meta += orphan_removed;
+            changed = true;
+        }
+
+        let mut kept_by_reason: BTreeMap<String, PathBuf> = BTreeMap::new();
+        for path in snapshot_request_paths() {
+            let raw = match fs::read_to_string(&path) {
+                Ok(v) => v,
+                Err(_) => {
+                    delete_snapshot_pair(&path);
+                    removed_malformed += 1;
+                    changed = true;
+                    continue;
+                }
+            };
+
+            let payload: Value = match serde_json::from_str(&raw) {
+                Ok(v) => v,
+                Err(_) => {
+                    delete_snapshot_pair(&path);
+                    removed_malformed += 1;
+                    changed = true;
+                    continue;
+                }
+            };
+
+            let issues = if let Some(meta_issues) = load_meta_issues(&path) {
+                meta_issues
+            } else if is_openai_exact_roundtrip_scope(&payload) {
+                match assert_provider_roundtrip(ProviderFormat::ChatCompletions, &payload) {
+                    Some(issues) if !issues.is_empty() => issues,
+                    _ => continue,
+                }
+            } else {
+                continue;
+            };
+
+            let signature = canonical_issue_signature(&issues);
+            if kept_by_reason.contains_key(&signature) {
+                delete_snapshot_pair(&path);
+                removed_duplicate_reason += 1;
+                changed = true;
+            } else {
+                kept_by_reason.insert(signature, path);
+            }
+        }
+
+        if !changed {
+            break;
+        }
+
+        if iterations > 20 {
+            panic!("prune did not converge after 20 iterations");
+        }
+    }
+
+    eprintln!(
+        "prune complete after {} iterations: removed_malformed={} removed_orphan_meta={} removed_duplicate_reason={}",
+        iterations, removed_malformed, removed_orphan_meta, removed_duplicate_reason
+    );
 }
 
 /// Fail on the first error with verbose output (input, output, diff).
