@@ -14,8 +14,82 @@ use lingua::ProviderFormat;
 use proptest::prelude::*;
 use proptest::test_runner::TestRunner;
 use std::collections::BTreeMap;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 mod schema_strategy;
+
+fn workspace_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("crates directory should exist")
+        .parent()
+        .expect("workspace root should exist")
+        .to_path_buf()
+}
+
+fn fuzz_snapshot_dir() -> PathBuf {
+    workspace_root().join("payloads/fuzz-snapshots/openai-roundtrip")
+}
+
+fn fnv1a_64(input: &[u8]) -> u64 {
+    let mut hash: u64 = 0xcbf29ce484222325;
+    for byte in input {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    hash
+}
+
+fn save_failing_snapshot(payload: &Value, issues: &[String]) -> Result<PathBuf, String> {
+    let compact =
+        serde_json::to_vec(payload).map_err(|e| format!("failed to serialize payload: {}", e))?;
+    let hash = fnv1a_64(&compact);
+    let case_id = format!("case-{hash:016x}");
+
+    let dir = fuzz_snapshot_dir();
+    fs::create_dir_all(&dir).map_err(|e| {
+        format!(
+            "failed to create fuzz snapshot directory {}: {}",
+            dir.display(),
+            e
+        )
+    })?;
+
+    let payload_path = dir.join(format!("{case_id}.request.json"));
+    let meta_path = dir.join(format!("{case_id}.meta.json"));
+
+    if !payload_path.exists() {
+        let pretty = serde_json::to_string_pretty(payload)
+            .map_err(|e| format!("failed to render payload json: {}", e))?
+            + "\n";
+        fs::write(&payload_path, pretty).map_err(|e| {
+            format!(
+                "failed to write payload snapshot {}: {}",
+                payload_path.display(),
+                e
+            )
+        })?;
+    }
+
+    let meta = serde_json::json!({
+        "provider": "chat-completions",
+        "kind": "request-roundtrip",
+        "issues": issues,
+    });
+    let meta_pretty = serde_json::to_string_pretty(&meta)
+        .map_err(|e| format!("failed to render meta json: {}", e))?
+        + "\n";
+    fs::write(&meta_path, meta_pretty).map_err(|e| {
+        format!(
+            "failed to write meta snapshot {}: {}",
+            meta_path.display(),
+            e
+        )
+    })?;
+
+    Ok(payload_path)
+}
 
 // ============================================================================
 // Roundtrip assertion
@@ -118,6 +192,47 @@ mod strategies {
 
 const CASES: u32 = 256;
 
+#[test]
+fn openai_roundtrip_saved_snapshots() {
+    let dir = fuzz_snapshot_dir();
+    if !dir.exists() {
+        return;
+    }
+
+    let mut entries: Vec<PathBuf> = fs::read_dir(&dir)
+        .unwrap_or_else(|e| panic!("failed to read {}: {}", dir.display(), e))
+        .filter_map(|entry| {
+            let path = entry.ok()?.path();
+            if path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .is_some_and(|n| n.ends_with(".request.json"))
+            {
+                Some(path)
+            } else {
+                None
+            }
+        })
+        .collect();
+    entries.sort();
+
+    for path in entries {
+        let raw = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("failed to read snapshot {}: {}", path.display(), e));
+        let payload: Value = serde_json::from_str(&raw)
+            .unwrap_or_else(|e| panic!("invalid json in {}: {}", path.display(), e));
+
+        match assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, &payload) {
+            Ok(true) => {}
+            Ok(false) => panic!(
+                "snapshot {} is no longer valid chat-completions input",
+                path.display()
+            ),
+            Err(e) => panic!("snapshot {} failed roundtrip:\n{}", path.display(), e),
+        }
+    }
+}
+
 /// Fail on the first error with verbose output (input, output, diff).
 /// Use for debugging a specific issue.
 #[test]
@@ -129,8 +244,17 @@ fn openai_roundtrip() {
         ..ProptestConfig::default()
     };
     proptest!(config, |(payload in strategies::arb_openai_payload())| {
-        if let Err(e) = assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, &payload) {
-            prop_assert!(false, "{}", e);
+        if let Some(issues) = assert_provider_roundtrip(ProviderFormat::ChatCompletions, &payload) {
+            if !issues.is_empty() {
+                let snapshot_msg = match save_failing_snapshot(&payload, &issues) {
+                    Ok(path) => format!("\nSaved failing snapshot: {}", path.display()),
+                    Err(err) => format!("\nFailed to save snapshot: {}", err),
+                };
+                let verbose = assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, &payload)
+                    .err()
+                    .unwrap_or_else(|| "roundtrip mismatch (verbose details unavailable)".to_string());
+                prop_assert!(false, "{}{}", verbose, snapshot_msg);
+            }
         }
     });
 }
@@ -168,6 +292,9 @@ fn openai_roundtrip_stats() {
             Some(issues) if issues.is_empty() => passed += 1,
             Some(issues) => {
                 errored += 1;
+                if let Ok(path) = save_failing_snapshot(&payload, &issues) {
+                    eprintln!("saved failing snapshot: {}", path.display());
+                }
                 for issue in issues {
                     let entry = failures
                         .entry(issue)

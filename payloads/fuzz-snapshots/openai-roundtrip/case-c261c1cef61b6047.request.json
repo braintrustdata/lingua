@@ -1,0 +1,10 @@
+{
+  "messages": [
+    {
+      "content": "a",
+      "role": "developer"
+    }
+  ],
+  "model": ",",
+  "top_logprobs": 104
+}

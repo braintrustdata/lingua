@@ -1,0 +1,19 @@
+{
+  "messages": [
+    {
+      "content": "a",
+      "role": "developer"
+    }
+  ],
+  "model": ",",
+  "tools": [
+    {
+      "function": {
+        "description": "?D9?Yo",
+        "name": "?"
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 835
+}

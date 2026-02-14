@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "added: tools[0].function.parameters",
+    "changed: messages[0].role (\"developer\" -> \"system\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

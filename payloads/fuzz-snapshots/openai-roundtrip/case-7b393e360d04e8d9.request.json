@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "content": "a",
+      "role": "developer"
+    }
+  ],
+  "model": ",",
+  "tools": [
+    {
+      "function": {
+        "name": "?"
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 835
+}

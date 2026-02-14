@@ -1,0 +1,51 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": "iX !Fz,zZFNC6F.8u,I,G Os..i.?R.!!Tp,k.O..TIOO ,?pt"
+  },
+  "function_call": "none",
+  "logprobs": false,
+  "max_completion_tokens": -192,
+  "max_tokens": 531,
+  "messages": [
+    {
+      "function_call": {
+        "arguments": " ",
+        "name": ",nn1fn!dp2?.AzutyiV... btY,EDnc"
+      },
+      "refusal": "0 l3?3dKO.??u9bF?1?68R.5N!b!sse?a5.B!!sF,kV?5t?",
+      "role": "assistant"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4-turbo",
+  "n": 540,
+  "parallel_tool_calls": true,
+  "presence_penalty": 63.764594481041016,
+  "store": false,
+  "stream_options": null,
+  "tool_choice": {
+    "function": {
+      "name": "I8.1E ,Rfh7Q wN m1w!?gD2P080aXm!!!,L.8,"
+    },
+    "type": "function"
+  },
+  "tools": [
+    {
+      "function": {
+        "description": "dD?lC,0q!up??w?J!?.. ",
+        "name": "c 0??slO .W We",
+        "strict": true
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "., UBe?,5?28V?P.k1??!X,?n,d80KG?D9?Yo",
+        "name": "y?,n!..K.52ku,,M3JW..,g!4Zl ?r,.?a.8XE3??"
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 835
+}

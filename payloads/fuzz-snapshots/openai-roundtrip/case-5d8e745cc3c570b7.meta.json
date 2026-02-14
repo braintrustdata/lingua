@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: max_tokens",
+    "lost: stream_options",
+    "added: tools[0].function.parameters",
+    "added: tools[1].function.parameters",
+    "changed: messages[0].role (\"developer\" -> \"system\")",
+    "changed: max_completion_tokens (-192 -> 531)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

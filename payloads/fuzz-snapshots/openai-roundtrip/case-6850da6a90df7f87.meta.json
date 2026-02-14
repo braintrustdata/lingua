@@ -1,0 +1,15 @@
+{
+  "issues": [
+    "lost: max_tokens",
+    "lost: stream_options",
+    "lost: messages[0].refusal",
+    "lost: messages[0].audio",
+    "lost: messages[0].function_call",
+    "added: tools[0].function.parameters",
+    "added: tools[1].function.parameters",
+    "changed: messages[0].content (null -> \"\")",
+    "changed: max_completion_tokens (-192 -> 531)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}
