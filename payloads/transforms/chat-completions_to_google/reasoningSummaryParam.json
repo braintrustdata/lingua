@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Immediate Response to the Query**\n\nOkay, so the user's just given me \"What is 2+2?\". Right. No need to overthink this. First, I need to analyze the request – it's a straightforward arithmetic query. There's no hidden complexity here, no nuanced interpretation required. Straightforward. Next, I need to retrieve the fundamental fact. It's an instant recall: 2 plus 2 equals 4. It's practically ingrained. Finally, I need to formulate the response, presenting the answer in a clear and direct manner. No embellishment needed.\n",
+            "thought": true
+          },
+          {
+            "text": "2+2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 7,
+    "totalTokenCount": 77,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 62
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "NfCPad28GbbcjMcPxau6-Ac"
+}

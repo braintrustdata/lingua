@@ -7,18 +7,25 @@ import {
   validate_anthropic_response,
   validate_chat_completions_request,
   validate_chat_completions_response,
+  validate_google_request,
+  validate_google_response,
   validate_responses_request,
   validate_responses_response,
 } from "@braintrust/lingua-wasm";
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 import {
   ANTHROPIC_MODEL,
+  GOOGLE_MODEL,
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
 } from "../../cases/models";
 
-export type SourceFormat = "chat-completions" | "responses" | "anthropic";
-export type WasmFormat = "OpenAI" | "Responses" | "Anthropic";
+export type SourceFormat =
+  | "chat-completions"
+  | "responses"
+  | "anthropic"
+  | "google";
+export type WasmFormat = "OpenAI" | "Responses" | "Anthropic" | "Google";
 
 export interface TransformPair {
   source: SourceFormat;
@@ -52,6 +59,12 @@ export const TRANSFORM_PAIRS: TransformPair[] = [
     wasmSource: "Anthropic",
     wasmTarget: "Responses",
   },
+  {
+    source: "chat-completions",
+    target: "google",
+    wasmSource: "OpenAI",
+    wasmTarget: "Google",
+  },
 ];
 
 // Validation functions by format
@@ -59,12 +72,14 @@ const REQUEST_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   "chat-completions": validate_chat_completions_request,
   responses: validate_responses_request,
   anthropic: validate_anthropic_request,
+  google: validate_google_request,
 };
 
 const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   "chat-completions": validate_chat_completions_response,
   responses: validate_responses_response,
   anthropic: validate_anthropic_response,
+  google: validate_google_response,
 };
 
 interface TransformResultData {
@@ -114,6 +129,7 @@ const WASM_TO_SOURCE: Record<WasmFormat, SourceFormat> = {
   OpenAI: "chat-completions",
   Responses: "responses",
   Anthropic: "anthropic",
+  Google: "google",
 };
 
 // Transform and validate response
@@ -154,6 +170,7 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   anthropic: ANTHROPIC_MODEL,
   "chat-completions": OPENAI_CHAT_COMPLETIONS_MODEL,
   responses: OPENAI_RESPONSES_MODEL,
+  google: GOOGLE_MODEL,
 };
 
 export function getTransformableCases(
@@ -161,10 +178,11 @@ export function getTransformableCases(
   filter?: string
 ): string[] {
   return getCaseNames(allTestCases).filter((caseName) => {
-    // Only test param cases for chat-completions → anthropic for now
+    // Only test param cases for chat-completions → anthropic/google for now
     if (
       caseName.endsWith("Param") &&
-      (pair.source !== "chat-completions" || pair.target !== "anthropic")
+      (pair.source !== "chat-completions" ||
+        (pair.target !== "anthropic" && pair.target !== "google"))
     )
       return false;
     if (filter && !caseName.includes(filter)) return false;
