@@ -63,6 +63,11 @@ fn is_openai_exact_roundtrip_scope(payload: &Value) -> bool {
             return false;
         }
 
+        // `developer` collapses to universal `system`, so exact role roundtrip is out of scope.
+        if msg.get("role").and_then(Value::as_str) == Some("developer") {
+            return false;
+        }
+
         // Assistant messages without content roundtrip back as empty content.
         if msg.get("role").and_then(Value::as_str) == Some("assistant")
             && !msg.contains_key("content")

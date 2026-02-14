@@ -13,6 +13,8 @@ Lingua is a universal message format that compiles to provider-specific formats 
 - **Type safety**: Full TypeScript and Rust type generation with bidirectional validation
 - **No network calls**: This is a message format library, not an API client
 - **Explicit error handling**: All errors must be properly handled, never silently swallowed
+- **No hidden marker fields**: Do not encode provider semantics via internal marker keys (for example in `provider_options`) to fake lossless roundtrips.
+- **Ask when non-lossy mapping is unclear**: If the universal type cannot represent a provider feature non-lossily, stop and ask for clarification on the intended canonical representation before implementing a workaround.
 
 ## Documentation style guide
 
