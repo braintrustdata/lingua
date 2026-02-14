@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "lost: metadata",
-    "lost: system"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

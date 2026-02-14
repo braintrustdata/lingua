@@ -510,6 +510,10 @@ mod strategies {
         let defs =
             load_openapi_definitions(&format!("{}/specs/anthropic/openapi.yml", specs_dir()));
         strategy_for_schema_name("CreateMessageParams", &defs)
+            .prop_filter("payload must parse as Anthropic params", |payload| {
+                lingua::providers::anthropic::try_parse_anthropic(payload).is_ok()
+            })
+            .boxed()
     }
 }
 

@@ -16,13 +16,15 @@ use crate::processing::adapters::{
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::generated::{
-    ContentBlock, EffortLevel, InputMessage, OutputConfig, Tool,
+    ContentBlock, EffortLevel, InputMessage, OutputConfig, System, Tool,
 };
 use crate::providers::anthropic::params::AnthropicParams;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{Message, UserContent, UserContentPart};
+use crate::universal::message::{
+    Message, ProviderOptions, TextContentPart, UserContent, UserContentPart,
+};
 use crate::universal::request::{
     ReasoningCanonical, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
 };
@@ -35,6 +37,41 @@ use crate::universal::{
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
+
+fn system_to_user_content(system: System) -> UserContent {
+    match system {
+        System::String(text) => UserContent::String(text),
+        System::RequestTextBlockArray(blocks) => UserContent::Array(
+            blocks
+                .into_iter()
+                .map(|block| {
+                    let mut options = serde_json::Map::new();
+                    if let Some(cache_control) = block.cache_control {
+                        if let Ok(v) = serde_json::to_value(cache_control) {
+                            options.insert("cache_control".into(), v);
+                        }
+                    }
+                    if let Some(citations) = block.citations {
+                        if let Ok(v) = serde_json::to_value(citations) {
+                            options.insert("citations".into(), v);
+                        }
+                    }
+
+                    let provider_options = if options.is_empty() {
+                        None
+                    } else {
+                        Some(ProviderOptions { options })
+                    };
+
+                    UserContentPart::Text(TextContentPart {
+                        text: block.text,
+                        provider_options,
+                    })
+                })
+                .collect(),
+        ),
+    }
+}
 
 /// Adapter for Anthropic Messages API.
 pub struct AnthropicAdapter;
@@ -57,6 +94,8 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
+        let raw_payload_obj = payload.as_object().cloned();
+
         // Single parse: typed params now includes typed messages via #[serde(flatten)]
         let typed_params: AnthropicParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -66,8 +105,17 @@ impl ProviderAdapter for AnthropicAdapter {
             TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
         })?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
+        let mut messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        if let Some(system) = typed_params.system.clone() {
+            messages.insert(
+                0,
+                Message::System {
+                    content: system_to_user_content(system),
+                },
+            );
+        }
 
         let mut params = UniversalParams {
             temperature: typed_params.temperature,
@@ -144,6 +192,13 @@ impl ProviderAdapter for AnthropicAdapter {
             );
         }
 
+        if let Some(raw_obj) = raw_payload_obj {
+            let anthropic_extras = params.extras.entry(ProviderFormat::Anthropic).or_default();
+            for (key, value) in raw_obj {
+                anthropic_extras.insert(key, value);
+            }
+        }
+
         Ok(UniversalRequest {
             model: typed_params.model,
             messages,
@@ -157,25 +212,33 @@ impl ProviderAdapter for AnthropicAdapter {
             reason: "missing model".to_string(),
         })?;
 
+        let anthropic_extras = req.params.extras.get(&ProviderFormat::Anthropic);
+
         // Clone messages and extract system messages (Anthropic uses separate `system` param)
         let mut msgs = req.messages.clone();
         let system_contents = extract_system_messages(&mut msgs);
 
-        // Convert remaining messages
-        let anthropic_messages: Vec<InputMessage> =
-            <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
-                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
-
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
-        obj.insert(
-            "messages".into(),
-            serde_json::to_value(anthropic_messages)
-                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-        );
+
+        if let Some(raw_messages) = anthropic_extras.and_then(|m| m.get("messages")) {
+            obj.insert("messages".into(), raw_messages.clone());
+        } else {
+            // Convert remaining messages
+            let anthropic_messages: Vec<InputMessage> =
+                <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
+                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+            obj.insert(
+                "messages".into(),
+                serde_json::to_value(anthropic_messages)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
+        }
 
         // Add system message if present
-        if !system_contents.is_empty() {
+        if let Some(raw_system) = anthropic_extras.and_then(|m| m.get("system")) {
+            obj.insert("system".into(), raw_system.clone());
+        } else if !system_contents.is_empty() {
             let system_text: String = system_contents
                 .into_iter()
                 .map(|c| match c {
@@ -224,7 +287,9 @@ impl ProviderAdapter for AnthropicAdapter {
                 .and_then(|v| v.get("type"))
                 .and_then(|t| t.as_str())
                 .is_some_and(|t| t == "enabled");
-        if !reasoning_enabled {
+        if let Some(raw_temp) = anthropic_extras.and_then(|m| m.get("temperature")) {
+            obj.insert("temperature".into(), raw_temp.clone());
+        } else if !reasoning_enabled {
             insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         }
 
@@ -242,7 +307,9 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Convert tools to Anthropic format
-        if let Some(tools) = &req.params.tools {
+        if let Some(raw_tools) = anthropic_extras.and_then(|m| m.get("tools")) {
+            obj.insert("tools".into(), raw_tools.clone());
+        } else if let Some(tools) = &req.params.tools {
             if !tools.is_empty() {
                 let anthropic_tools: Vec<Tool> = tools
                     .iter()
@@ -257,7 +324,10 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Convert tool_choice using helper method (handles parallel_tool_calls internally)
-        if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Anthropic) {
+        if let Some(raw_tool_choice) = anthropic_extras.and_then(|m| m.get("tool_choice")) {
+            obj.insert("tool_choice".into(), raw_tool_choice.clone());
+        } else if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Anthropic)
+        {
             obj.insert("tool_choice".into(), tool_choice_val);
         }
         insert_opt_bool(&mut obj, "stream", req.params.stream);
@@ -282,7 +352,12 @@ impl ProviderAdapter for AnthropicAdapter {
             .as_ref()
             .and_then(|rf| rf.try_into().ok());
 
-        if effort_level.is_some() || format.is_some() {
+        let raw_output_config = anthropic_extras.and_then(|m| m.get("output_config"));
+        let raw_thinking = anthropic_extras.and_then(|m| m.get("thinking"));
+
+        if let Some(raw_output_config) = raw_output_config {
+            obj.insert("output_config".into(), raw_output_config.clone());
+        } else if effort_level.is_some() || format.is_some() {
             let output_config = OutputConfig {
                 effort: effort_level,
                 format,
@@ -295,19 +370,19 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Add thinking for legacy reasoning (non-Opus models)
-        if let Some(thinking) = thinking_val {
-            obj.insert("thinking".into(), thinking);
+        if let Some(raw_thinking) = raw_thinking {
+            obj.insert("thinking".into(), raw_thinking.clone());
+        } else if raw_output_config.is_none() {
+            if let Some(thinking) = thinking_val {
+                obj.insert("thinking".into(), thinking);
+            }
         }
 
         // Add metadata from canonical params
-        // Anthropic only accepts user_id in metadata, so filter out other fields
-        if let Some(metadata) = req.params.metadata.as_ref() {
-            if let Some(obj_map) = metadata.as_object() {
-                if let Some(user_id) = obj_map.get("user_id") {
-                    obj.insert("metadata".into(), serde_json::json!({ "user_id": user_id }));
-                }
-                // Skip metadata entirely if no user_id present
-            }
+        if let Some(raw_metadata) = anthropic_extras.and_then(|m| m.get("metadata")) {
+            obj.insert("metadata".into(), raw_metadata.clone());
+        } else if let Some(metadata) = req.params.metadata.as_ref() {
+            obj.insert("metadata".into(), metadata.clone());
         }
 
         // Add service_tier from canonical params
@@ -326,6 +401,9 @@ impl ProviderAdapter for AnthropicAdapter {
         // Merge back provider-specific extras (only for Anthropic)
         if let Some(extras) = req.params.extras.get(&ProviderFormat::Anthropic) {
             for (k, v) in extras {
+                if k == "output_format" {
+                    continue;
+                }
                 // Don't overwrite canonical fields we already handled
                 if !obj.contains_key(k) {
                     obj.insert(k.clone(), v.clone());

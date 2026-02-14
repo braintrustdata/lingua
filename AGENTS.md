@@ -15,6 +15,7 @@ Lingua is a universal message format that compiles to provider-specific formats 
 - **Explicit error handling**: All errors must be properly handled, never silently swallowed
 - **No hidden marker fields**: Do not encode provider semantics via internal marker keys (for example in `provider_options`) to fake lossless roundtrips.
 - **Ask when non-lossy mapping is unclear**: If the universal type cannot represent a provider feature non-lossily, stop and ask for clarification on the intended canonical representation before implementing a workaround.
+- **No unapproved fallback logic**: Do not add ad-hoc fallback parsing/translation paths (for example `fallback_*` helpers) without checking with the programmer first.
 
 ## Documentation style guide
 

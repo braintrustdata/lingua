@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "request_to_universal error: Conversion to universal format failed: data did not match any variant of untagged enum MessageContent"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}
