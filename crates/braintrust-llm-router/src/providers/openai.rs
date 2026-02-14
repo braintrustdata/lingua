@@ -135,6 +135,21 @@ impl OpenAIProvider {
         Ok(url)
     }
 
+    fn responses_url(&self, model: Option<&str>) -> Result<Url> {
+        let mut url = self.resolve_base(model)?;
+        {
+            let mut segments = url
+                .path_segments_mut()
+                .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
+            segments.pop_if_empty();
+            segments.push("responses");
+        }
+        if let Some(version) = &self.config.api_version {
+            url.query_pairs_mut().append_pair("api-version", version);
+        }
+        Ok(url)
+    }
+
     fn apply_headers(&self, headers: &mut HeaderMap) {
         if let Some(org) = &self.config.organization {
             headers.insert(
@@ -164,7 +179,7 @@ impl crate::providers::Provider for OpenAIProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::ChatCompletions]
+        vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
     }
 
     async fn complete(
@@ -172,10 +187,13 @@ impl crate::providers::Provider for OpenAIProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
-        _format: ProviderFormat,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.chat_url(Some(&spec.model))?;
+        let url = match format {
+            ProviderFormat::Responses => self.responses_url(Some(&spec.model))?,
+            _ => self.chat_url(Some(&spec.model))?,
+        };
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -242,7 +260,10 @@ impl crate::providers::Provider for OpenAIProvider {
         }
 
         // Router should have already added stream options to payload
-        let url = self.chat_url(Some(&spec.model))?;
+        let url = match format {
+            ProviderFormat::Responses => self.responses_url(Some(&spec.model))?,
+            _ => self.chat_url(Some(&spec.model))?,
+        };
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -417,6 +438,25 @@ mod tests {
         let url = provider.chat_url(Some("my-model")).expect("url");
         assert_eq!(url.host_str().unwrap(), "my-model.lepton.run");
         assert!(url.path().ends_with("/chat/completions"));
+    }
+
+    #[test]
+    fn resolves_responses_url() {
+        let provider = OpenAIProvider::new(OpenAIConfig::default()).unwrap();
+        let url = provider.responses_url(Some("gpt-4o")).expect("url");
+        assert_eq!(url.as_str(), "https://api.openai.com/v1/responses");
+    }
+
+    #[test]
+    fn resolves_template_responses_url() {
+        let config = OpenAIConfig {
+            endpoint_template: Some("https://<model>.lepton.run/api/v1/".into()),
+            ..Default::default()
+        };
+        let provider = OpenAIProvider::new(config).unwrap();
+        let url = provider.responses_url(Some("my-model")).expect("url");
+        assert_eq!(url.host_str().unwrap(), "my-model.lepton.run");
+        assert!(url.path().ends_with("/responses"));
     }
 
     #[test]
