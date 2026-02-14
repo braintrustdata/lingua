@@ -20,6 +20,10 @@ fn hash_message(msg: &Message) -> u64 {
             "system".hash(&mut hasher);
             hash_user_content(content, &mut hasher);
         }
+        Message::Developer { content } => {
+            "developer".hash(&mut hasher);
+            hash_user_content(content, &mut hasher);
+        }
         Message::User { content } => {
             "user".hash(&mut hasher);
             hash_user_content(content, &mut hasher);

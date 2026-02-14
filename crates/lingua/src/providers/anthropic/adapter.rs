@@ -382,7 +382,12 @@ impl ProviderAdapter for AnthropicAdapter {
         if let Some(raw_metadata) = anthropic_extras.and_then(|m| m.get("metadata")) {
             obj.insert("metadata".into(), raw_metadata.clone());
         } else if let Some(metadata) = req.params.metadata.as_ref() {
-            obj.insert("metadata".into(), metadata.clone());
+            // Anthropic metadata only supports `user_id`.
+            if let Some(user_id) = metadata.get("user_id").and_then(Value::as_str) {
+                let mut anthropic_metadata = Map::new();
+                anthropic_metadata.insert("user_id".into(), Value::String(user_id.to_string()));
+                obj.insert("metadata".into(), Value::Object(anthropic_metadata));
+            }
         }
 
         // Add service_tier from canonical params

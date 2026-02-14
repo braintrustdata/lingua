@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: tool_choice",
-    "changed: input (\"2eh!g!1TTYHcrtU H\" -> [{\"content\":\"2eh!g!1TTYHcrtU H\",\"role\":\"user\"}])",
-    "changed: reasoning.summary (\"concise\" -> \"auto\")"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "responses"
-}

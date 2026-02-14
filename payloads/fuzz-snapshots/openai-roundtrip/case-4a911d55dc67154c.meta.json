@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: max_tokens",
-    "lost: response_format.json_schema.strict",
-    "added: max_completion_tokens"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

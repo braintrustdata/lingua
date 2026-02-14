@@ -16,6 +16,8 @@ Lingua is a universal message format that compiles to provider-specific formats 
 - **No hidden marker fields**: Do not encode provider semantics via internal marker keys (for example in `provider_options`) to fake lossless roundtrips.
 - **Ask when non-lossy mapping is unclear**: If the universal type cannot represent a provider feature non-lossily, stop and ask for clarification on the intended canonical representation before implementing a workaround.
 - **No unapproved fallback logic**: Do not add ad-hoc fallback parsing/translation paths (for example `fallback_*` helpers) without checking with the programmer first.
+- **Typed boundaries only**: At provider boundaries, parse into well-defined typed structs/enums. Do not add lenient raw-JSON parsing that guesses defaults for required fields (for example defaulting missing `role` to `user`, lowercasing unknown roles, or inventing empty `content`).
+- **Fix via types or explicit errors**: If fuzzing finds unsupported/ambiguous shapes, either model them explicitly in types/converters or return a clear error. Do not silently coerce invalid input into a "best effort" shape.
 
 ## Documentation style guide
 

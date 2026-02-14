@@ -93,6 +93,7 @@ fn message_role(message: &Message) -> &'static str {
     match message {
         Message::User { .. } => "user",
         Message::System { .. } => "system",
+        Message::Developer { .. } => "developer",
         Message::Assistant { .. } => "assistant",
         Message::Tool { .. } => "tool",
     }

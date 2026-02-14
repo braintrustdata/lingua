@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: text.verbosity",
-    "lost: tools[0].description",
-    "changed: input (\",Bf,.X?hG,C\" -> [{\"content\":\",Bf,.X?hG,C\",\"role\":\"user\"}])"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "responses"
-}

@@ -70,6 +70,8 @@ impl ProviderAdapter for ResponsesAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
+        let raw_payload_obj = payload.as_object().cloned();
+
         // Single parse: typed params now includes typed input via #[serde(flatten)]
         let typed_params: OpenAIResponsesParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -190,6 +192,16 @@ impl ProviderAdapter for ResponsesAdapter {
             params.extras.insert(ProviderFormat::Responses, extras_map);
         }
 
+        // Preserve raw request keys (including explicit nulls) for exact same-provider roundtrips.
+        if let Some(raw_obj) = raw_payload_obj {
+            let responses_extras = params.extras.entry(ProviderFormat::Responses).or_default();
+            for (k, v) in raw_obj {
+                if k != "model" {
+                    responses_extras.insert(k, v);
+                }
+            }
+        }
+
         Ok(UniversalRequest {
             model: typed_params.model,
             messages,
@@ -221,61 +233,102 @@ impl ProviderAdapter for ResponsesAdapter {
 
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
-        obj.insert(
-            "input".into(),
-            serde_json::to_value(input_items)
-                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-        );
+        if let Some(raw_input) = responses_extras.and_then(|m| m.get("input")) {
+            obj.insert("input".into(), raw_input.clone());
+        } else {
+            obj.insert(
+                "input".into(),
+                serde_json::to_value(input_items)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
+        }
 
-        insert_opt_f64(&mut obj, "temperature", req.params.temperature);
-        insert_opt_f64(&mut obj, "top_p", req.params.top_p);
-        insert_opt_i64(&mut obj, "max_output_tokens", req.params.max_tokens);
-        insert_opt_i64(&mut obj, "top_logprobs", req.params.top_logprobs);
+        if let Some(raw) = responses_extras.and_then(|m| m.get("temperature")) {
+            obj.insert("temperature".into(), raw.clone());
+        } else {
+            insert_opt_f64(&mut obj, "temperature", req.params.temperature);
+        }
+        if let Some(raw) = responses_extras.and_then(|m| m.get("top_p")) {
+            obj.insert("top_p".into(), raw.clone());
+        } else {
+            insert_opt_f64(&mut obj, "top_p", req.params.top_p);
+        }
+        if let Some(raw) = responses_extras.and_then(|m| m.get("max_output_tokens")) {
+            obj.insert("max_output_tokens".into(), raw.clone());
+        } else {
+            insert_opt_i64(&mut obj, "max_output_tokens", req.params.max_tokens);
+        }
+        if let Some(raw) = responses_extras.and_then(|m| m.get("top_logprobs")) {
+            obj.insert("top_logprobs".into(), raw.clone());
+        } else {
+            insert_opt_i64(&mut obj, "top_logprobs", req.params.top_logprobs);
+        }
         // Note: presence_penalty, frequency_penalty, seed, logprobs (bool) are NOT supported by Responses API
-        insert_opt_bool(&mut obj, "stream", req.params.stream);
+        if let Some(raw) = responses_extras.and_then(|m| m.get("stream")) {
+            obj.insert("stream".into(), raw.clone());
+        } else {
+            insert_opt_bool(&mut obj, "stream", req.params.stream);
+        }
 
         // Get provider-specific extras for Responses API
         let responses_extras = req.params.extras.get(&ProviderFormat::Responses);
 
         // Convert tools to Responses API format
-        if let Some(tools) = req.params.tools.as_ref() {
+        if let Some(raw_tools) = responses_extras.and_then(|m| m.get("tools")) {
+            obj.insert("tools".into(), raw_tools.clone());
+        } else if let Some(tools) = req.params.tools.as_ref() {
             if let Some(tools_value) = tools_to_responses_value(tools)? {
                 obj.insert("tools".into(), tools_value);
             }
         }
 
         // Convert tool_choice using helper method
-        if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Responses) {
+        if let Some(raw_tool_choice) = responses_extras.and_then(|m| m.get("tool_choice")) {
+            obj.insert("tool_choice".into(), raw_tool_choice.clone());
+        } else if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Responses)
+        {
             obj.insert("tool_choice".into(), tool_choice_val);
         }
 
         // Convert response_format to Responses API text format using helper method
-        if let Some(text_val) = req.params.response_format_for(ProviderFormat::Responses) {
+        if let Some(raw_text) = responses_extras.and_then(|m| m.get("text")) {
+            obj.insert("text".into(), raw_text.clone());
+        } else if let Some(text_val) = req.params.response_format_for(ProviderFormat::Responses) {
             obj.insert("text".into(), text_val);
         }
 
         // Add reasoning from canonical params
-        if let Some(reasoning_val) = req.params.reasoning_for(ProviderFormat::Responses) {
+        if let Some(raw_reasoning) = responses_extras.and_then(|m| m.get("reasoning")) {
+            obj.insert("reasoning".into(), raw_reasoning.clone());
+        } else if let Some(reasoning_val) = req.params.reasoning_for(ProviderFormat::Responses) {
             obj.insert("reasoning".into(), reasoning_val);
         }
 
         // Add parallel_tool_calls from canonical params
-        if let Some(parallel) = req.params.parallel_tool_calls {
+        if let Some(raw_parallel) = responses_extras.and_then(|m| m.get("parallel_tool_calls")) {
+            obj.insert("parallel_tool_calls".into(), raw_parallel.clone());
+        } else if let Some(parallel) = req.params.parallel_tool_calls {
             obj.insert("parallel_tool_calls".into(), Value::Bool(parallel));
         }
 
         // Add metadata from canonical params
-        if let Some(metadata) = req.params.metadata.as_ref() {
+        if let Some(raw_metadata) = responses_extras.and_then(|m| m.get("metadata")) {
+            obj.insert("metadata".into(), raw_metadata.clone());
+        } else if let Some(metadata) = req.params.metadata.as_ref() {
             obj.insert("metadata".into(), metadata.clone());
         }
 
         // Add store from canonical params
-        if let Some(store) = req.params.store {
+        if let Some(raw_store) = responses_extras.and_then(|m| m.get("store")) {
+            obj.insert("store".into(), raw_store.clone());
+        } else if let Some(store) = req.params.store {
             obj.insert("store".into(), Value::Bool(store));
         }
 
         // Add service_tier from canonical params
-        if let Some(ref service_tier) = req.params.service_tier {
+        if let Some(raw_service_tier) = responses_extras.and_then(|m| m.get("service_tier")) {
+            obj.insert("service_tier".into(), raw_service_tier.clone());
+        } else if let Some(ref service_tier) = req.params.service_tier {
             obj.insert("service_tier".into(), Value::String(service_tier.clone()));
         }
 
