@@ -2576,12 +2576,12 @@ Now, let's count the occurrences of each digit systematically. We can do this by
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 1748,
+    "completion_tokens": 4983,
     "completion_tokens_details": {
       "reasoning_tokens": 3235,
     },
     "prompt_tokens": 75,
-    "total_tokens": 1823,
+    "total_tokens": 5058,
   },
 }
 `;
@@ -2620,12 +2620,12 @@ exports[`chat-completions → google > frequencyPenaltyParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 2,
+    "completion_tokens": 16,
     "completion_tokens_details": {
       "reasoning_tokens": 14,
     },
     "prompt_tokens": 4,
-    "total_tokens": 6,
+    "total_tokens": 20,
   },
 }
 `;
@@ -2712,12 +2712,12 @@ exports[`chat-completions → google > logitBiasParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 2,
+    "completion_tokens": 19,
     "completion_tokens_details": {
       "reasoning_tokens": 17,
     },
     "prompt_tokens": 4,
-    "total_tokens": 6,
+    "total_tokens": 23,
   },
 }
 `;
@@ -2756,12 +2756,12 @@ exports[`chat-completions → google > logprobsParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 7,
+    "completion_tokens": 27,
     "completion_tokens_details": {
       "reasoning_tokens": 20,
     },
     "prompt_tokens": 9,
-    "total_tokens": 16,
+    "total_tokens": 36,
   },
 }
 `;
@@ -2804,12 +2804,12 @@ exports[`chat-completions → google > maxCompletionTokensParam > response 1`] =
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 1,
+    "completion_tokens": 31,
     "completion_tokens_details": {
       "reasoning_tokens": 30,
     },
     "prompt_tokens": 4,
-    "total_tokens": 5,
+    "total_tokens": 35,
   },
 }
 `;
@@ -2848,12 +2848,12 @@ exports[`chat-completions → google > metadataParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 2,
+    "completion_tokens": 17,
     "completion_tokens_details": {
       "reasoning_tokens": 15,
     },
     "prompt_tokens": 4,
-    "total_tokens": 6,
+    "total_tokens": 21,
   },
 }
 `;
@@ -2901,12 +2901,12 @@ exports[`chat-completions → google > multimodalRequest > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 11,
+    "completion_tokens": 296,
     "completion_tokens_details": {
       "reasoning_tokens": 285,
     },
     "prompt_tokens": 267,
-    "total_tokens": 278,
+    "total_tokens": 563,
   },
 }
 `;
@@ -2945,12 +2945,12 @@ exports[`chat-completions → google > nMultipleCompletionsParam > response 1`] 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 2,
+    "completion_tokens": 28,
     "completion_tokens_details": {
       "reasoning_tokens": 26,
     },
     "prompt_tokens": 5,
-    "total_tokens": 7,
+    "total_tokens": 33,
   },
 }
 `;
@@ -3030,12 +3030,12 @@ exports[`chat-completions → google > parallelToolCallsDisabledParam > response
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 30,
+    "completion_tokens": 101,
     "completion_tokens_details": {
       "reasoning_tokens": 71,
     },
     "prompt_tokens": 41,
-    "total_tokens": 71,
+    "total_tokens": 142,
   },
 }
 `;
@@ -3239,12 +3239,12 @@ if (!isNaN(val3)) {
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 1673,
+    "completion_tokens": 3246,
     "completion_tokens_details": {
       "reasoning_tokens": 1573,
     },
     "prompt_tokens": 27,
-    "total_tokens": 1700,
+    "total_tokens": 3273,
   },
 }
 `;
@@ -3283,12 +3283,12 @@ exports[`chat-completions → google > presencePenaltyParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 1,
+    "completion_tokens": 18,
     "completion_tokens_details": {
       "reasoning_tokens": 17,
     },
     "prompt_tokens": 4,
-    "total_tokens": 5,
+    "total_tokens": 22,
   },
 }
 `;
@@ -3327,12 +3327,12 @@ exports[`chat-completions → google > promptCacheKeyParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 2,
+    "completion_tokens": 25,
     "completion_tokens_details": {
       "reasoning_tokens": 23,
     },
     "prompt_tokens": 4,
-    "total_tokens": 6,
+    "total_tokens": 29,
   },
 }
 `;
@@ -3383,12 +3383,12 @@ Alright, a straightforward arithmetic query. No need to overcomplicate things he
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 8,
+    "completion_tokens": 25,
     "completion_tokens_details": {
       "reasoning_tokens": 17,
     },
     "prompt_tokens": 8,
-    "total_tokens": 16,
+    "total_tokens": 33,
   },
 }
 `;
@@ -3458,12 +3458,12 @@ Here's a step-by-step breakdown:
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 358,
+    "completion_tokens": 923,
     "completion_tokens_details": {
       "reasoning_tokens": 565,
     },
     "prompt_tokens": 37,
-    "total_tokens": 395,
+    "total_tokens": 960,
   },
 }
 `;
@@ -3506,12 +3506,12 @@ exports[`chat-completions → google > reasoningRequestTruncated > response 1`] 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 4,
+    "completion_tokens": 96,
     "completion_tokens_details": {
       "reasoning_tokens": 92,
     },
     "prompt_tokens": 37,
-    "total_tokens": 41,
+    "total_tokens": 133,
   },
 }
 `;
@@ -3560,12 +3560,12 @@ Okay, so the user's just given me "What is 2+2?". Right. No need to overthink th
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 7,
+    "completion_tokens": 69,
     "completion_tokens_details": {
       "reasoning_tokens": 62,
     },
     "prompt_tokens": 8,
-    "total_tokens": 15,
+    "total_tokens": 77,
   },
 }
 `;
@@ -3620,12 +3620,12 @@ So, while **blue** is the most frequent answer, the sky's color is a dynamic and
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 453,
+    "completion_tokens": 1165,
     "completion_tokens_details": {
       "reasoning_tokens": 712,
     },
     "prompt_tokens": 7,
-    "total_tokens": 460,
+    "total_tokens": 1172,
   },
 }
 `;
@@ -3664,12 +3664,12 @@ exports[`chat-completions → google > safetyIdentifierParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 1,
+    "completion_tokens": 18,
     "completion_tokens_details": {
       "reasoning_tokens": 17,
     },
     "prompt_tokens": 4,
-    "total_tokens": 5,
+    "total_tokens": 22,
   },
 }
 `;
@@ -3708,12 +3708,12 @@ exports[`chat-completions → google > seedParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 1,
+    "completion_tokens": 530,
     "completion_tokens_details": {
       "reasoning_tokens": 529,
     },
     "prompt_tokens": 5,
-    "total_tokens": 6,
+    "total_tokens": 535,
   },
 }
 `;
@@ -3752,12 +3752,12 @@ exports[`chat-completions → google > serviceTierParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 1,
+    "completion_tokens": 19,
     "completion_tokens_details": {
       "reasoning_tokens": 18,
     },
     "prompt_tokens": 4,
-    "total_tokens": 5,
+    "total_tokens": 23,
   },
 }
 `;
@@ -3808,12 +3808,12 @@ The capital of France is **Paris**.",
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 8,
+    "completion_tokens": 25,
     "completion_tokens_details": {
       "reasoning_tokens": 17,
     },
     "prompt_tokens": 8,
-    "total_tokens": 16,
+    "total_tokens": 33,
   },
 }
 `;
@@ -3859,12 +3859,12 @@ exports[`chat-completions → google > stopSequencesParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 26,
+    "completion_tokens": 50,
     "completion_tokens_details": {
       "reasoning_tokens": 24,
     },
     "prompt_tokens": 10,
-    "total_tokens": 36,
+    "total_tokens": 60,
   },
 }
 `;
@@ -3903,12 +3903,12 @@ exports[`chat-completions → google > storeDisabledParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 2,
+    "completion_tokens": 29,
     "completion_tokens_details": {
       "reasoning_tokens": 27,
     },
     "prompt_tokens": 4,
-    "total_tokens": 6,
+    "total_tokens": 33,
   },
 }
 `;
@@ -3976,12 +3976,12 @@ This query will retrieve the 20 most recent log entries that have a level of",
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 107,
+    "completion_tokens": 296,
     "completion_tokens_details": {
       "reasoning_tokens": 189,
     },
     "prompt_tokens": 29,
-    "total_tokens": 136,
+    "total_tokens": 325,
   },
 }
 `;
@@ -4024,12 +4024,12 @@ exports[`chat-completions → google > temperatureParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 3,
+    "completion_tokens": 18,
     "completion_tokens_details": {
       "reasoning_tokens": 15,
     },
     "prompt_tokens": 4,
-    "total_tokens": 7,
+    "total_tokens": 22,
   },
 }
 `;
@@ -4072,12 +4072,12 @@ exports[`chat-completions → google > textFormatJsonObjectParam > response 1`] 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 6,
+    "completion_tokens": 29,
     "completion_tokens_details": {
       "reasoning_tokens": 23,
     },
     "prompt_tokens": 11,
-    "total_tokens": 17,
+    "total_tokens": 40,
   },
 }
 `;
@@ -4137,12 +4137,12 @@ exports[`chat-completions → google > textFormatJsonSchemaParam > response 1`] 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 13,
+    "completion_tokens": 114,
     "completion_tokens_details": {
       "reasoning_tokens": 101,
     },
     "prompt_tokens": 9,
-    "total_tokens": 22,
+    "total_tokens": 123,
   },
 }
 `;
@@ -4202,12 +4202,12 @@ exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 10,
+    "completion_tokens": 87,
     "completion_tokens_details": {
       "reasoning_tokens": 77,
     },
     "prompt_tokens": 9,
-    "total_tokens": 19,
+    "total_tokens": 96,
   },
 }
 `;
@@ -4250,12 +4250,12 @@ exports[`chat-completions → google > textFormatTextParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 2,
+    "completion_tokens": 17,
     "completion_tokens_details": {
       "reasoning_tokens": 15,
     },
     "prompt_tokens": 4,
-    "total_tokens": 6,
+    "total_tokens": 21,
   },
 }
 `;
@@ -4333,12 +4333,12 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 18,
+    "completion_tokens": 94,
     "completion_tokens_details": {
       "reasoning_tokens": 76,
     },
     "prompt_tokens": 62,
-    "total_tokens": 80,
+    "total_tokens": 156,
   },
 }
 `;
@@ -4418,12 +4418,12 @@ exports[`chat-completions → google > toolChoiceRequiredParam > response 1`] = 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 15,
+    "completion_tokens": 62,
     "completion_tokens_details": {
       "reasoning_tokens": 47,
     },
     "prompt_tokens": 37,
-    "total_tokens": 52,
+    "total_tokens": 99,
   },
 }
 `;
@@ -4466,12 +4466,12 @@ exports[`chat-completions → google > topPParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 2,
+    "completion_tokens": 29,
     "completion_tokens_details": {
       "reasoning_tokens": 27,
     },
     "prompt_tokens": 4,
-    "total_tokens": 6,
+    "total_tokens": 33,
   },
 }
 `;
