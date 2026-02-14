@@ -19,6 +19,10 @@ use std::path::{Path, PathBuf};
 
 mod schema_strategy;
 
+const SNAPSHOT_SUITE_OPENAI: &str = "openai-roundtrip";
+const SNAPSHOT_SUITE_ANTHROPIC: &str = "anthropic-roundtrip";
+const SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM: &str = "chat-anthropic-two-arm";
+
 fn is_openai_exact_roundtrip_scope(payload: &Value) -> bool {
     let Some(root) = payload.as_object() else {
         return false;
@@ -80,6 +84,271 @@ fn is_openai_exact_roundtrip_scope(payload: &Value) -> bool {
     true
 }
 
+fn is_anthropic_exact_roundtrip_scope(payload: &Value) -> bool {
+    let Some(root) = payload.as_object() else {
+        return false;
+    };
+
+    // Canonicalized through universal representation in ways that are not exact.
+    if root.contains_key("output_format")
+        || root.contains_key("output_config")
+        || root.contains_key("thinking")
+        || root.contains_key("tool_choice")
+        || root.contains_key("tools")
+        || root.contains_key("system")
+    {
+        return false;
+    }
+
+    if root.get("stream").and_then(Value::as_bool) == Some(true) {
+        return false;
+    }
+
+    // Anthropic only preserves metadata.user_id.
+    if let Some(metadata) = root.get("metadata") {
+        let Some(obj) = metadata.as_object() else {
+            return false;
+        };
+        if obj.len() != 1 || !obj.contains_key("user_id") {
+            return false;
+        }
+        if !obj.get("user_id").is_some_and(Value::is_string) {
+            return false;
+        }
+    }
+
+    let Some(messages) = root.get("messages").and_then(Value::as_array) else {
+        return false;
+    };
+
+    for message in messages {
+        let Some(msg) = message.as_object() else {
+            return false;
+        };
+        if msg.get("role").and_then(Value::as_str).is_none() {
+            return false;
+        }
+        let Some(content) = msg.get("content") else {
+            return false;
+        };
+        match content {
+            Value::String(_) => {}
+            Value::Array(parts) => {
+                // Restrict to text-only blocks for exact roundtrip mode.
+                for part in parts {
+                    let Some(part_obj) = part.as_object() else {
+                        return false;
+                    };
+                    if part_obj.get("type").and_then(Value::as_str) != Some("text") {
+                        return false;
+                    }
+                }
+            }
+            _ => return false,
+        }
+    }
+
+    true
+}
+
+fn is_chat_to_anthropic_two_arm_scope(payload: &Value) -> bool {
+    if !is_openai_exact_roundtrip_scope(payload) {
+        return false;
+    }
+
+    let Some(root) = payload.as_object() else {
+        return false;
+    };
+
+    // Parameters unsupported by Anthropic and not expected to roundtrip through it.
+    if root.contains_key("frequency_penalty")
+        || root.contains_key("presence_penalty")
+        || root.contains_key("logprobs")
+        || root.contains_key("top_logprobs")
+        || root.contains_key("store")
+        || root.contains_key("prediction")
+        || root.contains_key("functions")
+        || root.contains_key("audio")
+        || root.contains_key("function_call")
+    {
+        return false;
+    }
+
+    let Some(messages) = root.get("messages").and_then(Value::as_array) else {
+        return false;
+    };
+
+    for message in messages {
+        let Some(msg) = message.as_object() else {
+            return false;
+        };
+        // Keep initial arm focused on text-only, no tool-call payload shape changes.
+        if msg.contains_key("tool_calls")
+            || msg.get("role").and_then(Value::as_str) == Some("system")
+        {
+            return false;
+        }
+    }
+
+    true
+}
+
+fn sanitize_chat_for_two_arm_payload(payload: Value) -> Value {
+    let mut payload = payload;
+    let Some(root) = payload.as_object_mut() else {
+        return payload;
+    };
+
+    for key in [
+        "frequency_penalty",
+        "presence_penalty",
+        "logprobs",
+        "top_logprobs",
+        "store",
+        "prediction",
+        "functions",
+        "audio",
+        "function_call",
+        "logit_bias",
+        "modalities",
+        "n",
+        "stream_options",
+        "verbosity",
+        "web_search_options",
+        "seed",
+        "parallel_tool_calls",
+    ] {
+        root.remove(key);
+    }
+
+    // Anthropic path injects max_tokens; seed an equivalent OpenAI field up front.
+    if !root.contains_key("max_tokens") && !root.contains_key("max_completion_tokens") {
+        root.insert("max_completion_tokens".into(), Value::Number(4096.into()));
+    }
+
+    if let Some(messages) = root.get_mut("messages").and_then(Value::as_array_mut) {
+        messages.retain_mut(|message| {
+            let Some(msg) = message.as_object_mut() else {
+                return false;
+            };
+            for key in [
+                "tool_calls",
+                "audio",
+                "function_call",
+                "name",
+                "refusal",
+                "annotations",
+            ] {
+                msg.remove(key);
+            }
+
+            let role = msg.get("role").and_then(Value::as_str);
+            if matches!(role, Some("system" | "developer")) {
+                return false;
+            }
+
+            if !msg.contains_key("content") || msg.get("content").is_some_and(Value::is_null) {
+                msg.insert("content".into(), Value::String(String::new()));
+            }
+
+            true
+        });
+
+        if messages.is_empty() {
+            messages.push(serde_json::json!({
+                "role": "user",
+                "content": "hello",
+            }));
+        }
+    }
+
+    payload
+}
+
+fn sanitize_anthropic_roundtrip_payload(payload: Value) -> Value {
+    let mut payload = payload;
+    let Some(root) = payload.as_object_mut() else {
+        return payload;
+    };
+
+    for key in [
+        "output_format",
+        "output_config",
+        "thinking",
+        "tool_choice",
+        "tools",
+        "system",
+        "stream",
+    ] {
+        root.remove(key);
+    }
+
+    if let Some(metadata) = root.get_mut("metadata") {
+        if let Some(obj) = metadata.as_object_mut() {
+            if let Some(user_id) = obj.get_mut("user_id") {
+                if user_id.is_null() {
+                    *user_id = Value::String("user".to_string());
+                }
+            } else {
+                obj.insert("user_id".into(), Value::String("user".to_string()));
+            }
+            let keep = obj
+                .get("user_id")
+                .cloned()
+                .unwrap_or(Value::String("user".into()));
+            obj.clear();
+            obj.insert("user_id".into(), keep);
+        } else {
+            root.remove("metadata");
+        }
+    }
+
+    if let Some(messages) = root.get_mut("messages").and_then(Value::as_array_mut) {
+        messages.retain_mut(|message| {
+            let Some(msg) = message.as_object_mut() else {
+                return false;
+            };
+            if msg.get("role").and_then(Value::as_str).is_none() {
+                msg.insert("role".into(), Value::String("user".to_string()));
+            }
+
+            if !msg.contains_key("content") || msg.get("content").is_some_and(Value::is_null) {
+                msg.insert("content".into(), Value::String("hello".to_string()));
+            }
+
+            if let Some(parts) = msg.get_mut("content").and_then(Value::as_array_mut) {
+                parts.retain_mut(|part| {
+                    let Some(obj) = part.as_object_mut() else {
+                        return false;
+                    };
+                    if obj.get("type").and_then(Value::as_str) != Some("text") {
+                        return false;
+                    }
+                    obj.remove("cache_control");
+                    obj.remove("citations");
+                    if !obj.get("text").is_some_and(Value::is_string) {
+                        obj.insert("text".into(), Value::String("hello".to_string()));
+                    }
+                    true
+                });
+                if parts.is_empty() {
+                    msg.insert("content".into(), Value::String("hello".to_string()));
+                }
+            }
+            true
+        });
+
+        if messages.is_empty() {
+            messages.push(serde_json::json!({
+                "role": "user",
+                "content": "hello",
+            }));
+        }
+    }
+
+    payload
+}
+
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -89,8 +358,8 @@ fn workspace_root() -> PathBuf {
         .to_path_buf()
 }
 
-fn fuzz_snapshot_dir() -> PathBuf {
-    workspace_root().join("payloads/fuzz-snapshots/openai-roundtrip")
+fn fuzz_snapshot_dir_for_suite(suite: &str) -> PathBuf {
+    workspace_root().join(format!("payloads/fuzz-snapshots/{suite}"))
 }
 
 fn fnv1a_64(input: &[u8]) -> u64 {
@@ -102,13 +371,19 @@ fn fnv1a_64(input: &[u8]) -> u64 {
     hash
 }
 
-fn save_failing_snapshot(payload: &Value, issues: &[String]) -> Result<PathBuf, String> {
+fn save_failing_snapshot_for_suite(
+    suite: &str,
+    provider: &str,
+    kind: &str,
+    payload: &Value,
+    issues: &[String],
+) -> Result<PathBuf, String> {
     let compact =
         serde_json::to_vec(payload).map_err(|e| format!("failed to serialize payload: {}", e))?;
     let hash = fnv1a_64(&compact);
     let case_id = format!("case-{hash:016x}");
 
-    let dir = fuzz_snapshot_dir();
+    let dir = fuzz_snapshot_dir_for_suite(suite);
     fs::create_dir_all(&dir).map_err(|e| {
         format!(
             "failed to create fuzz snapshot directory {}: {}",
@@ -134,8 +409,8 @@ fn save_failing_snapshot(payload: &Value, issues: &[String]) -> Result<PathBuf, 
     }
 
     let meta = serde_json::json!({
-        "provider": "chat-completions",
-        "kind": "request-roundtrip",
+        "provider": provider,
+        "kind": kind,
         "issues": issues,
     });
     let meta_pretty = serde_json::to_string_pretty(&meta)
@@ -152,8 +427,8 @@ fn save_failing_snapshot(payload: &Value, issues: &[String]) -> Result<PathBuf, 
     Ok(payload_path)
 }
 
-fn snapshot_request_paths() -> Vec<PathBuf> {
-    let dir = fuzz_snapshot_dir();
+fn snapshot_request_paths_for_suite(suite: &str) -> Vec<PathBuf> {
+    let dir = fuzz_snapshot_dir_for_suite(suite);
     if !dir.exists() {
         return Vec::new();
     }
@@ -268,8 +543,8 @@ fn load_meta_issues(request_path: &Path) -> Option<Vec<String>> {
     }
 }
 
-fn prune_orphan_meta_files() -> usize {
-    let dir = fuzz_snapshot_dir();
+fn prune_orphan_meta_files_for_suite(suite: &str) -> usize {
+    let dir = fuzz_snapshot_dir_for_suite(suite);
     if !dir.exists() {
         return 0;
     }
@@ -321,6 +596,9 @@ fn assert_provider_roundtrip(format: ProviderFormat, payload: &Value) -> Option<
     if format == ProviderFormat::ChatCompletions && !is_openai_exact_roundtrip_scope(payload) {
         return None;
     }
+    if format == ProviderFormat::Anthropic && !is_anthropic_exact_roundtrip_scope(payload) {
+        return None;
+    }
 
     let adapter = adapter_for_format(format)?;
 
@@ -354,6 +632,9 @@ fn assert_provider_roundtrip_verbose(
     payload: &Value,
 ) -> Result<bool, String> {
     if format == ProviderFormat::ChatCompletions && !is_openai_exact_roundtrip_scope(payload) {
+        return Ok(false);
+    }
+    if format == ProviderFormat::Anthropic && !is_anthropic_exact_roundtrip_scope(payload) {
         return Ok(false);
     }
 
@@ -394,6 +675,158 @@ fn assert_provider_roundtrip_verbose(
     ))
 }
 
+fn append_diff_issues(prefix: &str, before: &Value, after: &Value, issues: &mut Vec<String>) {
+    if before == after {
+        return;
+    }
+    let diff = diff_json(before, after);
+    for f in &diff.lost_fields {
+        issues.push(format!("{prefix} lost: {f}"));
+    }
+    for f in &diff.added_fields {
+        issues.push(format!("{prefix} added: {f}"));
+    }
+    for (f, before, after) in &diff.changed_fields {
+        issues.push(format!("{prefix} changed: {f} ({before} -> {after})"));
+    }
+}
+
+fn as_pretty_json<T: serde::Serialize>(value: &T) -> String {
+    serde_json::to_string_pretty(value).unwrap_or_else(|_| "<serialization failed>".to_string())
+}
+
+fn assert_chat_anthropic_two_arm(payload: &Value) -> Option<Vec<String>> {
+    if !is_chat_to_anthropic_two_arm_scope(payload) {
+        return None;
+    }
+
+    let chat = adapter_for_format(ProviderFormat::ChatCompletions)?;
+    let anthropic = adapter_for_format(ProviderFormat::Anthropic)?;
+
+    let universal_1 = chat.request_to_universal(payload.clone()).ok()?;
+    let anthropic_1 = match anthropic.request_from_universal(&universal_1) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("chat->anthropic error: {e}")]),
+    };
+    let universal_2 = match anthropic.request_to_universal(anthropic_1.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("anthropic->universal(1) error: {e}")]),
+    };
+
+    let anthropic_2 = match anthropic.request_from_universal(&universal_2) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->anthropic(2) error: {e}")]),
+    };
+    let universal_3 = match anthropic.request_to_universal(anthropic_2.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("anthropic->universal(2) error: {e}")]),
+    };
+    let chat_out = match chat.request_from_universal(&universal_3) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->chat error: {e}")]),
+    };
+
+    let mut issues = Vec::new();
+
+    let universal_1_json = serde_json::to_value(&universal_1).unwrap_or(Value::Null);
+    let universal_2_json = serde_json::to_value(&universal_2).unwrap_or(Value::Null);
+    append_diff_issues(
+        "universal(1->2):",
+        &universal_1_json,
+        &universal_2_json,
+        &mut issues,
+    );
+    append_diff_issues("anthropic(1->2):", &anthropic_1, &anthropic_2, &mut issues);
+    append_diff_issues("chat(final):", payload, &chat_out, &mut issues);
+
+    Some(issues)
+}
+
+fn assert_chat_anthropic_two_arm_verbose(payload: &Value) -> Result<bool, String> {
+    if !is_chat_to_anthropic_two_arm_scope(payload) {
+        return Ok(false);
+    }
+
+    let chat = adapter_for_format(ProviderFormat::ChatCompletions)
+        .ok_or_else(|| "No chat-completions adapter".to_string())?;
+    let anthropic = adapter_for_format(ProviderFormat::Anthropic)
+        .ok_or_else(|| "No anthropic adapter".to_string())?;
+
+    let universal_1 = chat
+        .request_to_universal(payload.clone())
+        .map_err(|e| format!("chat->universal error: {e}"))?;
+    let anthropic_1 = anthropic
+        .request_from_universal(&universal_1)
+        .map_err(|e| format!("universal->anthropic(1) error: {e}"))?;
+    let universal_2 = anthropic
+        .request_to_universal(anthropic_1.clone())
+        .map_err(|e| format!("anthropic->universal(1) error: {e}"))?;
+    let anthropic_2 = anthropic
+        .request_from_universal(&universal_2)
+        .map_err(|e| format!("universal->anthropic(2) error: {e}"))?;
+    let universal_3 = anthropic
+        .request_to_universal(anthropic_2.clone())
+        .map_err(|e| format!("anthropic->universal(2) error: {e}"))?;
+    let chat_out = chat
+        .request_from_universal(&universal_3)
+        .map_err(|e| format!("universal->chat error: {e}"))?;
+
+    let mut issues = Vec::new();
+    let universal_1_json = serde_json::to_value(&universal_1).unwrap_or(Value::Null);
+    let universal_2_json = serde_json::to_value(&universal_2).unwrap_or(Value::Null);
+    append_diff_issues(
+        "universal(1->2):",
+        &universal_1_json,
+        &universal_2_json,
+        &mut issues,
+    );
+    append_diff_issues("anthropic(1->2):", &anthropic_1, &anthropic_2, &mut issues);
+    append_diff_issues("chat(final):", payload, &chat_out, &mut issues);
+
+    if issues.is_empty() {
+        return Ok(true);
+    }
+
+    Err(format!(
+        "chat->universal->anthropic->universal->anthropic->universal->chat mismatch:\n{}\n\n\
+         chat_input: {}\n\
+         universal_1: {}\n\
+         anthropic_1: {}\n\
+         universal_2: {}\n\
+         anthropic_2: {}\n\
+         universal_3: {}\n\
+         chat_output: {}",
+        issues
+            .iter()
+            .map(|i| format!("  {i}"))
+            .collect::<Vec<_>>()
+            .join("\n"),
+        as_pretty_json(payload),
+        as_pretty_json(&universal_1),
+        as_pretty_json(&anthropic_1),
+        as_pretty_json(&universal_2),
+        as_pretty_json(&anthropic_2),
+        as_pretty_json(&universal_3),
+        as_pretty_json(&chat_out),
+    ))
+}
+
+fn assert_openai_roundtrip(payload: &Value) -> Option<Vec<String>> {
+    assert_provider_roundtrip(ProviderFormat::ChatCompletions, payload)
+}
+
+fn assert_openai_roundtrip_verbose(payload: &Value) -> Result<bool, String> {
+    assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, payload)
+}
+
+fn assert_anthropic_roundtrip(payload: &Value) -> Option<Vec<String>> {
+    assert_provider_roundtrip(ProviderFormat::Anthropic, payload)
+}
+
+fn assert_anthropic_roundtrip_verbose(payload: &Value) -> Result<bool, String> {
+    assert_provider_roundtrip_verbose(ProviderFormat::Anthropic, payload)
+}
+
 // ============================================================================
 // Strategies
 // ============================================================================
@@ -411,6 +844,32 @@ mod strategies {
         let defs = load_openapi_definitions(&format!("{}/specs/openai/openapi.yml", specs_dir()));
         strategy_for_schema_name("CreateChatCompletionRequest", &defs)
     }
+
+    pub fn arb_openai_two_arm_payload() -> BoxedStrategy<Value> {
+        arb_openai_payload()
+            .prop_map(sanitize_chat_for_two_arm_payload)
+            .prop_filter(
+                "payload must be in chat-anthropic two-arm scope",
+                |payload| is_chat_to_anthropic_two_arm_scope(payload),
+            )
+            .boxed()
+    }
+
+    pub fn arb_anthropic_payload() -> BoxedStrategy<Value> {
+        let defs =
+            load_openapi_definitions(&format!("{}/specs/anthropic/openapi.yml", specs_dir()));
+        strategy_for_schema_name("CreateMessageParams", &defs)
+    }
+
+    pub fn arb_anthropic_roundtrip_payload() -> BoxedStrategy<Value> {
+        arb_anthropic_payload()
+            .prop_map(sanitize_anthropic_roundtrip_payload)
+            .prop_filter(
+                "payload must be in anthropic exact-roundtrip scope",
+                |payload| is_anthropic_exact_roundtrip_scope(payload),
+            )
+            .boxed()
+    }
 }
 
 // ============================================================================
@@ -419,38 +878,22 @@ mod strategies {
 
 const CASES: u32 = 256;
 
-#[test]
-fn openai_roundtrip_saved_snapshots() {
-    for path in snapshot_request_paths() {
+fn run_saved_snapshots_suite(suite: &str, assert_verbose: fn(&Value) -> Result<bool, String>) {
+    for path in snapshot_request_paths_for_suite(suite) {
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("failed to read snapshot {}: {}", path.display(), e));
         let payload: Value = serde_json::from_str(&raw)
             .unwrap_or_else(|e| panic!("invalid json in {}: {}", path.display(), e));
 
-        if !is_openai_exact_roundtrip_scope(&payload) {
-            continue;
-        }
-
-        match assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, &payload) {
+        match assert_verbose(&payload) {
             Ok(true) => {}
-            Ok(false) => panic!(
-                "snapshot {} is no longer valid chat-completions input",
-                path.display()
-            ),
+            Ok(false) => continue,
             Err(e) => panic!("snapshot {} failed roundtrip:\n{}", path.display(), e),
         }
     }
 }
 
-/// Prune fuzz snapshots in a loop until stable:
-/// - remove malformed request/meta pairs
-/// - remove orphan meta files
-/// - dedupe snapshots that fail for the same reason
-///
-/// Conservative by default: keeps snapshots that pass or are out-of-scope.
-#[test]
-#[ignore]
-fn openai_roundtrip_prune_snapshots() {
+fn run_prune_snapshots_suite(suite: &str, assert_fn: fn(&Value) -> Option<Vec<String>>) {
     let mut iterations = 0usize;
     let mut removed_malformed = 0usize;
     let mut removed_orphan_meta = 0usize;
@@ -460,14 +903,14 @@ fn openai_roundtrip_prune_snapshots() {
         iterations += 1;
         let mut changed = false;
 
-        let orphan_removed = prune_orphan_meta_files();
+        let orphan_removed = prune_orphan_meta_files_for_suite(suite);
         if orphan_removed > 0 {
             removed_orphan_meta += orphan_removed;
             changed = true;
         }
 
         let mut kept_by_reason: BTreeMap<String, PathBuf> = BTreeMap::new();
-        for path in snapshot_request_paths() {
+        for path in snapshot_request_paths_for_suite(suite) {
             let raw = match fs::read_to_string(&path) {
                 Ok(v) => v,
                 Err(_) => {
@@ -490,13 +933,11 @@ fn openai_roundtrip_prune_snapshots() {
 
             let issues = if let Some(meta_issues) = load_meta_issues(&path) {
                 meta_issues
-            } else if is_openai_exact_roundtrip_scope(&payload) {
-                match assert_provider_roundtrip(ProviderFormat::ChatCompletions, &payload) {
+            } else {
+                match assert_fn(&payload) {
                     Some(issues) if !issues.is_empty() => issues,
                     _ => continue,
                 }
-            } else {
-                continue;
             };
 
             let signature = canonical_issue_signature(&issues);
@@ -519,29 +960,41 @@ fn openai_roundtrip_prune_snapshots() {
     }
 
     eprintln!(
-        "prune complete after {} iterations: removed_malformed={} removed_orphan_meta={} removed_duplicate_reason={}",
-        iterations, removed_malformed, removed_orphan_meta, removed_duplicate_reason
+        "{suite} prune complete after {} iterations: removed_malformed={} removed_orphan_meta={} removed_duplicate_reason={}",
+        iterations,
+        removed_malformed,
+        removed_orphan_meta,
+        removed_duplicate_reason
     );
 }
 
-/// Fail on the first error with verbose output (input, output, diff).
-/// Use for debugging a specific issue.
-#[test]
-#[ignore]
-fn openai_roundtrip() {
+fn run_fail_fast_suite(
+    suite: &str,
+    provider: &str,
+    kind: &str,
+    strategy: BoxedStrategy<Value>,
+    assert_fn: fn(&Value) -> Option<Vec<String>>,
+    assert_verbose: fn(&Value) -> Result<bool, String>,
+) {
     let config = ProptestConfig {
         cases: CASES,
         failure_persistence: None,
         ..ProptestConfig::default()
     };
-    proptest!(config, |(payload in strategies::arb_openai_payload())| {
-        if let Some(issues) = assert_provider_roundtrip(ProviderFormat::ChatCompletions, &payload) {
+    proptest!(config, |(payload in strategy.clone())| {
+        if let Some(issues) = assert_fn(&payload) {
             if !issues.is_empty() {
-                let snapshot_msg = match save_failing_snapshot(&payload, &issues) {
+                let snapshot_msg = match save_failing_snapshot_for_suite(
+                    suite,
+                    provider,
+                    kind,
+                    &payload,
+                    &issues,
+                ) {
                     Ok(path) => format!("\nSaved failing snapshot: {}", path.display()),
                     Err(err) => format!("\nFailed to save snapshot: {}", err),
                 };
-                let verbose = assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, &payload)
+                let verbose = assert_verbose(&payload)
                     .err()
                     .unwrap_or_else(|| "roundtrip mismatch (verbose details unavailable)".to_string());
                 prop_assert!(false, "{}{}", verbose, snapshot_msg);
@@ -550,11 +1003,14 @@ fn openai_roundtrip() {
     });
 }
 
-/// Run all cases and report an aggregated summary of unique issues.
-/// Use for triaging the full scope of failures.
-#[test]
-#[ignore]
-fn openai_roundtrip_stats() {
+fn run_stats_suite(
+    suite: &str,
+    provider: &str,
+    kind: &str,
+    label: &str,
+    strategy: BoxedStrategy<Value>,
+    assert_fn: fn(&Value) -> Option<Vec<String>>,
+) {
     let mut runner = TestRunner::new(ProptestConfig {
         cases: CASES,
         failure_persistence: None,
@@ -566,8 +1022,6 @@ fn openai_roundtrip_stats() {
     let mut skipped = 0usize;
     let mut errored = 0usize;
 
-    let strategy = strategies::arb_openai_payload();
-
     for _ in 0..CASES {
         let value_tree = match strategy.new_tree(&mut runner) {
             Ok(v) => v,
@@ -578,12 +1032,14 @@ fn openai_roundtrip_stats() {
         };
         let payload = value_tree.current();
 
-        match assert_provider_roundtrip(ProviderFormat::ChatCompletions, &payload) {
+        match assert_fn(&payload) {
             None => skipped += 1,
             Some(issues) if issues.is_empty() => passed += 1,
             Some(issues) => {
                 errored += 1;
-                if let Ok(path) = save_failing_snapshot(&payload, &issues) {
+                if let Ok(path) =
+                    save_failing_snapshot_for_suite(suite, provider, kind, &payload, &issues)
+                {
                     eprintln!("saved failing snapshot: {}", path.display());
                 }
                 for issue in issues {
@@ -597,8 +1053,8 @@ fn openai_roundtrip_stats() {
     }
 
     eprintln!(
-        "\n--- OpenAI roundtrip fuzz: {} passed, {} failed, {} skipped (of {}) ---",
-        passed, errored, skipped, CASES,
+        "\n--- {}: {} passed, {} failed, {} skipped (of {}) ---",
+        label, passed, errored, skipped, CASES,
     );
 
     if !failures.is_empty() {
@@ -613,4 +1069,131 @@ fn openai_roundtrip_stats() {
             CASES,
         );
     }
+}
+
+#[test]
+fn openai_roundtrip_saved_snapshots() {
+    run_saved_snapshots_suite(SNAPSHOT_SUITE_OPENAI, assert_openai_roundtrip_verbose);
+}
+
+#[test]
+fn anthropic_roundtrip_saved_snapshots() {
+    run_saved_snapshots_suite(SNAPSHOT_SUITE_ANTHROPIC, assert_anthropic_roundtrip_verbose);
+}
+
+#[test]
+fn chat_anthropic_two_arm_saved_snapshots() {
+    run_saved_snapshots_suite(
+        SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
+        assert_chat_anthropic_two_arm_verbose,
+    );
+}
+
+/// Prune fuzz snapshots in a loop until stable:
+/// - remove malformed request/meta pairs
+/// - remove orphan meta files
+/// - dedupe snapshots that fail for the same reason
+///
+/// Conservative by default: keeps snapshots that pass or are out-of-scope.
+#[test]
+#[ignore]
+fn openai_roundtrip_prune_snapshots() {
+    run_prune_snapshots_suite(SNAPSHOT_SUITE_OPENAI, assert_openai_roundtrip);
+}
+
+#[test]
+#[ignore]
+fn anthropic_roundtrip_prune_snapshots() {
+    run_prune_snapshots_suite(SNAPSHOT_SUITE_ANTHROPIC, assert_anthropic_roundtrip);
+}
+
+#[test]
+#[ignore]
+fn chat_anthropic_two_arm_prune_snapshots() {
+    run_prune_snapshots_suite(
+        SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
+        assert_chat_anthropic_two_arm,
+    );
+}
+
+/// Fail on the first error with verbose output (input, output, diff).
+/// Use for debugging a specific issue.
+#[test]
+#[ignore]
+fn openai_roundtrip() {
+    run_fail_fast_suite(
+        SNAPSHOT_SUITE_OPENAI,
+        "chat-completions",
+        "request-roundtrip",
+        strategies::arb_openai_payload(),
+        assert_openai_roundtrip,
+        assert_openai_roundtrip_verbose,
+    );
+}
+
+#[test]
+#[ignore]
+fn anthropic_roundtrip() {
+    run_fail_fast_suite(
+        SNAPSHOT_SUITE_ANTHROPIC,
+        "anthropic",
+        "request-roundtrip",
+        strategies::arb_anthropic_roundtrip_payload(),
+        assert_anthropic_roundtrip,
+        assert_anthropic_roundtrip_verbose,
+    );
+}
+
+#[test]
+#[ignore]
+fn chat_anthropic_two_arm() {
+    run_fail_fast_suite(
+        SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
+        "chat-completions",
+        "chat-anthropic-two-arm",
+        strategies::arb_openai_two_arm_payload(),
+        assert_chat_anthropic_two_arm,
+        assert_chat_anthropic_two_arm_verbose,
+    );
+}
+
+/// Run all cases and report an aggregated summary of unique issues.
+/// Use for triaging the full scope of failures.
+#[test]
+#[ignore]
+fn openai_roundtrip_stats() {
+    run_stats_suite(
+        SNAPSHOT_SUITE_OPENAI,
+        "chat-completions",
+        "request-roundtrip",
+        "OpenAI roundtrip fuzz",
+        strategies::arb_openai_payload(),
+        assert_openai_roundtrip,
+    );
+}
+
+#[test]
+#[ignore]
+fn anthropic_roundtrip_stats() {
+    run_stats_suite(
+        SNAPSHOT_SUITE_ANTHROPIC,
+        "anthropic",
+        "request-roundtrip",
+        "Anthropic roundtrip fuzz",
+        strategies::arb_anthropic_roundtrip_payload(),
+        assert_anthropic_roundtrip,
+    );
+}
+
+#[test]
+#[ignore]
+fn chat_anthropic_two_arm_stats() {
+    run_stats_suite(
+        SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
+        "chat-completions",
+        "chat-anthropic-two-arm",
+        "Chat->Anthropic two-arm fuzz",
+        strategies::arb_openai_two_arm_payload(),
+        assert_chat_anthropic_two_arm,
+    );
 }
