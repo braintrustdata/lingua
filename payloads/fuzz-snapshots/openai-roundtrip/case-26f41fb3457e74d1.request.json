@@ -1,0 +1,17 @@
+{
+  "messages": [
+    {
+      "content": ",",
+      "role": "developer"
+    }
+  ],
+  "model": "A",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": "Wom2!.,kJo?., .xnT!1,?v7!"
+      },
+      "type": "approximate"
+    }
+  }
+}

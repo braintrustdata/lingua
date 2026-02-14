@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: tools",
+    "lost: max_tokens",
+    "lost: tool_choice",
+    "added: stream_options",
+    "added: max_completion_tokens"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

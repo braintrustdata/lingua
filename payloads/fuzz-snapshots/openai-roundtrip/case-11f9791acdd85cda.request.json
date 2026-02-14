@@ -1,0 +1,44 @@
+{
+  "frequency_penalty": 25.57488206836481,
+  "functions": [
+    {
+      "description": "q?8Jo,8!tL?.g .XVy04.?,r6??.,?jbB2ox",
+      "name": "6,,.!M,q?T?2JHJ!R?hb  K"
+    },
+    {
+      "description": "T!Qy1Q488G.G36IK??.Y2TrG ",
+      "name": "?28CC.X?.g5Vqqgq? bH a.. EPw.k8igg2.q?4.Xq",
+      "parameters": {}
+    },
+    {
+      "description": "37?Z,1jr.!o bQ.3 ,.H?.,.h!cT7v",
+      "name": "14m?32"
+    }
+  ],
+  "logprobs": false,
+  "max_completion_tokens": -991,
+  "messages": [
+    {
+      "content": "O??U?5V.g.?6.,?!,.,O6..x.,,4?b,.",
+      "role": "user"
+    }
+  ],
+  "model": "gpt-4.1-mini",
+  "parallel_tool_calls": true,
+  "presence_penalty": -34.03323710299052,
+  "reasoning_effort": null,
+  "response_format": {
+    "type": "json_object"
+  },
+  "seed": -288,
+  "stop": [
+    "F?.ko6...B1",
+    ",98Y6?G?Ou6B!Ph!h T",
+    "GbEK,M1g.?o!k.4KDU!p"
+  ],
+  "stream_options": {
+    "include_obfuscation": true,
+    "include_usage": true
+  },
+  "tool_choice": "auto"
+}

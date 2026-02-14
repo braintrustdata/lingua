@@ -1,0 +1,68 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "echo"
+  },
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": ",?.o6G9!nuQr.,yhU.V7X,,iTow.x S",
+      "role": "developer"
+    },
+    {
+      "content": "0o,79.1EB,cJ?e,3FS.j? h??Vp,F,V!q9vzI ,6k?,O",
+      "name": ",,",
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "audio",
+    "text",
+    "audio"
+  ],
+  "model": "gpt-3.5-turbo-1106",
+  "n": 426,
+  "prediction": {
+    "content": "Z .dO ?.a",
+    "type": "content"
+  },
+  "stream": false,
+  "tools": [
+    {
+      "function": {
+        "description": "6Y,n444",
+        "name": "7xx.W 7h,P39!?, .c.KP!S6W,g?5MM Rk.3 ",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "format": {
+          "type": "text"
+        },
+        "name": "2!.8?FY..4c!!5kJgD18Y?P,j,Q,Gq.035,,"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "name": "?4eIPw??H!P!,2Zx 7J,9B3xL20I.J.,Tn.BO,,mw?eQ?T.?k3"
+      },
+      "type": "custom"
+    }
+  ],
+  "top_logprobs": -376,
+  "verbosity": null,
+  "web_search_options": {
+    "search_context_size": "medium",
+    "user_location": {
+      "approximate": {
+        "city": "7,M9?t Sr!?! jv??!K .?F?,g,X.Xz!,U75eD?",
+        "country": "T.!9!?r1Wee?i??7YL yej?P?kJG,9,Qe,",
+        "timezone": "U? X,?84,x !V,1"
+      },
+      "type": "approximate"
+    }
+  }
+}

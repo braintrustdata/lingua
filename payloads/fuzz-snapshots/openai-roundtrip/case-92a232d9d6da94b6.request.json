@@ -1,0 +1,28 @@
+{
+  "max_tokens": -14,
+  "messages": [
+    {
+      "role": "assistant"
+    }
+  ],
+  "model": "A",
+  "parallel_tool_calls": false,
+  "presence_penalty": 5.731902245073247,
+  "stream": false,
+  "tool_choice": {
+    "function": {
+      "name": "d.b?,PIS.X?6QBNTdW,MaD1,?S!V,bI.tI?.."
+    },
+    "type": "function"
+  },
+  "verbosity": "high",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": "T.f,!3l ol2,!,b,w,w?39!??",
+        "region": "A.?p.?J!.I3YEQ.! S?.lp4Q?z!.2, ,0h!"
+      },
+      "type": "approximate"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "frequency_penalty": -72.24571466011848,
+  "logit_bias": {},
+  "max_tokens": -18,
+  "messages": [
+    {
+      "content": null,
+      "function_call": null,
+      "name": "1j?R P.E?r?r?YT.",
+      "role": "assistant"
+    }
+  ],
+  "modalities": [
+    "text",
+    "text",
+    "audio"
+  ],
+  "model": "R1?ADS,8,!?Aukd0.x.,u9rLlz?",
+  "n": 43,
+  "prediction": {
+    "content": [
+      {
+        "text": ",,Qx.?2!.,6!a!!e GyHE! .! bnlHv",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "response_format": {
+    "json_schema": {
+      "name": "b!3?6uL.,??w!e.?,tL9 e WB3.ZIM .? ?N",
+      "schema": {},
+      "strict": true
+    },
+    "type": "json_schema"
+  },
+  "seed": -951,
+  "store": false,
+  "stream": false,
+  "stream_options": null,
+  "web_search_options": {
+    "search_context_size": "low",
+    "user_location": {
+      "approximate": {
+        "country": "..?,L,?a.f.cl ,!?Tlk"
+      },
+      "type": "approximate"
+    }
+  }
+}

@@ -275,10 +275,9 @@ impl UniversalTool {
                     func.insert("description".into(), Value::String(desc.clone()));
                 }
 
-                func.insert(
-                    "parameters".into(),
-                    self.parameters.clone().unwrap_or_else(|| json!({})),
-                );
+                if let Some(parameters) = &self.parameters {
+                    func.insert("parameters".into(), parameters.clone());
+                }
 
                 if let Some(strict) = self.strict {
                     func.insert("strict".into(), Value::Bool(strict));
@@ -324,10 +323,9 @@ impl UniversalTool {
                     obj.insert("description".into(), Value::String(desc.clone()));
                 }
 
-                obj.insert(
-                    "parameters".into(),
-                    self.parameters.clone().unwrap_or_else(|| json!({})),
-                );
+                if let Some(parameters) = &self.parameters {
+                    obj.insert("parameters".into(), parameters.clone());
+                }
 
                 if let Some(strict) = self.strict {
                     obj.insert("strict".into(), Value::Bool(strict));

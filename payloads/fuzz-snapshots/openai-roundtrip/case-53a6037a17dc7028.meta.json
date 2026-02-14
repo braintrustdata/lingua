@@ -1,0 +1,13 @@
+{
+  "issues": [
+    "lost: tools",
+    "lost: max_tokens",
+    "lost: messages[0].refusal",
+    "lost: messages[0].audio",
+    "added: stream_options",
+    "added: messages[0].content",
+    "changed: max_completion_tokens (104 -> -362)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

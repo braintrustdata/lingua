@@ -1,0 +1,86 @@
+{
+  "frequency_penalty": -32.41832402625718,
+  "logit_bias": {},
+  "messages": [
+    {
+      "function_call": {
+        "arguments": "o ?K,.! LJ7?n4q!P u?.V9",
+        "name": "3k.s!9u,9UuIy"
+      },
+      "refusal": null,
+      "role": "assistant"
+    }
+  ],
+  "model": "gpt-3.5-turbo-16k-0613",
+  "n": -62,
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": "..?i,!.W.nPq?!.D?!,,?.jF?KDZ",
+        "type": "text"
+      },
+      {
+        "text": "0!autG,n!K4P1t",
+        "type": "text"
+      },
+      {
+        "text": ",?H,?.vT  sCu, f",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": -55.63069695664482,
+  "reasoning_effort": "medium",
+  "response_format": {
+    "type": "json_object"
+  },
+  "stream": false,
+  "tool_choice": {
+    "custom": {
+      "name": "?,2,S9?5.Qw8!.!"
+    },
+    "type": "custom"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": "7T!F,8m.!Be?? ,o",
+        "parameters": {},
+        "strict": false
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "format": {
+          "type": "text"
+        },
+        "name": "ARcL,"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "format": {
+          "type": "text"
+        },
+        "name": " ?W9AK8lgDLp.LrqH????vJqX?g.bh??,6?I x,Yz..fj,?V,"
+      },
+      "type": "custom"
+    }
+  ],
+  "top_logprobs": 727,
+  "web_search_options": {
+    "search_context_size": "medium",
+    "user_location": {
+      "approximate": {
+        "city": "?e. T?. ?7,E?zV!!.4 !??B2,,X!FU9O??i",
+        "region": "35I,,??w?, ,fCI.,.pRYs!y7.0.",
+        "timezone": ".d.vW, 0 ,?!bml!? C3l? DG!f.F?Y"
+      },
+      "type": "approximate"
+    }
+  }
+}

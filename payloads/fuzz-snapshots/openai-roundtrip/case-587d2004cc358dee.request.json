@@ -1,0 +1,42 @@
+{
+  "audio": {
+    "format": "flac",
+    "voice": "ash"
+  },
+  "function_call": {
+    "name": "PB?n6,?b,?.6"
+  },
+  "logit_bias": {},
+  "max_completion_tokens": 58,
+  "messages": [
+    {
+      "content": ",",
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "text"
+  ],
+  "model": ",L.Uwa?46,7.h,Z",
+  "presence_penalty": 11.655458414211695,
+  "stream_options": {
+    "include_obfuscation": true,
+    "include_usage": false
+  },
+  "tool_choice": {
+    "custom": {
+      "name": "n,Qm,?.G...?K m1m!IJ8k"
+    },
+    "type": "custom"
+  },
+  "top_logprobs": 561,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "kI,Z?X,by,?4syNyy1CY2 ?.L l86 ",
+        "country": "5? ?gEWom2!.,kJo?., .xnT!1,?v7!"
+      },
+      "type": "approximate"
+    }
+  }
+}

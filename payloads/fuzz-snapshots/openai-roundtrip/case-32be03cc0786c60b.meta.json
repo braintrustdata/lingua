@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: messages[1].name",
+    "added: stream_options",
+    "changed: stop (\"??,b9pGL?6,4y4M?5.nY.\" -> [\"??,b9pGL?6,4y4M?5.nY.\"])"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

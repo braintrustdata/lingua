@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: max_tokens",
+    "lost: messages[0].name",
+    "changed: max_completion_tokens (-656 -> -464)",
+    "changed: reasoning_effort (\"minimal\" -> \"low\")",
+    "changed: stop (\",, !v4 ,!,u 4?ZIs?,p?? ?!. ,.9.8.?,1I \" -> [\",, !v4 ,!,u 4?ZIs?,p?? ?!. ,.9.8.?,1I \"])"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

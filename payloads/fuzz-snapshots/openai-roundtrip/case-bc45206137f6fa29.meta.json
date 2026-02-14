@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: response_format",
+    "lost: messages[0].name",
+    "lost: messages[1].name",
+    "changed: reasoning_effort (\"minimal\" -> \"low\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

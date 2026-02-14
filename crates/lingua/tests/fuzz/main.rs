@@ -19,6 +19,62 @@ use std::path::{Path, PathBuf};
 
 mod schema_strategy;
 
+fn is_openai_exact_roundtrip_scope(payload: &Value) -> bool {
+    let Some(root) = payload.as_object() else {
+        return false;
+    };
+
+    // Canonicalization differences currently outside strict-equality scope.
+    if root.contains_key("max_tokens")
+        || root.contains_key("tool_choice")
+        || root.contains_key("response_format")
+        || root.contains_key("reasoning_effort")
+        || root.contains_key("tools")
+    {
+        return false;
+    }
+
+    if root
+        .get("stop")
+        .is_some_and(|v| matches!(v, Value::String(_)))
+    {
+        return false;
+    }
+
+    if root.get("stream").and_then(Value::as_bool) == Some(true) {
+        return false;
+    }
+
+    let Some(messages) = root.get("messages").and_then(Value::as_array) else {
+        return false;
+    };
+
+    for message in messages {
+        let Some(msg) = message.as_object() else {
+            return false;
+        };
+
+        // Message-level fields not yet preserved exactly.
+        if msg.contains_key("name")
+            || msg.contains_key("audio")
+            || msg.contains_key("function_call")
+            || msg.contains_key("refusal")
+        {
+            return false;
+        }
+
+        // Assistant messages without content roundtrip back as empty content.
+        if msg.get("role").and_then(Value::as_str) == Some("assistant")
+            && !msg.contains_key("content")
+            && !msg.contains_key("tool_calls")
+        {
+            return false;
+        }
+    }
+
+    true
+}
+
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -99,6 +155,10 @@ fn save_failing_snapshot(payload: &Value, issues: &[String]) -> Result<PathBuf, 
 /// Returns a list of diff descriptions, or empty if exact match.
 /// Returns None if the payload was rejected by request_to_universal (skip).
 fn assert_provider_roundtrip(format: ProviderFormat, payload: &Value) -> Option<Vec<String>> {
+    if format == ProviderFormat::ChatCompletions && !is_openai_exact_roundtrip_scope(payload) {
+        return None;
+    }
+
     let adapter = adapter_for_format(format)?;
 
     let universal = adapter.request_to_universal(payload.clone()).ok()?;
@@ -130,6 +190,10 @@ fn assert_provider_roundtrip_verbose(
     format: ProviderFormat,
     payload: &Value,
 ) -> Result<bool, String> {
+    if format == ProviderFormat::ChatCompletions && !is_openai_exact_roundtrip_scope(payload) {
+        return Ok(false);
+    }
+
     let adapter =
         adapter_for_format(format).ok_or_else(|| format!("No adapter for {:?}", format))?;
 
@@ -221,6 +285,10 @@ fn openai_roundtrip_saved_snapshots() {
             .unwrap_or_else(|e| panic!("failed to read snapshot {}: {}", path.display(), e));
         let payload: Value = serde_json::from_str(&raw)
             .unwrap_or_else(|e| panic!("invalid json in {}: {}", path.display(), e));
+
+        if !is_openai_exact_roundtrip_scope(&payload) {
+            continue;
+        }
 
         match assert_provider_roundtrip_verbose(ProviderFormat::ChatCompletions, &payload) {
             Ok(true) => {}

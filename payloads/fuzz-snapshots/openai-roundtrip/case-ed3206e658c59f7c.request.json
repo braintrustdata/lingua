@@ -1,0 +1,78 @@
+{
+  "frequency_penalty": 42.480352399909876,
+  "function_call": "none",
+  "logprobs": true,
+  "max_tokens": -211,
+  "messages": [
+    {
+      "content": "WL!uhXug!4?2.l.!,h?F?!T,j94",
+      "role": "user"
+    },
+    {
+      "audio": null,
+      "role": "assistant"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-5-mini",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": " .h5.UzjA,43U?1TS2,v .nLEs7..8q",
+        "type": "text"
+      },
+      {
+        "text": "?FQ!EoT?6Z,R,fnZ7.k.a.,?Q17rU.oW.n,Uy?0",
+        "type": "text"
+      },
+      {
+        "text": "2,.g12qpDnr?.o!",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": -42.79188439678012,
+  "reasoning_effort": null,
+  "response_format": {
+    "type": "text"
+  },
+  "seed": -276,
+  "stop": [
+    "E.S5Ef?a0 D?63!1.J??5hzhz5kI. ",
+    " Mh?2l g!,,.XA.?7.,!Jjju?wS.TX!.f8U",
+    "?KHE?AEeu1Cje1.16V.?p75cj!Vew.?it",
+    "0f ?YYk,m4C0HSQ9o.?F. ,!D,?g.c? ?2T??"
+  ],
+  "store": true,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "custom": {
+        "description": "S3MFm!v1? w6Cve.?1G..c,!pp1D??R77?D.?",
+        "format": {
+          "type": "text"
+        },
+        "name": "0!ksWP,.??s?Q,S.!.j?.jN  tU,5.oV,,M7"
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "name": "yTN.gnrY??6lr,GP25.VoO5?4f8.O.h.FD1RP4..JyHl3o430",
+        "parameters": {},
+        "strict": null
+      },
+      "type": "function"
+    }
+  ]
+}

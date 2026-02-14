@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: messages[0].function_call",
+    "lost: messages[0].audio",
+    "lost: messages[0].name",
+    "added: messages[0].content",
+    "changed: reasoning_effort (\"minimal\" -> \"low\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

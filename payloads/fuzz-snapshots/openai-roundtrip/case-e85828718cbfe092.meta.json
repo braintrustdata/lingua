@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "lost: response_format"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

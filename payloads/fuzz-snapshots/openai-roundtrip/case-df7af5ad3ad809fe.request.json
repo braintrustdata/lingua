@@ -1,0 +1,96 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": "HH?n!.aO!,AIRe7.,1?!9?Zw"
+  },
+  "frequency_penalty": 33.41286133850781,
+  "function_call": {
+    "name": "j7E1?.L2.,.t.t5sSSos .f8xHt?C"
+  },
+  "logprobs": false,
+  "max_completion_tokens": 95,
+  "messages": [
+    {
+      "content": "1XS,3,R!?.e!",
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "text",
+    "text",
+    "text"
+  ],
+  "model": "UI.2RCNP,,j?",
+  "prediction": {
+    "content": [
+      {
+        "text": "t m..",
+        "type": "text"
+      },
+      {
+        "text": "u,?q,,IB.?l.? !Q,JGk ik0P1 ?JB??z.Ws3WK",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "response_format": {
+    "type": "json_object"
+  },
+  "stop": [
+    "7149.F..aO!5",
+    "?M, "
+  ],
+  "store": true,
+  "stream": false,
+  "stream_options": {},
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {},
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "function": {
+        "description": " ,?!GO.3?!U85.u1.F!sf.P!",
+        "name": " lS0.UI,?Z.ZR?2q?1V, !3IP.6Q3"
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "!",
+        "name": ".!!?!.?,AjcdE8?a.O, ,KVaU?!R.Du",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "1 ,cuLk.Rok2??pakl!1?.,A9cI",
+        "name": ",M,gFqo1K.P,xr?wIR?,.,q3?",
+        "strict": null
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 839,
+  "verbosity": "medium",
+  "web_search_options": {
+    "search_context_size": "medium",
+    "user_location": {
+      "approximate": {
+        "country": "j?m? A,",
+        "region": ".?...?.X!8BD Rq94TIDUj.?bG,r??w  R,!GQ4, ?Fu3s",
+        "timezone": "zc.wHo.?U,.w37XhR8"
+      },
+      "type": "approximate"
+    }
+  }
+}

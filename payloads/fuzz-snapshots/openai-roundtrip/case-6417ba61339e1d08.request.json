@@ -1,0 +1,39 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": "verse"
+  },
+  "frequency_penalty": -76.40674375640367,
+  "function_call": "none",
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": "E?g..3.,70pX??H.N??rHe2CmAW..V..",
+      "role": "system"
+    }
+  ],
+  "modalities": [
+    "text",
+    "text",
+    "text"
+  ],
+  "model": "gpt-4o-mini-2024-07-18",
+  "n": -805,
+  "prediction": {
+    "content": "?J,IT?!uE2.?,3?.UQ.!??,4i .b?.MOe,5,io UN6?AaF",
+    "type": "content"
+  },
+  "reasoning_effort": "low",
+  "response_format": {
+    "type": "text"
+  },
+  "stop": ",C.g?9WZi",
+  "stream": false,
+  "tool_choice": {
+    "function": {
+      "name": ",?m"
+    },
+    "type": "function"
+  },
+  "top_logprobs": 927
+}

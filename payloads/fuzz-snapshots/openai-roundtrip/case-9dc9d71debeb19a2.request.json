@@ -1,0 +1,45 @@
+{
+  "frequency_penalty": -4.425522126800663,
+  "function_call": {
+    "name": "u, 9R!.9Sq?8 iNAay,?3R J"
+  },
+  "max_tokens": 239,
+  "messages": [
+    {
+      "content": "!Fl6ZU8b 2Yn!!,v,,72aC4.?oI.1Xu?,.B7Z?,m",
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "text",
+    "text",
+    "text"
+  ],
+  "model": "I,Zg ,R?rDRbu",
+  "store": true,
+  "stream": false,
+  "tool_choice": {
+    "custom": {
+      "name": "!Zhy?8 Q.T?W,!mzk.G, 5??wr,?8j? 3!2??5?g"
+    },
+    "type": "custom"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": ",?H?? HDh.X8iD.?2?76?,?o?A,?uo,2b,,?C9w6?",
+        "parameters": {},
+        "strict": false
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "m1Ql ,.!!D.A?0?i.?KU9k..huX2,VWt 8.,, ?8VA5! D2",
+        "parameters": {}
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 39
+}

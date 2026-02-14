@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: tool_choice",
+    "added: stream_options"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

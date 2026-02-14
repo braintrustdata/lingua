@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: messages[0].name",
+    "lost: messages[1].name",
+    "lost: tools[0].function.strict"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: tool_choice",
+    "lost: max_tokens",
+    "lost: stream_options",
+    "added: max_completion_tokens",
+    "changed: stop (\"4U?d  rD,?2TUq?.X?42?lGA\" -> [\"4U?d  rD,?2TUq?.X?42?lGA\"])"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

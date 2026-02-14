@@ -1,0 +1,53 @@
+{
+  "audio": {
+    "format": "aac",
+    "voice": "alloy"
+  },
+  "frequency_penalty": 97.08047811991199,
+  "function_call": "none",
+  "logit_bias": {},
+  "max_tokens": 932,
+  "messages": [
+    {
+      "content": "9s5B.qCB.E?I,p1.?",
+      "role": "tool",
+      "tool_call_id": "Zj,f.O"
+    }
+  ],
+  "modalities": [
+    "audio",
+    "text",
+    "text"
+  ],
+  "model": ",z.W,..!m..QF!g?Eb,Zl..!3qo?,qIs,w1T?2.?sO?",
+  "n": -992,
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": "Y.!e0EKl.3FM   ,?O?X61 rtjP4HQvjPZa i.",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": -28.77181937128975,
+  "seed": -720,
+  "store": true,
+  "stream_options": {
+    "include_obfuscation": false,
+    "include_usage": true
+  },
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "required",
+      "tools": [
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "top_logprobs": 26,
+  "verbosity": "medium"
+}

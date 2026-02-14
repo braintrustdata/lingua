@@ -1,0 +1,36 @@
+{
+  "frequency_penalty": -36.519727253385355,
+  "max_completion_tokens": 304,
+  "max_tokens": -490,
+  "messages": [
+    {
+      "content": "E.3?vmb???C,AanNFZ.QN!sugN,2?rpv",
+      "name": " ",
+      "role": "system"
+    },
+    {
+      "audio": null,
+      "content": null,
+      "function_call": null,
+      "refusal": "T??UuX.EwG 3r!,,.,i?.j,,,C!n.mz",
+      "role": "assistant"
+    },
+    {
+      "content": " 1!.W.C!iiHY?fPS4,k0B ?0NQY?Ve? .?,o.,3??0",
+      "name": "13,,I?!,7V,?iNokZ .T",
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "audio"
+  ],
+  "model": "gpt-4-0314",
+  "n": 964,
+  "parallel_tool_calls": true,
+  "seed": 455,
+  "store": false,
+  "stream_options": {
+    "include_obfuscation": true
+  },
+  "top_logprobs": -507
+}

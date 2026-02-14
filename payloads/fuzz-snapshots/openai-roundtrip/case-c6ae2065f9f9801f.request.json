@@ -1,0 +1,50 @@
+{
+  "function_call": "none",
+  "functions": [
+    {
+      "name": ", ., 55?9!Y8?G!t L?., n5lNU!.De?",
+      "parameters": {}
+    },
+    {
+      "description": "23FMUZ?JNz?,v6!2vZ,?,7Dn,qC 2??yRN2bb2 HpY.BA,",
+      "name": "A,4Xh?1,,",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "max_completion_tokens": -7,
+  "messages": [
+    {
+      "content": ".B.eY!b,1uqG.gU,?9..oy.,!B,51 !?i7 u9rR1h,.3.i ?",
+      "name": "V!k3.FUOM6?.J!KC .?L.",
+      "role": "system"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4o-search-preview",
+  "parallel_tool_calls": false,
+  "response_format": {
+    "type": "text"
+  },
+  "stop": [
+    ",!a,?gG",
+    ",5,??ae?d?h"
+  ],
+  "stream": false,
+  "tool_choice": {
+    "function": {
+      "name": "se??7Pzuh!LXT7!u?,,.?6F"
+    },
+    "type": "function"
+  },
+  "verbosity": null,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "b,?.?x.8z.kw, 2!?2?,G.?,H?p2.B2",
+        "timezone": "u9.?Gk9 3e!.ug.,8m,,1e, UwqAjHYh Z 98,"
+      },
+      "type": "approximate"
+    }
+  }
+}

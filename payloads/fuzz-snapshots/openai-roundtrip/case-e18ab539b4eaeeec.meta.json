@@ -1,0 +1,14 @@
+{
+  "issues": [
+    "lost: tools",
+    "lost: response_format",
+    "lost: messages[0].function_call",
+    "lost: messages[0].name",
+    "lost: messages[2].name",
+    "added: stream_options",
+    "added: messages[0].content",
+    "changed: stop (\"TV?.f?X7R,.4E,??,,,J1f,!. ..0u?,a??Y? c?,.,.5?!\" -> [\"TV?.f?X7R,.4E,??,,,J1f,!. ..0u?,a??Y? c?,.,.5?!\"])"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

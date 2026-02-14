@@ -1,0 +1,17 @@
+{
+  "messages": [
+    {
+      "role": "assistant"
+    }
+  ],
+  "model": "A",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": "39!??",
+        "region": "A.?p.?J!.I3YEQ.! S?.lp4Q?z!.2, ,0h!"
+      },
+      "type": "approximate"
+    }
+  }
+}

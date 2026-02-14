@@ -1,0 +1,13 @@
+{
+  "issues": [
+    "lost: reasoning_effort",
+    "lost: messages[1].audio",
+    "lost: messages[1].name",
+    "lost: messages[1].refusal",
+    "added: stream_options",
+    "added: messages[1].content",
+    "changed: stop (\",zVK g?L..\" -> [\",zVK g?L..\"])"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

@@ -1,0 +1,36 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": "ballad"
+  },
+  "frequency_penalty": 4.625287502112615,
+  "logit_bias": {},
+  "logprobs": true,
+  "max_completion_tokens": -656,
+  "max_tokens": -464,
+  "messages": [
+    {
+      "content": "?.!",
+      "name": "ZX,.m. u.pWzC2?GY",
+      "role": "system"
+    }
+  ],
+  "model": "gpt-4",
+  "n": 209,
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": "!,.B!.  !!, d8...gO !M?.d",
+    "type": "content"
+  },
+  "reasoning_effort": "minimal",
+  "response_format": {
+    "type": "json_object"
+  },
+  "stop": ",, !v4 ,!,u 4?ZIs?,p?? ?!. ,.9.8.?,1I ",
+  "tool_choice": {
+    "function": {
+      "name": "2bbO.48g!k,A,f11. 2.R.,b??"
+    },
+    "type": "function"
+  }
+}

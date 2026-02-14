@@ -1,0 +1,105 @@
+{
+  "function_call": {
+    "name": ".c,!.xE99 iv ? ,T5Y2k.?.9,"
+  },
+  "functions": [
+    {
+      "description": "vs,?",
+      "name": "lca!lrS69!?9 l0!h..c2S.B6 5VpoO!.J",
+      "parameters": {}
+    },
+    {
+      "name": "c?W.mag6A0Pe"
+    },
+    {
+      "name": "M da?!?30?Q 0s9"
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "max_tokens": -708,
+  "messages": [
+    {
+      "content": "6?OYTKpCCEH,5vK",
+      "role": "developer"
+    },
+    {
+      "content": [
+        {
+          "text": "?,ul?RT. !46?P",
+          "type": "text"
+        },
+        {
+          "text": "E.0?XJb",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4-turbo",
+  "n": 342,
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": [
+      {
+        "text": ",F4??.,710 K9.GmPKWePb,u,d",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": -51.358209256007996,
+  "store": false,
+  "stream": true,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "required",
+      "tools": [
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "custom": {
+        "name": " .5!nB??. u,4cQ ?A"
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "name": "8 x!CA37,A,X.ggWVl,AWBV",
+        "parameters": {},
+        "strict": null
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "format": {
+          "grammar": {
+            "definition": "A?.V,0gN.5?,8!MhV?I ,?N,1.74Y",
+            "syntax": "regex"
+          },
+          "type": "grammar"
+        },
+        "name": "!.,6.,hK.lz!.7.q.CQ ...T4T?r I0w c!?"
+      },
+      "type": "custom"
+    }
+  ],
+  "top_logprobs": -609,
+  "verbosity": null,
+  "web_search_options": {
+    "search_context_size": "low",
+    "user_location": {
+      "approximate": {
+        "city": ",t"
+      },
+      "type": "approximate"
+    }
+  }
+}

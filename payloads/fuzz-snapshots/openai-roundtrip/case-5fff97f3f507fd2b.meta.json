@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: max_tokens",
+    "lost: reasoning_effort",
+    "changed: stop (\"U9x?!?IpW.l!B.?S P?.?is,pxk5! ?S8,K,0,\" -> [\"U9x?!?IpW.l!B.?S P?.?is,pxk5! ?S8,K,0,\"])",
+    "changed: max_completion_tokens (-660 -> 479)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

@@ -1,0 +1,56 @@
+{
+  "frequency_penalty": -18.089092999002652,
+  "function_call": {
+    "name": ".PKy,dv,X.F"
+  },
+  "logit_bias": {},
+  "max_tokens": -235,
+  "messages": [
+    {
+      "content": "47,.A?0?dMO400M . ?",
+      "role": "system"
+    }
+  ],
+  "modalities": [
+    "text"
+  ],
+  "model": "o1",
+  "prediction": {
+    "content": "?A,18O 2.,DSR?58?N?Y?ni,Oh52?,,s?6xFC..tD",
+    "type": "content"
+  },
+  "response_format": {
+    "type": "json_object"
+  },
+  "seed": -682,
+  "stop": "4U?d  rD,?2TUq?.X?42?lGA",
+  "stream_options": null,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {},
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": "q!v 0Y6.?s0?!v7n . hr95iE1o.?.!.3 ",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "description": ".3.N7?H1 .P5?.VX.a.0.B,",
+        "name": "!wY824e?j? huB?X9.w,."
+      },
+      "type": "custom"
+    }
+  ],
+  "verbosity": null
+}

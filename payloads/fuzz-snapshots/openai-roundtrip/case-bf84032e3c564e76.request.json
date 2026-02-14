@@ -1,0 +1,94 @@
+{
+  "audio": {
+    "format": "flac",
+    "voice": "D.,lyNL.4, ?,.vc,"
+  },
+  "frequency_penalty": 15.350175812584155,
+  "function_call": {
+    "name": "rgL??!N3W?. hp!,y!8c9,al, ??2waZ7h"
+  },
+  "functions": [
+    {
+      "description": "ip,,7.Z1??,",
+      "name": "N,w?!KRYwseLc?,Oq1."
+    },
+    {
+      "description": ".?,?,.?S46s?38Ddmi8vkS.e  h.17i",
+      "name": "!pucCvWB.eG.a4lWs1g7.M?.0g .?O.x?294P 2..!,.r?",
+      "parameters": {}
+    },
+    {
+      "description": ".b8y.vc?C,9,!Nx.5,9,Y? 1R0u i r1",
+      "name": "S1kUZ,,.?2a!Uz8WU?,?0.99.n1L,, ..f",
+      "parameters": {}
+    },
+    {
+      "description": "h2.? !3!8.?Avvu,MC",
+      "name": "oM?? .x,,HLda45.,90jJE?6.J? 0V?GT?vd,.,Y!,.l",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "max_tokens": 998,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": " ?4,6..,,67U,.? 74",
+          "type": "text"
+        },
+        {
+          "text": ",I?JR4a,w7v!,?,?e.e,.62",
+          "type": "text"
+        },
+        {
+          "text": ",",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "text",
+    "audio"
+  ],
+  "model": "codex-mini-latest",
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": "C ?8?0.48?E!N!,?xeKf!.,",
+    "type": "content"
+  },
+  "presence_penalty": 36.78616672763921,
+  "reasoning_effort": null,
+  "response_format": {
+    "json_schema": {
+      "name": "?",
+      "schema": {}
+    },
+    "type": "json_schema"
+  },
+  "stream": true,
+  "tool_choice": {
+    "function": {
+      "name": ".cUQ.F.?C7.."
+    },
+    "type": "function"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": "Y?9 q,s??X,,ks,Z,O.!2,",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "name": "CV?THGw PWU?Y!2!!.?r,?14fzx?HaP?..E1,PNy?5 sA,rP4"
+      },
+      "type": "custom"
+    }
+  ],
+  "verbosity": null
+}

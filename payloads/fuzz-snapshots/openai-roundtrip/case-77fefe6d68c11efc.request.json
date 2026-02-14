@@ -1,0 +1,41 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "?MKy,.Zl,K2.fys?fe!"
+  },
+  "frequency_penalty": -90.66286150369332,
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "SKEs!7.?.Mr,V.!D?JF2?Q...a,z, ?l9U,M,8Elz4, ZKaG.",
+          "type": "text"
+        },
+        {
+          "text": "8nmj.0,B.5??D!741,51?U,",
+          "type": "text"
+        }
+      ],
+      "name": ",a5s9v,?,?O",
+      "role": "developer"
+    },
+    {
+      "audio": null,
+      "content": "?V  .HJ,5,P,e??.T?,?,o?73T?EB.I h?pud?iD??x,?X.FA.",
+      "name": ".,!ig!?29 ,?8jXN2,UX9e.S18if N5oO2,0,?,cMbJk.b.??",
+      "refusal": "7,m6",
+      "role": "assistant"
+    },
+    {
+      "content": "p? ",
+      "role": "user"
+    }
+  ],
+  "model": "gpt-4-turbo-preview",
+  "n": 375,
+  "seed": 394,
+  "stream": false,
+  "top_logprobs": -997,
+  "verbosity": "low"
+}

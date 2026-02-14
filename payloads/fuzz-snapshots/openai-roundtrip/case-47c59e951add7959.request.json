@@ -1,0 +1,42 @@
+{
+  "frequency_penalty": 39.29917809877118,
+  "function_call": "none",
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": "...,2,LW8z ! p !s8GP1sxSha! FU8UqP q.,v",
+      "name": "? ?!M.?E.b0!CDe5,Mmx?,",
+      "role": "developer"
+    },
+    {
+      "content": "b  ..?,dked???gZ,A,.iD3F 8p.L9.,j",
+      "name": "l S u7?w 5?p?SxmS5f.!,,!q",
+      "role": "developer"
+    }
+  ],
+  "model": "o3-mini",
+  "n": -969,
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": "cTG.De?3.,MM.7?!",
+    "type": "content"
+  },
+  "response_format": {
+    "type": "text"
+  },
+  "stop": [
+    "!3q?I3bs??Gxw8.05..c0 ,r?,!Qb?? 1.",
+    "B6Z!!?90z3!bpoP.??r,n!2.?.EXTrO6.B9 ?,7? 9.tey,",
+    "LUNQ?F7X?!Ht.m?A .Lg?h0a0 8"
+  ],
+  "tools": [
+    {
+      "function": {
+        "name": "hw.2.y,?.tc8.p Gc5!?.Cc.? ,,?9?",
+        "strict": null
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": -960
+}

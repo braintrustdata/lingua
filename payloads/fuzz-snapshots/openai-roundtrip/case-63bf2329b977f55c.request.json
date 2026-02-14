@@ -1,0 +1,43 @@
+{
+  "frequency_penalty": 93.49347352097821,
+  "functions": [
+    {
+      "description": "?",
+      "name": "? Kq,U. u!A8,M73? D",
+      "parameters": {}
+    },
+    {
+      "description": "1  JUc8n,.c.FRjxjsnOm?!.65B,bQB.8!?Mb.s!, .,oM",
+      "name": " .?r2!ZET"
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "messages": [
+    {
+      "content": "EQ1 ??qZd  lZ0?? .j3lH,?i.wGa?Rm3QF?,p87,94DF?9.!,",
+      "role": "tool",
+      "tool_call_id": "9,.HJ.FI 9,v3R.?   tl77wYm,?.F B .lYR??A."
+    }
+  ],
+  "model": "gpt-5-nano-2025-08-07",
+  "n": 533,
+  "parallel_tool_calls": false,
+  "presence_penalty": 20.71973486067781,
+  "reasoning_effort": null,
+  "stop": [
+    "o go.,C",
+    "h,"
+  ],
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "required",
+      "tools": [
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "web_search_options": {}
+}

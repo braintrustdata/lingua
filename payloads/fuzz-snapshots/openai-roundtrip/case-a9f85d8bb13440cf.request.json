@@ -1,0 +1,25 @@
+{
+  "messages": [
+    {
+      "content": ",",
+      "role": "developer"
+    }
+  ],
+  "model": "A",
+  "tool_choice": {
+    "custom": {
+      "name": "Qm,?.G...?K m1m!IJ8k"
+    },
+    "type": "custom"
+  },
+  "top_logprobs": 561,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "kI,Z?X,by,?4syNyy1CY2 ?.L l86 ",
+        "country": "5? ?gEWom2!.,kJo?., .xnT!1,?v7!"
+      },
+      "type": "approximate"
+    }
+  }
+}

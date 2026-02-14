@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: tool_choice",
+    "lost: messages[0].name",
+    "changed: messages[0].role (\"developer\" -> \"system\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

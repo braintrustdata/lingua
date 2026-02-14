@@ -1,0 +1,14 @@
+{
+  "issues": [
+    "lost: max_tokens",
+    "lost: messages[0].name",
+    "lost: messages[1].audio",
+    "lost: messages[1].function_call",
+    "lost: messages[1].refusal",
+    "lost: messages[2].name",
+    "changed: messages[1].content (null -> \"\")",
+    "changed: max_completion_tokens (304 -> -490)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

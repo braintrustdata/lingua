@@ -1,0 +1,59 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "cedar"
+  },
+  "functions": [
+    {
+      "name": "!?vR..Y,!6?,.W?3M!W?3 8.eZ?K ?!Q5,!T,p??"
+    },
+    {
+      "name": "V!,,1W,rmbf3Q mZd1",
+      "parameters": {}
+    },
+    {
+      "name": ",!.,??7 aUOj,6e..B? ?GL.0!,0umja, !,n.6C",
+      "parameters": {}
+    },
+    {
+      "name": "Q6A!6wC3pz??6XE zZ ?!.F6"
+    },
+    {
+      "description": "B,fwsZ,s .,,4jLG. ?S.58,..AG,,17fAl,?VX1..",
+      "name": "pUz?,6 hF.dGs,tUEf .?,!YK9 !NI!21GftT7.!.8sJX,??.,"
+    }
+  ],
+  "logprobs": true,
+  "max_completion_tokens": 364,
+  "messages": [
+    {
+      "content": "6K5L,l?I,.6KVYFzFx",
+      "role": "developer"
+    },
+    {
+      "content": ",XK1,Z?!b,cRrH e,g,!?",
+      "function_call": null,
+      "refusal": "?QW,otQ12?U,lYsF8y?np.!uz. ,!.,!8i.C?y.kz,?7?.09?6",
+      "role": "assistant"
+    }
+  ],
+  "modalities": [
+    "text",
+    "text"
+  ],
+  "model": "f.?Mbh?.5??.m!Kbfe.F.?O?YQVWy??v?f5UR? ,?.p J0n9?,",
+  "n": 532,
+  "stream": true,
+  "stream_options": {
+    "include_usage": false
+  },
+  "tool_choice": {
+    "function": {
+      "name": "ee.8XH c!!1m,?jA8jn57.!?,V?9e9Ve B ,,"
+    },
+    "type": "function"
+  },
+  "web_search_options": {
+    "search_context_size": "high"
+  }
+}

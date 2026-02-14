@@ -1,0 +1,56 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "P?!9,!T.2I z,.0?.k?1,4?jo"
+  },
+  "function_call": "auto",
+  "functions": [
+    {
+      "description": "Q?jIvn?",
+      "name": ".?b? . ,crmbM7bf.!,Nq5?Ru?h.r! ?b.3?",
+      "parameters": {}
+    },
+    {
+      "name": ",.?!ae8h!!",
+      "parameters": {}
+    },
+    {
+      "name": "qlYGN?5GF?x3"
+    },
+    {
+      "name": "Qx92?7,,P,o?LV ??Q 2S0. Ot,,oL...9ASab??Yysb?n?IxZ",
+      "parameters": {}
+    }
+  ],
+  "messages": [
+    {
+      "content": "z4?fu5",
+      "name": ".c8, m!9? 0C2 G?t2v,6,H!?u5?!DmX?0??Lx?.o?5H01.0",
+      "role": "developer"
+    }
+  ],
+  "model": "gpt-5-2025-08-07",
+  "n": -229,
+  "parallel_tool_calls": false,
+  "presence_penalty": -48.51614330681554,
+  "reasoning_effort": null,
+  "stream": false,
+  "tools": [
+    {
+      "custom": {
+        "description": "s",
+        "name": "!.?,cb?J2 .!"
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "name": "j,zP6Y?S3lD3hW",
+        "parameters": {}
+      },
+      "type": "function"
+    }
+  ],
+  "verbosity": null,
+  "web_search_options": {}
+}

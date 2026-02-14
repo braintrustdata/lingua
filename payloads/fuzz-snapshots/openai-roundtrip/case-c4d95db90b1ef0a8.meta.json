@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: tool_choice",
+    "lost: max_tokens",
+    "added: messages[0].content",
+    "changed: max_completion_tokens (-878 -> -340)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

@@ -69,6 +69,110 @@ fn parse_builtin_field<T: serde::de::DeserializeOwned>(
     }
 }
 
+const OPENAI_CHAT_ROLE_MARKER: &str = "__lingua_openai_chat_role";
+const OPENAI_CHAT_ROLE_WAS_STRING_MARKER: &str = "__lingua_openai_chat_role_was_string";
+
+fn user_part_provider_options_mut(part: &mut UserContentPart) -> &mut Option<ProviderOptions> {
+    match part {
+        UserContentPart::Text(text_part) => &mut text_part.provider_options,
+        UserContentPart::Image {
+            provider_options, ..
+        } => provider_options,
+        UserContentPart::File {
+            provider_options, ..
+        } => provider_options,
+    }
+}
+
+fn add_openai_chat_role_marker(part: &mut UserContentPart, role: &str, was_string: bool) {
+    let opts = user_part_provider_options_mut(part).get_or_insert_with(|| ProviderOptions {
+        options: serde_json::Map::new(),
+    });
+    opts.options.insert(
+        OPENAI_CHAT_ROLE_MARKER.to_string(),
+        serde_json::Value::String(role.to_string()),
+    );
+    if was_string {
+        opts.options.insert(
+            OPENAI_CHAT_ROLE_WAS_STRING_MARKER.to_string(),
+            serde_json::Value::Bool(true),
+        );
+    }
+}
+
+fn mark_user_content_openai_role(content: UserContent, role: &str) -> UserContent {
+    match content {
+        UserContent::String(text) => {
+            let mut part = UserContentPart::Text(TextContentPart {
+                text,
+                provider_options: None,
+            });
+            add_openai_chat_role_marker(&mut part, role, true);
+            UserContent::Array(vec![part])
+        }
+        UserContent::Array(mut parts) => {
+            if let Some(first) = parts.first_mut() {
+                add_openai_chat_role_marker(first, role, false);
+            }
+            UserContent::Array(parts)
+        }
+    }
+}
+
+fn extract_openai_chat_role(
+    content: UserContent,
+) -> (
+    UserContent,
+    Option<openai::ChatCompletionRequestMessageRole>,
+) {
+    let UserContent::Array(mut parts) = content else {
+        return (content, None);
+    };
+
+    let mut role_override = None;
+    let mut was_string = false;
+
+    if let Some(first) = parts.first_mut() {
+        if let Some(opts) = user_part_provider_options_mut(first) {
+            if let Some(role) = opts
+                .options
+                .remove(OPENAI_CHAT_ROLE_MARKER)
+                .and_then(|v| v.as_str().map(str::to_string))
+            {
+                if role == "developer" {
+                    role_override = Some(openai::ChatCompletionRequestMessageRole::Developer);
+                }
+            }
+            was_string = opts
+                .options
+                .remove(OPENAI_CHAT_ROLE_WAS_STRING_MARKER)
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            if opts.options.is_empty() {
+                *user_part_provider_options_mut(first) = None;
+            }
+        }
+    }
+
+    if was_string && parts.len() == 1 {
+        let is_plain_text = matches!(
+            &parts[0],
+            UserContentPart::Text(TextContentPart {
+                provider_options: None,
+                ..
+            })
+        );
+        if is_plain_text {
+            let UserContentPart::Text(TextContentPart { text, .. }) = parts.remove(0) else {
+                unreachable!("validated plain text part");
+            };
+            return (UserContent::String(text), role_override);
+        }
+    }
+
+    (UserContent::Array(parts), role_override)
+}
+
 /// Convert OpenAI InputItem collection to universal Message collection
 /// This handles OpenAI-specific logic for combining or transforming multiple items
 impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
@@ -2483,7 +2587,6 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                 Ok(Message::Assistant { content, id: None })
             }
             openai::ChatCompletionRequestMessageRole::Developer => {
-                // Treat developer messages as system messages in universal format
                 let content = match msg.base.content {
                     Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
                         UserContent::String(text)
@@ -2497,7 +2600,9 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     }
                     None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
                 };
-                Ok(Message::System { content })
+                Ok(Message::System {
+                    content: mark_user_content_openai_role(content, "developer"),
+                })
             }
             openai::ChatCompletionRequestMessageRole::Tool => {
                 // Tool messages should extract tool_call_id and content
@@ -2607,20 +2712,24 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
 
     fn try_from(msg: Message) -> Result<Self, Self::Error> {
         match msg {
-            Message::System { content } => Ok(ChatCompletionRequestMessageExt {
-                base: openai::ChatCompletionRequestMessage {
-                    role: openai::ChatCompletionRequestMessageRole::System,
-                    content: Some(convert_user_content_to_chat_completion_content(content)?),
-                    name: None,
-                    tool_calls: None,
-                    tool_call_id: None,
-                    audio: None,
-                    function_call: None,
-                    refusal: None,
-                },
-                reasoning: None,
-                reasoning_signature: None,
-            }),
+            Message::System { content } => {
+                let (content, role_override) = extract_openai_chat_role(content);
+                Ok(ChatCompletionRequestMessageExt {
+                    base: openai::ChatCompletionRequestMessage {
+                        role: role_override
+                            .unwrap_or(openai::ChatCompletionRequestMessageRole::System),
+                        content: Some(convert_user_content_to_chat_completion_content(content)?),
+                        name: None,
+                        tool_calls: None,
+                        tool_call_id: None,
+                        audio: None,
+                        function_call: None,
+                        refusal: None,
+                    },
+                    reasoning: None,
+                    reasoning_signature: None,
+                })
+            }
             Message::User { content } => Ok(ChatCompletionRequestMessageExt {
                 base: openai::ChatCompletionRequestMessage {
                     role: openai::ChatCompletionRequestMessageRole::User,

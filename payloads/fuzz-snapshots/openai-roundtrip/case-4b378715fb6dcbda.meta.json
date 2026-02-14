@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: reasoning_effort",
+    "lost: tools",
+    "lost: messages[0].name"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

@@ -1,0 +1,55 @@
+{
+  "frequency_penalty": -28.838743874933648,
+  "max_completion_tokens": -290,
+  "max_tokens": 945,
+  "messages": [
+    {
+      "content": "?VgEK1o,!d.G,, ,7SB,",
+      "role": "user"
+    },
+    {
+      "content": "!i.w3.!gv?,e0.fX?,6!4jPVJ,M9  Q.? ",
+      "role": "developer"
+    },
+    {
+      "content": [
+        {
+          "text": "y8AHQ?7.C.hZ",
+          "type": "text"
+        },
+        {
+          "text": "?gR?n..,",
+          "type": "text"
+        },
+        {
+          "text": "6vF?.Azd,fS?!5S..9?.A.8pY,.A3,?,0R.",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "model": ".,",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": "89hb,N0,8S 1Mz!.q",
+        "type": "text"
+      },
+      {
+        "text": "UUL. lB4r3g.?,q",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "response_format": {
+    "type": "text"
+  },
+  "store": true,
+  "stream": true,
+  "stream_options": {},
+  "top_logprobs": 764,
+  "verbosity": "high"
+}

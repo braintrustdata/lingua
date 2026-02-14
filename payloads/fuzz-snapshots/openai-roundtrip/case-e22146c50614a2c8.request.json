@@ -1,0 +1,58 @@
+{
+  "audio": {
+    "format": "aac",
+    "voice": "ballad"
+  },
+  "frequency_penalty": 22.700176614382148,
+  "function_call": "none",
+  "logprobs": true,
+  "max_completion_tokens": 390,
+  "max_tokens": -965,
+  "messages": [
+    {
+      "content": " ?lOO!Y?BZ2?K4.F?SC5",
+      "name": "vO ,?3, a6t.! .n6Y2n.,??Y?x",
+      "role": "developer"
+    }
+  ],
+  "model": "gpt-4o-audio-preview",
+  "n": 898,
+  "parallel_tool_calls": true,
+  "presence_penalty": -19.621859904159308,
+  "reasoning_effort": null,
+  "response_format": {
+    "type": "text"
+  },
+  "seed": -422,
+  "stop": [
+    "u,.2?b06 ,k8!m!",
+    "3146Xks!InTz45,s8 iJM7M ,!2 ,?!troC ",
+    " y2,  ?,,,d?9 ?865 W,??,.,M,fK,,.?,6KO2d D"
+  ],
+  "stream_options": null,
+  "tool_choice": {
+    "custom": {
+      "name": ",?u"
+    },
+    "type": "custom"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": "N?1?I,yW.R Y.!b?3.S,sAN2G",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "4r,.,",
+        "name": "!yvB z0,,?Fyn98.1B9??.dr7?PFsetF.PvDS,2wwk?"
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": -181,
+  "verbosity": "high",
+  "web_search_options": {}
+}

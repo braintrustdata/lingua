@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: reasoning_effort",
+    "lost: max_tokens",
+    "lost: messages[1].name",
+    "added: max_completion_tokens"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}
