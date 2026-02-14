@@ -73,10 +73,10 @@ capture-transforms: lingua-wasm ## Re-capture only transforms (e.g. make capture
 regenerate-failed-transforms: lingua-wasm ## Auto-regenerate failed transform payloads
 	cd payloads && pnpm tsx scripts/regenerate-failed.ts
 
-test-python: ## Run Python tests
+test-python: python ## Run Python tests
 	@echo "Running Python tests..."
-	cd bindings/python && uv run maturin develop --features python
-	cd bindings/python && uv run pytest tests/ -v
+	cd bindings/python && uv run --extra dev --group dev maturin develop --features python
+	cd bindings/python && uv run --with pytest python -m pytest tests/ -v
 
 clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
