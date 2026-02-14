@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: parallel_tool_calls",
+    "lost: tool_choice",
+    "lost: reasoning",
+    "lost: input[0].type",
+    "lost: text.verbosity",
+    "changed: input[0].role (\"developer\" -> \"system\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}

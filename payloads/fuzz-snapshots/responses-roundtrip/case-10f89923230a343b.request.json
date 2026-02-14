@@ -1,0 +1,30 @@
+{
+  "conversation": {
+    "id": "F9.,3jo,mc,a!.9Spb1,!, "
+  },
+  "include": [
+    "message.output_text.logprobs",
+    "code_interpreter_call.outputs",
+    "code_interpreter_call.outputs"
+  ],
+  "input": "!!??60.4!tQ,?!Z.5u,0d9? A,..!?8",
+  "instructions": null,
+  "model": "o1-pro-2025-03-19",
+  "parallel_tool_calls": null,
+  "previous_response_id": "!.!1L Rv!,t jhWGG ?lG2?.Q",
+  "reasoning": {
+    "effort": "minimal",
+    "generate_summary": "detailed"
+  },
+  "store": null,
+  "text": {},
+  "tool_choice": {
+    "mode": "required",
+    "tools": [
+      {},
+      {},
+      {}
+    ],
+    "type": "allowed_tools"
+  }
+}

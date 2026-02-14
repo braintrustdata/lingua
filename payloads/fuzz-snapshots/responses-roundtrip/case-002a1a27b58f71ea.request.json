@@ -1,0 +1,26 @@
+{
+  "input": ".Wr?E?!Ls,",
+  "model": "computer-use-preview-2025-03-11",
+  "parallel_tool_calls": null,
+  "prompt": null,
+  "reasoning": null,
+  "store": false,
+  "stream_options": null,
+  "text": {
+    "format": {
+      "name": "!j?J.,f.?3.k,.3O?.2 ?SY,E",
+      "schema": {},
+      "type": "json_schema"
+    },
+    "verbosity": "high"
+  },
+  "tool_choice": {
+    "mode": "required",
+    "tools": [
+      {},
+      {},
+      {}
+    ],
+    "type": "allowed_tools"
+  }
+}

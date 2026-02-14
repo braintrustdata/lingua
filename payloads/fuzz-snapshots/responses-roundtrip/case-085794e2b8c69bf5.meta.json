@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: max_output_tokens",
+    "lost: stream",
+    "lost: reasoning",
+    "lost: input[0].result",
+    "added: input[1].status"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}

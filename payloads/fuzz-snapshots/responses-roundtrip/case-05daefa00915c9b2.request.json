@@ -1,0 +1,32 @@
+{
+  "input": [
+    {
+      "content": "RmF,!7,,0lD!i u,XJ?,z..q,Rq,! ,4lZ!,zF. X?S,!,?",
+      "role": "assistant"
+    }
+  ],
+  "max_tool_calls": null,
+  "model": "o1-pro-2025-03-19",
+  "parallel_tool_calls": null,
+  "previous_response_id": "PN z?M3.dh9.Fybc?n?,,eaG?sr!f7!brG7?..TW.?.,.9w?7,",
+  "reasoning": null,
+  "store": null,
+  "tools": [
+    {
+      "input_fidelity": "high",
+      "model": "gpt-image-1",
+      "moderation": "auto",
+      "output_compression": -437,
+      "partial_images": -587,
+      "size": "1024x1024",
+      "type": "image_generation"
+    },
+    {
+      "description": "y,.!pY?JI.G?.I4t!o?1Nt?B,?R?i?,",
+      "name": "L.t?WY. .Z,nkz?!.1,1e",
+      "parameters": null,
+      "strict": true,
+      "type": "function"
+    }
+  ]
+}

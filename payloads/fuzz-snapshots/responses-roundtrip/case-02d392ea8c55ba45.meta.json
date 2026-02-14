@@ -1,0 +1,13 @@
+{
+  "issues": [
+    "lost: truncation",
+    "lost: stream",
+    "lost: instructions",
+    "lost: reasoning.summary",
+    "added: reasoning.effort",
+    "changed: input (\"?h?M.5U\" -> [{\"content\":\"?h?M.5U\",\"role\":\"user\"}])",
+    "changed: tools.length (3 -> 2)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}

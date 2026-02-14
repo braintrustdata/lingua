@@ -1,0 +1,14 @@
+{
+  "issues": [
+    "lost: parallel_tool_calls",
+    "lost: instructions",
+    "lost: store",
+    "lost: tool_choice",
+    "lost: reasoning.generate_summary",
+    "added: reasoning.summary",
+    "changed: reasoning.effort (\"minimal\" -> \"low\")",
+    "changed: input (\"!!??60.4!tQ,?!Z.5u,0d9? A,..!?8\" -> [{\"content\":\"!!??60.4!tQ,?!Z.5u,0d9? A,..!?8\",\"role\":\"user\"}])"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}

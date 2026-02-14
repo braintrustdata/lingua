@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: reasoning",
+    "lost: parallel_tool_calls",
+    "lost: store",
+    "added: input[0].status",
+    "added: input[0].type",
+    "changed: tools.length (2 -> 1)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}

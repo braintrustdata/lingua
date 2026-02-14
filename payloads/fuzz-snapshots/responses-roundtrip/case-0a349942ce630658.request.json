@@ -1,0 +1,26 @@
+{
+  "background": false,
+  "conversation": "!Gj 21?,  o N",
+  "input": "2eh!g!1TTYHcrtU H",
+  "max_tool_calls": null,
+  "model": "o1-mini-2024-09-12",
+  "parallel_tool_calls": false,
+  "previous_response_id": null,
+  "prompt": {
+    "id": "M.X??o,G? ,n.m U?1D49a? t",
+    "variables": null
+  },
+  "reasoning": {
+    "effort": "medium",
+    "summary": "concise"
+  },
+  "store": true,
+  "stream_options": null,
+  "tool_choice": {
+    "mode": "auto",
+    "tools": [
+      {}
+    ],
+    "type": "allowed_tools"
+  }
+}

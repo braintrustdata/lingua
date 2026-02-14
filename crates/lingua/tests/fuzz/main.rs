@@ -20,8 +20,11 @@ use std::path::{Path, PathBuf};
 mod schema_strategy;
 
 const SNAPSHOT_SUITE_OPENAI: &str = "openai-roundtrip";
+const SNAPSHOT_SUITE_RESPONSES: &str = "responses-roundtrip";
 const SNAPSHOT_SUITE_ANTHROPIC: &str = "anthropic-roundtrip";
 const SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM: &str = "chat-anthropic-two-arm";
+const SNAPSHOT_SUITE_CHAT_RESPONSES_ANTHROPIC_THREE_ARM: &str =
+    "chat-responses-anthropic-three-arm";
 
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -488,6 +491,178 @@ fn assert_anthropic_roundtrip_verbose(payload: &Value) -> Result<bool, String> {
     assert_provider_roundtrip_verbose(ProviderFormat::Anthropic, payload)
 }
 
+fn assert_responses_roundtrip(payload: &Value) -> Option<Vec<String>> {
+    assert_provider_roundtrip(ProviderFormat::Responses, payload)
+}
+
+fn assert_responses_roundtrip_verbose(payload: &Value) -> Result<bool, String> {
+    assert_provider_roundtrip_verbose(ProviderFormat::Responses, payload)
+}
+
+fn assert_chat_responses_anthropic_three_arm(payload: &Value) -> Option<Vec<String>> {
+    let chat = adapter_for_format(ProviderFormat::ChatCompletions)?;
+    let responses = adapter_for_format(ProviderFormat::Responses)?;
+    let anthropic = adapter_for_format(ProviderFormat::Anthropic)?;
+
+    let universal_1 = match chat.request_to_universal(payload.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("chat->universal error: {e}")]),
+    };
+    let responses_1 = match responses.request_from_universal(&universal_1) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->responses(1) error: {e}")]),
+    };
+    let universal_2 = match responses.request_to_universal(responses_1.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("responses->universal(1) error: {e}")]),
+    };
+    let anthropic_1 = match anthropic.request_from_universal(&universal_2) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->anthropic(1) error: {e}")]),
+    };
+    let universal_3 = match anthropic.request_to_universal(anthropic_1.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("anthropic->universal(1) error: {e}")]),
+    };
+    let responses_2 = match responses.request_from_universal(&universal_3) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->responses(2) error: {e}")]),
+    };
+    let universal_4 = match responses.request_to_universal(responses_2.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("responses->universal(2) error: {e}")]),
+    };
+    let anthropic_2 = match anthropic.request_from_universal(&universal_4) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->anthropic(2) error: {e}")]),
+    };
+    let universal_5 = match anthropic.request_to_universal(anthropic_2.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("anthropic->universal(2) error: {e}")]),
+    };
+    let chat_out = match chat.request_from_universal(&universal_5) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->chat error: {e}")]),
+    };
+
+    let mut issues = Vec::new();
+    let universal_1_json = serde_json::to_value(&universal_1).unwrap_or(Value::Null);
+    let universal_2_json = serde_json::to_value(&universal_2).unwrap_or(Value::Null);
+    let universal_3_json = serde_json::to_value(&universal_3).unwrap_or(Value::Null);
+    append_diff_issues(
+        "universal(1->2):",
+        &universal_1_json,
+        &universal_2_json,
+        &mut issues,
+    );
+    append_diff_issues(
+        "universal(2->3):",
+        &universal_2_json,
+        &universal_3_json,
+        &mut issues,
+    );
+    append_diff_issues("responses(1->2):", &responses_1, &responses_2, &mut issues);
+    append_diff_issues("anthropic(1->2):", &anthropic_1, &anthropic_2, &mut issues);
+    append_diff_issues("chat(final):", payload, &chat_out, &mut issues);
+
+    Some(issues)
+}
+
+fn assert_chat_responses_anthropic_three_arm_verbose(payload: &Value) -> Result<bool, String> {
+    let chat = adapter_for_format(ProviderFormat::ChatCompletions)
+        .ok_or_else(|| "No chat-completions adapter".to_string())?;
+    let responses = adapter_for_format(ProviderFormat::Responses)
+        .ok_or_else(|| "No responses adapter".to_string())?;
+    let anthropic = adapter_for_format(ProviderFormat::Anthropic)
+        .ok_or_else(|| "No anthropic adapter".to_string())?;
+
+    let universal_1 = chat
+        .request_to_universal(payload.clone())
+        .map_err(|e| format!("chat->universal error: {e}"))?;
+    let responses_1 = responses
+        .request_from_universal(&universal_1)
+        .map_err(|e| format!("universal->responses(1) error: {e}"))?;
+    let universal_2 = responses
+        .request_to_universal(responses_1.clone())
+        .map_err(|e| format!("responses->universal(1) error: {e}"))?;
+    let anthropic_1 = anthropic
+        .request_from_universal(&universal_2)
+        .map_err(|e| format!("universal->anthropic(1) error: {e}"))?;
+    let universal_3 = anthropic
+        .request_to_universal(anthropic_1.clone())
+        .map_err(|e| format!("anthropic->universal(1) error: {e}"))?;
+    let responses_2 = responses
+        .request_from_universal(&universal_3)
+        .map_err(|e| format!("universal->responses(2) error: {e}"))?;
+    let universal_4 = responses
+        .request_to_universal(responses_2.clone())
+        .map_err(|e| format!("responses->universal(2) error: {e}"))?;
+    let anthropic_2 = anthropic
+        .request_from_universal(&universal_4)
+        .map_err(|e| format!("universal->anthropic(2) error: {e}"))?;
+    let universal_5 = anthropic
+        .request_to_universal(anthropic_2.clone())
+        .map_err(|e| format!("anthropic->universal(2) error: {e}"))?;
+    let chat_out = chat
+        .request_from_universal(&universal_5)
+        .map_err(|e| format!("universal->chat error: {e}"))?;
+
+    let mut issues = Vec::new();
+    let universal_1_json = serde_json::to_value(&universal_1).unwrap_or(Value::Null);
+    let universal_2_json = serde_json::to_value(&universal_2).unwrap_or(Value::Null);
+    let universal_3_json = serde_json::to_value(&universal_3).unwrap_or(Value::Null);
+    append_diff_issues(
+        "universal(1->2):",
+        &universal_1_json,
+        &universal_2_json,
+        &mut issues,
+    );
+    append_diff_issues(
+        "universal(2->3):",
+        &universal_2_json,
+        &universal_3_json,
+        &mut issues,
+    );
+    append_diff_issues("responses(1->2):", &responses_1, &responses_2, &mut issues);
+    append_diff_issues("anthropic(1->2):", &anthropic_1, &anthropic_2, &mut issues);
+    append_diff_issues("chat(final):", payload, &chat_out, &mut issues);
+
+    if issues.is_empty() {
+        return Ok(true);
+    }
+
+    Err(format!(
+        "chat->universal->responses->universal->anthropic->universal->responses->universal->anthropic->universal->chat mismatch:\n{}\n\n\
+         chat_input: {}\n\
+         universal_1: {}\n\
+         responses_1: {}\n\
+         universal_2: {}\n\
+         anthropic_1: {}\n\
+         universal_3: {}\n\
+         responses_2: {}\n\
+         universal_4: {}\n\
+         anthropic_2: {}\n\
+         universal_5: {}\n\
+         chat_output: {}",
+        issues
+            .iter()
+            .map(|i| format!("  {i}"))
+            .collect::<Vec<_>>()
+            .join("\n"),
+        as_pretty_json(payload),
+        as_pretty_json(&universal_1),
+        as_pretty_json(&responses_1),
+        as_pretty_json(&universal_2),
+        as_pretty_json(&anthropic_1),
+        as_pretty_json(&universal_3),
+        as_pretty_json(&responses_2),
+        as_pretty_json(&universal_4),
+        as_pretty_json(&anthropic_2),
+        as_pretty_json(&universal_5),
+        as_pretty_json(&chat_out),
+    ))
+}
+
 // ============================================================================
 // Strategies
 // ============================================================================
@@ -515,6 +690,19 @@ mod strategies {
             })
             .boxed()
     }
+
+    pub fn arb_responses_payload() -> BoxedStrategy<Value> {
+        let defs = load_openapi_definitions(&format!("{}/specs/openai/openapi.yml", specs_dir()));
+        strategy_for_schema_name("CreateResponse", &defs)
+            .prop_filter("payload must parse as OpenAI Responses params", |payload| {
+                lingua::providers::openai::try_parse_responses(payload).is_ok()
+            })
+            .prop_filter(
+                "payload must include model for universal->responses conversion",
+                |payload| payload.get("model").and_then(Value::as_str).is_some(),
+            )
+            .boxed()
+    }
 }
 
 // ============================================================================
@@ -523,17 +711,23 @@ mod strategies {
 
 const CASES: u32 = 256;
 
-fn run_saved_snapshots_suite(suite: &str, assert_verbose: fn(&Value) -> Result<bool, String>) {
+fn run_saved_snapshots_suite(suite: &str, assert_fn: fn(&Value) -> Option<Vec<String>>) {
     for path in snapshot_request_paths_for_suite(suite) {
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("failed to read snapshot {}: {}", path.display(), e));
         let payload: Value = serde_json::from_str(&raw)
             .unwrap_or_else(|e| panic!("invalid json in {}: {}", path.display(), e));
 
-        match assert_verbose(&payload) {
-            Ok(true) => {}
-            Ok(false) => continue,
-            Err(e) => panic!("snapshot {} failed roundtrip:\n{}", path.display(), e),
+        match assert_fn(&payload) {
+            Some(issues) if !issues.is_empty() => {}
+            Some(_) => panic!(
+                "snapshot {} no longer reproduces a failure; run prune for this suite",
+                path.display()
+            ),
+            None => panic!(
+                "snapshot {} is no longer valid input for this suite",
+                path.display()
+            ),
         }
     }
 }
@@ -757,19 +951,32 @@ fn run_stats_suite(
 
 #[test]
 fn openai_roundtrip_saved_snapshots() {
-    run_saved_snapshots_suite(SNAPSHOT_SUITE_OPENAI, assert_openai_roundtrip_verbose);
+    run_saved_snapshots_suite(SNAPSHOT_SUITE_OPENAI, assert_openai_roundtrip);
 }
 
 #[test]
 fn anthropic_roundtrip_saved_snapshots() {
-    run_saved_snapshots_suite(SNAPSHOT_SUITE_ANTHROPIC, assert_anthropic_roundtrip_verbose);
+    run_saved_snapshots_suite(SNAPSHOT_SUITE_ANTHROPIC, assert_anthropic_roundtrip);
+}
+
+#[test]
+fn responses_roundtrip_saved_snapshots() {
+    run_saved_snapshots_suite(SNAPSHOT_SUITE_RESPONSES, assert_responses_roundtrip);
 }
 
 #[test]
 fn chat_anthropic_two_arm_saved_snapshots() {
     run_saved_snapshots_suite(
         SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
-        assert_chat_anthropic_two_arm_verbose,
+        assert_chat_anthropic_two_arm,
+    );
+}
+
+#[test]
+fn chat_responses_anthropic_three_arm_saved_snapshots() {
+    run_saved_snapshots_suite(
+        SNAPSHOT_SUITE_CHAT_RESPONSES_ANTHROPIC_THREE_ARM,
+        assert_chat_responses_anthropic_three_arm,
     );
 }
 
@@ -791,10 +998,25 @@ fn anthropic_roundtrip_prune_snapshots() {
 
 #[test]
 #[ignore]
+fn responses_roundtrip_prune_snapshots() {
+    run_prune_snapshots_suite(SNAPSHOT_SUITE_RESPONSES, assert_responses_roundtrip);
+}
+
+#[test]
+#[ignore]
 fn chat_anthropic_two_arm_prune_snapshots() {
     run_prune_snapshots_suite(
         SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
         assert_chat_anthropic_two_arm,
+    );
+}
+
+#[test]
+#[ignore]
+fn chat_responses_anthropic_three_arm_prune_snapshots() {
+    run_prune_snapshots_suite(
+        SNAPSHOT_SUITE_CHAT_RESPONSES_ANTHROPIC_THREE_ARM,
+        assert_chat_responses_anthropic_three_arm,
     );
 }
 
@@ -828,6 +1050,19 @@ fn anthropic_roundtrip() {
 
 #[test]
 #[ignore]
+fn responses_roundtrip() {
+    run_fail_fast_suite(
+        SNAPSHOT_SUITE_RESPONSES,
+        "responses",
+        "request-roundtrip",
+        strategies::arb_responses_payload(),
+        assert_responses_roundtrip,
+        assert_responses_roundtrip_verbose,
+    );
+}
+
+#[test]
+#[ignore]
 fn chat_anthropic_two_arm() {
     run_fail_fast_suite(
         SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
@@ -836,6 +1071,19 @@ fn chat_anthropic_two_arm() {
         strategies::arb_openai_payload(),
         assert_chat_anthropic_two_arm,
         assert_chat_anthropic_two_arm_verbose,
+    );
+}
+
+#[test]
+#[ignore]
+fn chat_responses_anthropic_three_arm() {
+    run_fail_fast_suite(
+        SNAPSHOT_SUITE_CHAT_RESPONSES_ANTHROPIC_THREE_ARM,
+        "chat-completions",
+        "chat-responses-anthropic-three-arm",
+        strategies::arb_openai_payload(),
+        assert_chat_responses_anthropic_three_arm,
+        assert_chat_responses_anthropic_three_arm_verbose,
     );
 }
 
@@ -869,6 +1117,19 @@ fn anthropic_roundtrip_stats() {
 
 #[test]
 #[ignore]
+fn responses_roundtrip_stats() {
+    run_stats_suite(
+        SNAPSHOT_SUITE_RESPONSES,
+        "responses",
+        "request-roundtrip",
+        "Responses roundtrip fuzz",
+        strategies::arb_responses_payload(),
+        assert_responses_roundtrip,
+    );
+}
+
+#[test]
+#[ignore]
 fn chat_anthropic_two_arm_stats() {
     run_stats_suite(
         SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
@@ -877,5 +1138,18 @@ fn chat_anthropic_two_arm_stats() {
         "Chat->Anthropic two-arm fuzz",
         strategies::arb_openai_payload(),
         assert_chat_anthropic_two_arm,
+    );
+}
+
+#[test]
+#[ignore]
+fn chat_responses_anthropic_three_arm_stats() {
+    run_stats_suite(
+        SNAPSHOT_SUITE_CHAT_RESPONSES_ANTHROPIC_THREE_ARM,
+        "chat-completions",
+        "chat-responses-anthropic-three-arm",
+        "Chat->Responses->Anthropic three-arm fuzz",
+        strategies::arb_openai_payload(),
+        assert_chat_responses_anthropic_three_arm,
     );
 }

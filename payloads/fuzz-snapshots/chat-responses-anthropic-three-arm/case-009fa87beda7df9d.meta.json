@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "chat->universal error: Conversion to universal format failed: invalid type: null, expected a string"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

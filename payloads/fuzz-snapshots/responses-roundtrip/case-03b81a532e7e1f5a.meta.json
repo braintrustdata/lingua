@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: truncation",
+    "lost: input[0].status"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}

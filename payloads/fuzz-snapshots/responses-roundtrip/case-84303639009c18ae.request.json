@@ -1,0 +1,36 @@
+{
+  "include": [
+    "message.output_text.logprobs",
+    "file_search_call.results"
+  ],
+  "input": [
+    {
+      "content": "ROJ7?GC,h?,TsxE K3.C.",
+      "role": "user",
+      "type": "message"
+    },
+    {
+      "arguments": ",oC,6.m,9?M.??u.,CE,",
+      "id": "UE..f,?u0W",
+      "name": "8y!W8, 9,5.",
+      "output": "A.",
+      "server_label": ".!!6zU?DN?,?2au j??,.03Z1!?. v",
+      "type": "mcp_call"
+    },
+    {
+      "content": "M,B., .,?m,c0 ?..0 Rz c..cPuA9!.. ?.?U?uJM?,,",
+      "role": "user"
+    }
+  ],
+  "instructions": "!hlx8?BblR.7!,.,5",
+  "model": " .?!?,C?,N.69AG2,,?,W!6  .",
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "prompt": null,
+  "stream": null,
+  "stream_options": null,
+  "tool_choice": {
+    "name": "QD0J y,,w tW.??.?v,dXJr",
+    "type": "custom"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "background": null,
+  "conversation": "0?!oX!0Z",
+  "include": null,
+  "input": [
+    {
+      "id": "? 4Td..Y,I6,? ,",
+      "result": null,
+      "status": "in_progress",
+      "type": "image_generation_call"
+    },
+    {
+      "content": ".! .!xiB3 v.4?kXU,U FAE.M.6G Cq??3..Jv,!ke0uA?953",
+      "role": "assistant",
+      "type": "message"
+    }
+  ],
+  "max_output_tokens": null,
+  "model": "gpt-4.1-nano-2025-04-14",
+  "prompt": {
+    "id": "gcxp,Hi!t9YNqvj.6!2444,k S.F!,ae7!r?C! b, P.g",
+    "version": "o?1y.MQJ  ?pi9f!q4.?fv!!0P? W?,??JjR5?.y"
+  },
+  "reasoning": null,
+  "stream": null,
+  "truncation": "auto"
+}

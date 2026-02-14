@@ -1,0 +1,23 @@
+{
+  "input": "W3?p.bi!o1?",
+  "instructions": "f,,IBbcn2I7!5,lF,T?S?Oa,28f?U sdH.? .cqbF,",
+  "max_output_tokens": null,
+  "model": "o4-mini-deep-research",
+  "previous_response_id": "??f?6m?  Ixq!!.aZg,.5,.C S,,,N",
+  "stream": false,
+  "stream_options": {},
+  "text": {
+    "format": {
+      "name": " tN.a?E?xHaF, I?GGr4y47.MId9",
+      "schema": {},
+      "type": "json_schema"
+    },
+    "verbosity": "low"
+  },
+  "tool_choice": {
+    "name": null,
+    "server_label": "9?V.xL,,p.?YMpS0z? ?,Pm3r!1,EU!..m.,,.k.V!",
+    "type": "mcp"
+  },
+  "truncation": "auto"
+}

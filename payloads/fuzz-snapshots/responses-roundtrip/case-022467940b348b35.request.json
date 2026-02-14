@@ -1,0 +1,39 @@
+{
+  "conversation": {
+    "id": "kC ?j07.f 5g !26?4,gM.O,!B.8j!X"
+  },
+  "include": null,
+  "input": "e.W4kw9vk.0.Uh",
+  "model": "computer-use-preview",
+  "reasoning": {
+    "effort": null,
+    "generate_summary": null
+  },
+  "stream": null,
+  "stream_options": null,
+  "tool_choice": {
+    "mode": "required",
+    "tools": [
+      {},
+      {},
+      {}
+    ],
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "moderation": "auto",
+      "type": "image_generation"
+    },
+    {
+      "display_height": -800,
+      "display_width": -451,
+      "environment": "linux",
+      "type": "computer_use_preview"
+    },
+    {
+      "type": "local_shell"
+    }
+  ],
+  "truncation": null
+}

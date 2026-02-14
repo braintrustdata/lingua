@@ -1,0 +1,47 @@
+{
+  "conversation": {
+    "id": "x98"
+  },
+  "include": [
+    "code_interpreter_call.outputs",
+    "message.input_image.image_url",
+    "message.output_text.logprobs"
+  ],
+  "input": [
+    {
+      "arguments": "!XgF,K??7g?A!XsXFX,",
+      "id": "y ?tA6Z.b.L?? .k.",
+      "name": "a,RUU,CSvt7O U6.F.,gt,FT,.HXUnR503..VR?l?,?",
+      "server_label": "2J.Kw,!q.Lg89.qY!U3yurn V1",
+      "type": "mcp_approval_request"
+    }
+  ],
+  "instructions": null,
+  "max_output_tokens": -724,
+  "max_tool_calls": null,
+  "model": "o3-pro-2025-06-10",
+  "parallel_tool_calls": false,
+  "previous_response_id": "?x.J?G.o,?R!S.bn.Doh,cD.3",
+  "prompt": null,
+  "reasoning": {
+    "effort": "medium"
+  },
+  "stream": null,
+  "tools": [
+    {
+      "filters": {
+        "filters": [
+          null,
+          null
+        ],
+        "type": "and"
+      },
+      "ranking_options": {},
+      "type": "file_search",
+      "vector_store_ids": [
+        "DL?,3e,9. !fXN. 2"
+      ]
+    }
+  ],
+  "truncation": null
+}

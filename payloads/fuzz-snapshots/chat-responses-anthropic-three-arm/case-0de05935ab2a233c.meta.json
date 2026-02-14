@@ -1,0 +1,30 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.frequency_penalty (59.424984266539134 -> null)",
+    "universal(1->2): changed: params.stop ([\"?La,...ZT3pc D.mW T,h6BJG?x0.964S17U,.X,I!r3t\",\".?q\",\".611Ma86.x.tLP0,.67H2n,8!..A\"] -> null)",
+    "universal(2->3): changed: params.response_format.format_type (\"JsonObject\" -> \"JsonSchema\")",
+    "universal(2->3): changed: params.response_format.json_schema (null -> {\"description\":null,\"name\":\"response\",\"schema\":{\"additionalProperties\":false,\"type\":\"object\"},\"strict\":null})",
+    "universal(2->3): changed: params.top_logprobs (472 -> null)",
+    "responses(1->2): lost: top_logprobs",
+    "responses(1->2): added: text.format.name",
+    "responses(1->2): added: text.format.schema",
+    "responses(1->2): changed: text.format.type (\"json_object\" -> \"json_schema\")",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: stop",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: functions",
+    "chat(final): lost: function_call",
+    "chat(final): lost: n",
+    "chat(final): lost: audio",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: prediction",
+    "chat(final): lost: messages[0].name",
+    "chat(final): added: response_format.json_schema",
+    "chat(final): changed: response_format.type (\"json_object\" -> \"json_schema\")"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

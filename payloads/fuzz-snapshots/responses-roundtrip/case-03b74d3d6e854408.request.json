@@ -1,0 +1,34 @@
+{
+  "conversation": {
+    "id": "20,.! 6!N?jfqa??xU,s6,,Fj?hm?JaASN 9zuvY?!,Ym5.sAA"
+  },
+  "include": [
+    "message.output_text.logprobs",
+    "message.input_image.image_url",
+    "message.output_text.logprobs"
+  ],
+  "input": ",Bf,.X?hG,C",
+  "instructions": "p.?,.I,K7aN,r5.k?,.w.Qu!?M,mN?,gN",
+  "model": "o4-mini-deep-research",
+  "previous_response_id": "E2J.,N2!.7.tkTc, h0z9?izk?1q8,4o?",
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": null
+  },
+  "tools": [
+    {
+      "description": null,
+      "name": " ?v!.D,!??Sz.,.,",
+      "parameters": {},
+      "strict": true,
+      "type": "function"
+    },
+    {
+      "description": "7U!nj",
+      "name": "q?,s,?3b.p.?.j2 J..3wm,.oeiAL b,.?",
+      "type": "custom"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": "fU,Fo.!W?4,U?"
+  },
+  "frequency_penalty": -96.33858611645884,
+  "function_call": {
+    "name": "S .ggC!w,x.8!.!?sQ.?.lzr?7y rL.LEcX33813"
+  },
+  "logit_bias": {},
+  "max_completion_tokens": -29,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": null,
+          "type": null
+        },
+        {
+          "text": null,
+          "type": null
+        },
+        {
+          "text": null,
+          "type": null
+        }
+      ],
+      "role": "tool",
+      "tool_call_id": ",IlCR.D??UOYEo,5,.hDszN"
+    }
+  ],
+  "model": ".bUTb.k.,! .GR99!,Q2lj4!?b!lLa",
+  "presence_penalty": 86.43563228321413,
+  "seed": -850,
+  "stop": [
+    ".3?!Wk, 6?Q1",
+    ".?35!6!0k?!?.8!??jY!d,Xv .u.!!.G.?V?.C?,",
+    "jz1.ns5Z..z!,kVD9.t,?F.fB?,a.J 74? ."
+  ],
+  "store": true,
+  "stream": false,
+  "stream_options": null,
+  "top_logprobs": 632,
+  "web_search_options": {}
+}

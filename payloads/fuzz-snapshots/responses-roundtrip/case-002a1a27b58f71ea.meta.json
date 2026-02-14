@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: tool_choice",
+    "lost: parallel_tool_calls",
+    "lost: reasoning",
+    "lost: text.verbosity",
+    "changed: input (\".Wr?E?!Ls,\" -> [{\"content\":\".Wr?E?!Ls,\",\"role\":\"user\"}])"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}

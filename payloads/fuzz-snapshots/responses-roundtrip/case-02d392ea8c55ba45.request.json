@@ -1,0 +1,53 @@
+{
+  "background": null,
+  "include": null,
+  "input": "?h?M.5U",
+  "instructions": null,
+  "max_output_tokens": 448,
+  "max_tool_calls": 557,
+  "model": "?7.v?L6RY3,24,,vL?7.?,?,Gl5?AF44SlSIV2.J,H, ?8VV",
+  "parallel_tool_calls": true,
+  "prompt": {
+    "id": "e ",
+    "variables": null,
+    "version": null
+  },
+  "reasoning": {
+    "summary": null
+  },
+  "stream": null,
+  "stream_options": null,
+  "tool_choice": "required",
+  "tools": [
+    {
+      "search_context_size": "medium",
+      "type": "web_search",
+      "user_location": {
+        "country": "?,?kl0Bs8,!Xd.!.P,4H,bx",
+        "region": null
+      }
+    },
+    {
+      "allowed_tools": null,
+      "authorization": ",SC?,.ZA!4? n?hsXKX26.Qo0jB 2?91pC?t",
+      "connector_id": "connector_gmail",
+      "require_approval": null,
+      "server_label": "?g1,4y.o,n4?y,8lyAmJ?J2044h!?O?..,fm1kp?r?,N?",
+      "server_url": ",YSl?,RMN9w1I,ZA6K8??,i..! M",
+      "type": "mcp"
+    },
+    {
+      "max_num_results": 552,
+      "ranking_options": {
+        "ranker": "auto",
+        "score_threshold": -3.084803686551312
+      },
+      "type": "file_search",
+      "vector_store_ids": [
+        "CN8OD.k!un.?lOcd4?C?a8",
+        "T  n7t!,v,Z?,RJ"
+      ]
+    }
+  ],
+  "truncation": null
+}

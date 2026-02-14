@@ -1,0 +1,52 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "echo"
+  },
+  "function_call": "auto",
+  "messages": [
+    {
+      "content": "k3?11Q??K, ??R. ,2E,?P,L,cNp6,Q",
+      "name": ".H.r9",
+      "role": "developer"
+    },
+    {
+      "content": "6bhEp8P,?ceQ,fF??C .!oo?, ",
+      "name": "y p..ER WDDJ.,?XD?. ?f ?t",
+      "role": "developer"
+    },
+    {
+      "content": [
+        {
+          "text": "i.!?,QyLP,? y!B.ZE,?2N,j.S?5l!6!,,!!RY,.",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "audio"
+  ],
+  "model": "gpt-5",
+  "n": -790,
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": "Lw.b.fU,R1!3nfB??R.g .jb?h,LX!YQc?ms3 IY",
+    "type": "content"
+  },
+  "presence_penalty": 96.82191703714862,
+  "stop": [
+    "as,  a3.!!c?,?jl,D.VA?!i??Jez,b,H6XT9?g UEts"
+  ],
+  "web_search_options": {
+    "search_context_size": "high",
+    "user_location": {
+      "approximate": {
+        "city": ".r!m.ea9",
+        "timezone": "JW,5?5ix!!35f!eQcIT..7C.QA,..Nx 861S??16Y"
+      },
+      "type": "approximate"
+    }
+  }
+}

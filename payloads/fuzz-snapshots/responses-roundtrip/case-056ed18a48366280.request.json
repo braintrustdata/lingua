@@ -1,0 +1,48 @@
+{
+  "conversation": ".xx",
+  "include": [
+    "message.input_image.image_url",
+    "message.output_text.logprobs",
+    "message.input_image.image_url"
+  ],
+  "input": "?y S3,  ?0??",
+  "max_tool_calls": null,
+  "model": ".,7 ,Bo6Q 7.6Mxjo...EcJ,?V!?ca? Pk,H.X",
+  "parallel_tool_calls": false,
+  "previous_response_id": null,
+  "stream": false,
+  "text": {
+    "format": {
+      "description": " ZI",
+      "name": "L?4V,?Z? Ext,Wi?vY!9,l.0Z2P.gj9?.ap.! 6.???q",
+      "schema": {},
+      "strict": null,
+      "type": "json_schema"
+    }
+  },
+  "tools": [
+    {
+      "name": "DYZA.J? ",
+      "parameters": null,
+      "strict": null,
+      "type": "function"
+    },
+    {
+      "container": ".!Rg,C ?D,h?nm,za9w?s,.f  JMv.e Ii,L?f!?",
+      "type": "code_interpreter"
+    },
+    {
+      "filters": null,
+      "ranking_options": {
+        "ranker": "default-2024-11-15"
+      },
+      "type": "file_search",
+      "vector_store_ids": [
+        "?.p3.?o?X.J.,h?S",
+        "B,?. 3i,?,..Yh.3,!.L?T,.bY",
+        "sfQ 6r.5S ?,E2m!?.O8,.O.mT!P.e.9!ovd?WT8UPUa5.r"
+      ]
+    }
+  ],
+  "truncation": "auto"
+}

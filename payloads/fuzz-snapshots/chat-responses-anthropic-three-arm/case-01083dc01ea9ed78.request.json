@@ -1,0 +1,71 @@
+{
+  "frequency_penalty": -1.2637378230123477,
+  "function_call": {
+    "name": "8M,C1O??pa.609,D.w?,,v,n?w 0 !U?yNW,3.q3"
+  },
+  "functions": [
+    {
+      "description": "6Vn.",
+      "name": "s0.?E!U9w,c.8..BDdj,As8?PMI61Hh?V",
+      "parameters": {}
+    },
+    {
+      "name": ",?.e!kPv  Lzj,?!,FL?P,7i?OP,3??8.!Ng .G ??.,?5"
+    },
+    {
+      "description": "Vx!",
+      "name": "sa8",
+      "parameters": {}
+    }
+  ],
+  "logprobs": false,
+  "max_completion_tokens": -823,
+  "max_tokens": -247,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": ",!n6GBT,GxbrX.Hud051U?",
+          "type": "text"
+        },
+        {
+          "text": "?ja7K10G?,?VM.,,om1X80 x,j?!g..,M.z?o1",
+          "type": "text"
+        },
+        {
+          "text": ",T!GOY",
+          "type": "text"
+        }
+      ],
+      "name": "z,5WeQYJ,..ni FZ,j!..?,,zlv,RO1.yv!4?.o..,G?j6. I",
+      "role": "developer"
+    }
+  ],
+  "model": "gpt-4.1",
+  "n": 870,
+  "prediction": {
+    "content": [
+      {
+        "text": "VJ?G6,Q?Ta.,??t!,,F,oz0.9M3,??? .?f?d?SJKs.v?",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "reasoning_effort": "medium",
+  "seed": -100,
+  "store": false,
+  "stream": true,
+  "stream_options": {
+    "include_obfuscation": false
+  },
+  "tools": [
+    {
+      "function": {
+        "name": "3!,k k!gE s5,.?1pg.?,a",
+        "parameters": {}
+      },
+      "type": "function"
+    }
+  ]
+}

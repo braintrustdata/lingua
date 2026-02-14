@@ -1,0 +1,30 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.stop ([\",v7K?J,S..Z,!n0PO,gzi?i?K.g??D.,,J,k VAHN5??!2h  .\",\"Az,.!z M8whG.. dS!O,1!?A,ShD4.V,ANn,yD5?Ed?O l3\",\"I!Uj?O ,R61,,VjS.p44.3Nx1\",\"M.!?!7cv,!B?,.  s4A4oO,?. ?Y\"] -> null)",
+    "universal(1->2): changed: params.frequency_penalty (-31.096761632000497 -> null)",
+    "universal(2->3): added: params.tools[0].parameters",
+    "universal(2->3): added: params.tools[1].parameters",
+    "universal(2->3): changed: params.top_logprobs (530 -> null)",
+    "responses(1->2): lost: top_logprobs",
+    "responses(1->2): added: tools[0].parameters",
+    "responses(1->2): added: tools[1].parameters",
+    "chat(final): lost: n",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: audio",
+    "chat(final): lost: functions",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: stop",
+    "chat(final): lost: messages[0].name",
+    "chat(final): lost: messages[1].function_call",
+    "chat(final): lost: messages[1].audio",
+    "chat(final): lost: tools[0].function.strict",
+    "chat(final): added: messages[1].content",
+    "chat(final): added: tools[0].function.parameters",
+    "chat(final): added: tools[1].function.parameters",
+    "chat(final): changed: max_completion_tokens (221 -> -592)"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

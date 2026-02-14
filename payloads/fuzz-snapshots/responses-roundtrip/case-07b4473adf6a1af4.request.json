@@ -1,0 +1,16 @@
+{
+  "background": null,
+  "input": [
+    {
+      "call_id": "2U ?n7? . ,3mupM5i.H!ym,G. sa!?L?,,x,",
+      "output": ".GFQj? yjufB.",
+      "type": "custom_tool_call_output"
+    }
+  ],
+  "instructions": "!r4,,U?8K.9ot,t,2Ob ,.",
+  "model": "o4-mini-deep-research",
+  "previous_response_id": null,
+  "store": true,
+  "stream": true,
+  "stream_options": null
+}

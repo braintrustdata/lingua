@@ -1,0 +1,17 @@
+{
+  "issues": [
+    "lost: max_output_tokens",
+    "lost: store",
+    "lost: reasoning.generate_summary",
+    "lost: input[1].outputs",
+    "lost: input[1].code",
+    "lost: input[2].arguments",
+    "lost: input[2].name",
+    "lost: input[2].error",
+    "added: reasoning.summary",
+    "changed: reasoning.effort (null -> \"medium\")",
+    "changed: input[0].status (\"in_progress\" -> \"completed\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}
