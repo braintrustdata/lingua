@@ -8,7 +8,7 @@ env:
 
 jobs:
   coverage:
-    runs-on: warp-ubuntu-2404-x64-4x
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4

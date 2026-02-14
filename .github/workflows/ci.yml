@@ -10,11 +10,11 @@ env:
 
 jobs:
   test:
-    runs-on: warp-ubuntu-2404-x64-4x
-
+    runs-on: ubuntu-latest
+    
     steps:
     - uses: actions/checkout@v4
-
+    
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -68,7 +68,7 @@ jobs:
     uses: ./.github/workflows/cross-transformation-coverage.yml
 
   test-typescript:
-    runs-on: warp-ubuntu-2404-x64-4x
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -128,7 +128,7 @@ jobs:
       run: cd payloads && pnpm test
 
   test-python:
-    runs-on: warp-ubuntu-2404-x64-4x
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
