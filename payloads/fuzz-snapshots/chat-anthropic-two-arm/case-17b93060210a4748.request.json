@@ -1,0 +1,43 @@
+{
+  "functions": [
+    {
+      "description": "?Fj 17 ,gnK1v,iU.p? ?B49o.GLl?!?.3XL5,!.8w!M",
+      "name": "? ?1.N.MCZ5E?jc.k9,.!?F1b!,6.?z493d.2P",
+      "parameters": {}
+    },
+    {
+      "name": ",Gw?D605.vt ",
+      "parameters": {}
+    },
+    {
+      "description": "?37WCH72",
+      "name": "h,.z.3,JB80C! GvsA..Q.DZv19C"
+    },
+    {
+      "name": ",?nL.z"
+    },
+    {
+      "description": "NT?HO?q?8 ,?.",
+      "name": "??Z!vC!.0K1q!I?BJp,j8?O95.K9sy.pR 5?da3."
+    }
+  ],
+  "logit_bias": {},
+  "max_tokens": 923,
+  "messages": [
+    {
+      "content": "?,,uOqTQLGr1",
+      "role": "user"
+    }
+  ],
+  "model": "gpt-4o-mini-search-preview-2025-03-11",
+  "n": 51,
+  "prediction": {
+    "content": " pHldje .?,7WLw",
+    "type": "content"
+  },
+  "reasoning_effort": null,
+  "stop": ",i.?Y?H3.C.X..4 ?P.. !?3?,IFB..K!,??.",
+  "store": true,
+  "stream_options": null,
+  "verbosity": null
+}

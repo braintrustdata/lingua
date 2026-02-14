@@ -1,0 +1,80 @@
+{
+  "inference_geo": null,
+  "max_tokens": 419,
+  "messages": [
+    {
+      "content": "4U6 ,8?hk?, x?9mxKw.Arc!LP.,8.8 !x.hW,T1,?2D8 B2I",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "tool_use_id": ".!Nz6W!.N.R gW,xBi9n,8",
+          "type": "tool_result"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": ".K.p,AE1,"
+  },
+  "model": "claude-3-7-sonnet-latest",
+  "system": [
+    {
+      "citations": [
+        {
+          "cited_text": ",m7bD,L",
+          "encrypted_index": ".CK..oFe hH?c, .9rt a.4!k4te0!BMH.F,NwF?",
+          "title": "aT,zbU03T,w,B,?,,?.8M ?.D,,",
+          "type": "web_search_result_location",
+          "url": "E"
+        },
+        {
+          "cited_text": ".pu?.n..lPp 28?YN",
+          "document_index": 396,
+          "document_title": null,
+          "end_char_index": -405,
+          "start_char_index": -565,
+          "type": "char_location"
+        },
+        {
+          "cited_text": "lt90,i.E7mR??.86?,..!.jL5,1",
+          "document_index": -64,
+          "document_title": null,
+          "end_block_index": 564,
+          "start_block_index": -958,
+          "type": "content_block_location"
+        }
+      ],
+      "text": "?.V.GL?Rn.?3.8c05?M.?UY.,NpuOts.,7 ,L",
+      "type": "text"
+    }
+  ],
+  "temperature": -28.353522211883245,
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tool_choice": {
+    "type": "any"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "max_characters": null,
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250728"
+    },
+    {
+      "cache_control": {
+        "ttl": "1h",
+        "type": "ephemeral"
+      },
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    }
+  ]
+}

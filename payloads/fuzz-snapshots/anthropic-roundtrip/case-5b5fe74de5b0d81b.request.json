@@ -1,0 +1,47 @@
+{
+  "inference_geo": " Sw!h.K t,,E.1.?R e0Ax8W a.!k3!?fB",
+  "max_tokens": -72,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "is_error": true,
+          "tool_use_id": "L .?!?J9?7,?XFlWHB, f5??ls!?YoN,,P4E,3on?u",
+          "type": "tool_result"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-opus-4-0",
+  "output_config": {
+    "format": null
+  },
+  "service_tier": "standard_only",
+  "stop_sequences": [
+    ".,!sI?.3Qk?9l,?y,"
+  ],
+  "stream": false,
+  "temperature": 74.31740260240059,
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tool_choice": {
+    "type": "none"
+  },
+  "tools": [
+    {
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    },
+    {
+      "cache_control": null,
+      "name": "str_replace_editor",
+      "strict": true,
+      "type": "text_editor_20250124"
+    }
+  ],
+  "top_k": -911,
+  "top_p": -18.071362710284486
+}

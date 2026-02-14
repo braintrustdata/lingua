@@ -1,0 +1,35 @@
+{
+  "frequency_penalty": 51.93312079864756,
+  "max_completion_tokens": -978,
+  "max_tokens": 769,
+  "messages": [
+    {
+      "content": ",.?cCl ,?,!y,A.A W?.R.Bx.2?!?h.",
+      "role": "tool",
+      "tool_call_id": "5?!44 ,p!.3w.42s9"
+    },
+    {
+      "content": "..,A1Gs sJ.P,5!?sa81?0o,D7i?8sp7x ?!.0 J?U?.Yg.Z",
+      "name": "g?....t,.UtAa8AZ,d?.,",
+      "role": "system"
+    }
+  ],
+  "modalities": null,
+  "model": "j.,fU,,???kc",
+  "n": -845,
+  "prediction": {
+    "content": "lhQI!6W,6tq4?,,U 4,I",
+    "type": "content"
+  },
+  "reasoning_effort": "minimal",
+  "response_format": {
+    "type": "text"
+  },
+  "stop": [
+    "hV, 2,3VtV .he?4 ",
+    "icxA7NnW!99pIZ.rj?,E8H?8hQ?k 6?.!ZxIjk",
+    ".8!PGq8.y?,i",
+    "9 FY,1.6!5!T"
+  ],
+  "stream": false
+}

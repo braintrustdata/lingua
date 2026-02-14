@@ -1,0 +1,59 @@
+{
+  "inference_geo": ".0,I0pt1e 7ry4o",
+  "max_tokens": 859,
+  "messages": [
+    {
+      "content": "??.w..X, 2MR??,,N..W,c,y,AC?s7vTX",
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-20250514",
+  "stream": true,
+  "system": [
+    {
+      "citations": [
+        {
+          "cited_text": "x??NmR",
+          "document_index": 640,
+          "document_title": null,
+          "end_page_number": 551,
+          "start_page_number": 846,
+          "type": "page_location"
+        },
+        {
+          "cited_text": ",8pb?6K!.Qm?a.Y? 8G?J,w,.cX45.Li,.j0EZ2,!8!XW0",
+          "document_index": 489,
+          "document_title": "R.,5xzK,!RH?Ydp?,x 9Q?,!n?Do,9n",
+          "end_block_index": -658,
+          "start_block_index": -301,
+          "type": "content_block_location"
+        }
+      ],
+      "text": "9T.xFiD,",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "text": "ZR,36 y!FQp,,1Ra",
+      "type": "text"
+    },
+    {
+      "text": "!!dQ9 .?!KfAJ?t?., q.a,,m,g?F.?4w",
+      "type": "text"
+    }
+  ],
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "name": "?t ",
+    "type": "tool"
+  },
+  "tools": [
+    {
+      "name": "str_replace_editor",
+      "strict": false,
+      "type": "text_editor_20250124"
+    }
+  ],
+  "top_k": -818,
+  "top_p": -68.97636355647789
+}

@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: output_config.effort",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

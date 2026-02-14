@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: metadata",
+    "lost: messages[0].content[0].cache_control",
+    "lost: tools[1].eager_input_streaming",
+    "lost: tools[1].type",
+    "lost: tools[1].cache_control"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

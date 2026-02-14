@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: metadata",
+    "changed: messages[1].content.length (3 -> 1)",
+    "changed: messages[2].content ([{\"signature\":\"0jU\",\"thinking\":\"j !0.?Dk?D.,?iN3..\",\"type\":\"thinking\"},{\"id\":\"q84?1.b!TMK.C E?.?D!.1a\",\"input\":{},\"name\":\"web_search\",\"type\":\"server_tool_use\"}] -> \"\")",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

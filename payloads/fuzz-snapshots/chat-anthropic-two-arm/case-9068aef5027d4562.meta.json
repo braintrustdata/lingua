@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "chat->anthropic error: Conversion from universal format failed: Tool 'iLE.H k.Q?ol,62azG?., ?Z!7,X.rv?Q?JE..?.' of type 'custom' is not supported by anthropic"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

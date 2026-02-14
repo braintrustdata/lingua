@@ -1,0 +1,48 @@
+{
+  "function_call": {
+    "name": ".T5q1!P6XWgJ2W?os?5"
+  },
+  "logit_bias": {},
+  "logprobs": true,
+  "max_tokens": 813,
+  "messages": [
+    {
+      "function_call": null,
+      "name": "?eq.14,F?6x . !1yn2H 8dae?",
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "text": "k.!VV?a!tC0.q56?!D",
+          "type": "text"
+        }
+      ],
+      "name": "?.? ,L,,K,6GGgFQR.IK,5Tya,gS U1wV b",
+      "role": "developer"
+    },
+    {
+      "content": "i?,..2Re,. r2? ",
+      "name": ".0,?xP c.?I4",
+      "role": "user"
+    }
+  ],
+  "model": "9 !?15?.S?.P,?.xbK,t,.k4y. l.M0Fx3pT",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": "j,n,.Tf0JIc??x.v,h.p!6?.!.Z,?57q.N HyNA4,!h?B1",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": 73.58392301149892,
+  "reasoning_effort": null,
+  "stop": "v,x.,??W,!QEy.oK Yq  aQ,,9Y,?Hsc ?.?i.FQ,,,!DUJ?",
+  "store": false,
+  "stream": true,
+  "top_logprobs": 67,
+  "verbosity": "medium"
+}

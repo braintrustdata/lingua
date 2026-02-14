@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: temperature",
+    "lost: system",
+    "lost: tools[0].user_location",
+    "lost: tools[0].max_uses"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

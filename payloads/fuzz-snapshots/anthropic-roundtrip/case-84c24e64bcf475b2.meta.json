@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: metadata",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

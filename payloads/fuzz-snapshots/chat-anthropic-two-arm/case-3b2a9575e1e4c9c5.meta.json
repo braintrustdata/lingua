@@ -1,0 +1,28 @@
+{
+  "issues": [
+    "universal(1->2): added: params.tools[1].parameters",
+    "universal(1->2): changed: messages.length (3 -> 1)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.frequency_penalty (-3.2483416956856983 -> null)",
+    "universal(1->2): changed: params.presence_penalty (-72.31973415656762 -> null)",
+    "universal(1->2): changed: params.top_logprobs (-646 -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: tool_choice",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: function_call",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: modalities",
+    "chat(final): lost: audio",
+    "chat(final): lost: logit_bias",
+    "chat(final): added: stream_options",
+    "chat(final): added: tools[1].function.parameters",
+    "chat(final): changed: messages.length (3 -> 1)",
+    "chat(final): changed: stop (\"r.er...338 l?.!,LGKGgeF,Sk,?8,nX\" -> [\"r.er...338 l?.!,LGKGgeF,Sk,?8,nX\"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

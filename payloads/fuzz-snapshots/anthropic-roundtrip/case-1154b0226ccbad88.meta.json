@@ -1,0 +1,14 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: system",
+    "lost: tool_choice.disable_parallel_tool_use",
+    "lost: messages[0].content[0].cache_control",
+    "lost: messages[0].content[1].cache_control",
+    "lost: tools[0].type",
+    "lost: tools[0].eager_input_streaming",
+    "lost: tools[0].cache_control"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

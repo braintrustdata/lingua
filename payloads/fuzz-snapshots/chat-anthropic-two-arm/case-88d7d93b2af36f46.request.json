@@ -1,0 +1,53 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": "marin"
+  },
+  "frequency_penalty": 29.303037351640985,
+  "functions": [
+    {
+      "description": "kp.aatIP5.x! 3,.2T10ZPg?W W.",
+      "name": "FGIX, EI57 ,!!W"
+    },
+    {
+      "description": "1zsH?9VJ9,",
+      "name": " L26?.,?90v9,8ut ?E,.P8e,,.!,G!KOT9W",
+      "parameters": {}
+    }
+  ],
+  "max_tokens": 933,
+  "messages": [
+    {
+      "audio": null,
+      "refusal": null,
+      "role": "assistant"
+    }
+  ],
+  "model": "f G3?P?,.?,J?,,?l5WU4,.NS",
+  "n": -462,
+  "presence_penalty": 19.369826626141442,
+  "reasoning_effort": null,
+  "seed": 504,
+  "stop": "C0,,NlC V. kuXlA zp18o.7?4.j.!o0.lU4",
+  "store": false,
+  "stream": true,
+  "tools": [
+    {
+      "function": {
+        "name": "JCQ.9.Kn2D7v?!Z!Tct4. ?.mUv4G",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "E,F!?mk.,,F?e",
+        "name": "!P?TS ?x?,3X.a nZ!q.,xy.!?E,n4e4,hB456,u e!yO.?,.5"
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 55,
+  "verbosity": null,
+  "web_search_options": {}
+}

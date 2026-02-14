@@ -1,0 +1,13 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: output_config.effort",
+    "lost: tools[0].blocked_domains",
+    "lost: tools[0].cache_control",
+    "lost: tools[0].user_location",
+    "lost: tools[1].cache_control",
+    "lost: tools[1].type"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

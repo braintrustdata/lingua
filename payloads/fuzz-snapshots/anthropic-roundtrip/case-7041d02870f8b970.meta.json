@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: metadata",
+    "lost: tools[1].cache_control"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

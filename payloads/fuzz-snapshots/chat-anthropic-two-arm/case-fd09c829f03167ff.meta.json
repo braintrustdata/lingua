@@ -1,0 +1,28 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.store (false -> null)",
+    "universal(1->2): changed: params.top_logprobs (67 -> null)",
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "universal(1->2): changed: params.presence_penalty (73.58392301149892 -> null)",
+    "universal(1->2): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "universal(1->2): changed: messages.length (3 -> 2)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: prediction",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: function_call",
+    "chat(final): lost: store",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: logprobs",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): added: stream_options",
+    "chat(final): added: tool_choice",
+    "chat(final): changed: messages.length (3 -> 2)",
+    "chat(final): changed: stop (\"v,x.,??W,!QEy.oK Yq  aQ,,9Y,?Hsc ?.?i.FQ,,,!DUJ?\" -> [\"v,x.,??W,!QEy.oK Yq  aQ,,9Y,?Hsc ?.?i.FQ,,,!DUJ?\"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

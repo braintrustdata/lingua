@@ -1,0 +1,44 @@
+{
+  "logprobs": true,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "8w48050v,3.?AL7.Y.x4Vm?.?DSQ6bDOq0? b.,8G",
+          "type": "text"
+        },
+        {
+          "text": ".L B7,G6!bv.?SloV4?9!?e.U.",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    },
+    {
+      "content": "?Pou6p9G,Z,.?XSx,h43I.qZ?D!.?!aQE5.,",
+      "name": "?o?48..ChP, i, l87?CnQ!1?2?..?w.I? ??0",
+      "role": "system"
+    }
+  ],
+  "model": "gpt-4-vision-preview",
+  "n": -838,
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": " ??w!,M71,29ez",
+    "type": "content"
+  },
+  "reasoning_effort": "low",
+  "response_format": {
+    "type": "json_object"
+  },
+  "stream": true,
+  "stream_options": {
+    "include_obfuscation": false
+  },
+  "tool_choice": {
+    "custom": {
+      "name": ",.!u ib.?R9t.H??9z,yBn,?.2? K?0?.Z8,qm,. 1.2"
+    },
+    "type": "custom"
+  }
+}

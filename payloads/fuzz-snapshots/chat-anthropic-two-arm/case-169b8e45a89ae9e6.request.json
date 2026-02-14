@@ -1,0 +1,36 @@
+{
+  "function_call": {
+    "name": ",7cS..,w.eVvv,n!?. 4 !.23 Ll.,g,P?oy.,g 2??AR??W."
+  },
+  "logprobs": false,
+  "max_completion_tokens": 450,
+  "messages": [
+    {
+      "content": "I.YUw2L.",
+      "role": "tool",
+      "tool_call_id": "3U??"
+    },
+    {
+      "content": ".Pz.I,4sy. 8x n,jZ??m3?4Z",
+      "name": "2 ngf?1?ieSr3?XR.a48ulV,G6!jw,.",
+      "role": "system"
+    }
+  ],
+  "model": "o4-mini",
+  "n": 438,
+  "stop": "?n65?Y ,eGPT9ExD?!zATi .EX6.N.40.T?4889?",
+  "store": false,
+  "stream": false,
+  "stream_options": null,
+  "top_logprobs": -994,
+  "verbosity": null,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "region": "7,Cbzn,IHn 7LY, 39,!ZI6k,.z?,6,dja?nQ.?n,,.?,U ! ",
+        "timezone": "01ak?k.!.?c dC!.?,,,"
+      },
+      "type": "approximate"
+    }
+  }
+}

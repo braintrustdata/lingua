@@ -1,0 +1,28 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.seed (986 -> null)",
+    "universal(1->2): changed: params.parallel_tool_calls (true -> null)",
+    "universal(1->2): changed: params.presence_penalty (-87.85031842859891 -> null)",
+    "universal(1->2): changed: params.store (true -> null)",
+    "universal(1->2): changed: params.response_format ({\"format_type\":\"Text\",\"json_schema\":null} -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: n",
+    "chat(final): lost: response_format",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: seed",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: audio",
+    "chat(final): lost: functions",
+    "chat(final): lost: store",
+    "chat(final): changed: stop (\"!S5.W9,A?,c.P.3fnFL.!4m1.T,?,ACD, LL?? 2?b96a!\" -> [\"!S5.W9,A?,c.P.3fnFL.!4m1.T,?,ACD, LL?? 2?b96a!\"])",
+    "chat(final): changed: messages.length (1 -> 0)",
+    "chat(final): changed: reasoning_effort (\"minimal\" -> \"low\")"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

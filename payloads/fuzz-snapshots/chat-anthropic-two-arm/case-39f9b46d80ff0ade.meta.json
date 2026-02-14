@@ -1,0 +1,23 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.top_logprobs (265 -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: functions",
+    "chat(final): lost: audio",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: modalities",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: web_search_options",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): changed: stream_options (null -> {\"include_usage\":true})",
+    "chat(final): changed: stop (\",.,7,G.\" -> [\",.,7,G.\"])",
+    "chat(final): changed: messages.length (1 -> 0)"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

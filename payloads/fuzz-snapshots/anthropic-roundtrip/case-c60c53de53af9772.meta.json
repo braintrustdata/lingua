@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: output_config.effort",
+    "lost: messages[1].content[0].cache_control",
+    "changed: thinking.budget_tokens (-487 -> 3072)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

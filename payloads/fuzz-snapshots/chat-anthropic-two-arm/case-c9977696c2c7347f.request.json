@@ -1,0 +1,55 @@
+{
+  "max_completion_tokens": 642,
+  "messages": [
+    {
+      "content": "!2.,I ?! SjH.5!fsC,P?0 W.h?,LSVf Sb9 ,,,,9T?",
+      "role": "tool",
+      "tool_call_id": "3oBSVAt, ?.b6??.?s1vLU,kd?n?WC"
+    },
+    {
+      "audio": null,
+      "function_call": {
+        "arguments": "e2!3Niy..R,,MfRum???j ?H. xxq?P N2Pk?3?,n.,.",
+        "name": "9,.X..2,S,7qWg?.Y?K .?4 F!.g,...X!?,2.?1zB???c"
+      },
+      "refusal": null,
+      "role": "assistant"
+    }
+  ],
+  "model": "gpt-4.1-2025-04-14",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": ".,,?S.m!?,, ,Q9 n?Vf.D.q?J,.4,C ,",
+    "type": "content"
+  },
+  "presence_penalty": 48.182139904969056,
+  "reasoning_effort": "high",
+  "response_format": {
+    "json_schema": {
+      "description": "?Co!7W,Dpk9!6!Kg6,.?,X ",
+      "name": ".,7Y? 1f?.,y, 9.L?!.8p,6.,",
+      "schema": {}
+    },
+    "type": "json_schema"
+  },
+  "stop": [
+    "3X g",
+    "??MPiEjZ",
+    ",a,B,,A4cNz ap  .D!! ?e2V,!x,,39cc0?S!,",
+    "JQ.?.,,d.Fc2c7 ,u1h?,Fa.G,H8t QF,"
+  ],
+  "store": true,
+  "stream_options": null,
+  "top_logprobs": 999,
+  "verbosity": "high",
+  "web_search_options": {
+    "search_context_size": "low",
+    "user_location": {
+      "approximate": {
+        "city": "?3.O?,W9??!.3mD1L!? ",
+        "country": ",Z3ve 44xDV"
+      },
+      "type": "approximate"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "max_tokens": -12,
+  "messages": [
+    {
+      "content": ".,pK?,vT.R3an,.?wxE0 .,l5dTA??.Wjp!? nA.A.",
+      "role": "user"
+    },
+    {
+      "content": ",.2u.4,1p!hwV.3,?!PJ,yZu?aY9.JCe",
+      "role": "user"
+    }
+  ],
+  "model": ".R,.,,.,N!,  1D?Ww??Uc?v?,.",
+  "output_config": {
+    "effort": "high",
+    "format": null
+  },
+  "service_tier": "auto",
+  "stop_sequences": [
+    ",M6",
+    "OzL",
+    "xLKI8RcRUY.Jue."
+  ],
+  "stream": true,
+  "system": [
+    {
+      "cache_control": null,
+      "citations": null,
+      "text": "1,,P?6..6oAhstI?60,",
+      "type": "text"
+    },
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "text": ",JSdXSIih4!w,.iX?!.5?s V.ICaPO,0,mV0Zh4n!hX9I..T",
+      "type": "text"
+    },
+    {
+      "text": "AG?g.b!t6p??D!O",
+      "type": "text"
+    }
+  ],
+  "temperature": 31.033159546376787,
+  "tool_choice": {
+    "name": "?bUc",
+    "type": "tool"
+  }
+}

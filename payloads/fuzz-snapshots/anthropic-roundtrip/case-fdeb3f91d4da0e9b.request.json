@@ -1,0 +1,28 @@
+{
+  "max_tokens": -816,
+  "messages": [
+    {
+      "content": [
+        {
+          "signature": "2? .1.X..T53??u5p!J n,,Fup,PP0?x1,Mu,U4,y,",
+          "thinking": "z,M24,QE.s,zJk?.A 8K,1 F?q.o.e.?0RFclp..",
+          "type": "thinking"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-4-opus-20250514",
+  "output_config": {},
+  "stop_sequences": [
+    "s,,U34ZB1S? .X"
+  ],
+  "stream": true,
+  "system": ",A.A!?,??,.J4.i9FN?HD,aJ !?DqyOgM9? qO0.",
+  "temperature": -12.338033844941053,
+  "tool_choice": {
+    "type": "none"
+  },
+  "top_k": -613
+}

@@ -1,0 +1,79 @@
+{
+  "function_call": "auto",
+  "logprobs": true,
+  "max_completion_tokens": -673,
+  "messages": [
+    {
+      "content": ".!?w.s",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "text": "!!w.,5F.M,???Y.!.b!R!1..2?. , l,?.hjy ?y?!,?9H",
+          "type": "text"
+        },
+        {
+          "text": "1,AN,,u.P!XF2?4qr..f.??XZ?287?Bi3.dELTa,",
+          "type": "text"
+        }
+      ],
+      "name": "?, ?.U??1dw?!8u?.g.2y,T.W?E !. b7PGy 7Z,",
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "audio",
+    "text"
+  ],
+  "model": "gpt-4o-mini-search-preview",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": ".d?,1yP?0?!,v3rw?H?I!0?7HBe?X3?sH.!d !E",
+        "type": "text"
+      },
+      {
+        "text": ".9.9xn.,t3I,MGqp!HLR1R,.!oYm,4X38,qV,..uE?",
+        "type": "text"
+      },
+      {
+        "text": "O??5,,YGWv14",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "response_format": {
+    "type": "text"
+  },
+  "store": false,
+  "stream_options": {
+    "include_obfuscation": true,
+    "include_usage": false
+  },
+  "tools": [
+    {
+      "custom": {
+        "format": {
+          "grammar": {
+            "definition": "?y?L",
+            "syntax": "regex"
+          },
+          "type": "grammar"
+        },
+        "name": "?B!.McGj1,.w.!????N,I3?1qG ?P"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "description": "?! YOF, ?Ace!j7rm?  5,.?xD.z6L?Wc?Mw1rY.!7,,",
+        "name": ",!h zA.o.0MwU5.7W!?D,5RI...?x 72.m?vK I4,?A?6"
+      },
+      "type": "custom"
+    }
+  ],
+  "verbosity": "high"
+}

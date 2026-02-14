@@ -1,0 +1,31 @@
+{
+  "max_tokens": -436,
+  "messages": [
+    {
+      "content": [
+        {
+          "signature": "T ?Z!,.?1 i0?Fa09D ..eH9y",
+          "thinking": "bo.tK?,.!Ub??6",
+          "type": "thinking"
+        },
+        {
+          "signature": "l,v RYgaug1vb.04vq6??sv,4.y!x9,",
+          "thinking": " !3N..M,d,GV 5.HH4jF.a.b2i,. ,I,V.ai.W,V..L.",
+          "type": "thinking"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-3-5-haiku-latest",
+  "output_config": {
+    "format": null
+  },
+  "service_tier": "auto",
+  "stream": false,
+  "temperature": -24.978405301072375,
+  "top_p": 40.485199585113754
+}

@@ -1,0 +1,51 @@
+{
+  "max_tokens": 306,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "text": ",vz,.fEFbF",
+          "type": "text"
+        },
+        {
+          "cache_control": null,
+          "text": "RiKYoVD,.?,j,J,6rs!,, !eCCXU9q,,q4",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "output_config": {},
+  "stop_sequences": [
+    ".,dW ,Au j5Z?.nPt,",
+    ",Oo O,a?g?Mvx?,K?bOG.?0,j.0 Hq"
+  ],
+  "system": "?!.,d,5?.qL. xh 0kmAepzl, m!9,2v,he..,Ku",
+  "temperature": 34.86175210758379,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "name": ".?n,K!nI7!09YN,DEN4",
+    "type": "tool"
+  },
+  "tools": [
+    {
+      "cache_control": null,
+      "description": "3q4Z7K?PQ ?G,L!",
+      "eager_input_streaming": false,
+      "input_schema": {
+        "properties": null,
+        "type": "object"
+      },
+      "name": "7d?0uNr,!.,,,WArUBB,ldX",
+      "strict": true,
+      "type": null
+    }
+  ],
+  "top_k": 692
+}

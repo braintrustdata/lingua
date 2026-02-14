@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: metadata",
+    "lost: tool_choice.disable_parallel_tool_use",
+    "changed: messages[0].content.length (3 -> 2)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

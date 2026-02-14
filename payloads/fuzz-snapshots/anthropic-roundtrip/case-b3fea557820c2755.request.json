@@ -1,0 +1,19 @@
+{
+  "inference_geo": null,
+  "max_tokens": 846,
+  "messages": [
+    {
+      "content": "oT!.8D ??k,,56!6,.m ,,!6.m !..an69j!.",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-3-5-haiku-latest",
+  "output_config": {
+    "format": null
+  },
+  "stream": true,
+  "thinking": {
+    "type": "adaptive"
+  },
+  "top_p": 62.37419118242286
+}

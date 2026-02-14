@@ -1,0 +1,55 @@
+{
+  "inference_geo": "AC!..Z,no!7v,L8?bJD?",
+  "max_tokens": -208,
+  "messages": [
+    {
+      "content": "K,.?,Rq",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-opus-4-0",
+  "output_config": {
+    "effort": null,
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "service_tier": "standard_only",
+  "stream": true,
+  "system": [
+    {
+      "citations": null,
+      "text": ".Y.5o!8UJ.,?3!,1f69tpci!.O !w?.!?!1.?0Y?",
+      "type": "text"
+    },
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "citations": null,
+      "text": "l Pw, ,RT.9.,J,",
+      "type": "text"
+    }
+  ],
+  "temperature": 97.85768951055165,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tool_choice": {
+    "type": "any"
+  },
+  "tools": [
+    {
+      "blocked_domains": [
+        "!,.X2.847R K ?Y ua ,8SWsbC,0SZl7?Ujc?y Z9cA.",
+        "f5KdxE4t?!Ai?t?g?jH,O!!o.!t,,,?"
+      ],
+      "cache_control": null,
+      "max_uses": null,
+      "name": "web_search",
+      "type": "web_search_20250305"
+    }
+  ],
+  "top_p": 87.40118495049907
+}

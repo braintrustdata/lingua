@@ -1,0 +1,24 @@
+{
+  "inference_geo": ",",
+  "max_tokens": -62,
+  "messages": [
+    {
+      "content": [
+        {
+          "data": "P5P.wo.C!?u,8!? q!.bE,E",
+          "type": "redacted_thinking"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": "1l,8F6d2?.19B9,!62.hz!NG.VJ.e,e.!?1oj.?QU?3?4O"
+  },
+  "model": "claude-sonnet-4-5",
+  "service_tier": "standard_only",
+  "thinking": {
+    "type": "adaptive"
+  },
+  "top_k": -149
+}

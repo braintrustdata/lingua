@@ -1,0 +1,48 @@
+{
+  "max_tokens": -817,
+  "messages": [
+    {
+      "content": "qEle?.P MdjM,S,??",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-4-opus-20250514",
+  "output_config": {
+    "effort": null,
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "stream": false,
+  "system": "!W1 c0.9!m. ,U?jN.R.v",
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tools": [
+    {
+      "name": "str_replace_editor",
+      "strict": true,
+      "type": "text_editor_20250124"
+    },
+    {
+      "max_characters": null,
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250728"
+    },
+    {
+      "description": "gnh. nR",
+      "eager_input_streaming": null,
+      "input_schema": {
+        "required": null,
+        "type": "object"
+      },
+      "name": "??H.,",
+      "type": null
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "function_call": {
+    "name": "?,3??v, ??T5Lp?.,.omI?.?J79,,5lR?PEAs!Rv,"
+  },
+  "logit_bias": {},
+  "max_completion_tokens": 708,
+  "messages": [
+    {
+      "content": ",m.bp.N.. ? s ,?j.4?.NSE",
+      "name": "nD1TnI,0W?ld8.?4?4.!RKe,,.,.B,0.s.,..2P?",
+      "role": "developer"
+    },
+    {
+      "content": "X",
+      "name": "!M.2?T?o1g!r?LuW",
+      "role": "system"
+    }
+  ],
+  "model": "gpt-4-0613",
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": "N.8C?c,K?zD!w.CKJ !?6,2V!6??40.3?",
+    "type": "content"
+  },
+  "presence_penalty": -69.58281146329081,
+  "reasoning_effort": "low",
+  "response_format": {
+    "json_schema": {
+      "name": "RNr ",
+      "schema": {}
+    },
+    "type": "json_schema"
+  },
+  "tool_choice": {
+    "function": {
+      "name": "6CWv,KXCQ5E,,,I 9?..T7,25"
+    },
+    "type": "function"
+  },
+  "top_logprobs": -162,
+  "verbosity": null
+}

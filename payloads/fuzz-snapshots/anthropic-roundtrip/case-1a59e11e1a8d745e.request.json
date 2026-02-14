@@ -1,0 +1,37 @@
+{
+  "max_tokens": -200,
+  "messages": [
+    {
+      "content": [
+        {
+          "data": "jY5d.e,O?,?,.??0",
+          "type": "redacted_thinking"
+        },
+        {
+          "data": ".,vY!.GY",
+          "type": "redacted_thinking"
+        },
+        {
+          "cache_control": null,
+          "tool_use_id": "3g41??f.?.,b,?4.kg.WU?5?9 ",
+          "type": "tool_result"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-opus-4-6",
+  "output_config": {
+    "effort": null
+  },
+  "stream": false,
+  "system": "37.jf?K!,9F18SsU,BoRB,!y.DVQ74.9?,",
+  "temperature": 35.9804718023903,
+  "thinking": {
+    "budget_tokens": 613,
+    "type": "enabled"
+  }
+}

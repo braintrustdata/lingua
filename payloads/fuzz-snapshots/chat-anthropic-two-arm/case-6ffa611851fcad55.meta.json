@@ -1,0 +1,25 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.parallel_tool_calls (true -> null)",
+    "universal(1->2): changed: params.response_format.json_schema (null -> {\"description\":null,\"name\":\"response\",\"schema\":{\"additionalProperties\":false,\"type\":\"object\"},\"strict\":null})",
+    "universal(1->2): changed: params.response_format.format_type (\"JsonObject\" -> \"JsonSchema\")",
+    "universal(1->2): changed: params.max_tokens (null -> 4096)",
+    "universal(1->2): changed: messages.length (2 -> 0)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: prediction",
+    "chat(final): lost: n",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: tool_choice",
+    "chat(final): lost: stream_options.include_obfuscation",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): added: response_format.json_schema",
+    "chat(final): added: stream_options.include_usage",
+    "chat(final): changed: messages.length (2 -> 0)",
+    "chat(final): changed: response_format.type (\"json_object\" -> \"json_schema\")"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

@@ -1,0 +1,34 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "verse"
+  },
+  "function_call": "auto",
+  "logit_bias": {},
+  "max_completion_tokens": -733,
+  "max_tokens": 240,
+  "messages": [
+    {
+      "content": "Y,0, .7",
+      "role": "user"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4o-mini-search-preview",
+  "parallel_tool_calls": false,
+  "reasoning_effort": "high",
+  "stop": [
+    "l.j?.,I?..6Q227Pf.,6XCwV"
+  ],
+  "store": false,
+  "tools": [
+    {
+      "function": {
+        "name": ", ,SK z!!?7,OX.?5 25 .V2Fh5 ?.ej  2,.!b4?!",
+        "strict": false
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 716
+}

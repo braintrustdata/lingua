@@ -1,0 +1,48 @@
+{
+  "function_call": "none",
+  "functions": [
+    {
+      "name": "!T8A En. k6O?! .XCEf .y,W?",
+      "parameters": {}
+    },
+    {
+      "name": "1q.e.6h, r.,.??,p3.,q,M6O0!! 8."
+    },
+    {
+      "description": "p!,?.,c??,K",
+      "name": "ENq!4..X .!rd,!",
+      "parameters": {}
+    }
+  ],
+  "messages": [
+    {
+      "content": "?3?o7,?jx.?.xSn?.,,eB5z..?K9,n!",
+      "name": "67swoG1. ? Jru4. .!?kHJ,2?vOO.U. .?3F V",
+      "role": "system"
+    }
+  ],
+  "model": " B,HhG!7.t0.H.35O.?,.?UB?.CkF2.S",
+  "parallel_tool_calls": true,
+  "presence_penalty": 43.54738612564572,
+  "response_format": {
+    "json_schema": {
+      "name": "wgK? g?Tv ..b?,Gb???8",
+      "strict": false
+    },
+    "type": "json_schema"
+  },
+  "seed": -725,
+  "store": false,
+  "stream": false,
+  "stream_options": {
+    "include_usage": false
+  },
+  "tool_choice": {
+    "function": {
+      "name": "e6hZ.s"
+    },
+    "type": "function"
+  },
+  "verbosity": "low",
+  "web_search_options": {}
+}

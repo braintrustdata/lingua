@@ -1,0 +1,26 @@
+{
+  "inference_geo": "x5 !,,g 11i..F.,4nMJ",
+  "max_tokens": -862,
+  "messages": [
+    {
+      "content": ".4 E?i?6?.zc!uy??,D,, 2.38MkS6dO?!?fv?2S.m1O.V.xT",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "allowed_domains": null,
+      "cache_control": null,
+      "max_uses": null,
+      "name": "web_search",
+      "strict": true,
+      "type": "web_search_20250305"
+    }
+  ],
+  "top_k": 701,
+  "top_p": 82.20543276579092
+}

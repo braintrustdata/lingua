@@ -1,0 +1,69 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "rTc"
+  },
+  "frequency_penalty": -3.2483416956856983,
+  "function_call": "auto",
+  "logit_bias": {},
+  "logprobs": false,
+  "max_completion_tokens": -211,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "XSS N?.y,x.90g.i.3kZ?. s?L!,x!.?75f?!y?BS.c.?17 ?E",
+          "type": "text"
+        },
+        {
+          "text": ". IQJ?Ag,Qwk h.y!32gtx..740E?Fu7.",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    },
+    {
+      "content": "l?z,Q,.. D!3 0",
+      "role": "tool",
+      "tool_call_id": ".?, u..r7F1?N !..FIW..nCjs760..rB .i"
+    },
+    {
+      "content": "f?,",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "i1?S?5,6?n,.,?.1. .?ToDYIr q?ZB,eG",
+  "presence_penalty": -72.31973415656762,
+  "reasoning_effort": null,
+  "stop": "r.er...338 l?.!,LGKGgeF,Sk,?8,nX",
+  "stream": true,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "function": {
+        "description": "AgmG?PD? ?A?6.7n ? M?!?n!4.R.I??F3.R? ",
+        "name": ",7b!E,?D3n?,h,2 qq",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "npl5kr!UU,It,? f,N!?0..p?t3g2,I?h",
+        "name": "?"
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": -646,
+  "verbosity": null
+}

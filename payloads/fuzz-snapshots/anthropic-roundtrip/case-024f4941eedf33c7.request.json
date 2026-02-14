@@ -1,0 +1,55 @@
+{
+  "inference_geo": "D?,!E,,H K,.,zv!0P ,!?C.3y?K?2,m,z,..0.t.7!?o5!8",
+  "max_tokens": 278,
+  "messages": [
+    {
+      "content": "tt,3LEE gV,",
+      "role": "assistant"
+    },
+    {
+      "content": "ag?R,RJc?XFK.8 .?1..5k?91???1wJP8",
+      "role": "assistant"
+    },
+    {
+      "content": "!!.7Y?.Iu,M,.??!E!!,u,6VR Wc?c!D.x66,,uH.2,b0j",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-opus-4-6",
+  "output_config": {},
+  "service_tier": "standard_only",
+  "stop_sequences": [
+    "A8",
+    "07?.Vl.hGPIT?pPMk xn?o.Q?C?L!?S?..E.Ge,oACfyyur",
+    "S F?. X,7n,.??i2?y"
+  ],
+  "system": "w22!?,?MyM?. !0c ,zA4.3.?,wm?X",
+  "tool_choice": {
+    "type": "auto"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_editor",
+      "strict": true,
+      "type": "text_editor_20250124"
+    },
+    {
+      "cache_control": {
+        "ttl": "1h",
+        "type": "ephemeral"
+      },
+      "name": "str_replace_editor",
+      "strict": false,
+      "type": "text_editor_20250124"
+    },
+    {
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250429"
+    }
+  ],
+  "top_p": -96.17673820491832
+}

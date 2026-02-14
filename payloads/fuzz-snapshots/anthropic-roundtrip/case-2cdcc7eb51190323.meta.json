@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: system",
+    "changed: messages[0].content ([{\"data\":\"Nb,\",\"type\":\"redacted_thinking\"}] -> \"\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

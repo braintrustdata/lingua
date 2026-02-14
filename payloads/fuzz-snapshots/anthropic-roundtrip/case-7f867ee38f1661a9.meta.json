@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "lost: tools[0].user_location"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

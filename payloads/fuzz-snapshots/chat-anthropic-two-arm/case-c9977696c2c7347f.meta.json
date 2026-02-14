@@ -1,0 +1,29 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.presence_penalty (48.182139904969056 -> null)",
+    "universal(1->2): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.reasoning.effort (\"high\" -> \"low\")",
+    "universal(1->2): changed: params.store (true -> null)",
+    "universal(1->2): changed: params.top_logprobs (999 -> null)",
+    "universal(1->2): changed: params.response_format.json_schema.name (\".,7Y? 1f?.,y, 9.L?!.8p,6.,\" -> \"response\")",
+    "universal(1->2): changed: params.response_format.json_schema.description (\"?Co!7W,Dpk9!6!Kg6,.?,X \" -> null)",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: prediction",
+    "chat(final): lost: store",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: messages[1].function_call",
+    "chat(final): lost: messages[1].refusal",
+    "chat(final): lost: messages[1].audio",
+    "chat(final): lost: response_format.json_schema.description",
+    "chat(final): added: tool_choice",
+    "chat(final): added: messages[1].content",
+    "chat(final): changed: reasoning_effort (\"high\" -> \"low\")",
+    "chat(final): changed: response_format.json_schema.name (\".,7Y? 1f?.,y, 9.L?!.8p,6.,\" -> \"response\")"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

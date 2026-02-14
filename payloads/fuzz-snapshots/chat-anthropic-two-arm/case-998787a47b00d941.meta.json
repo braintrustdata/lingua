@@ -1,0 +1,20 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "universal(1->2): changed: params.top_logprobs (584 -> null)",
+    "universal(1->2): changed: params.presence_penalty (-24.370205984963814 -> null)",
+    "universal(1->2): changed: params.seed (703 -> null)",
+    "chat(final): lost: seed",
+    "chat(final): lost: n",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: messages[0].name",
+    "chat(final): lost: messages[0].function_call",
+    "chat(final): added: messages[0].content"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

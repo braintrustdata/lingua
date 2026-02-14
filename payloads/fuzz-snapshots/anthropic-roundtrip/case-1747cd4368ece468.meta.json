@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: temperature",
+    "lost: metadata",
+    "lost: messages[1].content[0].data",
+    "added: messages[1].content[0].text",
+    "changed: messages[1].content[0].type (\"redacted_thinking\" -> \"text\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

@@ -1,0 +1,13 @@
+{
+  "issues": [
+    "lost: metadata",
+    "lost: tools[0].cache_control",
+    "lost: tools[1].cache_control",
+    "lost: tools[2].cache_control",
+    "lost: messages[0].content[0].cache_control",
+    "lost: messages[2].content[0].is_error",
+    "lost: messages[2].content[0].cache_control"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

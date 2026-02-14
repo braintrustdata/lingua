@@ -1,0 +1,52 @@
+{
+  "inference_geo": null,
+  "max_tokens": 5,
+  "messages": [
+    {
+      "content": "? ?0.,12 ff,WnK?QzEf,ecz?CoCY1W G L 8.r.e.M!v",
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-0",
+  "stop_sequences": [
+    ".?,.X7wany,. 9.y?XusAy3!Bd04,L,?8e"
+  ],
+  "stream": true,
+  "temperature": -87.09480543752233,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "description": " ?.,.v6o,e1?,yY.5?N1,?a.N.?PBoQ5x7t.I.",
+      "eager_input_streaming": null,
+      "input_schema": {
+        "properties": null,
+        "required": [
+          " U7l2 ?9,Oyi",
+          "m32.?.vy ,WU!?.AnY!XG? ?W5 r"
+        ],
+        "type": "object"
+      },
+      "name": "2VV,i?,5p,!MHj!3??TPG.,F?s.HP9,9 BQ!5.y00,?.S,",
+      "strict": false
+    },
+    {
+      "input_schema": {
+        "properties": {},
+        "required": null,
+        "type": "object"
+      },
+      "name": "!h,?.???8b ?q,,.mo.??Bo",
+      "strict": true
+    },
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250728"
+    }
+  ],
+  "top_p": -73.68791166233271
+}

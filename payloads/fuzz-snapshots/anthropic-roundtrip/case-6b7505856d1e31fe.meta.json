@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: tools[0].eager_input_streaming",
+    "lost: tools[1].max_characters"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

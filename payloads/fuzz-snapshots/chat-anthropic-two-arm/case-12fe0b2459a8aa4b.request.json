@@ -1,0 +1,60 @@
+{
+  "frequency_penalty": -44.904447253421246,
+  "functions": [
+    {
+      "name": ".,.K1.jP.?F..U",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "max_completion_tokens": -270,
+  "messages": [
+    {
+      "content": "Ho!8Dy.b?t1",
+      "name": "cY WW",
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "audio"
+  ],
+  "model": "gpt-5-nano-2025-08-07",
+  "n": -17,
+  "presence_penalty": -93.55241929893215,
+  "reasoning_effort": null,
+  "response_format": {
+    "type": "text"
+  },
+  "seed": -492,
+  "store": false,
+  "stream": false,
+  "tool_choice": {
+    "custom": {
+      "name": "?pvACZU.tLHabJ ,!"
+    },
+    "type": "custom"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": "N!b YV?f0ka.GkH.E,..B7?r"
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "name": "A?"
+      },
+      "type": "custom"
+    }
+  ],
+  "verbosity": "low",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "timezone": "..?y?bp3O!jl,,A1t,R,PX?2r,i 7X,?ZSd037e."
+      },
+      "type": "approximate"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: metadata",
+    "lost: tool_choice.disable_parallel_tool_use",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")",
+    "changed: messages[1].content.length (3 -> 2)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

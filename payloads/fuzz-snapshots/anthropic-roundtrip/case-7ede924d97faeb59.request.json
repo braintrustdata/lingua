@@ -1,0 +1,54 @@
+{
+  "max_tokens": -557,
+  "messages": [
+    {
+      "content": "8Go!AhJ!.W.3n?,ZB.M5RcI2?SGkJT,?9A",
+      "role": "user"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-4-sonnet-20250514",
+  "service_tier": "auto",
+  "stop_sequences": [
+    "F !3.,4!5Zt F5.s?,!T0 ..KRc,?.??uxiB1q1"
+  ],
+  "system": [
+    {
+      "cache_control": null,
+      "citations": null,
+      "text": "C,cU.2!!Y.w.Z,RSD cekfs.oT5M?5Z.,x,a?M",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "text": "??",
+      "type": "text"
+    }
+  ],
+  "thinking": {
+    "type": "disabled"
+  },
+  "tool_choice": {
+    "type": "none"
+  },
+  "tools": [
+    {
+      "allowed_domains": null,
+      "blocked_domains": [
+        "81nt?.flq.5",
+        "lW,.1..Gy!90O ,?q8!.?a xHnj?kyk6B2.",
+        ".f6!J.tK.3v67!aVn?7,"
+      ],
+      "name": "web_search",
+      "strict": false,
+      "type": "web_search_20250305",
+      "user_location": {
+        "city": null,
+        "timezone": "x2fi! !dV?F?EFWI?B,. A.?zFC.cSD,A 50.3",
+        "type": "approximate"
+      }
+    }
+  ],
+  "top_k": 772,
+  "top_p": -52.06023895207613
+}

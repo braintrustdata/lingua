@@ -1,0 +1,48 @@
+{
+  "frequency_penalty": -1.8253577695910708,
+  "function_call": "auto",
+  "logprobs": true,
+  "max_completion_tokens": -507,
+  "max_tokens": -728,
+  "messages": [
+    {
+      "content": ", Ne,t.58.N6.Hjz?Q.,C.,.Pd, AE..",
+      "name": "83?,2HO?GL3?,q18 .Y?0u!wx?.,?,,A!c..l,w?u?v?R",
+      "role": "developer"
+    },
+    {
+      "content": null,
+      "function_call": {
+        "arguments": "g.?0q?m4. VC!,3khTdD1f.5,!9 p?d,e,,,or",
+        "name": "Q,0,4pDQ!"
+      },
+      "name": "84zI9?!?C. 1S,Nnut,P01.?,!Hb9,yXQ2.??6.wu.?.0?",
+      "refusal": ". .mRn?9YCB5.,.VL?2.xMm,!.7?T?,C18!Ki.,",
+      "role": "assistant"
+    }
+  ],
+  "model": "!DaO L.,..s,4ge.7L1?!1.e7I  .U",
+  "n": -258,
+  "prediction": {
+    "content": [
+      {
+        "text": ".r,.h!myRCw!8??tBMp ,,k28tLJ?g9S.AA,VFQ?,U,?C",
+        "type": "text"
+      },
+      {
+        "text": "!EY7idG70!KetrS,83cpoI?a ",
+        "type": "text"
+      },
+      {
+        "text": "O?B..6i?eM.,?,? D,,Q,!C,,X1.a,,D? 4e,R,?fp.n,B.xvY",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": -28.846388006487327,
+  "reasoning_effort": null,
+  "stop": ".",
+  "stream_options": null,
+  "top_logprobs": -653
+}

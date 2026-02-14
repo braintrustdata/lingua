@@ -1,0 +1,92 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": ".5, f,?7.! ,MCX?.Nhn!5q4??!Qj?,.s.M ?!,Y."
+  },
+  "frequency_penalty": 64.87232185564818,
+  "logprobs": true,
+  "max_completion_tokens": 866,
+  "max_tokens": 739,
+  "messages": [
+    {
+      "content": "IK?X5,c7U?W?YtlthXYcqEJ8?f,gS?4yjP,th!,h DP!KZG!b",
+      "role": "tool",
+      "tool_call_id": "MR,y!.,!.J4 ,p?3g,"
+    }
+  ],
+  "modalities": null,
+  "model": "o1-mini",
+  "n": -472,
+  "presence_penalty": -23.500686842610058,
+  "reasoning_effort": null,
+  "response_format": {
+    "json_schema": {
+      "description": "!.Q.Z2N?.??,N!!!OxHHv,E,Q?,I9?.1e.9yo?By Sfs9G?.2?",
+      "name": "?7X!e.0?f.W6,W?,f?Zy,Zn..0s2.,Y?x,!..uU,.,a,IP22 0",
+      "schema": {},
+      "strict": null
+    },
+    "type": "json_schema"
+  },
+  "seed": -888,
+  "stream_options": {
+    "include_obfuscation": true
+  },
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "custom": {
+        "format": {
+          "grammar": {
+            "definition": "R",
+            "syntax": "regex"
+          },
+          "type": "grammar"
+        },
+        "name": "4.,,?hkM4"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "description": "Ca..?? ?..?a??",
+        "format": {
+          "grammar": {
+            "definition": "lH,,DoMN1d9??!",
+            "syntax": "regex"
+          },
+          "type": "grammar"
+        },
+        "name": "Ul?,.8l? ?c,ix,.xgPcLO,!pA?a,!h!,4C , !jS z!4BO,Q"
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "description": "I 0",
+        "name": ",z3ofq?!dB  5?b 4!OplLc,ob",
+        "parameters": {}
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": -504,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "38,?v?.,6?S?X8?bGm578?6? ",
+        "region": ",s?",
+        "timezone": "...l.Iw .s0,S?e.Fv ?rPv3.A!,nr!9"
+      },
+      "type": "approximate"
+    }
+  }
+}

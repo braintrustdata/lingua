@@ -1,0 +1,38 @@
+{
+  "frequency_penalty": -81.01036447761292,
+  "logprobs": true,
+  "max_completion_tokens": 573,
+  "messages": [
+    {
+      "content": "?x,0",
+      "role": "developer"
+    },
+    {
+      "content": "0f,?Xp.s ?,.l3?8.Z.",
+      "role": "system"
+    }
+  ],
+  "model": ".8.J?,H.?3,T.9?g?,P,?,.S.EHUE.F,?FS?J!, vBu40",
+  "n": -184,
+  "parallel_tool_calls": true,
+  "reasoning_effort": "minimal",
+  "stop": [
+    "5?aP,.vZ6r,4.JzQ,cj,t?psV4z.. J? .h?LSx,?"
+  ],
+  "stream": true,
+  "tool_choice": {
+    "custom": {
+      "name": "!rD,!,?2?u.!"
+    },
+    "type": "custom"
+  },
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": "VFGa6 njF 7.?m2. 6Ma?.,.j.?u4?zend! ,!!Eb.llO",
+        "timezone": "C i,62.?,Gd, C.csM"
+      },
+      "type": "approximate"
+    }
+  }
+}

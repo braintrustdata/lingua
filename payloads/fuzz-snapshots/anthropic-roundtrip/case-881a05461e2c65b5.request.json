@@ -1,0 +1,52 @@
+{
+  "max_tokens": 600,
+  "messages": [
+    {
+      "content": "zt3i? .,,,4CMg ? 54?,pA8.h,cBZ? 6J.8 .?B?F",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "id": "?yVg0vQ?eWpm?. ??.6  ,H!,e!p .7??t,. .NrA,",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "signature": ".50U,6l,15.zV a,?aCN!,?Kh?a?!F,LnA., 5.T!c,!?f",
+          "thinking": "Tk?!unGLc?",
+          "type": "thinking"
+        },
+        {
+          "data": " 4JD,. ,Io?2!?5.O0?Y6.W ??H!udFN?,LTo??g",
+          "type": "redacted_thinking"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": "AA?,?J?k,V8???c.D?  Xu.?0rrQAt,xs,!zq?"
+  },
+  "model": "claude-4-opus-20250514",
+  "stream": true,
+  "tool_choice": {
+    "name": ".y2?!Q?4jvV",
+    "type": "tool"
+  },
+  "tools": [
+    {
+      "cache_control": null,
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250728"
+    }
+  ],
+  "top_k": -434,
+  "top_p": -77.25876289954114
+}

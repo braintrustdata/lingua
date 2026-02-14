@@ -1,0 +1,22 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.frequency_penalty (-70.86946930209444 -> null)",
+    "universal(1->2): changed: params.top_logprobs (944 -> null)",
+    "universal(1->2): changed: params.seed (-157 -> null)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "chat(final): lost: functions",
+    "chat(final): lost: modalities",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: seed",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: n",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: audio",
+    "chat(final): added: stream_options",
+    "chat(final): changed: stop (\"J5FI\" -> [\"J5FI\"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

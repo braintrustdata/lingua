@@ -1,0 +1,60 @@
+{
+  "audio": {
+    "format": "aac",
+    "voice": "hWs7!x!a?1,J?K.6?lg..,P0A"
+  },
+  "frequency_penalty": -96.55684766524335,
+  "functions": [
+    {
+      "description": "5?vV,.?GGO8?,x?,,wmtoM,C!.A,oVLwD2a,6.?",
+      "name": "XeS?wi"
+    },
+    {
+      "description": "?8.i,c,T9C9y,b? ,5! !,3v!Le9!.yB?!?Cna?EfKX?",
+      "name": "!42s.Nxfiq1?,!? !! Z!n6?S,U?ZX. ??qi.",
+      "parameters": {}
+    }
+  ],
+  "logprobs": true,
+  "max_completion_tokens": -115,
+  "messages": [
+    {
+      "content": "k2Z?.?wz.?cRj.I.D,.f?AAFy",
+      "role": "system"
+    },
+    {
+      "content": "!,?6w,BS.k!.!y!0C!!, ???Cl?",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "19v!2!8 !?i,Vt?Cxtr?tTnsn.R",
+  "reasoning_effort": "minimal",
+  "response_format": {
+    "type": "text"
+  },
+  "stop": [
+    "K.7,r0,?!?3NR oGv. ,.,Jr"
+  ],
+  "stream": true,
+  "stream_options": null,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "verbosity": null,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": "eHB!,pu?,.V6 Z?y,!I?M!vb6.",
+        "timezone": "i5b,UYyV9Jj94gR,?Ux .,?,.onc4!1"
+      },
+      "type": "approximate"
+    }
+  }
+}

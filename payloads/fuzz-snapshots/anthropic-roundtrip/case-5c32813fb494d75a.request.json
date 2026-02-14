@@ -1,0 +1,37 @@
+{
+  "inference_geo": "g.",
+  "max_tokens": 573,
+  "messages": [
+    {
+      "content": "??.?Z?I?o 4?8 ,,, ?.nt? h.,?0J!0",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "data": "G.,wO,,sA,?14JgdS7, G?,?l5.",
+          "type": "redacted_thinking"
+        },
+        {
+          "data": "4y8tIR,SBGXiQ,.i f8lG6E9K?e?7!?vO?5,.,.!?aj,?",
+          "type": "redacted_thinking"
+        },
+        {
+          "signature": "dUx Hb9O?a1HastHq2bjPkodz4,??iTy?",
+          "thinking": "6.6?V50?no.,73w!,.? g4vPfP.h5?EYQ!b gtw!",
+          "type": "thinking"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": "!!Ca, ??P2L5L,OG!Nf,.y0,HTDv?G,9,!K1rL,WDO,?Zv.?",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-opus-4-6",
+  "stream": true,
+  "system": ".Hbyi..r.?Vj4?K. ",
+  "temperature": -65.59842608796467
+}

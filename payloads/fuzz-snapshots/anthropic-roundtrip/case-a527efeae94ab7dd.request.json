@@ -1,0 +1,57 @@
+{
+  "inference_geo": ",!z?j0 .?.Dno9a,.?,,?6?Q?y4.zrI!.1P,2.d",
+  "max_tokens": 563,
+  "messages": [
+    {
+      "content": "1OC ?4g?0 !r,!naHNwig ! t !H9Culb",
+      "role": "assistant"
+    },
+    {
+      "content": " b.??.A0a,r?Bj..3,.K?j?8v??J.?m",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-sonnet-4-5",
+  "output_config": {
+    "effort": null
+  },
+  "system": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "text": ",.?Wp?.!,J?? .g??k,",
+      "type": "text"
+    },
+    {
+      "text": "im!i.",
+      "type": "text"
+    }
+  ],
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    },
+    {
+      "description": "7Mx.,.P z0!i,9f94zw?z E Ge2c.H!V.hE",
+      "eager_input_streaming": false,
+      "input_schema": {
+        "properties": null,
+        "required": null,
+        "type": "object"
+      },
+      "name": "hPp .?2J7d?s.,1?K3!9 b OKjf .U,A!.5f?v3?.xR?"
+    },
+    {
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    }
+  ],
+  "top_k": 787,
+  "top_p": 83.3548728360083
+}

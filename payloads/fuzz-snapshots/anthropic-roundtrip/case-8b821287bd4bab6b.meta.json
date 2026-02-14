@@ -1,0 +1,13 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: messages[1].content[0].cache_control",
+    "lost: messages[1].content[0].tool_use_id",
+    "lost: tools[0].max_characters",
+    "added: messages[1].content[0].text",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")",
+    "changed: messages[1].content[0].type (\"tool_result\" -> \"text\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

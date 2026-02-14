@@ -1,0 +1,23 @@
+{
+  "inference_geo": "cm?0t,B?L!l. !3? ?6!.!.Hi.1? DEQ  ??MjZ4NC,K.?!Ei",
+  "max_tokens": 38,
+  "messages": [
+    {
+      "content": " l. .??EqS?!",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-3-opus-20240229",
+  "output_config": {
+    "effort": "medium"
+  },
+  "service_tier": "auto",
+  "stream": false,
+  "temperature": 48.30806968816723,
+  "tool_choice": {
+    "type": "any"
+  },
+  "top_k": -664,
+  "top_p": 92.77174705950263
+}

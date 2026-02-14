@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: tools[0].cache_control",
+    "changed: messages[1].content ([{\"id\":\"?yVg0vQ?eWpm?. ??.6  ,H!,e!p .7??t,. .NrA,\",\"input\":{},\"name\":\"web_search\",\"type\":\"server_tool_use\"}] -> \"\")",
+    "changed: messages[2].content.length (2 -> 1)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

@@ -1,0 +1,51 @@
+{
+  "inference_geo": ",??Uy8CE,gKh.,,",
+  "max_tokens": 416,
+  "messages": [
+    {
+      "content": "8,.!",
+      "role": "user"
+    }
+  ],
+  "model": "claude-opus-4-6",
+  "output_config": {
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "stop_sequences": [
+    "BDB4p828G.Wj4B!.3uj., Xtq.U.??T?!xH C?",
+    "z.uZQVrvG?..?J1,f..m.N?zz.!Vr?,!!8"
+  ],
+  "system": [
+    {
+      "text": "b!tkk,u..!kCy.??d?u1szaNvI .e1.Epzn,?.? 7 G",
+      "type": "text"
+    },
+    {
+      "cache_control": {
+        "ttl": "1h",
+        "type": "ephemeral"
+      },
+      "text": ",8!.vO,g 5.j90u5,.g..",
+      "type": "text"
+    },
+    {
+      "text": "!?,R",
+      "type": "text"
+    }
+  ],
+  "temperature": 23.454954946529156,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "name": "str_replace_based_edit_tool",
+      "strict": false,
+      "type": "text_editor_20250429"
+    }
+  ],
+  "top_p": 39.024312873653614
+}

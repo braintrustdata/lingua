@@ -1,0 +1,47 @@
+{
+  "function_call": "none",
+  "logit_bias": {},
+  "logprobs": true,
+  "max_completion_tokens": 23,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "F..1k.q16E,Q8??,8.X.V? AV ,.n.WN",
+          "type": "text"
+        },
+        {
+          "text": "8 !To.?YG.AxZIc.?W4V?.?a.?5H,?E.?hH h v2",
+          "type": "text"
+        },
+        {
+          "text": "w.34W,  6?, k! 6,?t!.jl!?D?7AsB43xd.",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    },
+    {
+      "content": "7  5, .n,.,,??! ??H!6!?u!6 a.8n,?R9.2KD,",
+      "name": "!!.?py,. 4TL,x.8,d?. ?.zb98?Q",
+      "role": "developer"
+    }
+  ],
+  "model": "gpt-4o-mini-search-preview-2025-03-11",
+  "n": -717,
+  "presence_penalty": -80.83508441099639,
+  "response_format": {
+    "type": "text"
+  },
+  "store": true,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "required",
+      "tools": [
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  }
+}

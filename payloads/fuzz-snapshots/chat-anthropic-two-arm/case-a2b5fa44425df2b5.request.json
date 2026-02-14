@@ -1,0 +1,56 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": "g !.?0S??f3,6A,s ?3Z.Bi,p.,vV?T.!"
+  },
+  "frequency_penalty": 92.62534090238692,
+  "functions": [
+    {
+      "name": "q.z, .hY2,!Y?w.kt,!t OpbL!?d",
+      "parameters": {}
+    },
+    {
+      "name": "P.1xSJm.FJz.!,,"
+    },
+    {
+      "name": "7??fP?Q v,!qN.1?BiT,kgi.,"
+    },
+    {
+      "name": " 3ldwDKBH",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "max_completion_tokens": -433,
+  "messages": [
+    {
+      "content": " ,BJ?,P,yx.J.",
+      "role": "tool",
+      "tool_call_id": "4Y!Y iSm?z ?1,!e..U8.B,u?,Wjk?e"
+    },
+    {
+      "content": "R,q,j!,6, vIB6?J??m.",
+      "name": "7?vny0.,uM.8j Kx7?.!?u5mVGB?1 R . 3oK0?BF,",
+      "role": "system"
+    }
+  ],
+  "model": "ZVJa0?Ce?S?bT0!h",
+  "n": 946,
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": ",!.6m!?s.?2X? y8Z??krK,?.Iz.s?hl.?!Q,3,b!4A",
+    "type": "content"
+  },
+  "presence_penalty": 97.62778271160002,
+  "reasoning_effort": null,
+  "stop": [
+    "j?",
+    "Qes?,Qb522 V, y3!K,??X!O?Cu",
+    "eX!T,?7,.?VWGp,,N??S. qi?!S?C??4",
+    "?1i??Hj 12,,O4qrD2O.6"
+  ],
+  "store": false,
+  "stream": false,
+  "stream_options": {},
+  "verbosity": null
+}

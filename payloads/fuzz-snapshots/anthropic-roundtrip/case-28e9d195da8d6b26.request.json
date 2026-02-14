@@ -1,0 +1,28 @@
+{
+  "inference_geo": "6MJyz.5p?G,Z.71SL ",
+  "max_tokens": -294,
+  "messages": [
+    {
+      "content": "0rIV. 4J ..68Jj0ic?,n?9lNFC!Vbv ,?   !.,??,W.x,C",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": "?.TB ,?I!,lTa ?Y1N,Z7,Np X?.6?Hve!.H,Hmu Y?,"
+  },
+  "model": "claude-opus-4-5",
+  "output_config": {
+    "effort": "max",
+    "format": null
+  },
+  "stop_sequences": [
+    "sF.lGc?J77V.9,.oCx82",
+    "B!.s!.",
+    "9?7CM.??z,?8rT3?.s,,?12?,?.Pb5..?"
+  ],
+  "stream": true,
+  "system": "??,W?J Yi?Wh!AO?,j?.O te?.6Ov!gC?TY?3. ",
+  "temperature": 4.471977190601019,
+  "top_k": 311,
+  "top_p": -62.015861652412525
+}

@@ -1,0 +1,84 @@
+{
+  "inference_geo": null,
+  "max_tokens": 399,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "id": "R n4?o?q?o8.uUrf4.,.3?H,",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-3-haiku-20240307",
+  "output_config": {
+    "effort": "low"
+  },
+  "stop_sequences": [
+    ",rI0?pK.?15d?z5,3,,.!D48P",
+    "7JZZm??KAyw!TNT.?Q!?.K3.4",
+    "9j!?L"
+  ],
+  "stream": true,
+  "system": [
+    {
+      "citations": [
+        {
+          "cited_text": "pg.",
+          "document_index": 514,
+          "document_title": null,
+          "end_page_number": -873,
+          "start_page_number": 691,
+          "type": "page_location"
+        },
+        {
+          "cited_text": "o!p,,!.,3A.Hbu..i.b?LpQD?is?",
+          "document_index": 132,
+          "document_title": null,
+          "end_page_number": -598,
+          "start_page_number": 5,
+          "type": "page_location"
+        }
+      ],
+      "text": "?09,V3, !M?5,?,cfd!b2.!x?4?w?v5,P,X.hq9c",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "citations": null,
+      "text": ",bU4r?2o!,??Df?3..C!x17",
+      "type": "text"
+    },
+    {
+      "text": "?4.?,9YC.  N",
+      "type": "text"
+    }
+  ],
+  "temperature": -38.15667484606309,
+  "tool_choice": {
+    "disable_parallel_tool_use": true,
+    "name": "x",
+    "type": "tool"
+  },
+  "tools": [
+    {
+      "input_schema": {
+        "required": [
+          "!Nj,.qH!lR nJ"
+        ],
+        "type": "object"
+      },
+      "name": "Ql3?.,.,a!16?,.A.M,.,!"
+    },
+    {
+      "name": "bash",
+      "type": "bash_20250124"
+    }
+  ],
+  "top_k": -985
+}

@@ -1,0 +1,22 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (2 -> 0)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.presence_penalty (-69.58281146329081 -> null)",
+    "universal(1->2): changed: params.response_format.json_schema.name (\"RNr \" -> \"response\")",
+    "universal(1->2): changed: params.top_logprobs (-162 -> null)",
+    "universal(1->2): changed: params.parallel_tool_calls (true -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: function_call",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: prediction",
+    "chat(final): lost: presence_penalty",
+    "chat(final): changed: messages.length (2 -> 0)",
+    "chat(final): changed: response_format.json_schema.name (\"RNr \" -> \"response\")"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

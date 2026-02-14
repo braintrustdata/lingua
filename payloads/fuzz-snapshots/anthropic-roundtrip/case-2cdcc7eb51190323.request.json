@@ -1,0 +1,57 @@
+{
+  "max_tokens": -24,
+  "messages": [
+    {
+      "content": [
+        {
+          "data": "Nb,",
+          "type": "redacted_thinking"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": "96 .,9.B.!!S.,KfLZq,X!DZD!",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-3-5-haiku-latest",
+  "service_tier": "standard_only",
+  "stop_sequences": [
+    "?.J?6,aEprifU.08EKc 0?.Q7",
+    ".?.lQ..yC5,c"
+  ],
+  "system": [
+    {
+      "citations": null,
+      "text": "!1S3?.!bX D,,?xfc,3!?M,,?. xR?!f,nF!,3",
+      "type": "text"
+    },
+    {
+      "text": ".!8YT?.,,?kKl ?.Qo?lKgW0kT2x",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "citations": null,
+      "text": ",157? i,.?.sND,?.6GJ.?Q.?C.2",
+      "type": "text"
+    }
+  ],
+  "temperature": 39.40246951544623,
+  "tools": [
+    {
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250429"
+    },
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    }
+  ],
+  "top_p": -42.475439005253925
+}

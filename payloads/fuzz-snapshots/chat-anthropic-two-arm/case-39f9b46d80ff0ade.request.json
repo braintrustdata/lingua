@@ -1,0 +1,60 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "G?2IZ?Rf.?,7Gm.,?Q!Sq!H?iCn,  ,,Ixjt.a?LP"
+  },
+  "functions": [
+    {
+      "description": "80.,jCdtCK.. PO.?4LK409.?,?e?4cg?7?Y.",
+      "name": "!?ET.s9?5tG,,0W ,h.?.,v.cgr?t!.25,bI!?SKvc."
+    },
+    {
+      "description": "?k0U!!,?,a 6LVY.!,d9v!7 !CjMtba7!1K,w.Kwr9?",
+      "name": ",.A!??u.6.Y!n,O6C4RKa,? 7.!207hv?a W..,!.2x,"
+    },
+    {
+      "description": "O.!?0W !f6. WE?7,?U!,i..bm",
+      "name": "6!, .!,24o??,r.tbI U8ke3v!0EIU,!?,,.?a?8JMpDG4G.B",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "max_tokens": 490,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": ", fR.?X2A7J.5?h2 ., Uv,9,hFeo",
+          "type": "text"
+        },
+        {
+          "text": "?Mt5?p?. ?sna??,?aej3b2?",
+          "type": "text"
+        },
+        {
+          "text": "C.Q.4?. .g!.mo,g,8p,sU?",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4o-2024-05-13",
+  "stop": ",.,7,G.",
+  "stream": true,
+  "stream_options": null,
+  "top_logprobs": 265,
+  "verbosity": null,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "X8Pl",
+        "country": "U?ej?u?.?409?j1.B582,JY5 .",
+        "timezone": "qyR6f? m.sn8.??y !?,rY C.,W j,F9LK.4!023z"
+      },
+      "type": "approximate"
+    }
+  }
+}

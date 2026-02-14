@@ -1,0 +1,103 @@
+{
+  "max_tokens": -562,
+  "messages": [
+    {
+      "content": ".eHLEuF,M",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-sonnet-4-20250514",
+  "output_config": {
+    "format": null
+  },
+  "stop_sequences": [
+    "V?Y?.G,,Eqm,9.9??",
+    " ,5,"
+  ],
+  "stream": false,
+  "system": [
+    {
+      "cache_control": null,
+      "citations": [
+        {
+          "cited_text": " !D fzNU,.? tg1.!XcB9. 7o?s??! ?.e UX3.a.,fp5.A ",
+          "document_index": -838,
+          "document_title": "GA",
+          "end_block_index": -418,
+          "start_block_index": -486,
+          "type": "content_block_location"
+        },
+        {
+          "cited_text": ",",
+          "document_index": -341,
+          "document_title": "xsXTph?.N?!keO??M6,L?YK! uL.,?x,t?U4f.",
+          "end_page_number": -359,
+          "start_page_number": -750,
+          "type": "page_location"
+        },
+        {
+          "cited_text": "gJ",
+          "document_index": 969,
+          "document_title": "?Obu,,  h,A,xN",
+          "end_block_index": 741,
+          "start_block_index": 746,
+          "type": "content_block_location"
+        }
+      ],
+      "text": "..PN,rJ,Wj.28E7r.?.J.c,S!ev0,.",
+      "type": "text"
+    },
+    {
+      "text": "vU,F?4D.?ixb,.,p..b5J,s?.d?u,?g.",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "citations": [
+        {
+          "cited_text": "l?,9 ?,?E!G.!",
+          "document_index": -60,
+          "document_title": ",qzSI!3YY6,8",
+          "end_char_index": 925,
+          "start_char_index": -886,
+          "type": "char_location"
+        },
+        {
+          "cited_text": "Cu8.,R.5? ?3kW.",
+          "encrypted_index": "8.7.! .M?c..,.?0 7JlE7H!k,G,8.iQ,DehgS.?f0!o2 .KfZ",
+          "title": "?g??ZXOieZN nMJv,?p, ??3o0F7T.mng.,h.rC?,,",
+          "type": "web_search_result_location",
+          "url": "pQ,FRZV?,8!MkPp.87NN9.?.AR!"
+        }
+      ],
+      "text": "!Ft!5X!S?.,?.g?Q.?xM!72T9.",
+      "type": "text"
+    }
+  ],
+  "temperature": -90.04625210677798,
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "name": "w?,o d js,!4 ZO",
+    "type": "tool"
+  },
+  "tools": [
+    {
+      "name": "web_search",
+      "strict": true,
+      "type": "web_search_20250305"
+    },
+    {
+      "cache_control": {
+        "ttl": "1h",
+        "type": "ephemeral"
+      },
+      "name": "str_replace_based_edit_tool",
+      "strict": false,
+      "type": "text_editor_20250728"
+    }
+  ],
+  "top_p": -19.223746885709993
+}

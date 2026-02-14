@@ -1,0 +1,61 @@
+{
+  "inference_geo": "VM7arrm0O7tP..m!,o4! xJQ?odTVMU4!xTi...",
+  "max_tokens": 813,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "text": "u.6l,z?GgzI??B.Mp",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": ".0F E8zK.e,F?.iAVh??z! O.!i.!.?ZOhFf",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-3-7-sonnet-latest",
+  "service_tier": "standard_only",
+  "stream": true,
+  "system": [
+    {
+      "cache_control": null,
+      "text": "?Ju1??h.Z,q?g4?3H1l.a6ehd?!!lT,?c?.8l1.?,5,Z4Ed?",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "citations": [
+        {
+          "cited_text": ",mQFm .n.9q,x?S?a pT,T?riU3m,rQJ!?6?.",
+          "end_block_index": -342,
+          "search_result_index": 847,
+          "source": "?x?,F.Nm,G JP InlFkD8hW1??n A",
+          "start_block_index": -789,
+          "title": "1!6 ?m!,Skr1.j un?P8,W,.?",
+          "type": "search_result_location"
+        }
+      ],
+      "text": "J !6150!.K. ae. 3t.??e,qd.oT?,UJ",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "text": "ln7 Wk..?g.0 E",
+      "type": "text"
+    }
+  ],
+  "thinking": {
+    "budget_tokens": 783,
+    "type": "enabled"
+  },
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "type": "auto"
+  },
+  "top_p": 24.29759340417002
+}

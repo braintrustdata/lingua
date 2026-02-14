@@ -1,0 +1,33 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "universal(1->2): changed: params.presence_penalty (-63.648922087849016 -> null)",
+    "universal(1->2): changed: params.response_format.json_schema.description (\"M2D0.JHZsa,0 .89,!K.?f.XPAw.,rpYIP??89f18\" -> null)",
+    "universal(1->2): changed: params.response_format.json_schema.name (\"b,.??Tp?,?NZx..h T!49Z42?Lusjg,?!C,z?30?.w,\" -> \"response\")",
+    "universal(1->2): changed: params.seed (711 -> null)",
+    "universal(1->2): changed: params.top_logprobs (373 -> null)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: tool_choice",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: seed",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: audio",
+    "chat(final): lost: functions",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: function_call",
+    "chat(final): lost: response_format.json_schema.strict",
+    "chat(final): lost: response_format.json_schema.description",
+    "chat(final): changed: max_completion_tokens (47 -> -779)",
+    "chat(final): changed: messages.length (1 -> 0)",
+    "chat(final): changed: stream_options (null -> {\"include_usage\":true})",
+    "chat(final): changed: response_format.json_schema.name (\"b,.??Tp?,?NZx..h T!49Z42?Lusjg,?!C,z?30?.w,\" -> \"response\")",
+    "chat(final): changed: stop (\"8L?,Yp1zZAj, ?.L,j ,B  \" -> [\"8L?,Yp1zZAj, ?.L,j ,B  \"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

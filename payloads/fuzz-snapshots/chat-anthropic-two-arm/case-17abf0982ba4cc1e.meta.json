@@ -1,0 +1,21 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.parallel_tool_calls (true -> null)",
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.frequency_penalty (-81.01036447761292 -> null)",
+    "universal(1->2): changed: messages.length (2 -> 0)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: n",
+    "chat(final): lost: tool_choice",
+    "chat(final): added: stream_options",
+    "chat(final): changed: reasoning_effort (\"minimal\" -> \"low\")",
+    "chat(final): changed: messages.length (2 -> 0)"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

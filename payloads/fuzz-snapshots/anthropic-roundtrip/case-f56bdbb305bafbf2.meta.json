@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

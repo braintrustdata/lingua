@@ -1,0 +1,36 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": ".U47.mZ SDw? 2y7hAC ?L,CYbQ?i.!w43gYS!,,. .na?,."
+  },
+  "logit_bias": {},
+  "logprobs": true,
+  "messages": [
+    {
+      "content": "6AiAj.j, .Sl,.?,?.SW??x???2!t",
+      "role": "user"
+    },
+    {
+      "content": "!2i,Sw! ,!l Zw,,!Jc? !,Xr?2KW1 4a?38F",
+      "role": "user"
+    },
+    {
+      "content": "e.c!!7oF.0Nc ..4?? T2 J!GVEVf?, ?8?QBJ ,,6qht5?",
+      "role": "user"
+    }
+  ],
+  "modalities": null,
+  "model": "2s,Zn?8bf.,rq.,4v!,?3.?UG. eg.?.77il!.2.f.1.",
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": "0,Xh!..,GJ5YD.BB,.D?o 8.KyA",
+    "type": "content"
+  },
+  "response_format": {
+    "type": "json_object"
+  },
+  "stop": ".Mko?0?w9?XzSoE?e!7Q",
+  "store": false,
+  "stream": true,
+  "top_logprobs": 219
+}

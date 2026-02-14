@@ -1,0 +1,36 @@
+{
+  "inference_geo": "HR u!3V,n3?Q.e.!.tlo",
+  "max_tokens": -329,
+  "messages": [
+    {
+      "content": ",a.O,,H?,4a.5,6PS.so?!?uc",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-3-5-haiku-latest",
+  "service_tier": "standard_only",
+  "stop_sequences": [
+    ".1h.u6N5,q .!j!wt.m?X,Va5,h?,15Sn.V!,, ?j6C?,9i."
+  ],
+  "stream": true,
+  "system": ".p6?",
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tools": [
+    {
+      "name": "bash",
+      "strict": false,
+      "type": "bash_20250124"
+    },
+    {
+      "blocked_domains": null,
+      "max_uses": null,
+      "name": "web_search",
+      "type": "web_search_20250305",
+      "user_location": null
+    }
+  ],
+  "top_k": 646
+}

@@ -1,0 +1,16 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "universal(1->2): changed: params.response_format ({\"format_type\":\"JsonSchema\",\"json_schema\":null} -> null)",
+    "chat(final): lost: response_format",
+    "chat(final): lost: n",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: functions",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): added: tool_choice"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

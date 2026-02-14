@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: metadata",
+    "lost: tools[0].blocked_domains"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

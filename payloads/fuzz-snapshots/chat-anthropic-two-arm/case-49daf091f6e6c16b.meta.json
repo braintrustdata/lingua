@@ -1,0 +1,20 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "universal(1->2): changed: params.store (false -> null)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.top_logprobs (435 -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: prediction",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: audio",
+    "chat(final): lost: store",
+    "chat(final): changed: stop (\"WeOy,kgYO.Rh1! .rBR!e?6LGr\" -> [\"WeOy,kgYO.Rh1! .rBR!e?6LGr\"])",
+    "chat(final): changed: messages.length (1 -> 0)",
+    "chat(final): changed: max_completion_tokens (-703 -> 978)"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

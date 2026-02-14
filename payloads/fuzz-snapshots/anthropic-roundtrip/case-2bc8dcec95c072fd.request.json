@@ -1,0 +1,32 @@
+{
+  "max_tokens": -718,
+  "messages": [
+    {
+      "content": "Ri??,QQ.g!.s.y?IdX4,!?!1.430,.?oGOJ,2??VCtT?N,r!,",
+      "role": "assistant"
+    },
+    {
+      "content": ",,,?y,bOZ?4m",
+      "role": "user"
+    },
+    {
+      "content": "tq5d, ?Hk38!n.3?z W.O9 ?!?UdSG .,XkJVe",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "?,C..?!nVxN?Eay",
+  "output_config": {},
+  "stop_sequences": [
+    "MW?HwkS.6G5Oub4 .O,,hT?, .Rk4.,ISs .l?,z",
+    "d, U.60h",
+    "? 5Lq k,? C...,!N,k !T4!xIvL!ykD??1O,!y?"
+  ],
+  "system": "? ,S!?.2.lEOuO5cHpB!Pi.",
+  "temperature": -45.42449591748114,
+  "tool_choice": {
+    "disable_parallel_tool_use": true,
+    "type": "auto"
+  },
+  "top_k": 864
+}

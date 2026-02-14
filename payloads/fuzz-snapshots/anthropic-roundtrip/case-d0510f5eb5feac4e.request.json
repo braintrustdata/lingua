@@ -1,0 +1,43 @@
+{
+  "inference_geo": "GH??.e.K?x!5??.!??!?.!XHf,,X,!5f.7",
+  "max_tokens": 11,
+  "messages": [
+    {
+      "content": "?vX4d?y2,,C!",
+      "role": "user"
+    }
+  ],
+  "model": "claude-opus-4-20250514",
+  "output_config": {
+    "effort": null
+  },
+  "stop_sequences": [
+    "?2P,q7gxt ?.n",
+    ",LC ,,aH0.E,f5R.. ?!Mi,T..vj,5"
+  ],
+  "system": ".I.h,2?Z!,6.8,OB.?,U.,eUi o7",
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tool_choice": {
+    "type": "none"
+  },
+  "tools": [
+    {
+      "description": ",,kk.V8 93?C?t,x4. .VXHJ.?,5Ie,,DOZU,c,CH? ",
+      "eager_input_streaming": null,
+      "input_schema": {
+        "properties": null,
+        "required": null,
+        "type": "object"
+      },
+      "name": " .YvH?2?!w25885s.Th?tZ..9.uLmuR?0. 0.t8 .MYE0m",
+      "type": "custom"
+    },
+    {
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    }
+  ],
+  "top_k": 530
+}

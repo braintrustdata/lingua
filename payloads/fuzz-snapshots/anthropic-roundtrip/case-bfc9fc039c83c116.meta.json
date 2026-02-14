@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: output_config",
+    "lost: messages[1].content[0].cache_control",
+    "lost: tools[2].max_uses"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

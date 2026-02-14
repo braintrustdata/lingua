@@ -1,0 +1,44 @@
+{
+  "max_tokens": 233,
+  "messages": [
+    {
+      "content": "qun?bDD.?..,y..!.S3f,?",
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "stop_sequences": [
+    "!W cU706oP..?3?Ct.24!653t.Blzu2",
+    "?a6m ",
+    "C2,?0?pX.Q5g,F,!H8XLz?7m,. hT2g"
+  ],
+  "system": [
+    {
+      "text": "..7? 3?7 .Sz,.?,?Hoy.ZXj3eA ,?W ",
+      "type": "text"
+    }
+  ],
+  "tools": [
+    {
+      "cache_control": null,
+      "description": "U?q.NW ,!x3n,.Wp7,XImunNyED.,.l,gBh,?z ,",
+      "eager_input_streaming": null,
+      "input_schema": {
+        "type": "object"
+      },
+      "name": "!..,B3?ofu 8.yWn?!?,lQ.!AS.",
+      "strict": true
+    },
+    {
+      "blocked_domains": [
+        "k,.?I,dj1.oLm.! .M??vc.X?Hz.Ha!.ym?!CO2?,tC 9Z!Fy.",
+        ".h,v,Uf3..?.!z7!3y3?.WO?8"
+      ],
+      "cache_control": null,
+      "max_uses": null,
+      "name": "web_search",
+      "type": "web_search_20250305"
+    }
+  ],
+  "top_k": -637
+}

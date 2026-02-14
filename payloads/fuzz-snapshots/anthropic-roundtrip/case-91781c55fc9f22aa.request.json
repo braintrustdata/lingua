@@ -1,0 +1,58 @@
+{
+  "inference_geo": null,
+  "max_tokens": -541,
+  "messages": [
+    {
+      "content": ".u5,b4Iu .!z2!nAR ??ML0U,",
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "effort": "low",
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "stream": true,
+  "system": "..,.,Py.,K!.r?,7.!2",
+  "thinking": {
+    "type": "disabled"
+  },
+  "tool_choice": {
+    "name": ".",
+    "type": "tool"
+  },
+  "tools": [
+    {
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250728"
+    },
+    {
+      "blocked_domains": null,
+      "cache_control": null,
+      "max_uses": null,
+      "name": "web_search",
+      "strict": true,
+      "type": "web_search_20250305",
+      "user_location": {
+        "city": null,
+        "country": null,
+        "region": null,
+        "type": "approximate"
+      }
+    },
+    {
+      "description": ".?.,.lz,5?eg!5?,WR.? .",
+      "input_schema": {
+        "required": null,
+        "type": "object"
+      },
+      "name": "Yyjwk3 m53",
+      "strict": true
+    }
+  ],
+  "top_p": -7.292380974733974
+}

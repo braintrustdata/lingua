@@ -1,0 +1,43 @@
+{
+  "inference_geo": null,
+  "max_tokens": -634,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "text": "bWZap.W?YR.,D.t,",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-3-5-haiku-latest",
+  "service_tier": "standard_only",
+  "temperature": 96.57374379709864,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "max_characters": null,
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250728"
+    },
+    {
+      "cache_control": null,
+      "name": "bash",
+      "strict": false,
+      "type": "bash_20250124"
+    }
+  ],
+  "top_p": -24.592204639888365
+}

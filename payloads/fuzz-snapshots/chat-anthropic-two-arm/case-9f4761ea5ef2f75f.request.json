@@ -1,0 +1,64 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": "Y.g.?rHn,9?H3B6HArv?.N?Z0J,!1?q4Hcj3!Z"
+  },
+  "max_tokens": 59,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": ",  ! T3p.J Aw1,!o.?GX,8!R VV!ZG?Vp,.zQ",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "model": "gpt-4o-mini-audio-preview",
+  "n": 277,
+  "reasoning_effort": null,
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "function": {
+        "name": "?  jP.?rxWh U????SkgB,xF.ECoHr?m,v.sG.pF5.13",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "description": "W ,3085?Q?U,!Z?J!HCkp?PaH.z??b.p0b8,5,Q8! .5,i",
+        "format": {
+          "type": "text"
+        },
+        "name": "gPE y.1?R .q8?,,,!g !6sf,?AOt,CE..,"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "format": {
+          "grammar": {
+            "definition": "oSJ!k 8?..2 b  t.!3?x,,x?,87n,L.?..M.?d7TK4C??Y",
+            "syntax": "regex"
+          },
+          "type": "grammar"
+        },
+        "name": "Q 9 .W.55a.!2m,,18Zl,M.t0x?,?.z?j.0!a!?D71UZ"
+      },
+      "type": "custom"
+    }
+  ],
+  "verbosity": "low",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "9?WB?.?",
+        "region": "G4?eq!7?,?o.,!Y9G4vo5?? ?"
+      },
+      "type": "approximate"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (2 -> 1)",
+    "universal(1->2): changed: params.store (false -> null)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.top_logprobs (-994 -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: function_call",
+    "chat(final): lost: n",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: store",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: logprobs",
+    "chat(final): changed: messages.length (2 -> 1)",
+    "chat(final): changed: stop (\"?n65?Y ,eGPT9ExD?!zATi .EX6.N.40.T?4889?\" -> [\"?n65?Y ,eGPT9ExD?!zATi .EX6.N.40.T?4889?\"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

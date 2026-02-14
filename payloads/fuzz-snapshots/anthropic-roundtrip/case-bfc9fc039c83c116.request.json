@@ -1,0 +1,67 @@
+{
+  "max_tokens": 417,
+  "messages": [
+    {
+      "content": "mB.A??4hwwnS.",
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "text": "B?hDHP..qT9!sMP...fxjE,2r,!,??,sg,,h",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": "U4,n?L?t3R !u4oHUE,g,z5ME.?,?.,.?7?jTy ?!,F?.LG ",
+      "role": "user"
+    }
+  ],
+  "model": "claude-3-opus-latest",
+  "output_config": {
+    "effort": null
+  },
+  "system": [
+    {
+      "citations": null,
+      "text": "L.b6xw?,,?.?.???,jK5b0uUJ.?,?f",
+      "type": "text"
+    },
+    {
+      "citations": null,
+      "text": ".Rn?L.?yd,Y?22a0.X",
+      "type": "text"
+    },
+    {
+      "text": "ghWNem?d2Z,wO?4,.m.,.Pb!FyxeCuO!.d?StB?",
+      "type": "text"
+    }
+  ],
+  "temperature": 38.17167741430375,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "name": "bash",
+      "type": "bash_20250124"
+    },
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    },
+    {
+      "max_uses": null,
+      "name": "web_search",
+      "type": "web_search_20250305"
+    }
+  ],
+  "top_k": 231,
+  "top_p": -9.979844891690446
+}

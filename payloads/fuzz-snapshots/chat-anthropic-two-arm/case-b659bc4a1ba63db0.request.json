@@ -1,0 +1,109 @@
+{
+  "frequency_penalty": 21.080570978954594,
+  "function_call": {
+    "name": "Ps!CI fL?q ZKeR"
+  },
+  "functions": [
+    {
+      "description": ".f!,?.40!,5zw7kQA4.?.?.D 2",
+      "name": "??F !..p,c.?.8KG. z! ,aG!??!G?y.H2!1,9!! f",
+      "parameters": {}
+    },
+    {
+      "name": "!zMS8LS15?.! ?P?Z,.Oa?Fce!?Sax..hq"
+    },
+    {
+      "description": "?D!.?Gl!0w,UicbGnn..?lF.M5",
+      "name": "17bwp uQ ,UG,xA "
+    },
+    {
+      "name": " S, !77,k73Ew?f?,"
+    }
+  ],
+  "logit_bias": {},
+  "max_completion_tokens": 936,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "21?Sr?.6dR.,yU6P0D,M",
+          "type": "text"
+        },
+        {
+          "text": "V.G J?E6 7",
+          "type": "text"
+        }
+      ],
+      "name": ".o?S??A?!j 0,3g?!lxr293nJea",
+      "role": "developer"
+    },
+    {
+      "content": " ?q?4hA  ?Sy!2Iu!1M89.!Ie7?1,? C0Z 8.",
+      "role": "tool",
+      "tool_call_id": "?D,c!jUn?b?3S?G?KP.n,m?vz!Aa.N,5?I!IXnd.???..,?"
+    }
+  ],
+  "model": "b w.4!JWxuH",
+  "n": -232,
+  "prediction": {
+    "content": [
+      {
+        "text": "...Q,",
+        "type": "text"
+      },
+      {
+        "text": " o7Y.SwqN ?P,VWNH7B.JT.kQWnTi?.xm9?5? ",
+        "type": "text"
+      },
+      {
+        "text": "y.,. !?cdeuSx7UN?VP Kk? GT2, ,!?.?.?l",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": 63.265115708554795,
+  "reasoning_effort": null,
+  "response_format": {
+    "type": "text"
+  },
+  "seed": 511,
+  "stop": [
+    "7T?o,R,9!z?,.R?r.1.",
+    "j!,cN,oH!GRE,S!E37?p l3,A",
+    "6te,,N,8.H5l9u,6xmR,.Q3!.Y!Wa2hY?",
+    ".WPM?,G6?.daI!..r. !m,,?7?0.f6,wd "
+  ],
+  "store": false,
+  "stream": false,
+  "tool_choice": {
+    "custom": {
+      "name": "K9,z,?,R.h11Z!..mTu YN?"
+    },
+    "type": "custom"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": "V2 ?n5cc2W?.8",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "description": "7.k??P",
+        "name": "0.,mR ,..ti?9C,.0!k?!?G9.j,q ,?gw5!0,cF6uhJ.QcO."
+      },
+      "type": "custom"
+    }
+  ],
+  "top_logprobs": -978,
+  "web_search_options": {
+    "search_context_size": "low",
+    "user_location": {
+      "approximate": {},
+      "type": "approximate"
+    }
+  }
+}

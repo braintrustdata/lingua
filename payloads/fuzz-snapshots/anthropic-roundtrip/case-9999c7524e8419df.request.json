@@ -1,0 +1,53 @@
+{
+  "max_tokens": -99,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "id": ",A, !.r?8! !iYk5YRj?JXkVAR.2",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-sonnet-4-5",
+  "service_tier": "auto",
+  "stop_sequences": [
+    "z A  !O,0?0Xa,I?B0,?ryf3.Yz 4C,,9e.?n?.ea87. ",
+    "DtzMRkQ,a9,7cH!8? ??ZK!6.1?Q4tz?jw,?N8nD.,5Nc.4,",
+    "r? 95rdU?x"
+  ],
+  "stream": true,
+  "temperature": -14.853389058570787,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "name": "i.",
+    "type": "tool"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "ttl": "1h",
+        "type": "ephemeral"
+      },
+      "max_characters": -583,
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250728"
+    },
+    {
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250728"
+    }
+  ],
+  "top_k": -981
+}

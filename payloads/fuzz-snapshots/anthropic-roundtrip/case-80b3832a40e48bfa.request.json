@@ -1,0 +1,47 @@
+{
+  "inference_geo": null,
+  "max_tokens": 6,
+  "messages": [
+    {
+      "content": "55.. ?FK ,PNf?Cf?!??A?V.! ,!.,clM2,8 T4C?",
+      "role": "user"
+    }
+  ],
+  "metadata": {
+    "user_id": "GgjXI9e,6h3 i,..C.C"
+  },
+  "model": "claude-haiku-4-5-20251001",
+  "service_tier": "auto",
+  "stop_sequences": [
+    "lk7G ?.oABen14u?",
+    "?xM!d,qN,RcI4?!rQ!WKe NtvB?L?jin?."
+  ],
+  "stream": false,
+  "system": "zZk!,z gr",
+  "tools": [
+    {
+      "name": "bash",
+      "strict": true,
+      "type": "bash_20250124"
+    },
+    {
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    },
+    {
+      "allowed_domains": null,
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "web_search",
+      "strict": false,
+      "type": "web_search_20250305",
+      "user_location": {
+        "city": null,
+        "country": "O.kjd rhA?G4!een,K.0h!,RQ,?bAv?? !6,u?I.!,Y.?",
+        "type": "approximate"
+      }
+    }
+  ],
+  "top_k": 831
+}

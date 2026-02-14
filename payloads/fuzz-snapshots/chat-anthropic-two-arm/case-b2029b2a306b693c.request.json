@@ -1,0 +1,38 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "?Ox"
+  },
+  "function_call": {
+    "name": "."
+  },
+  "functions": [
+    {
+      "name": "!.3!E!?,?!.s?4q4n?9wH.mdB! aq1p8Zx,26!,w. e!,.",
+      "parameters": {}
+    },
+    {
+      "name": "z,?7G5..Pvl5b3.jpHO6k?X!??6 s?4osc,WGdY.X!Wht"
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "messages": [
+    {
+      "content": "f?.g0!a?.k?m09f.4!ah.W4",
+      "role": "tool",
+      "tool_call_id": "G.J3.5...??DW?jQ nG"
+    }
+  ],
+  "model": "gpt-5",
+  "response_format": {
+    "type": "text"
+  },
+  "stop": [
+    "4!KjK? z?1J0GoRN.?a..7,d,k1.xA P.2L!!,,",
+    " .?!!0.  9E.!XKy1K.!,!?,C.??z5,.,.0.,",
+    "I,y35E5,.,"
+  ],
+  "tool_choice": "none",
+  "verbosity": "low"
+}

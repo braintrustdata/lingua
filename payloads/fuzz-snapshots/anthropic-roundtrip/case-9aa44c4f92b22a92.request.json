@@ -1,0 +1,50 @@
+{
+  "max_tokens": -440,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "text": "fF?n?yb!.0fn?!?m,.?P9?BJG8k4p.,",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": "!eGJ!2!V,i,,?j,T95u.!!n!F.035a TL. 9?.,,Aw",
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-0",
+  "service_tier": "standard_only",
+  "system": "1,8.cQ",
+  "temperature": 59.925172059465666,
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tool_choice": {
+    "type": "auto"
+  },
+  "tools": [
+    {
+      "name": "bash",
+      "strict": true,
+      "type": "bash_20250124"
+    },
+    {
+      "allowed_domains": null,
+      "blocked_domains": [
+        "kg,GG..cf.1,.!"
+      ],
+      "max_uses": null,
+      "name": "web_search",
+      "type": "web_search_20250305",
+      "user_location": {
+        "country": null,
+        "type": "approximate"
+      }
+    }
+  ],
+  "top_k": 826
+}

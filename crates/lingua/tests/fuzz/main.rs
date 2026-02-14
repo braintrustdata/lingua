@@ -23,332 +23,6 @@ const SNAPSHOT_SUITE_OPENAI: &str = "openai-roundtrip";
 const SNAPSHOT_SUITE_ANTHROPIC: &str = "anthropic-roundtrip";
 const SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM: &str = "chat-anthropic-two-arm";
 
-fn is_openai_exact_roundtrip_scope(payload: &Value) -> bool {
-    let Some(root) = payload.as_object() else {
-        return false;
-    };
-
-    // Canonicalization differences currently outside strict-equality scope.
-    if root.contains_key("max_tokens")
-        || root.contains_key("tool_choice")
-        || root.contains_key("response_format")
-        || root.contains_key("reasoning_effort")
-        || root.contains_key("tools")
-    {
-        return false;
-    }
-
-    if root
-        .get("stop")
-        .is_some_and(|v| matches!(v, Value::String(_)))
-    {
-        return false;
-    }
-
-    if root.get("stream").and_then(Value::as_bool) == Some(true) {
-        return false;
-    }
-
-    let Some(messages) = root.get("messages").and_then(Value::as_array) else {
-        return false;
-    };
-
-    for message in messages {
-        let Some(msg) = message.as_object() else {
-            return false;
-        };
-
-        // Message-level fields not yet preserved exactly.
-        if msg.contains_key("name")
-            || msg.contains_key("audio")
-            || msg.contains_key("function_call")
-            || msg.contains_key("refusal")
-        {
-            return false;
-        }
-
-        // `developer` collapses to universal `system`, so exact role roundtrip is out of scope.
-        if msg.get("role").and_then(Value::as_str) == Some("developer") {
-            return false;
-        }
-
-        // Assistant messages without content roundtrip back as empty content.
-        if msg.get("role").and_then(Value::as_str) == Some("assistant")
-            && !msg.contains_key("content")
-            && !msg.contains_key("tool_calls")
-        {
-            return false;
-        }
-    }
-
-    true
-}
-
-fn is_anthropic_exact_roundtrip_scope(payload: &Value) -> bool {
-    let Some(root) = payload.as_object() else {
-        return false;
-    };
-
-    // Canonicalized through universal representation in ways that are not exact.
-    if root.contains_key("output_format")
-        || root.contains_key("output_config")
-        || root.contains_key("thinking")
-        || root.contains_key("tool_choice")
-        || root.contains_key("tools")
-        || root.contains_key("system")
-    {
-        return false;
-    }
-
-    if root.get("stream").and_then(Value::as_bool) == Some(true) {
-        return false;
-    }
-
-    // Anthropic only preserves metadata.user_id.
-    if let Some(metadata) = root.get("metadata") {
-        let Some(obj) = metadata.as_object() else {
-            return false;
-        };
-        if obj.len() != 1 || !obj.contains_key("user_id") {
-            return false;
-        }
-        if !obj.get("user_id").is_some_and(Value::is_string) {
-            return false;
-        }
-    }
-
-    let Some(messages) = root.get("messages").and_then(Value::as_array) else {
-        return false;
-    };
-
-    for message in messages {
-        let Some(msg) = message.as_object() else {
-            return false;
-        };
-        if msg.get("role").and_then(Value::as_str).is_none() {
-            return false;
-        }
-        let Some(content) = msg.get("content") else {
-            return false;
-        };
-        match content {
-            Value::String(_) => {}
-            Value::Array(parts) => {
-                // Restrict to text-only blocks for exact roundtrip mode.
-                for part in parts {
-                    let Some(part_obj) = part.as_object() else {
-                        return false;
-                    };
-                    if part_obj.get("type").and_then(Value::as_str) != Some("text") {
-                        return false;
-                    }
-                }
-            }
-            _ => return false,
-        }
-    }
-
-    true
-}
-
-fn is_chat_to_anthropic_two_arm_scope(payload: &Value) -> bool {
-    if !is_openai_exact_roundtrip_scope(payload) {
-        return false;
-    }
-
-    let Some(root) = payload.as_object() else {
-        return false;
-    };
-
-    // Parameters unsupported by Anthropic and not expected to roundtrip through it.
-    if root.contains_key("frequency_penalty")
-        || root.contains_key("presence_penalty")
-        || root.contains_key("logprobs")
-        || root.contains_key("top_logprobs")
-        || root.contains_key("store")
-        || root.contains_key("prediction")
-        || root.contains_key("functions")
-        || root.contains_key("audio")
-        || root.contains_key("function_call")
-    {
-        return false;
-    }
-
-    let Some(messages) = root.get("messages").and_then(Value::as_array) else {
-        return false;
-    };
-
-    for message in messages {
-        let Some(msg) = message.as_object() else {
-            return false;
-        };
-        // Keep initial arm focused on text-only, no tool-call payload shape changes.
-        if msg.contains_key("tool_calls")
-            || msg.get("role").and_then(Value::as_str) == Some("system")
-        {
-            return false;
-        }
-    }
-
-    true
-}
-
-fn sanitize_chat_for_two_arm_payload(payload: Value) -> Value {
-    let mut payload = payload;
-    let Some(root) = payload.as_object_mut() else {
-        return payload;
-    };
-
-    for key in [
-        "frequency_penalty",
-        "presence_penalty",
-        "logprobs",
-        "top_logprobs",
-        "store",
-        "prediction",
-        "functions",
-        "audio",
-        "function_call",
-        "logit_bias",
-        "modalities",
-        "n",
-        "stream_options",
-        "verbosity",
-        "web_search_options",
-        "seed",
-        "parallel_tool_calls",
-    ] {
-        root.remove(key);
-    }
-
-    // Anthropic path injects max_tokens; seed an equivalent OpenAI field up front.
-    if !root.contains_key("max_tokens") && !root.contains_key("max_completion_tokens") {
-        root.insert("max_completion_tokens".into(), Value::Number(4096.into()));
-    }
-
-    if let Some(messages) = root.get_mut("messages").and_then(Value::as_array_mut) {
-        messages.retain_mut(|message| {
-            let Some(msg) = message.as_object_mut() else {
-                return false;
-            };
-            for key in [
-                "tool_calls",
-                "audio",
-                "function_call",
-                "name",
-                "refusal",
-                "annotations",
-            ] {
-                msg.remove(key);
-            }
-
-            let role = msg.get("role").and_then(Value::as_str);
-            if matches!(role, Some("system" | "developer")) {
-                return false;
-            }
-
-            if !msg.contains_key("content") || msg.get("content").is_some_and(Value::is_null) {
-                msg.insert("content".into(), Value::String(String::new()));
-            }
-
-            true
-        });
-
-        if messages.is_empty() {
-            messages.push(serde_json::json!({
-                "role": "user",
-                "content": "hello",
-            }));
-        }
-    }
-
-    payload
-}
-
-fn sanitize_anthropic_roundtrip_payload(payload: Value) -> Value {
-    let mut payload = payload;
-    let Some(root) = payload.as_object_mut() else {
-        return payload;
-    };
-
-    for key in [
-        "output_format",
-        "output_config",
-        "thinking",
-        "tool_choice",
-        "tools",
-        "system",
-        "stream",
-    ] {
-        root.remove(key);
-    }
-
-    if let Some(metadata) = root.get_mut("metadata") {
-        if let Some(obj) = metadata.as_object_mut() {
-            if let Some(user_id) = obj.get_mut("user_id") {
-                if user_id.is_null() {
-                    *user_id = Value::String("user".to_string());
-                }
-            } else {
-                obj.insert("user_id".into(), Value::String("user".to_string()));
-            }
-            let keep = obj
-                .get("user_id")
-                .cloned()
-                .unwrap_or(Value::String("user".into()));
-            obj.clear();
-            obj.insert("user_id".into(), keep);
-        } else {
-            root.remove("metadata");
-        }
-    }
-
-    if let Some(messages) = root.get_mut("messages").and_then(Value::as_array_mut) {
-        messages.retain_mut(|message| {
-            let Some(msg) = message.as_object_mut() else {
-                return false;
-            };
-            if msg.get("role").and_then(Value::as_str).is_none() {
-                msg.insert("role".into(), Value::String("user".to_string()));
-            }
-
-            if !msg.contains_key("content") || msg.get("content").is_some_and(Value::is_null) {
-                msg.insert("content".into(), Value::String("hello".to_string()));
-            }
-
-            if let Some(parts) = msg.get_mut("content").and_then(Value::as_array_mut) {
-                parts.retain_mut(|part| {
-                    let Some(obj) = part.as_object_mut() else {
-                        return false;
-                    };
-                    if obj.get("type").and_then(Value::as_str) != Some("text") {
-                        return false;
-                    }
-                    obj.remove("cache_control");
-                    obj.remove("citations");
-                    if !obj.get("text").is_some_and(Value::is_string) {
-                        obj.insert("text".into(), Value::String("hello".to_string()));
-                    }
-                    true
-                });
-                if parts.is_empty() {
-                    msg.insert("content".into(), Value::String("hello".to_string()));
-                }
-            }
-            true
-        });
-
-        if messages.is_empty() {
-            messages.push(serde_json::json!({
-                "role": "user",
-                "content": "hello",
-            }));
-        }
-    }
-
-    payload
-}
-
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -591,18 +265,14 @@ fn prune_orphan_meta_files_for_suite(suite: &str) -> usize {
 
 /// Provider JSON -> Universal -> Provider JSON.
 /// Returns a list of diff descriptions, or empty if exact match.
-/// Returns None if the payload was rejected by request_to_universal (skip).
+/// Returns None only when no adapter exists for the provider format.
 fn assert_provider_roundtrip(format: ProviderFormat, payload: &Value) -> Option<Vec<String>> {
-    if format == ProviderFormat::ChatCompletions && !is_openai_exact_roundtrip_scope(payload) {
-        return None;
-    }
-    if format == ProviderFormat::Anthropic && !is_anthropic_exact_roundtrip_scope(payload) {
-        return None;
-    }
-
     let adapter = adapter_for_format(format)?;
 
-    let universal = adapter.request_to_universal(payload.clone()).ok()?;
+    let universal = match adapter.request_to_universal(payload.clone()) {
+        Ok(u) => u,
+        Err(e) => return Some(vec![format!("request_to_universal error: {}", e)]),
+    };
     let output = match adapter.request_from_universal(&universal) {
         Ok(o) => o,
         Err(e) => return Some(vec![format!("request_from_universal error: {}", e)]),
@@ -631,20 +301,12 @@ fn assert_provider_roundtrip_verbose(
     format: ProviderFormat,
     payload: &Value,
 ) -> Result<bool, String> {
-    if format == ProviderFormat::ChatCompletions && !is_openai_exact_roundtrip_scope(payload) {
-        return Ok(false);
-    }
-    if format == ProviderFormat::Anthropic && !is_anthropic_exact_roundtrip_scope(payload) {
-        return Ok(false);
-    }
-
     let adapter =
         adapter_for_format(format).ok_or_else(|| format!("No adapter for {:?}", format))?;
 
-    let universal = match adapter.request_to_universal(payload.clone()) {
-        Ok(u) => u,
-        Err(_) => return Ok(false),
-    };
+    let universal = adapter
+        .request_to_universal(payload.clone())
+        .map_err(|e| format!("request_to_universal({:?}): {}", format, e))?;
 
     let output = adapter
         .request_from_universal(&universal)
@@ -696,14 +358,13 @@ fn as_pretty_json<T: serde::Serialize>(value: &T) -> String {
 }
 
 fn assert_chat_anthropic_two_arm(payload: &Value) -> Option<Vec<String>> {
-    if !is_chat_to_anthropic_two_arm_scope(payload) {
-        return None;
-    }
-
     let chat = adapter_for_format(ProviderFormat::ChatCompletions)?;
     let anthropic = adapter_for_format(ProviderFormat::Anthropic)?;
 
-    let universal_1 = chat.request_to_universal(payload.clone()).ok()?;
+    let universal_1 = match chat.request_to_universal(payload.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("chat->universal error: {e}")]),
+    };
     let anthropic_1 = match anthropic.request_from_universal(&universal_1) {
         Ok(v) => v,
         Err(e) => return Some(vec![format!("chat->anthropic error: {e}")]),
@@ -743,10 +404,6 @@ fn assert_chat_anthropic_two_arm(payload: &Value) -> Option<Vec<String>> {
 }
 
 fn assert_chat_anthropic_two_arm_verbose(payload: &Value) -> Result<bool, String> {
-    if !is_chat_to_anthropic_two_arm_scope(payload) {
-        return Ok(false);
-    }
-
     let chat = adapter_for_format(ProviderFormat::ChatCompletions)
         .ok_or_else(|| "No chat-completions adapter".to_string())?;
     let anthropic = adapter_for_format(ProviderFormat::Anthropic)
@@ -845,30 +502,10 @@ mod strategies {
         strategy_for_schema_name("CreateChatCompletionRequest", &defs)
     }
 
-    pub fn arb_openai_two_arm_payload() -> BoxedStrategy<Value> {
-        arb_openai_payload()
-            .prop_map(sanitize_chat_for_two_arm_payload)
-            .prop_filter(
-                "payload must be in chat-anthropic two-arm scope",
-                |payload| is_chat_to_anthropic_two_arm_scope(payload),
-            )
-            .boxed()
-    }
-
     pub fn arb_anthropic_payload() -> BoxedStrategy<Value> {
         let defs =
             load_openapi_definitions(&format!("{}/specs/anthropic/openapi.yml", specs_dir()));
         strategy_for_schema_name("CreateMessageParams", &defs)
-    }
-
-    pub fn arb_anthropic_roundtrip_payload() -> BoxedStrategy<Value> {
-        arb_anthropic_payload()
-            .prop_map(sanitize_anthropic_roundtrip_payload)
-            .prop_filter(
-                "payload must be in anthropic exact-roundtrip scope",
-                |payload| is_anthropic_exact_roundtrip_scope(payload),
-            )
-            .boxed()
     }
 }
 
@@ -1093,8 +730,6 @@ fn chat_anthropic_two_arm_saved_snapshots() {
 /// - remove malformed request/meta pairs
 /// - remove orphan meta files
 /// - dedupe snapshots that fail for the same reason
-///
-/// Conservative by default: keeps snapshots that pass or are out-of-scope.
 #[test]
 #[ignore]
 fn openai_roundtrip_prune_snapshots() {
@@ -1138,7 +773,7 @@ fn anthropic_roundtrip() {
         SNAPSHOT_SUITE_ANTHROPIC,
         "anthropic",
         "request-roundtrip",
-        strategies::arb_anthropic_roundtrip_payload(),
+        strategies::arb_anthropic_payload(),
         assert_anthropic_roundtrip,
         assert_anthropic_roundtrip_verbose,
     );
@@ -1151,7 +786,7 @@ fn chat_anthropic_two_arm() {
         SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM,
         "chat-completions",
         "chat-anthropic-two-arm",
-        strategies::arb_openai_two_arm_payload(),
+        strategies::arb_openai_payload(),
         assert_chat_anthropic_two_arm,
         assert_chat_anthropic_two_arm_verbose,
     );
@@ -1180,7 +815,7 @@ fn anthropic_roundtrip_stats() {
         "anthropic",
         "request-roundtrip",
         "Anthropic roundtrip fuzz",
-        strategies::arb_anthropic_roundtrip_payload(),
+        strategies::arb_anthropic_payload(),
         assert_anthropic_roundtrip,
     );
 }
@@ -1193,7 +828,7 @@ fn chat_anthropic_two_arm_stats() {
         "chat-completions",
         "chat-anthropic-two-arm",
         "Chat->Anthropic two-arm fuzz",
-        strategies::arb_openai_two_arm_payload(),
+        strategies::arb_openai_payload(),
         assert_chat_anthropic_two_arm,
     );
 }

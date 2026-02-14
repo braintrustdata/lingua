@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: temperature",
+    "lost: metadata",
+    "added: thinking"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

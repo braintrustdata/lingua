@@ -1,0 +1,41 @@
+{
+  "inference_geo": null,
+  "max_tokens": -972,
+  "messages": [
+    {
+      "content": "R",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "signature": "r ?.j!??abS1,I?",
+          "thinking": " ,xZ.mkYx,,DXT.kZ ?rA?!lGe?",
+          "type": "thinking"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": "?.UD 8?",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": "Zi?"
+  },
+  "model": "claude-sonnet-4-5-20250929",
+  "stream": true,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "cache_control": null,
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    }
+  ],
+  "top_k": 379,
+  "top_p": -48.855234654720846
+}

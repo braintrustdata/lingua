@@ -1,0 +1,49 @@
+{
+  "frequency_penalty": -84.23011177529236,
+  "function_call": {
+    "name": "  Gm?K ?H?,9TS?,.!7?!.,?C,X2,?!,qF?a13IcX?h9W."
+  },
+  "logit_bias": {},
+  "max_tokens": 715,
+  "messages": [
+    {
+      "content": ",poL ,9.!??6F?E",
+      "name": "nr",
+      "role": "developer"
+    },
+    {
+      "content": ".N!!p,Z,.,1,6,,!J?gUlI ,!I?Q. n.??Al,.jl.g ,v,",
+      "function_call": {
+        "arguments": "r.,Ru.l, ? SQJk4.n?L?T.O.,ay3mlb?!",
+        "name": "SO.!!SwKF6 ?U,WZk,,rQxun6,.g?g,?h??!otTJ.1? !"
+      },
+      "refusal": "?,hu X?9WU1,!L,,I!!NR",
+      "role": "assistant"
+    },
+    {
+      "audio": {
+        "id": "a,045l07H.RE4!Lf.,be1,c,rg,2s?s?w.??8 vcczXHS,.J6"
+      },
+      "content": "?.?H!6,s.?SJ?M.?!y.BH!",
+      "name": ",N iv ??,z8Ph..KvBC?3l?.?.Hn,SR6z..,!!H1H,k?",
+      "role": "assistant"
+    }
+  ],
+  "modalities": null,
+  "model": "hke,u?xy",
+  "n": -615,
+  "presence_penalty": -77.5803333644007,
+  "response_format": {
+    "type": "text"
+  },
+  "seed": 458,
+  "store": true,
+  "tool_choice": {
+    "function": {
+      "name": " V??,,.ah O,.7 Lp!C.??d!?? ."
+    },
+    "type": "function"
+  },
+  "top_logprobs": -384,
+  "verbosity": "medium"
+}

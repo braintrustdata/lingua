@@ -1,0 +1,63 @@
+{
+  "inference_geo": "i,AJ84VI,?Lp!,2,,5bB2tM,V???n.m!24yCt?qXU?T.4",
+  "max_tokens": 393,
+  "messages": [
+    {
+      "content": [
+        {
+          "signature": "7qF,68r5?n!aa?o34",
+          "thinking": ".v0n6 .!xcxD?Bb!?GV.6j,,,.0,Z",
+          "type": "thinking"
+        },
+        {
+          "cache_control": null,
+          "citations": null,
+          "text": "no5.5!Mf?6Zf.8.W12,wY. x.kiWt8,82JFKw,W?.?4muz b?,",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "id": "E?9??,z.Fb3EO00m  6?.UhQVJ?f.?.?Xy!Q!RUJ ?X6",
+          "input": {},
+          "name": "?",
+          "type": "tool_use"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "model": "jr,3?.u?.a?8QCT?o...,.J...gYC,2KvO",
+  "output_config": {
+    "effort": null,
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "thinking": {
+    "budget_tokens": -711,
+    "type": "enabled"
+  },
+  "tools": [
+    {
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    },
+    {
+      "description": "3!2,.pOwA!K1!dx?6M?. tdg??l, 9!,.0I!lp,?.J?JF 8h5",
+      "input_schema": {
+        "properties": null,
+        "type": "object"
+      },
+      "name": "2.H? 5",
+      "strict": true,
+      "type": "custom"
+    }
+  ],
+  "top_k": -690,
+  "top_p": 0.962631261952022
+}

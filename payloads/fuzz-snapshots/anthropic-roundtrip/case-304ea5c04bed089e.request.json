@@ -1,0 +1,47 @@
+{
+  "inference_geo": "quv!RbA85Bz 60P?cO sZ.  ??q!Z3.,.w.Y?X?, ?X ?",
+  "max_tokens": -552,
+  "messages": [
+    {
+      "content": "wqns4aRvrX,??WnTF,r1w,,kZHkx!.7?,wT !,.sS0xVb N",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-sonnet-4-20250514",
+  "service_tier": "standard_only",
+  "stop_sequences": [
+    "7!!.wER .3!uR?yd??7W . X..",
+    ".2I,7hsm.!O9P4OlkKw !5b?X a,i, ?,?R  k.rS?eo?a"
+  ],
+  "system": [
+    {
+      "cache_control": null,
+      "citations": [
+        {
+          "cited_text": ",",
+          "end_block_index": 601,
+          "search_result_index": -353,
+          "source": "ePnpN,8fqPXg ,?rNBcV TLj?9?2N.",
+          "start_block_index": 895,
+          "title": "4.?e.Y,?b1Tn3,oF ",
+          "type": "search_result_location"
+        },
+        {
+          "cited_text": "UNai,tJ. ...wD0c8!F Y,,.c",
+          "document_index": -575,
+          "document_title": null,
+          "end_page_number": -909,
+          "start_page_number": 381,
+          "type": "page_location"
+        }
+      ],
+      "text": "N,q?t?4foLKH?!.pLc!eAiV? ?D?,C,Ub,IJj2c.",
+      "type": "text"
+    }
+  ],
+  "thinking": {
+    "type": "adaptive"
+  },
+  "top_k": -415,
+  "top_p": -29.617340075997706
+}

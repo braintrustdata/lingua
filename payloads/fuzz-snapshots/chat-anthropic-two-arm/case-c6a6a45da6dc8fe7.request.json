@@ -1,0 +1,46 @@
+{
+  "function_call": "none",
+  "functions": [
+    {
+      "name": "rk.????,B, Q?L!k3 B2 n!,K ZW,0h2 !",
+      "parameters": {}
+    },
+    {
+      "description": "?k,,?n,?YNk l. CR,7Y?309. ..,!44..,Z",
+      "name": "by?G,N9!???.8,,XEj,??.Kk.N3U?kS ?2S.",
+      "parameters": {}
+    },
+    {
+      "name": "?visW"
+    }
+  ],
+  "max_completion_tokens": -8,
+  "messages": [
+    {
+      "content": ".",
+      "name": ",6I?0E?9Eg8!.6nh ?UO.",
+      "role": "user"
+    }
+  ],
+  "modalities": [
+    "text"
+  ],
+  "model": "gpt-5-nano-2025-08-07",
+  "parallel_tool_calls": true,
+  "response_format": {
+    "type": "text"
+  },
+  "stop": [
+    ".p!J"
+  ],
+  "store": true,
+  "stream": true,
+  "stream_options": null,
+  "verbosity": null,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {},
+      "type": "approximate"
+    }
+  }
+}

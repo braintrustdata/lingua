@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: temperature",
+    "lost: tools[1].cache_control",
+    "lost: tools[1].type",
+    "lost: messages[0].content[0].cache_control",
+    "added: thinking"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

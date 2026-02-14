@@ -1,0 +1,39 @@
+{
+  "audio": {
+    "format": "flac",
+    "voice": "?XFw.5!q?,6FIr! ,Mm? hzC?a!?.,B0ZPJp!"
+  },
+  "functions": [
+    {
+      "name": "t,hmEV?uEG,z,?c?,?l?m,2!r?F!"
+    }
+  ],
+  "max_tokens": 719,
+  "messages": [
+    {
+      "content": ",FVlNeaz?U?lgI4,ORqNj?x?uY?zLlz,Vjoz1d,ez?A!,Wea",
+      "role": "user"
+    }
+  ],
+  "model": "7Gy,0 ,, 8?,a!c0g9wy.vg8.",
+  "parallel_tool_calls": false,
+  "presence_penalty": -14.204167808634761,
+  "reasoning_effort": "medium",
+  "response_format": {
+    "type": "text"
+  },
+  "seed": -166,
+  "stop": " 5CHC!1C?J?cXw v,IN!Qf.L?Kn0J,",
+  "store": false,
+  "stream": true,
+  "web_search_options": {
+    "search_context_size": "medium",
+    "user_location": {
+      "approximate": {
+        "country": "MSR LO5t.x?Nu..!.W2.U?Np?u??,0oG",
+        "region": "!!v?.?h,f"
+      },
+      "type": "approximate"
+    }
+  }
+}

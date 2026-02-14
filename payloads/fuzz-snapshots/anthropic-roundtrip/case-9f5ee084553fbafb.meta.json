@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: metadata",
+    "lost: output_config",
+    "lost: tools[0].max_characters",
+    "lost: tools[1].max_characters"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

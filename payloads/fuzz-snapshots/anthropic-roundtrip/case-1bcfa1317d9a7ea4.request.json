@@ -1,0 +1,57 @@
+{
+  "inference_geo": "!U",
+  "max_tokens": -851,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "id": "NkpU??O!I,1,82G.? 2VQ!G75gM.1,H6y!9,2jYt5NLteAj?",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        },
+        {
+          "cache_control": null,
+          "id": ",? o0!,!,,!9 e..?1Wl,1.!6HGFc.?!?0Q,z64F",
+          "input": {},
+          "name": "TO,1Ly.!DEg8L,vQ,Ysle?R,k,GJ y1Qfs, Xg.wx",
+          "type": "tool_use"
+        },
+        {
+          "data": "? .y74He?2ey6..S?,T!Gv?.pOu.Tm3C.CF,",
+          "type": "redacted_thinking"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-haiku-4-5",
+  "service_tier": "auto",
+  "stop_sequences": [
+    "?PLJ7?",
+    "Kn 1I1c "
+  ],
+  "stream": false,
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "name": "??.ou?jsS H?k7l .Vo.0?v.Xsk11Z3?G!,t.6s",
+    "type": "tool"
+  },
+  "tools": [
+    {
+      "name": "bash",
+      "type": "bash_20250124"
+    },
+    {
+      "allowed_domains": [
+        "Ut?iOko?...dQxR,TWzUyh0.!,?J?s,u ,?E?,!.,"
+      ],
+      "name": "web_search",
+      "type": "web_search_20250305"
+    }
+  ],
+  "top_k": 894,
+  "top_p": -99.96413732305861
+}

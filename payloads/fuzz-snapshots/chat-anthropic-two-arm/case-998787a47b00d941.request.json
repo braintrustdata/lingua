@@ -1,0 +1,21 @@
+{
+  "logit_bias": {},
+  "logprobs": true,
+  "max_completion_tokens": 702,
+  "messages": [
+    {
+      "function_call": {
+        "arguments": "s??,,  7n..LxWq?n?Cop.OE7q",
+        "name": "4,491,j.CT? ,,o0?,?.zB!  !94fX Pa!dh.,p!.45.pg??"
+      },
+      "name": "59s..,.u?x.K?0,4?.8!.cj0l .Ktfq 2m!,9X.WO?,bV7?B",
+      "role": "assistant"
+    }
+  ],
+  "model": "gpt-4-0125-preview",
+  "n": -920,
+  "presence_penalty": -24.370205984963814,
+  "seed": 703,
+  "top_logprobs": 584,
+  "verbosity": null
+}

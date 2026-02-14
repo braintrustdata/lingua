@@ -1,0 +1,56 @@
+{
+  "frequency_penalty": -43.39320234175298,
+  "messages": [
+    {
+      "content": "?j.!Kj, ?.pJl!!MW ?.Gn.GGE.,VmP9Xb ",
+      "name": ",!7N?.p?,d.!t? 511?EuZZ9",
+      "role": "developer"
+    }
+  ],
+  "model": ".?,. g83.pd.jK4.F!.?,0, ..HI",
+  "parallel_tool_calls": true,
+  "presence_penalty": -98.02065706598655,
+  "response_format": {
+    "type": "text"
+  },
+  "seed": -904,
+  "stream": false,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {},
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "custom": {
+        "description": " 2ao,fm!dm7 ..z,V?ms,1ZzWuo2 5hZUM6i5,C.?",
+        "name": " ?k.7Sj,.d9,.1I., .V0v7!2Y?!5CzclG?4 ,,z?"
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "name": "1a.a..!",
+        "parameters": {}
+      },
+      "type": "function"
+    }
+  ],
+  "verbosity": "low",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": ",,f6!A,T,a7h!q.VTN,D",
+        "country": "q?r9bY?D01..c.u,!?JH?oV.6?!9Ap??EJ60.S",
+        "timezone": "Y.? i,,.?t,,"
+      },
+      "type": "approximate"
+    }
+  }
+}

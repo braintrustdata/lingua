@@ -1,0 +1,30 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "universal(1->2): changed: params.top_logprobs (-652 -> null)",
+    "universal(1->2): changed: params.frequency_penalty (-73.0149355190863 -> null)",
+    "universal(1->2): changed: params.store (false -> null)",
+    "universal(1->2): changed: params.presence_penalty (71.95185859140128 -> null)",
+    "universal(1->2): changed: params.response_format.json_schema.name (\"D!993.,0Uym.,??SwS,l  9HV\" -> \"response\")",
+    "universal(1->2): changed: params.response_format.json_schema.strict (false -> null)",
+    "universal(1->2): changed: params.max_tokens (null -> 4096)",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: prediction",
+    "chat(final): lost: n",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: function_call",
+    "chat(final): lost: modalities",
+    "chat(final): lost: store",
+    "chat(final): lost: messages[0].function_call",
+    "chat(final): lost: messages[0].name",
+    "chat(final): lost: response_format.json_schema.strict",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): changed: messages[0].content (null -> \"\")",
+    "chat(final): changed: response_format.json_schema.name (\"D!993.,0Uym.,??SwS,l  9HV\" -> \"response\")",
+    "chat(final): changed: tool_choice ({\"custom\":{\"name\":\"k.944?,09pcXdM8hx!ct al5M.C\"},\"type\":\"custom\"} -> \"auto\")"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

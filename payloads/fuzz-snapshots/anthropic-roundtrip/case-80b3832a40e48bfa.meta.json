@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: tools[2].allowed_domains"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

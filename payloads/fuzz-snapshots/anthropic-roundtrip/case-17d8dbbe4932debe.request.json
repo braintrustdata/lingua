@@ -1,0 +1,50 @@
+{
+  "inference_geo": "w,QLSM,",
+  "max_tokens": -533,
+  "messages": [
+    {
+      "content": ".3W7f!Ikuss?,.h!!N94o,Lc6wX !y??X??t. ?yhBre0w2hYJ",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-3-opus-latest",
+  "service_tier": "auto",
+  "stop_sequences": [
+    "j8IGpc!6C?, Zy8..VPD,y.?",
+    ", T7S4?,dh ,.?.Q,c9,4K1.lh"
+  ],
+  "stream": false,
+  "system": "q6ig5T9G,2Vu,,uYJH?..,Ra.6y?.H oM",
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "cache_control": null,
+      "name": "bash",
+      "strict": true,
+      "type": "bash_20250124"
+    },
+    {
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250429"
+    },
+    {
+      "allowed_domains": [
+        ",?,Y.?Ftb?Ip7?t  !Fa??xV.,6H6"
+      ],
+      "blocked_domains": null,
+      "cache_control": null,
+      "name": "web_search",
+      "type": "web_search_20250305",
+      "user_location": {
+        "city": null,
+        "timezone": "DL5,!x.DN.1 81,c.H",
+        "type": "approximate"
+      }
+    }
+  ],
+  "top_k": 39,
+  "top_p": 17.073296696457554
+}

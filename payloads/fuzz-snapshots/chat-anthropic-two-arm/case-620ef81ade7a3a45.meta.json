@@ -1,0 +1,26 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (3 -> 2)",
+    "universal(1->2): changed: params.store (false -> null)",
+    "universal(1->2): changed: params.reasoning.effort (\"medium\" -> \"low\")",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.frequency_penalty (21.827094516892142 -> null)",
+    "universal(1->2): changed: params.top_logprobs (842 -> null)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.seed (-196 -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: function_call",
+    "chat(final): lost: seed",
+    "chat(final): lost: store",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: top_logprobs",
+    "chat(final): changed: stop (\"pm ?E2?WUS,U UB,\" -> [\"pm ?E2?WUS,U UB,\"])",
+    "chat(final): changed: messages.length (3 -> 2)",
+    "chat(final): changed: reasoning_effort (\"medium\" -> \"low\")"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

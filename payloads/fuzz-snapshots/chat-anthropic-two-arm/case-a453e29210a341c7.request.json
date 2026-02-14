@@ -1,0 +1,74 @@
+{
+  "logit_bias": {},
+  "logprobs": false,
+  "max_completion_tokens": 885,
+  "messages": [
+    {
+      "content": ",DC7 aa5 b!.,,,,,?eda, !ve.G,,.,?h3,Moz,,gig",
+      "name": ",.Ct.eE4OqO??,,8g",
+      "role": "user"
+    }
+  ],
+  "model": "5Ejz8,C!dM?.96s?7 dC",
+  "n": -623,
+  "prediction": {
+    "content": [
+      {
+        "text": "d.wW.T??JM,?C?,..P!?wi ot2!mWly.",
+        "type": "text"
+      },
+      {
+        "text": "3m",
+        "type": "text"
+      },
+      {
+        "text": "qN!S5.",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "response_format": {
+    "json_schema": {
+      "description": "V9?W.,dG,7.8?.,,,.,Nkx.st!,Z j n",
+      "name": "e,SAUM.f.U.?fXG6L,zy !cn.,1T?2.,9m3,9M.  GiA8WC.7",
+      "strict": null
+    },
+    "type": "json_schema"
+  },
+  "stop": "dSkoG6f.oCik..q,!y..n.n BFt81.??.e,5,Y,8, !ff?",
+  "store": false,
+  "stream": false,
+  "stream_options": {
+    "include_obfuscation": true,
+    "include_usage": true
+  },
+  "tools": [
+    {
+      "custom": {
+        "description": "52!Kqw..?R,?l2,Bz?4? G,?.a0,!N4q?i?J?X?2",
+        "format": {
+          "type": "text"
+        },
+        "name": "Aku.d.?.P??3Eo8ac?q,S?.?,c,L?.?yGdGx57?"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "description": "2.?.CP!pekB.St.4?X, .9.dW,,WjB!KRi?",
+        "name": "Y,k9..?L,w."
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "name": "P86 L .oD!? To",
+        "strict": true
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": -500,
+  "verbosity": null
+}

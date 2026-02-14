@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: system",
+    "lost: tools[1].cache_control",
+    "changed: messages[2].content ([{\"cache_control\":null,\"id\":\"OlEp,B.S0.., .Z.\",\"input\":{},\"name\":\"o?c.y,H.1g?r?., .j8E,Y.!djbcW.,XDK\",\"type\":\"tool_use\"},{\"id\":\"?r?,p,qxm.XgU,n. ,7Co6.OMK1v!S.R,9. OIzM5..0j4,?O?\",\"input\":{},\"name\":\"t,Jy1.cH o re.F. .,RlH!.k.x2?W!RH,R,,4jzW?\",\"type\":\"tool_use\"},{\"signature\":\"2M3,Gv?D!a,mV9ubY,,.jZ?97JY!?Tv5L!?,?ZYz?9!fSl\",\"thinking\":\"0 rhZaKE73kIG?A40.OC,.!kr\",\"type\":\"thinking\"}] -> \"\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

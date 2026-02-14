@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: output_config",
+    "lost: tools[0].type",
+    "lost: tools[0].eager_input_streaming",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

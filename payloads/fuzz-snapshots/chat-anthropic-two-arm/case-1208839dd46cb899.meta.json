@@ -1,0 +1,21 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "universal(1->2): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: functions",
+    "chat(final): lost: prediction",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: modalities",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: audio",
+    "chat(final): lost: messages[0].function_call",
+    "chat(final): lost: messages[0].refusal",
+    "chat(final): added: tool_choice",
+    "chat(final): added: messages[0].content",
+    "chat(final): changed: max_completion_tokens (-861 -> 221)",
+    "chat(final): changed: stop (\".U,?3 .\" -> [\".U,?3 .\"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

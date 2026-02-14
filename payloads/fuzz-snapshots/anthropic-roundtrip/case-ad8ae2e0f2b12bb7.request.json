@@ -1,0 +1,38 @@
+{
+  "max_tokens": 783,
+  "messages": [
+    {
+      "content": "Ck!3cXWOI 7tb?..,.?W",
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "id": "w?yR8KK L,  dvT6YYlR2A",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-5",
+  "output_config": {
+    "effort": "max",
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "stop_sequences": [
+    "..,..?.?7W?s!,Yp D09,3",
+    ". ",
+    "?,te7O,.n5H.J?.? ctym?G6,nT,6. .?a.??.p9WXH9N .a5"
+  ],
+  "stream": false,
+  "thinking": {
+    "type": "disabled"
+  },
+  "top_k": -284
+}

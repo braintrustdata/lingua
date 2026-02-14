@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: output_config.effort",
+    "lost: tools[1].type",
+    "lost: messages[0].content[1].citations",
+    "lost: messages[0].content[1].cache_control"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

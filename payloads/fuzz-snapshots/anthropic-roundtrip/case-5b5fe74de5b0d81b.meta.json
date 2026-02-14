@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: tools[1].cache_control",
+    "changed: messages[0].content.length (1 -> 0)",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

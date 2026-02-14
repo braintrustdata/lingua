@@ -1,0 +1,42 @@
+{
+  "audio": {
+    "format": "flac",
+    "voice": "sage"
+  },
+  "frequency_penalty": 90.95815797486775,
+  "function_call": {
+    "name": "hEvv?.eWM,"
+  },
+  "functions": [
+    {
+      "name": "w,13F,gDs8a?!XX.",
+      "parameters": {}
+    },
+    {
+      "description": "6..,?.4..?z,.R.???,S.2? rj?p! 9. .r,",
+      "name": "O4dbjk?5,55x.x?RBZcZ8?,D?XqH7kn 6.?,?,9p",
+      "parameters": {}
+    },
+    {
+      "name": "hJEbG?,JHk?,nGN?js.,q?,?!,!.",
+      "parameters": {}
+    }
+  ],
+  "logprobs": true,
+  "max_tokens": -527,
+  "messages": [
+    {
+      "content": "a,ChS!?nnkP9.S5T,.YsC..Ht?,,ZjBE?",
+      "role": "user"
+    }
+  ],
+  "model": "I?.!T3Jz 9..!a.,qQs9.4?hv.  !5. LVz!y,. N!441",
+  "parallel_tool_calls": false,
+  "response_format": {
+    "type": "text"
+  },
+  "stop": "HCsfGimbYC!?b,Q1!y,JR6?9BZp09RxrW.,IJRRh,",
+  "store": false,
+  "stream": true,
+  "verbosity": "high"
+}

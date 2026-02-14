@@ -1,0 +1,40 @@
+{
+  "max_tokens": -93,
+  "messages": [
+    {
+      "content": [
+        {
+          "signature": "5?!,G.tYCR2DrY4lrs!qKfD!",
+          "thinking": "y.???,.,,?mwR..?!!l.a 53?,G.!4Wj0l?SF,?",
+          "type": "thinking"
+        },
+        {
+          "cache_control": null,
+          "text": "Rk,R,?,a0  .i 7e.?q,g?,!! 4SN,iKX,,E?",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-3-7-sonnet-20250219",
+  "temperature": -73.02584496078869,
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tool_choice": {
+    "type": "any"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250728"
+    }
+  ]
+}

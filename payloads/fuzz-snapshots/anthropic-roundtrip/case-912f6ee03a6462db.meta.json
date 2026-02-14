@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: tools[0].cache_control",
+    "lost: tools[0].type"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

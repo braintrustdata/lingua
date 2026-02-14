@@ -1,0 +1,24 @@
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": "4.fT hg,!?el.?b6Er26?m..?u!?,oFB3?dMg,",
+      "role": "user"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-3-7-sonnet-latest",
+  "service_tier": "auto",
+  "temperature": -91.15257773285158,
+  "thinking": {
+    "type": "disabled"
+  },
+  "tools": [
+    {
+      "blocked_domains": null,
+      "name": "web_search",
+      "strict": false,
+      "type": "web_search_20250305"
+    }
+  ]
+}

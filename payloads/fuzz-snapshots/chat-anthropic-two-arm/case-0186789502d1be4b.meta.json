@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "chat->universal error: Conversion to universal format failed: data did not match any variant of untagged enum ChatCompletionRequestMessageContent"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

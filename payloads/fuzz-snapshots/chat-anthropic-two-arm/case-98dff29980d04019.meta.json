@@ -1,0 +1,32 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "universal(1->2): changed: params.frequency_penalty (87.63868232303007 -> null)",
+    "universal(1->2): changed: params.store (true -> null)",
+    "universal(1->2): changed: params.response_format.format_type (\"JsonObject\" -> \"JsonSchema\")",
+    "universal(1->2): changed: params.response_format.json_schema (null -> {\"description\":null,\"name\":\"response\",\"schema\":{\"additionalProperties\":false,\"type\":\"object\"},\"strict\":null})",
+    "universal(1->2): changed: params.seed (-490 -> null)",
+    "universal(1->2): changed: params.top_logprobs (795 -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: audio",
+    "chat(final): lost: function_call",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: functions",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: store",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: prediction",
+    "chat(final): lost: seed",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: n",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): added: response_format.json_schema",
+    "chat(final): changed: response_format.type (\"json_object\" -> \"json_schema\")",
+    "chat(final): changed: messages.length (1 -> 0)"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

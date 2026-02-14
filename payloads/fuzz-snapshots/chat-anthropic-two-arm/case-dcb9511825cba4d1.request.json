@@ -1,0 +1,52 @@
+{
+  "frequency_penalty": 92.96724121414297,
+  "function_call": {
+    "name": "Uxd4.Gu,z!,vU.0tp.O??.!.j5.w6?rN6? 2e! S..,,aP?"
+  },
+  "functions": [
+    {
+      "description": "6?k,5TGfd??Ps?sFk..6J,,.80D.O9G?.,,,K p!,6!AIyL!f,",
+      "name": "lS..GJh!j.V,.Z!.M,1Nqd4r,",
+      "parameters": {}
+    },
+    {
+      "description": "..1sYaRG?.?4Un?.um jZ,9,?q",
+      "name": "zLN,Tn?,?D7E!9k1 R  j,N3",
+      "parameters": {}
+    },
+    {
+      "name": " 6 ?,,.?,s8??G,SR? 9Mq00rrL?? ? f? 9I.",
+      "parameters": {}
+    },
+    {
+      "name": "k ,P Y.?W9V !XE",
+      "parameters": {}
+    },
+    {
+      "name": "?d8?!??.. PS.9tL8On!!.B3?"
+    }
+  ],
+  "logprobs": true,
+  "max_tokens": -15,
+  "messages": [
+    {
+      "content": "!!!M1sBxyPT?UY!BwM2U,vA?.XKxZBelX8",
+      "name": "VC,,Uo!AuOX!.n.U?.!.",
+      "role": "user"
+    }
+  ],
+  "modalities": null,
+  "model": "1..?t?.7y.!V?W,p.5O?,07.A 7",
+  "n": 666,
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": "6Z,.,0c?H.Tb?t.P.dq6g,7.oFmvHQ1SWX,nkt6.jkqc 6",
+    "type": "content"
+  },
+  "presence_penalty": -19.904156459061703,
+  "seed": 346,
+  "stop": "..x9 p  ??HaKSv87GqL",
+  "store": true,
+  "stream": false,
+  "verbosity": null
+}

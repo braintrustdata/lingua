@@ -1,0 +1,31 @@
+{
+  "inference_geo": ".fk?.3?G,R.Wa,K.O?nii,?7b.f3!D.yGz,g.Zq?gh?.?EFt",
+  "max_tokens": -159,
+  "messages": [
+    {
+      "content": "84QrOA.a.f",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "data": ".vZ0V?!J,? D?N?.9?L4wJc.v561?Q?EM?eC,aM1! RR",
+          "type": "redacted_thinking"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-sonnet-4-5",
+  "stop_sequences": [
+    ".pg6bjYBd."
+  ],
+  "temperature": -23.048191670327558,
+  "thinking": {
+    "budget_tokens": 396,
+    "type": "enabled"
+  },
+  "top_k": -912,
+  "top_p": 32.96284581827157
+}

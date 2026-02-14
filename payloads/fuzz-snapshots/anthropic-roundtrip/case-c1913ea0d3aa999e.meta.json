@@ -1,0 +1,14 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: metadata",
+    "lost: tools[0].max_characters",
+    "lost: tools[0].cache_control",
+    "lost: tools[1].type",
+    "lost: tools[1].cache_control",
+    "lost: tools[2].cache_control",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

@@ -1,0 +1,89 @@
+{
+  "max_tokens": -555,
+  "messages": [
+    {
+      "content": ",?e5..9 s PXhh 2,??,YjqSV?2i?..iRi ??",
+      "role": "user"
+    },
+    {
+      "content": "uAbRm,?,G.27!X,Q?nC!F??!.u0 D?4s,!X?x",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "id": "OlEp,B.S0.., .Z.",
+          "input": {},
+          "name": "o?c.y,H.1g?r?., .j8E,Y.!djbcW.,XDK",
+          "type": "tool_use"
+        },
+        {
+          "id": "?r?,p,qxm.XgU,n. ,7Co6.OMK1v!S.R,9. OIzM5..0j4,?O?",
+          "input": {},
+          "name": "t,Jy1.cH o re.F. .,RlH!.k.x2?W!RH,R,,4jzW?",
+          "type": "tool_use"
+        },
+        {
+          "signature": "2M3,Gv?D!a,mV9ubY,,.jZ?97JY!?Tv5L!?,?ZYz?9!fSl",
+          "thinking": "0 rhZaKE73kIG?A40.OC,.!kr",
+          "type": "thinking"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-20250514",
+  "output_config": {},
+  "stop_sequences": [
+    ",?,A4rJJ6 .9?.tIcz?.u.Hw.,2,lWirw,th,i...?D",
+    "U5j?G.lU..? Jf3., Q.?"
+  ],
+  "system": [
+    {
+      "cache_control": null,
+      "text": ".,GA1??rCZ0,8z???!T",
+      "type": "text"
+    },
+    {
+      "cache_control": {
+        "ttl": "1h",
+        "type": "ephemeral"
+      },
+      "text": "!?1y.?.Az",
+      "type": "text"
+    },
+    {
+      "citations": null,
+      "text": "CbZ?k0qU?O?O5j E,.R??2T7q72oq2I5,5 ,4ryl,9",
+      "type": "text"
+    }
+  ],
+  "tool_choice": {
+    "disable_parallel_tool_use": true,
+    "type": "any"
+  },
+  "tools": [
+    {
+      "name": "bash",
+      "strict": true,
+      "type": "bash_20250124"
+    },
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "description": "C 1QgFZF  C?.?,",
+      "input_schema": {
+        "type": "object"
+      },
+      "name": ".z8l, ??r!1fF0?L5n43n"
+    },
+    {
+      "name": "bash",
+      "strict": true,
+      "type": "bash_20250124"
+    }
+  ],
+  "top_k": -122
+}

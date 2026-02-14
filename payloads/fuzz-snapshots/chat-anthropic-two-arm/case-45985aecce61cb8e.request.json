@@ -1,0 +1,75 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "alloy"
+  },
+  "function_call": "none",
+  "functions": [
+    {
+      "name": ",0Y7oN.y,M.r..9,M.YWX4,00",
+      "parameters": {}
+    },
+    {
+      "description": ".?7Y ,?,U? .m?!! .,?!Q?.9.yIn",
+      "name": ",!.,X?i2 .D?o5Wd Uv..lPD,z,,f,v,?7U"
+    },
+    {
+      "description": "E.hXcVs0XfSf!,onfHYr98 ,L,??j9?Jk!M,X!Z. seh",
+      "name": "L.JY c9W?2G,8?ayQ.?jk Ah4??k,tBf.!,.E?co, ?qGtn",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": true,
+  "max_completion_tokens": -900,
+  "messages": [
+    {
+      "content": " ,r,YaOc",
+      "name": "nws?J,.46WGO??H,Dr,S1",
+      "role": "system"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4o-2024-05-13",
+  "reasoning_effort": null,
+  "response_format": {
+    "type": "text"
+  },
+  "stream": false,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "required",
+      "tools": [
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": ".5,4.l.,j,LW!?SiL,?.?F?.r0?,7D?MXp,7.7f,",
+        "strict": false
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "g.8qN?!omW?3b!G!pU YpJk.?,,PL",
+        "name": ",.Zqg,S.Ev?.g!A,T? 3X92 JeF3Zh? 9,?rKa?38.,N8h",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": ",Z958y?,3PRSyj,,1G.8u.w,1xFH1?3?6",
+        "parameters": {},
+        "strict": false
+      },
+      "type": "function"
+    }
+  ],
+  "verbosity": "low"
+}

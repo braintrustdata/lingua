@@ -1,0 +1,33 @@
+{
+  "inference_geo": "S9",
+  "max_tokens": -692,
+  "messages": [
+    {
+      "content": "i?wJ?,blKB1.m,,!fa.Bu.j?5.el7?o6PGR4i?HLiK",
+      "role": "user"
+    },
+    {
+      "content": "e1!2p  v20.?E?of7Uf.RB3?t?,",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-3-7-sonnet-20250219",
+  "output_config": {
+    "effort": "high"
+  },
+  "temperature": -68.14927609848945,
+  "thinking": {
+    "type": "adaptive"
+  },
+  "tool_choice": {
+    "type": "auto"
+  },
+  "tools": [
+    {
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    }
+  ],
+  "top_k": 673
+}

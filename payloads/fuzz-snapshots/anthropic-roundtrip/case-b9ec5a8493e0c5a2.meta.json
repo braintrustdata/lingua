@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: metadata",
+    "lost: temperature",
+    "lost: tools[0].max_uses",
+    "lost: tools[0].user_location",
+    "lost: tools[0].cache_control"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

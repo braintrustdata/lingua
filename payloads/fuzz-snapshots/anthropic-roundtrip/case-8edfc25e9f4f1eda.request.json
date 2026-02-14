@@ -1,0 +1,43 @@
+{
+  "max_tokens": 685,
+  "messages": [
+    {
+      "content": [
+        {
+          "id": "p",
+          "input": {},
+          "name": "K?,?!O!",
+          "type": "tool_use"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-sonnet-4-0",
+  "stream": false,
+  "system": [
+    {
+      "text": "3Gnp?,ap??..6.8 ,B?Gh!!ExQ,.e ? ",
+      "type": "text"
+    },
+    {
+      "citations": null,
+      "text": "n?E ?,!?0J?ew?sr",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "text": "O, .jer??BJ!0OCJ Wf1WCbofb..4kM!Er,Hd ?2,q.",
+      "type": "text"
+    }
+  ],
+  "temperature": 30.7732208623869,
+  "thinking": {
+    "type": "adaptive"
+  },
+  "top_k": -727,
+  "top_p": 19.7741663315757
+}

@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: tools[2].blocked_domains"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

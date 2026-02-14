@@ -1,0 +1,37 @@
+{
+  "max_tokens": 951,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "id": "5,O.it?c?gX!3k",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-opus-4-20250514",
+  "system": "6a?61?h8?lf5!??0m3?5r9zO!9",
+  "temperature": -75.93861083355381,
+  "tools": [
+    {
+      "cache_control": null,
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    },
+    {
+      "cache_control": null,
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250728"
+    },
+    {
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    }
+  ],
+  "top_p": -6.61540842180314
+}

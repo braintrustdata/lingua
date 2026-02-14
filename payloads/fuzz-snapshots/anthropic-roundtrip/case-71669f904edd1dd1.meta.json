@@ -1,0 +1,15 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: system",
+    "lost: tool_choice.disable_parallel_tool_use",
+    "lost: messages[0].content[0].data",
+    "lost: tools[0].eager_input_streaming",
+    "lost: tools[0].cache_control",
+    "lost: tools[0].type",
+    "added: messages[0].content[0].text",
+    "changed: messages[0].content[0].type (\"redacted_thinking\" -> \"text\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

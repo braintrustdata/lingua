@@ -1,0 +1,60 @@
+{
+  "inference_geo": null,
+  "max_tokens": 695,
+  "messages": [
+    {
+      "content": [
+        {
+          "id": "4JAu",
+          "input": {},
+          "name": "9T",
+          "type": "tool_use"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": "g?FOzOs?D,u?b",
+      "role": "assistant"
+    },
+    {
+      "content": ".W,15hb.?EKpl!,,85?P!?Jw976,,!.p?",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-4-sonnet-20250514",
+  "system": [
+    {
+      "citations": null,
+      "text": "?vO9 9Iq!? B,K36Wo,gl?",
+      "type": "text"
+    },
+    {
+      "cache_control": null,
+      "citations": null,
+      "text": "tzCFcS6?2oC??2kJ.CUegS.,.G!.Al.R0neyhd,E5",
+      "type": "text"
+    }
+  ],
+  "temperature": -10.341737275529855,
+  "tool_choice": {
+    "type": "auto"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    },
+    {
+      "cache_control": null,
+      "name": "bash",
+      "type": "bash_20250124"
+    }
+  ],
+  "top_k": -427,
+  "top_p": 57.54183421646165
+}

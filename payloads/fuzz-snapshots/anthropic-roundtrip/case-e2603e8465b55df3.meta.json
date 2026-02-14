@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: tools[0].eager_input_streaming",
+    "lost: tools[0].type",
+    "lost: tools[2].eager_input_streaming",
+    "lost: tools[2].cache_control",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

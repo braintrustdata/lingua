@@ -1,0 +1,47 @@
+{
+  "inference_geo": " 8VFS1 v6ra !dmM ?Lz..72i ?fmI6?,Mn.?Vl ",
+  "max_tokens": -740,
+  "messages": [
+    {
+      "content": "!3..FMP,?,H7PZ ?35TMtA.SCe",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "content": "K,o.hWl?3!t92k.Ul0,yN?.6,,Y,KdS!.,,B.",
+          "is_error": true,
+          "tool_use_id": "01XN7S??!K.4aX42.,mMTr!1T.8J J1,?GA5,V",
+          "type": "tool_result"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": "!O,0vTw9?8qVD",
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-5",
+  "output_config": {},
+  "stop_sequences": [
+    "..uQ!e5Y?.1,?sGP?Vn,GmV5iktSXO?Z05G !",
+    "?R,.l l,D.K..9V,..",
+    "51Fkt?U,3?.6!?,g4!!T"
+  ],
+  "tool_choice": {
+    "type": "any"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    }
+  ],
+  "top_k": 881,
+  "top_p": -29.030403919312146
+}

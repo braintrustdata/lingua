@@ -1,0 +1,40 @@
+{
+  "functions": [
+    {
+      "description": "2s",
+      "name": "Rz,E!.? ,v,4,5rThT4.?,.3i,THL?,4?xC,L ?",
+      "parameters": {}
+    },
+    {
+      "name": " 3A?eA,.O..4!?TS!80k,ukHdBs!Qi0rkl,wG..!rM8D",
+      "parameters": {}
+    },
+    {
+      "description": "6X.P.KXO??5hHWO,. sZi6!Mx3 ,.57UgR8O?Z?54omy13",
+      "name": ".,A! .,?.?0M. .E??.CI.e!,,.?W !",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": "L3k,2L.,?t2Jqu.!E?Ks,36.ME,U0",
+      "name": "IXYki0?9i,z7.G6?w0?L,.gu8Iv6p9SZ?.T",
+      "role": "user"
+    },
+    {
+      "content": "!HZ1.kfh.IHB?6ui.I.,.?D!M!9Vu   ??, .A.oBD?",
+      "name": "caB?dHe",
+      "role": "user"
+    }
+  ],
+  "modalities": null,
+  "model": "?G?,w.X,? RPF!e2e,,,.050r.",
+  "reasoning_effort": "high",
+  "seed": -627,
+  "stop": ",7mD,z!tD39",
+  "stream_options": {
+    "include_obfuscation": false
+  },
+  "verbosity": null
+}

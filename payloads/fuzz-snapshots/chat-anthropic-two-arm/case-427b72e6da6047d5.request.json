@@ -1,0 +1,46 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "ballad"
+  },
+  "frequency_penalty": -51.89642166951377,
+  "functions": [
+    {
+      "name": "?7.B?!g?7.7 ?oR6102f3.??,j!JC?u"
+    },
+    {
+      "name": "27,GgMWM1uds1m,L.mX?n5!r?z?!z4,.?,O?PCmR.h G0N",
+      "parameters": {}
+    },
+    {
+      "description": "m",
+      "name": ",,,k,l?G.cJ.lCt.1w,,4W ,M8.J.",
+      "parameters": {}
+    }
+  ],
+  "messages": [
+    {
+      "content": "C53Is.rAx,!,6 f?,,!hm ?llkr.qih9h",
+      "name": "J4,! Gsp1HN,uM.qF!,I1?AIZ.,39 .Z!!?I8!?",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4.1",
+  "parallel_tool_calls": true,
+  "reasoning_effort": "low",
+  "seed": 586,
+  "store": false,
+  "stream": true,
+  "stream_options": null,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "verbosity": "medium"
+}

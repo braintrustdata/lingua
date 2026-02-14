@@ -1,0 +1,57 @@
+{
+  "max_tokens": -518,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "id": ".,?",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": ",. B?5?Y,.,,.,g5.sY7.F!  ! aL??g?!vO 05IcQMbN!!.Cn",
+      "role": "user"
+    },
+    {
+      "content": "QNGN,aO. g!,S TUCR!??b,GZ00! arn",
+      "role": "user"
+    }
+  ],
+  "model": "claude-3-7-sonnet-20250219",
+  "output_config": {
+    "effort": "max"
+  },
+  "service_tier": "standard_only",
+  "stream": true,
+  "temperature": 44.464890389556096,
+  "tools": [
+    {
+      "name": "str_replace_editor",
+      "strict": true,
+      "type": "text_editor_20250124"
+    },
+    {
+      "cache_control": {
+        "ttl": "5m",
+        "type": "ephemeral"
+      },
+      "input_schema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": ".Y..I,.XE U1C?j,2?k,  PR,.kBCa. !0X.49,.hQAW,?2",
+      "type": "custom"
+    },
+    {
+      "name": "bash",
+      "strict": true,
+      "type": "bash_20250124"
+    }
+  ],
+  "top_p": 49.00518145962089
+}

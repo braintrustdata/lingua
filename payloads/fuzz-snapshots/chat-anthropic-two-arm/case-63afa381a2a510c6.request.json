@@ -1,0 +1,80 @@
+{
+  "frequency_penalty": -62.97311116443187,
+  "max_completion_tokens": 840,
+  "messages": [
+    {
+      "content": "l.!ZAeO.9D.!.,A,Ga36e 8h319,,J?Jtb NT6.A2L.o,?,!",
+      "role": "user"
+    }
+  ],
+  "modalities": [
+    "text",
+    "text"
+  ],
+  "model": "codex-mini-latest",
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": [
+      {
+        "text": "u?.M,24?",
+        "type": "text"
+      },
+      {
+        "text": "6lY,.R76Y..Im Od .?T!6h5?rS ,,K.V,,,PY5 w .0F.",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "reasoning_effort": "medium",
+  "seed": 458,
+  "store": false,
+  "stream": true,
+  "tools": [
+    {
+      "function": {
+        "description": "SYW",
+        "name": "2  9,Zeu.t,Zn ,?!u",
+        "parameters": {},
+        "strict": null
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "format": {
+          "grammar": {
+            "definition": "?Pb 0a7?xIZtK,.,.aK?17 w,5 VK .B l?1Y1?",
+            "syntax": "regex"
+          },
+          "type": "grammar"
+        },
+        "name": "2 .0t cWr.g?Nqq!a.?T.,,.?L? YV.FZeeZm.h!.UZ."
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "format": {
+          "grammar": {
+            "definition": "I9EGg,t",
+            "syntax": "regex"
+          },
+          "type": "grammar"
+        },
+        "name": "!i3aYRf53Bfn??s bCX"
+      },
+      "type": "custom"
+    }
+  ],
+  "verbosity": "low",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": "j1!7.40 72BW? 2,oT??.n,zIw.,LMIekeiel?y.",
+        "region": "d29uD?.,1A,yxP2.!"
+      },
+      "type": "approximate"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "max_tokens": -550,
+  "messages": [
+    {
+      "content": "!.",
+      "role": "user"
+    },
+    {
+      "content": "j?Z?",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-opus-4-5-20251101",
+  "stream": false,
+  "system": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "text": " OgtC vi.4NxO,.tivt.Q1FK?,8U.",
+      "type": "text"
+    },
+    {
+      "text": "Nzg",
+      "type": "text"
+    }
+  ],
+  "temperature": 68.14252218393587,
+  "thinking": {
+    "budget_tokens": 298,
+    "type": "enabled"
+  }
+}

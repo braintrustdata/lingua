@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: metadata",
+    "lost: tools[2].max_uses",
+    "changed: thinking.type (\"adaptive\" -> \"disabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

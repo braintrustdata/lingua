@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: system",
+    "changed: messages[1].content.length (2 -> 1)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

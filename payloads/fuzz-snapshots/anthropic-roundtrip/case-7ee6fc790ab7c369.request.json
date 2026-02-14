@@ -1,0 +1,63 @@
+{
+  "max_tokens": 704,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "text": "uD,823h1",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": "Z01G?1ckAZb,,?",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "content": "IxL86. 2?.7Vw,P?1!,YH Bz,cmS60??A.bORbKS2",
+          "is_error": true,
+          "tool_use_id": "..0,, 83s!y?8A..w Yt?!?,?W.",
+          "type": "tool_result"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-3-5-haiku-latest",
+  "output_config": {
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "stop_sequences": [
+    "Ud3?NM42Y4,,J?V!.0z11 !?.V.?2jC"
+  ],
+  "tools": [
+    {
+      "cache_control": null,
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250429"
+    },
+    {
+      "cache_control": null,
+      "name": "str_replace_editor",
+      "strict": true,
+      "type": "text_editor_20250124"
+    },
+    {
+      "cache_control": null,
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    }
+  ]
+}

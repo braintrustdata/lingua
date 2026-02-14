@@ -1,0 +1,63 @@
+{
+  "frequency_penalty": 51.38785813088716,
+  "function_call": "none",
+  "logit_bias": {},
+  "max_completion_tokens": -47,
+  "max_tokens": -61,
+  "messages": [
+    {
+      "content": ", ?,pQ9B.?.?oG,nT,m2.??.zJ3, , !.6N,??!.RA3.m?",
+      "role": "tool",
+      "tool_call_id": "y,.ki99eY9.BJ,.QC,g!Y !?c5a,V.?y,8"
+    },
+    {
+      "content": "1b.!",
+      "role": "tool",
+      "tool_call_id": "!9.q?8Cl 5,b?jZ?!?2,zU?9W?,g1yFy .zw..mM.9Y,Ph"
+    }
+  ],
+  "modalities": [
+    "audio",
+    "text",
+    "audio"
+  ],
+  "model": "o3",
+  "parallel_tool_calls": false,
+  "response_format": {
+    "type": "text"
+  },
+  "seed": -194,
+  "stop": "?,DF1 3 f,JnL?Wq,?,UAYXJC",
+  "store": false,
+  "stream": false,
+  "stream_options": null,
+  "tool_choice": "required",
+  "tools": [
+    {
+      "custom": {
+        "name": "!,B?tm"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "format": {
+          "grammar": {
+            "definition": "....,J,?5,Dj2.c7FCB?1Q4 .?,A ?w1 .V,.6,Rq.a ,t!0Z ",
+            "syntax": "lark"
+          },
+          "type": "grammar"
+        },
+        "name": "F?!5?!iz5f!UP g.2R?6."
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "name": "s,o.5.,B0,.4izeqwf?F5,,."
+      },
+      "type": "custom"
+    }
+  ],
+  "top_logprobs": 467
+}

@@ -1,0 +1,60 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "sage"
+  },
+  "frequency_penalty": 49.256100920145904,
+  "function_call": "auto",
+  "messages": [
+    {
+      "content": "? ?8Sn,S,n!jHM,,k,7J,SNk?lV!U .ZY.vY.0G?,v",
+      "role": "tool",
+      "tool_call_id": "31qYM I.?.C,m? K9Yt.,,,,Bd?ecCMfT,?,"
+    }
+  ],
+  "modalities": [
+    "audio",
+    "text"
+  ],
+  "model": "f?.79V3.,JjqX,,r,l,.kM!r,PI",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": "E4?!ZV!w.lbu.W?!F",
+        "type": "text"
+      },
+      {
+        "text": "?,,U?kl5xD,!f,.",
+        "type": "text"
+      },
+      {
+        "text": "U 9R?Ya,Z?jMP,",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "seed": -290,
+  "stream": true,
+  "tools": [
+    {
+      "function": {
+        "name": "SMm46W7s. A8X,!Wq?. 7??I.7JX!?Zj"
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 190,
+  "verbosity": "low",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "!D!g.,ZuwyU0lFh..,?!WVCK,1Ym8Y.p2.,!?bunV!.?6Y3",
+        "country": "?6l,b6X1?9 y",
+        "region": "Yw! iw6xQ E,B!YXJ..?,w?V?,bKZ3?OD "
+      },
+      "type": "approximate"
+    }
+  }
+}

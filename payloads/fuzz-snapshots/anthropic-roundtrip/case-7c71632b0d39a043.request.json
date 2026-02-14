@@ -1,0 +1,16 @@
+{
+  "max_tokens": 916,
+  "messages": [
+    {
+      "content": [
+        {
+          "data": ".?",
+          "type": "redacted_thinking"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-3-7-sonnet-latest",
+  "top_p": -68.30458516643189
+}

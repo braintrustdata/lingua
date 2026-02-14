@@ -1,0 +1,70 @@
+{
+  "function_call": {
+    "name": "Rv?7Cx2B.M5I0Xs5 ,,"
+  },
+  "functions": [
+    {
+      "name": "BQP.??7KQbK0ghS .?O,V?,p5ZlV?QiIgju!?",
+      "parameters": {}
+    },
+    {
+      "name": " Wx3,,h,E8,,",
+      "parameters": {}
+    },
+    {
+      "name": "y,??!!.q.,?,3g ?, .qS!l "
+    },
+    {
+      "name": "?!Wqk.iDEbH?taT?",
+      "parameters": {}
+    },
+    {
+      "description": "Jf! . 8,!!7 ",
+      "name": "!C!,YZ,xJBh5 B?,V,i,7,.WT6m4M"
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "max_completion_tokens": 193,
+  "max_tokens": 782,
+  "messages": [
+    {
+      "content": ",67?4N..3j",
+      "role": "developer"
+    },
+    {
+      "content": ".rSl,TK.1?!P.2!?FW.j.0?y,,vKN6",
+      "role": "developer"
+    },
+    {
+      "content": [
+        {
+          "text": "2z.v?s8 ?!U.,t6x?x",
+          "type": "text"
+        },
+        {
+          "text": "DFl.,?R.hodf?f,?hO,???2?m. c,5?!.?? ,?G",
+          "type": "text"
+        },
+        {
+          "text": ".?.?S?qImF,O.,9,8N,g,sL?!,fJ!,6, !!Kl.,.7",
+          "type": "text"
+        }
+      ],
+      "name": ".H!iG.pA c4l,. YWU.4.!,?xh.06?!,3xy,Du3!P,Sn,E? V",
+      "role": "developer"
+    }
+  ],
+  "model": "gpt-4.1-nano",
+  "n": 886,
+  "parallel_tool_calls": true,
+  "presence_penalty": -75.77000851094488,
+  "response_format": {
+    "type": "text"
+  },
+  "stream": true,
+  "stream_options": {
+    "include_usage": false
+  },
+  "top_logprobs": -547
+}

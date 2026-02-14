@@ -1,0 +1,57 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": "k!yb,v7eN3?9?wuru.D6Q6J.kDvBL?"
+  },
+  "functions": [
+    {
+      "description": "y.6  ?",
+      "name": "k..ugu?k85ic6u",
+      "parameters": {}
+    },
+    {
+      "name": "?nShdb,P?!6 7.?qB0!J0P?iR.3k,Z?,bO,!t."
+    },
+    {
+      "description": "ht.,,??qr, CP6,Us.0vV,MasaF0j VJ,I?10N x9,r?XU",
+      "name": "!L"
+    },
+    {
+      "name": ",..,d?sLUQ.??X?i,?Tg9VaXK!K9,.,R1,.s.D!09!n.,"
+    },
+    {
+      "name": ",jP?,d!AD! 958?S"
+    }
+  ],
+  "max_completion_tokens": -534,
+  "messages": [
+    {
+      "content": "A,9?6A8.! pQ0.,",
+      "name": "y..!v2,mOJ.J?3.!??b0j?T",
+      "role": "system"
+    },
+    {
+      "content": "y.B 83.?pR!,?d.f.yK,Ho.D6,g?",
+      "name": "W,?8z7e6,u14t?... .1Z K?,Nz??Q?T,?RO?,,fXgy7?,f,s",
+      "role": "user"
+    },
+    {
+      "content": "eU ,!VmJdI,?? ?,Q.3.Tj.b?!8.?.,c4,!0?jTY8 SU6??!3",
+      "role": "tool",
+      "tool_call_id": ".xgjJ?.j,,.!?,5? .Z!L1"
+    }
+  ],
+  "modalities": [
+    "audio"
+  ],
+  "model": "CK.qMIU.G,dPP.? ??.2f3xHT8.p, 936,xcJJ",
+  "n": 125,
+  "parallel_tool_calls": true,
+  "stop": "cEQ.Yeh?so",
+  "stream_options": {
+    "include_usage": true
+  },
+  "web_search_options": {
+    "search_context_size": "low"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: tools[0].user_location",
+    "lost: tools[0].cache_control",
+    "lost: tools[0].max_uses",
+    "lost: tools[1].user_location",
+    "changed: messages[1].content.length (1 -> 0)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

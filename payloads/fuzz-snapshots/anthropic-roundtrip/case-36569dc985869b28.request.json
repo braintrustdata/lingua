@@ -1,0 +1,27 @@
+{
+  "inference_geo": "!1hB .oH.?hj. d,!UkuO44I4pV?.se509fXs!.58.cv",
+  "max_tokens": 98,
+  "messages": [
+    {
+      "content": "W,3k.lk???B , E6..cl",
+      "role": "assistant"
+    },
+    {
+      "content": ".V.!.V!.M1rXxL,V.w8",
+      "role": "user"
+    }
+  ],
+  "model": "claude-opus-4-6",
+  "output_config": {
+    "effort": "medium",
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "type": "auto"
+  },
+  "top_k": 462
+}

@@ -1,0 +1,20 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.seed (-505 -> null)",
+    "universal(1->2): changed: params.frequency_penalty (-17.381941289481087 -> null)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: modalities",
+    "chat(final): lost: n",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: prediction",
+    "chat(final): lost: audio",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: functions",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: seed"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

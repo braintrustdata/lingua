@@ -1,0 +1,42 @@
+{
+  "audio": {
+    "format": "aac",
+    "voice": "djUV.,,DF,5M4NWU?,u w!!8.?.,V.,!h6!mC3W,Rs,9!l"
+  },
+  "frequency_penalty": 3.312986930281163,
+  "function_call": {
+    "name": "N,kAOBw 3..,zrE.1u4.?CA0,DFZ8 bx?R5"
+  },
+  "functions": [
+    {
+      "description": "h6OfHQ .! Ct.,,1ljoFC?5VB?y,??",
+      "name": "r??.q?jvk,."
+    }
+  ],
+  "logprobs": true,
+  "max_tokens": 299,
+  "messages": [
+    {
+      "content": "3SH?5P.!?183,P7,,dV8?gi..,.m?,r",
+      "role": "tool",
+      "tool_call_id": ",.V"
+    }
+  ],
+  "model": "gpt-4o-search-preview-2025-03-11",
+  "n": 739,
+  "reasoning_effort": null,
+  "seed": 684,
+  "stream_options": {
+    "include_obfuscation": false
+  },
+  "tools": [
+    {
+      "custom": {
+        "description": ",Kp5?D6L?? UEz!z?ZL,,i,sA ,b.?W.!Rv",
+        "name": "9zR?au?hu7..??W,.AiynqPLEI.,1A9nJZ!,ti"
+      },
+      "type": "custom"
+    }
+  ],
+  "web_search_options": {}
+}

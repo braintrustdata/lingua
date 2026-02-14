@@ -1,0 +1,43 @@
+{
+  "max_tokens": 116,
+  "messages": [
+    {
+      "content": ".,Yu.?!9V0 ,,.m.la.0k,2U.B .0bs..!,q?",
+      "role": "assistant"
+    },
+    {
+      "content": ".b K.L?7vj,yE..U?o4?0EEo,.n,rI.T,s,p?IW5kyV??UZ?",
+      "role": "assistant"
+    },
+    {
+      "content": "4l.00KM??8.!2E!,68?N9.e",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {
+    "user_id": "!VU,?qHS?8kJ. o?6oF.pKgAH?,98?,w3,."
+  },
+  "model": "claude-3-5-haiku-20241022",
+  "output_config": {
+    "effort": "low",
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "service_tier": "standard_only",
+  "stop_sequences": [
+    ".p6?X5GP3!!b1kOfvF?.S!U,Q R.!U.j!?o4L,2!h?sU",
+    "1n.m?fczdbv,!K !?8g,,GR?!?L? !!,.!4oVlJC",
+    ",m??3,yh,RxzKD?"
+  ],
+  "thinking": {
+    "budget_tokens": -944,
+    "type": "enabled"
+  },
+  "tool_choice": {
+    "disable_parallel_tool_use": true,
+    "type": "any"
+  },
+  "top_p": -42.85483861797742
+}

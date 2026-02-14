@@ -1,0 +1,22 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.seed (-813 -> null)",
+    "universal(1->2): changed: params.frequency_penalty (-80.93792910990688 -> null)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.presence_penalty (15.551414078708998 -> null)",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: functions",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: seed",
+    "chat(final): lost: tool_choice",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: modalities",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: n",
+    "chat(final): lost: logit_bias",
+    "chat(final): changed: stop (\"uy!G!m,od,K,54.?dw6\" -> [\"uy!G!m,od,K,54.?dw6\"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

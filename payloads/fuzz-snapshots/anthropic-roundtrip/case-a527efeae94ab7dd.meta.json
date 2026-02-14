@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: system",
+    "lost: metadata",
+    "lost: tools[1].eager_input_streaming"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: output_config",
+    "lost: metadata",
+    "added: thinking.budget_tokens",
+    "changed: thinking.type (\"disabled\" -> \"enabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: metadata",
+    "lost: output_config",
+    "lost: tool_choice.disable_parallel_tool_use"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

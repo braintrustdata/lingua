@@ -1,0 +1,22 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (3 -> 2)",
+    "universal(1->2): changed: params.frequency_penalty (-62.627891018378655 -> null)",
+    "universal(1->2): changed: params.max_tokens (null -> 4096)",
+    "universal(1->2): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: audio",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: functions",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: verbosity",
+    "chat(final): added: tool_choice",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): changed: stream_options (null -> {\"include_usage\":true})",
+    "chat(final): changed: messages.length (3 -> 2)"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

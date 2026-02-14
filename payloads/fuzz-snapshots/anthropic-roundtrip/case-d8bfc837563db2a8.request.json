@@ -1,0 +1,43 @@
+{
+  "max_tokens": -606,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "id": "u1d8,P?,??! ,h?.D6!.g?!,?s9,.B?.7F",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        },
+        {
+          "data": ".Gl,R",
+          "type": "redacted_thinking"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": ".u,V,kXqKId1Y8?,RK8",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-opus-4-6",
+  "output_config": {
+    "effort": "medium"
+  },
+  "stop_sequences": [
+    ".M6H?O.M.!?QKv6ng0?lvHp",
+    "!Sk?xx ?J.qt .aSu,v?M,!Va.p3?87"
+  ],
+  "system": "n? tY1y",
+  "thinking": {
+    "budget_tokens": 57,
+    "type": "enabled"
+  },
+  "tool_choice": {
+    "name": "X.??je? w.Qm,.,a!H,ty6..?s!XG,ro!O,?M.V.dhJ,,?, O",
+    "type": "tool"
+  },
+  "top_k": 817
+}

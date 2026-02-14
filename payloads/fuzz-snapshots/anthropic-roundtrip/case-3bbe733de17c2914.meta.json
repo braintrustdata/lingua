@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: output_config",
+    "changed: thinking.budget_tokens (926 -> 1024)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

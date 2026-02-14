@@ -1,0 +1,28 @@
+{
+  "frequency_penalty": 53.51830754974964,
+  "function_call": "none",
+  "logit_bias": {},
+  "logprobs": true,
+  "max_completion_tokens": -392,
+  "messages": [
+    {
+      "content": "?,,..N!9 Ao ,.e?E9,m??a Do,zHuuw!2V",
+      "name": ",G..0?T!5 .X,.v?lm38.,z",
+      "role": "developer"
+    },
+    {
+      "content": ",??t?32,6sW,E.?,mK",
+      "name": "V. ,L8,2,Je8O.,5. sk.,o, M,5Xn,f7w,I ",
+      "role": "user"
+    }
+  ],
+  "model": "gpt-4.1-mini",
+  "parallel_tool_calls": false,
+  "presence_penalty": 87.38196126619248,
+  "reasoning_effort": "high",
+  "response_format": {
+    "type": "text"
+  },
+  "top_logprobs": -923,
+  "verbosity": null
+}

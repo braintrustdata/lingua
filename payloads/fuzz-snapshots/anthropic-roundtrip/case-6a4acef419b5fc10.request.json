@@ -1,0 +1,41 @@
+{
+  "max_tokens": -709,
+  "messages": [
+    {
+      "content": "gh1l1?,?qC",
+      "role": "user"
+    }
+  ],
+  "metadata": {
+    "user_id": null
+  },
+  "model": "claude-3-7-sonnet-latest",
+  "service_tier": "standard_only",
+  "stream": false,
+  "temperature": -88.20886430371804,
+  "thinking": {
+    "budget_tokens": -839,
+    "type": "enabled"
+  },
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "type": "auto"
+  },
+  "tools": [
+    {
+      "allowed_domains": [
+        "Jmc8??36  YV??U.MA.u. 82lh",
+        "0m z,Xv?Hvb?!,!v.2,!..,s ",
+        ",?.iQ. .04EL"
+      ],
+      "blocked_domains": null,
+      "cache_control": {
+        "ttl": "1h",
+        "type": "ephemeral"
+      },
+      "name": "web_search",
+      "type": "web_search_20250305"
+    }
+  ],
+  "top_k": -773
+}

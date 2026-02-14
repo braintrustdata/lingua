@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: output_config",
+    "lost: temperature",
+    "lost: metadata",
+    "lost: tools[1].allowed_domains",
+    "added: thinking",
+    "changed: messages[0].content.length (3 -> 2)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

@@ -1,0 +1,22 @@
+{
+  "inference_geo": null,
+  "max_tokens": -238,
+  "messages": [
+    {
+      "content": "vp!wS,..,!m,y.pd?9F?6.CCy,!m?,, ",
+      "role": "assistant"
+    },
+    {
+      "content": "!.C8b, k7qg,9?LV2I?m5 R K6,i,?2N!a .Qi.",
+      "role": "assistant"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-opus-4-20250514",
+  "service_tier": "standard_only",
+  "thinking": {
+    "budget_tokens": -138,
+    "type": "enabled"
+  },
+  "top_p": 23.443583793666185
+}

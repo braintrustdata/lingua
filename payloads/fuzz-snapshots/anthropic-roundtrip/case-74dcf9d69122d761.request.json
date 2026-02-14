@@ -1,0 +1,49 @@
+{
+  "max_tokens": 399,
+  "messages": [
+    {
+      "content": "hR!,., 1X?.6",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "id": ".?V?.,,4!lTh.q!???,",
+          "input": {},
+          "name": "?,t,?J,4!.rp,N,,.?P?,",
+          "type": "tool_use"
+        },
+        {
+          "signature": ",S,avFiEO.?,v",
+          "thinking": "w",
+          "type": "thinking"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "citations": [
+            null
+          ],
+          "text": "ee,mD?Qmjs?UR6?d,,e?..WLS!ofGn!C6? ?5?,5a2K?G3owR ",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-3-opus-latest",
+  "output_config": {},
+  "service_tier": "auto",
+  "stop_sequences": [
+    "!w.wU.1Bl7.,,gjpI!2OCXB?tSPZc1.MEu6LM..Q",
+    "vq,.,,r8TI",
+    "M.k!,,!i0n57tK.e5NKPDd.,,,?Y?U.L .,u,.gBZ ,xh?0o"
+  ],
+  "stream": true,
+  "system": "6?GOf!,L3lU1..?kQP",
+  "temperature": -74.71419803613185
+}

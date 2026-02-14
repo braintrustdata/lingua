@@ -1,0 +1,13 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: tools[1].blocked_domains",
+    "lost: tools[1].max_uses",
+    "lost: tools[1].cache_control",
+    "lost: output_config.effort",
+    "added: thinking.budget_tokens",
+    "changed: thinking.type (\"disabled\" -> \"enabled\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

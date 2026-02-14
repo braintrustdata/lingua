@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": "ballad"
+  },
+  "frequency_penalty": 12.51486781146168,
+  "function_call": {
+    "name": " 8?.sOFxz,..Nve,w1,q?Q Q..cd!"
+  },
+  "functions": [
+    {
+      "description": "56,6Pn99,?.8s",
+      "name": "3"
+    },
+    {
+      "description": "w,f.2??!U46,pc?.N8B!zV,!,u0I",
+      "name": "?A,H??SV!17 .B6.8!.!!.pR!,xGkK.?R.C??sN"
+    },
+    {
+      "name": ",K,,o.i ,eT9i, W,!.D0g,!,0 c. ?0h9q? ?",
+      "parameters": {}
+    },
+    {
+      "name": "?!W3Z,SA??YH .O?b?."
+    }
+  ],
+  "logprobs": true,
+  "max_completion_tokens": -264,
+  "max_tokens": -948,
+  "messages": [
+    {
+      "content": "!?.aD?0m",
+      "name": ".!sbt3 .?54, .0PLm0x6z.f,W?HaZCP d",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "1U?tmLOL2K4, b,???T!,t!k,.?i!",
+  "n": 995,
+  "prediction": {
+    "content": [
+      {
+        "text": ",",
+        "type": "text"
+      },
+      {
+        "text": "PBXe,87Rg,R,?0ocf?.T?0W!,,s7V,!K ,J",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "reasoning_effort": null,
+  "seed": 915,
+  "stream_options": null,
+  "tools": [
+    {
+      "function": {
+        "name": ".73vpY9QJgbGv T",
+        "parameters": {},
+        "strict": false
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": ".?,c.y.H.pRw.7SzR3",
+        "parameters": {},
+        "strict": null
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 738,
+  "verbosity": "low",
+  "web_search_options": {
+    "search_context_size": "high"
+  }
+}

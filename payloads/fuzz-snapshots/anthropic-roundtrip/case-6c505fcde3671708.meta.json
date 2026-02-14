@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: messages[0].content[0].cache_control",
+    "lost: tools[0].cache_control",
+    "lost: tools[1].cache_control"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

@@ -1,0 +1,54 @@
+{
+  "frequency_penalty": 96.7054076996826,
+  "logit_bias": {},
+  "logprobs": true,
+  "max_tokens": -950,
+  "messages": [
+    {
+      "content": "5LS2,hb2kkf,TrG6..?dpgTrc.3!o.,f!dVy,1K!?b?, Kwbng",
+      "role": "tool",
+      "tool_call_id": ".!1.6K?OTCj"
+    }
+  ],
+  "modalities": [
+    "text",
+    "text",
+    "audio"
+  ],
+  "model": "I.yKT,Ag,?.IB?OU8 ,iC.,?.8?2h2.JE w L?b,VoNI ?K.",
+  "n": -183,
+  "parallel_tool_calls": true,
+  "presence_penalty": -25.45405258202777,
+  "reasoning_effort": "high",
+  "tools": [
+    {
+      "custom": {
+        "description": "O6i.!MLY.A?8g9 .ro,,.n.?m! ",
+        "name": ",?d.dj?mRE I34e.,.,12.6...?nH.H"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "description": "T ?,.?4,d9 ?,K!4kw ..n!?G!,h,,4N?9ZT",
+        "format": {
+          "grammar": {
+            "definition": "V2?!3MIa0FX7?E?..HHBnn?wxS?ffH?,z b",
+            "syntax": "lark"
+          },
+          "type": "grammar"
+        },
+        "name": "VqCPYW.iz?2P8!5UV?"
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "description": "uW.,?!",
+        "name": "6 ,uqMzESL1e2 Bs",
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "issues": [
+    "lost: tools[0].cache_control",
+    "changed: messages[1].content ([{\"signature\":\"r ?.j!??abS1,I?\",\"thinking\":\" ,xZ.mkYx,,DXT.kZ ?rA?!lGe?\",\"type\":\"thinking\"}] -> \"\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

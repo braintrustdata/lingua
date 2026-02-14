@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: tool_choice.disable_parallel_tool_use",
+    "lost: tools[0].cache_control",
+    "lost: tools[0].type",
+    "lost: tools[0].eager_input_streaming"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

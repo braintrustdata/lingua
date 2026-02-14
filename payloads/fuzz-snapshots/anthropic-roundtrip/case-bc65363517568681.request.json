@@ -1,0 +1,47 @@
+{
+  "max_tokens": 350,
+  "messages": [
+    {
+      "content": "WK,?I,6UY4w.??k",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-haiku-4-5",
+  "output_config": {
+    "effort": "max",
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "stream": false,
+  "system": "f5.?e,?t.GaUBc,.WI9?s",
+  "temperature": -50.36710714513494,
+  "tool_choice": {
+    "type": "none"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_based_edit_tool",
+      "strict": true,
+      "type": "text_editor_20250429"
+    },
+    {
+      "cache_control": {
+        "ttl": "5m",
+        "type": "ephemeral"
+      },
+      "name": "bash",
+      "type": "bash_20250124"
+    },
+    {
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250429"
+    }
+  ],
+  "top_k": -342,
+  "top_p": 91.43788046567668
+}

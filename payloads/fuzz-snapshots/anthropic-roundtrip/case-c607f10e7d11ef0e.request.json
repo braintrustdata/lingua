@@ -1,0 +1,41 @@
+{
+  "max_tokens": 105,
+  "messages": [
+    {
+      "content": "vR?!,Q?r5W1D?.N84Aed9!K.SvCA6..3,,.Z183,V.Z.fh?Zk,",
+      "role": "user"
+    },
+    {
+      "content": "Q 0h??2hK,j,.e7! i Ymer",
+      "role": "user"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-sonnet-4-20250514",
+  "service_tier": "standard_only",
+  "system": "0S?Ku,0,?,0,1.o6??!1!n, ...!?na5,",
+  "temperature": -59.09326762627549,
+  "tool_choice": {
+    "type": "none"
+  },
+  "tools": [
+    {
+      "cache_control": {
+        "type": "ephemeral"
+      },
+      "name": "str_replace_editor",
+      "strict": false,
+      "type": "text_editor_20250124"
+    },
+    {
+      "max_characters": null,
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250728"
+    },
+    {
+      "name": "str_replace_based_edit_tool",
+      "strict": false,
+      "type": "text_editor_20250429"
+    }
+  ]
+}

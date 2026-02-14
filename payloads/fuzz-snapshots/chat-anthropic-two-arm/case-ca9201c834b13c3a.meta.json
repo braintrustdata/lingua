@@ -1,0 +1,19 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.seed (-627 -> null)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.max_tokens (null -> 4096)",
+    "chat(final): lost: modalities",
+    "chat(final): lost: seed",
+    "chat(final): lost: functions",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: messages[0].name",
+    "chat(final): lost: messages[1].name",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): changed: stop (\",7mD,z!tD39\" -> [\",7mD,z!tD39\"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

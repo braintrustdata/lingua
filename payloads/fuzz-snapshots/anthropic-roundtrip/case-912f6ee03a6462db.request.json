@@ -1,0 +1,44 @@
+{
+  "max_tokens": 917,
+  "messages": [
+    {
+      "content": ",.?M6c7e",
+      "role": "user"
+    },
+    {
+      "content": ",?PB! .r,e80,MP.?C6zV8Gk,,gFf,Nw  Cg.8.Bq6 ?,v??H ",
+      "role": "user"
+    }
+  ],
+  "metadata": {
+    "user_id": ",h5s. 9?E,fDdfUb7.V,YC!8C8"
+  },
+  "model": "claude-3-haiku-20240307",
+  "tool_choice": {
+    "type": "auto"
+  },
+  "tools": [
+    {
+      "cache_control": null,
+      "description": "?.n1x. !7NF.,Z27zx?2,2.,, ,.a???V.M.N sq?FBNCh",
+      "input_schema": {
+        "properties": {},
+        "required": null,
+        "type": "object"
+      },
+      "name": "SC6!!DWEpIHH.S,k7..c.o,9bE??NWd!3?54! ,ih!40.",
+      "strict": false,
+      "type": "custom"
+    },
+    {
+      "cache_control": {
+        "ttl": "5m",
+        "type": "ephemeral"
+      },
+      "name": "bash",
+      "strict": true,
+      "type": "bash_20250124"
+    }
+  ],
+  "top_p": -6.519292271437918
+}

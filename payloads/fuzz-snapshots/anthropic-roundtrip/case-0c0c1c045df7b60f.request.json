@@ -1,0 +1,48 @@
+{
+  "inference_geo": "9 ",
+  "max_tokens": 222,
+  "messages": [
+    {
+      "content": "Go ? .au d.?!?.i.??..BvRlK1h,,D?T  f,",
+      "role": "assistant"
+    },
+    {
+      "content": "EhFa?,F....?,!!Ig.1q4j!U?.. ",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "cache_control": null,
+          "id": "3??Bs .Om7?,mvH",
+          "input": {},
+          "name": ",.x.8?C0MX.r.?9!,?!?.Ak BPF??0!?u7?!t?.C4K6X3?.",
+          "type": "tool_use"
+        },
+        {
+          "signature": "1?x q?.r?i?3?p,.67,?g??g",
+          "thinking": "W.Ho33?H. JiI.7!?LdcECVQ?r,8dG.5,GoG!.!",
+          "type": "thinking"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-3-opus-latest",
+  "output_config": {},
+  "system": [
+    {
+      "cache_control": null,
+      "citations": null,
+      "text": ". Lt xDh.4Dz",
+      "type": "text"
+    }
+  ],
+  "temperature": -18.170656385573942,
+  "tool_choice": {
+    "disable_parallel_tool_use": true,
+    "name": "!3o0YG",
+    "type": "tool"
+  },
+  "top_p": -2.148325980212584
+}

@@ -1,0 +1,44 @@
+{
+  "inference_geo": null,
+  "max_tokens": -65,
+  "messages": [
+    {
+      "content": [
+        {
+          "signature": "9ci",
+          "thinking": "T,3.I1!?,e6,oi., ?HnMwv!1.1GnF? !sE..Tmf2. ?q.",
+          "type": "thinking"
+        },
+        {
+          "cache_control": null,
+          "citations": null,
+          "text": ",?B1C!m,,QLVuW,W8t.,c O.Jpp16P T.???.X?0K",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": ",3E9T,v?..R96.,,",
+      "role": "user"
+    },
+    {
+      "content": "u",
+      "role": "user"
+    }
+  ],
+  "model": "claude-4-opus-20250514",
+  "output_config": {
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "service_tier": "standard_only",
+  "stream": false,
+  "tool_choice": {
+    "disable_parallel_tool_use": false,
+    "type": "any"
+  },
+  "top_k": -984
+}

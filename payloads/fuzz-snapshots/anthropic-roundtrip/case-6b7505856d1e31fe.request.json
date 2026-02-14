@@ -1,0 +1,33 @@
+{
+  "max_tokens": 913,
+  "messages": [
+    {
+      "content": "?,s cLP?31683?.?Q",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-4-sonnet-20250514",
+  "service_tier": "auto",
+  "thinking": {
+    "budget_tokens": -750,
+    "type": "enabled"
+  },
+  "tools": [
+    {
+      "eager_input_streaming": null,
+      "input_schema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": ".,?W,q"
+    },
+    {
+      "max_characters": null,
+      "name": "str_replace_based_edit_tool",
+      "strict": false,
+      "type": "text_editor_20250728"
+    }
+  ],
+  "top_k": 786,
+  "top_p": -63.54338147027563
+}
