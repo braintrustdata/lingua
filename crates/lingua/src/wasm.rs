@@ -266,7 +266,7 @@ pub fn validate_bedrock_response(json: &str) -> Result<JsValue, JsValue> {
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
-/// Validate a JSON string as a Google request (not supported - protobuf types)
+/// Validate a JSON string as a Google GenerateContent request
 #[wasm_bindgen]
 #[cfg(feature = "google")]
 pub fn validate_google_request(json: &str) -> Result<JsValue, JsValue> {
@@ -276,7 +276,7 @@ pub fn validate_google_request(json: &str) -> Result<JsValue, JsValue> {
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
-/// Validate a JSON string as a Google response (not supported - protobuf types)
+/// Validate a JSON string as a Google GenerateContent response
 #[wasm_bindgen]
 #[cfg(feature = "google")]
 pub fn validate_google_response(json: &str) -> Result<JsValue, JsValue> {

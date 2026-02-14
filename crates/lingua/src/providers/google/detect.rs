@@ -3,7 +3,7 @@ Google format detection.
 
 This module provides functions to detect if a payload is in
 Google AI (Generative Language API) format by attempting to
-deserialize into the protobuf-generated types with pbjson serde support.
+deserialize into the generated types.
 */
 
 use crate::providers::google::generated;
@@ -120,8 +120,9 @@ mod tests {
         let result = try_parse_google(&payload);
         assert!(result.is_ok());
         let parsed = result.unwrap();
-        assert_eq!(parsed.contents.len(), 1);
-        assert_eq!(parsed.contents[0].role, "user");
+        let contents = parsed.contents.unwrap();
+        assert_eq!(contents.len(), 1);
+        assert_eq!(contents[0].role.as_deref(), Some("user"));
     }
 
     #[test]

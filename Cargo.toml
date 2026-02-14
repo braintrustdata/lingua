@@ -24,14 +24,6 @@ anyhow = "1.0"
 thiserror = "2.0"
 assert-json-diff = "2.0.2"
 
-# Protobuf
-prost = "0.13"
-prost-build = "0.13"
-prost-types = "0.13"
-pbjson = "0.7"
-pbjson-build = "0.7"
-pbjson-types = "0.7"
-
 # Schema generation
 typify = "0.4"
 schemars = "0.8"

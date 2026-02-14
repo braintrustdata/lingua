@@ -33,7 +33,9 @@ mod tests {
         run_roundtrip_test(
             case,
             // Extract messages from request
-            |request: &GenerateContentRequest| Ok(&request.contents),
+            |request: &GenerateContentRequest| {
+                Ok(request.contents.as_ref().expect("missing contents"))
+            },
             // Convert to universal
             |messages: &Vec<GoogleContent>| {
                 <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(messages.clone())
@@ -48,6 +50,8 @@ mod tests {
             |response: &GenerateContentResponse| {
                 Ok(response
                     .candidates
+                    .as_ref()
+                    .unwrap_or(&vec![])
                     .iter()
                     .filter_map(|candidate| candidate.content.clone())
                     .collect())
