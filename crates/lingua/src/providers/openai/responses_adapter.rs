@@ -26,8 +26,8 @@ use crate::universal::message::{
 };
 use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use std::convert::TryInto;
 
@@ -127,7 +127,7 @@ impl ProviderAdapter for ResponsesAdapter {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
             top_k: None,
-            max_tokens,
+            token_budget: max_tokens.map(TokenBudget::OutputTokens),
             stop: None, // Responses API doesn't use stop
             tools: typed_params
                 .tools
@@ -256,7 +256,11 @@ impl ProviderAdapter for ResponsesAdapter {
         if let Some(raw) = responses_extras.and_then(|m| m.get("max_output_tokens")) {
             obj.insert("max_output_tokens".into(), raw.clone());
         } else {
-            insert_opt_i64(&mut obj, "max_output_tokens", req.params.max_tokens);
+            insert_opt_i64(
+                &mut obj,
+                "max_output_tokens",
+                req.params.output_token_budget(),
+            );
         }
         if let Some(raw) = responses_extras.and_then(|m| m.get("top_logprobs")) {
             obj.insert("top_logprobs".into(), raw.clone());

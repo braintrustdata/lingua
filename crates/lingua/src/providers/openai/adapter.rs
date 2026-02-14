@@ -24,7 +24,7 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
 use crate::universal::reasoning::effort_to_budget;
-use crate::universal::request::{ReasoningConfig, ReasoningEffort};
+use crate::universal::request::{ReasoningConfig, ReasoningEffort, TokenBudget};
 use crate::universal::tools::tools_to_openai_chat_value;
 use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
@@ -53,8 +53,6 @@ impl ProviderAdapter for OpenAIAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let raw_payload_obj = payload.as_object().cloned();
-
         // Parse params (messages will be parsed separately to preserve reasoning field)
         let typed_params: OpenAIChatParams = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -100,7 +98,7 @@ impl ProviderAdapter for OpenAIAdapter {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
             top_k: None, // OpenAI doesn't support top_k
-            max_tokens,
+            token_budget: max_tokens.map(TokenBudget::OutputTokens),
             stop: typed_params.stop.as_ref().and_then(parse_stop_sequences),
             tools: typed_params
                 .tools
@@ -173,31 +171,21 @@ impl ProviderAdapter for OpenAIAdapter {
                 .insert(ProviderFormat::ChatCompletions, extras_map);
         }
 
-        // Preserve raw key presence for canonical aliases that don't survive typed parsing.
-        if let Some(raw_obj) = raw_payload_obj {
-            let openai_extras = params
+        // Preserve only max token alias selection from typed fields.
+        // This avoids broad raw-JSON passthrough while keeping roundtrip key fidelity.
+        let mut alias_extras = Map::new();
+        if let Some(v) = typed_params.max_tokens {
+            alias_extras.insert("max_tokens".into(), Value::Number(v.into()));
+        }
+        if let Some(v) = typed_params.max_completion_tokens {
+            alias_extras.insert("max_completion_tokens".into(), Value::Number(v.into()));
+        }
+        if !alias_extras.is_empty() {
+            params
                 .extras
                 .entry(ProviderFormat::ChatCompletions)
-                .or_default();
-            for key in [
-                "messages",
-                "stop",
-                "tool_choice",
-                "tools",
-                "response_format",
-                "reasoning_effort",
-                "stream_options",
-            ] {
-                if let Some(v) = raw_obj.get(key) {
-                    openai_extras.insert(key.to_string(), v.clone());
-                }
-            }
-            if let Some(v) = raw_obj.get("max_tokens") {
-                openai_extras.insert("max_tokens".into(), v.clone());
-            }
-            if let Some(v) = raw_obj.get("max_completion_tokens") {
-                openai_extras.insert("max_completion_tokens".into(), v.clone());
-            }
+                .or_default()
+                .extend(alias_extras);
         }
 
         Ok(UniversalRequest {
@@ -238,10 +226,11 @@ impl ProviderAdapter for OpenAIAdapter {
         let had_max_tokens = openai_extras.is_some_and(|e| e.contains_key("max_tokens"));
         let had_max_completion_tokens =
             openai_extras.is_some_and(|e| e.contains_key("max_completion_tokens"));
+        let output_budget = req.params.output_token_budget();
         if had_max_tokens && !had_max_completion_tokens {
-            insert_opt_i64(&mut obj, "max_tokens", req.params.max_tokens);
+            insert_opt_i64(&mut obj, "max_tokens", output_budget);
         } else {
-            insert_opt_i64(&mut obj, "max_completion_tokens", req.params.max_tokens);
+            insert_opt_i64(&mut obj, "max_completion_tokens", output_budget);
         }
         // Output stop sequences as array (OpenAI accepts both string and array)
         if let Some(raw_stop) = openai_extras.and_then(|m| m.get("stop")) {

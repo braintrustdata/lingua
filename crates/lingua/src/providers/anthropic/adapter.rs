@@ -31,8 +31,8 @@ use crate::universal::request::{
 use crate::universal::tools::UniversalTool;
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
@@ -121,7 +121,7 @@ impl ProviderAdapter for AnthropicAdapter {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
             top_k: typed_params.top_k,
-            max_tokens: typed_params.max_tokens,
+            token_budget: typed_params.max_tokens.map(TokenBudget::OutputTokens),
             stop: typed_params.stop_sequences.clone(),
             tools: typed_params.tools.map(|tools| {
                 <Vec<UniversalTool> as TryFromLLM<Vec<_>>>::try_from(tools).unwrap_or_default()
@@ -261,7 +261,10 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // max_tokens is required for Anthropic - use the value from params or default
-        let max_tokens = req.params.max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
+        let max_tokens = req
+            .params
+            .output_token_budget()
+            .unwrap_or(DEFAULT_MAX_TOKENS);
         obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
 
         // Determine reasoning style based on model capability AND canonical source:
@@ -421,8 +424,8 @@ impl ProviderAdapter for AnthropicAdapter {
 
     fn apply_defaults(&self, req: &mut UniversalRequest) {
         // Anthropic requires max_tokens - set default if not provided
-        if req.params.max_tokens.is_none() {
-            req.params.max_tokens = Some(DEFAULT_MAX_TOKENS);
+        if req.params.output_token_budget().is_none() {
+            req.params.token_budget = Some(TokenBudget::OutputTokens(DEFAULT_MAX_TOKENS));
         }
     }
 
@@ -932,7 +935,10 @@ mod tests {
             universal.model,
             Some("claude-3-5-sonnet-20241022".to_string())
         );
-        assert_eq!(universal.params.max_tokens, Some(1024));
+        assert_eq!(
+            universal.params.token_budget,
+            Some(TokenBudget::OutputTokens(1024))
+        );
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
         assert_eq!(
@@ -951,9 +957,12 @@ mod tests {
             params: UniversalParams::default(),
         };
 
-        assert!(req.params.max_tokens.is_none());
+        assert!(req.params.token_budget.is_none());
         adapter.apply_defaults(&mut req);
-        assert_eq!(req.params.max_tokens, Some(DEFAULT_MAX_TOKENS));
+        assert_eq!(
+            req.params.token_budget,
+            Some(TokenBudget::OutputTokens(DEFAULT_MAX_TOKENS))
+        );
     }
 
     #[test]
@@ -963,13 +972,16 @@ mod tests {
             model: Some("claude-3-5-sonnet-20241022".to_string()),
             messages: vec![],
             params: UniversalParams {
-                max_tokens: Some(8192),
+                token_budget: Some(TokenBudget::OutputTokens(8192)),
                 ..Default::default()
             },
         };
 
         adapter.apply_defaults(&mut req);
-        assert_eq!(req.params.max_tokens, Some(8192));
+        assert_eq!(
+            req.params.token_budget,
+            Some(TokenBudget::OutputTokens(8192))
+        );
     }
 
     #[test]
@@ -992,7 +1004,7 @@ mod tests {
                     budget_tokens: Some(2048),
                     ..Default::default()
                 }),
-                max_tokens: Some(4096),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
                 ..Default::default()
             },
         };
@@ -1023,7 +1035,7 @@ mod tests {
             }],
             params: UniversalParams {
                 temperature: Some(0.7),
-                max_tokens: Some(1024),
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
                 ..Default::default()
             },
         };
