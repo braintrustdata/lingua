@@ -82,8 +82,8 @@ impl crate::providers::Provider for OpenAIResponsesProvider {
         "openai-responses"
     }
 
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::Responses
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::Responses]
     }
 
     async fn complete(
@@ -91,6 +91,7 @@ impl crate::providers::Provider for OpenAIResponsesProvider {
         payload: Bytes,
         auth: &AuthConfig,
         _spec: &ModelSpec,
+        _format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let url = self.responses_url()?;
@@ -149,10 +150,13 @@ impl crate::providers::Provider for OpenAIResponsesProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         // Responses API doesn't support streaming, return single-bytes stream
-        let response = self.complete(payload, auth, spec, client_headers).await?;
+        let response = self
+            .complete(payload, auth, spec, format, client_headers)
+            .await?;
         Ok(single_bytes_stream(response))
     }
 

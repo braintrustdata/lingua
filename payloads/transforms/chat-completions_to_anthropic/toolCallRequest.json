@@ -1,6 +1,6 @@
 {
   "model": "claude-sonnet-4-20250514",
-  "id": "msg_01RFUznj44pJd5nANf3wpThi",
+  "id": "msg_01DGYFTTL43Dk497PDoSA3dT",
   "type": "message",
   "role": "assistant",
   "content": [
@@ -10,7 +10,7 @@
     },
     {
       "type": "tool_use",
-      "id": "toolu_01UDUGC3YdtpQ8bkdZQMpGMq",
+      "id": "toolu_01PqaAfxSMw4i3arxmVVAscE",
       "name": "get_weather",
       "input": {
         "location": "San Francisco, CA"
@@ -28,6 +28,7 @@
       "ephemeral_1h_input_tokens": 0
     },
     "output_tokens": 69,
-    "service_tier": "standard"
+    "service_tier": "standard",
+    "inference_geo": "not_available"
   }
 }

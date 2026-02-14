@@ -1,0 +1,406 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0593c2fcaafbb9f300698e4015859c8195b4557bd6da152094",
+      "object": "response",
+      "created_at": 1770930197,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": "Extract person information from text",
+          "name": "person_info",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "age"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0593c2fcaafbb9f300698e4015859c8195b4557bd6da152094",
+      "object": "response",
+      "created_at": 1770930197,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": "Extract person information from text",
+          "name": "person_info",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "age"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_0593c2fcaafbb9f300698e4015c3b481958b950fb8f2bd85ef",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_0593c2fcaafbb9f300698e4015c3b481958b950fb8f2bd85ef",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "{\"",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "2ZGE1rNsbg9Q5l",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "name",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "YjxCWGkOnSeO",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\":\"",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "vu7VDSHOOWEs2",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "John",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "PCXdQDBdV83F",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\",\"",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "E2g2SOcrorj3l",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "age",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "fvJ6l0rfm2Bde",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\":",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "jeWjOrVa7XFPum",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "25",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "PXgPM7YutRiPuM",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "}",
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "obfuscation": "W7zJ08FSS3kHaq9",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 15,
+    "text": "{\"name\":\"John\",\"age\":25}"
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "{\"name\":\"John\",\"age\":25}"
+    },
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"name\":\"John\",\"age\":25}"
+        }
+      ],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0593c2fcaafbb9f300698e4015859c8195b4557bd6da152094",
+      "object": "response",
+      "created_at": 1770930197,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1770930212,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [
+        {
+          "id": "rs_0593c2fcaafbb9f300698e4015c3b481958b950fb8f2bd85ef",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "msg_0593c2fcaafbb9f300698e402437208195818e90119aded47b",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "{\"name\":\"John\",\"age\":25}"
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": "Extract person information from text",
+          "name": "person_info",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "age"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 78,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 1627,
+        "output_tokens_details": {
+          "reasoning_tokens": 1600
+        },
+        "total_tokens": 1705
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 18
+  }
+]

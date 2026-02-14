@@ -97,6 +97,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                                 arguments: ToolCallArguments::from(
                                     serde_json::to_string(&tool_use.input).unwrap_or_default(),
                                 ),
+                                encrypted_content: None,
                                 provider_options: None,
                                 provider_executed: None,
                             });
@@ -305,6 +306,7 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
                         arguments: ToolCallArguments::from(
                             serde_json::to_string(&tool_use.input).unwrap_or_default(),
                         ),
+                        encrypted_content: None,
                         provider_options: None,
                         provider_executed: None,
                     });
@@ -507,6 +509,7 @@ mod tests {
                 tool_call_id: "tool_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
+                encrypted_content: None,
                 provider_options: None,
                 provider_executed: None,
             }]),
@@ -624,6 +627,7 @@ mod tests {
                 tool_call_id: "tool_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
+                encrypted_content: None,
                 provider_options: None,
                 provider_executed: None,
             }]),

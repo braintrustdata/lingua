@@ -1,25 +1,10 @@
 {
-  "sdkHttpResponse": {
-    "headers": {
-      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-      "content-encoding": "gzip",
-      "content-type": "application/json; charset=UTF-8",
-      "date": "Fri, 06 Feb 2026 01:56:20 GMT",
-      "server": "scaffolding on HTTPServer2",
-      "server-timing": "gfet4t7; dur=1519",
-      "transfer-encoding": "chunked",
-      "vary": "Origin, X-Origin, Referer",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "SAMEORIGIN",
-      "x-xss-protection": "0"
-    }
-  },
   "candidates": [
     {
       "content": {
         "parts": [
           {
-            "text": "I can help with that! I'll query the `"
+            "text": "To find recent errors from the `project_logs"
           }
         ],
         "role": "model"
@@ -28,11 +13,9 @@
       "index": 0
     }
   ],
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "REqFaYaWDd7S_uMPppansQ0",
   "usageMetadata": {
     "promptTokenCount": 29,
-    "candidatesTokenCount": 12,
+    "candidatesTokenCount": 10,
     "totalTokenCount": 325,
     "promptTokensDetails": [
       {
@@ -40,6 +23,8 @@
         "tokenCount": 29
       }
     ],
-    "thoughtsTokenCount": 284
-  }
+    "thoughtsTokenCount": 286
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "eW2PacmpLfXUjMcPzdTG6QU"
 }

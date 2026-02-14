@@ -23,6 +23,8 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::env;
 
+const MODEL_CATALOG_URL: &str = "https://raw.githubusercontent.com/braintrustdata/braintrust-proxy/main/packages/proxy/schema/model_list.json";
+
 #[tokio::main]
 async fn main() -> Result<()> {
     println!("🔐 Authentication Configuration Examples\n");
@@ -108,13 +110,15 @@ async fn main() -> Result<()> {
         }
     };
 
-    let model_path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/catalog/model_list.json");
+    let catalog_json = reqwest::get(MODEL_CATALOG_URL).await?.text().await?;
+    let catalog = std::sync::Arc::new(braintrust_llm_router::ModelCatalog::from_json_str(
+        &catalog_json,
+    )?);
 
     let openai_provider = OpenAIProvider::new(OpenAIConfig::default())?;
 
-    // Using the helper method for simple API key auth
     let router = Router::builder()
-        .load_models(model_path)?
+        .with_catalog(catalog)
         .add_provider("openai", openai_provider)
         .add_api_key("openai", api_key) // Convenience method
         .build()?;

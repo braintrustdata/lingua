@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "Okay"
+              "text": "Okay,"
             }
           ],
           "role": "model"
@@ -14,34 +14,19 @@
         "index": 0
       }
     ],
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "HvJHafriCdmG-8YPxcjikAQ",
     "usageMetadata": {
-      "promptTokenCount": 47,
-      "candidatesTokenCount": 1,
-      "totalTokenCount": 143,
+      "promptTokenCount": 48,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 144,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 47
+          "tokenCount": 48
         }
       ],
-      "thoughtsTokenCount": 95
+      "thoughtsTokenCount": 94
     },
-    "sdkHttpResponse": {
-      "headers": {
-        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-        "content-disposition": "attachment",
-        "content-type": "text/event-stream",
-        "date": "Sun, 21 Dec 2025 13:11:58 GMT",
-        "server": "scaffolding on HTTPServer2",
-        "server-timing": "gfet4t7; dur=725",
-        "transfer-encoding": "chunked",
-        "vary": "Origin, X-Origin, Referer",
-        "x-content-type-options": "nosniff",
-        "x-frame-options": "SAMEORIGIN",
-        "x-xss-protection": "0"
-      }
-    }
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iL58acboG-KVjMcP1MG6kA8"
   }
 ]

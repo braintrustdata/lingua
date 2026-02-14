@@ -116,6 +116,7 @@ pub fn parse_provider(name: &str) -> Result<ProviderFormat, String> {
         "anthropic" => Ok(ProviderFormat::Anthropic),
         "google" | "gemini" => Ok(ProviderFormat::Google),
         "bedrock" | "converse" => Ok(ProviderFormat::Converse),
+        "bedrock-anthropic" => Ok(ProviderFormat::BedrockAnthropic),
         _ => Err(format!("Unknown provider: {}", name)),
     }
 }

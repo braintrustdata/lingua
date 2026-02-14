@@ -5,20 +5,23 @@ import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
 
 // Google Gemini API request type (matching the js-genai library)
 export interface GoogleGenerateContentRequest {
+  model?: string;
   contents: Content[];
-  config?: GenerateContentConfig;
+  generationConfig?: GenerateContentConfig;
   tools?: Tool[];
+  toolConfig?: Record<string, unknown>;
   systemInstruction?: Content;
 }
 
 // Re-export Bedrock type for convenience
 export type BedrockConverseRequest = ConverseCommandInput;
 
-// Extended Anthropic type that includes beta features like output_format
-// The executor uses regular client.messages.create() but test cases may define beta params
+// Extended Anthropic type that includes beta/new features
+// The executor uses regular client.messages.create() but test cases may define extra params
 export type AnthropicMessageCreateParams =
   Anthropic.Messages.MessageCreateParams & {
     output_format?: Anthropic.Beta.Messages.BetaJSONOutputFormat | null;
+    output_config?: Anthropic.Messages.OutputConfig;
   };
 
 // Expectation-based validation for proxy compatibility tests
@@ -42,6 +45,7 @@ export interface TestCase {
   anthropic: AnthropicMessageCreateParams | null;
   google: GoogleGenerateContentRequest | null;
   bedrock: BedrockConverseRequest | null;
+  "bedrock-anthropic"?: AnthropicMessageCreateParams | null;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
 }
@@ -60,4 +64,5 @@ export const PROVIDER_TYPES = [
   "anthropic",
   "google",
   "bedrock",
+  "bedrock-anthropic",
 ] as const;

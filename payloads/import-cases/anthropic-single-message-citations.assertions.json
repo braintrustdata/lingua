@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": ["user", "system", "assistant"],
+  "mustContainText": ["custom scorer", "A dataset record"]
+}

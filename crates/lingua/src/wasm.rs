@@ -4,6 +4,7 @@ use wasm_bindgen::prelude::*;
 
 // Import our types and conversion traits
 use crate::providers::anthropic::generated as anthropic;
+use crate::providers::google::generated as google;
 use crate::providers::openai::generated as openai;
 use crate::providers::openai::ChatCompletionRequestMessageExt;
 use crate::universal::{convert::TryFromLLM, Message};
@@ -85,6 +86,18 @@ pub fn anthropic_messages_to_lingua(value: JsValue) -> Result<JsValue, JsValue> 
 #[wasm_bindgen]
 pub fn lingua_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> {
     convert_from_lingua::<Vec<Message>, Vec<anthropic::InputMessage>>(value)
+}
+
+/// Convert array of Google Content items to Lingua Messages
+#[wasm_bindgen]
+pub fn google_contents_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_to_lingua::<Vec<google::Content>, Vec<Message>>(value)
+}
+
+/// Convert array of Lingua Messages to Google Content items
+#[wasm_bindgen]
+pub fn lingua_to_google_contents(value: JsValue) -> Result<JsValue, JsValue> {
+    convert_from_lingua::<Vec<Message>, Vec<google::Content>>(value)
 }
 
 // ============================================================================
@@ -253,7 +266,7 @@ pub fn validate_bedrock_response(json: &str) -> Result<JsValue, JsValue> {
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
-/// Validate a JSON string as a Google request (not supported - protobuf types)
+/// Validate a JSON string as a Google GenerateContent request
 #[wasm_bindgen]
 #[cfg(feature = "google")]
 pub fn validate_google_request(json: &str) -> Result<JsValue, JsValue> {
@@ -263,7 +276,7 @@ pub fn validate_google_request(json: &str) -> Result<JsValue, JsValue> {
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
-/// Validate a JSON string as a Google response (not supported - protobuf types)
+/// Validate a JSON string as a Google GenerateContent response
 #[wasm_bindgen]
 #[cfg(feature = "google")]
 pub fn validate_google_response(json: &str) -> Result<JsValue, JsValue> {

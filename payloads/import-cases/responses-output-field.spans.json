@@ -1,0 +1,21 @@
+[
+  {
+    "input": [
+      {
+        "role": "user",
+        "content": "Should I take this chance?"
+      }
+    ],
+    "output": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "I consulted the magic 8-ball for you. It points to yes.",
+          "role": "assistant"
+        }
+      }
+    ]
+  }
+]

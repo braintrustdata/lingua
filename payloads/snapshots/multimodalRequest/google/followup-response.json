@@ -1,25 +1,10 @@
 {
-  "sdkHttpResponse": {
-    "headers": {
-      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-      "content-encoding": "gzip",
-      "content-type": "application/json; charset=UTF-8",
-      "date": "Tue, 30 Dec 2025 17:03:32 GMT",
-      "server": "scaffolding on HTTPServer2",
-      "server-timing": "gfet4t7; dur=2011",
-      "transfer-encoding": "chunked",
-      "vary": "Origin, X-Origin, Referer",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "SAMEORIGIN",
-      "x-xss-protection": "0"
-    }
-  },
   "candidates": [
     {
       "content": {
         "parts": [
           {
-            "text": "To give you the best advice, I need a little more"
+            "text": "Since the image was completely black, there are a few possibilities"
           }
         ],
         "role": "model"
@@ -28,16 +13,14 @@
       "index": 0
     }
   ],
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "5AVUaefUCoPSjMcPhN2qiAc",
   "usageMetadata": {
-    "promptTokenCount": 286,
+    "promptTokenCount": 287,
     "candidatesTokenCount": 12,
-    "totalTokenCount": 582,
+    "totalTokenCount": 583,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 28
+        "tokenCount": 29
       },
       {
         "modality": "IMAGE",
@@ -45,5 +28,7 @@
       }
     ],
     "thoughtsTokenCount": 284
-  }
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "i758aeu_GcrOjMcPnc39kA4"
 }

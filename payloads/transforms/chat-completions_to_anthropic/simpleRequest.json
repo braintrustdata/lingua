@@ -1,13 +1,13 @@
 {
   "model": "claude-sonnet-4-20250514",
-  "id": "msg_01Xrc4PPLmZt1YmHHBUPqbG6",
+  "id": "msg_01SZEDyY3xx3vRwhu6NuQ37d",
   "type": "message",
   "role": "assistant",
   "content": [
     {
       "type": "thinking",
-      "thinking": "This is a straightforward factual question about geography. The capital of France is Paris. This is a well-established fact and there's no ambiguity or controversy around it.",
-      "signature": "EtcCCkYICxgCKkCdIXUyVg3DaxfLI8Hie56Ksu41ye5HUj9fwp1vbLCo1cKu/Sk5K90qFnozb2HxfjmifzJ3Sae/P1wH3A56rUp/Egz2qyGq7ZdRr9EocJcaDANqdJZUKkxkABGX6SIwCsbRol95Vel2Etd4f9Bta2w2eDsLXIj47H4nKqt6x01867xq+ZGaOXbt6NRaQ1ItKr4BZnUNdD2Sbyl0pV3E+FgqWnoNLCBqXZhKAy4uTvSwVEFMGFRm0fKnc1h+cw8vQPX4DIxyyZ9SqAdu9Q0D9v787H4pz/EiY1SuReIMgdU2nAMVRgbIfQPDbbTEL/9QDrjtEalFaCIIARjAoxQbhgs3AxQMVSOWiB/ZNcrtE5Shx255yHae36X8kMt8JetT/tNbg6u1K1QnS/5U5pla9KTyscYKTjdmmnvTLdq2vAJ/sPb8nDkYEljnmo5ev3EU3RgB"
+      "thinking": "This is a straightforward factual question. The capital of France is Paris. This is basic geographical knowledge that I can provide confidently.",
+      "signature": "ErkCCkYICxgCKkB/VSMzHr1UoQiyNS0z7cJQM6BUFmFfI2emnP7YJgW/lhBPOtjvgUAaq5tXWH9FJCIzCXCs/hw0sKY+2KAvpcLJEgy7Nh1ybvk1zdrdliYaDA9DnbQuJa5XiIDFLiIwI3UpxlJrF5Hf/K+I1BBcmXs0llgTNDWTMPUjXqhj4068w4q6ScMMI/+IlkrDh98EKqABi5/fmhsiopylBjnTvYwgiHstHv/G2jH+bestbnXSKUVvaIK3DNtViAFoZQLnpzpF3PbMx7cCDvLEqV6Qnnkx9As1xUWIYoMLDE8MyTyWKaOKTBu8JO9lKNDyeX6BO0KiusBzfIk1PCEwfZCe8mqRX1+YHBjJJ/odyKu6yHlzw6Zqd0uCFMP3PatkEuSyOkAqCX34KuuucMgLxEB5IvMfYBgB"
     },
     {
       "type": "text",
@@ -24,7 +24,8 @@
       "ephemeral_5m_input_tokens": 0,
       "ephemeral_1h_input_tokens": 0
     },
-    "output_tokens": 55,
-    "service_tier": "standard"
+    "output_tokens": 46,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
   }
 }

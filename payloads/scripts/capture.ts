@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 import { join } from "path";
-import { needsRegeneration, updateCache } from "./cache-utils";
+import { execSync } from "child_process";
 import { saveAllFiles } from "./file-manager";
+import { captureTransforms } from "./transforms/capture-transforms";
 
 // Import all providers
 import { openaiExecutor } from "./providers/openai";
@@ -11,7 +12,8 @@ import { openaiResponsesExecutor } from "./providers/openai-responses";
 import { anthropicExecutor } from "./providers/anthropic";
 import { googleExecutor } from "./providers/google";
 import { bedrockExecutor } from "./providers/bedrock";
-import { ProviderExecutor } from "./types";
+import { bedrockAnthropicExecutor } from "./providers/bedrock-anthropic";
+import { type ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
 const allProviders = [
@@ -20,12 +22,12 @@ const allProviders = [
   anthropicExecutor,
   googleExecutor,
   bedrockExecutor,
+  bedrockAnthropicExecutor,
 ] as const;
 
 interface CaptureOptions {
   list: boolean;
   force: boolean;
-  failing: boolean;
   filter?: string;
   providers?: string[];
   cases?: string[];
@@ -37,7 +39,6 @@ function parseArguments(): CaptureOptions {
   const options: CaptureOptions = {
     list: false,
     force: false,
-    failing: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -49,9 +50,6 @@ function parseArguments(): CaptureOptions {
         break;
       case "--force":
         options.force = true;
-        break;
-      case "--failing":
-        options.failing = true;
         break;
       case "--filter":
         if (i + 1 < args.length) {
@@ -92,7 +90,7 @@ function parseArguments(): CaptureOptions {
         if (arg.startsWith("--")) {
           console.error(`Unknown option: ${arg}`);
           console.error(
-            "Available options: --list, --force, --failing, --filter, --providers, --cases, --stream"
+            "Available options: --list, --force, --filter, --providers, --cases, --stream"
           );
           process.exit(1);
         }
@@ -107,22 +105,6 @@ interface CaseToRun {
   caseName: string;
   payload: unknown;
   executor: ProviderExecutor<unknown, unknown, unknown>;
-}
-
-const FAILURES_FILE = ".failures.json";
-
-function loadFailures(outputDir: string): Set<string> {
-  const failuresPath = join(outputDir, FAILURES_FILE);
-  if (!existsSync(failuresPath)) {
-    return new Set();
-  }
-  const data = JSON.parse(readFileSync(failuresPath, "utf-8"));
-  return new Set(data);
-}
-
-function saveFailures(outputDir: string, failures: string[]): void {
-  const failuresPath = join(outputDir, FAILURES_FILE);
-  writeFileSync(failuresPath, JSON.stringify(failures, null, 2));
 }
 
 function getAllCases(options: CaptureOptions): CaseToRun[] {
@@ -158,55 +140,19 @@ function getAllCases(options: CaptureOptions): CaseToRun[] {
   return cases;
 }
 
-async function main() {
-  const options = parseArguments();
-  const allCases = getAllCases(options);
-
-  if (options.list) {
-    console.log(`Found ${allCases.length} cases:`);
-    for (const case_ of allCases) {
-      console.log(`  ${case_.provider}/${case_.caseName}`);
-    }
-    return;
-  }
-
-  console.log(`\nStarting capture of ${allCases.length} cases...`);
-  console.log(
-    `Providers: ${[...new Set(allCases.map((c) => c.provider))].join(", ")}`
-  );
-
+async function captureProviderSnapshots(
+  cases: CaseToRun[],
+  options: CaptureOptions
+): Promise<void> {
   const outputDir = join(__dirname, "..", "snapshots");
   mkdirSync(outputDir, { recursive: true });
 
-  // Filter to only failing cases if --failing is passed
-  let filteredCases = allCases;
-  if (options.failing) {
-    const previousFailures = loadFailures(outputDir);
-    if (previousFailures.size === 0) {
-      console.log("No previous failures recorded.");
-      return;
-    }
-    filteredCases = allCases.filter((c) =>
-      previousFailures.has(`${c.provider}/${c.caseName}`)
-    );
-    console.log(`Retrying ${filteredCases.length} previously failed cases...`);
-  }
-
-  // Filter cases that need to be run
   const casesToRun: CaseToRun[] = [];
   const skippedCases: CaseToRun[] = [];
 
-  for (const case_ of filteredCases) {
-    if (
-      !options.force &&
-      !options.failing &&
-      !needsRegeneration(
-        outputDir,
-        case_.provider,
-        case_.caseName,
-        case_.payload
-      )
-    ) {
+  for (const case_ of cases) {
+    const snapshotDir = join(outputDir, case_.caseName, case_.provider);
+    if (!options.force && existsSync(snapshotDir)) {
       skippedCases.push(case_);
     } else {
       casesToRun.push(case_);
@@ -226,7 +172,6 @@ async function main() {
 
   console.log(`Running ${casesToRun.length} cases in parallel...`);
 
-  // Execute all cases in parallel across providers
   const casePromises = casesToRun.map(async (case_) => {
     const startTime = Date.now();
     console.log(`🚀 Starting ${case_.provider}/${case_.caseName}...`);
@@ -243,18 +188,6 @@ async function main() {
         case_.caseName,
         case_.provider,
         result
-      );
-
-      // Update cache with the files that were actually saved
-      const relativeFiles = savedFiles.map((f) =>
-        f.replace(outputDir + "/", "")
-      );
-      updateCache(
-        outputDir,
-        case_.provider,
-        case_.caseName,
-        case_.payload,
-        relativeFiles
       );
 
       const duration = Date.now() - startTime;
@@ -274,10 +207,8 @@ async function main() {
     }
   });
 
-  // Wait for all cases to complete
   const results = await Promise.all(casePromises);
 
-  // Print summary
   const successful = results.filter((r) => r.success);
   const failed = results.filter((r) => !r.success);
   const totalDuration = Math.max(...results.map((r) => r.duration));
@@ -302,17 +233,45 @@ async function main() {
       );
     }
   }
+}
 
-  // Save failures for --failing retry
-  const failureKeys = failed.map(
-    (f) => `${f.case_.provider}/${f.case_.caseName}`
-  );
-  saveFailures(outputDir, failureKeys);
-  if (failed.length > 0) {
-    console.log(`\n💡 Run with --failing to retry failed cases`);
+function updateVitestSnapshots(): void {
+  console.log(`\n--- Updating vitest snapshots ---`);
+  try {
+    execSync("pnpm vitest run scripts/transforms -u", {
+      cwd: join(__dirname, ".."),
+      stdio: "inherit",
+    });
+  } catch {
+    console.error("Failed to update vitest snapshots");
+  }
+}
+
+async function main() {
+  const options = parseArguments();
+  const allCases = getAllCases(options);
+
+  if (options.list) {
+    console.log(`Found ${allCases.length} cases:`);
+    for (const case_ of allCases) {
+      console.log(`  ${case_.provider}/${case_.caseName}`);
+    }
+    return;
   }
 
-  console.log(`\nCapture complete! Results saved to: ${outputDir}`);
+  console.log(`\n--- Provider snapshots ---`);
+  await captureProviderSnapshots(allCases, options);
+
+  console.log(`\n--- Transform captures ---`);
+  const transformResult = await captureTransforms(
+    options.filter,
+    options.force,
+    options.providers
+  );
+
+  if (transformResult.captured > 0) {
+    updateVitestSnapshots();
+  }
 }
 
 if (require.main === module) {

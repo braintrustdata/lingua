@@ -7,158 +7,160 @@ Google's GenerateContent API format and Lingua's universal message format.
 
 use crate::error::ConvertError;
 use crate::providers::google::generated::{
-    part, Blob as GoogleBlob, Content as GoogleContent, FunctionCall as GoogleFunctionCall,
-    FunctionResponse as GoogleFunctionResponse, GenerateContentRequest, Part as GooglePart,
+    Blob as GoogleBlob, Content as GoogleContent, FunctionCall as GoogleFunctionCall,
+    FunctionCallingConfig, FunctionCallingConfigMode, FunctionDeclaration,
+    FunctionResponse as GoogleFunctionResponse, GenerateContentRequest, GenerationConfig,
+    Part as GooglePart, Tool as GoogleTool, ToolConfig,
 };
-use crate::serde_json::{self, Value};
+use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::DEFAULT_MIME_TYPE;
 use crate::universal::message::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
+use crate::universal::request::{
+    JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
+};
+use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::util::media::parse_base64_data_url;
-use base64::engine::general_purpose::STANDARD;
-use base64::Engine;
-use pbjson_types::Struct;
 
 // ============================================================================
 // Google Content -> Universal Message
 // ============================================================================
 
-fn part_from_data(data: part::Data) -> GooglePart {
+fn text_part(text: String) -> GooglePart {
     GooglePart {
-        thought: false,
-        thought_signature: Vec::new(),
-        part_metadata: None,
-        data: Some(data),
-        metadata: None,
+        text: Some(text),
+        ..Default::default()
     }
 }
 
-fn json_to_struct(value: &Value) -> Result<Struct, ConvertError> {
+fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
     match value {
-        Value::Object(_) => serde_json::from_value(value.clone()).map_err(|e| {
-            ConvertError::ContentConversionFailed {
-                reason: format!("Failed to convert JSON object to Struct: {e}"),
-            }
-        }),
-        Value::Null => Ok(Struct {
-            fields: Default::default(),
-        }),
-        _ => Err(ConvertError::ContentConversionFailed {
-            reason: "Google function args/response must be a JSON object".to_string(),
-        }),
+        Value::Object(map) => Some(map.clone()),
+        Value::Null => None,
+        _ => {
+            let mut wrapped = Map::new();
+            wrapped.insert("output".to_string(), value.clone());
+            Some(wrapped)
+        }
     }
-}
-
-fn struct_to_json(value: &Struct) -> Value {
-    serde_json::to_value(value).unwrap_or(Value::Null)
 }
 
 impl TryFromLLM<GoogleContent> for Message {
     type Error = ConvertError;
 
     fn try_from(content: GoogleContent) -> Result<Self, Self::Error> {
-        let role = if content.role.is_empty() {
-            "user"
-        } else {
-            content.role.as_str()
-        };
+        let role = content
+            .role
+            .as_deref()
+            .ok_or(ConvertError::MissingRequiredField {
+                field: "role".to_string(),
+            })?;
+        let parts = content.parts.ok_or(ConvertError::MissingRequiredField {
+            field: "parts".to_string(),
+        })?;
 
-        // Collect text parts
-        let mut text = String::new();
-        let mut function_calls = Vec::new();
-        let mut function_responses = Vec::new();
+        match role {
+            "model" => {
+                let mut assistant_parts: Vec<AssistantContentPart> = Vec::new();
 
-        for part in &content.parts {
-            if let Some(data) = &part.data {
-                match data {
-                    part::Data::Text(t) => text.push_str(t),
-                    part::Data::FunctionCall(fc) => function_calls.push(fc.clone()),
-                    part::Data::FunctionResponse(fr) => function_responses.push(fr.clone()),
-                    _ => {}
-                }
-            }
-        }
-
-        if !function_calls.is_empty() {
-            // Model message with function calls
-            let mut parts = Vec::new();
-
-            if !text.is_empty() {
-                parts.push(AssistantContentPart::Text(TextContentPart {
-                    text,
-                    provider_options: None,
-                }));
-            }
-
-            for fc in function_calls {
-                let args_value = fc.args.as_ref().map(struct_to_json).unwrap_or(Value::Null);
-                parts.push(AssistantContentPart::ToolCall {
-                    tool_call_id: if fc.id.is_empty() {
-                        fc.name.clone()
-                    } else {
-                        fc.id.clone()
-                    },
-                    tool_name: fc.name.clone(),
-                    arguments: ToolCallArguments::from(
-                        serde_json::to_string(&args_value).unwrap_or_default(),
-                    ),
-                    provider_options: None,
-                    provider_executed: None,
-                });
-            }
-
-            Ok(Message::Assistant {
-                content: AssistantContent::Array(parts),
-                id: None,
-            })
-        } else if !function_responses.is_empty() {
-            // User message with function responses (tool results)
-            let tool_parts: Vec<ToolContentPart> = function_responses
-                .iter()
-                .map(|fr| {
-                    let output = fr
-                        .response
-                        .as_ref()
-                        .map(struct_to_json)
-                        .unwrap_or(Value::Null);
-                    ToolContentPart::ToolResult(ToolResultContentPart {
-                        tool_call_id: if fr.id.is_empty() {
-                            fr.name.clone()
+                for part in &parts {
+                    if let Some(t) = &part.text {
+                        if part.thought_signature.is_some() {
+                            assistant_parts.push(AssistantContentPart::Reasoning {
+                                text: t.clone(),
+                                encrypted_content: part.thought_signature.clone(),
+                            });
                         } else {
-                            fr.id.clone()
-                        },
-                        tool_name: fr.name.clone(),
-                        output,
-                        provider_options: None,
-                    })
-                })
-                .collect();
+                            assistant_parts.push(AssistantContentPart::Text(TextContentPart {
+                                text: t.clone(),
+                                provider_options: None,
+                            }));
+                        }
+                    } else if let Some(fc) = &part.function_call {
+                        if let Some(tool_name) = &fc.name {
+                            let args_value = match fc.args.as_ref() {
+                                Some(map) => Value::Object(map.clone()),
+                                None => Value::Null,
+                            };
+                            let encrypted_content = part.thought_signature.clone();
+                            let args_string = serde_json::to_string(&args_value).map_err(|e| {
+                                ConvertError::ContentConversionFailed {
+                                    reason: format!("Failed to serialize function call args: {e}"),
+                                }
+                            })?;
+                            assistant_parts.push(AssistantContentPart::ToolCall {
+                                tool_call_id: fc.id.clone().unwrap_or_default(),
+                                tool_name: tool_name.clone(),
+                                arguments: ToolCallArguments::from(args_string),
+                                encrypted_content,
+                                provider_options: None,
+                                provider_executed: None,
+                            });
+                        }
+                    }
+                }
 
-            Ok(Message::Tool {
-                content: tool_parts,
-            })
-        } else {
-            // Regular text message
-            match role {
-                "user" => Ok(Message::User {
-                    content: UserContent::String(text),
-                }),
-                "model" => Ok(Message::Assistant {
-                    content: AssistantContent::Array(vec![AssistantContentPart::Text(
-                        TextContentPart {
-                            text,
-                            provider_options: None,
-                        },
-                    )]),
+                Ok(Message::Assistant {
+                    content: AssistantContent::Array(assistant_parts),
                     id: None,
-                }),
-                _ => {
-                    // Treat unknown roles as user
+                })
+            }
+
+            // "user" or unknown roles
+            _ => {
+                let mut user_parts: Vec<UserContentPart> = Vec::new();
+                let mut tool_parts: Vec<ToolContentPart> = Vec::new();
+
+                for part in &parts {
+                    if let Some(t) = &part.text {
+                        user_parts.push(UserContentPart::Text(TextContentPart {
+                            text: t.clone(),
+                            provider_options: None,
+                        }));
+                    } else if let Some(blob) = &part.inline_data {
+                        if let Some(data) = &blob.data {
+                            user_parts.push(UserContentPart::Image {
+                                image: Value::String(data.clone()),
+                                media_type: blob.mime_type.clone(),
+                                provider_options: None,
+                            });
+                        }
+                    } else if let Some(fr) = &part.function_response {
+                        if let Some(tool_name) = &fr.name {
+                            let output = match fr.response.as_ref() {
+                                Some(map) => Value::Object(map.clone()),
+                                None => Value::Null,
+                            };
+                            tool_parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
+                                tool_call_id: fr.id.clone().unwrap_or_default(),
+                                tool_name: tool_name.clone(),
+                                output,
+                                provider_options: None,
+                            }));
+                        }
+                    }
+                }
+
+                if !tool_parts.is_empty() {
+                    Ok(Message::Tool {
+                        content: tool_parts,
+                    })
+                } else if user_parts.len() == 1
+                    && matches!(&user_parts[0], UserContentPart::Text(_))
+                {
+                    let text = match user_parts.remove(0) {
+                        UserContentPart::Text(t) => t.text,
+                        _ => unreachable!(),
+                    };
                     Ok(Message::User {
                         content: UserContent::String(text),
+                    })
+                } else {
+                    Ok(Message::User {
+                        content: UserContent::Array(user_parts),
                     })
                 }
             }
@@ -189,20 +191,17 @@ impl TryFromLLM<Message> for GoogleContent {
                         format!("System: {}", texts.join(""))
                     }
                 };
-                (
-                    "user".to_string(),
-                    vec![part_from_data(part::Data::Text(text))],
-                )
+                ("user".to_string(), vec![text_part(text)])
             }
             Message::User { content } => {
                 let parts = match content {
-                    UserContent::String(s) => vec![part_from_data(part::Data::Text(s))],
+                    UserContent::String(s) => vec![text_part(s)],
                     UserContent::Array(parts) => {
                         let mut converted = Vec::new();
                         for part in parts {
                             match part {
                                 UserContentPart::Text(t) => {
-                                    converted.push(part_from_data(part::Data::Text(t.text)));
+                                    converted.push(text_part(t.text));
                                 }
                                 UserContentPart::Image {
                                     image: Value::String(data),
@@ -221,19 +220,14 @@ impl TryFromLLM<Message> for GoogleContent {
                                     let mime_type = media_type
                                         .or(inferred_media_type)
                                         .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
-                                    let bytes =
-                                        STANDARD.decode(base64_data.as_bytes()).map_err(|e| {
-                                            ConvertError::ContentConversionFailed {
-                                                reason: format!("Invalid base64 inline image: {e}"),
-                                            }
-                                        })?;
 
-                                    converted.push(part_from_data(part::Data::InlineData(
-                                        GoogleBlob {
-                                            mime_type,
-                                            data: bytes,
-                                        },
-                                    )));
+                                    converted.push(GooglePart {
+                                        inline_data: Some(GoogleBlob {
+                                            mime_type: Some(mime_type),
+                                            data: Some(base64_data),
+                                        }),
+                                        ..Default::default()
+                                    });
                                 }
                                 _ => {}
                             }
@@ -245,38 +239,57 @@ impl TryFromLLM<Message> for GoogleContent {
             }
             Message::Assistant { content, .. } => {
                 let parts = match content {
-                    AssistantContent::String(s) => vec![part_from_data(part::Data::Text(s))],
-                    AssistantContent::Array(parts) => parts
-                        .into_iter()
-                        .filter_map(|p| match p {
-                            AssistantContentPart::Text(t) => {
-                                Some(part_from_data(part::Data::Text(t.text)))
-                            }
-                            AssistantContentPart::ToolCall {
-                                tool_name,
-                                arguments,
-                                ..
-                            } => {
-                                let value = match arguments {
-                                    ToolCallArguments::Valid(map) => Some(Value::Object(map)),
-                                    ToolCallArguments::Invalid(s) => serde_json::from_str(&s).ok(),
-                                };
-                                let args = value.and_then(|v| match v {
-                                    Value::Object(_) => json_to_struct(&v).ok(),
-                                    _ => None,
-                                });
+                    AssistantContent::String(s) => vec![text_part(s)],
+                    AssistantContent::Array(parts) => {
+                        let mut converted = Vec::new();
+                        for p in parts {
+                            match p {
+                                AssistantContentPart::Text(t) => {
+                                    converted.push(text_part(t.text));
+                                }
+                                AssistantContentPart::ToolCall {
+                                    tool_call_id,
+                                    tool_name,
+                                    arguments,
+                                    encrypted_content,
+                                    ..
+                                } => {
+                                    let value = match arguments {
+                                        ToolCallArguments::Valid(map) => Some(Value::Object(map)),
+                                        ToolCallArguments::Invalid(s) => {
+                                            serde_json::from_str(&s).ok()
+                                        }
+                                    };
+                                    let args = match value {
+                                        Some(Value::Object(map)) => Some(map),
+                                        _ => None,
+                                    };
 
-                                Some(part_from_data(part::Data::FunctionCall(
-                                    GoogleFunctionCall {
-                                        id: String::new(),
-                                        name: tool_name,
-                                        args,
-                                    },
-                                )))
+                                    converted.push(GooglePart {
+                                        function_call: Some(GoogleFunctionCall {
+                                            id: Some(tool_call_id).filter(|s| !s.is_empty()),
+                                            name: Some(tool_name),
+                                            args,
+                                        }),
+                                        thought_signature: encrypted_content,
+                                        ..Default::default()
+                                    });
+                                }
+                                AssistantContentPart::Reasoning {
+                                    text,
+                                    encrypted_content,
+                                } => {
+                                    converted.push(GooglePart {
+                                        text: Some(text),
+                                        thought_signature: encrypted_content,
+                                        ..Default::default()
+                                    });
+                                }
+                                _ => {}
                             }
-                            _ => None,
-                        })
-                        .collect(),
+                        }
+                        converted
+                    }
                 };
                 ("model".to_string(), parts)
             }
@@ -285,31 +298,27 @@ impl TryFromLLM<Message> for GoogleContent {
                     .into_iter()
                     .map(|part| {
                         let ToolContentPart::ToolResult(result) = part;
-                        let response = match &result.output {
-                            Value::Null => None,
-                            Value::Object(_) => json_to_struct(&result.output).ok(),
-                            other => {
-                                let mut wrapped = serde_json::Map::new();
-                                wrapped.insert("output".to_string(), other.clone());
-                                json_to_struct(&Value::Object(wrapped)).ok()
-                            }
-                        };
+                        let response = value_to_map(&result.output);
 
-                        part_from_data(part::Data::FunctionResponse(GoogleFunctionResponse {
-                            id: result.tool_call_id,
-                            name: result.tool_name,
-                            response,
-                            parts: Vec::new(),
-                            will_continue: false,
-                            scheduling: None,
-                        }))
+                        Ok(GooglePart {
+                            function_response: Some(GoogleFunctionResponse {
+                                id: Some(result.tool_call_id).filter(|s| !s.is_empty()),
+                                name: Some(result.tool_name),
+                                response,
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        })
                     })
-                    .collect();
+                    .collect::<Result<Vec<_>, ConvertError>>()?;
                 ("user".to_string(), parts)
             }
         };
 
-        Ok(GoogleContent { role, parts })
+        Ok(GoogleContent {
+            role: Some(role),
+            parts: Some(parts),
+        })
     }
 }
 
@@ -319,7 +328,13 @@ impl TryFromLLM<Message> for GoogleContent {
 
 /// Convert Google GenerateContentRequest to universal messages.
 pub fn google_to_universal(request: &GenerateContentRequest) -> Result<Vec<Message>, ConvertError> {
-    <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(request.contents.clone())
+    let contents = request
+        .contents
+        .clone()
+        .ok_or(ConvertError::MissingRequiredField {
+            field: "contents".to_string(),
+        })?;
+    <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(contents)
 }
 
 /// Convert universal messages to Google contents.
@@ -341,6 +356,313 @@ pub fn universal_to_google(messages: &[Message]) -> Result<Value, ConvertError> 
     })
 }
 
+impl From<&FunctionDeclaration> for UniversalTool {
+    fn from(decl: &FunctionDeclaration) -> Self {
+        let parameters = decl
+            .parameters
+            .as_ref()
+            .as_ref()
+            .and_then(|schema| serde_json::to_value(schema).ok());
+
+        UniversalTool::function(
+            decl.name.as_deref().unwrap_or(""),
+            decl.description.clone(),
+            parameters,
+            None,
+        )
+    }
+}
+
+impl TryFrom<&UniversalTool> for FunctionDeclaration {
+    type Error = ConvertError;
+
+    fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
+        match &tool.tool_type {
+            UniversalToolType::Function => {
+                let parameters = tool
+                    .parameters
+                    .as_ref()
+                    .map(|v| {
+                        serde_json::from_value(v.clone()).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: format!("tool '{}' parameters", tool.name),
+                                error: e.to_string(),
+                            }
+                        })
+                    })
+                    .transpose()?;
+
+                Ok(FunctionDeclaration {
+                    name: Some(tool.name.clone()),
+                    description: tool.description.clone(),
+                    parameters: Box::new(parameters),
+                    ..Default::default()
+                })
+            }
+            UniversalToolType::Builtin { builtin_type, .. } => {
+                Err(ConvertError::UnsupportedToolType {
+                    tool_name: tool.name.clone(),
+                    tool_type: builtin_type.clone(),
+                    target_provider: "Google".to_string(),
+                })
+            }
+        }
+    }
+}
+
+/// Convert Google tools to universal tools.
+///
+/// Each Google `Tool` can contain function declarations and/or builtin tool configs
+/// (google_search, code_execution, etc.). This flattens them into individual `UniversalTool`s.
+impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
+    type Error = ConvertError;
+
+    fn try_from(tools: Vec<GoogleTool>) -> Result<Self, Self::Error> {
+        let mut result = Vec::new();
+
+        for tool in &tools {
+            if let Some(decls) = &tool.function_declarations {
+                for decl in decls {
+                    result.push(UniversalTool::from(decl));
+                }
+            }
+
+            if let Some(google_search) = &tool.google_search {
+                let config = serde_json::to_value(google_search).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "google_search".to_string(),
+                        error: e.to_string(),
+                    }
+                })?;
+                result.push(UniversalTool::builtin(
+                    "google_search",
+                    "google",
+                    "google_search",
+                    Some(config),
+                ));
+            }
+
+            if let Some(code_execution) = &tool.code_execution {
+                let config = serde_json::to_value(code_execution).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "code_execution".to_string(),
+                        error: e.to_string(),
+                    }
+                })?;
+                result.push(UniversalTool::builtin(
+                    "code_execution",
+                    "google",
+                    "code_execution",
+                    Some(config),
+                ));
+            }
+
+            if let Some(google_search_retrieval) = &tool.google_search_retrieval {
+                let config = serde_json::to_value(google_search_retrieval).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "google_search_retrieval".to_string(),
+                        error: e.to_string(),
+                    }
+                })?;
+                result.push(UniversalTool::builtin(
+                    "google_search_retrieval",
+                    "google",
+                    "google_search_retrieval",
+                    Some(config),
+                ));
+            }
+        }
+
+        Ok(result)
+    }
+}
+
+/// Convert universal tools back to Google Tool structs.
+///
+/// Groups function tools into a single `Tool { function_declarations }` and
+/// reconstructs builtin tools (google_search, code_execution, etc.) from their configs.
+impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
+    type Error = ConvertError;
+
+    fn try_from(tools: Vec<UniversalTool>) -> Result<Self, Self::Error> {
+        let mut function_decls = Vec::new();
+        let mut builtin_tools = Vec::new();
+
+        for tool in &tools {
+            match &tool.tool_type {
+                UniversalToolType::Function => {
+                    function_decls.push(FunctionDeclaration::try_from(tool)?);
+                }
+                UniversalToolType::Builtin {
+                    provider,
+                    builtin_type,
+                    config,
+                } => {
+                    if provider != "google" {
+                        continue;
+                    }
+                    let mut google_tool = GoogleTool::default();
+                    match builtin_type.as_str() {
+                        "google_search" => {
+                            google_tool.google_search = config
+                                .as_ref()
+                                .and_then(|v| serde_json::from_value(v.clone()).ok());
+                        }
+                        "code_execution" => {
+                            google_tool.code_execution = config
+                                .as_ref()
+                                .and_then(|v| serde_json::from_value(v.clone()).ok());
+                        }
+                        "google_search_retrieval" => {
+                            google_tool.google_search_retrieval = config
+                                .as_ref()
+                                .and_then(|v| serde_json::from_value(v.clone()).ok());
+                        }
+                        _ => {
+                            continue;
+                        }
+                    }
+                    builtin_tools.push(google_tool);
+                }
+            }
+        }
+
+        let mut result = Vec::new();
+        if !function_decls.is_empty() {
+            result.push(GoogleTool {
+                function_declarations: Some(function_decls),
+                ..Default::default()
+            });
+        }
+        result.extend(builtin_tools);
+
+        Ok(result)
+    }
+}
+
+impl From<&ToolConfig> for ToolChoiceConfig {
+    fn from(config: &ToolConfig) -> Self {
+        let fcc = config.function_calling_config.as_ref();
+
+        let mode = fcc.and_then(|c| {
+            c.mode.as_ref().map(|m| match m {
+                FunctionCallingConfigMode::Auto | FunctionCallingConfigMode::Validated => {
+                    ToolChoiceMode::Auto
+                }
+                FunctionCallingConfigMode::Any => ToolChoiceMode::Required,
+                FunctionCallingConfigMode::None => ToolChoiceMode::None,
+                FunctionCallingConfigMode::ModeUnspecified => ToolChoiceMode::Auto,
+            })
+        });
+
+        // If mode is Any and there's exactly one allowed function name, treat as Tool mode
+        let (mode, tool_name) = match (mode, fcc) {
+            (Some(ToolChoiceMode::Required), Some(fcc_inner)) => {
+                if let Some(names) = &fcc_inner.allowed_function_names {
+                    if names.len() == 1 {
+                        (Some(ToolChoiceMode::Tool), Some(names[0].clone()))
+                    } else {
+                        (Some(ToolChoiceMode::Required), None)
+                    }
+                } else {
+                    (Some(ToolChoiceMode::Required), None)
+                }
+            }
+            (mode, _) => (mode, None),
+        };
+
+        ToolChoiceConfig {
+            mode,
+            tool_name,
+            disable_parallel: None,
+        }
+    }
+}
+
+impl TryFrom<&ToolChoiceConfig> for ToolConfig {
+    type Error = ();
+
+    fn try_from(config: &ToolChoiceConfig) -> Result<Self, Self::Error> {
+        let mode = config.mode.ok_or(())?;
+
+        let (google_mode, allowed_names) = match mode {
+            ToolChoiceMode::Auto => (FunctionCallingConfigMode::Auto, None),
+            ToolChoiceMode::Required => (FunctionCallingConfigMode::Any, None),
+            ToolChoiceMode::None => (FunctionCallingConfigMode::None, None),
+            ToolChoiceMode::Tool => {
+                let name = config.tool_name.clone().ok_or(())?;
+                (FunctionCallingConfigMode::Any, Some(vec![name]))
+            }
+        };
+
+        Ok(ToolConfig {
+            function_calling_config: Some(FunctionCallingConfig {
+                mode: Some(google_mode),
+                allowed_function_names: allowed_names,
+            }),
+            retrieval_config: None,
+        })
+    }
+}
+
+/// Extract response format from a Google GenerationConfig.
+pub fn response_format_from_generation_config(
+    config: &GenerationConfig,
+) -> Option<ResponseFormatConfig> {
+    let mime = config.response_mime_type.as_deref()?;
+
+    match mime {
+        "application/json" => {
+            if let Some(schema) = config.response_schema.as_ref() {
+                let schema_value = serde_json::to_value(schema).ok()?;
+                Some(ResponseFormatConfig {
+                    format_type: Some(ResponseFormatType::JsonSchema),
+                    json_schema: Some(JsonSchemaConfig {
+                        name: "response".to_string(),
+                        schema: schema_value,
+                        strict: None,
+                        description: None,
+                    }),
+                })
+            } else {
+                Some(ResponseFormatConfig {
+                    format_type: Some(ResponseFormatType::JsonObject),
+                    json_schema: None,
+                })
+            }
+        }
+        "text/plain" => Some(ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::Text),
+            json_schema: None,
+        }),
+        // text/x.enum or other types - store as Text for now
+        _ => None,
+    }
+}
+
+/// Apply a ResponseFormatConfig to a GenerationConfig.
+pub fn apply_response_format_to_generation_config(
+    config: &mut GenerationConfig,
+    format: &ResponseFormatConfig,
+) {
+    match format.format_type {
+        Some(ResponseFormatType::JsonSchema) => {
+            config.response_mime_type = Some("application/json".to_string());
+            if let Some(js) = &format.json_schema {
+                let schema = serde_json::from_value(js.schema.clone()).ok();
+                *config.response_schema = schema;
+            }
+        }
+        Some(ResponseFormatType::JsonObject) => {
+            config.response_mime_type = Some("application/json".to_string());
+        }
+        Some(ResponseFormatType::Text) => {
+            config.response_mime_type = Some("text/plain".to_string());
+        }
+        None => {}
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -349,8 +671,8 @@ mod tests {
     #[test]
     fn test_google_content_to_message_user() {
         let content = GoogleContent {
-            role: "user".to_string(),
-            parts: vec![part_from_data(part::Data::Text("Hello".to_string()))],
+            role: Some("user".to_string()),
+            parts: Some(vec![text_part("Hello".to_string())]),
         };
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
@@ -366,8 +688,8 @@ mod tests {
     #[test]
     fn test_google_content_to_message_model() {
         let content = GoogleContent {
-            role: "model".to_string(),
-            parts: vec![part_from_data(part::Data::Text("Hi there!".to_string()))],
+            role: Some("model".to_string()),
+            parts: Some(vec![text_part("Hi there!".to_string())]),
         };
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
@@ -388,15 +710,17 @@ mod tests {
 
     #[test]
     fn test_google_content_to_message_function_call() {
+        let args: Map<String, Value> = serde_json::from_value(json!({"location": "SF"})).unwrap();
         let content = GoogleContent {
-            role: "model".to_string(),
-            parts: vec![part_from_data(part::Data::FunctionCall(
-                GoogleFunctionCall {
-                    id: String::new(),
-                    name: "get_weather".to_string(),
-                    args: Some(json_to_struct(&json!({"location": "SF"})).unwrap()),
-                },
-            ))],
+            role: Some("model".to_string()),
+            parts: Some(vec![GooglePart {
+                function_call: Some(GoogleFunctionCall {
+                    id: None,
+                    name: Some("get_weather".to_string()),
+                    args: Some(args),
+                }),
+                ..Default::default()
+            }]),
         };
 
         let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
@@ -411,7 +735,7 @@ mod tests {
                             ..
                         } => {
                             assert_eq!(tool_name, "get_weather");
-                            assert_eq!(tool_call_id, "get_weather");
+                            assert_eq!(tool_call_id, "");
                         }
                         _ => panic!("Expected tool call part"),
                     }
@@ -429,12 +753,10 @@ mod tests {
         };
 
         let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
-        assert_eq!(content.role, "user");
-        assert_eq!(content.parts.len(), 1);
-        match &content.parts[0].data {
-            Some(part::Data::Text(t)) => assert_eq!(t, "Hello"),
-            _ => panic!("Expected text part"),
-        }
+        assert_eq!(content.role.as_deref(), Some("user"));
+        let parts = content.parts.unwrap();
+        assert_eq!(parts.len(), 1);
+        assert_eq!(parts[0].text.as_deref(), Some("Hello"));
     }
 
     #[test]
@@ -445,12 +767,10 @@ mod tests {
         };
 
         let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
-        assert_eq!(content.role, "model");
-        assert_eq!(content.parts.len(), 1);
-        match &content.parts[0].data {
-            Some(part::Data::Text(t)) => assert_eq!(t, "Hi there!"),
-            _ => panic!("Expected text part"),
-        }
+        assert_eq!(content.role.as_deref(), Some("model"));
+        let parts = content.parts.unwrap();
+        assert_eq!(parts.len(), 1);
+        assert_eq!(parts[0].text.as_deref(), Some("Hi there!"));
     }
 
     #[test]
@@ -460,6 +780,7 @@ mod tests {
                 tool_call_id: "call_123".to_string(),
                 tool_name: "get_weather".to_string(),
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
+                encrypted_content: None,
                 provider_options: None,
                 provider_executed: None,
             }]),
@@ -467,28 +788,21 @@ mod tests {
         };
 
         let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
-        assert_eq!(content.role, "model");
-        assert_eq!(content.parts.len(), 1);
-        match &content.parts[0].data {
-            Some(part::Data::FunctionCall(fc)) => assert_eq!(fc.name, "get_weather"),
-            _ => panic!("Expected function call part"),
-        }
+        assert_eq!(content.role.as_deref(), Some("model"));
+        let parts = content.parts.unwrap();
+        assert_eq!(parts.len(), 1);
+        let fc = parts[0].function_call.as_ref().unwrap();
+        assert_eq!(fc.name.as_deref(), Some("get_weather"));
     }
 
     #[test]
     fn test_google_to_universal_simple() {
         let request = GenerateContentRequest {
-            model: String::new(),
-            system_instruction: None,
-            contents: vec![GoogleContent {
-                role: "user".to_string(),
-                parts: vec![part_from_data(part::Data::Text("Hello".to_string()))],
-            }],
-            tools: Vec::new(),
-            tool_config: None,
-            safety_settings: Vec::new(),
-            generation_config: None,
-            cached_content: None,
+            contents: Some(vec![GoogleContent {
+                role: Some("user".to_string()),
+                parts: Some(vec![text_part("Hello".to_string())]),
+            }]),
+            ..Default::default()
         };
 
         let messages = google_to_universal(&request).unwrap();
@@ -534,5 +848,278 @@ mod tests {
         assert_eq!(arr.len(), 2);
         assert_eq!(arr[0]["role"], "user");
         assert_eq!(arr[1]["role"], "model");
+    }
+
+    #[test]
+    fn test_function_declaration_to_universal_tool() {
+        let decl = FunctionDeclaration {
+            name: Some("get_weather".to_string()),
+            description: Some("Get weather info".to_string()),
+            parameters: Box::new(Some(
+                serde_json::from_value(json!({
+                    "type": "OBJECT",
+                    "properties": {
+                        "location": {"type": "STRING"}
+                    }
+                }))
+                .unwrap(),
+            )),
+            ..Default::default()
+        };
+
+        let tool = UniversalTool::from(&decl);
+        assert_eq!(tool.name, "get_weather");
+        assert_eq!(tool.description, Some("Get weather info".to_string()));
+        assert!(tool.parameters.is_some());
+        assert!(tool.is_function());
+    }
+
+    #[test]
+    fn test_universal_tool_to_function_declaration() {
+        let tool = UniversalTool::function(
+            "get_weather",
+            Some("Get weather info".to_string()),
+            Some(json!({"type": "OBJECT", "properties": {"location": {"type": "STRING"}}})),
+            None,
+        );
+
+        let decl = FunctionDeclaration::try_from(&tool).unwrap();
+        assert_eq!(decl.name, Some("get_weather".to_string()));
+        assert_eq!(decl.description, Some("Get weather info".to_string()));
+        assert!(decl.parameters.is_some());
+    }
+
+    #[test]
+    fn test_google_tools_to_universal_roundtrip() {
+        let google_tools = vec![GoogleTool {
+            function_declarations: Some(vec![FunctionDeclaration {
+                name: Some("get_weather".to_string()),
+                description: Some("Get weather".to_string()),
+                parameters: Box::new(None),
+                ..Default::default()
+            }]),
+            ..Default::default()
+        }];
+
+        let universal =
+            <Vec<UniversalTool> as TryFromLLM<Vec<GoogleTool>>>::try_from(google_tools).unwrap();
+        assert_eq!(universal.len(), 1);
+        assert_eq!(universal[0].name, "get_weather");
+
+        let back =
+            <Vec<GoogleTool> as TryFromLLM<Vec<UniversalTool>>>::try_from(universal).unwrap();
+        assert_eq!(back.len(), 1);
+        let decls = back[0].function_declarations.as_ref().unwrap();
+        assert_eq!(decls.len(), 1);
+        assert_eq!(decls[0].name, Some("get_weather".to_string()));
+    }
+
+    #[test]
+    fn test_google_search_builtin_roundtrip() {
+        let google_tools = vec![GoogleTool {
+            google_search: Some(Default::default()),
+            ..Default::default()
+        }];
+
+        let universal =
+            <Vec<UniversalTool> as TryFromLLM<Vec<GoogleTool>>>::try_from(google_tools).unwrap();
+        assert_eq!(universal.len(), 1);
+        assert_eq!(universal[0].name, "google_search");
+        assert!(!universal[0].is_function());
+
+        let back =
+            <Vec<GoogleTool> as TryFromLLM<Vec<UniversalTool>>>::try_from(universal).unwrap();
+        assert_eq!(back.len(), 1);
+        assert!(back[0].google_search.is_some());
+    }
+
+    #[test]
+    fn test_tool_config_auto_to_tool_choice() {
+        let config = ToolConfig {
+            function_calling_config: Some(FunctionCallingConfig {
+                mode: Some(FunctionCallingConfigMode::Auto),
+                allowed_function_names: None,
+            }),
+            retrieval_config: None,
+        };
+
+        let choice = ToolChoiceConfig::from(&config);
+        assert_eq!(choice.mode, Some(ToolChoiceMode::Auto));
+        assert_eq!(choice.tool_name, None);
+    }
+
+    #[test]
+    fn test_tool_config_any_to_tool_choice_required() {
+        let config = ToolConfig {
+            function_calling_config: Some(FunctionCallingConfig {
+                mode: Some(FunctionCallingConfigMode::Any),
+                allowed_function_names: None,
+            }),
+            retrieval_config: None,
+        };
+
+        let choice = ToolChoiceConfig::from(&config);
+        assert_eq!(choice.mode, Some(ToolChoiceMode::Required));
+    }
+
+    #[test]
+    fn test_tool_config_any_with_single_name_to_tool_mode() {
+        let config = ToolConfig {
+            function_calling_config: Some(FunctionCallingConfig {
+                mode: Some(FunctionCallingConfigMode::Any),
+                allowed_function_names: Some(vec!["get_weather".to_string()]),
+            }),
+            retrieval_config: None,
+        };
+
+        let choice = ToolChoiceConfig::from(&config);
+        assert_eq!(choice.mode, Some(ToolChoiceMode::Tool));
+        assert_eq!(choice.tool_name, Some("get_weather".to_string()));
+    }
+
+    #[test]
+    fn test_tool_config_none_to_tool_choice() {
+        let config = ToolConfig {
+            function_calling_config: Some(FunctionCallingConfig {
+                mode: Some(FunctionCallingConfigMode::None),
+                allowed_function_names: None,
+            }),
+            retrieval_config: None,
+        };
+
+        let choice = ToolChoiceConfig::from(&config);
+        assert_eq!(choice.mode, Some(ToolChoiceMode::None));
+    }
+
+    #[test]
+    fn test_tool_choice_auto_to_tool_config() {
+        let choice = ToolChoiceConfig {
+            mode: Some(ToolChoiceMode::Auto),
+            tool_name: None,
+            disable_parallel: None,
+        };
+
+        let config = ToolConfig::try_from(&choice).unwrap();
+        let fcc = config.function_calling_config.unwrap();
+        assert_eq!(fcc.mode, Some(FunctionCallingConfigMode::Auto));
+    }
+
+    #[test]
+    fn test_tool_choice_required_to_tool_config_any() {
+        let choice = ToolChoiceConfig {
+            mode: Some(ToolChoiceMode::Required),
+            tool_name: None,
+            disable_parallel: None,
+        };
+
+        let config = ToolConfig::try_from(&choice).unwrap();
+        let fcc = config.function_calling_config.unwrap();
+        assert_eq!(fcc.mode, Some(FunctionCallingConfigMode::Any));
+    }
+
+    #[test]
+    fn test_tool_choice_tool_to_tool_config_with_name() {
+        let choice = ToolChoiceConfig {
+            mode: Some(ToolChoiceMode::Tool),
+            tool_name: Some("get_weather".to_string()),
+            disable_parallel: None,
+        };
+
+        let config = ToolConfig::try_from(&choice).unwrap();
+        let fcc = config.function_calling_config.unwrap();
+        assert_eq!(fcc.mode, Some(FunctionCallingConfigMode::Any));
+        assert_eq!(
+            fcc.allowed_function_names,
+            Some(vec!["get_weather".to_string()])
+        );
+    }
+
+    #[test]
+    fn test_response_format_json_schema_from_generation_config() {
+        let config = GenerationConfig {
+            response_mime_type: Some("application/json".to_string()),
+            response_schema: Box::new(Some(
+                serde_json::from_value(json!({
+                    "type": "OBJECT",
+                    "properties": {
+                        "name": {"type": "STRING"}
+                    }
+                }))
+                .unwrap(),
+            )),
+            ..Default::default()
+        };
+
+        let format = response_format_from_generation_config(&config).unwrap();
+        assert_eq!(format.format_type, Some(ResponseFormatType::JsonSchema));
+        assert!(format.json_schema.is_some());
+    }
+
+    #[test]
+    fn test_response_format_json_object_from_generation_config() {
+        let config = GenerationConfig {
+            response_mime_type: Some("application/json".to_string()),
+            response_schema: Box::new(None),
+            ..Default::default()
+        };
+
+        let format = response_format_from_generation_config(&config).unwrap();
+        assert_eq!(format.format_type, Some(ResponseFormatType::JsonObject));
+        assert!(format.json_schema.is_none());
+    }
+
+    #[test]
+    fn test_response_format_text_from_generation_config() {
+        let config = GenerationConfig {
+            response_mime_type: Some("text/plain".to_string()),
+            ..Default::default()
+        };
+
+        let format = response_format_from_generation_config(&config).unwrap();
+        assert_eq!(format.format_type, Some(ResponseFormatType::Text));
+    }
+
+    #[test]
+    fn test_apply_json_schema_to_generation_config() {
+        let format = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonSchema),
+            json_schema: Some(JsonSchemaConfig {
+                name: "response".to_string(),
+                schema: json!({
+                    "type": "OBJECT",
+                    "properties": {
+                        "name": {"type": "STRING"}
+                    }
+                }),
+                strict: None,
+                description: None,
+            }),
+        };
+
+        let mut config = GenerationConfig::default();
+        apply_response_format_to_generation_config(&mut config, &format);
+
+        assert_eq!(
+            config.response_mime_type,
+            Some("application/json".to_string())
+        );
+        assert!(config.response_schema.is_some());
+    }
+
+    #[test]
+    fn test_apply_json_object_to_generation_config() {
+        let format = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonObject),
+            json_schema: None,
+        };
+
+        let mut config = GenerationConfig::default();
+        apply_response_format_to_generation_config(&mut config, &format);
+
+        assert_eq!(
+            config.response_mime_type,
+            Some("application/json".to_string())
+        );
+        assert!(config.response_schema.is_none());
     }
 }

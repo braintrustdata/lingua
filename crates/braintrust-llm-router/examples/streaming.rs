@@ -7,7 +7,7 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders,
+    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders, ModelCatalog,
     ProviderFormat, ResponseStream, Router,
 };
 use bytes::Bytes;
@@ -15,15 +15,21 @@ use futures::StreamExt;
 use serde_json::Value;
 use std::env;
 use std::io::{self, Write};
+use std::sync::Arc;
+
+const MODEL_CATALOG_URL: &str = "https://raw.githubusercontent.com/braintrustdata/braintrust-proxy/main/packages/proxy/schema/model_list.json";
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize router
+    let catalog_json = reqwest::get(MODEL_CATALOG_URL).await?.text().await?;
+    let catalog = Arc::new(ModelCatalog::from_json_str(&catalog_json)?);
+
     let anthropic_provider = AnthropicProvider::new(AnthropicConfig::default())?;
 
     let anthropic_api_key = env::var("ANTHROPIC_API_KEY")?;
 
     let router = Router::builder()
+        .with_catalog(catalog)
         .add_provider("anthropic", anthropic_provider)
         .add_auth(
             "anthropic",
@@ -68,9 +74,9 @@ async fn main() -> Result<()> {
 
     while let Some(chunk_result) = stream.next().await {
         match chunk_result {
-            Ok(bytes) => {
+            Ok(stream_chunk) => {
                 // Parse bytes to Value
-                let chunk: Value = match serde_json::from_slice(&bytes) {
+                let chunk: Value = match serde_json::from_slice(&stream_chunk.data) {
                     Ok(v) => v,
                     Err(_) => continue,
                 };
@@ -149,8 +155,8 @@ async fn main() -> Result<()> {
         let mut response = String::new();
         while let Some(chunk_result) = stream.next().await {
             match chunk_result {
-                Ok(bytes) => {
-                    if let Ok(chunk) = serde_json::from_slice::<Value>(&bytes) {
+                Ok(stream_chunk) => {
+                    if let Ok(chunk) = serde_json::from_slice::<Value>(&stream_chunk.data) {
                         if let Some(text) = extract_chunk_text(&chunk) {
                             response.push_str(&text);
                         }

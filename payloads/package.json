@@ -14,12 +14,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:transforms": "vitest run scripts/transforms",
-    "test:transforms:update": "vitest run scripts/transforms -u",
-    "test:transforms:watch": "vitest scripts/transforms",
-    "lingua-capture": "tsx scripts/transforms/lingua-capture.ts"
+    "test:transforms:watch": "vitest scripts/transforms"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
+    "@anthropic-ai/sdk": "^0.74.0",
     "@aws-sdk/client-bedrock-runtime": "^3.700.0",
     "@braintrust/lingua-wasm": "workspace:*",
     "@google/genai": "^1.34.0",

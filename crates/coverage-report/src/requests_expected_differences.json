@@ -27,7 +27,9 @@
         { "pattern": "params.frequency_penalty", "reason": "Anthropic doesn't support frequency_penalty (silently dropped)" },
         { "pattern": "params.presence_penalty", "reason": "Anthropic doesn't support presence_penalty (silently dropped)" },
         { "pattern": "params.seed", "reason": "Anthropic doesn't support seed (silently dropped)" },
-        { "pattern": "params.store", "reason": "Anthropic doesn't support store (silently dropped)" }
+        { "pattern": "params.store", "reason": "Anthropic doesn't support store (silently dropped)" },
+        { "pattern": "params.temperature", "reason": "Anthropic drops temperature when extended thinking is enabled" },
+        { "pattern": "params.reasoning.effort", "reason": "Cross-canonical conversion (effort→budget_tokens) may quantize when max_tokens is very small" }
       ]
     },
     {
@@ -103,6 +105,14 @@
     },
     {
       "source": "*",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "model", "reason": "Bedrock Anthropic invoke body omits model (selected by URL path)" },
+        { "pattern": "params.stream", "reason": "Bedrock Anthropic uses endpoint-based streaming" }
+      ]
+    },
+    {
+      "source": "*",
       "target": "Google",
       "fields": [
         { "pattern": "params.stream", "reason": "Google uses endpoint-based streaming" },
@@ -133,55 +143,6 @@
       "target": "Anthropic",
       "skip": true,
       "reason": "Anthropic assistant messages don't support image content"
-    },
-    {
-      "testCase": "complexReasoningRequest",
-      "source": "*",
-      "target": "Anthropic",
-      "skip": true,
-      "reason": "Anthropic requires temperature=1.0 for extended thinking"
-    },
-    {
-      "testCase": "reasoningEffortLowParam",
-      "source": "*",
-      "target": "Anthropic",
-      "skip": true,
-      "reason": "Anthropic requires temperature=1.0 for extended thinking"
-    },
-    {
-      "testCase": "reasoningRequest",
-      "source": "*",
-      "target": "Anthropic",
-      "skip": true,
-      "reason": "Anthropic requires temperature=1.0 for extended thinking"
-    },
-    {
-      "testCase": "reasoningRequestTruncated",
-      "source": "*",
-      "target": "Anthropic",
-      "skip": true,
-      "reason": "Anthropic requires temperature=1.0 for extended thinking"
-    },
-    {
-      "testCase": "reasoningSummaryParam",
-      "source": "*",
-      "target": "Anthropic",
-      "skip": true,
-      "reason": "Anthropic requires temperature=1.0 for extended thinking"
-    },
-    {
-      "testCase": "reasoningWithOutput",
-      "source": "*",
-      "target": "Anthropic",
-      "skip": true,
-      "reason": "Anthropic requires temperature=1.0 for extended thinking"
-    },
-    {
-      "testCase": "simpleRequest",
-      "source": "*",
-      "target": "Anthropic",
-      "skip": true,
-      "reason": "Anthropic requires temperature=1.0 for extended thinking"
     },
     {
       "testCase": "codeInterpreterToolParam",

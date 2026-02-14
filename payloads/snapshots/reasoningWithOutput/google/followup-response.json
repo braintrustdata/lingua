@@ -1,25 +1,10 @@
 {
-  "sdkHttpResponse": {
-    "headers": {
-      "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-      "content-encoding": "gzip",
-      "content-type": "application/json; charset=UTF-8",
-      "date": "Sun, 21 Dec 2025 13:12:10 GMT",
-      "server": "scaffolding on HTTPServer2",
-      "server-timing": "gfet4t7; dur=9325",
-      "transfer-encoding": "chunked",
-      "vary": "Origin, X-Origin, Referer",
-      "x-content-type-options": "nosniff",
-      "x-frame-options": "SAMEORIGIN",
-      "x-xss-protection": "0"
-    }
-  },
   "candidates": [
     {
       "content": {
         "parts": [
           {
-            "text": "That's a fantastic, open-ended question! To give you the best advice, I need a little more context. However, I can offer some general frameworks and suggestions.\n\nTo figure out \"what you should do next,\" consider these factors:\n\n**1. Your Current State:**\n*   **Energy Level:** Do you feel energized, tired, or somewhere in between?\n*   **Mood:** Are you feeling productive, bored, stressed, happy, restless, relaxed?\n*   **Time Available:** Do you have 5 minutes, an hour, an afternoon, or the whole day?\n*   **Location:** Are you at home, work, outside, with others, alone?\n\n**2. Your Goals & Priorities:**\n*   **Obligations:** Is there anything you *have* to do (work, chores, appointments)?\n*   **Urgency:** What's the most pressing thing on your plate?\n*   **Long-Term Goals:** Is there anything you can do that moves you closer to a personal or professional goal?\n*   **What would make you feel accomplished/happy/relaxed?**\n\n---\n\n**Based on those considerations, here are some broad categories of things you could do:**\n\n**A. If you need to be PRODUCTIVE/ACCOMPLISH Something:**\n*   **Work/Study:** Tackle a pending task, reply to emails, organize your digital files.\n*   **Household Chores:** Do a quick tidy-up, do laundry, plan your meals for the week.\n*   **Planning:** Make a to-do list, plan your next day/week, set some goals.\n*   **Errands:** Pay a bill, make an appointment, pick up groceries.\n\n**B. If you need to RELAX/RECHARGE:**\n*   **Mindfulness/Meditation:** Do a short guided meditation, practice deep breathing.\n*   **Physical Relaxation:** Take a warm bath/shower, stretch, lie down for a bit.\n*   **Sensory Input:** Listen to calming music, light a candle, enjoy a warm beverage.\n*   **Nature:** Look out a window, step outside for a breath of fresh air, water plants.\n\n**C. If you need to be ACTIVE/MOVE:**\n*   **Exercise:** Go for a walk, do some quick stretches, dance to music, do a short workout.\n*   **Active Chores:** Garden, clean a room thoroughly, rearrange furniture.\n*   **Outdoor Activity:** Go for a bike ride, play a sport (if you have the means).\n\n**D. If you need to LEARN/GROW:**\n*   **Read:** Pick up a book, read an article, browse a topic of interest online.\n*   **Skill Development:** Practice a hobby, learn a new word, watch a tutorial video.\n*   **Listen:** Listen to a podcast, an audiobook, or a TED Talk.\n\n**E. If you need to be CREATIVE/ENTERTAINED:**\n*   **Hobbies:** Engage in a craft, draw, write, play a musical instrument.\n*   **Entertainment:** Watch a short video, listen to music, play a game, watch an episode of a show.\n*   **Cook/Bake:** Try a new recipe or make a favorite comfort food.\n\n**F. If you need to CONNECT/SOCIALIZE:**\n*   **Reach Out:** Text a friend, call a family member, send an email.\n*   **Help Others:** Do something kind for someone, offer assistance.\n\n---\n\n**My Best Recommendation Without Context:**\nIf you're truly stumped, try doing **one small, easy thing** that you've been putting off. Even a 5-minute task can create momentum and a sense of accomplishment.\n\nSo, tell me more, or pick one of the categories above that resonates with you right now!"
+            "text": "That's a very open-ended question! To give you the best suggestion, I need a little more context. Tell me:\n\n*   **What were you just doing?** (e.g., working, relaxing, thinking, looking at the sky!)\n*   **How are you feeling?** (e.g., bored, energetic, tired, stressed, curious)\n*   **What kind of environment are you in?** (e.g., at home, at work, outside, on public transport)\n*   **How much time do you have?** (e.g., 5 minutes, an hour, the rest of the day)\n*   **What are your general interests?** (e.g., reading, gaming, creating, learning, physical activity)\n*   **Are you trying to be productive, relax, or have fun?**\n\nIn the meantime, here are some general suggestions based on different possibilities:\n\n**If you want to be productive:**\n1.  **Tackle a small chore:** Do dishes, fold laundry, clear your desk.\n2.  **Organize something:** A drawer, your digital files, your to-do list.\n3.  **Plan your next steps:** For a project, your day, or even your next meal.\n4.  **Learn something new:** Read an article, watch an educational video, practice a new skill.\n5.  **Respond to messages:** Emails, texts, social media.\n\n**If you want to relax or unwind:**\n1.  **Take a short break:** Step away from your screen, stretch, look out a window.\n2.  **Listen to music or a podcast:** Put on something you enjoy.\n3.  **Read a book or article:** Escape into a story or learn something interesting.\n4.  **Meditate or practice mindfulness:** Even 5 minutes can help clear your head.\n5.  **Have a comforting drink:** Tea, coffee, or water.\n\n**If you want to be active or get fresh air:**\n1.  **Go for a walk:** Even a short stroll can boost your mood.\n2.  **Do some stretches or light exercise:** Get your blood flowing.\n3.  **Step outside:** Get some natural light or fresh air.\n\n**If you're feeling creative or curious:**\n1.  **Doodle or sketch:** Let your mind wander.\n2.  **Write down ideas:** For a story, a project, or just a list of thoughts.\n3.  **Explore a new topic online:** Dive into a Wikipedia rabbit hole.\n4.  **Ask me another question!**\n\n**If you want to connect with others:**\n1.  **Text or call a friend or family member:** Just to say hello.\n2.  **Check in on someone:** See how they're doing.\n\nTell me more, and I can give you a more tailored suggestion!"
           }
         ],
         "role": "model"
@@ -28,18 +13,18 @@
       "index": 0
     }
   ],
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "KvJHaaOzGKua-8YPlJ7rsAM",
   "usageMetadata": {
-    "promptTokenCount": 291,
-    "candidatesTokenCount": 822,
-    "totalTokenCount": 2255,
+    "promptTokenCount": 360,
+    "candidatesTokenCount": 626,
+    "totalTokenCount": 2039,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 291
+        "tokenCount": 360
       }
     ],
-    "thoughtsTokenCount": 1142
-  }
+    "thoughtsTokenCount": 1053
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lL58af-FFIuXjMcPgL62kA4"
 }

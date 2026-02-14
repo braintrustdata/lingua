@@ -1,23 +1,28 @@
 {
-  "id": "resp_0cff2930f774e07500697aaf9fe7d481a1a404ee8a6b7bcb13",
+  "id": "resp_04b27043e9220b8d00698e2e714b0481908726538dc478990b",
   "object": "response",
-  "created_at": 1769648031,
+  "created_at": 1770925681,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1769648032,
+  "completed_at": 1770925683,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
   "instructions": null,
   "max_output_tokens": 20000,
   "max_tool_calls": null,
-  "model": "gpt-4o-mini-2024-07-18",
+  "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "msg_0cff2930f774e07500697aafa0936081a1b4e753ad5f1bcd79",
+      "id": "rs_04b27043e9220b8d00698e2e71a0888190ad517201826b3722",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_04b27043e9220b8d00698e2e7347d4819089af7b1fc0781db2",
       "type": "message",
       "status": "completed",
       "content": [
@@ -25,7 +30,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "The capital of France is Paris."
+          "text": "Paris."
         }
       ],
       "role": "assistant"
@@ -37,7 +42,7 @@
   "prompt_cache_key": null,
   "prompt_cache_retention": null,
   "reasoning": {
-    "effort": null,
+    "effort": "medium",
     "summary": null
   },
   "safety_identifier": null,
@@ -56,17 +61,17 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 14,
+    "input_tokens": 13,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 8,
+    "output_tokens": 155,
     "output_tokens_details": {
-      "reasoning_tokens": 0
+      "reasoning_tokens": 128
     },
-    "total_tokens": 22
+    "total_tokens": 168
   },
   "user": null,
   "metadata": {},
-  "output_text": "The capital of France is Paris."
+  "output_text": "Paris."
 }

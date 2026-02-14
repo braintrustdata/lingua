@@ -1,4 +1,4 @@
-.PHONY: all lingua-wasm typescript python test clean help generate-types generate-all-providers install-hooks install-wasm-tools setup
+.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit
 
 all: typescript python ## Build all bindings
 
@@ -39,7 +39,7 @@ python: ## Build Python bindings (PyO3)
 	@echo "Building Python bindings..."
 	cd bindings/python && uv sync --all-extras --group dev
 
-test: test-rust test-typescript test-python ## Run all tests
+test: test-rust test-typescript test-python test-payloads ## Run all tests
 
 test-rust: ## Run Rust tests
 	@echo "Running Rust tests..."
@@ -52,6 +52,20 @@ test-typescript: typescript ## Run TypeScript tests
 test-typescript-integration: typescript ## Run TypeScript integration tests
 	@echo "Running TypeScript integration tests..."
 	cd bindings/typescript && pnpm run test:integration
+
+test-payloads: lingua-wasm ## Run payload transform tests (REGENERATE=1 to auto-fix with API validation)
+	@echo "Running payload tests..."
+	@cd payloads && pnpm vitest run scripts/transforms $(if $(REGENERATE),|| pnpm tsx scripts/regenerate-failed.ts) \
+		|| (echo "\n❌ Tests failed! Run 'make regenerate-failed-transforms' to regenerate with real API calls" && exit 1)
+
+capture: lingua-wasm ## Capture payloads (snapshots + transforms + vitest snapshots)
+	cd payloads && pnpm capture $(if $(FILTER),--filter $(FILTER)) $(if $(CASES),--cases $(CASES)) $(if $(FORCE),--force)
+
+capture-transforms: lingua-wasm ## Re-capture only transforms (e.g. make capture-transforms FORCE=1)
+	cd payloads && pnpm tsx scripts/transforms/capture-transforms.ts $(if $(FILTER),$(FILTER)) $(if $(FORCE),--force)
+
+regenerate-failed-transforms: lingua-wasm ## Auto-regenerate failed transform payloads
+	cd payloads && pnpm tsx scripts/regenerate-failed.ts
 
 test-python: ## Run Python tests
 	@echo "Running Python tests..."
@@ -97,5 +111,10 @@ install-dependencies: ## Install dependencies
 	./scripts/setup.sh
 
 setup: install-dependencies install-hooks ## Setup the project
+
+precommit: ## Run formatting, linting, and tests for Rust code
+	cargo fmt --all -- --check
+	cargo clippy --all-targets --all-features -- -D warnings
+	cargo test
 
 .DEFAULT_GOAL := all

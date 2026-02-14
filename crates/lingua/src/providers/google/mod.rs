@@ -1,11 +1,14 @@
 // Google AI Generative Language API types
-// Generated from official protobuf files
+// Generated from Discovery REST API spec
 
 pub mod adapter;
 pub mod convert;
 pub mod detect;
 pub mod generated;
 pub mod params;
+
+#[cfg(test)]
+pub mod test_google;
 
 // Re-export adapter
 pub use adapter::GoogleAdapter;
@@ -18,8 +21,8 @@ pub use convert::{google_to_universal, universal_to_google};
 
 // Re-export the most commonly used Google AI types for convenience
 pub use generated::{
-    safety_setting::HarmBlockThreshold, Candidate, Content, FunctionDeclaration,
-    GenerateContentRequest, GenerateContentResponse, GenerationConfig, Part, SafetySetting, Tool,
+    Candidate, Content, FunctionDeclaration, GenerateContentRequest, GenerateContentResponse,
+    GenerationConfig, Part, SafetySetting, Threshold, Tool,
 };
 
 // Type aliases for convenience

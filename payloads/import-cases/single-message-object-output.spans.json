@@ -1,0 +1,17 @@
+[
+  {
+    "input": [
+      { "role": "user", "content": "Hello" }
+    ],
+    "output": {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Hi there!",
+          "citations": null
+        }
+      ]
+    }
+  }
+]

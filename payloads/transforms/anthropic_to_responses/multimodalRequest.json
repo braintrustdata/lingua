@@ -1,34 +1,27 @@
 {
-  "id": "resp_0d30603bee3a8e7500697aafaa2454819da0e9223905de6eca",
+  "id": "resp_06fb099fde9d608000698e2e7f142881a09a7271709983d5ff",
   "object": "response",
-  "created_at": 1769648042,
-  "status": "completed",
+  "created_at": 1770925695,
+  "status": "incomplete",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1769648044,
+  "completed_at": null,
   "error": null,
   "frequency_penalty": 0,
-  "incomplete_details": null,
+  "incomplete_details": {
+    "reason": "max_output_tokens"
+  },
   "instructions": null,
   "max_output_tokens": 300,
   "max_tool_calls": null,
-  "model": "gpt-4o-mini-2024-07-18",
+  "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "msg_0d30603bee3a8e7500697aafab5188819d90e6ab9155e21ea4",
-      "type": "message",
-      "status": "completed",
-      "content": [
-        {
-          "type": "output_text",
-          "annotations": [],
-          "logprobs": [],
-          "text": "The image features a character known as Bulbasaur, which is a Pokémon. Bulbasaur has a green body with darker green spots and large plant-like features on its back, resembling a bulb. It has red eyes and a friendly expression, typical of many Pokémon characters."
-        }
-      ],
-      "role": "assistant"
+      "id": "rs_06fb099fde9d608000698e2e7f7ba881a08d8697ca6a757104",
+      "type": "reasoning",
+      "summary": []
     }
   ],
   "parallel_tool_calls": true,
@@ -37,7 +30,7 @@
   "prompt_cache_key": null,
   "prompt_cache_retention": null,
   "reasoning": {
-    "effort": null,
+    "effort": "medium",
     "summary": null
   },
   "safety_identifier": null,
@@ -56,17 +49,17 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 8515,
+    "input_tokens": 98,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 56,
+    "output_tokens": 256,
     "output_tokens_details": {
-      "reasoning_tokens": 0
+      "reasoning_tokens": 256
     },
-    "total_tokens": 8571
+    "total_tokens": 354
   },
   "user": null,
   "metadata": {},
-  "output_text": "The image features a character known as Bulbasaur, which is a Pokémon. Bulbasaur has a green body with darker green spots and large plant-like features on its back, resembling a bulb. It has red eyes and a friendly expression, typical of many Pokémon characters."
+  "output_text": ""
 }

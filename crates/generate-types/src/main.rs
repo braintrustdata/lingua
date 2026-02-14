@@ -2,8 +2,6 @@
 //!
 //! Usage: cargo run --bin generate-types -- [provider]
 
-use std::path::{Path, PathBuf};
-
 use big_serde_json as serde_json;
 use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
 
@@ -26,11 +24,11 @@ fn main() {
     match provider.as_str() {
         "openai" => generate_openai_types(),
         "anthropic" => generate_anthropic_types(),
-        "google" => generate_google_protobuf_types_from_git(),
+        "google" => generate_google_discovery_types(),
         "all" => {
             generate_openai_types();
             generate_anthropic_types();
-            generate_google_protobuf_types_from_git();
+            generate_google_discovery_types();
         }
         _ => {
             println!("❌ Unknown provider: {}", provider);
@@ -1215,317 +1213,386 @@ fn add_serde_skip_if_none(content: &str) -> String {
     result_lines.join("\n")
 }
 
-fn generate_google_protobuf_types_from_git() {
-    let temp_dir = std::env::temp_dir().join("googleapis_clone");
+fn generate_google_discovery_types() {
+    println!("📦 Generating Google types from Discovery JSON spec...");
 
-    // Clean up any existing clone
-    let _ = std::fs::remove_dir_all(&temp_dir);
+    let spec_file_path = "specs/google/discovery.json";
 
-    println!("📦 Cloning googleapis repository for complete protobuf definitions...");
-    println!("📁 Using temporary directory: {:?}", temp_dir);
-
-    // Clone the googleapis repository
-    let clone_result = std::process::Command::new("git")
-        .args([
-            "clone",
-            "--depth=1", // Shallow clone for faster download
-            "https://github.com/googleapis/googleapis.git",
-            temp_dir.to_str().unwrap(),
-        ])
-        .output();
-
-    match clone_result {
-        Ok(result) if result.status.success() => {
-            println!("✅ Successfully cloned googleapis repository");
-        }
-        Ok(result) => {
+    let discovery_spec = match std::fs::read_to_string(spec_file_path) {
+        Ok(content) => content,
+        Err(e) => {
             println!(
-                "❌ Failed to clone googleapis: {}",
-                String::from_utf8_lossy(&result.stderr)
+                "❌ Failed to read Discovery spec at {}: {}",
+                spec_file_path, e
             );
-            let _ = std::fs::remove_dir_all(&temp_dir);
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/google/generated.rs",
-                "// Git clone failed",
-            );
+            println!("Download the spec first: curl -s 'https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta' > specs/google/discovery.json");
             return;
-        }
-        Err(e) => {
-            println!("❌ Error running git clone: {}", e);
-            let _ = std::fs::remove_dir_all(&temp_dir);
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/google/generated.rs",
-                "// Git clone error",
-            );
-            return;
-        }
-    }
-
-    // Now compile with complete dependency tree including google.type
-    let proto_file = temp_dir.join("google/ai/generativelanguage/v1beta/generative_service.proto");
-    let interval_proto = temp_dir.join("google/type/interval.proto");
-    let latlng_proto = temp_dir.join("google/type/latlng.proto");
-
-    if !proto_file.exists() {
-        println!("❌ Could not find generative_service.proto in cloned repository");
-        let _ = std::fs::remove_dir_all(&temp_dir);
-        let _ = std::fs::write(
-            "crates/lingua/src/providers/google/generated.rs",
-            "// Proto file not found",
-        );
-        return;
-    }
-
-    if !interval_proto.exists() {
-        println!("❌ Could not find google/type/interval.proto in cloned repository");
-        let _ = std::fs::remove_dir_all(&temp_dir);
-        let _ = std::fs::write(
-            "crates/lingua/src/providers/google/generated.rs",
-            "// Interval proto not found",
-        );
-        return;
-    }
-
-    if !latlng_proto.exists() {
-        println!("❌ Could not find google/type/latlng.proto in cloned repository");
-        let _ = std::fs::remove_dir_all(&temp_dir);
-        let _ = std::fs::write(
-            "crates/lingua/src/providers/google/generated.rs",
-            "// LatLng proto not found",
-        );
-        return;
-    }
-
-    println!("✅ Found protobuf files, compiling with complete dependencies...");
-
-    // Include both the main service proto and google.type dependencies
-    let proto_paths = vec![
-        proto_file.to_string_lossy().to_string(),
-        interval_proto.to_string_lossy().to_string(),
-        latlng_proto.to_string_lossy().to_string(),
-    ];
-
-    generate_google_protobuf_types(&proto_paths, &temp_dir.to_string_lossy());
-
-    // Clean up temp directory
-    let _ = std::fs::remove_dir_all(&temp_dir);
-}
-
-fn generate_google_protobuf_types(proto_paths: &[String], proto_dir: &str) {
-    println!("🔨 Compiling protobuf files with prost-build...");
-
-    // Create a temporary directory for generated types
-    let temp_dir = std::env::temp_dir().join("google_generated");
-    let _ = std::fs::remove_dir_all(&temp_dir);
-    std::fs::create_dir_all(&temp_dir).expect("Failed to create temp directory");
-    let descriptor_path = temp_dir.join("google_descriptor.bin");
-
-    // Configure prost-build
-    let mut config = prost_build::Config::new();
-    config.out_dir(&temp_dir);
-    config.file_descriptor_set_path(&descriptor_path);
-    config.compile_well_known_types();
-    config.extern_path(".google.protobuf", "::pbjson_types");
-    config.disable_comments([".google.api"]);
-
-    // Include directories for resolving imports
-    let include_dirs = vec![proto_dir];
-
-    println!("📁 Include directories: {:?}", include_dirs);
-    println!("📄 Proto files: {:?}", proto_paths);
-
-    // Compile the protobuf files
-    match config.compile_protos(proto_paths, &include_dirs) {
-        Ok(()) => {
-            println!("✅ Protobuf compilation successful");
-            let pbjson_dir = generate_google_pbjson_types(&descriptor_path, &temp_dir);
-            // Create a combined output file with the essential types (and serde support if present)
-            create_google_combined_output(&temp_dir, pbjson_dir.as_deref());
-        }
-        Err(e) => {
-            println!("❌ Protobuf compilation failed: {}", e);
-            println!("📝 Falling back to empty types file");
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/google/generated.rs",
-                "// Protobuf generation failed",
-            );
-        }
-    }
-
-    // Clean up temp directory
-    let _ = std::fs::remove_dir_all(&temp_dir);
-}
-
-fn generate_google_pbjson_types(descriptor_path: &Path, temp_dir: &Path) -> Option<PathBuf> {
-    let pbjson_dir = temp_dir.join("google_pbjson");
-    let _ = std::fs::remove_dir_all(&pbjson_dir);
-    if std::fs::create_dir_all(&pbjson_dir).is_err() {
-        println!("⚠️  Failed to create pbjson output directory");
-        return None;
-    }
-
-    println!("🔧 Generating pbjson serde implementations...");
-    let descriptor_set = match std::fs::read(descriptor_path) {
-        Ok(bytes) => bytes,
-        Err(e) => {
-            println!("⚠️  Failed to read protobuf descriptor set: {}", e);
-            return None;
         }
     };
 
-    let mut builder = pbjson_build::Builder::new();
-    builder.out_dir(&pbjson_dir);
-    builder.extern_path(".google.protobuf", "::pbjson_types");
-    if let Err(e) = builder.register_descriptors(&descriptor_set) {
-        println!("⚠️  Failed to register protobuf descriptors: {}", e);
-        return None;
-    }
+    println!("🔍 Parsing Discovery JSON spec...");
 
-    if let Err(e) = builder.build(&[".google.ai.generativelanguage.v1beta", ".google.type"]) {
-        println!("⚠️  Failed to generate pbjson serde output: {}", e);
-        return None;
-    }
+    let spec: serde_json::Value = match serde_json::from_str(&discovery_spec) {
+        Ok(value) => value,
+        Err(e) => {
+            println!("❌ Failed to parse Discovery spec as JSON: {}", e);
+            return;
+        }
+    };
 
-    Some(pbjson_dir)
+    let schemas = spec.get("schemas");
+
+    if let Some(_schemas) = schemas {
+        println!("✅ Found Google Discovery schemas section");
+        generate_google_types_with_quicktype(&spec);
+    } else {
+        println!("❌ No schemas section found in Discovery spec");
+    }
 }
 
-fn create_google_combined_output(temp_dir: &std::path::Path, pbjson_dir: Option<&Path>) {
-    println!("🔧 Creating combined Google types output...");
+fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
+    println!("🏗️  Generating Google types with quicktype...");
 
-    // Look for generated files in the temp directory
-    let mut generated_files = std::fs::read_dir(temp_dir)
-        .map(|entries| {
-            entries
-                .filter_map(|entry| entry.ok())
-                .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
-                .collect::<Vec<_>>()
-        })
-        .unwrap_or_default();
+    let essential_schemas = create_essential_google_schemas(spec);
 
-    println!("📁 Found {} generated files", generated_files.len());
+    let temp_schema_path = std::env::temp_dir().join("google_schemas.json");
+    let schema_json =
+        serde_json::to_string_pretty(&essential_schemas).expect("Failed to serialize schemas");
+    std::fs::write(&temp_schema_path, &schema_json).expect("Failed to write temp schema");
 
-    let mut all_content = String::new();
-    all_content.push_str("// Generated Google AI types from official protobuf files\n");
-    all_content.push_str("// Essential types for Elmir Google AI integration\n\n");
-    all_content.push_str("// This file is @generated by prost-build.\n");
-    all_content.push_str("#![allow(clippy::doc_lazy_continuation)]\n");
-    all_content.push_str("#![allow(clippy::doc_overindented_list_items)]\n");
-    all_content.push_str("#![allow(clippy::large_enum_variant)]\n");
+    let output = std::process::Command::new("quicktype")
+        .arg("--src-lang")
+        .arg("schema")
+        .arg("--lang")
+        .arg("rust")
+        .arg("--derive-debug")
+        .arg("--derive-clone")
+        .arg("--derive-partial-eq")
+        .arg("--visibility")
+        .arg("public")
+        .arg("--density")
+        .arg("dense")
+        .arg(&temp_schema_path)
+        .output();
 
-    generated_files.sort_by_key(|entry| entry.file_name());
-
-    for file_entry in &generated_files {
-        if let Ok(content) = std::fs::read_to_string(file_entry.path()) {
-            // Fix problematic type references that prost-build generates incorrectly
-            let fixed_content = fix_google_type_references(content);
-            all_content.push_str(&fixed_content);
-            all_content.push('\n');
+    let quicktype_output = match output {
+        Ok(output) => {
+            if output.status.success() {
+                String::from_utf8(output.stdout).expect("Invalid UTF-8 from quicktype")
+            } else {
+                println!(
+                    "❌ quicktype failed: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                );
+                let _ = std::fs::write(
+                    "crates/lingua/src/providers/google/generated.rs",
+                    "// Quicktype generation failed",
+                );
+                return;
+            }
         }
+        Err(e) => {
+            println!("❌ Failed to run quicktype: {}", e);
+            let _ = std::fs::write(
+                "crates/lingua/src/providers/google/generated.rs",
+                "// Quicktype not found",
+            );
+            return;
+        }
+    };
+
+    let _ = std::fs::remove_file(&temp_schema_path);
+
+    let processed_output = post_process_quicktype_output_for_google(&quicktype_output);
+
+    let dest_path = "crates/lingua/src/providers/google/generated.rs";
+
+    if let Some(parent) = std::path::Path::new(dest_path).parent() {
+        let _ = std::fs::create_dir_all(parent);
     }
 
-    // If we didn't get much content, fall back to minimal file
-    if all_content.len() < 500 {
-        println!("⚠️  Generated content too small, falling back to minimal file");
-        let _ = std::fs::write(
-            "crates/lingua/src/providers/google/generated.rs",
-            "// Protobuf generation incomplete",
+    std::fs::write(dest_path, &processed_output).expect("Failed to write generated types");
+
+    let _ = std::process::Command::new("cargo")
+        .args(["fmt", "--", dest_path])
+        .output();
+
+    println!("📝 Generated Google types to: {}", dest_path);
+    println!("✅ Google Discovery types generated and formatted");
+}
+
+fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Value {
+    let default_map = serde_json::Map::new();
+    let all_schemas = spec
+        .get("schemas")
+        .and_then(|s| s.as_object())
+        .unwrap_or(&default_map);
+
+    let mut essential_schemas = serde_json::Map::new();
+    let mut processed = std::collections::HashSet::new();
+
+    // Root types for the Generative Language API
+    let root_types = ["GenerateContentRequest", "GenerateContentResponse"];
+
+    for root_type in &root_types {
+        add_google_schema_with_dependencies(
+            root_type,
+            all_schemas,
+            &mut essential_schemas,
+            &mut processed,
         );
+    }
+
+    // Convert all Discovery-format schemas to JSON Schema format
+    let mut fixed_schemas = serde_json::Map::new();
+    for (name, schema) in essential_schemas {
+        fixed_schemas.insert(name, convert_discovery_schema_to_json_schema(&schema));
+    }
+
+    let root_schema = serde_json::json!({
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "oneOf": [
+            {
+                "title": "GoogleTypes",
+                "type": "object",
+                "properties": {
+                    "request": {"$ref": "#/definitions/GenerateContentRequest"},
+                    "response": {"$ref": "#/definitions/GenerateContentResponse"}
+                }
+            }
+        ],
+        "definitions": fixed_schemas
+    });
+
+    root_schema
+}
+
+fn add_google_schema_with_dependencies(
+    type_name: &str,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
+    processed: &mut std::collections::HashSet<String>,
+) {
+    if processed.contains(type_name) {
         return;
     }
 
-    let dest_path = "crates/lingua/src/providers/google/generated.rs";
-    let pbjson_dest_path = "crates/lingua/src/providers/google/generated_pbjson.rs";
+    processed.insert(type_name.to_string());
 
-    // Create the directory if it doesn't exist
-    if let Some(parent) = Path::new(dest_path).parent() {
-        let _ = std::fs::create_dir_all(parent);
-    }
-
-    // Write the pbjson serde implementations to a separate file
-    let mut pbjson_content = String::new();
-    if let Some(pbjson_dir) = pbjson_dir {
-        let mut pbjson_files = std::fs::read_dir(pbjson_dir)
-            .map(|entries| {
-                entries
-                    .filter_map(|entry| entry.ok())
-                    .filter(|entry| {
-                        entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs")
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
-
-        pbjson_files.sort_by_key(|entry| entry.file_name());
-
-        for file_entry in pbjson_files {
-            if let Ok(content) = std::fs::read_to_string(file_entry.path()) {
-                pbjson_content.push_str(&content);
-                pbjson_content.push('\n');
-            }
+    if let Some(schema) = all_schemas.get(type_name) {
+        // Strip top-level Discovery metadata fields (not valid JSON Schema)
+        // Only strip "id" at the schema root level, not inside "properties"
+        let mut cleaned = schema.clone();
+        if let Some(obj) = cleaned.as_object_mut() {
+            obj.remove("id");
         }
-    }
+        essential_schemas.insert(type_name.to_string(), cleaned);
 
-    if pbjson_content.is_empty() {
-        pbjson_content.push_str("// pbjson serde output unavailable\n");
-    }
+        // Find and add referenced types (Discovery uses bare $ref names)
+        let mut refs = std::collections::HashSet::new();
+        extract_discovery_refs(schema, &mut refs);
 
-    if let Some(parent) = Path::new(pbjson_dest_path).parent() {
-        let _ = std::fs::create_dir_all(parent);
-    }
-    let _ = std::fs::write(pbjson_dest_path, &pbjson_content);
-
-    // Link the pbjson output from the main generated file
-    all_content.push_str("\n// Serde support generated by pbjson-build\n");
-    all_content.push_str("include!(\"generated_pbjson.rs\");\n");
-
-    // Write the combined types
-    if std::fs::write(dest_path, &all_content).is_ok() {
-        println!("📝 Generated Google protobuf types to: {}", dest_path);
-
-        // Format the file with cargo fmt
-        let _ = std::process::Command::new("cargo")
-            .args(["fmt", "--", dest_path])
-            .output();
-
-        println!("✅ Google protobuf types generated and formatted");
-    } else {
-        println!("❌ Failed to write Google generated types");
-        let _ = std::fs::write(
-            "crates/lingua/src/providers/google/generated.rs",
-            "// Protobuf write failed",
-        );
+        for ref_name in refs {
+            add_google_schema_with_dependencies(
+                &ref_name,
+                all_schemas,
+                essential_schemas,
+                processed,
+            );
+        }
     }
 }
 
-fn fix_google_type_references(content: String) -> String {
-    // Fix the problematic google.type.Interval reference that prost-build generates incorrectly
-    let mut fixed = content;
+fn extract_discovery_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
+    match value {
+        serde_json::Value::Object(obj) => {
+            if let Some(ref_value) = obj.get("$ref") {
+                if let Some(ref_str) = ref_value.as_str() {
+                    // Discovery refs are bare type names (e.g., "Part", "Content")
+                    // not paths like "#/components/schemas/Part"
+                    if !ref_str.starts_with('#') {
+                        refs.insert(ref_str.to_string());
+                    } else if let Some(type_name) = extract_type_name_from_ref(ref_str) {
+                        refs.insert(type_name);
+                    }
+                }
+            }
+            for (_, v) in obj {
+                extract_discovery_refs(v, refs);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for item in arr {
+                extract_discovery_refs(item, refs);
+            }
+        }
+        _ => {}
+    }
+}
 
-    // Remove the prost-generated @generated comment since we add our own header
-    fixed = fixed.replace("// This file is @generated by prost-build.\n", "");
+fn convert_discovery_schema_to_json_schema(schema: &serde_json::Value) -> serde_json::Value {
+    match schema {
+        serde_json::Value::Object(obj) => {
+            let mut fixed_obj = serde_json::Map::new();
 
-    // Fix malformed JSON in doctests that have escaped brackets.
-    fixed = fixed.replace("\\[\"", "[\"");
-    fixed = fixed.replace("\"\\]", "\"]");
+            for (key, value) in obj {
+                if key == "$ref" {
+                    // Convert bare type name refs to JSON Schema #/definitions/ refs
+                    if let Some(ref_str) = value.as_str() {
+                        if !ref_str.starts_with('#') {
+                            fixed_obj.insert(
+                                key.clone(),
+                                serde_json::Value::String(format!("#/definitions/{}", ref_str)),
+                            );
+                        } else {
+                            fixed_obj.insert(key.clone(), value.clone());
+                        }
+                    } else {
+                        fixed_obj.insert(key.clone(), value.clone());
+                    }
+                } else if key == "type" {
+                    if let Some(type_str) = value.as_str() {
+                        if type_str == "any" {
+                            // Discovery "any" type -> empty schema (quicktype maps to serde_json::Value)
+                            return serde_json::json!({});
+                        } else {
+                            fixed_obj.insert(key.clone(), value.clone());
+                        }
+                    } else {
+                        fixed_obj.insert(key.clone(), value.clone());
+                    }
+                } else if key == "enumDescriptions" || key == "readOnly" {
+                    // Skip Discovery-specific fields that aren't valid JSON Schema
+                    continue;
+                } else {
+                    fixed_obj.insert(key.clone(), convert_discovery_schema_to_json_schema(value));
+                }
+            }
 
-    // Mark the JSON schema example as json to prevent Rust doctest compilation.
-    if fixed.contains("\"type\": \"object\"") {
-        fixed = fixed.replace(
-            "    /// ```\n    /// {\n    ///    \"type\": \"object\",",
-            "    /// ```json\n    /// {\n    ///    \"type\": \"object\",",
-        );
+            serde_json::Value::Object(fixed_obj)
+        }
+        serde_json::Value::Array(arr) => {
+            let fixed_arr: Vec<serde_json::Value> = arr
+                .iter()
+                .map(convert_discovery_schema_to_json_schema)
+                .collect();
+            serde_json::Value::Array(fixed_arr)
+        }
+        other => other.clone(),
+    }
+}
+
+fn add_default_derive_to_structs(content: &str) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut result_lines: Vec<String> = Vec::new();
+
+    for i in 0..lines.len() {
+        let line = lines[i];
+
+        // Check if this is a derive line with our standard derives
+        if line.contains("#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]") {
+            // Look ahead to find if this type is a struct (skip attribute lines)
+            let mut is_struct = false;
+            for next_line in &lines[(i + 1)..] {
+                let next = next_line.trim();
+                if next.starts_with("pub struct ") {
+                    is_struct = true;
+                    break;
+                } else if next.starts_with("pub enum ") {
+                    break;
+                } else if next.starts_with('#') || next.starts_with("///") || next.is_empty() {
+                    continue;
+                } else {
+                    break;
+                }
+            }
+
+            if is_struct {
+                result_lines.push(line.replace(
+                    "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
+                    "#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]",
+                ));
+            } else {
+                result_lines.push(line.to_string());
+            }
+        } else {
+            result_lines.push(line.to_string());
+        }
     }
 
-    // Replace incorrect paths to google.type types with absolute paths so they resolve
-    // from any nested module in the combined output.
-    fixed = fixed.replace(
-        "super::super::super::super::r#type::Interval",
-        "crate::providers::google::generated::Interval",
-    );
-    fixed = fixed.replace(
-        "super::super::super::r#type::LatLng",
-        "crate::providers::google::generated::LatLng",
+    result_lines.join("\n")
+}
+
+fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
+    let mut processed = quicktype_output.to_string();
+
+    // Add ts-rs import after the last use statement
+    let lines: Vec<&str> = processed.lines().collect();
+    let mut new_lines = Vec::new();
+    let mut ts_import_added = false;
+
+    for (i, line) in lines.iter().enumerate() {
+        new_lines.push(line.to_string());
+
+        if !ts_import_added && line.starts_with("use ") {
+            let next_is_use = lines
+                .get(i + 1)
+                .map(|l| l.starts_with("use "))
+                .unwrap_or(false);
+            if !next_is_use {
+                new_lines.push("use std::collections::HashMap;".to_string());
+                new_lines.push("use ts_rs::TS;".to_string());
+                ts_import_added = true;
+            }
+        }
+    }
+    processed = new_lines.join("\n");
+
+    // Add header with clippy allows
+    processed = format!(
+        "// Generated Google AI types from Discovery JSON spec\n// Essential types for Lingua Google AI integration\n#![allow(clippy::large_enum_variant)]\n#![allow(clippy::doc_lazy_continuation)]\n\n{}",
+        processed
     );
 
-    fixed
+    // Ensure serde_json imports
+    processed = ensure_serde_json_imports(&processed);
+
+    // Add TS derive to all types first
+    processed = processed.replace(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]",
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]",
+    );
+
+    // Add Default derive to structs (not enums)
+    // We scan line by line: when we see a derive line, check if a later line is `pub struct`
+    processed = add_default_derive_to_structs(&processed);
+
+    // Add export_to path to all TS types
+    processed = add_export_path_to_all_ts_types(&processed, "google/");
+
+    // Add ts-rs type annotations for serde_json::Value fields
+    processed = add_ts_type_annotations(&processed);
+
+    // Export entry point types
+    let entry_points = vec![
+        "Content", // Used by conversion functions
+    ];
+    processed = add_ts_export_to_types(&processed, &entry_points, "google/");
+
+    // Fix HashMap to serde_json::Map
+    processed = processed.replace(
+        "HashMap<String, Option<serde_json::Value>>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace(
+        "HashMap<String, serde_json::Value>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace("use std::collections::HashMap;\n", "");
+
+    // Add serde skip_serializing_if for Option fields
+    processed = add_serde_skip_if_none(&processed);
+
+    processed
 }

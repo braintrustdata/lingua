@@ -113,8 +113,8 @@ impl crate::providers::Provider for AnthropicProvider {
         "anthropic"
     }
 
-    fn format(&self) -> ProviderFormat {
-        ProviderFormat::Anthropic
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::Anthropic]
     }
 
     async fn complete(
@@ -122,6 +122,7 @@ impl crate::providers::Provider for AnthropicProvider {
         payload: Bytes,
         auth: &AuthConfig,
         _spec: &ModelSpec,
+        _format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let url = self.messages_url();
@@ -180,10 +181,13 @@ impl crate::providers::Provider for AnthropicProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self.complete(payload, auth, spec, client_headers).await?;
+            let response = self
+                .complete(payload, auth, spec, format, client_headers)
+                .await?;
             return Ok(single_bytes_stream(response));
         }
 
