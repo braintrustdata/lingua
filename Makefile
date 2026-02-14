@@ -1,4 +1,4 @@
-.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit
+.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit fuzz-snapshots fuzz-snapshots-prune
 
 all: typescript python ## Build all bindings
 
@@ -57,6 +57,12 @@ test-payloads: lingua-wasm ## Run payload transform tests (REGENERATE=1 to auto-
 	@echo "Running payload tests..."
 	@cd payloads && pnpm vitest run scripts/transforms $(if $(REGENERATE),|| pnpm tsx scripts/regenerate-failed.ts) \
 		|| (echo "\n❌ Tests failed! Run 'make regenerate-failed-transforms' to regenerate with real API calls" && exit 1)
+
+fuzz-snapshots: ## Run ignored fuzz tests to generate/update snapshots, then prune duplicate failures
+	@$(MAKE) -C crates/lingua/tests/fuzz refresh-snapshots
+
+fuzz-snapshots-prune: ## Prune fuzz snapshots (dedupe by normalized failure reason)
+	@$(MAKE) -C crates/lingua/tests/fuzz prune
 
 capture: lingua-wasm ## Capture payloads (snapshots + transforms + vitest snapshots)
 	cd payloads && pnpm capture $(if $(FILTER),--filter $(FILTER)) $(if $(CASES),--cases $(CASES)) $(if $(FORCE),--force)
