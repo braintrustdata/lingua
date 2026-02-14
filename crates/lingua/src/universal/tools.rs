@@ -28,7 +28,6 @@ any provider format. It distinguishes between:
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::capabilities::format::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::anthropic::generated::Tool;
 use crate::serde_json::{self, json, Map, Value};
@@ -85,8 +84,10 @@ pub enum UniversalToolType {
     },
 
     /// Provider-specific built-in tool (may not translate to other providers)
-    #[serde(rename = "builtin_anthropic")]
-    BuiltinAnthropic {
+    #[serde(rename = "builtin")]
+    Builtin {
+        /// Provider identifier for built-in tool provenance
+        provider: BuiltinToolProvider,
         /// Original type name (e.g., "bash_20250124", "code_interpreter")
         builtin_type: String,
         /// Provider-specific configuration
@@ -94,39 +95,17 @@ pub enum UniversalToolType {
         #[ts(type = "Record<string, unknown> | null")]
         config: Option<Value>,
     },
+}
 
-    /// Provider-specific built-in tool from OpenAI Responses API
-    #[serde(rename = "builtin_responses")]
-    BuiltinResponses {
-        /// Original type name (e.g., "code_interpreter", "file_search")
-        builtin_type: String,
-        /// Provider-specific configuration
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ts(type = "Record<string, unknown> | null")]
-        config: Option<Value>,
-    },
-
-    /// Provider-specific built-in tool from Google
-    #[serde(rename = "builtin_google")]
-    BuiltinGoogle {
-        /// Original type name (e.g., "google_search", "code_execution")
-        builtin_type: String,
-        /// Provider-specific configuration
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ts(type = "Record<string, unknown> | null")]
-        config: Option<Value>,
-    },
-
-    /// Provider-specific built-in tool from Bedrock Converse
-    #[serde(rename = "builtin_converse")]
-    BuiltinConverse {
-        /// Original type name (e.g., "tool_config")
-        builtin_type: String,
-        /// Provider-specific configuration
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[ts(type = "Record<string, unknown> | null")]
-        config: Option<Value>,
-    },
+/// Provider identity for built-in tool passthrough.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "snake_case")]
+pub enum BuiltinToolProvider {
+    Anthropic,
+    Responses,
+    Google,
+    Converse,
 }
 
 // =============================================================================
@@ -165,9 +144,10 @@ impl UniversalTool {
         }
     }
 
-    /// Create a new Anthropic builtin tool.
-    pub fn builtin_anthropic(
+    /// Create a new provider-specific builtin tool.
+    pub fn builtin(
         name: impl Into<String>,
+        provider: BuiltinToolProvider,
         builtin_type: impl Into<String>,
         config: Option<Value>,
     ) -> Self {
@@ -176,61 +156,8 @@ impl UniversalTool {
             description: None,
             parameters: None,
             strict: None,
-            tool_type: UniversalToolType::BuiltinAnthropic {
-                builtin_type: builtin_type.into(),
-                config,
-            },
-        }
-    }
-
-    /// Create a new OpenAI Responses builtin tool.
-    pub fn builtin_responses(
-        name: impl Into<String>,
-        builtin_type: impl Into<String>,
-        config: Option<Value>,
-    ) -> Self {
-        Self {
-            name: name.into(),
-            description: None,
-            parameters: None,
-            strict: None,
-            tool_type: UniversalToolType::BuiltinResponses {
-                builtin_type: builtin_type.into(),
-                config,
-            },
-        }
-    }
-
-    /// Create a new Google builtin tool.
-    pub fn builtin_google(
-        name: impl Into<String>,
-        builtin_type: impl Into<String>,
-        config: Option<Value>,
-    ) -> Self {
-        Self {
-            name: name.into(),
-            description: None,
-            parameters: None,
-            strict: None,
-            tool_type: UniversalToolType::BuiltinGoogle {
-                builtin_type: builtin_type.into(),
-                config,
-            },
-        }
-    }
-
-    /// Create a new Bedrock Converse builtin tool.
-    pub fn builtin_converse(
-        name: impl Into<String>,
-        builtin_type: impl Into<String>,
-        config: Option<Value>,
-    ) -> Self {
-        Self {
-            name: name.into(),
-            description: None,
-            parameters: None,
-            strict: None,
-            tool_type: UniversalToolType::BuiltinConverse {
+            tool_type: UniversalToolType::Builtin {
+                provider,
                 builtin_type: builtin_type.into(),
                 config,
             },
@@ -249,22 +176,13 @@ impl UniversalTool {
 
     /// Check if this is a builtin tool.
     pub fn is_builtin(&self) -> bool {
-        matches!(
-            self.tool_type,
-            UniversalToolType::BuiltinAnthropic { .. }
-                | UniversalToolType::BuiltinResponses { .. }
-                | UniversalToolType::BuiltinGoogle { .. }
-                | UniversalToolType::BuiltinConverse { .. }
-        )
+        matches!(self.tool_type, UniversalToolType::Builtin { .. })
     }
 
     /// Get the builtin provider, if this is a builtin tool.
-    pub fn builtin_provider(&self) -> Option<ProviderFormat> {
+    pub fn builtin_provider(&self) -> Option<BuiltinToolProvider> {
         match &self.tool_type {
-            UniversalToolType::BuiltinAnthropic { .. } => Some(ProviderFormat::Anthropic),
-            UniversalToolType::BuiltinResponses { .. } => Some(ProviderFormat::Responses),
-            UniversalToolType::BuiltinGoogle { .. } => Some(ProviderFormat::Google),
-            UniversalToolType::BuiltinConverse { .. } => Some(ProviderFormat::Converse),
+            UniversalToolType::Builtin { provider, .. } => Some(*provider),
             _ => None,
         }
     }
@@ -344,8 +262,9 @@ impl UniversalTool {
             | "file_search"
             | "computer_use_preview" => {
                 // Responses API built-in tools
-                Some(Self::builtin_responses(
+                Some(Self::builtin(
                     tool_type,
+                    BuiltinToolProvider::Responses,
                     tool_type,
                     Some(value.clone()),
                 ))
@@ -434,19 +353,8 @@ impl UniversalTool {
                     "custom": Value::Object(custom),
                 }))
             }
-            UniversalToolType::BuiltinAnthropic {
-                builtin_type,
-                config: _,
-            }
-            | UniversalToolType::BuiltinResponses {
-                builtin_type,
-                config: _,
-            }
-            | UniversalToolType::BuiltinGoogle {
-                builtin_type,
-                config: _,
-            }
-            | UniversalToolType::BuiltinConverse {
+            UniversalToolType::Builtin {
+                provider: _,
                 builtin_type,
                 config: _,
             } => Err(ConvertError::UnsupportedToolType {
@@ -496,33 +404,27 @@ impl UniversalTool {
 
                 Ok(Value::Object(obj))
             }
-            UniversalToolType::BuiltinResponses {
-                builtin_type: _,
+            UniversalToolType::Builtin {
+                provider,
+                builtin_type,
                 config,
-            } => {
-                // Return the original config for Responses API builtins
-                config
-                    .clone()
-                    .ok_or_else(|| ConvertError::MissingRequiredField {
-                        field: format!("config for Responses API builtin tool '{}'", self.name),
-                    })
-            }
-            UniversalToolType::BuiltinAnthropic {
-                builtin_type,
-                config: _,
-            }
-            | UniversalToolType::BuiltinGoogle {
-                builtin_type,
-                config: _,
-            }
-            | UniversalToolType::BuiltinConverse {
-                builtin_type,
-                config: _,
-            } => Err(ConvertError::UnsupportedToolType {
-                tool_name: self.name.clone(),
-                tool_type: builtin_type.clone(),
-                target_provider: "OpenAI Responses API".to_string(),
-            }),
+            } => match provider {
+                BuiltinToolProvider::Responses => {
+                    // Return the original config for Responses API builtins
+                    config
+                        .clone()
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: format!("config for Responses API builtin tool '{}'", self.name),
+                        })
+                }
+                BuiltinToolProvider::Anthropic
+                | BuiltinToolProvider::Google
+                | BuiltinToolProvider::Converse => Err(ConvertError::UnsupportedToolType {
+                    tool_name: self.name.clone(),
+                    tool_type: builtin_type.clone(),
+                    target_provider: "OpenAI Responses API".to_string(),
+                }),
+            },
         }
     }
 }
@@ -660,8 +562,9 @@ mod tests {
 
     #[test]
     fn test_universal_tool_builtin_constructor() {
-        let tool = UniversalTool::builtin_anthropic(
+        let tool = UniversalTool::builtin(
             "bash",
+            BuiltinToolProvider::Anthropic,
             "bash_20250124",
             Some(json!({"name": "bash"})),
         );
@@ -669,7 +572,10 @@ mod tests {
         assert_eq!(tool.name, "bash");
         assert!(!tool.is_function());
         assert!(tool.is_builtin());
-        assert_eq!(tool.builtin_provider(), Some(ProviderFormat::Anthropic));
+        assert_eq!(
+            tool.builtin_provider(),
+            Some(BuiltinToolProvider::Anthropic)
+        );
     }
 
     #[test]
@@ -701,9 +607,12 @@ mod tests {
 
         assert_eq!(tool.name, "bash");
         assert!(tool.is_builtin());
-        assert_eq!(tool.builtin_provider(), Some(ProviderFormat::Anthropic));
+        assert_eq!(
+            tool.builtin_provider(),
+            Some(BuiltinToolProvider::Anthropic)
+        );
 
-        if let UniversalToolType::BuiltinAnthropic { builtin_type, .. } = &tool.tool_type {
+        if let UniversalToolType::Builtin { builtin_type, .. } = &tool.tool_type {
             assert_eq!(builtin_type, "bash_20250124");
         } else {
             panic!("Expected Builtin type");
@@ -786,7 +695,10 @@ mod tests {
 
         assert_eq!(tool.name, "code_interpreter");
         assert!(tool.is_builtin());
-        assert_eq!(tool.builtin_provider(), Some(ProviderFormat::Responses));
+        assert_eq!(
+            tool.builtin_provider(),
+            Some(BuiltinToolProvider::Responses)
+        );
     }
 
     #[test]
@@ -813,7 +725,12 @@ mod tests {
             "type": "bash_20250124",
             "name": "bash"
         });
-        let tool = UniversalTool::builtin_anthropic("bash", "bash_20250124", Some(config.clone()));
+        let tool = UniversalTool::builtin(
+            "bash",
+            BuiltinToolProvider::Anthropic,
+            "bash_20250124",
+            Some(config.clone()),
+        );
 
         let typed = Tool::try_from(&tool).unwrap();
         let value = serde_json::to_value(&typed).unwrap();
@@ -822,8 +739,9 @@ mod tests {
 
     #[test]
     fn test_universal_tool_to_anthropic_builtin_wrong_provider() {
-        let tool = UniversalTool::builtin_responses(
+        let tool = UniversalTool::builtin(
             "code_interpreter",
+            BuiltinToolProvider::Responses,
             "code_interpreter",
             Some(json!({})),
         );
@@ -864,7 +782,12 @@ mod tests {
 
     #[test]
     fn test_universal_tool_to_openai_chat_builtin_error() {
-        let tool = UniversalTool::builtin_anthropic("bash", "bash_20250124", Some(json!({})));
+        let tool = UniversalTool::builtin(
+            "bash",
+            BuiltinToolProvider::Anthropic,
+            "bash_20250124",
+            Some(json!({})),
+        );
 
         let result = tool.to_openai_chat_value();
         assert!(result.is_err());
@@ -920,8 +843,9 @@ mod tests {
     #[test]
     fn test_universal_tool_to_responses_builtin_passthrough() {
         let config = json!({"type": "code_interpreter"});
-        let tool = UniversalTool::builtin_responses(
+        let tool = UniversalTool::builtin(
             "code_interpreter",
+            BuiltinToolProvider::Responses,
             "code_interpreter",
             Some(config.clone()),
         );
@@ -1026,8 +950,9 @@ mod tests {
     fn test_batch_conversion_to_anthropic_fails_on_wrong_provider() {
         let tools = [
             UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
-            UniversalTool::builtin_responses(
+            UniversalTool::builtin(
                 "code_interpreter",
+                BuiltinToolProvider::Responses,
                 "code_interpreter",
                 Some(json!({})),
             ),
@@ -1055,7 +980,12 @@ mod tests {
     fn test_batch_conversion_to_openai_chat_fails_on_builtin() {
         let tools = vec![
             UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
-            UniversalTool::builtin_anthropic("bash", "bash_20250124", Some(json!({}))),
+            UniversalTool::builtin(
+                "bash",
+                BuiltinToolProvider::Anthropic,
+                "bash_20250124",
+                Some(json!({})),
+            ),
         ];
 
         let result = tools_to_openai_chat_value(&tools);

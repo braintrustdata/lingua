@@ -20,7 +20,7 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
 use crate::universal::request::ReasoningConfig;
-use crate::universal::tools::{UniversalTool, UniversalToolType};
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
     FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
     UniversalStreamChunk, UniversalUsage,
@@ -116,8 +116,9 @@ impl ProviderAdapter for BedrockAdapter {
 
                 if universal_tools.is_empty() {
                     // Fallback: store as builtin for unknown format (e.g., toolChoice)
-                    Some(vec![UniversalTool::builtin_converse(
+                    Some(vec![UniversalTool::builtin(
                         "bedrock_tool_config",
+                        BuiltinToolProvider::Converse,
                         "tool_config",
                         Some(value),
                     )])
@@ -216,11 +217,16 @@ impl ProviderAdapter for BedrockAdapter {
             // First check for Bedrock builtins (pass through original config)
             let mut bedrock_builtin_found = false;
             for tool in tools {
-                if let UniversalToolType::BuiltinConverse { config, .. } = &tool.tool_type {
-                    if let Some(config_value) = config {
-                        obj.insert("toolConfig".into(), config_value.clone());
-                        bedrock_builtin_found = true;
-                        break;
+                if let UniversalToolType::Builtin {
+                    provider, config, ..
+                } = &tool.tool_type
+                {
+                    if matches!(provider, BuiltinToolProvider::Converse) {
+                        if let Some(config_value) = config {
+                            obj.insert("toolConfig".into(), config_value.clone());
+                            bedrock_builtin_found = true;
+                            break;
+                        }
                     }
                 }
             }

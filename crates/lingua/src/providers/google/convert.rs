@@ -22,7 +22,7 @@ use crate::universal::message::{
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
-use crate::universal::tools::{UniversalTool, UniversalToolType};
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::util::media::parse_base64_data_url;
 
 // ============================================================================
@@ -404,10 +404,7 @@ impl TryFrom<&UniversalTool> for FunctionDeclaration {
                 tool_type: "custom".to_string(),
                 target_provider: "Google".to_string(),
             }),
-            UniversalToolType::BuiltinAnthropic { builtin_type, .. }
-            | UniversalToolType::BuiltinResponses { builtin_type, .. }
-            | UniversalToolType::BuiltinGoogle { builtin_type, .. }
-            | UniversalToolType::BuiltinConverse { builtin_type, .. } => {
+            UniversalToolType::Builtin { builtin_type, .. } => {
                 Err(ConvertError::UnsupportedToolType {
                     tool_name: tool.name.clone(),
                     tool_type: builtin_type.clone(),
@@ -442,8 +439,9 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                         error: e.to_string(),
                     }
                 })?;
-                result.push(UniversalTool::builtin_google(
+                result.push(UniversalTool::builtin(
                     "google_search",
+                    BuiltinToolProvider::Google,
                     "google_search",
                     Some(config),
                 ));
@@ -456,8 +454,9 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                         error: e.to_string(),
                     }
                 })?;
-                result.push(UniversalTool::builtin_google(
+                result.push(UniversalTool::builtin(
                     "code_execution",
+                    BuiltinToolProvider::Google,
                     "code_execution",
                     Some(config),
                 ));
@@ -470,8 +469,9 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                         error: e.to_string(),
                     }
                 })?;
-                result.push(UniversalTool::builtin_google(
+                result.push(UniversalTool::builtin(
                     "google_search_retrieval",
+                    BuiltinToolProvider::Google,
                     "google_search_retrieval",
                     Some(config),
                 ));
@@ -498,10 +498,14 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                 UniversalToolType::Function => {
                     function_decls.push(FunctionDeclaration::try_from(tool)?);
                 }
-                UniversalToolType::BuiltinGoogle {
+                UniversalToolType::Builtin {
+                    provider,
                     builtin_type,
                     config,
                 } => {
+                    if !matches!(provider, BuiltinToolProvider::Google) {
+                        continue;
+                    }
                     let mut google_tool = GoogleTool::default();
                     match builtin_type.as_str() {
                         "google_search" => {
@@ -525,10 +529,7 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                     }
                     builtin_tools.push(google_tool);
                 }
-                UniversalToolType::Custom { .. }
-                | UniversalToolType::BuiltinAnthropic { .. }
-                | UniversalToolType::BuiltinResponses { .. }
-                | UniversalToolType::BuiltinConverse { .. } => continue,
+                UniversalToolType::Custom { .. } => continue,
             }
         }
 
