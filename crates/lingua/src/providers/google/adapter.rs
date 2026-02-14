@@ -9,7 +9,6 @@ Google's API has some unique characteristics:
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::google::convert::{
@@ -17,7 +16,8 @@ use crate::providers::google::convert::{
 };
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
-    Content as GoogleContent, GenerationConfig, ThinkingConfig, Tool as GoogleTool, ToolConfig,
+    Content as GoogleContent, GenerateContentResponse, GenerationConfig, ThinkingConfig,
+    Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
@@ -315,42 +315,28 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
-        let candidates = payload
-            .get("candidates")
-            .and_then(Value::as_array)
-            .ok_or_else(|| TransformError::ToUniversalFailed("missing candidates".to_string()))?;
+        let response: GenerateContentResponse = serde_json::from_value(payload)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let mut messages = Vec::new();
         let mut finish_reason = None;
 
-        for candidate in candidates {
-            if let Some(content_val) = candidate.get("content") {
-                let content: GoogleContent = serde_json::from_value(content_val.clone())
-                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-                let universal = <Message as TryFromLLM<GoogleContent>>::try_from(content)
+        for candidate in response.candidates.iter().flatten() {
+            if let Some(content) = &candidate.content {
+                let universal = <Message as TryFromLLM<GoogleContent>>::try_from(content.clone())
                     .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
                 messages.push(universal);
             }
 
-            // Get finishReason from first candidate
             if finish_reason.is_none() {
-                if let Some(reason) = candidate.get("finishReason").and_then(Value::as_str) {
-                    finish_reason =
-                        Some(reason.parse().map_err(|_| ConvertError::InvalidEnumValue {
-                            type_name: "FinishReason",
-                            value: reason.to_string(),
-                        })?);
-                }
+                finish_reason = candidate.finish_reason.as_ref().map(FinishReason::from);
             }
         }
 
-        let usage = UniversalUsage::extract_from_response(&payload, self.format());
+        let usage = response.usage_metadata.as_ref().map(UniversalUsage::from);
 
         Ok(UniversalResponse {
-            model: payload
-                .get("modelVersion")
-                .and_then(Value::as_str)
-                .map(String::from),
+            model: response.model_version,
             messages,
             usage,
             finish_reason,
@@ -387,10 +373,10 @@ impl ProviderAdapter for GoogleAdapter {
         map.insert("candidates".into(), Value::Array(candidates));
 
         if let Some(usage) = &resp.usage {
-            map.insert(
-                "usageMetadata".into(),
-                usage.to_provider_value(self.format()),
-            );
+            let metadata = UsageMetadata::from(usage);
+            let value = serde_json::to_value(&metadata)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            map.insert("usageMetadata".into(), value);
         }
 
         Ok(Value::Object(map))
@@ -450,8 +436,12 @@ impl ProviderAdapter for GoogleAdapter {
             });
         }
 
-        // Extract usage from usageMetadata
-        let usage = UniversalUsage::extract_from_response(&payload, self.format());
+        let usage = payload
+            .get("usageMetadata")
+            .map(|v| serde_json::from_value::<UsageMetadata>(v.clone()))
+            .transpose()
+            .map_err(|e| TransformError::ToUniversalFailed(format!("usageMetadata: {e}")))?
+            .map(|u| UniversalUsage::from(&u));
 
         let model = payload
             .get("modelVersion")
@@ -488,13 +478,9 @@ impl ProviderAdapter for GoogleAdapter {
                     .and_then(Value::as_str)
                     .unwrap_or("");
 
-                // Map finish reason to Google format
-                let finish_reason = c.finish_reason.as_ref().map(|r| match r.as_str() {
-                    "stop" => "STOP",
-                    "length" => "MAX_TOKENS",
-                    "tool_calls" => "TOOL_CALLS",
-                    "content_filter" => "SAFETY",
-                    other => other,
+                let finish_reason = c.finish_reason.as_ref().map(|r| {
+                    let fr: FinishReason = r.parse().unwrap_or(FinishReason::Other(r.clone()));
+                    fr.to_provider_string(self.format()).to_string()
                 });
 
                 let mut candidate_map = serde_json::Map::new();
@@ -525,10 +511,10 @@ impl ProviderAdapter for GoogleAdapter {
             map.insert("modelVersion".into(), Value::String(model.clone()));
         }
         if let Some(ref usage) = chunk.usage {
-            map.insert(
-                "usageMetadata".into(),
-                usage.to_provider_value(self.format()),
-            );
+            let metadata = UsageMetadata::from(usage);
+            let value = serde_json::to_value(&metadata)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            map.insert("usageMetadata".into(), value);
         }
 
         Ok(Value::Object(map))
