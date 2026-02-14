@@ -1,4 +1,4 @@
-.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit
+.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit
 
 all: typescript python ## Build all bindings
 
@@ -61,8 +61,11 @@ test-payloads: lingua-wasm ## Run payload transform tests (REGENERATE=1 to auto-
 capture: lingua-wasm ## Capture payloads (snapshots + transforms + vitest snapshots)
 	cd payloads && pnpm capture $(if $(FILTER),--filter $(FILTER)) $(if $(CASES),--cases $(CASES)) $(if $(FORCE),--force)
 
-capture-transforms: lingua-wasm ## Re-capture only transforms (e.g. make capture-transforms FORCE=1)
-	cd payloads && pnpm tsx scripts/transforms/capture-transforms.ts $(if $(FILTER),$(FILTER)) $(if $(FORCE),--force)
+capture-transforms: lingua-wasm ## Re-capture only transforms (e.g. make capture-transforms PAIR=chat-completions,google FORCE=1)
+	cd payloads && pnpm tsx scripts/transforms/capture-transforms.ts $(if $(FILTER),$(FILTER)) $(if $(PAIR),--pair $(PAIR)) $(if $(FORCE),--force)
+
+update-snapshots: lingua-wasm ## Update vitest snapshots without recapturing
+	cd payloads && pnpm vitest run scripts/transforms -u
 
 regenerate-failed-transforms: lingua-wasm ## Auto-regenerate failed transform payloads
 	cd payloads && pnpm tsx scripts/regenerate-failed.ts

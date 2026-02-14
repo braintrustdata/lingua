@@ -46,7 +46,8 @@ myCase: {
 
 ```bash
 make capture FILTER=myCase        # Captures snapshots + transforms + updates vitest snapshots
-make capture-transforms FORCE=1   # Re-capture only transforms (skips provider snapshots)
+make capture-transforms FORCE=1                        # Re-capture all transforms
+make capture-transforms PAIR=chat-completions,google   # Re-capture only one pair
 make test-payloads                # Runs transform tests + sync check
 ```
 
