@@ -16,7 +16,7 @@ use crate::providers::openai::capabilities::apply_model_transforms;
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
 };
-use crate::providers::openai::params::OpenAIResponsesParams;
+use crate::providers::openai::params::{OpenAIResponsesExtrasView, OpenAIResponsesParams};
 use crate::providers::openai::tool_parsing::parse_openai_responses_tools_array;
 use crate::providers::openai::{try_parse_responses, universal_to_responses_input};
 use crate::serde_json::{self, Map, Value};
@@ -29,7 +29,6 @@ use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
-use serde::Deserialize;
 use std::convert::TryInto;
 
 fn system_text(message: &Message) -> Option<&str> {
@@ -53,28 +52,9 @@ fn system_text(message: &Message) -> Option<&str> {
 /// Adapter for OpenAI Responses API (used by reasoning models like o1).
 pub struct ResponsesAdapter;
 
-#[derive(Debug, Default, Deserialize)]
-struct ResponsesExtrasView {
-    instructions: Option<String>,
-    input: Option<Value>,
-    temperature: Option<Value>,
-    top_p: Option<Value>,
-    max_output_tokens: Option<Value>,
-    top_logprobs: Option<Value>,
-    stream: Option<Value>,
-    tools: Option<Value>,
-    tool_choice: Option<Value>,
-    text: Option<Value>,
-    reasoning: Option<Value>,
-    parallel_tool_calls: Option<Value>,
-    metadata: Option<Value>,
-    store: Option<Value>,
-    service_tier: Option<Value>,
-}
-
 fn parse_responses_extras(
     extras: Option<&Map<String, Value>>,
-) -> Result<ResponsesExtrasView, TransformError> {
+) -> Result<OpenAIResponsesExtrasView, TransformError> {
     extras
         .map(|m| serde_json::from_value(Value::Object(m.clone())))
         .transpose()
@@ -84,7 +64,7 @@ fn parse_responses_extras(
                 e
             ))
         })
-        .map(|v: Option<ResponsesExtrasView>| v.unwrap_or_default())
+        .map(|v: Option<OpenAIResponsesExtrasView>| v.unwrap_or_default())
 }
 
 impl ProviderAdapter for ResponsesAdapter {

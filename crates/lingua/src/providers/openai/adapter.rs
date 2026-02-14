@@ -17,7 +17,7 @@ use crate::providers::openai::capabilities::{apply_model_transforms, model_needs
 use crate::providers::openai::convert::{
     ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
 };
-use crate::providers::openai::params::OpenAIChatParams;
+use crate::providers::openai::params::{OpenAIChatExtrasView, OpenAIChatParams};
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
 use crate::providers::openai::try_parse_openai;
 use crate::serde_json::{self, Map, Value};
@@ -30,23 +30,10 @@ use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
-use serde::Deserialize;
 use std::convert::TryInto;
 
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
-
-#[derive(Debug, Default, Deserialize)]
-struct OpenAIChatExtrasView {
-    messages: Option<Value>,
-    stop: Option<Value>,
-    tools: Option<Value>,
-    tool_choice: Option<Value>,
-    response_format: Option<Value>,
-    reasoning_effort: Option<Value>,
-    max_tokens: Option<Value>,
-    max_completion_tokens: Option<Value>,
-}
 
 fn parse_openai_chat_extras(
     extras: Option<&Map<String, Value>>,
