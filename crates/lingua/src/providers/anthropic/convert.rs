@@ -1,5 +1,6 @@
 use std::convert::TryFrom;
 
+use crate::capabilities::format::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
@@ -10,8 +11,7 @@ use crate::serde_json::{json, Value};
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
-use crate::universal::tools::UniversalTool;
-use crate::universal::tools::UniversalToolType;
+use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart, Message,
     TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
@@ -1253,7 +1253,7 @@ impl From<&Tool> for UniversalTool {
                     .and_then(Value::as_str)
                     .unwrap_or(&type_str)
                     .to_string();
-                Self::builtin(name, "anthropic", type_str, config)
+                Self::builtin(name, ProviderFormat::Anthropic, type_str, config)
             }
         }
     }
@@ -1270,7 +1270,7 @@ impl TryFrom<&UniversalTool> for Tool {
                 builtin_type,
                 config,
             } => {
-                if provider != "anthropic" {
+                if !matches!(provider, ProviderFormat::Anthropic) {
                     return Err(ConvertError::UnsupportedToolType {
                         tool_name: tool.name.clone(),
                         tool_type: builtin_type.clone(),

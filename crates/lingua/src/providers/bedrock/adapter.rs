@@ -118,7 +118,7 @@ impl ProviderAdapter for BedrockAdapter {
                     // Fallback: store as builtin for unknown format (e.g., toolChoice)
                     Some(vec![UniversalTool::builtin(
                         "bedrock_tool_config",
-                        "bedrock",
+                        ProviderFormat::Converse,
                         "tool_config",
                         Some(value),
                     )])
@@ -221,7 +221,7 @@ impl ProviderAdapter for BedrockAdapter {
                     provider, config, ..
                 } = &tool.tool_type
                 {
-                    if provider == "bedrock" {
+                    if matches!(provider, ProviderFormat::Converse) {
                         if let Some(config_value) = config {
                             obj.insert("toolConfig".into(), config_value.clone());
                             bedrock_builtin_found = true;

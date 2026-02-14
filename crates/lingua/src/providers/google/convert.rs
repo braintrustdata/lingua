@@ -5,6 +5,7 @@ This module provides TryFromLLM trait implementations for converting between
 Google's GenerateContent API format and Lingua's universal message format.
 */
 
+use crate::capabilities::format::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::google::generated::{
     Blob as GoogleBlob, Content as GoogleContent, FunctionCall as GoogleFunctionCall,
@@ -436,7 +437,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "google_search",
-                    "google",
+                    ProviderFormat::Google,
                     "google_search",
                     Some(config),
                 ));
@@ -451,7 +452,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "code_execution",
-                    "google",
+                    ProviderFormat::Google,
                     "code_execution",
                     Some(config),
                 ));
@@ -466,7 +467,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "google_search_retrieval",
-                    "google",
+                    ProviderFormat::Google,
                     "google_search_retrieval",
                     Some(config),
                 ));
@@ -498,7 +499,7 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                     builtin_type,
                     config,
                 } => {
-                    if provider != "google" {
+                    if !matches!(provider, ProviderFormat::Google) {
                         continue;
                     }
                     let mut google_tool = GoogleTool::default();
