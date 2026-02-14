@@ -1,4 +1,4 @@
-.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit fuzz-snapshots fuzz-snapshots-prune
+.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
 
 all: typescript python ## Build all bindings
 
@@ -63,6 +63,32 @@ fuzz-snapshots: ## Run ignored fuzz tests to generate/update snapshots, then pru
 
 fuzz-snapshots-prune: ## Prune fuzz snapshots (dedupe by normalized failure reason)
 	@$(MAKE) -C crates/lingua/tests/fuzz prune
+
+typed-boundary-check: ## Fail if local provider/universal edits add direct Value field access
+	@echo "Checking typed boundary regressions in local changes..."; \
+	RESULTS=$$(git diff --unified=0 -- crates/lingua/src/providers crates/lingua/src/universal | \
+		rg -N '^\+.*(\.get\(\"|\.as_object\(|\.as_array\(|\.as_str\(|\.as_i64\(|\.as_u64\(|\.as_bool\(|\.as_f64\()' || true); \
+	if [ -n "$$RESULTS" ]; then \
+		echo "Found direct Value access in added lines:"; \
+		printf '%s\n' "$$RESULTS"; \
+		exit 1; \
+	fi; \
+	echo "No new direct Value field access detected."
+
+typed-boundary-check-branch: ## Fail if committed branch diff adds direct Value field access (usage: make typed-boundary-check-branch BASE=fuzz-test-anthropic)
+	@if [ -z "$(BASE)" ]; then \
+		echo "Usage: make typed-boundary-check-branch BASE=<comparison-branch>"; \
+		exit 1; \
+	fi; \
+	echo "Checking typed boundary regressions in committed diff against $(BASE)..."; \
+	RESULTS=$$(git diff --unified=0 "$(BASE)"...HEAD -- crates/lingua/src/providers crates/lingua/src/universal | \
+		rg -N '^\+.*(\.get\(\"|\.as_object\(|\.as_array\(|\.as_str\(|\.as_i64\(|\.as_u64\(|\.as_bool\(|\.as_f64\()' || true); \
+	if [ -n "$$RESULTS" ]; then \
+		echo "Found direct Value access in added lines:"; \
+		printf '%s\n' "$$RESULTS"; \
+		exit 1; \
+	fi; \
+	echo "No new direct Value field access detected in committed diff."
 
 capture: lingua-wasm ## Capture payloads (snapshots + transforms + vitest snapshots)
 	cd payloads && pnpm capture $(if $(FILTER),--filter $(FILTER)) $(if $(CASES),--cases $(CASES)) $(if $(FORCE),--force)

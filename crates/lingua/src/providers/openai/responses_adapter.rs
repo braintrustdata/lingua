@@ -29,6 +29,7 @@ use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
+use serde::Deserialize;
 use std::convert::TryInto;
 
 fn system_text(message: &Message) -> Option<&str> {
@@ -52,6 +53,40 @@ fn system_text(message: &Message) -> Option<&str> {
 /// Adapter for OpenAI Responses API (used by reasoning models like o1).
 pub struct ResponsesAdapter;
 
+#[derive(Debug, Default, Deserialize)]
+struct ResponsesExtrasView {
+    instructions: Option<String>,
+    input: Option<Value>,
+    temperature: Option<Value>,
+    top_p: Option<Value>,
+    max_output_tokens: Option<Value>,
+    top_logprobs: Option<Value>,
+    stream: Option<Value>,
+    tools: Option<Value>,
+    tool_choice: Option<Value>,
+    text: Option<Value>,
+    reasoning: Option<Value>,
+    parallel_tool_calls: Option<Value>,
+    metadata: Option<Value>,
+    store: Option<Value>,
+    service_tier: Option<Value>,
+}
+
+fn parse_responses_extras(
+    extras: Option<&Map<String, Value>>,
+) -> Result<ResponsesExtrasView, TransformError> {
+    extras
+        .map(|m| serde_json::from_value(Value::Object(m.clone())))
+        .transpose()
+        .map_err(|e| {
+            TransformError::FromUniversalFailed(format!(
+                "invalid OpenAI responses extras shape: {}",
+                e
+            ))
+        })
+        .map(|v: Option<ResponsesExtrasView>| v.unwrap_or_default())
+}
+
 impl ProviderAdapter for ResponsesAdapter {
     fn format(&self) -> ProviderFormat {
         ProviderFormat::Responses
@@ -70,8 +105,6 @@ impl ProviderAdapter for ResponsesAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let raw_payload_obj = payload.as_object().cloned();
-
         // Single parse: typed params now includes typed input via #[serde(flatten)]
         let typed_params: OpenAIResponsesParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -192,16 +225,6 @@ impl ProviderAdapter for ResponsesAdapter {
             params.extras.insert(ProviderFormat::Responses, extras_map);
         }
 
-        // Preserve raw request keys (including explicit nulls) for exact same-provider roundtrips.
-        if let Some(raw_obj) = raw_payload_obj {
-            let responses_extras = params.extras.entry(ProviderFormat::Responses).or_default();
-            for (k, v) in raw_obj {
-                if k != "model" {
-                    responses_extras.insert(k, v);
-                }
-            }
-        }
-
         Ok(UniversalRequest {
             model: typed_params.model,
             messages,
@@ -216,13 +239,12 @@ impl ProviderAdapter for ResponsesAdapter {
         })?;
 
         let responses_extras = req.params.extras.get(&ProviderFormat::Responses);
+        let responses_extras_view = parse_responses_extras(responses_extras)?;
         let mut messages_for_input = req.messages.clone();
-        if let Some(extras) = responses_extras {
-            if let Some(instructions) = extras.get("instructions").and_then(Value::as_str) {
-                if let Some(first_text) = messages_for_input.first().and_then(system_text) {
-                    if first_text == instructions {
-                        messages_for_input.remove(0);
-                    }
+        if let Some(instructions) = responses_extras_view.instructions.as_deref() {
+            if let Some(first_text) = messages_for_input.first().and_then(system_text) {
+                if first_text == instructions {
+                    messages_for_input.remove(0);
                 }
             }
         }
@@ -233,7 +255,7 @@ impl ProviderAdapter for ResponsesAdapter {
 
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
-        if let Some(raw_input) = responses_extras.and_then(|m| m.get("input")) {
+        if let Some(raw_input) = responses_extras_view.input.as_ref() {
             obj.insert("input".into(), raw_input.clone());
         } else {
             obj.insert(
@@ -243,17 +265,17 @@ impl ProviderAdapter for ResponsesAdapter {
             );
         }
 
-        if let Some(raw) = responses_extras.and_then(|m| m.get("temperature")) {
+        if let Some(raw) = responses_extras_view.temperature.as_ref() {
             obj.insert("temperature".into(), raw.clone());
         } else {
             insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         }
-        if let Some(raw) = responses_extras.and_then(|m| m.get("top_p")) {
+        if let Some(raw) = responses_extras_view.top_p.as_ref() {
             obj.insert("top_p".into(), raw.clone());
         } else {
             insert_opt_f64(&mut obj, "top_p", req.params.top_p);
         }
-        if let Some(raw) = responses_extras.and_then(|m| m.get("max_output_tokens")) {
+        if let Some(raw) = responses_extras_view.max_output_tokens.as_ref() {
             obj.insert("max_output_tokens".into(), raw.clone());
         } else {
             insert_opt_i64(
@@ -262,23 +284,20 @@ impl ProviderAdapter for ResponsesAdapter {
                 req.params.output_token_budget(),
             );
         }
-        if let Some(raw) = responses_extras.and_then(|m| m.get("top_logprobs")) {
+        if let Some(raw) = responses_extras_view.top_logprobs.as_ref() {
             obj.insert("top_logprobs".into(), raw.clone());
         } else {
             insert_opt_i64(&mut obj, "top_logprobs", req.params.top_logprobs);
         }
         // Note: presence_penalty, frequency_penalty, seed, logprobs (bool) are NOT supported by Responses API
-        if let Some(raw) = responses_extras.and_then(|m| m.get("stream")) {
+        if let Some(raw) = responses_extras_view.stream.as_ref() {
             obj.insert("stream".into(), raw.clone());
         } else {
             insert_opt_bool(&mut obj, "stream", req.params.stream);
         }
 
-        // Get provider-specific extras for Responses API
-        let responses_extras = req.params.extras.get(&ProviderFormat::Responses);
-
         // Convert tools to Responses API format
-        if let Some(raw_tools) = responses_extras.and_then(|m| m.get("tools")) {
+        if let Some(raw_tools) = responses_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
         } else if let Some(tools) = req.params.tools.as_ref() {
             if let Some(tools_value) = tools_to_responses_value(tools)? {
@@ -287,7 +306,7 @@ impl ProviderAdapter for ResponsesAdapter {
         }
 
         // Convert tool_choice using helper method
-        if let Some(raw_tool_choice) = responses_extras.and_then(|m| m.get("tool_choice")) {
+        if let Some(raw_tool_choice) = responses_extras_view.tool_choice.as_ref() {
             obj.insert("tool_choice".into(), raw_tool_choice.clone());
         } else if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Responses)
         {
@@ -295,42 +314,42 @@ impl ProviderAdapter for ResponsesAdapter {
         }
 
         // Convert response_format to Responses API text format using helper method
-        if let Some(raw_text) = responses_extras.and_then(|m| m.get("text")) {
+        if let Some(raw_text) = responses_extras_view.text.as_ref() {
             obj.insert("text".into(), raw_text.clone());
         } else if let Some(text_val) = req.params.response_format_for(ProviderFormat::Responses) {
             obj.insert("text".into(), text_val);
         }
 
         // Add reasoning from canonical params
-        if let Some(raw_reasoning) = responses_extras.and_then(|m| m.get("reasoning")) {
+        if let Some(raw_reasoning) = responses_extras_view.reasoning.as_ref() {
             obj.insert("reasoning".into(), raw_reasoning.clone());
         } else if let Some(reasoning_val) = req.params.reasoning_for(ProviderFormat::Responses) {
             obj.insert("reasoning".into(), reasoning_val);
         }
 
         // Add parallel_tool_calls from canonical params
-        if let Some(raw_parallel) = responses_extras.and_then(|m| m.get("parallel_tool_calls")) {
+        if let Some(raw_parallel) = responses_extras_view.parallel_tool_calls.as_ref() {
             obj.insert("parallel_tool_calls".into(), raw_parallel.clone());
         } else if let Some(parallel) = req.params.parallel_tool_calls {
             obj.insert("parallel_tool_calls".into(), Value::Bool(parallel));
         }
 
         // Add metadata from canonical params
-        if let Some(raw_metadata) = responses_extras.and_then(|m| m.get("metadata")) {
+        if let Some(raw_metadata) = responses_extras_view.metadata.as_ref() {
             obj.insert("metadata".into(), raw_metadata.clone());
         } else if let Some(metadata) = req.params.metadata.as_ref() {
             obj.insert("metadata".into(), metadata.clone());
         }
 
         // Add store from canonical params
-        if let Some(raw_store) = responses_extras.and_then(|m| m.get("store")) {
+        if let Some(raw_store) = responses_extras_view.store.as_ref() {
             obj.insert("store".into(), raw_store.clone());
         } else if let Some(store) = req.params.store {
             obj.insert("store".into(), Value::Bool(store));
         }
 
         // Add service_tier from canonical params
-        if let Some(raw_service_tier) = responses_extras.and_then(|m| m.get("service_tier")) {
+        if let Some(raw_service_tier) = responses_extras_view.service_tier.as_ref() {
             obj.insert("service_tier".into(), raw_service_tier.clone());
         } else if let Some(ref service_tier) = req.params.service_tier {
             obj.insert("service_tier".into(), Value::String(service_tier.clone()));

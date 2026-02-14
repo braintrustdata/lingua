@@ -34,9 +34,15 @@ use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
+use serde::Deserialize;
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
+
+#[derive(Debug, Default, Deserialize)]
+struct AnthropicMetadataView {
+    user_id: Option<String>,
+}
 
 fn system_to_user_content(system: System) -> UserContent {
     match system {
@@ -386,9 +392,11 @@ impl ProviderAdapter for AnthropicAdapter {
             obj.insert("metadata".into(), raw_metadata.clone());
         } else if let Some(metadata) = req.params.metadata.as_ref() {
             // Anthropic metadata only supports `user_id`.
-            if let Some(user_id) = metadata.get("user_id").and_then(Value::as_str) {
+            let metadata_view: AnthropicMetadataView =
+                serde_json::from_value(metadata.clone()).unwrap_or_default();
+            if let Some(user_id) = metadata_view.user_id {
                 let mut anthropic_metadata = Map::new();
-                anthropic_metadata.insert("user_id".into(), Value::String(user_id.to_string()));
+                anthropic_metadata.insert("user_id".into(), Value::String(user_id));
                 obj.insert("metadata".into(), Value::Object(anthropic_metadata));
             }
         }

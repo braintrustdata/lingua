@@ -30,10 +30,35 @@ use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
+use serde::Deserialize;
 use std::convert::TryInto;
 
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
+
+#[derive(Debug, Default, Deserialize)]
+struct OpenAIChatExtrasView {
+    messages: Option<Value>,
+    stop: Option<Value>,
+    tools: Option<Value>,
+    tool_choice: Option<Value>,
+    response_format: Option<Value>,
+    reasoning_effort: Option<Value>,
+    max_tokens: Option<Value>,
+    max_completion_tokens: Option<Value>,
+}
+
+fn parse_openai_chat_extras(
+    extras: Option<&Map<String, Value>>,
+) -> Result<OpenAIChatExtrasView, TransformError> {
+    extras
+        .map(|m| serde_json::from_value(Value::Object(m.clone())))
+        .transpose()
+        .map_err(|e| {
+            TransformError::FromUniversalFailed(format!("invalid OpenAI chat extras shape: {}", e))
+        })
+        .map(|v: Option<OpenAIChatExtrasView>| v.unwrap_or_default())
+}
 
 impl ProviderAdapter for OpenAIAdapter {
     fn format(&self) -> ProviderFormat {
@@ -202,10 +227,11 @@ impl ProviderAdapter for OpenAIAdapter {
         })?;
 
         let openai_extras = req.params.extras.get(&ProviderFormat::ChatCompletions);
+        let openai_extras_view = parse_openai_chat_extras(openai_extras)?;
 
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
-        if let Some(raw_messages) = openai_extras.and_then(|m| m.get("messages")) {
+        if let Some(raw_messages) = openai_extras_view.messages.as_ref() {
             obj.insert("messages".into(), raw_messages.clone());
         } else {
             let openai_messages: Vec<ChatCompletionRequestMessageExt> =
@@ -222,10 +248,8 @@ impl ProviderAdapter for OpenAIAdapter {
 
         insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
-        let openai_extras = req.params.extras.get(&ProviderFormat::ChatCompletions);
-        let had_max_tokens = openai_extras.is_some_and(|e| e.contains_key("max_tokens"));
-        let had_max_completion_tokens =
-            openai_extras.is_some_and(|e| e.contains_key("max_completion_tokens"));
+        let had_max_tokens = openai_extras_view.max_tokens.is_some();
+        let had_max_completion_tokens = openai_extras_view.max_completion_tokens.is_some();
         let output_budget = req.params.output_token_budget();
         if had_max_tokens && !had_max_completion_tokens {
             insert_opt_i64(&mut obj, "max_tokens", output_budget);
@@ -233,7 +257,7 @@ impl ProviderAdapter for OpenAIAdapter {
             insert_opt_i64(&mut obj, "max_completion_tokens", output_budget);
         }
         // Output stop sequences as array (OpenAI accepts both string and array)
-        if let Some(raw_stop) = openai_extras.and_then(|m| m.get("stop")) {
+        if let Some(raw_stop) = openai_extras_view.stop.as_ref() {
             obj.insert("stop".into(), raw_stop.clone());
         } else if let Some(ref stop) = req.params.stop {
             if !stop.is_empty() {
@@ -244,7 +268,7 @@ impl ProviderAdapter for OpenAIAdapter {
             }
         }
         // Convert tools to OpenAI Chat format
-        if let Some(raw_tools) = openai_extras.and_then(|m| m.get("tools")) {
+        if let Some(raw_tools) = openai_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
         } else if let Some(tools) = &req.params.tools {
             if let Some(tools_value) = tools_to_openai_chat_value(tools)? {
@@ -252,7 +276,7 @@ impl ProviderAdapter for OpenAIAdapter {
             }
         }
         // Use helper methods to reduce boilerplate
-        if let Some(raw_tool_choice) = openai_extras.and_then(|m| m.get("tool_choice")) {
+        if let Some(raw_tool_choice) = openai_extras_view.tool_choice.as_ref() {
             obj.insert("tool_choice".into(), raw_tool_choice.clone());
         } else {
             insert_opt_value(
@@ -261,7 +285,7 @@ impl ProviderAdapter for OpenAIAdapter {
                 req.params.tool_choice_for(ProviderFormat::ChatCompletions),
             );
         }
-        if let Some(raw_response_format) = openai_extras.and_then(|m| m.get("response_format")) {
+        if let Some(raw_response_format) = openai_extras_view.response_format.as_ref() {
             obj.insert("response_format".into(), raw_response_format.clone());
         } else {
             insert_opt_value(
@@ -284,7 +308,7 @@ impl ProviderAdapter for OpenAIAdapter {
         }
 
         // Add reasoning_effort from canonical params
-        if let Some(raw_reasoning_effort) = openai_extras.and_then(|m| m.get("reasoning_effort")) {
+        if let Some(raw_reasoning_effort) = openai_extras_view.reasoning_effort.as_ref() {
             obj.insert("reasoning_effort".into(), raw_reasoning_effort.clone());
         } else if let Some(effort_value) = req.params.reasoning_for(ProviderFormat::ChatCompletions)
         {
