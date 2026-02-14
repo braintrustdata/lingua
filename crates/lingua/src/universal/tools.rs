@@ -28,6 +28,7 @@ any provider format. It distinguishes between:
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::anthropic::generated::Tool;
 use crate::serde_json::{self, json, Map, Value};
@@ -360,7 +361,7 @@ impl UniversalTool {
             } => Err(ConvertError::UnsupportedToolType {
                 tool_name: self.name.clone(),
                 tool_type: builtin_type.clone(),
-                target_provider: "OpenAI Chat Completions".to_string(),
+                target_provider: ProviderFormat::ChatCompletions,
             }),
         }
     }
@@ -422,7 +423,7 @@ impl UniversalTool {
                 | BuiltinToolProvider::Converse => Err(ConvertError::UnsupportedToolType {
                     tool_name: self.name.clone(),
                     tool_type: builtin_type.clone(),
-                    target_provider: "OpenAI Responses API".to_string(),
+                    target_provider: ProviderFormat::Responses,
                 }),
             },
         }

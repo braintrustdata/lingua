@@ -1,5 +1,6 @@
 use std::convert::TryFrom;
 
+use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
@@ -1221,13 +1222,13 @@ impl TryFrom<&UniversalTool> for CustomTool {
             UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
                 tool_name: tool.name.clone(),
                 tool_type: "custom".to_string(),
-                target_provider: "Anthropic".to_string(),
+                target_provider: ProviderFormat::Anthropic,
             }),
             UniversalToolType::Builtin { builtin_type, .. } => {
                 Err(ConvertError::UnsupportedToolType {
                     tool_name: tool.name.clone(),
                     tool_type: builtin_type.clone(),
-                    target_provider: "Anthropic".to_string(),
+                    target_provider: ProviderFormat::Anthropic,
                 })
             }
         }
@@ -1272,7 +1273,7 @@ impl TryFrom<&UniversalTool> for Tool {
             UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
                 tool_name: tool.name.clone(),
                 tool_type: "custom".to_string(),
-                target_provider: "Anthropic".to_string(),
+                target_provider: ProviderFormat::Anthropic,
             }),
             UniversalToolType::Builtin {
                 provider,
@@ -1283,7 +1284,7 @@ impl TryFrom<&UniversalTool> for Tool {
                     return Err(ConvertError::UnsupportedToolType {
                         tool_name: tool.name.clone(),
                         tool_type: builtin_type.clone(),
-                        target_provider: "Anthropic".to_string(),
+                        target_provider: ProviderFormat::Anthropic,
                     });
                 }
                 let config_val =

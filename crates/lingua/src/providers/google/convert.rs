@@ -5,6 +5,7 @@ This module provides TryFromLLM trait implementations for converting between
 Google's GenerateContent API format and Lingua's universal message format.
 */
 
+use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::google::generated::{
     Blob as GoogleBlob, Content as GoogleContent, FunctionCall as GoogleFunctionCall,
@@ -402,13 +403,13 @@ impl TryFrom<&UniversalTool> for FunctionDeclaration {
             UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
                 tool_name: tool.name.clone(),
                 tool_type: "custom".to_string(),
-                target_provider: "Google".to_string(),
+                target_provider: ProviderFormat::Google,
             }),
             UniversalToolType::Builtin { builtin_type, .. } => {
                 Err(ConvertError::UnsupportedToolType {
                     tool_name: tool.name.clone(),
                     tool_type: builtin_type.clone(),
-                    target_provider: "Google".to_string(),
+                    target_provider: ProviderFormat::Google,
                 })
             }
         }
