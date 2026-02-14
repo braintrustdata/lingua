@@ -1,3 +1,45 @@
 {
-  "error": "Conversion from universal format failed: JSON serialization failed for field 'tool 'get_weather' parameters': unknown variant `string`, expected one of `ARRAY`, `BOOLEAN`, `INTEGER`, `NULL`, `NUMBER`, `OBJECT`, `STRING`, `TYPE_UNSPECIFIED`"
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "NYC"
+              }
+            },
+            "thoughtSignature": "CuACAb4+9vtCZi+L+g5kR9urJo153G+0Z386ITyUSBaalglpYMGo8+TGgamczjkr1VEHEBrebQBp+BqKh2rQo8NOA9dfHiDtmvhRIaIunTnUMLXz7LwutdjGsCtt8sB7c3ftNRawkxKjE/ogZRT664iKLw6PSQD18p3X8uo/Gikq9mweVFt9Cf4rryTk5x9xPTTlxseXtxoEtpzUZi4np9otJDaefvbPAzXU0WYDeCHOat1yVWzzIacntk8NVCV33ycEFr5SSXhkDaQVfI/w9n2IlVdjzGSQAFffp5uRHKAARWtHm+5TBOK97BsF7Fa7Ld7dpd4c0UeCNtI/tkK6sT8AmG0K7bSAz6FxV3zN9Lcf/nGuevSMRdTP71+8NAwrC/u2N6Y7vD4wAfd00vNFuPK9uBICoEGEIqI6aJPzVSHKJDtB55Oneu047QGGYBkL2b45cJAfvASgEUDOIdH3hFYBNA=="
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "LA"
+              }
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 41,
+    "candidatesTokenCount": 30,
+    "totalTokenCount": 142,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 41
+      }
+    ],
+    "thoughtsTokenCount": 71
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "OfyPabzHCKrPjMcPoqb02Ak"
 }

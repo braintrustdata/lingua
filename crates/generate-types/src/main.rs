@@ -1589,10 +1589,79 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
         "HashMap<String, serde_json::Value>",
         "serde_json::Map<String, serde_json::Value>",
     );
-    processed = processed.replace("use std::collections::HashMap;\n", "");
+    // Remove HashMap import if no remaining usages; otherwise deduplicate
+    if !processed.contains("HashMap<") {
+        processed = processed.replace("use std::collections::HashMap;\n", "");
+    } else {
+        // The import may appear twice (from quicktype + our injection); deduplicate
+        processed = processed.replacen("use std::collections::HashMap;\n", "", 1);
+    }
 
     // Add serde skip_serializing_if for Option fields
     processed = add_serde_skip_if_none(&processed);
 
+    // Add lowercase serde aliases to the Type enum so it accepts both
+    // "STRING" (Google native) and "string" (OpenAI JSON Schema) during deserialization
+    processed = add_type_enum_lowercase_aliases(&processed);
+
     processed
+}
+
+/// Add lowercase serde aliases to Google's `Type` enum variants.
+///
+/// Google's API uses SCREAMING_SNAKE_CASE for schema types ("STRING", "OBJECT"),
+/// but OpenAI tool parameters use standard JSON Schema lowercase ("string", "object").
+/// Without aliases, deserializing `{"type": "string"}` into Google's `Schema` fails.
+/// Adding aliases lets the enum accept both casings during deserialization while
+/// still serializing as uppercase for outgoing Google requests.
+fn add_type_enum_lowercase_aliases(content: &str) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut result_lines: Vec<String> = Vec::new();
+    let mut in_type_enum = false;
+
+    for line in &lines {
+        let trimmed = line.trim();
+
+        if trimmed == "pub enum Type {" || trimmed.ends_with("pub enum Type {") {
+            in_type_enum = true;
+            result_lines.push(line.to_string());
+            continue;
+        }
+
+        if in_type_enum && trimmed == "}" {
+            in_type_enum = false;
+            result_lines.push(line.to_string());
+            continue;
+        }
+
+        if in_type_enum {
+            // Match bare variant lines like "    Array," (no existing serde attribute)
+            let variant_name = trimmed.trim_end_matches(',');
+            let is_bare_variant = !trimmed.is_empty()
+                && !trimmed.starts_with('#')
+                && !trimmed.starts_with('/')
+                && trimmed.ends_with(',')
+                && variant_name.chars().all(|c| c.is_alphanumeric());
+
+            if is_bare_variant {
+                // Skip if previous line already has a serde alias/rename
+                let already_has_attr = result_lines
+                    .last()
+                    .is_some_and(|p| p.contains("serde(alias") || p.contains("serde(rename"));
+
+                if !already_has_attr {
+                    let indent = line.len() - line.trim_start().len();
+                    result_lines.push(format!(
+                        "{}#[serde(alias = \"{}\")]",
+                        " ".repeat(indent),
+                        variant_name.to_lowercase()
+                    ));
+                }
+            }
+        }
+
+        result_lines.push(line.to_string());
+    }
+
+    result_lines.join("\n")
 }

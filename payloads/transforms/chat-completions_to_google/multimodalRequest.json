@@ -1,4 +1,34 @@
 {
-  "error": "Google API error (400): {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"Invalid value at 'contents[0].parts[1].inline_data.data' (TYPE_BYTES), Base64 decoding failed for \\\"https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg\\\"\",\n    \"status\": \"INVALID_ARGUMENT\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.BadRequest\",\n        \"fieldViolations\": [\n          {\n            \"field\": \"contents[0].parts[1].inline_data.data\",\n            \"description\": \"Invalid value at 'contents[0].parts[1].inline_data.data' (TYPE_BYTES), Base64 decoding failed for \\\"https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg\\\"\"\n          }\n        ]\n      }\n    ]\n  }\n}\n",
-  "name": "Error"
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "This image features a charming tabby cat lying on a light"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 267,
+    "candidatesTokenCount": 11,
+    "totalTokenCount": 563,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 9
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "thoughtsTokenCount": 285
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "N_yPaaH0F-3SjMcPtImKwA0"
 }

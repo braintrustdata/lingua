@@ -2867,9 +2867,8 @@ exports[`chat-completions → google > multimodalRequest > request 1`] = `
           "text": "What do you see in this image?",
         },
         {
-          "inlineData": {
-            "data": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
-            "mimeType": "image/jpeg",
+          "fileData": {
+            "fileUri": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
           },
         },
       ],
@@ -2881,6 +2880,34 @@ exports[`chat-completions → google > multimodalRequest > request 1`] = `
     "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > multimodalRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "This image features a charming tabby cat lying on a light",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 11,
+    "completion_tokens_details": {
+      "reasoning_tokens": 285,
+    },
+    "prompt_tokens": 267,
+    "total_tokens": 278,
+  },
 }
 `;
 
@@ -2924,6 +2951,91 @@ exports[`chat-completions → google > nMultipleCompletionsParam > response 1`] 
     },
     "prompt_tokens": 5,
     "total_tokens": 7,
+  },
+}
+`;
+
+exports[`chat-completions → google > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather in NYC and LA?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "items": null,
+            "properties": {
+              "location": {
+                "items": null,
+                "type": "STRING",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "OBJECT",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"NYC"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+          {
+            "function": {
+              "arguments": "{"location":"LA"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 30,
+    "completion_tokens_details": {
+      "reasoning_tokens": 71,
+    },
+    "prompt_tokens": 41,
+    "total_tokens": 71,
   },
 }
 `;
@@ -3984,7 +4096,24 @@ exports[`chat-completions → google > textFormatJsonSchemaParam > request 1`] =
   ],
   "generationConfig": {
     "responseMimeType": "application/json",
-    "responseSchema": null,
+    "responseSchema": {
+      "items": null,
+      "properties": {
+        "age": {
+          "items": null,
+          "type": "NUMBER",
+        },
+        "name": {
+          "items": null,
+          "type": "STRING",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "OBJECT",
+    },
   },
   "model": "gemini-2.5-flash",
 }
@@ -3998,10 +4127,7 @@ exports[`chat-completions → google > textFormatJsonSchemaParam > response 1`] 
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "{
-  "name": "John",
-  "age": 25
-}",
+        "content": "{"name": "John", "age": 25}",
         "role": "assistant",
       },
     },
@@ -4011,12 +4137,12 @@ exports[`chat-completions → google > textFormatJsonSchemaParam > response 1`] 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 19,
+    "completion_tokens": 13,
     "completion_tokens_details": {
-      "reasoning_tokens": 57,
+      "reasoning_tokens": 101,
     },
     "prompt_tokens": 9,
-    "total_tokens": 28,
+    "total_tokens": 22,
   },
 }
 `;
@@ -4035,7 +4161,24 @@ exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam 
   ],
   "generationConfig": {
     "responseMimeType": "application/json",
-    "responseSchema": null,
+    "responseSchema": {
+      "items": null,
+      "properties": {
+        "age": {
+          "items": null,
+          "type": "NUMBER",
+        },
+        "name": {
+          "items": null,
+          "type": "STRING",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "OBJECT",
+    },
   },
   "model": "gemini-2.5-flash",
 }
@@ -4049,10 +4192,7 @@ exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam 
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "{
-  "name": "John",
-  "age": 25
-}",
+        "content": "{"name":"John","age":25}",
         "role": "assistant",
       },
     },
@@ -4062,12 +4202,12 @@ exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 19,
+    "completion_tokens": 10,
     "completion_tokens_details": {
-      "reasoning_tokens": 88,
+      "reasoning_tokens": 77,
     },
     "prompt_tokens": 9,
-    "total_tokens": 28,
+    "total_tokens": 19,
   },
 }
 `;
@@ -4116,6 +4256,174 @@ exports[`chat-completions → google > textFormatTextParam > response 1`] = `
     },
     "prompt_tokens": 4,
     "total_tokens": 6,
+  },
+}
+`;
+
+exports[`chat-completions → google > toolCallRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What's the weather like in San Francisco?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": {
+            "items": null,
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "items": null,
+                "type": "STRING",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "OBJECT",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolCallRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"San Francisco, CA"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 18,
+    "completion_tokens_details": {
+      "reasoning_tokens": 76,
+    },
+    "prompt_tokens": 62,
+    "total_tokens": 80,
+  },
+}
+`;
+
+exports[`chat-completions → google > toolChoiceRequiredParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "allowedFunctionNames": [
+        "get_weather",
+      ],
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "items": null,
+            "properties": {
+              "location": {
+                "items": null,
+                "type": "STRING",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "OBJECT",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolChoiceRequiredParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 15,
+    "completion_tokens_details": {
+      "reasoning_tokens": 47,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 52,
   },
 }
 `;
