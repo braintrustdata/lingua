@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: metadata",
-    "lost: system",
-    "lost: tools[0].allowed_domains"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

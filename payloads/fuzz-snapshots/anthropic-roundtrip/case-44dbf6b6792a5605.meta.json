@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: system",
-    "lost: temperature",
-    "changed: messages[0].content ([{\"id\":\",Q?l, c,TQrfF7??GXnat\",\"input\":{},\"name\":\"web_search\",\"type\":\"server_tool_use\"},{\"data\":\"A.fZV,7b74?DU!\",\"type\":\"redacted_thinking\"}] -> \"\")"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

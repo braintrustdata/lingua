@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: temperature",
+    "lost: system",
+    "lost: metadata",
+    "lost: messages[1].content[0].citations",
+    "lost: output_config.effort",
+    "added: thinking"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "lost: metadata",
-    "changed: messages[0].content ([{\"signature\":\"f?.r.!?,.1s?Y\",\"thinking\":\"xav?!.8?e?B Es.Uz4?ddK.K6J qBKNe1.\",\"type\":\"thinking\"}] -> \"\")"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

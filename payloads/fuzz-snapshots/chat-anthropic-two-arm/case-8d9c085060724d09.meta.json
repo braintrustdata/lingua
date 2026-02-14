@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "chat->anthropic error: Conversion from universal format failed: Tool '!F.?b?,.qud,LTt9,1,P,2FB,g ,? ?0s9?3,.G7??.!c3.v' of type 'custom' is not supported by anthropic"
-  ],
-  "kind": "chat-anthropic-two-arm",
-  "provider": "chat-completions"
-}

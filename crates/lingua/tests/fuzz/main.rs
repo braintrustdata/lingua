@@ -144,12 +144,29 @@ fn delete_snapshot_pair(request_path: &Path) {
     let _ = fs::remove_file(snapshot_meta_path(request_path));
 }
 
-fn canonical_issue_signature(issues: &[String]) -> String {
-    let normalized: BTreeSet<String> = issues
-        .iter()
-        .map(|issue| normalize_issue_for_signature(issue))
-        .collect();
-    normalized.into_iter().collect::<Vec<_>>().join(" | ")
+fn update_snapshot_meta_issues(request_path: &Path, issues: &[String]) {
+    let meta_path = snapshot_meta_path(request_path);
+    let mut meta_value = fs::read_to_string(&meta_path)
+        .ok()
+        .and_then(|raw| serde_json::from_str::<Value>(&raw).ok())
+        .unwrap_or_else(|| serde_json::json!({}));
+
+    if !meta_value.is_object() {
+        meta_value = serde_json::json!({});
+    }
+
+    if let Some(meta_obj) = meta_value.as_object_mut() {
+        let issue_values = issues
+            .iter()
+            .cloned()
+            .map(Value::String)
+            .collect::<Vec<_>>();
+        meta_obj.insert("issues".to_string(), Value::Array(issue_values));
+    }
+
+    if let Ok(pretty) = serde_json::to_string_pretty(&meta_value) {
+        let _ = fs::write(meta_path, pretty + "\n");
+    }
 }
 
 fn normalize_path_indices(path: &str) -> String {
@@ -178,43 +195,30 @@ fn normalize_path_indices(path: &str) -> String {
 
 fn normalize_issue_for_signature(issue: &str) -> String {
     let trimmed = issue.trim();
-    let without_values = if trimmed.starts_with("changed: ") {
-        if let Some(idx) = trimmed.find(" (") {
-            &trimmed[..idx]
-        } else {
-            trimmed
+    if let Some(idx) = trimmed.find("Tool '") {
+        let suffix = "' of type 'custom' is not supported by anthropic";
+        if let Some(end) = trimmed[idx + 6..].find(suffix) {
+            let prefix = &trimmed[..idx];
+            let after = idx + 6 + end;
+            let rest = &trimmed[after..];
+            return format!("{prefix}Tool '<custom>'{rest}");
         }
-    } else {
-        trimmed
-    };
-
-    if let Some(path) = without_values.strip_prefix("lost: ") {
-        return format!("lost: {}", normalize_path_indices(path));
-    }
-    if let Some(path) = without_values.strip_prefix("added: ") {
-        return format!("added: {}", normalize_path_indices(path));
-    }
-    if let Some(path) = without_values.strip_prefix("changed: ") {
-        return format!("changed: {}", normalize_path_indices(path));
     }
 
-    normalize_path_indices(without_values)
-}
-
-fn load_meta_issues(request_path: &Path) -> Option<Vec<String>> {
-    let meta_path = snapshot_meta_path(request_path);
-    let raw = fs::read_to_string(meta_path).ok()?;
-    let value: Value = serde_json::from_str(&raw).ok()?;
-    let issues = value.get("issues")?.as_array()?;
-    let parsed: Vec<String> = issues
-        .iter()
-        .filter_map(|v| v.as_str().map(str::to_string))
-        .collect();
-    if parsed.is_empty() {
-        None
-    } else {
-        Some(parsed)
+    for marker in ["changed: ", "lost: ", "added: "] {
+        if let Some(idx) = trimmed.find(marker) {
+            let prefix = &trimmed[..idx];
+            let body = &trimmed[idx + marker.len()..];
+            let path = if marker == "changed: " {
+                body.split_once(" (").map_or(body, |(left, _)| left)
+            } else {
+                body
+            };
+            return format!("{prefix}{marker}{}", normalize_path_indices(path.trim()));
+        }
     }
+
+    normalize_path_indices(trimmed)
 }
 
 fn prune_orphan_meta_files_for_suite(suite: &str) -> usize {
@@ -533,6 +537,7 @@ fn run_saved_snapshots_suite(suite: &str, assert_verbose: fn(&Value) -> Result<b
 fn run_prune_snapshots_suite(suite: &str, assert_fn: fn(&Value) -> Option<Vec<String>>) {
     let mut iterations = 0usize;
     let mut removed_malformed = 0usize;
+    let mut removed_resolved = 0usize;
     let mut removed_orphan_meta = 0usize;
     let mut removed_duplicate_reason = 0usize;
 
@@ -546,7 +551,8 @@ fn run_prune_snapshots_suite(suite: &str, assert_fn: fn(&Value) -> Option<Vec<St
             changed = true;
         }
 
-        let mut kept_by_reason: BTreeMap<String, PathBuf> = BTreeMap::new();
+        let mut covered_issue_types: BTreeMap<String, PathBuf> = BTreeMap::new();
+        let mut kept_snapshot_paths: BTreeSet<PathBuf> = BTreeSet::new();
         for path in snapshot_request_paths_for_suite(suite) {
             let raw = match fs::read_to_string(&path) {
                 Ok(v) => v,
@@ -568,25 +574,39 @@ fn run_prune_snapshots_suite(suite: &str, assert_fn: fn(&Value) -> Option<Vec<St
                 }
             };
 
-            let issues = if let Some(meta_issues) = load_meta_issues(&path) {
-                meta_issues
-            } else {
-                match assert_fn(&payload) {
-                    Some(issues) if !issues.is_empty() => issues,
-                    _ => continue,
+            let issues = match assert_fn(&payload) {
+                Some(issues) if !issues.is_empty() => issues,
+                _ => {
+                    delete_snapshot_pair(&path);
+                    removed_resolved += 1;
+                    changed = true;
+                    continue;
                 }
             };
 
-            let signature = canonical_issue_signature(&issues);
-            if kept_by_reason.contains_key(&signature) {
+            let normalized: BTreeSet<String> = issues
+                .iter()
+                .map(|issue| normalize_issue_for_signature(issue))
+                .collect();
+
+            let contributes_new_issue = normalized
+                .iter()
+                .any(|issue_type| !covered_issue_types.contains_key(issue_type));
+
+            if !contributes_new_issue {
                 delete_snapshot_pair(&path);
                 removed_duplicate_reason += 1;
                 changed = true;
             } else {
-                kept_by_reason.insert(signature, path);
+                update_snapshot_meta_issues(&path, &issues);
+                kept_snapshot_paths.insert(path.clone());
+                for issue_type in normalized {
+                    covered_issue_types
+                        .entry(issue_type)
+                        .or_insert_with(|| path.clone());
+                }
             }
         }
-
         if !changed {
             break;
         }
@@ -596,10 +616,33 @@ fn run_prune_snapshots_suite(suite: &str, assert_fn: fn(&Value) -> Option<Vec<St
         }
     }
 
+    let final_paths = snapshot_request_paths_for_suite(suite);
+    let final_kept_snapshots = final_paths.len();
+    let mut final_issue_types_set = BTreeSet::new();
+    for path in &final_paths {
+        let raw = match fs::read_to_string(path) {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        let payload: Value = match serde_json::from_str(&raw) {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        if let Some(issues) = assert_fn(&payload) {
+            for issue in issues {
+                final_issue_types_set.insert(normalize_issue_for_signature(&issue));
+            }
+        }
+    }
+    let final_issue_types = final_issue_types_set.len();
+
     eprintln!(
-        "{suite} prune complete after {} iterations: removed_malformed={} removed_orphan_meta={} removed_duplicate_reason={}",
+        "{suite} prune complete after {} iterations: kept_snapshots={} issue_types={} removed_malformed={} removed_resolved={} removed_orphan_meta={} removed_duplicate_reason={}",
         iterations,
+        final_kept_snapshots,
+        final_issue_types,
         removed_malformed,
+        removed_resolved,
         removed_orphan_meta,
         removed_duplicate_reason
     );

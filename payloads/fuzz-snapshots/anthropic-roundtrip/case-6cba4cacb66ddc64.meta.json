@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: output_config",
-    "lost: messages[1].content[0].cache_control",
-    "lost: messages[1].content[0].is_error"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

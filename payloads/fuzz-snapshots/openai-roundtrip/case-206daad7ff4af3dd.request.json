@@ -1,0 +1,70 @@
+{
+  "function_call": "none",
+  "functions": [
+    {
+      "description": "om?x3 .?AV..lfA,9.,!q,!,p??v?.",
+      "name": "?,?n9.,7.,V1?,,?u9bMf,.??t.i8.R.o?,?d1tNU, ?1",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "messages": [
+    {
+      "audio": null,
+      "role": "assistant"
+    },
+    {
+      "content": "ph?.A.M3,9tT?3J7714g?Q. ...d5,.9S!!.??EJHB0b .",
+      "role": "tool",
+      "tool_call_id": "?OCb.z7GV?6e k?Z,0,Va,!7,cr,7.9e.j"
+    }
+  ],
+  "modalities": null,
+  "model": "o3",
+  "n": -613,
+  "parallel_tool_calls": true,
+  "presence_penalty": 30.130831278941756,
+  "reasoning_effort": "minimal",
+  "store": true,
+  "stream": true,
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "custom": {
+        "description": "?f51h i Y1.4z.7P!? DSxm.?. . ?",
+        "format": {
+          "type": "text"
+        },
+        "name": "o!og7!lR,?t?tc?4Hpr,Ls.n.,MA3jk,b.ctJ,Cra qP?Ae!."
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "description": "Hz2?!5 ",
+        "name": "?3Q2,??.I3r??NZ5tw0Ws?wcg,h!.s,N?5,7E",
+        "strict": null
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "?oAj,3??n?WZd.?oYt8!e.sAZ"
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": 400,
+  "web_search_options": {
+    "search_context_size": "medium",
+    "user_location": {
+      "approximate": {
+        "country": "O8dW,e!m!?7p,,.Q9Q??jk9,.kW,,!.plXOgF.,q?.",
+        "region": "a1uyZU1Od6!1,VG!,B59M,?,14MT!!jO",
+        "timezone": "W.?K..k,"
+      },
+      "type": "approximate"
+    }
+  }
+}

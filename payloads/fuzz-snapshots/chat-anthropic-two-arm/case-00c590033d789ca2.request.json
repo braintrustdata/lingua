@@ -1,0 +1,95 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": "coral"
+  },
+  "frequency_penalty": 37.52519044382687,
+  "function_call": "auto",
+  "functions": [
+    {
+      "name": "?iG80.e"
+    },
+    {
+      "description": "?tIC 2762.?..!,X353Nm5.!Qj1nA 5u ku?.S,U,?q",
+      "name": "Z?X m03j3cU?0.m.EF4H,?436.ziO666is ",
+      "parameters": {}
+    },
+    {
+      "name": "?!ifhP.m,NC6,V?8sX!7ATeZ?bN,yj.5rGJkiz"
+    },
+    {
+      "description": "??n.?2.Ro,Txl1 K,t,.oHvJ",
+      "name": "c,?.QdR6mI9t4MM???hK,sv99c1!."
+    }
+  ],
+  "logprobs": true,
+  "messages": [
+    {
+      "content": null,
+      "function_call": null,
+      "role": "assistant"
+    }
+  ],
+  "modalities": [
+    "audio"
+  ],
+  "model": "!?jMK",
+  "n": -163,
+  "prediction": {
+    "content": [
+      {
+        "text": "W,k01s0?t,,f,",
+        "type": "text"
+      },
+      {
+        "text": "?a,!..h7R,?h8!c,.02fTBz?EF6 u4V!?r!8??C",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": -29.67531536081126,
+  "reasoning_effort": "high",
+  "response_format": {
+    "json_schema": {
+      "description": "..?4MACXU?q0k.jGFJ.!..Ipa4!,.,.1q6lg.81.761?b!",
+      "name": "?,QBS,CwO0t4s,0?v?Z.l5 ,w!",
+      "strict": true
+    },
+    "type": "json_schema"
+  },
+  "stop": [
+    ",76?X!k.0qwp,?n.Hb,u.Z.,nE,.h",
+    "iqzk..?rU!rj!1l!?T25?,?",
+    "g? a?PO!2QZ.C7,?,8?w?gKZ!VD6MdhY"
+  ],
+  "store": true,
+  "stream": true,
+  "stream_options": null,
+  "tools": [
+    {
+      "function": {
+        "name": ".0 5?!c0.sd,? ,S2,P0?0N..,?! !! af.!? ",
+        "strict": null
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": ".1?A3t8?c!1P "
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "description": "GZsZ.3?MLC6EdW.,sp!iJ.I.n?w3.aAwnR5",
+        "format": {
+          "type": "text"
+        },
+        "name": " ,,p.q...q90VW!?P,?s1!!?, .ln0 C?0, fw.,m,?7zVE"
+      },
+      "type": "custom"
+    }
+  ],
+  "verbosity": "low"
+}

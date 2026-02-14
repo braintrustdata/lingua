@@ -1,0 +1,39 @@
+{
+  "inference_geo": null,
+  "max_tokens": -823,
+  "messages": [
+    {
+      "content": ".g",
+      "role": "assistant"
+    },
+    {
+      "content": "gZ1!,!9!?,",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "content": "!e1V7GaL,e!L??!L?iqf9t8R.z?r,,p?h!,,A?.0f,.j.vT,",
+          "tool_use_id": "..?l.d??sEE. A.?!.3CSkiho9,Ye?.Mc!.xGL 54!4K?",
+          "type": "tool_result"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-3-opus-latest",
+  "service_tier": "standard_only",
+  "stop_sequences": [
+    "?Ri.?.,?iMRhK1N."
+  ],
+  "temperature": -98.53893429817083,
+  "thinking": {
+    "budget_tokens": -701,
+    "type": "enabled"
+  },
+  "tool_choice": {
+    "type": "auto"
+  },
+  "top_k": 263,
+  "top_p": -13.4820250573152
+}

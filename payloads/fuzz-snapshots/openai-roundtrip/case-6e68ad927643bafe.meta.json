@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: tool_choice",
+    "lost: response_format",
+    "lost: reasoning_effort",
+    "changed: messages[0].role (\"developer\" -> \"system\")",
+    "changed: messages[1].role (\"developer\" -> \"system\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

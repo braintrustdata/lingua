@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: metadata",
-    "changed: thinking.type (\"adaptive\" -> \"disabled\")",
-    "changed: messages[0].content.length (2 -> 1)"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

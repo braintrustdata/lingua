@@ -2,9 +2,8 @@
   "issues": [
     "lost: output_config",
     "lost: system",
-    "lost: metadata",
-    "added: thinking.budget_tokens",
-    "changed: thinking.type (\"disabled\" -> \"enabled\")"
+    "lost: messages[0].content[1].cache_control",
+    "changed: messages[1].content.length (2 -> 1)"
   ],
   "kind": "request-roundtrip",
   "provider": "anthropic"

@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "lost: metadata",
-    "lost: tools[2].cache_control"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

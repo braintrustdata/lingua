@@ -1,0 +1,12 @@
+{
+  "issues": [
+    "lost: reasoning_effort",
+    "lost: messages[0].name",
+    "lost: messages[0].function_call",
+    "lost: messages[0].audio",
+    "changed: messages[0].content (null -> \"\")",
+    "changed: stop (\"E?9,tI.RY.?Qp?!KBDt.?1W,...V,aJR D!e,A6 ,3E?!91 ,\" -> [\"E?9,tI.RY.?Qp?!KBDt.?1W,...V,aJR D!e,A6 ,3E?!91 ,\"])"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

@@ -1,0 +1,55 @@
+{
+  "inference_geo": null,
+  "max_tokens": -22,
+  "messages": [
+    {
+      "content": "!o7Zg9U?..?lN 8TR9!A.2",
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "citations": [
+            null
+          ],
+          "text": "!K?Q",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "metadata": {},
+  "model": "claude-3-7-sonnet-20250219",
+  "output_config": {
+    "effort": "medium",
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "service_tier": "auto",
+  "stop_sequences": [
+    " .?7z ?Aj5Xp V",
+    "2as",
+    ".!,q85.R?JB!s?!!5X8.d5vr, ?yZW,, ?E f "
+  ],
+  "system": [
+    {
+      "citations": null,
+      "text": "?gBA2.??En,4TP8?!097fX.A.w??A? lhm.p07.2Akm!K7?",
+      "type": "text"
+    },
+    {
+      "text": "1,Zrw?1?.?vjp,7fb! G,8m?!1!h.TYK,,oE2?.hN ,5",
+      "type": "text"
+    },
+    {
+      "text": " X?V,v.0j6H3,",
+      "type": "text"
+    }
+  ],
+  "temperature": -15.621500224502666,
+  "top_k": 63,
+  "top_p": 87.99928254807242
+}

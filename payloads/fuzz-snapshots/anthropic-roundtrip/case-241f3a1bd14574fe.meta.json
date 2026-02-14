@@ -1,14 +1,14 @@
 {
   "issues": [
-    "lost: metadata",
-    "lost: system",
     "lost: temperature",
+    "lost: metadata",
     "lost: output_config",
-    "lost: tools[0].max_uses",
-    "lost: tools[1].cache_control",
+    "lost: system",
     "lost: messages[0].content[0].is_error",
     "lost: messages[0].content[0].tool_use_id",
     "lost: messages[1].content[0].data",
+    "lost: tools[0].max_uses",
+    "lost: tools[1].cache_control",
     "added: thinking",
     "added: messages[0].content[0].text",
     "added: messages[1].content[0].text",

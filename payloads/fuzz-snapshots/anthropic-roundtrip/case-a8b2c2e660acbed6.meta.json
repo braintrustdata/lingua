@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "changed: thinking.type (\"adaptive\" -> \"disabled\")",
-    "changed: messages[0].content.length (3 -> 2)"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

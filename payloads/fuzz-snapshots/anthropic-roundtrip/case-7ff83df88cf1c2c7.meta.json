@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: tools[0].max_uses",
-    "lost: tools[0].allowed_domains",
-    "lost: tools[0].cache_control"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

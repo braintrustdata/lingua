@@ -1,0 +1,46 @@
+{
+  "function_call": {
+    "name": ".?.D?x.2N"
+  },
+  "functions": [
+    {
+      "description": "H Y8K.,7 s,mfcXmxn!w,?J3JNA?y!UK,???,tbxW,?.O?!?",
+      "name": "k!l !2 .?z,.5?t?Y,h?XysAbk",
+      "parameters": {}
+    }
+  ],
+  "logprobs": true,
+  "max_completion_tokens": -805,
+  "max_tokens": 442,
+  "messages": [
+    {
+      "content": "..o ,",
+      "role": "system"
+    },
+    {
+      "content": "?!m?.7Sz!Z,3?jjQ5b.S??d.4,d1,,",
+      "name": " A !uR!.1qJ.iE?ogq2!U",
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "text": "?aJS.b 50,,tFA3iTi3ihMw,",
+          "type": "text"
+        }
+      ],
+      "name": "Ii,,kzLM,?74KZ20Z8..Yby??!?,AH!, ,,?!z???,,",
+      "role": "developer"
+    }
+  ],
+  "model": "gpt-5-mini",
+  "reasoning_effort": "minimal",
+  "response_format": {
+    "type": "json_object"
+  },
+  "stream": true,
+  "stream_options": {
+    "include_usage": false
+  },
+  "verbosity": "high"
+}

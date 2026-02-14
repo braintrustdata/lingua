@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "lost: metadata",
-    "lost: messages[2].content[0].is_error"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

@@ -1,16 +1,16 @@
 {
   "issues": [
-    "universal(1->2): changed: params.max_tokens (null -> 4096)",
-    "universal(1->2): changed: params.top_logprobs (182 -> null)",
     "universal(1->2): changed: params.presence_penalty (43.57021425972322 -> null)",
-    "chat(final): lost: top_logprobs",
-    "chat(final): lost: stream_options",
+    "universal(1->2): changed: params.top_logprobs (182 -> null)",
+    "universal(1->2): changed: params.max_tokens (null -> 4096)",
+    "chat(final): lost: web_search_options",
     "chat(final): lost: n",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: stream_options",
     "chat(final): lost: prediction",
     "chat(final): lost: audio",
     "chat(final): lost: presence_penalty",
-    "chat(final): lost: reasoning_effort",
-    "chat(final): lost: web_search_options",
+    "chat(final): lost: top_logprobs",
     "chat(final): added: max_completion_tokens"
   ],
   "kind": "chat-anthropic-two-arm",

@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: tool_choice",
-    "lost: reasoning_effort",
-    "added: stream_options"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

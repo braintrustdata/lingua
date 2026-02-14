@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: system",
-    "lost: tools[0].cache_control",
-    "changed: messages[0].content.length (2 -> 1)"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

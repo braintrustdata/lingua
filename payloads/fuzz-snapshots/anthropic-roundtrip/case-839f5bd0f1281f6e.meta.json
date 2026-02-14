@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: system",
-    "lost: output_config",
-    "changed: messages[1].content ([{\"id\":\",, AV?.dd77,.,6?..E,9dwG,xd?,\",\"input\":{},\"name\":\"web_search\",\"type\":\"server_tool_use\"}] -> \"\")"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

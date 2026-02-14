@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "lost: messages[0].content[1].cache_control"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

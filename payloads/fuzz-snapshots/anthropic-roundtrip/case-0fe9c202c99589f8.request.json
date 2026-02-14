@@ -1,0 +1,50 @@
+{
+  "max_tokens": -589,
+  "messages": [
+    {
+      "content": "R,4bV?r.tIN",
+      "role": "assistant"
+    },
+    {
+      "content": ".K.a",
+      "role": "user"
+    },
+    {
+      "content": "9Rg?.mTZosKW?R?.4?.l7,9 ?5?9.4!!,Bi,P.Pg,o",
+      "role": "assistant"
+    }
+  ],
+  "model": "claude-opus-4-0",
+  "output_config": {
+    "format": {
+      "schema": {},
+      "type": "json_schema"
+    }
+  },
+  "thinking": {
+    "budget_tokens": 693,
+    "type": "enabled"
+  },
+  "tools": [
+    {
+      "name": "str_replace_editor",
+      "type": "text_editor_20250124"
+    },
+    {
+      "name": "str_replace_based_edit_tool",
+      "type": "text_editor_20250728"
+    },
+    {
+      "allowed_domains": null,
+      "blocked_domains": [
+        "AK,?5?ps6??2?3I!!PouX???,FAvh,,3!N1!?d!s"
+      ],
+      "cache_control": null,
+      "name": "web_search",
+      "strict": true,
+      "type": "web_search_20250305",
+      "user_location": null
+    }
+  ],
+  "top_p": -81.6710230039702
+}

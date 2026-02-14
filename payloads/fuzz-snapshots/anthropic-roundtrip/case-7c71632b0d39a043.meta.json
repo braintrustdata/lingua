@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "changed: messages[0].content ([{\"data\":\".?\",\"type\":\"redacted_thinking\"}] -> \"\")"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

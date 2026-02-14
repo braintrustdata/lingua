@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: output_config",
+    "lost: tools[1].cache_control",
+    "changed: messages[0].content ([{\"id\":\"5ldCb.X? .g!.e!zl?!G5?rn! p53Z?1..,3\",\"input\":{},\"name\":\"b\",\"type\":\"tool_use\"}] -> \"\")",
+    "changed: thinking.budget_tokens (-636 -> 1024)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

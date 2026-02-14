@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "chat->anthropic error: Conversion from universal format failed: Tool 'T Y2' of type 'custom' is not supported by anthropic"
-  ],
-  "kind": "chat-anthropic-two-arm",
-  "provider": "chat-completions"
-}

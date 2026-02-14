@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: temperature",
-    "lost: tools[2].type",
-    "lost: tools[2].cache_control"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: output_config",
-    "lost: system",
-    "lost: tools[1].cache_control"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

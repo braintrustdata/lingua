@@ -1,24 +1,24 @@
 {
   "issues": [
     "universal(1->2): changed: messages.length (1 -> 0)",
-    "universal(1->2): changed: params.top_logprobs (-366 -> null)",
     "universal(1->2): changed: params.logprobs (true -> null)",
     "universal(1->2): changed: params.response_format.format_type (\"JsonObject\" -> \"JsonSchema\")",
     "universal(1->2): changed: params.response_format.json_schema (null -> {\"description\":null,\"name\":\"response\",\"schema\":{\"additionalProperties\":false,\"type\":\"object\"},\"strict\":null})",
+    "universal(1->2): changed: params.top_logprobs (-366 -> null)",
     "anthropic(1->2): lost: system",
     "chat(final): lost: top_logprobs",
     "chat(final): lost: verbosity",
-    "chat(final): lost: stream_options",
-    "chat(final): lost: n",
-    "chat(final): lost: max_tokens",
-    "chat(final): lost: functions",
-    "chat(final): lost: function_call",
     "chat(final): lost: logprobs",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: n",
+    "chat(final): lost: function_call",
+    "chat(final): lost: functions",
     "chat(final): added: max_completion_tokens",
     "chat(final): added: response_format.json_schema",
+    "chat(final): changed: messages.length (1 -> 0)",
     "chat(final): changed: response_format.type (\"json_object\" -> \"json_schema\")",
-    "chat(final): changed: stop (\"w ..? !cKp,I..,,M, ?,f,\" -> [\"w ..? !cKp,I..,,M, ?,f,\"])",
-    "chat(final): changed: messages.length (1 -> 0)"
+    "chat(final): changed: stop (\"w ..? !cKp,I..,,M, ?,f,\" -> [\"w ..? !cKp,I..,,M, ?,f,\"])"
   ],
   "kind": "chat-anthropic-two-arm",
   "provider": "chat-completions"

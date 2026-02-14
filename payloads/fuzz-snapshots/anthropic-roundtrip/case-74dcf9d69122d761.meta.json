@@ -1,7 +1,7 @@
 {
   "issues": [
-    "lost: system",
     "lost: output_config",
+    "lost: system",
     "lost: messages[2].content[0].cache_control",
     "changed: messages[2].content[0].citations ([null] -> {})"
   ],

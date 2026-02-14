@@ -1,0 +1,64 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": ".64PA,1B..,!P4,q..wBt,gQNO!..MlR.z"
+  },
+  "logit_bias": {},
+  "logprobs": true,
+  "max_completion_tokens": -115,
+  "max_tokens": 664,
+  "messages": [
+    {
+      "function_call": {
+        "arguments": "oXqo,K2",
+        "name": " 6!399?P?6SC??Fs1.lv,, .22t. 3b3"
+      },
+      "refusal": "T2?q1?m 9!.b.,T9 61?47W?.",
+      "role": "assistant"
+    },
+    {
+      "content": null,
+      "name": "?A eg9S!?.BV,,..??y?X31ii?d?m1i23?.N2!!",
+      "role": "function"
+    }
+  ],
+  "model": "gpt-5-mini-2025-08-07",
+  "n": 452,
+  "reasoning_effort": null,
+  "response_format": {
+    "json_schema": {
+      "description": "d, 1uLrm!???m.,4 !!Np",
+      "name": ",,7.u!5",
+      "schema": {}
+    },
+    "type": "json_schema"
+  },
+  "seed": 589,
+  "store": false,
+  "tools": [
+    {
+      "custom": {
+        "name": ".4I,V.b"
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "description": "?!bZ 2qNQ9,,",
+        "name": "??e7?.., "
+      },
+      "type": "function"
+    },
+    {
+      "custom": {
+        "description": "Q,PNlU,Bp6P ,lluh?",
+        "format": {
+          "type": "text"
+        },
+        "name": "h?PQK5n .y?.!?Zr .,?lrK bQO?lz"
+      },
+      "type": "custom"
+    }
+  ],
+  "web_search_options": {}
+}

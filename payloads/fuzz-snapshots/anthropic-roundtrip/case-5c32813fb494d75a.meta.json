@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: system",
-    "lost: metadata",
-    "changed: messages[1].content.length (3 -> 1)"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

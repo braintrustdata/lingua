@@ -1,0 +1,53 @@
+{
+  "functions": [
+    {
+      "name": "74b?YG.iYt6xV!?blxqi.F.O.. ,e.R,.?Yhc?,8znH,",
+      "parameters": {}
+    },
+    {
+      "description": ",?.,f?ha.,??e,O!pnI1.., ?2s?U.v3,NTxr,IZ0 !",
+      "name": ",f!.?",
+      "parameters": {}
+    },
+    {
+      "description": "9?.,,, a V01?.f.,G?LV7..k!2?D!",
+      "name": ",?fr6zXL!.C5",
+      "parameters": {}
+    },
+    {
+      "description": "A.c D,!!M3.fz8",
+      "name": "g h w .?.,,,n 3!ob z...T.,?9?,?,.7xTuGVFye.AVo",
+      "parameters": {}
+    }
+  ],
+  "logprobs": false,
+  "max_tokens": 695,
+  "messages": [
+    {
+      "audio": null,
+      "role": "assistant"
+    }
+  ],
+  "model": "gpt-4.1-2025-04-14",
+  "n": 371,
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": "?o.,Lt.aW 5n",
+    "type": "content"
+  },
+  "presence_penalty": -46.72787676753656,
+  "reasoning_effort": "low",
+  "stream": false,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "required",
+      "tools": [
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "top_logprobs": -894,
+  "verbosity": null
+}

@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "lost: tool_choice.disable_parallel_tool_use",
-    "changed: messages[1].content ([{\"signature\":\" F ?EV!t?M,7A!XY.d8?9?z!sf?Y9,W\",\"thinking\":\",,VZ,,.5,.zzgE?Xp4P?H?,!c.9?S!7.B..?.9\",\"type\":\"thinking\"}] -> \"\")"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}

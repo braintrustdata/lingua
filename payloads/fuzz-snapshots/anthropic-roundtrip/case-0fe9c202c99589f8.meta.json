@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: tools[2].allowed_domains",
+    "lost: tools[2].user_location",
+    "lost: tools[2].cache_control"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

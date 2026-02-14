@@ -1,15 +1,15 @@
 {
   "issues": [
-    "universal(1->2): changed: params.response_format.json_schema.description (\"!ivh? ?q4.?8eum?v.?f,!DAFad, J4Pd??.9 TP?.,Qb,Io?\" -> null)",
-    "universal(1->2): changed: params.response_format.json_schema.name (\"WuXz?,??F?\" -> \"response\")",
+    "universal(1->2): changed: params.top_logprobs (-10 -> null)",
     "universal(1->2): changed: params.reasoning.effort (\"medium\" -> \"low\")",
     "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
-    "universal(1->2): changed: params.top_logprobs (-10 -> null)",
-    "chat(final): lost: top_logprobs",
-    "chat(final): lost: web_search_options",
+    "universal(1->2): changed: params.response_format.json_schema.description (\"!ivh? ?q4.?8eum?v.?f,!DAFad, J4Pd??.9 TP?.,Qb,Io?\" -> null)",
+    "universal(1->2): changed: params.response_format.json_schema.name (\"WuXz?,??F?\" -> \"response\")",
     "chat(final): lost: modalities",
+    "chat(final): lost: top_logprobs",
     "chat(final): lost: functions",
     "chat(final): lost: prediction",
+    "chat(final): lost: web_search_options",
     "chat(final): lost: response_format.json_schema.description",
     "chat(final): changed: reasoning_effort (\"medium\" -> \"low\")",
     "chat(final): changed: response_format.json_schema.name (\"WuXz?,??F?\" -> \"response\")"

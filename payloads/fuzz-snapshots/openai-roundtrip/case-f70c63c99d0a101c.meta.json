@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "lost: messages[0].name",
-    "added: stream_options"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

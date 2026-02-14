@@ -1,0 +1,54 @@
+{
+  "max_tokens": 146,
+  "messages": [
+    {
+      "content": [
+        {
+          "id": "?.qQ,.94?..!gttwa P",
+          "input": {},
+          "name": "?WE??k?.Mp,p?A?,Mj ,k3,80o ?0,7?.g0H",
+          "type": "tool_use"
+        },
+        {
+          "cache_control": null,
+          "id": " ,.2 .,V6w?1,r6?ajefK!I0Ud!,??",
+          "input": {},
+          "name": "web_search",
+          "type": "server_tool_use"
+        },
+        {
+          "signature": "2l23g5.v!,I,Vh5a!!e,,, .DvJcNjbL?P?.,Dm,HNy2Jq",
+          "thinking": "3..f71q?sAaZeu1U?...!?!O!,?5.7??,8?IS,Bk!V?C,",
+          "type": "thinking"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "data": "?hfRaBE?.dL8.W,,!TD?4,.D .Ab...",
+          "type": "redacted_thinking"
+        },
+        {
+          "cache_control": null,
+          "text": "fb7eBt4?n!d!9bs.GH l  ?81?.2I!yzx!.c",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": "NC,.,K SLm",
+      "role": "user"
+    }
+  ],
+  "model": "claude-opus-4-1-20250805",
+  "output_config": {},
+  "stop_sequences": [
+    "6 nm.2ve.O"
+  ],
+  "system": "L,!q?6.!!zsx,?dnv?g53Y,7.!r2.d6hELz7?b 5P 8!C",
+  "temperature": 16.107960147275968,
+  "top_k": -893
+}

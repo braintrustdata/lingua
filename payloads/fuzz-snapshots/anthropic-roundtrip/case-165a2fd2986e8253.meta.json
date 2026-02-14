@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: system",
+    "lost: output_config",
+    "lost: temperature",
+    "added: thinking",
+    "changed: messages[2].content ([{\"cache_control\":null,\"id\":\"b2??aO ,Q,t?.OeR?.!ZnsHj!!,u3,8?.0d\",\"input\":{},\"name\":\"web_search\",\"type\":\"server_tool_use\"}] -> \"\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "anthropic"
+}

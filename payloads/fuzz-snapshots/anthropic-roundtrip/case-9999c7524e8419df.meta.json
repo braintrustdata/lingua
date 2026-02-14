@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: metadata",
-    "lost: messages[0].content[0].cache_control",
-    "lost: tool_choice.disable_parallel_tool_use"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "anthropic"
-}
