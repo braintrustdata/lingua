@@ -27,6 +27,36 @@ pub struct UniversalStreamChoice {
     pub finish_reason: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UniversalToolFunctionDelta {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UniversalToolCallDelta {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub index: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, rename = "type", skip_serializing_if = "Option::is_none")]
+    pub call_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function: Option<UniversalToolFunctionDelta>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UniversalStreamDelta {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default)]
+    pub tool_calls: Vec<UniversalToolCallDelta>,
+}
+
 /// A normalized streaming chunk following OpenAI's format.
 ///
 /// This is the universal representation for streaming events from all providers.
@@ -134,11 +164,16 @@ impl UniversalStreamChunk {
 }
 
 impl UniversalStreamChoice {
+    pub fn delta_view(&self) -> Option<UniversalStreamDelta> {
+        let delta = self.delta.clone()?;
+        serde_json::from_value::<UniversalStreamDelta>(delta).ok()
+    }
+
     /// Create a new stream choice with a text delta.
     pub fn text_delta(index: u32, content: &str) -> Self {
         Self {
             index,
-            delta: Some(serde_json::json!({
+            delta: Some(crate::serde_json::json!({
                 "role": "assistant",
                 "content": content
             })),
@@ -236,6 +271,42 @@ mod tests {
         assert!(!chunk.is_keep_alive());
         assert_eq!(chunk.choices.len(), 1);
         assert_eq!(chunk.choices[0].finish_reason, Some("stop".to_string()));
+    }
+
+    #[test]
+    fn test_stream_choice_delta_view() {
+        let choice = UniversalStreamChoice {
+            index: 0,
+            delta: Some(crate::serde_json::json!({
+                "role": "assistant",
+                "content": "hello",
+                "tool_calls": [
+                    {
+                        "index": 1,
+                        "id": "call_1",
+                        "type": "function",
+                        "function": {
+                            "name": "get_weather",
+                            "arguments": "{\"location\":\"SF\"}"
+                        }
+                    }
+                ]
+            })),
+            finish_reason: None,
+        };
+
+        let delta = choice.delta_view().unwrap();
+        assert_eq!(delta.role.as_deref(), Some("assistant"));
+        assert_eq!(delta.content.as_deref(), Some("hello"));
+        assert_eq!(delta.tool_calls.len(), 1);
+        assert_eq!(delta.tool_calls[0].id.as_deref(), Some("call_1"));
+        assert_eq!(
+            delta.tool_calls[0]
+                .function
+                .as_ref()
+                .and_then(|f| f.name.as_deref()),
+            Some("get_weather")
+        );
     }
 
     #[test]

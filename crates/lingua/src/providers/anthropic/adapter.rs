@@ -489,21 +489,20 @@ impl ProviderAdapter for AnthropicAdapter {
                 }
 
                 if delta_type == Some("input_json_delta") {
+                    let index = payload.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
                     let partial_json = delta
                         .and_then(|d| d.get("partial_json"))
                         .and_then(Value::as_str)
                         .unwrap_or("");
-                    let block_index =
-                        payload.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
 
                     return Ok(Some(UniversalStreamChunk::new(
                         None,
                         None,
                         vec![UniversalStreamChoice {
-                            index: 0,
+                            index,
                             delta: Some(serde_json::json!({
                                 "tool_calls": [{
-                                    "index": block_index,
+                                    "index": index,
                                     "function": {
                                         "arguments": partial_json
                                     }
@@ -516,7 +515,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     )));
                 }
 
-                // For other delta types, return keep-alive
+                // For unsupported non-text deltas, return keep-alive
                 Ok(Some(UniversalStreamChunk::keep_alive()))
             }
 
@@ -563,6 +562,32 @@ impl ProviderAdapter for AnthropicAdapter {
                 let usage = message
                     .and_then(|m| m.get("usage"))
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
+                let tool_call_delta = message
+                    .and_then(|m| m.get("content"))
+                    .and_then(Value::as_array)
+                    .and_then(|content| content.first())
+                    .and_then(Value::as_object)
+                    .filter(|part| part.get("type").and_then(Value::as_str) == Some("tool_use"))
+                    .map(|part| {
+                        let arguments = part
+                            .get("input")
+                            .map(tool_input_to_arguments)
+                            .unwrap_or_default();
+                        serde_json::json!({
+                            "role": "assistant",
+                            "content": Value::Null,
+                            "tool_calls": [{
+                                "index": 0,
+                                "id": part.get("id").and_then(Value::as_str),
+                                "type": "function",
+                                "function": {
+                                    "name": part.get("name").and_then(Value::as_str),
+                                    "arguments": arguments
+                                }
+                            }]
+                        })
+                    })
+                    .unwrap_or_else(|| serde_json::json!({"role": "assistant", "content": ""}));
 
                 // Return chunk with metadata but mark as role initialization
                 Ok(Some(UniversalStreamChunk::new(
@@ -570,7 +595,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     model,
                     vec![UniversalStreamChoice {
                         index: 0,
-                        delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
+                        delta: Some(tool_call_delta),
                         finish_reason: None,
                     }],
                     None,
@@ -605,7 +630,7 @@ impl ProviderAdapter for AnthropicAdapter {
                         None,
                         None,
                         vec![UniversalStreamChoice {
-                            index: 0,
+                            index: block_index,
                             delta: Some(serde_json::json!({
                                 "role": "assistant",
                                 "content": Value::Null,
@@ -625,7 +650,6 @@ impl ProviderAdapter for AnthropicAdapter {
                         None,
                     )));
                 }
-
                 Ok(Some(UniversalStreamChunk::keep_alive()))
             }
 
@@ -660,8 +684,8 @@ impl ProviderAdapter for AnthropicAdapter {
             .and_then(Value::as_array)
             .is_some_and(|arr| !arr.is_empty());
 
-        // Check if this is an initial metadata chunk (has model/id/usage but no content)
-        // Exclude chunks with tool_calls - those must be handled by the tool call path
+        // Check if this is an initial metadata chunk (has model/id/usage but no content).
+        // Exclude chunks with tool_calls - those must be handled by the tool call path.
         let is_initial_metadata =
             (chunk.model.is_some() || chunk.id.is_some() || chunk.usage.is_some())
                 && !has_finish
@@ -734,47 +758,49 @@ impl ProviderAdapter for AnthropicAdapter {
         // Check if this is a content delta
         if let Some(choice) = chunk.choices.first() {
             if let Some(delta) = &choice.delta {
-                // Check for tool_calls in the delta
                 if let Some(tool_calls) = delta.get("tool_calls").and_then(Value::as_array) {
-                    if let Some(tc) = tool_calls.first() {
-                        let tool_index =
-                            tc.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+                    if let Some(tool_call) = tool_calls.first() {
+                        let tool_index = tool_call
+                            .get("index")
+                            .and_then(Value::as_u64)
+                            .map(|v| v as u32)
+                            .unwrap_or(choice.index);
+                        let function = tool_call.get("function");
+                        let tool_name = function
+                            .and_then(|f| f.get("name"))
+                            .and_then(Value::as_str)
+                            .unwrap_or("");
+                        let tool_id = tool_call.get("id").and_then(Value::as_str).unwrap_or("");
+                        let arguments = function
+                            .and_then(|f| f.get("arguments"))
+                            .and_then(Value::as_str)
+                            .unwrap_or("");
 
-                        // Initial tool call chunk has an id field
-                        if let Some(id) = tc.get("id").and_then(Value::as_str) {
-                            let name = tc
-                                .get("function")
-                                .and_then(|f| f.get("name"))
-                                .and_then(Value::as_str)
-                                .unwrap_or("");
-
+                        if !tool_name.is_empty() || !tool_id.is_empty() {
+                            let input = serde_json::from_str::<Value>(arguments)
+                                .ok()
+                                .filter(Value::is_object)
+                                .unwrap_or_else(|| serde_json::json!({}));
                             return Ok(serde_json::json!({
                                 "type": "content_block_start",
                                 "index": tool_index,
                                 "content_block": {
                                     "type": "tool_use",
-                                    "id": id,
-                                    "name": name,
-                                    "input": {}
+                                    "id": tool_id,
+                                    "name": tool_name,
+                                    "input": input
                                 }
                             }));
                         }
 
-                        // Subsequent chunks have only function.arguments
-                        if let Some(arguments) = tc
-                            .get("function")
-                            .and_then(|f| f.get("arguments"))
-                            .and_then(Value::as_str)
-                        {
-                            return Ok(serde_json::json!({
-                                "type": "content_block_delta",
-                                "index": tool_index,
-                                "delta": {
-                                    "type": "input_json_delta",
-                                    "partial_json": arguments
-                                }
-                            }));
-                        }
+                        return Ok(serde_json::json!({
+                            "type": "content_block_delta",
+                            "index": tool_index,
+                            "delta": {
+                                "type": "input_json_delta",
+                                "partial_json": arguments
+                            }
+                        }));
                     }
                 }
 
@@ -817,6 +843,13 @@ impl ProviderAdapter for AnthropicAdapter {
             }
         }))
     }
+}
+
+fn tool_input_to_arguments(input: &Value) -> String {
+    if input.as_object().is_some_and(|obj| obj.is_empty()) {
+        return String::new();
+    }
+    serde_json::to_string(input).unwrap_or_else(|_| "{}".to_string())
 }
 
 #[cfg(test)]

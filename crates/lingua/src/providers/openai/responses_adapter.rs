@@ -461,8 +461,16 @@ impl ProviderAdapter for ResponsesAdapter {
                 "response.start" => "response.created".to_string(),
                 "response.done" => "response.completed".to_string(),
                 "content_part.delta" => "response.output_text.delta".to_string(),
-                "content_part.start" | "content_part.done" | "output_item.start"
-                | "output_item.done" => {
+                "function_call_arguments.delta" => {
+                    "response.function_call_arguments.delta".to_string()
+                }
+                "output_item.added" => "response.output_item.added".to_string(),
+                "content_part.start"
+                | "content_part.done"
+                | "content_part.stop"
+                | "output_item.start"
+                | "output_item.done"
+                | "reasoning_summary_part.added" => {
                     return Ok(Some(UniversalStreamChunk::keep_alive()));
                 }
                 other => format!("response.{}", other),
@@ -614,7 +622,10 @@ impl ProviderAdapter for ResponsesAdapter {
 
             "response.output_item.added" => {
                 // Tool call start - extract call_id, name, and output_index
-                let item = payload.get("item");
+                // Standard format: item at top level; Alternate format: item under delta
+                let item = payload
+                    .get("item")
+                    .or_else(|| delta_obj.and_then(|d| d.get("item")));
                 let item_type = item.and_then(|i| i.get("type")).and_then(Value::as_str);
 
                 if item_type == Some("function_call") {
@@ -628,6 +639,7 @@ impl ProviderAdapter for ResponsesAdapter {
                         .unwrap_or("");
                     let output_index = payload
                         .get("output_index")
+                        .or_else(|| delta_obj.and_then(|d| d.get("index")))
                         .and_then(Value::as_u64)
                         .unwrap_or(0) as u32;
 
@@ -635,7 +647,7 @@ impl ProviderAdapter for ResponsesAdapter {
                         None,
                         None,
                         vec![UniversalStreamChoice {
-                            index: 0,
+                            index: output_index,
                             delta: Some(serde_json::json!({
                                 "role": "assistant",
                                 "content": Value::Null,
@@ -660,9 +672,19 @@ impl ProviderAdapter for ResponsesAdapter {
             }
 
             "response.function_call_arguments.delta" => {
-                let arguments = payload.get("delta").and_then(Value::as_str).unwrap_or("");
+                // Standard format: delta is the arguments string at top level
+                // Alternate format: delta.delta is the arguments string
+                let arguments = if is_alternate_format {
+                    delta_obj
+                        .and_then(|d| d.get("delta"))
+                        .and_then(Value::as_str)
+                } else {
+                    payload.get("delta").and_then(Value::as_str)
+                }
+                .unwrap_or("");
                 let output_index = payload
                     .get("output_index")
+                    .or_else(|| delta_obj.and_then(|d| d.get("index")))
                     .and_then(Value::as_u64)
                     .unwrap_or(0) as u32;
 
@@ -670,7 +692,7 @@ impl ProviderAdapter for ResponsesAdapter {
                     None,
                     None,
                     vec![UniversalStreamChoice {
-                        index: 0,
+                        index: output_index,
                         delta: Some(serde_json::json!({
                             "tool_calls": [{
                                 "index": output_index,
