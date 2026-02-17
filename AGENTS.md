@@ -18,7 +18,7 @@ Lingua is a universal message format that compiles to provider-specific formats 
 - **No unapproved fallback logic**: Do not add ad-hoc fallback parsing/translation paths (for example `fallback_*` helpers) without checking with the programmer first.
 - **Typed boundaries only**: At provider boundaries, parse into well-defined typed structs/enums. Do not add lenient raw-JSON parsing that guesses defaults for required fields (for example defaulting missing `role` to `user`, lowercasing unknown roles, or inventing empty `content`).
 - **Fix via types or explicit errors**: If fuzzing finds unsupported/ambiguous shapes, either model them explicitly in types/converters or return a clear error. Do not silently coerce invalid input into a "best effort" shape.
-- **Run typed-boundary guardrail**: For provider/universal boundary changes, run `make typed-boundary-check` on local edits (and optionally `make typed-boundary-check-branch BASE=<comparison-branch>` for committed branch diffs) and resolve any newly introduced direct `Value` field access before finishing.
+- **Typed-boundary CI gate**: CI enforces `make typed-boundary-check-branch BASE=origin/<base-branch>` on pull requests. Running `make typed-boundary-check` locally is recommended for faster feedback, but not required as a pre-commit hook.
 - **Typed extras views over raw map access**: If provider extras must be read, deserialize extras into a typed view struct first; do not pluck fields ad-hoc with `map.get(...)`.
 
 ## Documentation style guide
