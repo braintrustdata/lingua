@@ -131,7 +131,7 @@ impl TryFromLLM<Message> for BedrockMessage {
 
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, content) = match message {
-            Message::System { content } => {
+            Message::System { content } | Message::Developer { content } => {
                 let text = match content {
                     UserContent::String(s) => format!("System: {}", s),
                     UserContent::Array(parts) => {

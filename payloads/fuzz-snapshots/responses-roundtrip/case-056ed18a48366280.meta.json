@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: tools[0].strict",
-    "lost: text.format.strict",
-    "changed: input (\"?y S3,  ?0??\" -> [{\"content\":\"?y S3,  ?0??\",\"role\":\"user\"}])"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "responses"
-}

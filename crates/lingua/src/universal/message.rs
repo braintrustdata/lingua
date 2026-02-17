@@ -12,6 +12,9 @@ pub enum Message {
     System {
         content: UserContent,
     },
+    Developer {
+        content: UserContent,
+    },
     User {
         content: UserContent,
     },

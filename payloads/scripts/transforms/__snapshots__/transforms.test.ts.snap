@@ -252,6 +252,15 @@ exports[`anthropic → chat-completions > systemMessageArrayContent > request 1`
   "max_completion_tokens": 300,
   "messages": [
     {
+      "content": [
+        {
+          "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+    {
       "content": "What errors occurred recently?",
       "role": "user",
     },
@@ -616,6 +625,15 @@ exports[`anthropic → responses > simpleRequest > response 1`] = `
 exports[`anthropic → responses > systemMessageArrayContent > request 1`] = `
 {
   "input": [
+    {
+      "content": [
+        {
+          "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
     {
       "content": "What errors occurred recently?",
       "role": "user",

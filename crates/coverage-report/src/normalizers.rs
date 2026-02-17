@@ -52,7 +52,9 @@ pub fn normalize_stream_chunk_for_comparison(chunk: &UniversalStreamChunk) -> Un
 
 fn normalize_message_content(message: &mut Message) {
     match message {
-        Message::System { content } | Message::User { content } => {
+        Message::System { content }
+        | Message::Developer { content }
+        | Message::User { content } => {
             normalize_user_content(content);
         }
         Message::Assistant { content, .. } => {

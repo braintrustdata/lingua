@@ -342,11 +342,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             })?;
 
                     result.push(match role {
-                        openai::InputItemRole::System | openai::InputItemRole::Developer => {
-                            Message::System {
-                                content: TryFromLLM::try_from(content)?,
-                            }
-                        }
+                        openai::InputItemRole::System => Message::System {
+                            content: TryFromLLM::try_from(content)?,
+                        },
+                        openai::InputItemRole::Developer => Message::Developer {
+                            content: TryFromLLM::try_from(content)?,
+                        },
                         openai::InputItemRole::User => Message::User {
                             content: TryFromLLM::try_from(content)?,
                         },
@@ -790,6 +791,11 @@ impl TryFromLLM<Message> for openai::InputItem {
         match message {
             Message::System { content } => Ok(openai::InputItem {
                 role: Some(openai::InputItemRole::System),
+                content: Some(TryFromLLM::try_from(content)?),
+                ..Default::default()
+            }),
+            Message::Developer { content } => Ok(openai::InputItem {
+                role: Some(openai::InputItemRole::Developer),
                 content: Some(TryFromLLM::try_from(content)?),
                 ..Default::default()
             }),
@@ -2496,7 +2502,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     }
                     None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
                 };
-                Ok(Message::System { content })
+                Ok(Message::Developer { content })
             }
             openai::ChatCompletionRequestMessageRole::Tool => {
                 // Tool messages should extract tool_call_id and content
@@ -2539,10 +2545,33 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     content: vec![ToolContentPart::ToolResult(tool_result)],
                 })
             }
-            _ => Err(ConvertError::InvalidEnumValue {
-                type_name: "role",
-                value: format!("{:?}", msg.base.role),
-            }),
+            openai::ChatCompletionRequestMessageRole::Function => {
+                // Legacy function-role messages: preserve as tool output-like content.
+                let content_text = match msg.base.content {
+                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => text,
+                    Some(
+                        openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(
+                            mut arr,
+                        ),
+                    ) => {
+                        if arr.len() != 1 {
+                            String::new()
+                        } else {
+                            arr.remove(0).text.unwrap_or_default()
+                        }
+                    }
+                    None => String::new(),
+                };
+                let name = msg.base.name.unwrap_or_default();
+                Ok(Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                        tool_call_id: name.clone(),
+                        tool_name: name,
+                        output: serde_json::Value::String(content_text),
+                        provider_options: None,
+                    })],
+                })
+            }
         }
     }
 }
@@ -2609,6 +2638,20 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
             Message::System { content } => Ok(ChatCompletionRequestMessageExt {
                 base: openai::ChatCompletionRequestMessage {
                     role: openai::ChatCompletionRequestMessageRole::System,
+                    content: Some(convert_user_content_to_chat_completion_content(content)?),
+                    name: None,
+                    tool_calls: None,
+                    tool_call_id: None,
+                    audio: None,
+                    function_call: None,
+                    refusal: None,
+                },
+                reasoning: None,
+                reasoning_signature: None,
+            }),
+            Message::Developer { content } => Ok(ChatCompletionRequestMessageExt {
+                base: openai::ChatCompletionRequestMessage {
+                    role: openai::ChatCompletionRequestMessageRole::Developer,
                     content: Some(convert_user_content_to_chat_completion_content(content)?),
                     name: None,
                     tool_calls: None,
@@ -2840,8 +2883,8 @@ fn extract_content_tool_calls_and_reasoning(
         }
     }
 
-    let text_content = if text_parts.is_empty() && !tool_calls.is_empty() {
-        None // When we have tool calls but no text, omit content entirely
+    let text_content = if text_parts.is_empty() {
+        None
     } else {
         Some(openai::ChatCompletionRequestMessageContent::String(
             text_parts.join(""),

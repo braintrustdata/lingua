@@ -855,9 +855,11 @@ impl TryFromLLM<Message> for generated::InputMessage {
                     role: generated::MessageRole::User,
                 })
             }
-            Message::System { .. } => Err(ConvertError::UnsupportedInputType {
-                type_info: "System messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
-            }),
+            Message::System { .. } | Message::Developer { .. } => {
+                Err(ConvertError::UnsupportedInputType {
+                    type_info: "System/developer messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
+                })
+            }
         }
     }
 }

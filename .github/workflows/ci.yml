@@ -10,6 +10,26 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  typed-boundary:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Fetch base branch
+      run: git fetch --no-tags --prune --depth=1 origin "${{ github.base_ref }}"
+
+    - name: Install ripgrep
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ripgrep
+
+    - name: Enforce typed boundary invariant
+      run: make typed-boundary-check-branch BASE=origin/${{ github.base_ref }}
+
   test:
     runs-on: ubuntu-latest
     

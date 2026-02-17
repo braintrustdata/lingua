@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "changed: input[0].type (\"custom_tool_call_output\" -> \"function_call_output\")"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "responses"
-}
