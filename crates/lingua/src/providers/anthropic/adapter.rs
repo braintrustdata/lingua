@@ -15,16 +15,15 @@ use crate::processing::adapters::{
 };
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
+use crate::providers::anthropic::convert::system_to_user_content;
 use crate::providers::anthropic::generated::{
-    ContentBlock, EffortLevel, InputMessage, OutputConfig, System, Tool,
+    ContentBlock, EffortLevel, InputMessage, OutputConfig, Tool,
 };
 use crate::providers::anthropic::params::AnthropicParams;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{
-    Message, ProviderOptions, TextContentPart, UserContent, UserContentPart,
-};
+use crate::universal::message::{Message, UserContent, UserContentPart};
 use crate::universal::request::{
     ReasoningCanonical, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
 };
@@ -43,42 +42,6 @@ pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 struct AnthropicMetadataView {
     user_id: Option<String>,
 }
-
-fn system_to_user_content(system: System) -> UserContent {
-    match system {
-        System::String(text) => UserContent::String(text),
-        System::RequestTextBlockArray(blocks) => UserContent::Array(
-            blocks
-                .into_iter()
-                .map(|block| {
-                    let mut options = serde_json::Map::new();
-                    if let Some(cache_control) = block.cache_control {
-                        if let Ok(v) = serde_json::to_value(cache_control) {
-                            options.insert("cache_control".into(), v);
-                        }
-                    }
-                    if let Some(citations) = block.citations {
-                        if let Ok(v) = serde_json::to_value(citations) {
-                            options.insert("citations".into(), v);
-                        }
-                    }
-
-                    let provider_options = if options.is_empty() {
-                        None
-                    } else {
-                        Some(ProviderOptions { options })
-                    };
-
-                    UserContentPart::Text(TextContentPart {
-                        text: block.text,
-                        provider_options,
-                    })
-                })
-                .collect(),
-        ),
-    }
-}
-
 /// Adapter for Anthropic Messages API.
 pub struct AnthropicAdapter;
 
