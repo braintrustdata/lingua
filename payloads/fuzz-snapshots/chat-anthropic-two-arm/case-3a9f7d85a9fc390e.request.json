@@ -1,0 +1,50 @@
+{
+  "frequency_penalty": -99.49757675206122,
+  "functions": [
+    {
+      "name": "6Q!.?,YbY?Dky,EL?sscuC.?,?.J5 ?j!!35"
+    },
+    {
+      "description": "Th?,G2.?",
+      "name": "C h,jw"
+    },
+    {
+      "name": "az??.g..r I?.stK,6WCq0,1Y!?UgRgW,6.2q,u,.??eB.. ",
+      "parameters": {}
+    }
+  ],
+  "messages": [
+    {
+      "content": "EK,2?.",
+      "name": "md!",
+      "role": "system"
+    },
+    {
+      "content": "P.5IaVo?!c!.N,,.q ov8e..",
+      "role": "user"
+    }
+  ],
+  "modalities": [
+    "text"
+  ],
+  "model": "gpt-3.5-turbo-0613",
+  "n": 582,
+  "presence_penalty": -71.86062472345043,
+  "reasoning_effort": null,
+  "seed": -513,
+  "stop": ",8 M!T",
+  "store": false,
+  "stream": true,
+  "stream_options": {},
+  "tools": [
+    {
+      "function": {
+        "description": "?RZ?7wD1?0t.9 T8HR5ze?h3Ui,e.,Pb2",
+        "name": "6?L7.t,E?W!E,U!F?.X?i!j.?5.,.4S",
+        "parameters": {},
+        "strict": false
+      },
+      "type": "function"
+    }
+  ]
+}

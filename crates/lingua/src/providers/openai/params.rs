@@ -127,6 +127,50 @@ pub struct OpenAIResponsesParams {
     pub extras: BTreeMap<String, Value>,
 }
 
+/// Typed view over `UniversalParams.extras[ChatCompletions]` used during
+/// universal -> OpenAI Chat reconstruction.
+///
+/// This is intentionally a partial/loose view:
+/// - Extras may contain only a subset of fields.
+/// - Values must be preserved as raw JSON when roundtripping.
+/// - Generated OpenAPI request types are too strict for this use case because
+///   they require full requests (`model`, `messages`, etc.).
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct OpenAIChatExtrasView {
+    pub messages: Option<Value>,
+    pub stop: Option<Value>,
+    pub tools: Option<Value>,
+    pub tool_choice: Option<Value>,
+    pub response_format: Option<Value>,
+    pub reasoning_effort: Option<Value>,
+    pub max_tokens: Option<Value>,
+    pub max_completion_tokens: Option<Value>,
+}
+
+/// Typed view over `UniversalParams.extras[Responses]` used during universal
+/// -> OpenAI Responses reconstruction.
+///
+/// This is intentionally not the full generated request type for the same
+/// reasons as `OpenAIChatExtrasView`: extras are partial and preserve raw JSON.
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct OpenAIResponsesExtrasView {
+    pub instructions: Option<String>,
+    pub input: Option<Value>,
+    pub temperature: Option<Value>,
+    pub top_p: Option<Value>,
+    pub max_output_tokens: Option<Value>,
+    pub top_logprobs: Option<Value>,
+    pub stream: Option<Value>,
+    pub tools: Option<Value>,
+    pub tool_choice: Option<Value>,
+    pub text: Option<Value>,
+    pub reasoning: Option<Value>,
+    pub parallel_tool_calls: Option<Value>,
+    pub metadata: Option<Value>,
+    pub store: Option<Value>,
+    pub service_tier: Option<Value>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

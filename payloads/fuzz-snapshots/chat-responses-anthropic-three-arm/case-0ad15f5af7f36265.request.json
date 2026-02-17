@@ -1,0 +1,63 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": ".5Q6DtPpcZ,a.n,?Fz"
+  },
+  "frequency_penalty": -90.67134097052013,
+  "function_call": "none",
+  "logprobs": true,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "C,Og.A,.?..,?D 91?,ZB?76fc.088c... B!!",
+          "type": "text"
+        },
+        {
+          "text": "g3doxWEn1. i..",
+          "type": "text"
+        },
+        {
+          "text": "??ll!I!s!K.s",
+          "type": "text"
+        }
+      ],
+      "name": "zcH.!Z.q,4N,?T3 8gw4.6..bQ9??.4?z7!A5,8.B ",
+      "role": "developer"
+    },
+    {
+      "content": "i 0l!1p.4Pj90,2! oB2g!?Z!h6?e??? c,c?O4m NMR",
+      "name": "5..?h.19",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4-0314",
+  "store": false,
+  "stream": true,
+  "stream_options": null,
+  "tool_choice": {
+    "function": {
+      "name": "FfJl?,fHu3??wz8 ?nU6D dX?,BUT.XBP.sGz..sF,.X V,!"
+    },
+    "type": "function"
+  },
+  "tools": [
+    {
+      "function": {
+        "name": "?C88W.0uv.c.??xG?! UTyq??.e3m,,GHyb59,?xuJg.J,3?,",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "7,A??89C t?,WQJ?.,X2e?,f,S pZ Z,IBGplf,S",
+        "name": "D?,0i,iI?s.,u8,",
+        "parameters": {},
+        "strict": null
+      },
+      "type": "function"
+    }
+  ]
+}

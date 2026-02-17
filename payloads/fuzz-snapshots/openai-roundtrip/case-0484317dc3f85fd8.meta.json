@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "added: messages[0].content"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

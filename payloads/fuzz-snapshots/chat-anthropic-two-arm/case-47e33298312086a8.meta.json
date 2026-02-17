@@ -1,0 +1,19 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.top_logprobs (392 -> null)",
+    "universal(1->2): changed: params.presence_penalty (37.65270497573345 -> null)",
+    "universal(1->2): changed: params.parallel_tool_calls (true -> null)",
+    "universal(1->2): changed: params.max_tokens (null -> 4096)",
+    "chat(final): lost: audio",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: stream_options.include_obfuscation",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): changed: stream_options.include_usage (false -> true)"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

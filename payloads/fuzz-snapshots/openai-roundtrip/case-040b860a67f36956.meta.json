@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: stream_options",
-    "lost: messages[1].name",
-    "changed: stop (\"UF?aM!2udvlu ,Ycs0?.hwf xiXG\" -> [\"UF?aM!2udvlu ,Ycs0?.hwf xiXG\"])"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

@@ -22,8 +22,8 @@ use crate::universal::message::Message;
 use crate::universal::request::ReasoningConfig;
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage,
+    FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage,
 };
 
 /// Adapter for Amazon Bedrock Converse API.
@@ -86,7 +86,7 @@ impl ProviderAdapter for BedrockAdapter {
             temperature,
             top_p,
             top_k: None, // Bedrock doesn't expose top_k in Converse API
-            max_tokens,
+            token_budget: max_tokens.map(TokenBudget::OutputTokens),
             stop,
             tools: typed_params.tool_config.and_then(|t| {
                 // Bedrock uses {tools: [{toolSpec: {name, description, inputSchema: {json: {...}}}}]}
@@ -193,14 +193,14 @@ impl ProviderAdapter for BedrockAdapter {
 
         let has_params = temperature.is_some()
             || req.params.top_p.is_some()
-            || req.params.max_tokens.is_some()
+            || req.params.output_token_budget().is_some()
             || req.params.stop.is_some();
 
         if has_params {
             let config = BedrockInferenceConfiguration {
                 temperature,
                 top_p: req.params.top_p,
-                max_tokens: req.params.max_tokens.map(|t| t as i32),
+                max_tokens: req.params.output_token_budget().map(|t| t as i32),
                 stop_sequences: req.params.stop.clone(),
             };
 
@@ -586,7 +586,10 @@ mod tests {
             Some("anthropic.claude-3-sonnet".to_string())
         );
         assert_eq!(universal.params.temperature, Some(0.7));
-        assert_eq!(universal.params.max_tokens, Some(1024));
+        assert_eq!(
+            universal.params.token_budget,
+            Some(TokenBudget::OutputTokens(1024))
+        );
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
         assert_eq!(
@@ -664,7 +667,7 @@ mod tests {
                     budget_tokens: Some(3000),
                     ..Default::default()
                 }),
-                max_tokens: Some(4096),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
                 ..Default::default()
             },
         };
@@ -695,7 +698,7 @@ mod tests {
                     ..Default::default()
                 }),
                 temperature: Some(0.5), // This should be omitted when thinking is enabled
-                max_tokens: Some(4096),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
                 ..Default::default()
             },
         };

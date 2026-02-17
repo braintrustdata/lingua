@@ -58,6 +58,25 @@ pub struct UniversalRequest {
     pub params: UniversalParams,
 }
 
+/// Canonical token budget for request generation limits.
+///
+/// This uses mutually-exclusive variants to avoid invalid combinations like
+/// setting both "output" and "total" token limits at the same time.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", content = "tokens", rename_all = "snake_case")]
+#[ts(export)]
+pub enum TokenBudget {
+    /// Limit only generated output tokens.
+    ///
+    /// Used by providers that expose completion/output token limits
+    /// (e.g. OpenAI Chat/Responses, Anthropic, Google, Bedrock).
+    OutputTokens(i64),
+    /// Limit total tokens across prompt + output.
+    ///
+    /// Reserved for providers/features that expose a true total-token budget.
+    TotalTokens(i64),
+}
+
 /// Common request parameters across providers.
 ///
 /// Uses canonical names - adapters handle mapping to provider-specific names.
@@ -97,10 +116,12 @@ pub struct UniversalParams {
     pub frequency_penalty: Option<f64>,
 
     // === Output control ===
-    /// Maximum tokens to generate in the response.
+    /// Generation token budget.
     ///
-    /// **Providers:** OpenAI (`max_completion_tokens`), Anthropic, Google (`generationConfig.maxOutputTokens`), Bedrock (`inferenceConfig.maxTokens`)
-    pub max_tokens: Option<i64>,
+    /// **Providers:** OpenAI (`max_tokens`/`max_completion_tokens`/`max_output_tokens`),
+    /// Anthropic (`max_tokens`), Google (`generationConfig.maxOutputTokens`),
+    /// Bedrock (`inferenceConfig.maxTokens`) all map to `OutputTokens`.
+    pub token_budget: Option<TokenBudget>,
 
     /// Sequences that stop generation when encountered.
     ///
@@ -184,6 +205,15 @@ pub struct UniversalParams {
 // =============================================================================
 
 impl UniversalParams {
+    /// Resolve an output-token budget for providers that use output-only limits.
+    pub fn output_token_budget(&self) -> Option<i64> {
+        match self.token_budget {
+            Some(TokenBudget::OutputTokens(tokens)) => Some(tokens),
+            Some(TokenBudget::TotalTokens(tokens)) => Some(tokens),
+            None => None,
+        }
+    }
+
     /// Get tool_choice for a provider.
     pub fn tool_choice_for(&self, provider: ProviderFormat) -> Option<Value> {
         let config = self.tool_choice.clone().unwrap_or_default();
@@ -204,7 +234,7 @@ impl UniversalParams {
     pub fn reasoning_for(&self, provider: ProviderFormat) -> Option<Value> {
         self.reasoning
             .as_ref()
-            .and_then(|r| r.to_provider(provider, self.max_tokens).ok())
+            .and_then(|r| r.to_provider(provider, self.output_token_budget()).ok())
             .flatten()
     }
 

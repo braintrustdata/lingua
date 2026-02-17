@@ -1,0 +1,25 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (2 -> 1)",
+    "universal(1->2): changed: params.frequency_penalty (-99.49757675206122 -> null)",
+    "universal(1->2): changed: params.store (false -> null)",
+    "universal(1->2): changed: params.presence_penalty (-71.86062472345043 -> null)",
+    "universal(1->2): changed: params.max_tokens (null -> 4096)",
+    "universal(1->2): changed: params.seed (-513 -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: functions",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: n",
+    "chat(final): lost: seed",
+    "chat(final): lost: store",
+    "chat(final): lost: modalities",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): added: stream_options.include_usage",
+    "chat(final): changed: stop (\",8 M!T\" -> [\",8 M!T\"])",
+    "chat(final): changed: messages.length (2 -> 1)"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "changed: stop (\",C.g?9WZi\" -> [\",C.g?9WZi\"])"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

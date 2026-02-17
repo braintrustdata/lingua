@@ -19,6 +19,45 @@ use crate::universal::{
 };
 use crate::util::media::parse_base64_data_url;
 
+/// Convert Anthropic's standalone `system` field into universal `UserContent`.
+///
+/// This is message-shape conversion logic, so it lives in `convert.rs` rather
+/// than adapter orchestration code.
+pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
+    match system {
+        generated::System::String(text) => UserContent::String(text),
+        generated::System::RequestTextBlockArray(blocks) => UserContent::Array(
+            blocks
+                .into_iter()
+                .map(|block| {
+                    let mut options = serde_json::Map::new();
+                    if let Some(cache_control) = block.cache_control {
+                        if let Ok(v) = serde_json::to_value(cache_control) {
+                            options.insert("cache_control".into(), v);
+                        }
+                    }
+                    if let Some(citations) = block.citations {
+                        if let Ok(v) = serde_json::to_value(citations) {
+                            options.insert("citations".into(), v);
+                        }
+                    }
+
+                    let provider_options = if options.is_empty() {
+                        None
+                    } else {
+                        Some(ProviderOptions { options })
+                    };
+
+                    UserContentPart::Text(TextContentPart {
+                        text: block.text,
+                        provider_options,
+                    })
+                })
+                .collect(),
+        ),
+    }
+}
+
 impl TryFromLLM<generated::InputMessage> for Message {
     type Error = ConvertError;
 
@@ -816,9 +855,11 @@ impl TryFromLLM<Message> for generated::InputMessage {
                     role: generated::MessageRole::User,
                 })
             }
-            Message::System { .. } => Err(ConvertError::UnsupportedInputType {
-                type_info: "System messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
-            }),
+            Message::System { .. } | Message::Developer { .. } => {
+                Err(ConvertError::UnsupportedInputType {
+                    type_info: "System/developer messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
+                })
+            }
         }
     }
 }

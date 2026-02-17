@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "lost: messages[0].name",
-    "changed: reasoning_effort (\"minimal\" -> \"low\")"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

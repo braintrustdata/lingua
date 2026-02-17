@@ -1,8 +1,0 @@
-{
-  "issues": [
-    "lost: messages[1].refusal",
-    "lost: messages[1].function_call"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

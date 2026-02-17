@@ -1,0 +1,35 @@
+{
+  "logit_bias": {},
+  "max_completion_tokens": -553,
+  "messages": [
+    {
+      "content": "?V?yl.?P",
+      "role": "user"
+    },
+    {
+      "content": "H",
+      "role": "tool",
+      "tool_call_id": "TX?.3.?O.e?7Z,5,??bRh6zJx q?6.nI!J?,ij,.0qNSx"
+    }
+  ],
+  "modalities": null,
+  "model": "9V,,m8!4G.K",
+  "n": -364,
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": ",,.,Uk1?23AQ7?r5xZ0,.?A..z. LdV.,rU. L",
+    "type": "content"
+  },
+  "reasoning_effort": "high",
+  "response_format": {
+    "json_schema": {
+      "description": "?q?iNd 5,!mtHHX.vw,2wPC .5",
+      "name": "3,j!CZb,M.?,6,?ixgyQF4i",
+      "strict": null
+    },
+    "type": "json_schema"
+  },
+  "seed": 130,
+  "stop": "C.V?!,?q.??ta!7,",
+  "top_logprobs": -511
+}

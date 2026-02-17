@@ -1,0 +1,68 @@
+{
+  "frequency_penalty": 96.64682956799089,
+  "functions": [
+    {
+      "name": "PS3?,DRI3us!.jPC?",
+      "parameters": {}
+    },
+    {
+      "name": "i0Yy ..39BanO4m3,7ENCf.enN0?6L?Z,???P.?F"
+    },
+    {
+      "name": ",.VD"
+    },
+    {
+      "name": "Q,..",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "max_completion_tokens": 343,
+  "messages": [
+    {
+      "function_call": null,
+      "name": "LKG..am.J3pUCy.5",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "custom": {
+            "input": null,
+            "name": null
+          },
+          "id": "?A,!,NTZ.R4 4v, H,gQy3hg8z!.AR?p.tL,,a NI",
+          "type": "custom"
+        },
+        {
+          "custom": {
+            "input": null,
+            "name": null
+          },
+          "id": "..L",
+          "type": "custom"
+        }
+      ]
+    }
+  ],
+  "model": "m,Pf",
+  "parallel_tool_calls": false,
+  "response_format": {
+    "type": "text"
+  },
+  "stop": "60??,",
+  "store": true,
+  "tool_choice": {
+    "custom": {
+      "name": "4??IA?? ,p9Oz"
+    },
+    "type": "custom"
+  },
+  "top_logprobs": -815,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "vg!?8,nwt.ef3?s?.G Ds,. Q!q.jk5,5VU?!!.XVEn. x"
+      },
+      "type": "approximate"
+    }
+  }
+}

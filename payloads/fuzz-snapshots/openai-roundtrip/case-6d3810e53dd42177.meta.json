@@ -1,9 +1,0 @@
-{
-  "issues": [
-    "lost: messages[0].refusal",
-    "lost: messages[0].function_call",
-    "added: messages[0].content"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

@@ -1,0 +1,83 @@
+{
+  "function_call": "auto",
+  "functions": [
+    {
+      "name": "6x4!!.T7U,AE? t854.,HK?,L!t?,Ua ??3 5lBM !Xqy!9, u",
+      "parameters": {}
+    },
+    {
+      "name": "!J",
+      "parameters": {}
+    },
+    {
+      "description": " G0wt.47lR  i,. V. 4FANS1sLu,A.Y1?LXm..",
+      "name": "10?,?,,?zYK",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "max_completion_tokens": 211,
+  "max_tokens": 845,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "5??lT!6.TAx,?!,V1bVcW.rxpW??W? .FNWn.N,",
+          "type": "text"
+        },
+        {
+          "text": "qCPxCg.p,!?L!.onQ!Q.,Yn!xigbk!fX.?.Pd586",
+          "type": "text"
+        },
+        {
+          "text": ".4.!",
+          "type": "text"
+        }
+      ],
+      "name": ".Z?B?kv?d. ,Am??,C?R?4O ",
+      "role": "developer"
+    },
+    {
+      "content": ",??5 ,MqZ .M.ZO.,y.d?y,!5wC3?.?Tb9?3,3.S",
+      "name": "79?!,h.0,5?UdX ",
+      "role": "developer"
+    },
+    {
+      "content": ",",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4-turbo-preview",
+  "n": 306,
+  "prediction": {
+    "content": [
+      {
+        "text": "R.,.3y?.? P,XM9u?oG ,.kqNR",
+        "type": "text"
+      },
+      {
+        "text": " ?,! DePRImS!?,S",
+        "type": "text"
+      },
+      {
+        "text": "bR 96, rQW.c.,!G  Y 4",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": 47.866508848870794,
+  "reasoning_effort": "medium",
+  "response_format": {
+    "type": "text"
+  },
+  "store": false,
+  "tool_choice": {
+    "custom": {
+      "name": "5?.F..HJ5T?e 6!2,.bq1Xm??.p.i,"
+    },
+    "type": "custom"
+  },
+  "verbosity": "high"
+}

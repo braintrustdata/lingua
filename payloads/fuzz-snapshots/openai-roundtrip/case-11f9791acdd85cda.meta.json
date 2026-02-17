@@ -1,7 +1,0 @@
-{
-  "issues": [
-    "lost: reasoning_effort"
-  ],
-  "kind": "request-roundtrip",
-  "provider": "chat-completions"
-}

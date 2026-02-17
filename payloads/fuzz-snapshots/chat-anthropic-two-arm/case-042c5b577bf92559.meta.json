@@ -1,0 +1,20 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.response_format ({\"format_type\":\"JsonSchema\",\"json_schema\":null} -> null)",
+    "universal(1->2): changed: params.seed (130 -> null)",
+    "universal(1->2): changed: params.top_logprobs (-511 -> null)",
+    "universal(1->2): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: prediction",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: n",
+    "chat(final): lost: modalities",
+    "chat(final): lost: seed",
+    "chat(final): lost: response_format",
+    "chat(final): added: tool_choice",
+    "chat(final): changed: stop (\"C.V?!,?q.??ta!7,\" -> [\"C.V?!,?q.??ta!7,\"])"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

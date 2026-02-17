@@ -83,7 +83,8 @@
       "fields": [
         { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, budget_tokens gets quantized" },
         { "pattern": "params.tools", "reason": "Anthropic built-in tools not supported in OpenAI" },
-        { "pattern": "messages.length", "reason": "Responses API expands tool messages to separate function_call_output items" }
+        { "pattern": "messages.length", "reason": "Responses API expands tool messages to separate function_call_output items" },
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic per-block cache_control metadata has no OpenAI request equivalent" }
       ]
     },
     {
@@ -91,7 +92,8 @@
       "target": "ChatCompletions",
       "fields": [
         { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, budget_tokens gets quantized" },
-        { "pattern": "params.tools", "reason": "Anthropic built-in tools not supported in OpenAI" }
+        { "pattern": "params.tools", "reason": "Anthropic built-in tools not supported in OpenAI" },
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic per-block cache_control metadata has no OpenAI request equivalent" }
       ]
     },
     {

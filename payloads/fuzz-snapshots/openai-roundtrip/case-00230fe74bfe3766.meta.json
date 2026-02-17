@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "request_to_universal error: Conversion to universal format failed: invalid type: null, expected a string"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "chat-completions"
+}

@@ -1,0 +1,42 @@
+{
+  "frequency_penalty": 30.845807638004253,
+  "max_tokens": 147,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "KR.y,9?4",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "modalities": [
+    "audio"
+  ],
+  "model": "o1",
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": [
+      {
+        "text": "!,Xn! ?.?T.,.?!.SU.516N4 hbHRq",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": 65.09719742329442,
+  "response_format": {
+    "json_schema": {
+      "name": ",aP?",
+      "strict": false
+    },
+    "type": "json_schema"
+  },
+  "stop": [
+    ".,89O?KRTx?F"
+  ],
+  "store": false,
+  "stream": false
+}
