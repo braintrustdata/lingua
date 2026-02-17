@@ -19,7 +19,7 @@ use crate::providers::anthropic::convert::system_to_user_content;
 use crate::providers::anthropic::generated::{
     ContentBlock, EffortLevel, InputMessage, OutputConfig, Tool,
 };
-use crate::providers::anthropic::params::AnthropicParams;
+use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -42,6 +42,18 @@ pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 struct AnthropicMetadataView {
     user_id: Option<String>,
 }
+
+fn parse_anthropic_extras(
+    extras: Option<&Map<String, Value>>,
+) -> Result<AnthropicExtrasView, TransformError> {
+    extras
+        .map(|m| serde_json::from_value(Value::Object(m.clone())))
+        .transpose()
+        .map_err(|e| {
+            TransformError::FromUniversalFailed(format!("invalid Anthropic extras shape: {}", e))
+        })
+        .map(|v: Option<AnthropicExtrasView>| v.unwrap_or_default())
+}
 /// Adapter for Anthropic Messages API.
 pub struct AnthropicAdapter;
 
@@ -63,7 +75,8 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
-        let raw_payload_obj = payload.as_object().cloned();
+        let raw_payload_obj: Map<String, Value> = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         // Single parse: typed params now includes typed messages via #[serde(flatten)]
         let typed_params: AnthropicParams = serde_json::from_value(payload)
@@ -161,11 +174,9 @@ impl ProviderAdapter for AnthropicAdapter {
             );
         }
 
-        if let Some(raw_obj) = raw_payload_obj {
-            let anthropic_extras = params.extras.entry(ProviderFormat::Anthropic).or_default();
-            for (key, value) in raw_obj {
-                anthropic_extras.insert(key, value);
-            }
+        let anthropic_extras = params.extras.entry(ProviderFormat::Anthropic).or_default();
+        for (key, value) in raw_payload_obj {
+            anthropic_extras.insert(key, value);
         }
 
         Ok(UniversalRequest {
@@ -182,6 +193,7 @@ impl ProviderAdapter for AnthropicAdapter {
         })?;
 
         let anthropic_extras = req.params.extras.get(&ProviderFormat::Anthropic);
+        let anthropic_extras_view = parse_anthropic_extras(anthropic_extras)?;
 
         // Clone messages and extract system messages (Anthropic uses separate `system` param)
         let mut msgs = req.messages.clone();
@@ -190,7 +202,7 @@ impl ProviderAdapter for AnthropicAdapter {
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
 
-        if let Some(raw_messages) = anthropic_extras.and_then(|m| m.get("messages")) {
+        if let Some(raw_messages) = anthropic_extras_view.messages.as_ref() {
             obj.insert("messages".into(), raw_messages.clone());
         } else {
             // Convert remaining messages
@@ -205,7 +217,7 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Add system message if present
-        if let Some(raw_system) = anthropic_extras.and_then(|m| m.get("system")) {
+        if let Some(raw_system) = anthropic_extras_view.system.as_ref() {
             obj.insert("system".into(), raw_system.clone());
         } else if !system_contents.is_empty() {
             let system_text: String = system_contents
@@ -259,7 +271,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 .and_then(|v| v.get("type"))
                 .and_then(|t| t.as_str())
                 .is_some_and(|t| t == "enabled");
-        if let Some(raw_temp) = anthropic_extras.and_then(|m| m.get("temperature")) {
+        if let Some(raw_temp) = anthropic_extras_view.temperature.as_ref() {
             obj.insert("temperature".into(), raw_temp.clone());
         } else if !reasoning_enabled {
             insert_opt_f64(&mut obj, "temperature", req.params.temperature);
@@ -279,7 +291,7 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Convert tools to Anthropic format
-        if let Some(raw_tools) = anthropic_extras.and_then(|m| m.get("tools")) {
+        if let Some(raw_tools) = anthropic_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
         } else if let Some(tools) = &req.params.tools {
             if !tools.is_empty() {
@@ -296,7 +308,7 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Convert tool_choice using helper method (handles parallel_tool_calls internally)
-        if let Some(raw_tool_choice) = anthropic_extras.and_then(|m| m.get("tool_choice")) {
+        if let Some(raw_tool_choice) = anthropic_extras_view.tool_choice.as_ref() {
             obj.insert("tool_choice".into(), raw_tool_choice.clone());
         } else if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Anthropic)
         {
@@ -324,8 +336,8 @@ impl ProviderAdapter for AnthropicAdapter {
             .as_ref()
             .and_then(|rf| rf.try_into().ok());
 
-        let raw_output_config = anthropic_extras.and_then(|m| m.get("output_config"));
-        let raw_thinking = anthropic_extras.and_then(|m| m.get("thinking"));
+        let raw_output_config = anthropic_extras_view.output_config.as_ref();
+        let raw_thinking = anthropic_extras_view.thinking.as_ref();
 
         if let Some(raw_output_config) = raw_output_config {
             obj.insert("output_config".into(), raw_output_config.clone());
@@ -351,7 +363,7 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Add metadata from canonical params
-        if let Some(raw_metadata) = anthropic_extras.and_then(|m| m.get("metadata")) {
+        if let Some(raw_metadata) = anthropic_extras_view.metadata.as_ref() {
             obj.insert("metadata".into(), raw_metadata.clone());
         } else if let Some(metadata) = req.params.metadata.as_ref() {
             // Anthropic metadata only supports `user_id`.

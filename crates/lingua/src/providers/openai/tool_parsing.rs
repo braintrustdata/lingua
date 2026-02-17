@@ -1,78 +1,104 @@
-use crate::serde_json::Value;
+use crate::serde_json::{self, Value};
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+enum OpenAIChatToolWire {
+    #[serde(rename = "function")]
+    Function { function: OpenAIChatFunctionWire },
+    #[serde(rename = "custom")]
+    Custom { custom: OpenAIChatCustomWire },
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIChatFunctionWire {
+    name: String,
+    description: Option<String>,
+    parameters: Option<Value>,
+    strict: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIChatCustomWire {
+    name: String,
+    description: Option<String>,
+    format: Option<Value>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIResponsesToolHeader {
+    #[serde(rename = "type")]
+    tool_type: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIResponsesFunctionWire {
+    name: String,
+    description: Option<String>,
+    parameters: Option<Value>,
+    strict: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIResponsesCustomWire {
+    name: String,
+    description: Option<String>,
+    format: Option<Value>,
+}
+
+fn parse_tool_array(tools: &Value) -> Vec<Value> {
+    serde_json::from_value(tools.clone()).unwrap_or_default()
+}
 
 fn parse_openai_chat_tool(value: &Value) -> Option<UniversalTool> {
-    let tool_type = value.get("type").and_then(Value::as_str)?;
+    let parsed: OpenAIChatToolWire = serde_json::from_value(value.clone()).ok()?;
 
-    match tool_type {
-        "function" => {
-            let func = value.get("function")?;
-            let name = func.get("name").and_then(Value::as_str)?;
-            let description = func
-                .get("description")
-                .and_then(Value::as_str)
-                .map(String::from);
-            let parameters = func.get("parameters").cloned();
-            let strict = func.get("strict").and_then(Value::as_bool);
-
-            Some(UniversalTool::function(
-                name,
-                description,
-                parameters,
-                strict,
-            ))
-        }
-        "custom" => {
-            let custom = value.get("custom")?;
-            let name = custom.get("name").and_then(Value::as_str)?;
-            let description = custom
-                .get("description")
-                .and_then(Value::as_str)
-                .map(String::from);
-            let format = custom.get("format").cloned();
-            Some(UniversalTool::custom(name, description, format))
-        }
-        _ => None,
+    match parsed {
+        OpenAIChatToolWire::Function { function } => Some(UniversalTool::function(
+            function.name,
+            function.description,
+            function.parameters,
+            function.strict,
+        )),
+        OpenAIChatToolWire::Custom { custom } => Some(UniversalTool::custom(
+            custom.name,
+            custom.description,
+            custom.format,
+        )),
     }
 }
 
 fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
-    let tool_type = value.get("type").and_then(Value::as_str)?;
+    let header: OpenAIResponsesToolHeader = serde_json::from_value(value.clone()).ok()?;
 
-    match tool_type {
+    match header.tool_type.as_ref() {
         "function" => {
-            let name = value.get("name").and_then(Value::as_str)?;
-            let description = value
-                .get("description")
-                .and_then(Value::as_str)
-                .map(String::from);
-            let parameters = value.get("parameters").cloned();
-            let strict = value.get("strict").and_then(Value::as_bool);
-
+            let function: OpenAIResponsesFunctionWire =
+                serde_json::from_value(value.clone()).ok()?;
             Some(UniversalTool::function(
-                name,
-                description,
-                parameters,
-                strict,
+                function.name,
+                function.description,
+                function.parameters,
+                function.strict,
             ))
         }
         "custom" => {
-            let name = value.get("name").and_then(Value::as_str)?;
-            let description = value
-                .get("description")
-                .and_then(Value::as_str)
-                .map(String::from);
-            let format = value.get("format").cloned();
-            Some(UniversalTool::custom(name, description, format))
+            let custom: OpenAIResponsesCustomWire = serde_json::from_value(value.clone()).ok()?;
+            Some(UniversalTool::custom(
+                custom.name,
+                custom.description,
+                custom.format,
+            ))
         }
         "code_interpreter"
         | "web_search_preview"
         | "mcp"
         | "file_search"
         | "computer_use_preview" => Some(UniversalTool::builtin(
-            tool_type,
+            header.tool_type.clone(),
             BuiltinToolProvider::Responses,
-            tool_type,
+            header.tool_type,
             Some(value.clone()),
         )),
         _ => None,
@@ -80,17 +106,17 @@ fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
 }
 
 pub(crate) fn parse_openai_chat_tools_array(tools: &Value) -> Vec<UniversalTool> {
-    let Some(arr) = tools.as_array() else {
-        return Vec::new();
-    };
-    arr.iter().filter_map(parse_openai_chat_tool).collect()
+    parse_tool_array(tools)
+        .iter()
+        .filter_map(parse_openai_chat_tool)
+        .collect()
 }
 
 pub(crate) fn parse_openai_responses_tools_array(tools: &Value) -> Vec<UniversalTool> {
-    let Some(arr) = tools.as_array() else {
-        return Vec::new();
-    };
-    arr.iter().filter_map(parse_openai_responses_tool).collect()
+    parse_tool_array(tools)
+        .iter()
+        .filter_map(parse_openai_responses_tool)
+        .collect()
 }
 
 #[cfg(test)]

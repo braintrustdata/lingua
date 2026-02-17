@@ -257,10 +257,8 @@ fn prune_orphan_meta_files_for_suite(suite: &str) -> usize {
         let Some(case_id) = snapshot_case_id(&meta_path, ".meta.json") else {
             continue;
         };
-        if !request_cases.contains(&case_id) {
-            if fs::remove_file(&meta_path).is_ok() {
-                removed += 1;
-            }
+        if !request_cases.contains(&case_id) && fs::remove_file(&meta_path).is_ok() {
+            removed += 1;
         }
     }
     removed
