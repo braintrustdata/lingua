@@ -114,11 +114,16 @@ impl BedrockProvider {
             .map_err(|e| Error::InvalidRequest(format!("failed to build invoke url: {e}")))
     }
 
-    fn sign_request(&self, url: &Url, body: &[u8], auth: &AuthConfig) -> Result<HeaderMap> {
+    fn sign_request(
+        &self,
+        url: &Url,
+        body: &[u8],
+        auth: &AuthConfig,
+        client_headers: &ClientHeaders,
+    ) -> Result<HeaderMap> {
         if let AuthConfig::ApiKey { .. } = auth {
-            // TODO: should this instead be: `let mut headers =
-            // self.build_headers(client_headers)`?
-            let mut headers = HeaderMap::new();
+            let mut headers =
+                <Self as crate::providers::Provider>::build_headers(self, client_headers);
             auth.apply_headers(&mut headers)?;
             return Ok(headers);
         }
@@ -191,7 +196,7 @@ impl BedrockProvider {
         let mut signed_request = request;
         instructions.apply_to_request_http1x(&mut signed_request);
 
-        let mut headers = HeaderMap::new();
+        let mut headers = <Self as crate::providers::Provider>::build_headers(self, client_headers);
         for (name, value) in signed_request.headers().iter() {
             headers.insert(
                 name.clone(),
@@ -202,8 +207,14 @@ impl BedrockProvider {
         Ok(headers)
     }
 
-    fn build_headers(&self, url: &Url, payload: &[u8], auth: &AuthConfig) -> Result<HeaderMap> {
-        let mut headers = self.sign_request(url, payload, auth)?;
+    fn build_headers(
+        &self,
+        url: &Url,
+        payload: &[u8],
+        auth: &AuthConfig,
+        client_headers: &ClientHeaders,
+    ) -> Result<HeaderMap> {
+        let mut headers = self.sign_request(url, payload, auth, client_headers)?;
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         Ok(headers)
     }
@@ -214,6 +225,7 @@ impl BedrockProvider {
         payload: Bytes,
         auth: &AuthConfig,
         stream: bool,
+        client_headers: &ClientHeaders,
     ) -> Result<reqwest::Response> {
         #[cfg(not(feature = "tracing"))]
         let _ = stream;
@@ -227,7 +239,7 @@ impl BedrockProvider {
             "sending request to Bedrock"
         );
 
-        let headers = self.build_headers(&url, payload.as_ref(), auth)?;
+        let headers = self.build_headers(&url, payload.as_ref(), auth, client_headers)?;
         let response = self
             .client
             .post(url)
@@ -277,7 +289,7 @@ impl crate::providers::Provider for BedrockProvider {
         auth: &AuthConfig,
         spec: &ModelSpec,
         format: ProviderFormat,
-        _client_headers: &ClientHeaders,
+        client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
         let url = if use_invoke {
@@ -285,7 +297,9 @@ impl crate::providers::Provider for BedrockProvider {
         } else {
             self.converse_url(&spec.model, false)?
         };
-        let response = self.send_signed(url, payload, auth, false).await?;
+        let response = self
+            .send_signed(url, payload, auth, false, client_headers)
+            .await?;
         Ok(response.bytes().await?)
     }
 
@@ -311,7 +325,9 @@ impl crate::providers::Provider for BedrockProvider {
             self.converse_url(&spec.model, true)?
         };
 
-        let response = self.send_signed(url, payload, auth, true).await?;
+        let response = self
+            .send_signed(url, payload, auth, true, client_headers)
+            .await?;
         Ok(bedrock_event_stream(response))
     }
 
@@ -322,7 +338,7 @@ impl crate::providers::Provider for BedrockProvider {
             .join("list-foundation-models")
             .expect("join models path");
         let body = b"{}";
-        let mut headers = self.sign_request(&url, body, auth)?;
+        let mut headers = self.sign_request(&url, body, auth, &ClientHeaders::default())?;
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
         let response = self
@@ -379,7 +395,9 @@ mod tests {
             prefix: None,
         };
 
-        let headers = provider.build_headers(&url, b"{}", &auth).expect("headers");
+        let headers = provider
+            .build_headers(&url, b"{}", &auth, &ClientHeaders::default())
+            .expect("headers");
         assert_eq!(
             headers.get("content-type"),
             Some(&HeaderValue::from_static("application/json"))
@@ -401,7 +419,9 @@ mod tests {
             token_type: Some("Bearer".into()),
         };
 
-        let err = provider.build_headers(&url, b"{}", &auth).unwrap_err();
+        let err = provider
+            .build_headers(&url, b"{}", &auth, &ClientHeaders::default())
+            .unwrap_err();
         match err {
             Error::Auth(message) => {
                 assert!(message.contains("AwsSignatureV4 or ApiKey"));
