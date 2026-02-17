@@ -1,0 +1,40 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "verse"
+  },
+  "frequency_penalty": -98.46723454753348,
+  "logit_bias": {},
+  "logprobs": false,
+  "max_completion_tokens": -418,
+  "messages": [
+    {
+      "content": ",GOj2i!3, G?ZsbKBY.B.y.?p,?.TyM.JpP",
+      "role": "developer"
+    }
+  ],
+  "model": "gpt-4o-mini-audio-preview",
+  "n": 698,
+  "parallel_tool_calls": true,
+  "presence_penalty": -27.00797833116848,
+  "response_format": {
+    "json_schema": {
+      "description": ",?WT,?c!.?t?!,1wP?!,?,T?!il?,CiRC O,.0",
+      "name": "i3.6.2!?.s ,p?6,?76lm 60,,8T!5,h,u2vXYM??.",
+      "schema": {}
+    },
+    "type": "json_schema"
+  },
+  "seed": -787,
+  "stop": [
+    ".n9Vx.n!,.zb?.??g9?,,?P !,..aAB",
+    ",pY9w?R0? Qv. ,3N?8A,!j,Hj !! ",
+    ".c RZI.D,ZZ7B?!.Hf??s!"
+  ],
+  "store": true,
+  "stream_options": null,
+  "top_logprobs": 553,
+  "web_search_options": {
+    "search_context_size": "high"
+  }
+}

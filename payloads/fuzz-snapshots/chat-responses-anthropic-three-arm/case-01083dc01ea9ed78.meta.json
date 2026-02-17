@@ -1,0 +1,29 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.frequency_penalty (-1.2637378230123477 -> null)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.seed (-100 -> null)",
+    "universal(2->3): changed: messages[0].content ([{\"text\":\",!n6GBT,GxbrX.Hud051U?\",\"type\":\"text\"},{\"text\":\"?ja7K10G?,?VM.,,om1X80 x,j?!g..,M.z?o1\",\"type\":\"text\"},{\"text\":\",T!GOY\",\"type\":\"text\"}] -> \",!n6GBT,GxbrX.Hud051U?\\n?ja7K10G?,?VM.,,om1X80 x,j?!g..,M.z?o1\\n,T!GOY\")",
+    "universal(2->3): changed: params.store (false -> null)",
+    "universal(2->3): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "responses(1->2): lost: store",
+    "responses(1->2): changed: input[0].content ([{\"text\":\",!n6GBT,GxbrX.Hud051U?\",\"type\":\"input_text\"},{\"text\":\"?ja7K10G?,?VM.,,om1X80 x,j?!g..,M.z?o1\",\"type\":\"input_text\"},{\"text\":\",T!GOY\",\"type\":\"input_text\"}] -> \",!n6GBT,GxbrX.Hud051U?\\n?ja7K10G?,?VM.,,om1X80 x,j?!g..,M.z?o1\\n,T!GOY\")",
+    "chat(final): lost: functions",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: n",
+    "chat(final): lost: seed",
+    "chat(final): lost: prediction",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: store",
+    "chat(final): lost: function_call",
+    "chat(final): lost: stream_options.include_obfuscation",
+    "chat(final): lost: messages[0].name",
+    "chat(final): added: stream_options.include_usage",
+    "chat(final): changed: max_completion_tokens (-823 -> -247)",
+    "chat(final): changed: messages[0].content ([{\"text\":\",!n6GBT,GxbrX.Hud051U?\",\"type\":\"text\"},{\"text\":\"?ja7K10G?,?VM.,,om1X80 x,j?!g..,M.z?o1\",\"type\":\"text\"},{\"text\":\",T!GOY\",\"type\":\"text\"}] -> \",!n6GBT,GxbrX.Hud051U?\\n?ja7K10G?,?VM.,,om1X80 x,j?!g..,M.z?o1\\n,T!GOY\")",
+    "chat(final): changed: messages[0].role (\"developer\" -> \"system\")"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

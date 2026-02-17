@@ -1,0 +1,121 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": "4,C7?AzIX,8ppO?,R?G.5??.nHe?S"
+  },
+  "functions": [
+    {
+      "name": "b.,LL2  j.3aV8O..B 9!,eUkm,8",
+      "parameters": {}
+    },
+    {
+      "name": "?!?Y. Y?HCFSwe?At4qEXrOT2,Zde?.k"
+    },
+    {
+      "description": "?6? 8 eza8tdazEk.,k.23kq.Z.,.",
+      "name": ".Gt"
+    },
+    {
+      "description": "v.N,si.F?Zg.,8W,...!.",
+      "name": "4?rD3YV ,!?.?AC,,.MF,Z.rtDkep,YZ3GsRF.X2?7",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "messages": [
+    {
+      "audio": {
+        "id": "9bC 6Pw z"
+      },
+      "function_call": {
+        "arguments": "F9OR!6t,U??,A",
+        "name": "2v.,.2Q,h G?40B4F,Z 5 ?k,"
+      },
+      "refusal": "!L5R.?KZ",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": null,
+            "name": null
+          },
+          "id": "O",
+          "type": "function"
+        },
+        {
+          "custom": {
+            "input": null,
+            "name": null
+          },
+          "id": "TH?",
+          "type": "custom"
+        }
+      ]
+    },
+    {
+      "content": ".s.,c57?,S,,???zL?U.6!...bWu5NW.tAAqa?B .0,",
+      "role": "system"
+    },
+    {
+      "content": [
+        {
+          "text": "P.?",
+          "type": "text"
+        },
+        {
+          "text": "j,",
+          "type": "text"
+        },
+        {
+          "text": "M19S,TU4D.f. U?7T5 .!",
+          "type": "text"
+        }
+      ],
+      "name": "GbG?v,h.??103?kU6es,C,?GzC,gt7T?",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": ",h!?w7!G??e?67HrszU,. Y?!fEc,?Ej.",
+  "prediction": {
+    "content": [
+      {
+        "text": "y9n?,IL? 6i8a..Q? z6?7 ,2Bj!4KGT",
+        "type": "text"
+      },
+      {
+        "text": ",?qkjt?s!",
+        "type": "text"
+      },
+      {
+        "text": ".3?? c69rtDS01Ek?s93HExaq.p,?niRh?",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "response_format": {
+    "json_schema": {
+      "name": "1ZJX 5VpT. cU3",
+      "strict": null
+    },
+    "type": "json_schema"
+  },
+  "seed": 174,
+  "stream_options": {
+    "include_usage": false
+  },
+  "top_logprobs": -875,
+  "verbosity": "medium",
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": ",.?,KJo.!R p,VLjYaL.l??G,D.",
+        "region": "00e2??ly x!?!1k.",
+        "timezone": "!H.R?SZ8,,.?,Z?L,Aa?B! 4X"
+      },
+      "type": "approximate"
+    }
+  }
+}

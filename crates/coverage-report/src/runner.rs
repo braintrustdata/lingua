@@ -698,6 +698,13 @@ use crate::expected::{is_expected_error, is_expected_field, is_expected_test_cas
 use crate::types::{RoundtripDiff, RoundtripResult};
 use std::collections::HashSet;
 
+/// Diff two JSON values and return a structured diff with lost/added/changed fields.
+pub fn diff_json(original: &Value, roundtripped: &Value) -> RoundtripDiff {
+    let mut diff = RoundtripDiff::default();
+    compare_recursive(original, roundtripped, "", &mut diff, None);
+    diff
+}
+
 /// Context for value comparison, carrying provider names for expected-difference filtering.
 struct CompareContext<'a> {
     category: TestCategory,

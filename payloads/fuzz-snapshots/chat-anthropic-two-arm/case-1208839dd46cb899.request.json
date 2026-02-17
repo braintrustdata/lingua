@@ -1,0 +1,51 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "alloy"
+  },
+  "functions": [
+    {
+      "description": "i???V, I?8,JI?V,? ,7eL.?  Z,.,1??H1.FQI,p31?.T,",
+      "name": "? d F,T6,.v.,Yi oq r?j H381",
+      "parameters": {}
+    },
+    {
+      "description": "R.?3s?d6 17?4JLLtJ, ..,.R59WCp ??GkZ.?pZ..?.r!",
+      "name": "?r207Cc  ,.kULK,?,?7H66N!"
+    },
+    {
+      "description": "?vAK!!?P.?.0W.!.OHl5OG.W?,3",
+      "name": "8a ,.Rr?P"
+    },
+    {
+      "description": ".o.1Wet?S B",
+      "name": ".n9bbr!!?xB4?8.u o?,!VM,?,Z! ZfKg. wW9P? "
+    }
+  ],
+  "logprobs": true,
+  "max_completion_tokens": -861,
+  "max_tokens": 221,
+  "messages": [
+    {
+      "function_call": {
+        "arguments": ", .22.. l6.?67! gZam K",
+        "name": "!,L!.?U?68u,4.FC!R7g7! ?cij.?z,S4 ?j6QJ.R.WK,e t?"
+      },
+      "refusal": "??.,Qw.U,,,l2Bg?J,3d mK0!o1e? M8!..eX,Ud",
+      "role": "assistant"
+    }
+  ],
+  "modalities": null,
+  "model": "h1l50..Z??l?,.,.!.,SNtOL?H1.U",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": "A?p6qC...s?BK!6HV,fP7DoB?.? 7",
+    "type": "content"
+  },
+  "stop": ".U,?3 .",
+  "stream": false,
+  "stream_options": {
+    "include_obfuscation": true,
+    "include_usage": false
+  }
+}

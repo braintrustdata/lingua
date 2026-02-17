@@ -1,0 +1,20 @@
+{
+  "issues": [
+    "universal(1->2): added: params.tools[0].parameters",
+    "universal(1->2): changed: messages.length (2 -> 1)",
+    "universal(1->2): changed: params.seed (-843 -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: functions",
+    "chat(final): lost: n",
+    "chat(final): lost: function_call",
+    "chat(final): lost: audio",
+    "chat(final): lost: seed",
+    "chat(final): lost: prediction",
+    "chat(final): added: tools[0].function.parameters",
+    "chat(final): changed: messages.length (2 -> 1)",
+    "chat(final): changed: stream_options (null -> {\"include_usage\":true})"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

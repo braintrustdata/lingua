@@ -1,0 +1,30 @@
+{
+  "frequency_penalty": 20.413903162769014,
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "0? ?p,,,.Q,mn4,,1",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    },
+    {
+      "content": "?oWB?,.Z,0.0!,.K13,J7?, 3,xse 2",
+      "name": "?!.?, oy,q.!V",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "rFU99m??kfq",
+  "n": 614,
+  "parallel_tool_calls": true,
+  "presence_penalty": -57.68190056820615,
+  "reasoning_effort": "minimal",
+  "store": true,
+  "stream_options": {},
+  "tool_choice": "required",
+  "web_search_options": {}
+}

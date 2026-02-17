@@ -1,3 +1,4 @@
+use crate::capabilities::ProviderFormat;
 use thiserror::Error;
 
 /// Errors that can occur during conversion between provider formats and universal formats
@@ -25,6 +26,6 @@ pub enum ConvertError {
     UnsupportedToolType {
         tool_name: String,
         tool_type: String,
-        target_provider: String,
+        target_provider: ProviderFormat,
     },
 }

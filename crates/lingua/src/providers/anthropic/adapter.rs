@@ -15,10 +15,11 @@ use crate::processing::adapters::{
 };
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
+use crate::providers::anthropic::convert::system_to_user_content;
 use crate::providers::anthropic::generated::{
     ContentBlock, EffortLevel, InputMessage, OutputConfig, Tool,
 };
-use crate::providers::anthropic::params::AnthropicParams;
+use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -33,10 +34,27 @@ use crate::universal::{
     UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
     UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
+use serde::Deserialize;
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 
+#[derive(Debug, Default, Deserialize)]
+struct AnthropicMetadataView {
+    user_id: Option<String>,
+}
+
+fn parse_anthropic_extras(
+    extras: Option<&Map<String, Value>>,
+) -> Result<AnthropicExtrasView, TransformError> {
+    extras
+        .map(|m| serde_json::from_value(Value::Object(m.clone())))
+        .transpose()
+        .map_err(|e| {
+            TransformError::FromUniversalFailed(format!("invalid Anthropic extras shape: {}", e))
+        })
+        .map(|v: Option<AnthropicExtrasView>| v.unwrap_or_default())
+}
 /// Adapter for Anthropic Messages API.
 pub struct AnthropicAdapter;
 
@@ -58,6 +76,9 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
+        let raw_payload_obj: Map<String, Value> = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
         // Single parse: typed params now includes typed messages via #[serde(flatten)]
         let typed_params: AnthropicParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -67,14 +88,23 @@ impl ProviderAdapter for AnthropicAdapter {
             TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
         })?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
+        let mut messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        if let Some(system) = typed_params.system.clone() {
+            messages.insert(
+                0,
+                Message::System {
+                    content: system_to_user_content(system),
+                },
+            );
+        }
 
         let mut params = UniversalParams {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
             top_k: typed_params.top_k,
-            max_tokens: typed_params.max_tokens,
+            token_budget: typed_params.max_tokens.map(TokenBudget::OutputTokens),
             stop: typed_params.stop_sequences.clone(),
             tools: typed_params.tools.map(|tools| {
                 <Vec<UniversalTool> as TryFromLLM<Vec<_>>>::try_from(tools).unwrap_or_default()
@@ -145,6 +175,11 @@ impl ProviderAdapter for AnthropicAdapter {
             );
         }
 
+        let anthropic_extras = params.extras.entry(ProviderFormat::Anthropic).or_default();
+        for (key, value) in raw_payload_obj {
+            anthropic_extras.insert(key, value);
+        }
+
         Ok(UniversalRequest {
             model: typed_params.model,
             messages,
@@ -158,25 +193,34 @@ impl ProviderAdapter for AnthropicAdapter {
             reason: "missing model".to_string(),
         })?;
 
+        let anthropic_extras = req.params.extras.get(&ProviderFormat::Anthropic);
+        let anthropic_extras_view = parse_anthropic_extras(anthropic_extras)?;
+
         // Clone messages and extract system messages (Anthropic uses separate `system` param)
         let mut msgs = req.messages.clone();
         let system_contents = extract_system_messages(&mut msgs);
 
-        // Convert remaining messages
-        let anthropic_messages: Vec<InputMessage> =
-            <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
-                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
-
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
-        obj.insert(
-            "messages".into(),
-            serde_json::to_value(anthropic_messages)
-                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-        );
+
+        if let Some(raw_messages) = anthropic_extras_view.messages.as_ref() {
+            obj.insert("messages".into(), raw_messages.clone());
+        } else {
+            // Convert remaining messages
+            let anthropic_messages: Vec<InputMessage> =
+                <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
+                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+            obj.insert(
+                "messages".into(),
+                serde_json::to_value(anthropic_messages)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
+        }
 
         // Add system message if present
-        if !system_contents.is_empty() {
+        if let Some(raw_system) = anthropic_extras_view.system.as_ref() {
+            obj.insert("system".into(), raw_system.clone());
+        } else if !system_contents.is_empty() {
             let system_text: String = system_contents
                 .into_iter()
                 .map(|c| match c {
@@ -199,7 +243,10 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // max_tokens is required for Anthropic - use the value from params or default
-        let max_tokens = req.params.max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
+        let max_tokens = req
+            .params
+            .output_token_budget()
+            .unwrap_or(DEFAULT_MAX_TOKENS);
         obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
 
         // Determine reasoning style based on model capability AND canonical source:
@@ -225,7 +272,9 @@ impl ProviderAdapter for AnthropicAdapter {
                 .and_then(|v| v.get("type"))
                 .and_then(|t| t.as_str())
                 .is_some_and(|t| t == "enabled");
-        if !reasoning_enabled {
+        if let Some(raw_temp) = anthropic_extras_view.temperature.as_ref() {
+            obj.insert("temperature".into(), raw_temp.clone());
+        } else if !reasoning_enabled {
             insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         }
 
@@ -243,7 +292,9 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Convert tools to Anthropic format
-        if let Some(tools) = &req.params.tools {
+        if let Some(raw_tools) = anthropic_extras_view.tools.as_ref() {
+            obj.insert("tools".into(), raw_tools.clone());
+        } else if let Some(tools) = &req.params.tools {
             if !tools.is_empty() {
                 let anthropic_tools: Vec<Tool> = tools
                     .iter()
@@ -258,7 +309,10 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Convert tool_choice using helper method (handles parallel_tool_calls internally)
-        if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Anthropic) {
+        if let Some(raw_tool_choice) = anthropic_extras_view.tool_choice.as_ref() {
+            obj.insert("tool_choice".into(), raw_tool_choice.clone());
+        } else if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Anthropic)
+        {
             obj.insert("tool_choice".into(), tool_choice_val);
         }
         insert_opt_bool(&mut obj, "stream", req.params.stream);
@@ -283,7 +337,12 @@ impl ProviderAdapter for AnthropicAdapter {
             .as_ref()
             .and_then(|rf| rf.try_into().ok());
 
-        if effort_level.is_some() || format.is_some() {
+        let raw_output_config = anthropic_extras_view.output_config.as_ref();
+        let raw_thinking = anthropic_extras_view.thinking.as_ref();
+
+        if let Some(raw_output_config) = raw_output_config {
+            obj.insert("output_config".into(), raw_output_config.clone());
+        } else if effort_level.is_some() || format.is_some() {
             let output_config = OutputConfig {
                 effort: effort_level,
                 format,
@@ -296,18 +355,25 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Add thinking for legacy reasoning (non-Opus models)
-        if let Some(thinking) = thinking_val {
-            obj.insert("thinking".into(), thinking);
+        if let Some(raw_thinking) = raw_thinking {
+            obj.insert("thinking".into(), raw_thinking.clone());
+        } else if raw_output_config.is_none() {
+            if let Some(thinking) = thinking_val {
+                obj.insert("thinking".into(), thinking);
+            }
         }
 
         // Add metadata from canonical params
-        // Anthropic only accepts user_id in metadata, so filter out other fields
-        if let Some(metadata) = req.params.metadata.as_ref() {
-            if let Some(obj_map) = metadata.as_object() {
-                if let Some(user_id) = obj_map.get("user_id") {
-                    obj.insert("metadata".into(), serde_json::json!({ "user_id": user_id }));
-                }
-                // Skip metadata entirely if no user_id present
+        if let Some(raw_metadata) = anthropic_extras_view.metadata.as_ref() {
+            obj.insert("metadata".into(), raw_metadata.clone());
+        } else if let Some(metadata) = req.params.metadata.as_ref() {
+            // Anthropic metadata only supports `user_id`.
+            let metadata_view: AnthropicMetadataView =
+                serde_json::from_value(metadata.clone()).unwrap_or_default();
+            if let Some(user_id) = metadata_view.user_id {
+                let mut anthropic_metadata = Map::new();
+                anthropic_metadata.insert("user_id".into(), Value::String(user_id));
+                obj.insert("metadata".into(), Value::Object(anthropic_metadata));
             }
         }
 
@@ -327,6 +393,9 @@ impl ProviderAdapter for AnthropicAdapter {
         // Merge back provider-specific extras (only for Anthropic)
         if let Some(extras) = req.params.extras.get(&ProviderFormat::Anthropic) {
             for (k, v) in extras {
+                if k == "output_format" {
+                    continue;
+                }
                 // Don't overwrite canonical fields we already handled
                 if !obj.contains_key(k) {
                     obj.insert(k.clone(), v.clone());
@@ -339,8 +408,8 @@ impl ProviderAdapter for AnthropicAdapter {
 
     fn apply_defaults(&self, req: &mut UniversalRequest) {
         // Anthropic requires max_tokens - set default if not provided
-        if req.params.max_tokens.is_none() {
-            req.params.max_tokens = Some(DEFAULT_MAX_TOKENS);
+        if req.params.output_token_budget().is_none() {
+            req.params.token_budget = Some(TokenBudget::OutputTokens(DEFAULT_MAX_TOKENS));
         }
     }
 
@@ -1015,7 +1084,10 @@ mod tests {
             universal.model,
             Some("claude-3-5-sonnet-20241022".to_string())
         );
-        assert_eq!(universal.params.max_tokens, Some(1024));
+        assert_eq!(
+            universal.params.token_budget,
+            Some(TokenBudget::OutputTokens(1024))
+        );
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
         assert_eq!(
@@ -1034,9 +1106,12 @@ mod tests {
             params: UniversalParams::default(),
         };
 
-        assert!(req.params.max_tokens.is_none());
+        assert!(req.params.token_budget.is_none());
         adapter.apply_defaults(&mut req);
-        assert_eq!(req.params.max_tokens, Some(DEFAULT_MAX_TOKENS));
+        assert_eq!(
+            req.params.token_budget,
+            Some(TokenBudget::OutputTokens(DEFAULT_MAX_TOKENS))
+        );
     }
 
     #[test]
@@ -1046,13 +1121,16 @@ mod tests {
             model: Some("claude-3-5-sonnet-20241022".to_string()),
             messages: vec![],
             params: UniversalParams {
-                max_tokens: Some(8192),
+                token_budget: Some(TokenBudget::OutputTokens(8192)),
                 ..Default::default()
             },
         };
 
         adapter.apply_defaults(&mut req);
-        assert_eq!(req.params.max_tokens, Some(8192));
+        assert_eq!(
+            req.params.token_budget,
+            Some(TokenBudget::OutputTokens(8192))
+        );
     }
 
     #[test]
@@ -1075,7 +1153,7 @@ mod tests {
                     budget_tokens: Some(2048),
                     ..Default::default()
                 }),
-                max_tokens: Some(4096),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
                 ..Default::default()
             },
         };
@@ -1106,7 +1184,7 @@ mod tests {
             }],
             params: UniversalParams {
                 temperature: Some(0.7),
-                max_tokens: Some(1024),
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
                 ..Default::default()
             },
         };

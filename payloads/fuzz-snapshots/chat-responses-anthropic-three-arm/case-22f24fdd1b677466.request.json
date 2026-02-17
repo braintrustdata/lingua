@@ -1,0 +1,45 @@
+{
+  "frequency_penalty": -12.20756796204219,
+  "function_call": "auto",
+  "functions": [
+    {
+      "name": "m3j,k??..,?,,HHvR8ro????"
+    }
+  ],
+  "logprobs": false,
+  "max_completion_tokens": 880,
+  "messages": [
+    {
+      "content": "T ????37!Dv.,f!a? 26",
+      "name": "T?ta",
+      "role": "system"
+    }
+  ],
+  "model": "v1dP4T1?ENa?8.8Mp?C,,d..!l,?S?,",
+  "prediction": {
+    "content": "?1XH..a?.F!DnURb 7.,i4F.?7,",
+    "type": "content"
+  },
+  "presence_penalty": 54.2362696193158,
+  "response_format": {
+    "json_schema": {
+      "name": "no,X!,.!?,.I",
+      "schema": {}
+    },
+    "type": "json_schema"
+  },
+  "stop": "3?gL",
+  "store": false,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {},
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "verbosity": null
+}

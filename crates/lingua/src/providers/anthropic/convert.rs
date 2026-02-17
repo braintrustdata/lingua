@@ -1,5 +1,6 @@
 use std::convert::TryFrom;
 
+use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
@@ -10,14 +11,52 @@ use crate::serde_json::{json, Value};
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
-use crate::universal::tools::UniversalTool;
-use crate::universal::tools::UniversalToolType;
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart, Message,
     TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
     UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
+
+/// Convert Anthropic's standalone `system` field into universal `UserContent`.
+///
+/// This is message-shape conversion logic, so it lives in `convert.rs` rather
+/// than adapter orchestration code.
+pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
+    match system {
+        generated::System::String(text) => UserContent::String(text),
+        generated::System::RequestTextBlockArray(blocks) => UserContent::Array(
+            blocks
+                .into_iter()
+                .map(|block| {
+                    let mut options = serde_json::Map::new();
+                    if let Some(cache_control) = block.cache_control {
+                        if let Ok(v) = serde_json::to_value(cache_control) {
+                            options.insert("cache_control".into(), v);
+                        }
+                    }
+                    if let Some(citations) = block.citations {
+                        if let Ok(v) = serde_json::to_value(citations) {
+                            options.insert("citations".into(), v);
+                        }
+                    }
+
+                    let provider_options = if options.is_empty() {
+                        None
+                    } else {
+                        Some(ProviderOptions { options })
+                    };
+
+                    UserContentPart::Text(TextContentPart {
+                        text: block.text,
+                        provider_options,
+                    })
+                })
+                .collect(),
+        ),
+    }
+}
 
 impl TryFromLLM<generated::InputMessage> for Message {
     type Error = ConvertError;
@@ -816,9 +855,11 @@ impl TryFromLLM<Message> for generated::InputMessage {
                     role: generated::MessageRole::User,
                 })
             }
-            Message::System { .. } => Err(ConvertError::UnsupportedInputType {
-                type_info: "System messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
-            }),
+            Message::System { .. } | Message::Developer { .. } => {
+                Err(ConvertError::UnsupportedInputType {
+                    type_info: "System/developer messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
+                })
+            }
         }
     }
 }
@@ -1219,11 +1260,16 @@ impl TryFrom<&UniversalTool> for CustomTool {
                 cache_control: None,
                 eager_input_streaming: None,
             }),
+            UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
+                tool_name: tool.name.clone(),
+                tool_type: "custom".to_string(),
+                target_provider: ProviderFormat::Anthropic,
+            }),
             UniversalToolType::Builtin { builtin_type, .. } => {
                 Err(ConvertError::UnsupportedToolType {
                     tool_name: tool.name.clone(),
                     tool_type: builtin_type.clone(),
-                    target_provider: "Anthropic".to_string(),
+                    target_provider: ProviderFormat::Anthropic,
                 })
             }
         }
@@ -1253,7 +1299,7 @@ impl From<&Tool> for UniversalTool {
                     .and_then(Value::as_str)
                     .unwrap_or(&type_str)
                     .to_string();
-                Self::builtin(name, "anthropic", type_str, config)
+                Self::builtin(name, BuiltinToolProvider::Anthropic, type_str, config)
             }
         }
     }
@@ -1265,16 +1311,21 @@ impl TryFrom<&UniversalTool> for Tool {
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
             UniversalToolType::Function => Ok(Tool::Custom(CustomTool::try_from(tool)?)),
+            UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
+                tool_name: tool.name.clone(),
+                tool_type: "custom".to_string(),
+                target_provider: ProviderFormat::Anthropic,
+            }),
             UniversalToolType::Builtin {
                 provider,
                 builtin_type,
                 config,
             } => {
-                if provider != "anthropic" {
+                if !matches!(provider, BuiltinToolProvider::Anthropic) {
                     return Err(ConvertError::UnsupportedToolType {
                         tool_name: tool.name.clone(),
                         tool_type: builtin_type.clone(),
-                        target_provider: "Anthropic".to_string(),
+                        target_provider: ProviderFormat::Anthropic,
                     });
                 }
                 let config_val =

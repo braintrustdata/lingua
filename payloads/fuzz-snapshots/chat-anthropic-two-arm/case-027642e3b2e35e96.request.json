@@ -1,0 +1,58 @@
+{
+  "frequency_penalty": -73.0149355190863,
+  "function_call": "auto",
+  "messages": [
+    {
+      "content": null,
+      "function_call": null,
+      "name": ",f?o?ys",
+      "role": "assistant"
+    }
+  ],
+  "modalities": [
+    "audio",
+    "text",
+    "audio"
+  ],
+  "model": "gpt-4o-mini-audio-preview-2024-12-17",
+  "n": -441,
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": "kv7.f,Si M!hL..A6R??fV.O!x?",
+        "type": "text"
+      },
+      {
+        "text": "r3I2?9r?bli0,.Y.AqUiVuP,0?.?S?",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": 71.95185859140128,
+  "response_format": {
+    "json_schema": {
+      "name": "D!993.,0Uym.,??SwS,l  9HV",
+      "schema": {},
+      "strict": false
+    },
+    "type": "json_schema"
+  },
+  "stop": [
+    "? !kqQ4??n5P3Y! R.4w9Um1w3!?GJ?.",
+    "x60d?,Ftu1k.555O?z,1i4V,,FHDS,"
+  ],
+  "store": false,
+  "stream": false,
+  "tool_choice": {
+    "custom": {
+      "name": "k.944?,09pcXdM8hx!ct al5M.C"
+    },
+    "type": "custom"
+  },
+  "top_logprobs": -652,
+  "web_search_options": {
+    "search_context_size": "medium"
+  }
+}

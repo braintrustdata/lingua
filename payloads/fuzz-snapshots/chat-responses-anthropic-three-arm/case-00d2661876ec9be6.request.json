@@ -1,0 +1,41 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": ",?Y!A?q!9. .f,!vtam.R.5?"
+  },
+  "frequency_penalty": 77.86572643819865,
+  "max_tokens": -484,
+  "messages": [
+    {
+      "content": "a",
+      "role": "developer"
+    }
+  ],
+  "model": "A",
+  "parallel_tool_calls": false,
+  "presence_penalty": -40.040302380440096,
+  "reasoning_effort": "minimal",
+  "seed": 59,
+  "stream_options": null,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "top_logprobs": 452,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": "B7j...A,in?Y s,Od?.j.Qg0.tVt!.hOU?NL.?K,?",
+        "region": " t3",
+        "timezone": ",pG psT.hz!q"
+      },
+      "type": "approximate"
+    }
+  }
+}

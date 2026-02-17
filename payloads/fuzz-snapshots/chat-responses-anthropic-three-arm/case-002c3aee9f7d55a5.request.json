@@ -1,0 +1,56 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": "coral"
+  },
+  "frequency_penalty": 42.21066679711566,
+  "function_call": "none",
+  "logit_bias": {},
+  "max_tokens": 295,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "q ,,MG6297",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    },
+    {
+      "content": "u,.wv NO.,,o",
+      "role": "developer"
+    },
+    {
+      "content": "l3, ?!.1t",
+      "role": "system"
+    }
+  ],
+  "model": "gpt-4.1-mini",
+  "n": -282,
+  "prediction": {
+    "content": [
+      {
+        "text": "hNYq.?62w!?B ?FP,, !,?49 ",
+        "type": "text"
+      },
+      {
+        "text": "e.F5 nu,",
+        "type": "text"
+      },
+      {
+        "text": "?K1YE!Q?NQs.u?s?0j.6!,HI?q N?yCEO?0n901I.",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": 69.0262653079552,
+  "response_format": {
+    "type": "text"
+  },
+  "store": true,
+  "stream": true,
+  "top_logprobs": -702,
+  "verbosity": "low"
+}

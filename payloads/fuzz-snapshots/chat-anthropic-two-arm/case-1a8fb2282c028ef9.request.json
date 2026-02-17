@@ -1,0 +1,37 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "cedar"
+  },
+  "frequency_penalty": -43.63286481591381,
+  "function_call": {
+    "name": "!xZ?"
+  },
+  "logit_bias": {},
+  "logprobs": true,
+  "max_tokens": 354,
+  "messages": [
+    {
+      "content": "4,3? ,?N.DuL7g38",
+      "role": "developer"
+    }
+  ],
+  "model": "o3",
+  "parallel_tool_calls": false,
+  "response_format": {
+    "type": "text"
+  },
+  "seed": -317,
+  "stop": "S ?v V?,7.8u,d,OlCn .a7e5.1VeQ,,k.",
+  "store": true,
+  "stream": false,
+  "tools": [
+    {
+      "function": {
+        "name": "DmIe!Vaj3.K!!6u,UD!.9.4Kg E.0?5?",
+        "strict": null
+      },
+      "type": "function"
+    }
+  ]
+}

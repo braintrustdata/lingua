@@ -1,0 +1,55 @@
+{
+  "audio": {
+    "format": "aac",
+    "voice": "shimmer"
+  },
+  "logprobs": true,
+  "max_tokens": -594,
+  "messages": [
+    {
+      "content": [
+        {
+          "input_audio": null,
+          "type": null
+        }
+      ],
+      "name": "G?.WiZ.i4h .,Ac",
+      "role": "user"
+    }
+  ],
+  "modalities": null,
+  "model": "?,",
+  "prediction": {
+    "content": [
+      {
+        "text": "V!H3??Q.r?9s,??K",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": 57.90853265681524,
+  "reasoning_effort": "high",
+  "seed": 550,
+  "stop": [
+    "eq0?E,IY2,.,!c?e 9",
+    ",?a,Fd2L,kUrRom f.R.?.q. ,j?,6Y! A,L3...9jpa.1.",
+    "!??? !h.1F,l26PG!bV.t.0"
+  ],
+  "store": true,
+  "stream_options": {
+    "include_obfuscation": true
+  },
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "top_logprobs": 4,
+  "verbosity": "medium"
+}
