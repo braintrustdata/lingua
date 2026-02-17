@@ -29,8 +29,9 @@ use crate::universal::request::{
 use crate::universal::tools::UniversalTool;
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    FinishReason, UniversalParams, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
@@ -464,10 +465,13 @@ impl ProviderAdapter for AnthropicAdapter {
                 if delta_type == Some("text_delta") {
                     let text = delta.and_then(|d| d.get("text")).and_then(Value::as_str);
 
-                    // Use null for empty/missing text, preserving semantic equivalence with source
-                    let content_value = match text {
-                        Some(t) if !t.is_empty() => Value::String(t.to_string()),
-                        _ => Value::Null,
+                    let delta = UniversalStreamDelta {
+                        role: Some("assistant".to_string()),
+                        content: match text {
+                            Some(t) if !t.is_empty() => Some(t.to_string()),
+                            _ => None,
+                        },
+                        ..Default::default()
                     };
 
                     let index = payload.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
@@ -477,10 +481,7 @@ impl ProviderAdapter for AnthropicAdapter {
                         None,
                         vec![UniversalStreamChoice {
                             index,
-                            delta: Some(serde_json::json!({
-                                "role": "assistant",
-                                "content": content_value
-                            })),
+                            delta: Some(Value::from(delta)),
                             finish_reason: None,
                         }],
                         None,
@@ -494,20 +495,82 @@ impl ProviderAdapter for AnthropicAdapter {
                         .and_then(|d| d.get("partial_json"))
                         .and_then(Value::as_str)
                         .unwrap_or("");
+                    let delta = UniversalStreamDelta {
+                        tool_calls: vec![UniversalToolCallDelta {
+                            index: Some(index),
+                            function: Some(UniversalToolFunctionDelta {
+                                arguments: Some(partial_json.to_string()),
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        }],
+                        ..Default::default()
+                    };
 
                     return Ok(Some(UniversalStreamChunk::new(
                         None,
                         None,
                         vec![UniversalStreamChoice {
                             index,
-                            delta: Some(serde_json::json!({
-                                "tool_calls": [{
-                                    "index": index,
-                                    "function": {
-                                        "arguments": partial_json
-                                    }
-                                }]
-                            })),
+                            delta: Some(Value::from(delta)),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )));
+                }
+
+                if delta_type == Some("thinking_delta") {
+                    let index = payload.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+                    let thinking = delta
+                        .and_then(|d| d.get("thinking"))
+                        .and_then(Value::as_str)
+                        .unwrap_or("");
+                    if thinking.is_empty() {
+                        return Ok(Some(UniversalStreamChunk::keep_alive()));
+                    }
+                    let delta = UniversalStreamDelta {
+                        role: Some("assistant".to_string()),
+                        reasoning: vec![UniversalReasoningDelta {
+                            content: Some(thinking.to_string()),
+                        }],
+                        ..Default::default()
+                    };
+
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index,
+                            delta: Some(Value::from(delta)),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )));
+                }
+
+                if delta_type == Some("signature_delta") {
+                    let index = payload.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+                    let signature = delta
+                        .and_then(|d| d.get("signature"))
+                        .and_then(Value::as_str)
+                        .unwrap_or("");
+                    if signature.is_empty() {
+                        return Ok(Some(UniversalStreamChunk::keep_alive()));
+                    }
+                    let delta = UniversalStreamDelta {
+                        role: Some("assistant".to_string()),
+                        reasoning_signature: Some(signature.to_string()),
+                        ..Default::default()
+                    };
+
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index,
+                            delta: Some(Value::from(delta)),
                             finish_reason: None,
                         }],
                         None,
@@ -573,21 +636,30 @@ impl ProviderAdapter for AnthropicAdapter {
                             .get("input")
                             .map(tool_input_to_arguments)
                             .unwrap_or_default();
-                        serde_json::json!({
-                            "role": "assistant",
-                            "content": Value::Null,
-                            "tool_calls": [{
-                                "index": 0,
-                                "id": part.get("id").and_then(Value::as_str),
-                                "type": "function",
-                                "function": {
-                                    "name": part.get("name").and_then(Value::as_str),
-                                    "arguments": arguments
-                                }
-                            }]
+                        Value::from(UniversalStreamDelta {
+                            role: Some("assistant".to_string()),
+                            tool_calls: vec![UniversalToolCallDelta {
+                                index: Some(0),
+                                id: part.get("id").and_then(Value::as_str).map(str::to_string),
+                                call_type: Some("function".to_string()),
+                                function: Some(UniversalToolFunctionDelta {
+                                    name: part
+                                        .get("name")
+                                        .and_then(Value::as_str)
+                                        .map(str::to_string),
+                                    arguments: Some(arguments),
+                                }),
+                            }],
+                            ..Default::default()
                         })
                     })
-                    .unwrap_or_else(|| serde_json::json!({"role": "assistant", "content": ""}));
+                    .unwrap_or_else(|| {
+                        Value::from(UniversalStreamDelta {
+                            role: Some("assistant".to_string()),
+                            content: Some(String::new()),
+                            ..Default::default()
+                        })
+                    });
 
                 // Return chunk with metadata but mark as role initialization
                 Ok(Some(UniversalStreamChunk::new(
@@ -603,10 +675,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 )))
             }
 
-            "message_stop" => {
-                // Terminal event - don't emit any chunk
-                Ok(None)
-            }
+            "message_stop" => Ok(None),
 
             "content_block_start" => {
                 let content_block = payload.get("content_block");
@@ -631,19 +700,50 @@ impl ProviderAdapter for AnthropicAdapter {
                         None,
                         vec![UniversalStreamChoice {
                             index: block_index,
-                            delta: Some(serde_json::json!({
-                                "role": "assistant",
-                                "content": Value::Null,
-                                "tool_calls": [{
-                                    "index": block_index,
-                                    "id": id,
-                                    "type": "function",
-                                    "function": {
-                                        "name": name,
-                                        "arguments": ""
-                                    }
-                                }]
+                            delta: Some(Value::from(UniversalStreamDelta {
+                                role: Some("assistant".to_string()),
+                                tool_calls: vec![UniversalToolCallDelta {
+                                    index: Some(block_index),
+                                    id: Some(id.to_string()),
+                                    call_type: Some("function".to_string()),
+                                    function: Some(UniversalToolFunctionDelta {
+                                        name: Some(name.to_string()),
+                                        arguments: Some(String::new()),
+                                    }),
+                                }],
+                                ..Default::default()
                             })),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )));
+                }
+
+                if block_type == Some("thinking") {
+                    let block_index =
+                        payload.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+                    let thinking = content_block
+                        .and_then(|b| b.get("thinking"))
+                        .and_then(Value::as_str)
+                        .unwrap_or("");
+                    if thinking.is_empty() {
+                        return Ok(Some(UniversalStreamChunk::keep_alive()));
+                    }
+                    let delta = UniversalStreamDelta {
+                        role: Some("assistant".to_string()),
+                        reasoning: vec![UniversalReasoningDelta {
+                            content: Some(thinking.to_string()),
+                        }],
+                        ..Default::default()
+                    };
+
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: block_index,
+                            delta: Some(Value::from(delta)),
                             finish_reason: None,
                         }],
                         None,
@@ -757,6 +857,39 @@ impl ProviderAdapter for AnthropicAdapter {
 
         // Check if this is a content delta
         if let Some(choice) = chunk.choices.first() {
+            if let Some(delta_view) = choice.delta_view() {
+                if !delta_view.reasoning.is_empty() {
+                    let thinking = delta_view
+                        .reasoning
+                        .iter()
+                        .filter_map(|r| r.content.as_deref())
+                        .collect::<String>();
+                    if !thinking.is_empty() {
+                        return Ok(serde_json::json!({
+                            "type": "content_block_delta",
+                            "index": choice.index,
+                            "delta": {
+                                "type": "thinking_delta",
+                                "thinking": thinking
+                            }
+                        }));
+                    }
+                }
+
+                if let Some(signature) = delta_view.reasoning_signature {
+                    if !signature.is_empty() {
+                        return Ok(serde_json::json!({
+                            "type": "content_block_delta",
+                            "index": choice.index,
+                            "delta": {
+                                "type": "signature_delta",
+                                "signature": signature
+                            }
+                        }));
+                    }
+                }
+            }
+
             if let Some(delta) = &choice.delta {
                 if let Some(tool_calls) = delta.get("tool_calls").and_then(Value::as_array) {
                     if let Some(tool_call) = tool_calls.first() {
@@ -1104,5 +1237,116 @@ mod tests {
         assert!(format.get("json_schema").is_none());
         // Legacy output_format should NOT be present
         assert!(anthropic_request.get("output_format").is_none());
+    }
+
+    #[test]
+    fn test_stream_to_universal_thinking_delta_semantic_chunk() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+                "type": "thinking_delta",
+                "thinking": "chain of thought fragment"
+            }
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .expect("stream_to_universal should succeed")
+            .expect("thinking_delta should emit a chunk");
+
+        assert!(!chunk.is_keep_alive());
+        let choice = chunk.choices.first().expect("choice must exist");
+        let delta = choice.delta.as_ref().expect("delta must exist");
+        let reasoning = delta
+            .get("reasoning")
+            .and_then(crate::serde_json::Value::as_array)
+            .expect("reasoning array must exist");
+        let first = reasoning.first().expect("reasoning item must exist");
+        assert_eq!(
+            first
+                .get("content")
+                .and_then(crate::serde_json::Value::as_str),
+            Some("chain of thought fragment")
+        );
+    }
+
+    #[test]
+    fn test_stream_to_universal_signature_delta_semantic_chunk() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+                "type": "signature_delta",
+                "signature": "sig_abc123"
+            }
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .expect("stream_to_universal should succeed")
+            .expect("signature_delta should emit a chunk");
+
+        assert!(!chunk.is_keep_alive());
+        let choice = chunk.choices.first().expect("choice must exist");
+        let delta = choice.delta.as_ref().expect("delta must exist");
+        assert_eq!(
+            delta
+                .get("reasoning_signature")
+                .and_then(crate::serde_json::Value::as_str),
+            Some("sig_abc123")
+        );
+    }
+
+    #[test]
+    fn test_stream_to_universal_content_block_start_thinking_semantic_chunk() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {
+                "type": "thinking",
+                "thinking": "initial thought"
+            }
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .expect("stream_to_universal should succeed")
+            .expect("thinking block start should emit a chunk");
+
+        assert!(!chunk.is_keep_alive());
+        let choice = chunk.choices.first().expect("choice must exist");
+        let delta = choice.delta.as_ref().expect("delta must exist");
+        let reasoning = delta
+            .get("reasoning")
+            .and_then(crate::serde_json::Value::as_array)
+            .expect("reasoning array must exist");
+        let first = reasoning.first().expect("reasoning item must exist");
+        assert_eq!(
+            first
+                .get("content")
+                .and_then(crate::serde_json::Value::as_str),
+            Some("initial thought")
+        );
+    }
+
+    #[test]
+    fn test_stream_to_universal_message_stop_returns_none() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "type": "message_stop"
+        });
+
+        let result = adapter
+            .stream_to_universal(payload)
+            .expect("stream_to_universal should succeed");
+
+        assert!(
+            result.is_none(),
+            "message_stop should return None (terminal event)"
+        );
     }
 }

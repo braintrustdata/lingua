@@ -36,6 +36,12 @@ pub struct UniversalToolFunctionDelta {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UniversalReasoningDelta {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct UniversalToolCallDelta {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub index: Option<u32>,
@@ -55,6 +61,10 @@ pub struct UniversalStreamDelta {
     pub content: Option<String>,
     #[serde(default)]
     pub tool_calls: Vec<UniversalToolCallDelta>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub reasoning: Vec<UniversalReasoningDelta>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reasoning_signature: Option<String>,
 }
 
 /// A normalized streaming chunk following OpenAI's format.
@@ -191,6 +201,53 @@ impl UniversalStreamChoice {
     }
 }
 
+impl From<UniversalStreamDelta> for Value {
+    fn from(delta: UniversalStreamDelta) -> Self {
+        let has_structured_delta = !delta.tool_calls.is_empty()
+            || !delta.reasoning.is_empty()
+            || delta.reasoning_signature.is_some();
+        let mut map = serde_json::Map::new();
+        if let Some(role) = delta.role {
+            map.insert("role".into(), Value::String(role));
+        }
+        if let Some(content) = delta.content {
+            map.insert("content".into(), Value::String(content));
+        } else if has_structured_delta {
+            // Preserve explicit null content for tool/reasoning deltas to maintain
+            // roundtrip-equivalent semantics with existing universal stream snapshots.
+            map.insert("content".into(), Value::Null);
+        }
+        if !delta.tool_calls.is_empty() {
+            let value = serde_json::to_value(delta.tool_calls).unwrap_or(Value::Array(vec![]));
+            map.insert("tool_calls".into(), value);
+        }
+        if !delta.reasoning.is_empty() {
+            let value = serde_json::to_value(delta.reasoning).unwrap_or(Value::Array(vec![]));
+            map.insert("reasoning".into(), value);
+        }
+        if let Some(signature) = delta.reasoning_signature {
+            map.insert("reasoning_signature".into(), Value::String(signature));
+        }
+        Value::Object(map)
+    }
+}
+
+impl TryFrom<Value> for UniversalStreamDelta {
+    type Error = serde_json::Error;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        serde_json::from_value(value)
+    }
+}
+
+impl TryFrom<&Value> for UniversalStreamDelta {
+    type Error = serde_json::Error;
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        serde_json::from_value(value.clone())
+    }
+}
+
 // Implement Serialize for UniversalUsage to support streaming chunk serialization
 impl Serialize for UniversalUsage {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -324,5 +381,24 @@ mod tests {
         assert_eq!(json["model"], "gpt-4");
         assert_eq!(json["created"], 1234567890);
         assert!(json.get("keep_alive").is_none()); // Should be skipped
+    }
+
+    #[test]
+    fn test_stream_delta_reasoning_from_into_value() {
+        let delta = UniversalStreamDelta {
+            role: Some("assistant".to_string()),
+            reasoning: vec![UniversalReasoningDelta {
+                content: Some("thought".to_string()),
+            }],
+            reasoning_signature: Some("sig_123".to_string()),
+            ..Default::default()
+        };
+
+        let value = Value::from(delta.clone());
+        let parsed = UniversalStreamDelta::try_from(value).unwrap();
+        assert_eq!(parsed.role.as_deref(), Some("assistant"));
+        assert_eq!(parsed.reasoning.len(), 1);
+        assert_eq!(parsed.reasoning[0].content.as_deref(), Some("thought"));
+        assert_eq!(parsed.reasoning_signature.as_deref(), Some("sig_123"));
     }
 }

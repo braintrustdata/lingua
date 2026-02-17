@@ -694,6 +694,7 @@ impl ProviderAdapter for ResponsesAdapter {
                     vec![UniversalStreamChoice {
                         index: output_index,
                         delta: Some(serde_json::json!({
+                            "content": null,
                             "tool_calls": [{
                                 "index": output_index,
                                 "function": {

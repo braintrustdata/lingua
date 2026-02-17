@@ -7,12 +7,15 @@ import OpenAI from "openai";
 import { allTestCases, getCaseForProvider, GOOGLE_MODEL } from "../../cases";
 import {
   TRANSFORM_PAIRS,
+  STREAMING_PAIRS,
   TRANSFORMS_DIR,
   RESPONSE_VALIDATORS,
   TARGET_MODELS,
   transformAndValidateRequest,
   getTransformableCases,
+  getStreamingTransformableCases,
   getResponsePath,
+  getStreamingResponsePath,
   type SourceFormat,
 } from "./helpers";
 
@@ -112,7 +115,70 @@ export async function captureTransforms(
       const responsePath = getResponsePath(pair.source, pair.target, caseName);
       mkdirSync(dirname(responsePath), { recursive: true });
 
+      const input = getCaseForProvider(allTestCases, caseName, pair.source);
+
+      // Capture non-streaming response
       if (existsSync(responsePath) && !force) {
+        skipped++;
+      } else {
+        try {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
+          const request = transformAndValidateRequest(
+            input,
+            pair.wasmTarget,
+            pair.target
+          ) as Record<string, unknown>;
+
+          const targetCase = getCaseForProvider(
+            allTestCases,
+            caseName,
+            pair.target
+          );
+          request.model =
+            targetCase &&
+            typeof targetCase === "object" &&
+            "model" in targetCase
+              ? targetCase.model
+              : TARGET_MODELS[pair.target];
+
+          const response = await callProvider(pair.target, request);
+
+          const responseJson = JSON.stringify(response, null, 2);
+          RESPONSE_VALIDATORS[pair.target](responseJson);
+
+          writeFileSync(responsePath, responseJson);
+          console.log(`✅ ${pair.source} → ${pair.target} / ${caseName}`);
+          captured++;
+        } catch (e) {
+          const errorObj = e && typeof e === "object" ? e : {};
+          const errorData = {
+            error: e instanceof Error ? e.message : String(e),
+            name: e instanceof Error ? e.name : undefined,
+            ...("response" in errorObj ? { response: errorObj.response } : {}),
+          };
+          writeFileSync(responsePath, JSON.stringify(errorData, null, 2));
+          console.error(
+            `❌ ${pair.source} → ${pair.target} / ${caseName}: ${e}`
+          );
+          failed++;
+        }
+      }
+    }
+  }
+
+  // Capture streaming responses (chat-completions → anthropic, simple cases only)
+  for (const pair of STREAMING_PAIRS) {
+    const streamingCases = getStreamingTransformableCases(pair, filter);
+
+    for (const caseName of streamingCases) {
+      const streamingPath = getStreamingResponsePath(
+        pair.source,
+        pair.target,
+        caseName
+      );
+      mkdirSync(dirname(streamingPath), { recursive: true });
+
+      if (existsSync(streamingPath) && !force) {
         skipped++;
         continue;
       }
@@ -121,7 +187,7 @@ export async function captureTransforms(
 
       try {
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
-        const request = transformAndValidateRequest(
+        const streamRequest = transformAndValidateRequest(
           input,
           pair.wasmTarget,
           pair.target
@@ -132,28 +198,37 @@ export async function captureTransforms(
           caseName,
           pair.target
         );
-        request.model =
+        streamRequest.model =
           targetCase && typeof targetCase === "object" && "model" in targetCase
             ? targetCase.model
             : TARGET_MODELS[pair.target];
 
-        const response = await callProvider(pair.target, request);
+        /* eslint-disable @typescript-eslint/consistent-type-assertions -- SDK requires specific param type */
+        const streamResponse = await getAnthropic().messages.create(
+          {
+            ...(streamRequest as unknown as Anthropic.MessageCreateParams),
+            stream: true,
+          },
+          {
+            headers: { "anthropic-beta": "structured-outputs-2025-11-13" },
+          }
+        );
+        /* eslint-enable @typescript-eslint/consistent-type-assertions */
 
-        const responseJson = JSON.stringify(response, null, 2);
-        RESPONSE_VALIDATORS[pair.target](responseJson);
+        const chunks: unknown[] = [];
+        for await (const chunk of streamResponse) {
+          chunks.push(chunk);
+        }
 
-        writeFileSync(responsePath, responseJson);
-        console.log(`✅ ${pair.source} → ${pair.target} / ${caseName}`);
+        writeFileSync(streamingPath, JSON.stringify(chunks, null, 2));
+        console.log(
+          `✅ ${pair.source} → ${pair.target} / ${caseName} (streaming)`
+        );
         captured++;
       } catch (e) {
-        const errorObj = e && typeof e === "object" ? e : {};
-        const errorData = {
-          error: e instanceof Error ? e.message : String(e),
-          name: e instanceof Error ? e.name : undefined,
-          ...("response" in errorObj ? { response: errorObj.response } : {}),
-        };
-        writeFileSync(responsePath, JSON.stringify(errorData, null, 2));
-        console.error(`❌ ${pair.source} → ${pair.target} / ${caseName}: ${e}`);
+        console.error(
+          `❌ ${pair.source} → ${pair.target} / ${caseName} (streaming): ${e}`
+        );
         failed++;
       }
     }
