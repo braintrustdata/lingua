@@ -30,9 +30,10 @@ use crate::universal::request::{
 use crate::universal::tools::UniversalTool;
 use crate::universal::transform::extract_system_messages;
 use crate::universal::{
-    FinishReason, UniversalParams, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    FinishReason, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID,
+    PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 
