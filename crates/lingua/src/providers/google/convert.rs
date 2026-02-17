@@ -5,6 +5,7 @@ This module provides TryFromLLM trait implementations for converting between
 Google's GenerateContent API format and Lingua's universal message format.
 */
 
+use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::google::generated::{
     Blob as GoogleBlob, Content as GoogleContent, FileData as GoogleFileData,
@@ -24,7 +25,7 @@ use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
 use crate::universal::response::{FinishReason, UniversalUsage};
-use crate::universal::tools::{UniversalTool, UniversalToolType};
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::util::media::parse_base64_data_url;
 
 // ============================================================================
@@ -187,7 +188,7 @@ impl TryFromLLM<Message> for GoogleContent {
 
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, parts) = match message {
-            Message::System { content } => {
+            Message::System { content } | Message::Developer { content } => {
                 let text = match content {
                     UserContent::String(s) => format!("System: {}", s),
                     UserContent::Array(parts) => {
@@ -418,11 +419,16 @@ impl TryFrom<&UniversalTool> for FunctionDeclaration {
                     ..Default::default()
                 })
             }
+            UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
+                tool_name: tool.name.clone(),
+                tool_type: "custom".to_string(),
+                target_provider: ProviderFormat::Google,
+            }),
             UniversalToolType::Builtin { builtin_type, .. } => {
                 Err(ConvertError::UnsupportedToolType {
                     tool_name: tool.name.clone(),
                     tool_type: builtin_type.clone(),
-                    target_provider: "Google".to_string(),
+                    target_provider: ProviderFormat::Google,
                 })
             }
         }
@@ -455,7 +461,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "google_search",
-                    "google",
+                    BuiltinToolProvider::Google,
                     "google_search",
                     Some(config),
                 ));
@@ -470,7 +476,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "code_execution",
-                    "google",
+                    BuiltinToolProvider::Google,
                     "code_execution",
                     Some(config),
                 ));
@@ -485,7 +491,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "google_search_retrieval",
-                    "google",
+                    BuiltinToolProvider::Google,
                     "google_search_retrieval",
                     Some(config),
                 ));
@@ -517,7 +523,7 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                     builtin_type,
                     config,
                 } => {
-                    if provider != "google" {
+                    if !matches!(provider, BuiltinToolProvider::Google) {
                         continue;
                     }
                     let mut google_tool = GoogleTool::default();
@@ -543,6 +549,7 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                     }
                     builtin_tools.push(google_tool);
                 }
+                UniversalToolType::Custom { .. } => continue,
             }
         }
 

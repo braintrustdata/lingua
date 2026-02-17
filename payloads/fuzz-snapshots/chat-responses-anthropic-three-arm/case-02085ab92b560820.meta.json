@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "universal->anthropic(1) error: Conversion from universal format failed: Tool 'sSmiSg7y9q?J,q?Ie3eViBUcc,,ok,?u.8ax,gLyU!?' of type 'custom' is not supported by anthropic"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

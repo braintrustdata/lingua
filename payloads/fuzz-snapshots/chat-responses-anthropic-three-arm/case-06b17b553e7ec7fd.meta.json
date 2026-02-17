@@ -1,0 +1,31 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.presence_penalty (47.866508848870794 -> null)",
+    "universal(2->3): changed: messages.length (3 -> 1)",
+    "universal(2->3): changed: params.response_format ({\"format_type\":\"Text\",\"json_schema\":null} -> null)",
+    "universal(2->3): changed: params.store (false -> null)",
+    "universal(2->3): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(2->3): changed: params.reasoning.effort (\"medium\" -> \"low\")",
+    "responses(1->2): lost: store",
+    "responses(1->2): lost: text",
+    "responses(1->2): changed: input.length (3 -> 1)",
+    "responses(1->2): changed: reasoning.effort (\"medium\" -> \"low\")",
+    "chat(final): lost: prediction",
+    "chat(final): lost: tool_choice",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: modalities",
+    "chat(final): lost: function_call",
+    "chat(final): lost: store",
+    "chat(final): lost: n",
+    "chat(final): lost: functions",
+    "chat(final): lost: response_format",
+    "chat(final): lost: presence_penalty",
+    "chat(final): changed: reasoning_effort (\"medium\" -> \"low\")",
+    "chat(final): changed: messages.length (3 -> 1)",
+    "chat(final): changed: max_completion_tokens (211 -> 845)"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

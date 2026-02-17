@@ -60,6 +60,23 @@ pub struct AnthropicParams {
     pub extras: BTreeMap<String, Value>,
 }
 
+/// Typed view over `UniversalParams.extras[Anthropic]` used during universal
+/// -> Anthropic reconstruction.
+///
+/// This is intentionally partial and preserves raw JSON values from extras.
+/// It is not the full request type because extras may only contain a subset.
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct AnthropicExtrasView {
+    pub messages: Option<Value>,
+    pub system: Option<Value>,
+    pub temperature: Option<Value>,
+    pub tools: Option<Value>,
+    pub tool_choice: Option<Value>,
+    pub output_config: Option<Value>,
+    pub thinking: Option<Value>,
+    pub metadata: Option<Value>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

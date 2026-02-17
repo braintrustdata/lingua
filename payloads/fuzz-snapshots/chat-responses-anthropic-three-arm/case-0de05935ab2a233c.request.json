@@ -1,0 +1,46 @@
+{
+  "audio": {
+    "format": "pcm16",
+    "voice": "echo"
+  },
+  "frequency_penalty": 59.424984266539134,
+  "function_call": "none",
+  "functions": [
+    {
+      "name": "z,4.DX,PIq04! 0,"
+    },
+    {
+      "description": "Ix,,?0vU,X8L9",
+      "name": "r65!YT??.Phh?9?TL8??.,.!!,Dqf??6A,yXu2!6KBX1"
+    }
+  ],
+  "logprobs": false,
+  "max_completion_tokens": -450,
+  "messages": [
+    {
+      "content": ".eK3?,5p.,?.Az..d??..x..?3?q6B.F,Y..642!?YMuy",
+      "name": "7,??3!,m .o,.?,??of.G01 ??21qMLSM?ghNP6",
+      "role": "system"
+    }
+  ],
+  "model": "9",
+  "n": -180,
+  "prediction": {
+    "content": ",.H.Ulg!9DY?3 ,T,?hr,a!3Rw,??D8!Z?W?Iv",
+    "type": "content"
+  },
+  "reasoning_effort": null,
+  "response_format": {
+    "type": "json_object"
+  },
+  "stop": [
+    "?La,...ZT3pc D.mW T,h6BJG?x0.964S17U,.X,I!r3t",
+    ".?q",
+    ".611Ma86.x.tLP0,.67H2n,8!..A"
+  ],
+  "stream": false,
+  "stream_options": {
+    "include_obfuscation": false
+  },
+  "top_logprobs": 472
+}

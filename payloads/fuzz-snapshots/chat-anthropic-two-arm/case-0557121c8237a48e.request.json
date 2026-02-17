@@ -1,0 +1,84 @@
+{
+  "audio": {
+    "format": "flac",
+    "voice": "3JEh!,.T.wdXAY8,!h!Y,l YvM.!E,B,2?K5J,?g!"
+  },
+  "function_call": {
+    "name": "d9 yO.p.."
+  },
+  "functions": [
+    {
+      "name": "Z , f.,?P.lr,tA!nrI5.!?j., 0Y  w.z ,? ?0ZE4.f2qGm",
+      "parameters": {}
+    }
+  ],
+  "logprobs": true,
+  "max_completion_tokens": 723,
+  "max_tokens": -992,
+  "messages": [
+    {
+      "refusal": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "custom": {
+            "input": null,
+            "name": null
+          },
+          "id": "A  S.2!n!4W!viSuvs,,!m",
+          "type": "custom"
+        },
+        {
+          "function": {
+            "arguments": null,
+            "name": null
+          },
+          "id": "!.6iVbj6c9.?,W !m",
+          "type": "function"
+        },
+        {
+          "custom": {
+            "input": null,
+            "name": null
+          },
+          "id": "ST1Z8,",
+          "type": "custom"
+        }
+      ]
+    },
+    {
+      "content": "?P4Pb TlIcxw.n?H 6.vZ0 ..oC?o!!?e.",
+      "name": "4W6!1?v.U7fH?N9nz?,gq,j??8aYSgO7X,F.S.5jG!.,m4.",
+      "role": "system"
+    },
+    {
+      "content": "U2V?L?2?,C!.? Dit.",
+      "name": "Zs!N,w..S?p.!?AsX.ka?I0?? x9!NY.!0a,cF,,,GAuf?q?",
+      "role": "system"
+    }
+  ],
+  "model": "gpt-4.1-2025-04-14",
+  "parallel_tool_calls": false,
+  "presence_penalty": -40.20921033858455,
+  "reasoning_effort": null,
+  "seed": -99,
+  "stop": [
+    "d7!. .iP?YuXO",
+    "WeDlsM!y,TIj2!..YNC,X,SpC68f,vgf.?9 Hm.S",
+    "U?o.?Qi,H!W.1 g6SmD,,kme.m ,6,?I"
+  ],
+  "store": false,
+  "tool_choice": "required",
+  "top_logprobs": 749,
+  "web_search_options": {
+    "search_context_size": "low",
+    "user_location": {
+      "approximate": {
+        "city": "??i6.,g?,S!s.u.2,3OA1a iQLX.xQ.? fv,hy,. W 9Io",
+        "country": "0?ac6?aj",
+        "region": "l!,l,.ll,l, 4 V!9..q 1ij9Wcs"
+      },
+      "type": "approximate"
+    }
+  }
+}

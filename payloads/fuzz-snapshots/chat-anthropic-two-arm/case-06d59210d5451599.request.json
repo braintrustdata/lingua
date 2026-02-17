@@ -1,0 +1,32 @@
+{
+  "frequency_penalty": -80.36184370721237,
+  "logprobs": false,
+  "max_completion_tokens": -118,
+  "max_tokens": 479,
+  "messages": [
+    {
+      "content": "Y.16??E8sQ??. ?70?B?UE.l??.,",
+      "role": "tool",
+      "tool_call_id": "u2?H ?qxZ3"
+    },
+    {
+      "content": "3!x1j?ep!sHdy?K OU?2Y..L9 J34n.cmy,?otZ7.? ?h16FH",
+      "name": "?vq ",
+      "role": "system"
+    }
+  ],
+  "model": "Sh!tQk.?",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": "v.?.b4HD",
+    "type": "content"
+  },
+  "presence_penalty": 49.41600990496087,
+  "reasoning_effort": "high",
+  "store": true,
+  "tool_choice": "none",
+  "verbosity": "low",
+  "web_search_options": {
+    "search_context_size": "medium"
+  }
+}

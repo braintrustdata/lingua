@@ -21,15 +21,21 @@ with the tool definition nested under "function".
 The `UniversalTool` type provides a typed representation that can convert to/from
 any provider format. It distinguishes between:
 - Function tools (user-defined, work across all providers)
+- Custom/free-form tools (OpenAI custom tool type)
 - Builtin tools (provider-specific, may not translate)
 */
 
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
+use crate::serde_json::{json, Map, Value};
+
+#[cfg(test)]
 use crate::providers::anthropic::generated::Tool;
-use crate::serde_json::{self, json, Map, Value};
+#[cfg(test)]
+use crate::serde_json;
 
 // =============================================================================
 // Universal Tool Types
@@ -73,11 +79,20 @@ pub enum UniversalToolType {
     #[serde(rename = "function")]
     Function,
 
+    /// Free-form/custom tool (string-based tool input, not JSON schema)
+    #[serde(rename = "custom")]
+    Custom {
+        /// Optional input format for custom tools (e.g. text/grammar config)
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(type = "Record<string, unknown> | null")]
+        format: Option<Value>,
+    },
+
     /// Provider-specific built-in tool (may not translate to other providers)
     #[serde(rename = "builtin")]
     Builtin {
-        /// Provider identifier (e.g., "anthropic", "openai_responses")
-        provider: String,
+        /// Provider identifier for built-in tool provenance
+        provider: BuiltinToolProvider,
         /// Original type name (e.g., "bash_20250124", "code_interpreter")
         builtin_type: String,
         /// Provider-specific configuration
@@ -85,6 +100,17 @@ pub enum UniversalToolType {
         #[ts(type = "Record<string, unknown> | null")]
         config: Option<Value>,
     },
+}
+
+/// Provider identity for built-in tool passthrough.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "snake_case")]
+pub enum BuiltinToolProvider {
+    Anthropic,
+    Responses,
+    Google,
+    Converse,
 }
 
 // =============================================================================
@@ -108,10 +134,25 @@ impl UniversalTool {
         }
     }
 
-    /// Create a new builtin tool.
+    /// Create a new custom/free-form tool.
+    pub fn custom(
+        name: impl Into<String>,
+        description: Option<String>,
+        format: Option<Value>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            description,
+            parameters: None,
+            strict: None,
+            tool_type: UniversalToolType::Custom { format },
+        }
+    }
+
+    /// Create a new provider-specific builtin tool.
     pub fn builtin(
         name: impl Into<String>,
-        provider: impl Into<String>,
+        provider: BuiltinToolProvider,
         builtin_type: impl Into<String>,
         config: Option<Value>,
     ) -> Self {
@@ -121,7 +162,7 @@ impl UniversalTool {
             parameters: None,
             strict: None,
             tool_type: UniversalToolType::Builtin {
-                provider: provider.into(),
+                provider,
                 builtin_type: builtin_type.into(),
                 config,
             },
@@ -133,112 +174,22 @@ impl UniversalTool {
         matches!(self.tool_type, UniversalToolType::Function)
     }
 
+    /// Check if this is a custom/free-form tool.
+    pub fn is_custom(&self) -> bool {
+        matches!(self.tool_type, UniversalToolType::Custom { .. })
+    }
+
     /// Check if this is a builtin tool.
     pub fn is_builtin(&self) -> bool {
         matches!(self.tool_type, UniversalToolType::Builtin { .. })
     }
 
     /// Get the builtin provider, if this is a builtin tool.
-    pub fn builtin_provider(&self) -> Option<&str> {
+    pub fn builtin_provider(&self) -> Option<BuiltinToolProvider> {
         match &self.tool_type {
-            UniversalToolType::Builtin { provider, .. } => Some(provider),
+            UniversalToolType::Builtin { provider, .. } => Some(*provider),
             _ => None,
         }
-    }
-}
-
-// =============================================================================
-// Conversion from Provider Formats
-// =============================================================================
-
-impl UniversalTool {
-    /// Parse a tool from OpenAI Chat Completions format (JSON Value).
-    ///
-    /// Format: `{"type": "function", "function": {"name", "description", "parameters"}}`
-    pub fn from_openai_chat_value(value: &Value) -> Option<Self> {
-        // OpenAI Chat format requires type: "function" and nested function object
-        if value.get("type").and_then(Value::as_str) != Some("function") {
-            return None;
-        }
-
-        let func = value.get("function")?;
-        let name = func.get("name").and_then(Value::as_str)?;
-        let description = func
-            .get("description")
-            .and_then(Value::as_str)
-            .map(String::from);
-        let parameters = func.get("parameters").cloned();
-        let strict = func.get("strict").and_then(Value::as_bool);
-
-        Some(Self::function(name, description, parameters, strict))
-    }
-
-    /// Parse a tool from OpenAI Responses API format (JSON Value).
-    ///
-    /// Function format: `{"type": "function", "name", "description", "parameters", "strict"}`
-    /// Builtin format: `{"type": "code_interpreter"}`, `{"type": "web_search_preview"}`, etc.
-    pub fn from_responses_value(value: &Value) -> Option<Self> {
-        let tool_type = value.get("type").and_then(Value::as_str)?;
-
-        match tool_type {
-            "function" => {
-                // Responses API function: name is at top level, not nested
-                let name = value.get("name").and_then(Value::as_str)?;
-                let description = value
-                    .get("description")
-                    .and_then(Value::as_str)
-                    .map(String::from);
-                let parameters = value.get("parameters").cloned();
-                let strict = value.get("strict").and_then(Value::as_bool);
-
-                Some(Self::function(name, description, parameters, strict))
-            }
-            "code_interpreter"
-            | "web_search_preview"
-            | "mcp"
-            | "file_search"
-            | "computer_use_preview" => {
-                // Responses API built-in tools
-                Some(Self::builtin(
-                    tool_type,
-                    "openai_responses",
-                    tool_type,
-                    Some(value.clone()),
-                ))
-            }
-            _ => None,
-        }
-    }
-
-    /// Parse tools from a JSON Value array, auto-detecting the format.
-    pub fn from_value_array(tools: &Value) -> Vec<Self> {
-        let Some(arr) = tools.as_array() else {
-            return Vec::new();
-        };
-
-        let format = detect_tools_format(tools);
-
-        arr.iter()
-            .filter_map(|tool| match format {
-                ToolsFormat::OpenAIChat => Self::from_openai_chat_value(tool),
-                ToolsFormat::OpenAIResponses => Self::from_responses_value(tool),
-                ToolsFormat::AnthropicCustom | ToolsFormat::AnthropicBuiltin => {
-                    serde_json::from_value::<Tool>(tool.clone())
-                        .ok()
-                        .map(|t| UniversalTool::from(&t))
-                }
-                ToolsFormat::Unknown => {
-                    // Try each format in order
-                    Self::from_openai_chat_value(tool)
-                        .or_else(|| Self::from_responses_value(tool))
-                        .or_else(|| {
-                            serde_json::from_value::<Tool>(tool.clone())
-                                .ok()
-                                .map(|t| UniversalTool::from(&t))
-                        })
-                }
-            })
-            .collect()
     }
 }
 
@@ -249,7 +200,7 @@ impl UniversalTool {
 impl UniversalTool {
     /// Convert to OpenAI Chat Completions format (JSON Value).
     ///
-    /// Returns an error if the tool is a builtin (Chat Completions doesn't support builtins).
+    /// Returns an error if the tool is a builtin from a different provider.
     pub fn to_openai_chat_value(&self) -> Result<Value, ConvertError> {
         match &self.tool_type {
             UniversalToolType::Function => {
@@ -260,10 +211,9 @@ impl UniversalTool {
                     func.insert("description".into(), Value::String(desc.clone()));
                 }
 
-                func.insert(
-                    "parameters".into(),
-                    self.parameters.clone().unwrap_or_else(|| json!({})),
-                );
+                if let Some(parameters) = &self.parameters {
+                    func.insert("parameters".into(), parameters.clone());
+                }
 
                 if let Some(strict) = self.strict {
                     func.insert("strict".into(), Value::Bool(strict));
@@ -274,13 +224,32 @@ impl UniversalTool {
                     "function": Value::Object(func)
                 }))
             }
-            UniversalToolType::Builtin { builtin_type, .. } => {
-                Err(ConvertError::UnsupportedToolType {
-                    tool_name: self.name.clone(),
-                    tool_type: builtin_type.clone(),
-                    target_provider: "OpenAI Chat Completions".to_string(),
-                })
+            UniversalToolType::Custom { format } => {
+                let mut custom = Map::new();
+                custom.insert("name".into(), Value::String(self.name.clone()));
+
+                if let Some(desc) = &self.description {
+                    custom.insert("description".into(), Value::String(desc.clone()));
+                }
+
+                if let Some(fmt) = format {
+                    custom.insert("format".into(), fmt.clone());
+                }
+
+                Ok(json!({
+                    "type": "custom",
+                    "custom": Value::Object(custom),
+                }))
             }
+            UniversalToolType::Builtin {
+                provider: _,
+                builtin_type,
+                config: _,
+            } => Err(ConvertError::UnsupportedToolType {
+                tool_name: self.name.clone(),
+                tool_type: builtin_type.clone(),
+                target_provider: ProviderFormat::ChatCompletions,
+            }),
         }
     }
 
@@ -298,13 +267,27 @@ impl UniversalTool {
                     obj.insert("description".into(), Value::String(desc.clone()));
                 }
 
-                obj.insert(
-                    "parameters".into(),
-                    self.parameters.clone().unwrap_or_else(|| json!({})),
-                );
+                if let Some(parameters) = &self.parameters {
+                    obj.insert("parameters".into(), parameters.clone());
+                }
 
                 if let Some(strict) = self.strict {
                     obj.insert("strict".into(), Value::Bool(strict));
+                }
+
+                Ok(Value::Object(obj))
+            }
+            UniversalToolType::Custom { format } => {
+                let mut obj = Map::new();
+                obj.insert("type".into(), Value::String("custom".to_string()));
+                obj.insert("name".into(), Value::String(self.name.clone()));
+
+                if let Some(desc) = &self.description {
+                    obj.insert("description".into(), Value::String(desc.clone()));
+                }
+
+                if let Some(fmt) = format {
+                    obj.insert("format".into(), fmt.clone());
                 }
 
                 Ok(Value::Object(obj))
@@ -313,21 +296,23 @@ impl UniversalTool {
                 provider,
                 builtin_type,
                 config,
-            } => {
-                if provider != "openai_responses" {
-                    return Err(ConvertError::UnsupportedToolType {
-                        tool_name: self.name.clone(),
-                        tool_type: builtin_type.clone(),
-                        target_provider: "OpenAI Responses API".to_string(),
-                    });
+            } => match provider {
+                BuiltinToolProvider::Responses => {
+                    // Return the original config for Responses API builtins
+                    config
+                        .clone()
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: format!("config for Responses API builtin tool '{}'", self.name),
+                        })
                 }
-                // Return the original config for Responses API builtins
-                config
-                    .clone()
-                    .ok_or_else(|| ConvertError::MissingRequiredField {
-                        field: format!("config for Responses API builtin tool '{}'", self.name),
-                    })
-            }
+                BuiltinToolProvider::Anthropic
+                | BuiltinToolProvider::Google
+                | BuiltinToolProvider::Converse => Err(ConvertError::UnsupportedToolType {
+                    tool_name: self.name.clone(),
+                    tool_type: builtin_type.clone(),
+                    target_provider: ProviderFormat::Responses,
+                }),
+            },
         }
     }
 }
@@ -364,83 +349,6 @@ pub fn tools_to_responses_value(tools: &[UniversalTool]) -> Result<Option<Value>
     Ok(Some(Value::Array(converted)))
 }
 
-// =============================================================================
-// Format Detection
-// =============================================================================
-
-/// Detected tools format for cross-provider translation.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ToolsFormat {
-    /// OpenAI Chat Completions format: `{type: "function", function: {name, description, parameters}}`
-    OpenAIChat,
-    /// OpenAI Responses API format: `{type: "function", name, description, parameters}` (no wrapper)
-    OpenAIResponses,
-    /// Anthropic custom tool format: `{name, description, input_schema}` (no type field)
-    AnthropicCustom,
-    /// Anthropic built-in tool format: `{type: "bash_20250124", name: "bash"}` etc.
-    AnthropicBuiltin,
-    /// Unknown or unrecognized format
-    Unknown,
-}
-
-/// Detect the format of a tools array.
-///
-/// # Detection logic
-///
-/// 1. If first tool has `type` field and `function` wrapper → OpenAIChat
-/// 2. If first tool has `type` field, no `function`, and type is builtin → AnthropicBuiltin
-/// 3. If first tool has `type` field, no `function`, not builtin → OpenAIResponses
-/// 4. If first tool has `name` but no `type` → AnthropicCustom
-/// 5. Otherwise → Unknown
-fn detect_tools_format(tools: &Value) -> ToolsFormat {
-    let Some(arr) = tools.as_array() else {
-        return ToolsFormat::Unknown;
-    };
-    let Some(first) = arr.first() else {
-        return ToolsFormat::Unknown;
-    };
-
-    let has_type = first.get("type").and_then(Value::as_str);
-    let has_function_wrapper = first.get("function").is_some();
-    let has_name = first.get("name").is_some();
-
-    match (has_type, has_function_wrapper, has_name) {
-        // Has type and function wrapper → OpenAI Chat format
-        (Some("function"), true, _) => ToolsFormat::OpenAIChat,
-
-        // Has type, no function wrapper → check if Anthropic builtin or Responses API
-        (Some(t), false, _) => {
-            // OpenAI Responses builtins (check these first since some overlap with Anthropic)
-            if t == "code_interpreter"
-                || t == "file_search"
-                || t == "mcp"
-                || t == "computer_use_preview"
-                || t.starts_with("web_search_preview")
-            // web_search_preview, web_search_preview_2025_03_11
-            {
-                ToolsFormat::OpenAIResponses
-            }
-            // Anthropic built-in tools use versioned type names (e.g., bash_20250124).
-            // Update this list when Anthropic adds new built-in tool types.
-            else if t.starts_with("bash_")
-                || t.starts_with("text_editor_")
-                || t.starts_with("web_search_")
-            // Anthropic's web_search_YYYYMMDD format
-            {
-                ToolsFormat::AnthropicBuiltin
-            } else {
-                ToolsFormat::OpenAIResponses
-            }
-        }
-
-        // Has name but no type → Anthropic custom format
-        (None, _, true) => ToolsFormat::AnthropicCustom,
-
-        // Anything else
-        _ => ToolsFormat::Unknown,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -466,7 +374,7 @@ mod tests {
     fn test_universal_tool_builtin_constructor() {
         let tool = UniversalTool::builtin(
             "bash",
-            "anthropic",
+            BuiltinToolProvider::Anthropic,
             "bash_20250124",
             Some(json!({"name": "bash"})),
         );
@@ -474,7 +382,10 @@ mod tests {
         assert_eq!(tool.name, "bash");
         assert!(!tool.is_function());
         assert!(tool.is_builtin());
-        assert_eq!(tool.builtin_provider(), Some("anthropic"));
+        assert_eq!(
+            tool.builtin_provider(),
+            Some(BuiltinToolProvider::Anthropic)
+        );
     }
 
     #[test]
@@ -506,60 +417,16 @@ mod tests {
 
         assert_eq!(tool.name, "bash");
         assert!(tool.is_builtin());
-        assert_eq!(tool.builtin_provider(), Some("anthropic"));
+        assert_eq!(
+            tool.builtin_provider(),
+            Some(BuiltinToolProvider::Anthropic)
+        );
 
         if let UniversalToolType::Builtin { builtin_type, .. } = &tool.tool_type {
             assert_eq!(builtin_type, "bash_20250124");
         } else {
             panic!("Expected Builtin type");
         }
-    }
-
-    #[test]
-    fn test_universal_tool_from_openai_chat() {
-        let openai = json!({
-            "type": "function",
-            "function": {
-                "name": "get_weather",
-                "description": "Get weather",
-                "parameters": {"type": "object"}
-            }
-        });
-
-        let tool = UniversalTool::from_openai_chat_value(&openai).unwrap();
-
-        assert_eq!(tool.name, "get_weather");
-        assert_eq!(tool.description, Some("Get weather".to_string()));
-        assert!(tool.is_function());
-    }
-
-    #[test]
-    fn test_universal_tool_from_responses_function() {
-        let responses = json!({
-            "type": "function",
-            "name": "get_weather",
-            "description": "Get weather",
-            "parameters": {"type": "object"},
-            "strict": false
-        });
-
-        let tool = UniversalTool::from_responses_value(&responses).unwrap();
-
-        assert_eq!(tool.name, "get_weather");
-        assert!(tool.is_function());
-    }
-
-    #[test]
-    fn test_universal_tool_from_responses_builtin() {
-        let responses = json!({
-            "type": "code_interpreter"
-        });
-
-        let tool = UniversalTool::from_responses_value(&responses).unwrap();
-
-        assert_eq!(tool.name, "code_interpreter");
-        assert!(tool.is_builtin());
-        assert_eq!(tool.builtin_provider(), Some("openai_responses"));
     }
 
     #[test]
@@ -586,8 +453,12 @@ mod tests {
             "type": "bash_20250124",
             "name": "bash"
         });
-        let tool =
-            UniversalTool::builtin("bash", "anthropic", "bash_20250124", Some(config.clone()));
+        let tool = UniversalTool::builtin(
+            "bash",
+            BuiltinToolProvider::Anthropic,
+            "bash_20250124",
+            Some(config.clone()),
+        );
 
         let typed = Tool::try_from(&tool).unwrap();
         let value = serde_json::to_value(&typed).unwrap();
@@ -598,7 +469,7 @@ mod tests {
     fn test_universal_tool_to_anthropic_builtin_wrong_provider() {
         let tool = UniversalTool::builtin(
             "code_interpreter",
-            "openai_responses",
+            BuiltinToolProvider::Responses,
             "code_interpreter",
             Some(json!({})),
         );
@@ -624,8 +495,27 @@ mod tests {
     }
 
     #[test]
+    fn test_universal_tool_to_openai_chat_custom() {
+        let tool = UniversalTool::custom(
+            "translate",
+            Some("Translate text".to_string()),
+            Some(json!({"type": "text"})),
+        );
+
+        let value = tool.to_openai_chat_value().unwrap();
+        assert_eq!(value["type"], "custom");
+        assert_eq!(value["custom"]["name"], "translate");
+        assert_eq!(value["custom"]["format"]["type"], "text");
+    }
+
+    #[test]
     fn test_universal_tool_to_openai_chat_builtin_error() {
-        let tool = UniversalTool::builtin("bash", "anthropic", "bash_20250124", Some(json!({})));
+        let tool = UniversalTool::builtin(
+            "bash",
+            BuiltinToolProvider::Anthropic,
+            "bash_20250124",
+            Some(json!({})),
+        );
 
         let result = tool.to_openai_chat_value();
         assert!(result.is_err());
@@ -665,11 +555,25 @@ mod tests {
     }
 
     #[test]
+    fn test_universal_tool_to_responses_custom() {
+        let tool = UniversalTool::custom(
+            "code_exec",
+            Some("Executes arbitrary Python code.".to_string()),
+            Some(json!({"type": "text"})),
+        );
+
+        let value = tool.to_responses_value().unwrap();
+        assert_eq!(value["type"], "custom");
+        assert_eq!(value["name"], "code_exec");
+        assert_eq!(value["format"]["type"], "text");
+    }
+
+    #[test]
     fn test_universal_tool_to_responses_builtin_passthrough() {
         let config = json!({"type": "code_interpreter"});
         let tool = UniversalTool::builtin(
             "code_interpreter",
-            "openai_responses",
+            BuiltinToolProvider::Responses,
             "code_interpreter",
             Some(config.clone()),
         );
@@ -696,28 +600,6 @@ mod tests {
     }
 
     #[test]
-    fn test_universal_tool_roundtrip_openai_chat() {
-        let original = json!({
-            "type": "function",
-            "function": {
-                "name": "get_weather",
-                "description": "Get weather",
-                "parameters": {"type": "object"}
-            }
-        });
-
-        let tool = UniversalTool::from_openai_chat_value(&original).unwrap();
-        let back = tool.to_openai_chat_value().unwrap();
-
-        assert_eq!(back["type"], "function");
-        assert_eq!(back["function"]["name"], original["function"]["name"]);
-        assert_eq!(
-            back["function"]["description"],
-            original["function"]["description"]
-        );
-    }
-
-    #[test]
     fn test_universal_tool_cross_provider_anthropic_to_openai() {
         let anthropic = json!({
             "name": "get_weather",
@@ -732,26 +614,6 @@ mod tests {
         assert_eq!(openai["type"], "function");
         assert_eq!(openai["function"]["name"], "get_weather");
         assert_eq!(openai["function"]["description"], "Get weather");
-    }
-
-    #[test]
-    fn test_universal_tool_cross_provider_openai_to_anthropic() {
-        let openai = json!({
-            "type": "function",
-            "function": {
-                "name": "get_weather",
-                "description": "Get weather",
-                "parameters": {"type": "object"}
-            }
-        });
-
-        let tool = UniversalTool::from_openai_chat_value(&openai).unwrap();
-        let typed = Tool::try_from(&tool).unwrap();
-        let anthropic = serde_json::to_value(&typed).unwrap();
-
-        assert_eq!(anthropic["name"], "get_weather");
-        assert_eq!(anthropic["description"], "Get weather");
-        assert!(anthropic.get("type").is_none());
     }
 
     #[test]
@@ -776,7 +638,7 @@ mod tests {
             UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
             UniversalTool::builtin(
                 "code_interpreter",
-                "openai_responses",
+                BuiltinToolProvider::Responses,
                 "code_interpreter",
                 Some(json!({})),
             ),
@@ -804,43 +666,15 @@ mod tests {
     fn test_batch_conversion_to_openai_chat_fails_on_builtin() {
         let tools = vec![
             UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
-            UniversalTool::builtin("bash", "anthropic", "bash_20250124", Some(json!({}))),
+            UniversalTool::builtin(
+                "bash",
+                BuiltinToolProvider::Anthropic,
+                "bash_20250124",
+                Some(json!({})),
+            ),
         ];
 
         let result = tools_to_openai_chat_value(&tools);
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_from_value_array_auto_detect() {
-        // OpenAI Chat format
-        let openai = json!([{
-            "type": "function",
-            "function": {"name": "test1", "description": "desc1", "parameters": {}}
-        }]);
-        let tools = UniversalTool::from_value_array(&openai);
-        assert_eq!(tools.len(), 1);
-        assert_eq!(tools[0].name, "test1");
-
-        // Anthropic format
-        let anthropic = json!([{
-            "name": "test2",
-            "description": "desc2",
-            "input_schema": {}
-        }]);
-        let tools = UniversalTool::from_value_array(&anthropic);
-        assert_eq!(tools.len(), 1);
-        assert_eq!(tools[0].name, "test2");
-
-        // Responses API format
-        let responses = json!([{
-            "type": "function",
-            "name": "test3",
-            "description": "desc3",
-            "parameters": {}
-        }]);
-        let tools = UniversalTool::from_value_array(&responses);
-        assert_eq!(tools.len(), 1);
-        assert_eq!(tools[0].name, "test3");
     }
 }

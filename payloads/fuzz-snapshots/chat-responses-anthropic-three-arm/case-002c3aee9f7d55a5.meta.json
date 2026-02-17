@@ -1,0 +1,31 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.frequency_penalty (42.21066679711566 -> null)",
+    "universal(1->2): changed: params.presence_penalty (69.0262653079552 -> null)",
+    "universal(2->3): changed: params.response_format ({\"format_type\":\"Text\",\"json_schema\":null} -> null)",
+    "universal(2->3): changed: params.store (true -> null)",
+    "universal(2->3): changed: params.top_logprobs (-702 -> null)",
+    "universal(2->3): changed: messages.length (3 -> 1)",
+    "responses(1->2): lost: store",
+    "responses(1->2): lost: text",
+    "responses(1->2): lost: top_logprobs",
+    "responses(1->2): changed: input.length (3 -> 1)",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: audio",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: n",
+    "chat(final): lost: response_format",
+    "chat(final): lost: function_call",
+    "chat(final): lost: store",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: prediction",
+    "chat(final): added: stream_options",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): changed: messages.length (3 -> 1)"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

@@ -26,9 +26,9 @@ use crate::universal::message::Message;
 use crate::universal::request::ToolChoiceConfig;
 use crate::universal::tools::UniversalTool;
 use crate::universal::{
-    extract_system_messages, flatten_consecutive_messages, FinishReason, UniversalParams,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalUsage, UserContent,
+    extract_system_messages, flatten_consecutive_messages, FinishReason, TokenBudget,
+    UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalUsage, UserContent,
 };
 
 /// Adapter for Google AI GenerateContent API.
@@ -122,7 +122,7 @@ impl ProviderAdapter for GoogleAdapter {
             temperature,
             top_p,
             top_k,
-            max_tokens,
+            token_budget: max_tokens.map(TokenBudget::OutputTokens),
             stop,
             tools,
             tool_choice,
@@ -223,7 +223,7 @@ impl ProviderAdapter for GoogleAdapter {
         let has_params = req.params.temperature.is_some()
             || req.params.top_p.is_some()
             || req.params.top_k.is_some()
-            || req.params.max_tokens.is_some()
+            || req.params.output_token_budget().is_some()
             || req.params.stop.is_some()
             || has_reasoning
             || has_response_format;
@@ -251,7 +251,7 @@ impl ProviderAdapter for GoogleAdapter {
                 temperature: req.params.temperature,
                 top_p: req.params.top_p,
                 top_k: req.params.top_k,
-                max_output_tokens: req.params.max_tokens,
+                max_output_tokens: req.params.output_token_budget(),
                 stop_sequences,
                 thinking_config,
                 ..Default::default()
@@ -555,7 +555,10 @@ mod tests {
         let universal = adapter.request_to_universal(payload).unwrap();
         // Use approximate comparison due to f32->f64 conversion precision
         assert!((universal.params.temperature.unwrap() - 0.7).abs() < 0.001);
-        assert_eq!(universal.params.max_tokens, Some(1024));
+        assert_eq!(
+            universal.params.token_budget,
+            Some(TokenBudget::OutputTokens(1024))
+        );
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
         assert!(reconstructed.get("contents").is_some());

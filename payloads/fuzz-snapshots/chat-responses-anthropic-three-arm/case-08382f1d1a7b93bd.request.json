@@ -1,0 +1,40 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "ballad"
+  },
+  "frequency_penalty": 33.932226268343236,
+  "function_call": "none",
+  "messages": [
+    {
+      "content": ".TOy.,0?9v.03..?",
+      "role": "tool",
+      "tool_call_id": "Jg1T.,x9?Pa5.T?,6 !zx!FSd?jd, .?.9?F !"
+    },
+    {
+      "content": [
+        {
+          "text": ",fM.2 ,U2.?m?.9D,H.6Xd,g70f!6.C,R8,.,E4H?,!?F??l6H",
+          "type": "text"
+        },
+        {
+          "text": " ?FJ",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "model": "?M!.K99Dxu,.B1iFG.JI, O?d4.6a p ,Y!l.!, p",
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": "Lqq.!UHg8.U,CitHOA",
+    "type": "content"
+  },
+  "seed": 742,
+  "stream_options": null,
+  "top_logprobs": 880,
+  "web_search_options": {
+    "search_context_size": "high"
+  }
+}
