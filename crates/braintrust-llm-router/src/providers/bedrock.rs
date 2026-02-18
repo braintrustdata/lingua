@@ -114,10 +114,24 @@ impl BedrockProvider {
             .map_err(|e| Error::InvalidRequest(format!("failed to build invoke url: {e}")))
     }
 
-    fn sign_request(&self, url: &Url, body: &[u8], auth: &AuthConfig) -> Result<HeaderMap> {
-        let (access_key, secret_key, session_token, region, service) = auth
-            .aws_credentials()
-            .ok_or_else(|| Error::Auth("AWS credentials required for Bedrock".into()))?;
+    fn sign_request(
+        &self,
+        url: &Url,
+        body: &[u8],
+        auth: &AuthConfig,
+        client_headers: &ClientHeaders,
+    ) -> Result<HeaderMap> {
+        if let AuthConfig::ApiKey { .. } = auth {
+            let mut headers =
+                <Self as crate::providers::Provider>::build_headers(self, client_headers);
+            auth.apply_headers(&mut headers)?;
+            return Ok(headers);
+        }
+
+        let (access_key, secret_key, session_token, region, service) =
+            auth.aws_credentials().ok_or_else(|| {
+                Error::Auth("AwsSignatureV4 or ApiKey credentials required for Bedrock".into())
+            })?;
         let service = if service.is_empty() {
             &self.config.service
         } else {
@@ -182,7 +196,7 @@ impl BedrockProvider {
         let mut signed_request = request;
         instructions.apply_to_request_http1x(&mut signed_request);
 
-        let mut headers = HeaderMap::new();
+        let mut headers = <Self as crate::providers::Provider>::build_headers(self, client_headers);
         for (name, value) in signed_request.headers().iter() {
             headers.insert(
                 name.clone(),
@@ -193,8 +207,14 @@ impl BedrockProvider {
         Ok(headers)
     }
 
-    fn build_headers(&self, url: &Url, payload: &[u8], auth: &AuthConfig) -> Result<HeaderMap> {
-        let mut headers = self.sign_request(url, payload, auth)?;
+    fn build_headers(
+        &self,
+        url: &Url,
+        payload: &[u8],
+        auth: &AuthConfig,
+        client_headers: &ClientHeaders,
+    ) -> Result<HeaderMap> {
+        let mut headers = self.sign_request(url, payload, auth, client_headers)?;
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         Ok(headers)
     }
@@ -205,6 +225,7 @@ impl BedrockProvider {
         payload: Bytes,
         auth: &AuthConfig,
         stream: bool,
+        client_headers: &ClientHeaders,
     ) -> Result<reqwest::Response> {
         #[cfg(not(feature = "tracing"))]
         let _ = stream;
@@ -218,7 +239,7 @@ impl BedrockProvider {
             "sending request to Bedrock"
         );
 
-        let headers = self.build_headers(&url, payload.as_ref(), auth)?;
+        let headers = self.build_headers(&url, payload.as_ref(), auth, client_headers)?;
         let response = self
             .client
             .post(url)
@@ -268,7 +289,7 @@ impl crate::providers::Provider for BedrockProvider {
         auth: &AuthConfig,
         spec: &ModelSpec,
         format: ProviderFormat,
-        _client_headers: &ClientHeaders,
+        client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
         let url = if use_invoke {
@@ -276,7 +297,9 @@ impl crate::providers::Provider for BedrockProvider {
         } else {
             self.converse_url(&spec.model, false)?
         };
-        let response = self.send_signed(url, payload, auth, false).await?;
+        let response = self
+            .send_signed(url, payload, auth, false, client_headers)
+            .await?;
         Ok(response.bytes().await?)
     }
 
@@ -302,7 +325,9 @@ impl crate::providers::Provider for BedrockProvider {
             self.converse_url(&spec.model, true)?
         };
 
-        let response = self.send_signed(url, payload, auth, true).await?;
+        let response = self
+            .send_signed(url, payload, auth, true, client_headers)
+            .await?;
         Ok(bedrock_event_stream(response))
     }
 
@@ -313,7 +338,7 @@ impl crate::providers::Provider for BedrockProvider {
             .join("list-foundation-models")
             .expect("join models path");
         let body = b"{}";
-        let mut headers = self.sign_request(&url, body, auth)?;
+        let mut headers = self.sign_request(&url, body, auth, &ClientHeaders::default())?;
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
         let response = self
@@ -342,5 +367,66 @@ fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
         Some(Duration::from_secs(2))
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn provider() -> BedrockProvider {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
+            service: "bedrock".to_string(),
+            timeout: None,
+        };
+        BedrockProvider::new(config).unwrap()
+    }
+
+    #[test]
+    fn build_headers_supports_api_key_auth() {
+        let provider = provider();
+        let url = provider
+            .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
+            .unwrap();
+        let auth = AuthConfig::ApiKey {
+            key: "test-api-key".into(),
+            header: Some("x-api-key".into()),
+            prefix: None,
+        };
+
+        let headers = provider
+            .build_headers(&url, b"{}", &auth, &ClientHeaders::default())
+            .expect("headers");
+        assert_eq!(
+            headers.get("content-type"),
+            Some(&HeaderValue::from_static("application/json"))
+        );
+        assert_eq!(
+            headers.get("x-api-key"),
+            Some(&HeaderValue::from_static("test-api-key"))
+        );
+    }
+
+    #[test]
+    fn build_headers_rejects_unsupported_auth_modes() {
+        let provider = provider();
+        let url = provider
+            .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
+            .unwrap();
+        let auth = AuthConfig::OAuth {
+            access_token: "token".into(),
+            token_type: Some("Bearer".into()),
+        };
+
+        let err = provider
+            .build_headers(&url, b"{}", &auth, &ClientHeaders::default())
+            .unwrap_err();
+        match err {
+            Error::Auth(message) => {
+                assert!(message.contains("AwsSignatureV4 or ApiKey"));
+            }
+            other => panic!("expected Error::Auth, got {other:?}"),
+        }
     }
 }
