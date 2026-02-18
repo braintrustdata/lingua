@@ -1,0 +1,29 @@
+{
+  "audio": {
+    "format": "aac",
+    "voice": "shimmer"
+  },
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": "X?R0?h,G7 N2,F2.",
+      "role": "tool",
+      "tool_call_id": ",6? 7.PS?z3Hj ?Y,2?.  G3j,SkO,,P8,HHc..u,"
+    },
+    {
+      "content": "xk. ,Q8??!q,u,.0K,?pc,? ?",
+      "role": "tool",
+      "tool_call_id": ".OlM?.N?KJu.v2..s!,?Aj.Wa?.h,?,5e!?,s ?.8s,,O32"
+    }
+  ],
+  "model": "!fZ!,l?6?,IN01",
+  "parallel_tool_calls": true,
+  "presence_penalty": 37.65270497573345,
+  "stream": true,
+  "stream_options": {
+    "include_obfuscation": true,
+    "include_usage": false
+  },
+  "top_logprobs": 392,
+  "web_search_options": {}
+}

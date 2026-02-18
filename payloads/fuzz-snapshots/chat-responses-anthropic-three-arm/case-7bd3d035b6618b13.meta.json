@@ -1,0 +1,25 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.stop ([\"as,  a3.!!c?,?jl,D.VA?!i??Jez,b,H6XT9?g UEts\"] -> null)",
+    "universal(1->2): changed: params.presence_penalty (96.82191703714862 -> null)",
+    "universal(2->3): changed: params.max_tokens (null -> 4096)",
+    "universal(2->3): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "universal(2->3): changed: messages.length (3 -> 1)",
+    "responses(1->2): added: tool_choice",
+    "responses(1->2): added: max_output_tokens",
+    "responses(1->2): changed: input.length (3 -> 1)",
+    "chat(final): lost: function_call",
+    "chat(final): lost: modalities",
+    "chat(final): lost: n",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: prediction",
+    "chat(final): lost: stop",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: audio",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): added: tool_choice",
+    "chat(final): changed: messages.length (3 -> 1)"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

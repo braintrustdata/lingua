@@ -1,0 +1,40 @@
+{
+  "function_call": "auto",
+  "functions": [
+    {
+      "name": "Nux.3?S?,Q,kG31mD,R.uE.s.l??B?q,RM4S8N9 uo,"
+    },
+    {
+      "name": "t,.w5",
+      "parameters": {}
+    },
+    {
+      "name": "v7?X.!,j1,JHH4NM7ir?Rey,s?,g..e ?N,d1 6?",
+      "parameters": {}
+    }
+  ],
+  "logprobs": true,
+  "max_tokens": -828,
+  "messages": [
+    {
+      "content": "?d!oK? 48,.t.5n,U?nK.0 Uw 5h?T?2?BF?z!,o d1T,l",
+      "role": "system"
+    }
+  ],
+  "model": ".O.N",
+  "n": 768,
+  "parallel_tool_calls": false,
+  "response_format": {
+    "type": "json_object"
+  },
+  "stop": "w ..? !cKp,I..,,M, ?,f,",
+  "stream_options": null,
+  "tool_choice": {
+    "function": {
+      "name": "..,.1,t?v1?e?,,K.Gg!0,!!aXg.hi!j?"
+    },
+    "type": "function"
+  },
+  "top_logprobs": -366,
+  "verbosity": "low"
+}

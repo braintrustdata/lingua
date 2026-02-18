@@ -5,12 +5,14 @@ This module provides TryFromLLM trait implementations for converting between
 Google's GenerateContent API format and Lingua's universal message format.
 */
 
+use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::providers::google::generated::{
-    Blob as GoogleBlob, Content as GoogleContent, FunctionCall as GoogleFunctionCall,
-    FunctionCallingConfig, FunctionCallingConfigMode, FunctionDeclaration,
-    FunctionResponse as GoogleFunctionResponse, GenerateContentRequest, GenerationConfig,
-    Part as GooglePart, Tool as GoogleTool, ToolConfig,
+    Blob as GoogleBlob, Content as GoogleContent, FileData as GoogleFileData,
+    FinishReason as GoogleFinishReason, FunctionCall as GoogleFunctionCall, FunctionCallingConfig,
+    FunctionCallingConfigMode, FunctionDeclaration, FunctionResponse as GoogleFunctionResponse,
+    GenerateContentRequest, GenerationConfig, Part as GooglePart, Tool as GoogleTool, ToolConfig,
+    UsageMetadata,
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -22,7 +24,8 @@ use crate::universal::message::{
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
-use crate::universal::tools::{UniversalTool, UniversalToolType};
+use crate::universal::response::{FinishReason, UniversalUsage};
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::util::media::parse_base64_data_url;
 
 // ============================================================================
@@ -128,6 +131,14 @@ impl TryFromLLM<GoogleContent> for Message {
                                 provider_options: None,
                             });
                         }
+                    } else if let Some(fd) = &part.file_data {
+                        if let Some(uri) = &fd.file_uri {
+                            user_parts.push(UserContentPart::Image {
+                                image: Value::String(uri.clone()),
+                                media_type: fd.mime_type.clone(),
+                                provider_options: None,
+                            });
+                        }
                     } else if let Some(fr) = &part.function_response {
                         if let Some(tool_name) = &fr.name {
                             let output = match fr.response.as_ref() {
@@ -177,7 +188,7 @@ impl TryFromLLM<Message> for GoogleContent {
 
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         let (role, parts) = match message {
-            Message::System { content } => {
+            Message::System { content } | Message::Developer { content } => {
                 let text = match content {
                     UserContent::String(s) => format!("System: {}", s),
                     UserContent::Array(parts) => {
@@ -208,26 +219,35 @@ impl TryFromLLM<Message> for GoogleContent {
                                     media_type,
                                     ..
                                 } => {
-                                    let mut inferred_media_type = None;
-                                    let base64_data =
-                                        if let Some(block) = parse_base64_data_url(&data) {
-                                            inferred_media_type = Some(block.media_type);
-                                            block.data
-                                        } else {
-                                            data
-                                        };
-
-                                    let mime_type = media_type
-                                        .or(inferred_media_type)
-                                        .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
-
-                                    converted.push(GooglePart {
-                                        inline_data: Some(GoogleBlob {
-                                            mime_type: Some(mime_type),
-                                            data: Some(base64_data),
-                                        }),
-                                        ..Default::default()
-                                    });
+                                    if let Some(block) = parse_base64_data_url(&data) {
+                                        converted.push(GooglePart {
+                                            inline_data: Some(GoogleBlob {
+                                                mime_type: Some(block.media_type),
+                                                data: Some(block.data),
+                                            }),
+                                            ..Default::default()
+                                        });
+                                    } else if data.starts_with("http://")
+                                        || data.starts_with("https://")
+                                    {
+                                        converted.push(GooglePart {
+                                            file_data: Some(GoogleFileData {
+                                                file_uri: Some(data),
+                                                mime_type: media_type,
+                                            }),
+                                            ..Default::default()
+                                        });
+                                    } else {
+                                        let mime_type = media_type
+                                            .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
+                                        converted.push(GooglePart {
+                                            inline_data: Some(GoogleBlob {
+                                                mime_type: Some(mime_type),
+                                                data: Some(data),
+                                            }),
+                                            ..Default::default()
+                                        });
+                                    }
                                 }
                                 _ => {}
                             }
@@ -399,11 +419,16 @@ impl TryFrom<&UniversalTool> for FunctionDeclaration {
                     ..Default::default()
                 })
             }
+            UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
+                tool_name: tool.name.clone(),
+                tool_type: "custom".to_string(),
+                target_provider: ProviderFormat::Google,
+            }),
             UniversalToolType::Builtin { builtin_type, .. } => {
                 Err(ConvertError::UnsupportedToolType {
                     tool_name: tool.name.clone(),
                     tool_type: builtin_type.clone(),
-                    target_provider: "Google".to_string(),
+                    target_provider: ProviderFormat::Google,
                 })
             }
         }
@@ -436,7 +461,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "google_search",
-                    "google",
+                    BuiltinToolProvider::Google,
                     "google_search",
                     Some(config),
                 ));
@@ -451,7 +476,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "code_execution",
-                    "google",
+                    BuiltinToolProvider::Google,
                     "code_execution",
                     Some(config),
                 ));
@@ -466,7 +491,7 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                 })?;
                 result.push(UniversalTool::builtin(
                     "google_search_retrieval",
-                    "google",
+                    BuiltinToolProvider::Google,
                     "google_search_retrieval",
                     Some(config),
                 ));
@@ -498,7 +523,7 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                     builtin_type,
                     config,
                 } => {
-                    if provider != "google" {
+                    if !matches!(provider, BuiltinToolProvider::Google) {
                         continue;
                     }
                     let mut google_tool = GoogleTool::default();
@@ -524,6 +549,7 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                     }
                     builtin_tools.push(google_tool);
                 }
+                UniversalToolType::Custom { .. } => continue,
             }
         }
 
@@ -660,6 +686,62 @@ pub fn apply_response_format_to_generation_config(
             config.response_mime_type = Some("text/plain".to_string());
         }
         None => {}
+    }
+}
+
+impl From<&GoogleFinishReason> for FinishReason {
+    fn from(reason: &GoogleFinishReason) -> Self {
+        match reason {
+            GoogleFinishReason::Stop => FinishReason::Stop,
+            GoogleFinishReason::MaxTokens => FinishReason::Length,
+            GoogleFinishReason::Safety
+            | GoogleFinishReason::Recitation
+            | GoogleFinishReason::Blocklist
+            | GoogleFinishReason::ProhibitedContent
+            | GoogleFinishReason::Spii
+            | GoogleFinishReason::ImageSafety => FinishReason::ContentFilter,
+            other => {
+                let s = serde_json::to_value(other)
+                    .ok()
+                    .and_then(|v| v.as_str().map(String::from))
+                    .unwrap_or_else(|| format!("{:?}", other));
+                FinishReason::Other(s)
+            }
+        }
+    }
+}
+
+impl From<&UsageMetadata> for UniversalUsage {
+    fn from(usage: &UsageMetadata) -> Self {
+        let candidates = usage.candidates_token_count.unwrap_or(0);
+        let thoughts = usage.thoughts_token_count.unwrap_or(0);
+
+        Self {
+            prompt_tokens: usage.prompt_token_count,
+            // In the universal format, completion_tokens includes reasoning (matching OpenAI convention).
+            // Google separates candidatesTokenCount and thoughtsTokenCount, so we add them.
+            completion_tokens: Some(candidates + thoughts),
+            prompt_cached_tokens: usage.cached_content_token_count,
+            prompt_cache_creation_tokens: None,
+            completion_reasoning_tokens: usage.thoughts_token_count,
+        }
+    }
+}
+
+impl From<&UniversalUsage> for UsageMetadata {
+    fn from(usage: &UniversalUsage) -> Self {
+        let completion = usage.completion_tokens.unwrap_or(0);
+        let reasoning = usage.completion_reasoning_tokens.unwrap_or(0);
+
+        Self {
+            prompt_token_count: usage.prompt_tokens,
+            // Google's candidatesTokenCount excludes thoughts, so subtract reasoning
+            candidates_token_count: Some((completion - reasoning).max(0)),
+            cached_content_token_count: usage.prompt_cached_tokens,
+            thoughts_token_count: usage.completion_reasoning_tokens,
+            total_token_count: Some(usage.prompt_tokens.unwrap_or(0) + completion),
+            ..Default::default()
+        }
     }
 }
 

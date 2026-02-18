@@ -1,0 +1,24 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": " C01BQD3.0LN?!??DA6Q ,A"
+  },
+  "messages": [
+    {
+      "content": "?!,J0,LSoor.bf??1Y??Awv 60,8W ngp7MI",
+      "role": "tool",
+      "tool_call_id": "pl !.F?"
+    }
+  ],
+  "model": ".5v7?Q3.!E9pV1.Kq !  .5pA!.JXpsn????n.tk...?5s,.",
+  "n": -124,
+  "prediction": {
+    "content": "8iT?Bj8,W,6d.vVIU2S.3Fpp.Iy!,e.Y,",
+    "type": "content"
+  },
+  "presence_penalty": 43.57021425972322,
+  "reasoning_effort": null,
+  "stream_options": null,
+  "top_logprobs": 182,
+  "web_search_options": {}
+}

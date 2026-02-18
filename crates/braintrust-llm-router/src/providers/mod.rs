@@ -4,7 +4,6 @@ mod bedrock;
 mod google;
 mod mistral;
 mod openai;
-mod openai_responses;
 mod vertex;
 
 pub use anthropic::{AnthropicConfig, AnthropicProvider};
@@ -16,7 +15,6 @@ pub use openai::{
     is_openai_compatible, openai_compatible_endpoint, OpenAICompatibleEndpoint, OpenAIConfig,
     OpenAIProvider,
 };
-pub use openai_responses::OpenAIResponsesProvider;
 pub use vertex::{VertexConfig, VertexProvider};
 
 use async_trait::async_trait;

@@ -147,7 +147,8 @@ impl Router {
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let (provider, auth, spec, format, strategy) = self.resolve_provider(model)?;
+        let (provider, auth, spec, format, strategy) =
+            self.resolve_provider(model, output_format)?;
         let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
@@ -203,7 +204,7 @@ impl Router {
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
-        let (provider, auth, spec, format, _) = self.resolve_provider(model)?;
+        let (provider, auth, spec, format, _) = self.resolve_provider(model, output_format)?;
         let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
@@ -223,14 +224,25 @@ impl Router {
         Ok(self.formats.get(&format).cloned().unwrap_or(alias))
     }
 
-    fn resolve_provider(&self, model: &str) -> Result<ResolvedRoute<'_>> {
-        let (spec, format, alias) = self.resolver.resolve(model)?;
-        let alias = self.formats.get(&format).cloned().unwrap_or(alias);
+    fn resolve_provider(
+        &self,
+        model: &str,
+        output_format: ProviderFormat,
+    ) -> Result<ResolvedRoute<'_>> {
+        let (spec, catalog_format, alias) = self.resolver.resolve(model)?;
+        let alias = self.formats.get(&catalog_format).cloned().unwrap_or(alias);
         let provider = self
             .providers
             .get(&alias)
             .cloned()
-            .ok_or_else(|| Error::NoProvider(format))?;
+            .ok_or_else(|| Error::NoProvider(catalog_format))?;
+        let format = if output_format != catalog_format
+            && provider.provider_formats().contains(&output_format)
+        {
+            output_format
+        } else {
+            catalog_format
+        };
         let auth = self
             .auth_configs
             .get(&alias)

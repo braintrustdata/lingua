@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "request_from_universal error: Validation failed for target format Responses: missing model"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "responses"
+}

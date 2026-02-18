@@ -11,4 +11,4 @@ dev-notes/
 *.node
 .turbo
 .env
-.claude
+.claude/*local*.json

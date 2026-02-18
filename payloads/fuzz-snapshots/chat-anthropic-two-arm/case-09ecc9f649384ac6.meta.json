@@ -1,0 +1,29 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "universal(1->2): changed: params.response_format.json_schema.name (\".Mt\" -> \"response\")",
+    "universal(1->2): changed: params.response_format.json_schema.description (\"86K?q.?WCP1. ?.8JD31 ?,gn5L,8,8bbOsqdMZs..K?6Ls\" -> null)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.top_logprobs (301 -> null)",
+    "universal(1->2): changed: params.tool_choice (null -> {\"disable_parallel\":true,\"mode\":\"Auto\",\"tool_name\":null})",
+    "universal(1->2): changed: params.store (false -> null)",
+    "anthropic(1->2): lost: system",
+    "chat(final): lost: store",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: audio",
+    "chat(final): lost: modalities",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: prediction",
+    "chat(final): lost: response_format.json_schema.description",
+    "chat(final): added: tool_choice",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): added: stream_options",
+    "chat(final): changed: response_format.json_schema.name (\".Mt\" -> \"response\")",
+    "chat(final): changed: messages.length (1 -> 0)"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

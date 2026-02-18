@@ -1,0 +1,51 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "."
+  },
+  "logit_bias": {},
+  "max_tokens": -872,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Y,gb5,Sf!AT1!yI,a7.u41.TPeaV67  ?aWS,e2 C,a73",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": ".TBu,!,FUf!.sAueAb?.,..x1m,.F?oZ1D",
+  "parallel_tool_calls": false,
+  "prediction": {
+    "content": [
+      {
+        "text": "p.,?.ZWL!,!Q,,Y,i2",
+        "type": "text"
+      },
+      {
+        "text": "6k,3h9.m.",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "reasoning_effort": "low",
+  "response_format": {
+    "json_schema": {
+      "description": "86K?q.?WCP1. ?.8JD31 ?,gn5L,8,8bbOsqdMZs..K?6Ls",
+      "name": ".Mt",
+      "schema": {}
+    },
+    "type": "json_schema"
+  },
+  "store": false,
+  "stream": true,
+  "top_logprobs": 301,
+  "verbosity": "high",
+  "web_search_options": {
+    "search_context_size": "low"
+  }
+}

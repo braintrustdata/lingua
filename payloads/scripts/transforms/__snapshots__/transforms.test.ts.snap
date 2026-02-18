@@ -252,6 +252,15 @@ exports[`anthropic → chat-completions > systemMessageArrayContent > request 1`
   "max_completion_tokens": 300,
   "messages": [
     {
+      "content": [
+        {
+          "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+    {
       "content": "What errors occurred recently?",
       "role": "user",
     },
@@ -616,6 +625,15 @@ exports[`anthropic → responses > simpleRequest > response 1`] = `
 exports[`anthropic → responses > systemMessageArrayContent > request 1`] = `
 {
   "input": [
+    {
+      "content": [
+        {
+          "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
     {
       "content": "What errors occurred recently?",
       "role": "user",
@@ -2463,6 +2481,2015 @@ exports[`chat-completions → anthropic > topPParam > response 1`] = `
       "cached_tokens": 0,
     },
     "total_tokens": 21,
+  },
+}
+`;
+
+exports[`chat-completions → google > complexReasoningRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 20000,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > complexReasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Let's break this down by counting the occurrences of each digit from 0 to 9 across all times from 00:00 to 23:59.
+
+First, let's determine the total number of digits displayed:
+*   There are 24 hours (00 to 23).
+*   There are 60 minutes (00 to 59).
+*   Total number of unique time displays = 24 * 60 = 1440 times.
+*   Each time display has 4 digits (e.g., 00:00, 12:34).
+*   Total number of digits shown = 1440 * 4 = 5760 digits.
+
+Now, let's count the occurrences of each digit systematically. We can do this by considering each digit position (tens of hours, units of hours, tens of minutes, units of minutes).
+
+**1. Tens of Hours (H1_):**
+*   Digit 0 appears for hours 00-09 (10 hours).
+*   Digit 1 appears for hours 10-19 (10 hours).
+*   Digit 2 appears for hours 20-23 (4 hours).
+*   Each of these digits appears for 60 minutes.
+    *   '0': 10 hours * 60 minutes = 600 times
+    *   '1': 10 hours * 60 minutes = 600 times
+    *   '2': 4 hours * 60 minutes = 240 times
+    *   Digits 3-9: 0 times
+
+**2. Units of Hours (_H2):**
+*   For each hour (00-23), we look at its units digit. This digit appears for 60 minutes.
+    *   Digit '0' (from 00, 10, 20): 3 times * 60 minutes = 180 times
+    *   Digit '1' (from 01, 11, 21): 3 times * 60 minutes = 180 times
+    *   Digit '2' (from 02, 12, 22): 3 times * 60 minutes = 180 times
+    *   Digit '3' (from 03, 13, 23): 3 times * 60 minutes = 180 times
+    *   Digits '4' through '9' (e.g., 04, 14 for '4'): 2 times each (since hours go up to 23, we don't have 24, 25, etc.) * 60 minutes = 120 times each
+
+**3. Tens of Minutes (M1_):**
+*   For each minute (00-59), we look at its tens digit. This digit appears for 24 hours.
+    *   Digit '0' (from 00-09): 10 minutes * 24 hours = 240 times
+    *   Digit '1' (from 10-19): 10 minutes * 24 hours = 240 times
+    *   Digit '2' (from 20-29): 10 minutes * 24 hours = 240 times
+    *   Digit '3' (from 30-39): 10 minutes * 24 hours = 240 times
+    *   Digit '4' (from 40-49): 10 minutes * 24 hours = 240 times
+    *   Digit '5' (from 50-59): 10 minutes * 24 hours = 240 times
+    *   Digits 6-9: 0 times
+
+**4. Units of Minutes (_M2):**
+*   For each minute (00-59), we look at its units digit. This digit appears for 24 hours.
+    *   Digits '0' through '9' (e.g., 00, 01...09, 10, 11...19, etc.): Each digit appears 6 times in the units place of minutes (e.g., 0, 10, 20, 30, 40, 50 for '0').
+    *   6 times * 24 hours = 144 times for each digit (0-9).
+
+---
+
+**Total Counts for Each Digit:**
+
+*   **Digit 0:** 600 (H1) + 180 (H2) + 240 (M1) + 144 (M2) = **1164**
+*   **Digit 1:** 600 (H1) + 180 (H2) + 240 (M1) + 144 (M2) = **1164**
+*   **Digit 2:** 240 (H1) + 180 (H2) + 240 (M1) + 144 (M2) = **804**
+*   **Digit 3:** 0 (H1) + 180 (H2) + 240 (M1) + 144 (M2) = **564**
+*   **Digit 4:** 0 (H1) + 120 (H2) + 240 (M1) + 144 (M2) = **504**
+*   **Digit 5:** 0 (H1) + 120 (H2) + 240 (M1) + 144 (M2) = **504**
+*   **Digit 6:** 0 (H1) + 120 (H2) + 0 (M1) + 144 (M2) = **264**
+*   **Digit 7:** 0 (H1) + 120 (H2) + 0 (M1) + 144 (M2) = **264**
+*   **Digit 8:** 0 (H1) + 120 (H2) + 0 (M1) + 144 (M2) = **264**
+*   **Digit 9:** 0 (H1) + 120 (H2) + 0 (M1) + 144 (M2) = **264**
+
+*(Self-check: Sum of counts = 1164*2 + 804 + 564 + 504*2 + 264*4 = 2328 + 804 + 564 + 1008 + 1056 = 5760. This matches the total number of digits displayed.)*
+
+---
+
+**Summary:**
+
+*   **Most Common Digits:**
+    *   The digits **0** and **1** are the most common, each appearing **1164** times.
+    *   Percentage: (1164 / 5760) * 100% = **20.21%** (rounded to two decimal places).
+
+*   **Rarest Digits:**
+    *   The digits **6, 7, 8,** and **9** are the rarest, each appearing **264** times.
+    *   Percentage: (264 / 5760) * 100% = **4.58%** (rounded to two decimal places).",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4983,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3235,
+    },
+    "prompt_tokens": 75,
+    "total_tokens": 5058,
+  },
+}
+`;
+
+exports[`chat-completions → google > frequencyPenaltyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > frequencyPenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "completion_tokens_details": {
+      "reasoning_tokens": 14,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 20,
+  },
+}
+`;
+
+exports[`chat-completions → google > instructionsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Hi",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "Always say ok.",
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → google > instructionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok. Hi.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 6,
+    "total_tokens": 10,
+  },
+}
+`;
+
+exports[`chat-completions → google > logitBiasParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hello.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > logitBiasParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 19,
+    "completion_tokens_details": {
+      "reasoning_tokens": 17,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 23,
+  },
+}
+`;
+
+exports[`chat-completions → google > logprobsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2 + 2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > logprobsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 27,
+    "completion_tokens_details": {
+      "reasoning_tokens": 20,
+    },
+    "prompt_tokens": 9,
+    "total_tokens": 36,
+  },
+}
+`;
+
+exports[`chat-completions → google > maxCompletionTokensParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 500,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > maxCompletionTokensParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 31,
+    "completion_tokens_details": {
+      "reasoning_tokens": 30,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 35,
+  },
+}
+`;
+
+exports[`chat-completions → google > metadataParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > metadataParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 17,
+    "completion_tokens_details": {
+      "reasoning_tokens": 15,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 21,
+  },
+}
+`;
+
+exports[`chat-completions → google > multimodalRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What do you see in this image?",
+        },
+        {
+          "fileData": {
+            "fileUri": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 300,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > multimodalRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "This image features a charming tabby cat lying on a light",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 296,
+    "completion_tokens_details": {
+      "reasoning_tokens": 285,
+    },
+    "prompt_tokens": 267,
+    "total_tokens": 563,
+  },
+}
+`;
+
+exports[`chat-completions → google > nMultipleCompletionsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say a word.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > nMultipleCompletionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 28,
+    "completion_tokens_details": {
+      "reasoning_tokens": 26,
+    },
+    "prompt_tokens": 5,
+    "total_tokens": 33,
+  },
+}
+`;
+
+exports[`chat-completions → google > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather in NYC and LA?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "items": null,
+            "properties": {
+              "location": {
+                "items": null,
+                "type": "STRING",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "OBJECT",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"NYC"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+          {
+            "function": {
+              "arguments": "{"location":"LA"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 101,
+    "completion_tokens_details": {
+      "reasoning_tokens": 71,
+    },
+    "prompt_tokens": 41,
+    "total_tokens": 142,
+  },
+}
+`;
+
+exports[`chat-completions → google > predictionParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Update this function to add error handling:
+
+function divide(a, b) {
+  return a / b;
+}",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > predictionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "There are several ways to add error handling, depending on how you want to signal the error. The most idiomatic JavaScript approach for a function like this is to **throw an error** when invalid inputs are provided or an impossible operation (like division by zero) is attempted.
+
+Here are a few options, with the first being the most common and recommended for this scenario:
+
+---
+
+### Option 1: Throwing Errors (Recommended)
+
+This approach stops the execution of the function and signals an error that must be caught by the calling code using a \`try...catch\` block. This is best for truly exceptional conditions that prevent the function from returning a valid result.
+
+\`\`\`javascript
+function divide(a, b) {
+  // 1. Check if inputs are valid numbers
+  //    - typeof checks if they are of the 'number' type.
+  //    - isNaN checks if they are 'Not a Number' (e.g., Number("hello")).
+  //      Note: typeof NaN is 'number', so isNaN is important.
+  if (typeof a !== 'number' || typeof b !== 'number' || isNaN(a) || isNaN(b)) {
+    throw new Error("Invalid input: Both arguments must be valid numbers.");
+  }
+
+  // 2. Check for division by zero
+  if (b === 0) {
+    throw new Error("Division by zero is not allowed.");
+  }
+
+  // If all checks pass, perform the division
+  return a / b;
+}
+
+// --- How to use it with error handling ---
+console.log("--- Using divide with error handling (try...catch) ---");
+
+// Valid cases
+try {
+  console.log("10 / 2 =", divide(10, 2)); // Expected: 5
+} catch (error) {
+  console.error("Error:", error.message);
+}
+
+try {
+  console.log("7 / 3 =", divide(7, 3));   // Expected: 2.333...
+} catch (error) {
+  console.error("Error:", error.message);
+}
+
+// Error cases
+try {
+  console.log("10 / 0 =", divide(10, 0)); // This will throw an error
+} catch (error) {
+  console.error("Error:", error.message); // Expected: Error: Division by zero is not allowed.
+}
+
+try {
+  console.log("'hello' / 2 =", divide("hello", 2)); // This will throw an error
+} catch (error) {
+  console.error("Error:", error.message); // Expected: Error: Invalid input: Both arguments must be valid numbers.
+}
+
+try {
+  console.log("5 / null =", divide(5, null)); // null becomes 0, still results in div by zero
+} catch (error) {
+  console.error("Error:", error.message); // Expected: Error: Division by zero is not allowed.
+}
+
+try {
+  console.log("5 / NaN =", divide(5, NaN)); // This will throw an error due to NaN input
+} catch (error) {
+  console.error("Error:", error.message); // Expected: Error: Invalid input: Both arguments must be valid numbers.
+}
+\`\`\`
+
+---
+
+### Option 2: Returning an Object with Status (Alternative)
+
+This approach avoids throwing exceptions, which some developers prefer for control flow. Instead, it returns a structured object indicating success or failure along with the result or an error message.
+
+\`\`\`javascript
+function divideWithObjectReturn(a, b) {
+  if (typeof a !== 'number' || typeof b !== 'number' || isNaN(a) || isNaN(b)) {
+    return { success: false, error: "Invalid input: Both arguments must be valid numbers." };
+  }
+
+  if (b === 0) {
+    return { success: false, error: "Division by zero is not allowed." };
+  }
+
+  return { success: true, result: a / b };
+}
+
+// --- How to use it ---
+console.log("\\n--- Using divideWithObjectReturn ---");
+
+let res1 = divideWithObjectReturn(10, 2);
+if (res1.success) {
+  console.log("10 / 2 =", res1.result); // Expected: 5
+} else {
+  console.error("Error:", res1.error);
+}
+
+let res2 = divideWithObjectReturn(10, 0);
+if (res2.success) {
+  console.log("10 / 0 =", res2.result);
+} else {
+  console.error("Error:", res2.error); // Expected: Error: Division by zero is not allowed.
+}
+
+let res3 = divideWithObjectReturn("apple", 2);
+if (res3.success) {
+  console.log("'apple' / 2 =", res3.result);
+} else {
+  console.error("Error:", res3.error); // Expected: Error: Invalid input: Both arguments must be valid numbers.
+}
+\`\`\`
+
+---
+
+### Option 3: Returning Special Values (Less Recommended for Errors)
+
+You *could* return \`null\`, \`undefined\`, or even \`NaN\` (though \`NaN\` is already the natural result for \`number / non-number\`). This is generally **less recommended for error handling** because it can be ambiguous (e.g., \`null\` might be a valid result in other contexts) and doesn't provide a clear error message. The caller *must* explicitly check for these special values.
+
+\`\`\`javascript
+function divideWithSpecialValue(a, b) {
+  if (typeof a !== 'number' || typeof b !== 'number' || isNaN(a) || isNaN(b)) {
+    console.error("Error: Invalid input. Both arguments must be valid numbers.");
+    return NaN; // Or null, or undefined
+  }
+
+  if (b === 0) {
+    console.error("Error: Division by zero is not allowed.");
+    return NaN; // Or null, or undefined
+  }
+
+  return a / b;
+}
+
+// --- How to use it ---
+console.log("\\n--- Using divideWithSpecialValue ---");
+
+let val1 = divideWithSpecialValue(10, 2);
+if (!isNaN(val1)) { // Check for NaN
+  console.log("10 / 2 =", val1); // Expected: 5
+}
+
+let val2 = divideWithSpecialValue(10, 0);
+if (!isNaN(val2)) {
+  console.log("10 / 0 =", val2);
+} // Console will show error, but the variable gets NaN
+
+let val3 = divideWithSpecialValue("grape", 2);
+if (!isNaN(val3)) {
+  console.log("'grape' / 2 =", val3);
+} // Console will show error, but the variable gets NaN
+\`\`\`
+
+---
+
+### Which option to choose?
+
+*   **For robust, clear error handling that prevents invalid states:** **Option 1 (Throwing Errors)** is generally preferred in JavaScript for synchronous functions when an unrecoverable problem occurs. It forces the calling code to consider the error.
+*   **For API functions where you want to avoid exceptions as part of normal control flow:** **Option 2 (Returning an Object)** is a good alternative.
+*   **Option 3 (Returning Special Values)** is typically discouraged for error handling because it's less explicit and can lead to silent failures or hard-to-debug issues.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 3246,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1573,
+    },
+    "prompt_tokens": 27,
+    "total_tokens": 3273,
+  },
+}
+`;
+
+exports[`chat-completions → google > presencePenaltyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > presencePenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 18,
+    "completion_tokens_details": {
+      "reasoning_tokens": 17,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 22,
+  },
+}
+`;
+
+exports[`chat-completions → google > promptCacheKeyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > promptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 25,
+    "completion_tokens_details": {
+      "reasoning_tokens": 23,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 29,
+  },
+}
+`;
+
+exports[`chat-completions → google > reasoningEffortLowParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > reasoningEffortLowParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Here's a possible summary:
+
+**Addressing the Fundamentals**
+
+Alright, a straightforward arithmetic query. No need to overcomplicate things here. The goal is simply to provide the correct answer as clearly and concisely as possible. I'll get straight to the solution, assuming they're looking for a simple, direct response.
+2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 25,
+    "completion_tokens_details": {
+      "reasoning_tokens": 17,
+    },
+    "prompt_tokens": 8,
+    "total_tokens": 33,
+  },
+}
+`;
+
+exports[`chat-completions → google > reasoningRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > reasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "To find the average speed, we need to calculate the **total distance traveled** and the **total time taken**, then divide the total distance by the total time.
+
+Here's a step-by-step breakdown:
+
+**Step 1: Calculate the distance traveled in the first part of the journey.**
+*   Speed = 60 mph
+*   Time = 2 hours
+*   Distance = Speed × Time
+*   Distance₁ = 60 mph × 2 hours = 120 miles
+
+**Step 2: Calculate the distance traveled in the second part of the journey.**
+*   Speed = 80 mph
+*   Time = 1 hour
+*   Distance = Speed × Time
+*   Distance₂ = 80 mph × 1 hour = 80 miles
+
+**Step 3: Calculate the total distance traveled.**
+*   Total Distance = Distance₁ + Distance₂
+*   Total Distance = 120 miles + 80 miles = 200 miles
+
+**Step 4: Calculate the total time taken.**
+*   Total Time = Time₁ + Time₂
+*   Total Time = 2 hours + 1 hour = 3 hours
+
+**Step 5: Calculate the average speed.**
+*   Average Speed = Total Distance / Total Time
+*   Average Speed = 200 miles / 3 hours
+
+**Step 6: State the final answer.**
+*   Average Speed = 66.666... mph
+*   Rounded to two decimal places, the average speed is **66.67 mph**.
+*   Exactly, the average speed is **66 and 2/3 mph**.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 923,
+    "completion_tokens_details": {
+      "reasoning_tokens": 565,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 960,
+  },
+}
+`;
+
+exports[`chat-completions → google > reasoningRequestTruncated > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 100,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > reasoningRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Let's break",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 96,
+    "completion_tokens_details": {
+      "reasoning_tokens": 92,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 133,
+  },
+}
+`;
+
+exports[`chat-completions → google > reasoningSummaryParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 2048,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > reasoningSummaryParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "**My Immediate Response to the Query**
+
+Okay, so the user's just given me "What is 2+2?". Right. No need to overthink this. First, I need to analyze the request – it's a straightforward arithmetic query. There's no hidden complexity here, no nuanced interpretation required. Straightforward. Next, I need to retrieve the fundamental fact. It's an instant recall: 2 plus 2 equals 4. It's practically ingrained. Finally, I need to formulate the response, presenting the answer in a clear and direct manner. No embellishment needed.
+2+2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 69,
+    "completion_tokens_details": {
+      "reasoning_tokens": 62,
+    },
+    "prompt_tokens": 8,
+    "total_tokens": 77,
+  },
+}
+`;
+
+exports[`chat-completions → google > reasoningWithOutput > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What color is the sky?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > reasoningWithOutput > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The sky is most commonly **blue**.
+
+Here's why, and when it can be other colors:
+
+1.  **Blue:** This is the most common color during the day. It's due to a phenomenon called **Rayleigh scattering**. Sunlight (which contains all colors) enters Earth's atmosphere. Blue and violet light have shorter wavelengths and are scattered more efficiently by the tiny molecules of nitrogen and oxygen in the atmosphere than the longer wavelengths (like red and yellow). Because blue light is scattered in all directions, it makes the sky appear blue to our eyes. Our eyes are also more sensitive to blue than violet.
+
+2.  **Red, Orange, Pink, Purple:** At **sunrise and sunset**, the sky often takes on these warm hues. This happens because the sun's light has to travel through much more of the atmosphere to reach our eyes. By the time it gets to us, most of the blue and violet light has been scattered away, allowing the longer wavelengths (red, orange, yellow) to pass through more directly. Dust and pollution can enhance these effects.
+
+3.  **Grey or White:** When it's **overcast or cloudy**, the sky often looks grey or white. Clouds are made of water droplets and ice crystals, which are much larger than the gas molecules in the atmosphere. These larger particles scatter all wavelengths of light more or less equally, resulting in a white or grey appearance. Thicker clouds appear darker grey as less light passes through them.
+
+4.  **Black:** At **night**, the sky appears black (with stars). This is because the side of Earth you are on is facing away from the sun, so there's no sunlight to be scattered by the atmosphere.
+
+5.  **Other Variations:**
+    *   **Yellow/Brownish:** Can be due to haze, dust, or heavy pollution.
+    *   **Greenish:** Very rarely, sometimes associated with severe thunderstorms (though this is more common with the lighting *within* the storm).
+
+So, while **blue** is the most frequent answer, the sky's color is a dynamic and beautiful display influenced by the time of day, weather, and atmospheric conditions.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1165,
+    "completion_tokens_details": {
+      "reasoning_tokens": 712,
+    },
+    "prompt_tokens": 7,
+    "total_tokens": 1172,
+  },
+}
+`;
+
+exports[`chat-completions → google > safetyIdentifierParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > safetyIdentifierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 18,
+    "completion_tokens_details": {
+      "reasoning_tokens": 17,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 22,
+  },
+}
+`;
+
+exports[`chat-completions → google > seedParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Pick a number.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > seedParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "7",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 530,
+    "completion_tokens_details": {
+      "reasoning_tokens": 529,
+    },
+    "prompt_tokens": 5,
+    "total_tokens": 535,
+  },
+}
+`;
+
+exports[`chat-completions → google > serviceTierParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > serviceTierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 19,
+    "completion_tokens_details": {
+      "reasoning_tokens": 18,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 23,
+  },
+}
+`;
+
+exports[`chat-completions → google > simpleRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is the capital of France?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > simpleRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Okay, here's the summary of the thought process, as if I'm having these thoughts:
+
+**Addressing the Direct Inquiry**
+
+Alright, a clear and concise question has been presented. It's a matter of fact, and the expectation is a direct and accurate response. My primary focus is to ensure the information provided is correct and relevant to the user's specific inquiry. No room for ambiguity here; precision is key. I'll need to recall the relevant data or knowledge and communicate it in a straightforward manner. My expertise is relied upon here, so accuracy is of paramount importance. Let's get this right.
+The capital of France is **Paris**.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 25,
+    "completion_tokens_details": {
+      "reasoning_tokens": 17,
+    },
+    "prompt_tokens": 8,
+    "total_tokens": 33,
+  },
+}
+`;
+
+exports[`chat-completions → google > stopSequencesParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Count from 1 to 20.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "stopSequences": [
+      "10",
+      "ten",
+    ],
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > stopSequencesParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, ",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 50,
+    "completion_tokens_details": {
+      "reasoning_tokens": 24,
+    },
+    "prompt_tokens": 10,
+    "total_tokens": 60,
+  },
+}
+`;
+
+exports[`chat-completions → google > storeDisabledParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > storeDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 29,
+    "completion_tokens_details": {
+      "reasoning_tokens": 27,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 33,
+  },
+}
+`;
+
+exports[`chat-completions → google > systemMessageArrayContent > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What errors occurred recently?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 300,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → google > systemMessageArrayContent > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "To find recent errors, I'll query the \`project_logs\` data source and look for entries with an error or critical log level.
+
+\`\`\`sql
+SELECT
+  timestamp,
+  level,
+  message,
+  service,
+  trace_id
+FROM
+  project_logs
+WHERE
+  level IN ('error', 'critical')
+ORDER BY
+  timestamp DESC
+LIMIT 20;
+\`\`\`
+
+This query will retrieve the 20 most recent log entries that have a level of",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 296,
+    "completion_tokens_details": {
+      "reasoning_tokens": 189,
+    },
+    "prompt_tokens": 29,
+    "total_tokens": 325,
+  },
+}
+`;
+
+exports[`chat-completions → google > temperatureParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "temperature": 0.7,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > temperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 18,
+    "completion_tokens_details": {
+      "reasoning_tokens": 15,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 22,
+  },
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonObjectParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return {"status": "ok"} as JSON.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonObjectParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"status": "ok"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 29,
+    "completion_tokens_details": {
+      "reasoning_tokens": 23,
+    },
+    "prompt_tokens": 11,
+    "total_tokens": 40,
+  },
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonSchemaParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Extract: John is 25.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseMimeType": "application/json",
+    "responseSchema": {
+      "items": null,
+      "properties": {
+        "age": {
+          "items": null,
+          "type": "NUMBER",
+        },
+        "name": {
+          "items": null,
+          "type": "STRING",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "OBJECT",
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonSchemaParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"name": "John", "age": 25}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 114,
+    "completion_tokens_details": {
+      "reasoning_tokens": 101,
+    },
+    "prompt_tokens": 9,
+    "total_tokens": 123,
+  },
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Extract: John is 25.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseMimeType": "application/json",
+    "responseSchema": {
+      "items": null,
+      "properties": {
+        "age": {
+          "items": null,
+          "type": "NUMBER",
+        },
+        "name": {
+          "items": null,
+          "type": "STRING",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "OBJECT",
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"name":"John","age":25}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 87,
+    "completion_tokens_details": {
+      "reasoning_tokens": 77,
+    },
+    "prompt_tokens": 9,
+    "total_tokens": 96,
+  },
+}
+`;
+
+exports[`chat-completions → google > textFormatTextParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hello.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseMimeType": "text/plain",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > textFormatTextParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 17,
+    "completion_tokens_details": {
+      "reasoning_tokens": 15,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 21,
+  },
+}
+`;
+
+exports[`chat-completions → google > toolCallRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What's the weather like in San Francisco?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": {
+            "items": null,
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "items": null,
+                "type": "STRING",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "OBJECT",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolCallRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"San Francisco, CA"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 94,
+    "completion_tokens_details": {
+      "reasoning_tokens": 76,
+    },
+    "prompt_tokens": 62,
+    "total_tokens": 156,
+  },
+}
+`;
+
+exports[`chat-completions → google > toolChoiceRequiredParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "allowedFunctionNames": [
+        "get_weather",
+      ],
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "items": null,
+            "properties": {
+              "location": {
+                "items": null,
+                "type": "STRING",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "OBJECT",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolChoiceRequiredParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 62,
+    "completion_tokens_details": {
+      "reasoning_tokens": 47,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 99,
+  },
+}
+`;
+
+exports[`chat-completions → google > topPParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "topP": 0.9,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > topPParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 29,
+    "completion_tokens_details": {
+      "reasoning_tokens": 27,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 33,
   },
 }
 `;

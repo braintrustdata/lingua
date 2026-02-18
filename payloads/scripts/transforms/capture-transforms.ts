@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { dirname } from "path";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
-import { allTestCases, getCaseForProvider } from "../../cases";
+import { allTestCases, getCaseForProvider, GOOGLE_MODEL } from "../../cases";
 import {
   TRANSFORM_PAIRS,
   TRANSFORMS_DIR,
@@ -15,6 +15,8 @@ import {
   getResponsePath,
   type SourceFormat,
 } from "./helpers";
+
+const GOOGLE_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 let _anthropic: Anthropic | undefined;
 let _openai: OpenAI | undefined;
@@ -27,6 +29,36 @@ function getAnthropic(): Anthropic {
 function getOpenAI(): OpenAI {
   if (!_openai) _openai = new OpenAI();
   return _openai;
+}
+
+async function callGoogleProvider(
+  request: Record<string, unknown>
+): Promise<unknown> {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    throw new Error("GOOGLE_API_KEY environment variable is required");
+  }
+
+  const rawModel = request.model ?? GOOGLE_MODEL;
+  const model = typeof rawModel === "string" ? rawModel : String(rawModel);
+  const { model: _model, ...body } = request;
+
+  const endpoint = `${GOOGLE_API_BASE}/models/${model}:generateContent`;
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Google API error (${response.status}): ${text}`);
+  }
+
+  return response.json();
 }
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- SDK methods require specific param types, validation done by transformAndValidateRequest */
@@ -48,6 +80,8 @@ async function callProvider(
       return getOpenAI().responses.create(
         request as unknown as OpenAI.Responses.ResponseCreateParams
       );
+    case "google":
+      return callGoogleProvider(request);
   }
 }
 /* eslint-enable @typescript-eslint/consistent-type-assertions */

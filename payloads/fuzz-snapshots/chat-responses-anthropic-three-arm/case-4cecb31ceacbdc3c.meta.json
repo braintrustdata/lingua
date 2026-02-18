@@ -1,0 +1,28 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.stop ([\".,89O?KRTx?F\"] -> null)",
+    "universal(1->2): changed: params.frequency_penalty (30.845807638004253 -> null)",
+    "universal(1->2): changed: params.response_format ({\"format_type\":\"JsonSchema\",\"json_schema\":null} -> null)",
+    "universal(1->2): changed: params.presence_penalty (65.09719742329442 -> null)",
+    "universal(2->3): changed: params.parallel_tool_calls (true -> null)",
+    "universal(2->3): changed: params.store (false -> null)",
+    "universal(2->3): changed: messages[0].content ([{\"text\":\"KR.y,9?4\",\"type\":\"text\"}] -> \"KR.y,9?4\")",
+    "responses(1->2): lost: store",
+    "responses(1->2): lost: parallel_tool_calls",
+    "responses(1->2): changed: input[0].content ([{\"text\":\"KR.y,9?4\",\"type\":\"input_text\"}] -> \"KR.y,9?4\")",
+    "chat(final): lost: store",
+    "chat(final): lost: prediction",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: stop",
+    "chat(final): lost: modalities",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: response_format",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): changed: messages[0].content ([{\"text\":\"KR.y,9?4\",\"type\":\"text\"}] -> \"KR.y,9?4\")",
+    "chat(final): changed: messages[0].role (\"developer\" -> \"system\")"
+  ],
+  "kind": "chat-responses-anthropic-three-arm",
+  "provider": "chat-completions"
+}

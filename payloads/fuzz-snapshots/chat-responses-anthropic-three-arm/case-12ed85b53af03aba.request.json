@@ -1,0 +1,49 @@
+{
+  "frequency_penalty": 87.37624347962908,
+  "function_call": "auto",
+  "functions": [
+    {
+      "description": "?k??? ? M8L  ",
+      "name": "8rjOQ.,?,.?,H.uAi.?G?.,?5?f.,?",
+      "parameters": {}
+    },
+    {
+      "name": "k,B7?o.lu8?,?2. .4UVFVd7? . ",
+      "parameters": {}
+    },
+    {
+      "description": " t3vo.diy2?!YT5 X8l3W.,qk.0ZL.29.k!4! ..t3?A?Q",
+      "name": "!i9,,!6!CM ,Q1W.l ! . .P?P .qB8H2?b,u?"
+    }
+  ],
+  "max_completion_tokens": 619,
+  "max_tokens": 659,
+  "messages": [
+    {
+      "content": "?dVy??6rE1d?2Y5k?,U .yT! o",
+      "role": "user"
+    },
+    {
+      "content": "o!?.yjV.s,!!3.F7xT !.Sd,6lt?!JZL!MF CFO6?f3b",
+      "name": "!. 6Vr ?..?Y,?97,uXto??odi?DvlsP  mq .Y3jJ",
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-3.5-turbo-0301",
+  "parallel_tool_calls": true,
+  "presence_penalty": -27.947986728916025,
+  "reasoning_effort": null,
+  "stream": true,
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "required",
+      "tools": [
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "top_logprobs": 750,
+  "verbosity": null
+}

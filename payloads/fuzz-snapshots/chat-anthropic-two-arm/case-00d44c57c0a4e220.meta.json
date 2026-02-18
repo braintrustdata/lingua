@@ -1,0 +1,7 @@
+{
+  "issues": [
+    "chat->universal error: Conversion to universal format failed: Invalid role value: 'Function'"
+  ],
+  "kind": "chat-anthropic-two-arm",
+  "provider": "chat-completions"
+}

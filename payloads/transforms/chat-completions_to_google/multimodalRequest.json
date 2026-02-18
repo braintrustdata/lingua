@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "This image features a charming tabby cat lying on a light"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 267,
+    "candidatesTokenCount": 11,
+    "totalTokenCount": 563,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 9
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "thoughtsTokenCount": 285
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "N_yPaaH0F-3SjMcPtImKwA0"
+}
