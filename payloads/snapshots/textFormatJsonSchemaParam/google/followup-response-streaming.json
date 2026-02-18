@@ -1,0 +1,61 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\""
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 30,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 86,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 30
+        }
+      ],
+      "thoughtsTokenCount": 55
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ-SGLLj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "name\": \"null\", \"age\": 0}"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 30,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 97,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 30
+        }
+      ],
+      "thoughtsTokenCount": 55
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ-SGLLj_uMPlNCZCA"
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Ok. To give you the best suggestion, I need a little more information about what kind of \"next\" you're looking for!\n\nAre you wondering about:\n\n1.  **Something to do right now (boredom buster)?**\n2.  **Your career or professional life?**\n3.  **A personal goal or self-improvement?**\n4.  **A hobby or something creative?**\n5.  **A decision you need to make?**\n6.  **Something related to a specific situation you're in?**\n\nIn the meantime, here are some *very general* ideas:\n\n*   **Take a short walk.**\n*   **Drink a glass of water.**\n*   **Tidy up one small area around you.**\n*   **Check in with a friend or family member.**\n*   **Learn one new fact about something you're curious about.**\n*   **Listen to a new song or a podcast.**\n*   **Make a quick to-do list for the next hour.**\n\nLet me know what kind of \"next\" you have in mind!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 18,
+    "candidatesTokenCount": 239,
+    "totalTokenCount": 487,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 18
+      }
+    ],
+    "thoughtsTokenCount": 230
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWaYEL3KL-4w_gkNmACA"
+}

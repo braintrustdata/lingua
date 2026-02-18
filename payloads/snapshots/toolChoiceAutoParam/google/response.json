@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Could you please provide the location?",
+            "thoughtSignature": "Cr0CAb4+9vtu9oW8taRtCeR3v3zPSV0+JnoVd528WnbITyiIWqDkVfp5pALvpgn1RevZ0CHmfSDNeZEFKz0i+RixnrUmJxi/LskwM1D1cwWYHgCFsQxIyL2llPHkeB3f9hREOAhJYlT6HRAz8jNS+uKqH10w1LlknbjIEPwvEIXvz1iYcwlQY2yJrnYGnHo5Czq6QfXvYs0J96v41REwuRGDdjOJyvpV2hiaFEV9IBqxoTAz3+amhGgeuMeKXa93YtuA97rZqhHSF1VAhG02+fRMyf0ycMytBkWOGGaz8pLA8nODBVLEp+0PA1VDzAK9kRANN9AxZunl0BPNZIjPQ62giis/II5fcHMBcx5+lbdR5Z14CJOwiNu443QSUyYXn81bx9+PQy9CAEbD9/jwsQAQ7IIK7d0S6n6+KmicuOs="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 7,
+    "totalTokenCount": 116,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 72
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "k0yWaZzMIdyM_PUP1KKUwQY"
+}

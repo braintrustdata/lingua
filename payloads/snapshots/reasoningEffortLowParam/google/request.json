@@ -1,0 +1,17 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What is 2+2?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingBudget": 5000
+    }
+  }
+}

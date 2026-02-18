@@ -1,0 +1,293 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a fun, open-ended question! Since I don't know anything about you or what you're looking for, here are a few broad"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 33,
+      "totalTokenCount": 783,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " suggestions. Maybe one will spark an idea:\n\n**1. If you're looking for something productive:**\n    *   Tackle a small chore you've been putting off.\n    *   Organize your digital files or"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 81,
+      "totalTokenCount": 831,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " physical space for 10 minutes.\n    *   Plan out your next few tasks or appointments.\n    *   Reply to any pending messages or emails.\n\n**2. If you want to relax or be entertained:**\n    *   "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 130,
+      "totalTokenCount": 880,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Listen to some music, a podcast, or an audiobook.\n    *   Read a chapter of a book or an interesting article online.\n    *   Watch a short video or a quick episode of a show.\n    *   Do"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 179,
+      "totalTokenCount": 929,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " a quick mindfulness exercise or stretch.\n    *   Take a short walk, even just around the block.\n\n**3. If you're feeling creative or want to learn:**\n    *   Doodle or sketch something.\n    *   "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 229,
+      "totalTokenCount": 979,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Write a short journal entry or a few lines of a story.\n    *   Learn a new word or a random fact.\n    *   Practice a skill you're trying to develop.\n\n**4. If you want to keep"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 278,
+      "totalTokenCount": 1028,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " interacting with me:**\n    *   Ask me another question about anything that comes to mind!\n    *   Tell me something interesting about your day.\n    *   Ask me to tell you a joke or a fun fact.\n    "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 325,
+      "totalTokenCount": 1075,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   Let's play a simple word game.\n\n**To help me give you a better suggestion, tell me:**\n*   How are you feeling right now? (e.g., bored, energetic, tired, stressed)\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 373,
+      "totalTokenCount": 1123,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   What kind of mood are you in?\n*   Do you have a lot of time, or just a few minutes?\n*   Are you indoors or outdoors?\n\nLet me know, and we can figure out something great"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 421,
+      "totalTokenCount": 1171,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 422,
+      "totalTokenCount": 1172,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 736
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaZ7hA9qn_uMPz_SnmAg"
+  }
+]

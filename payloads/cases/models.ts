@@ -7,6 +7,8 @@ export const ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929";
 // For Anthropic output_config.effort (requires Opus 4.5+)
 export const ANTHROPIC_OPUS_MODEL = "claude-opus-4-6";
 export const GOOGLE_MODEL = "gemini-2.5-flash";
+export const GOOGLE_GEMINI_3_MODEL = "gemini-3-flash-preview";
+export const GOOGLE_IMAGE_MODEL = "gemini-2.5-flash-image";
 export const BEDROCK_MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0";
 export const BEDROCK_ANTHROPIC_MODEL =
   "us.anthropic.claude-haiku-4-5-20251001-v1:0";

@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That's a fun, open-ended question! Since we just picked a number, here are a few ideas, depending on what you're in the mood for:\n\n1.  **You could tell me *your* favorite number** and why you like it.\n2.  **You could ask me *why* I picked 42.** (There's a famous reason!)\n3.  **We could play a number-related game.** For example, I could give you a series of numbers and you try to find the pattern, or we could do some fun math challenges.\n4.  **You could give *me* a challenge.** Maybe ask me a complex question, or give me a creative prompt.\n5.  **We could just chat about anything else.** What's on your mind?\n\nWhat sounds most interesting to you?"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 32,
+    "candidatesTokenCount": 180,
+    "totalTokenCount": 1116,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 32
+      }
+    ],
+    "thoughtsTokenCount": 904
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lkyWac2FNYTL_uMP5tX1gAk"
+}

@@ -1,0 +1,30 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Extract: John is 25."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "responseMimeType": "application/json",
+    "responseJsonSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "age"
+      ]
+    }
+  }
+}

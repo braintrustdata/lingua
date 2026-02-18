@@ -1,0 +1,119 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Ok. To give you the best suggestion, I need a little more information! \"Next\" could mean almost anything.\n\nCould you tell me:\n\n1.  **What were you doing just before asking this?** (e."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 48,
+      "totalTokenCount": 330,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 264
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaZHvPNyM_PUP1KKUwQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "g., working, browsing, feeling bored, just finished a task)\n2.  **What kind of area are you thinking of?** (e.g., work, personal life, learning, entertainment, health, a specific project)\n3"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 99,
+      "totalTokenCount": 381,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 264
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaZHvPNyM_PUP1KKUwQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ".  **What's your goal, if you have one?** (e.g., be productive, relax, learn something, have fun, get organized)\n4.  **How much time do you have?** (e.g"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 150,
+      "totalTokenCount": 432,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 264
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaZHvPNyM_PUP1KKUwQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "., 5 minutes, an hour, the rest of the day)\n\nOnce I have a bit more context, I can give you a more tailored suggestion!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 182,
+      "totalTokenCount": 464,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 264
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaZHvPNyM_PUP1KKUwQY"
+  }
+]

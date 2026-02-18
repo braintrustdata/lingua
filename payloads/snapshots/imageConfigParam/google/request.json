@@ -1,0 +1,21 @@
+{
+  "model": "gemini-2.5-flash-image",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Generate a tiny red dot."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "responseModalities": [
+      "IMAGE"
+    ],
+    "imageConfig": {
+      "aspectRatio": "1:1"
+    }
+  }
+}

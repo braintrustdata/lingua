@@ -1,0 +1,119 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "To give you the most accurate weather information, I need a little more detail!"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 16,
+      "totalTokenCount": 543,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 490
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWafj_IMTj_uMP8em3WQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "\n\nCould you please tell me:\n\n1.  **Your location** (city, state, or even just 'my current location' if you're comfortable sharing it via device settings)?\n2.  What **timeframe**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 63,
+      "totalTokenCount": 590,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 490
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWafj_IMTj_uMP8em3WQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you're interested in (e.g., 'right now,' 'today,' 'this weekend,' 'next week')?\n3.  If there's anything **specific** you'd like to know (e.g"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 111,
+      "totalTokenCount": 638,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 490
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWafj_IMTj_uMP8em3WQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "., 'temperature,' 'chance of rain,' 'wind speed,' 'is it good for a walk?')?\n\nOnce I have that, I can provide you with the latest forecast!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 148,
+      "totalTokenCount": 675,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 490
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWafj_IMTj_uMP8em3WQ"
+  }
+]

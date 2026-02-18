@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "You should continue counting!\n\n"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 45,
+    "candidatesTokenCount": 5,
+    "totalTokenCount": 486,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 45
+      }
+    ],
+    "thoughtsTokenCount": 436
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWaa6ICrzQ_uMPpcjEiAc"
+}

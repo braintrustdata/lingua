@@ -1,0 +1,35 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Hi"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "Ok. Hi."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "Always say ok."
+      }
+    ]
+  }
+}

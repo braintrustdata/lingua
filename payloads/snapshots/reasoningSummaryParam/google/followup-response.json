@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Thought Process for Handling \"What Should I Do Next?\"**\n\nAlright, here's how I'm thinking about this. The user has just given a very simple query, something like \"What is 2+2?\", and I've responded, perfectly fine. Now, \"What should I do next?\" comes up. The core problem, and it's a big one, is that the question is incredibly vague. It's totally detached from any context. There's no ongoing project, no expressed need, nothing. I'm an AI; I can't just *know* what someone should do next without information. My job isn't to be a life coach. It's to assist based on data provided.\n\nSo, my primary focus becomes addressing this ambiguity. The aim is to explain to the user why I can't just spit out a random recommendation and to politely nudge them towards providing the context I desperately need. I need *their* input to be helpful.\n\nTo achieve this, I'm thinking of a few angles to open the topic, but it is centred around categories of possible \"next steps\". I could be looking at learning, problem-solving, creativity, practical tasks, entertainment, or continuing the conversation with me.\n\nThe response needs to start in a friendly, open manner, which should convey a dependency on user input. I can explain *why* I need more information, something along the lines of, \"Since we just talked about math, I don't know your goals!\" Then I offer broad categories in the form of questions: Are they working on a project? Learning something? Need help? Curious? Do they want to continue the discussion? I can offer some example suggestions, as well. To help inspire them, I can include broad suggestions like: \"Ask me another question\", \"Plan your day\", \"Learn something new\", \"Take a break\", etc.\n\nThe conclusion would be an invitation to provide a more specific set of details. This would put the ball back in their court and also reinforce the idea that *they* need to provide context.\n\nBefore finalizing, I'd review the draft to ensure it's clear, helpful (by guiding the user), not overly prescriptive (because they still need to choose), and friendly. I need to make sure I am not guessing at goals.\n",
+            "thought": true
+          },
+          {
+            "text": "That depends entirely on what you're trying to achieve or what you're interested in! Since we just answered a math question, I don't have much context about your current goals or situation.\n\nTo give you a good suggestion, tell me:\n\n*   **Are you working on a project?**\n*   **Are you looking for something to learn?**\n*   **Do you need help with a specific task?**\n*   **Are you just curious about what's possible?**\n*   **Do you want to continue our conversation?**\n*   **Are you looking for something productive or something relaxing?**\n\nIn the meantime, here are some very general ideas:\n\n*   **Ask me another question** about anything!\n*   **Plan your day or week.**\n*   **Learn something new** online (a skill, a fact, a language).\n*   **Take a short break** and stretch or get some water.\n*   **Work on a personal project** or hobby.\n*   **Read a book, article, or news.**\n*   **Listen to some music or a podcast.**\n*   **Check your to-do list** and tackle the next item.\n\nTell me a bit more about what you're thinking, and I can give you more specific suggestions!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 122,
+    "candidatesTokenCount": 280,
+    "totalTokenCount": 1350,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 122
+      }
+    ],
+    "thoughtsTokenCount": 948
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWaYG-K4Lg_uMP8_SA6QU"
+}

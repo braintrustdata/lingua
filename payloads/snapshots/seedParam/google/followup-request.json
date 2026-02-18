@@ -1,0 +1,31 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Pick a number."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "I'll pick 42. It's a rather significant number, after all!"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "seed": 12345
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Weather?"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get weather",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "location": {
+                "type": "STRING"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "NONE"
+    }
+  }
+}

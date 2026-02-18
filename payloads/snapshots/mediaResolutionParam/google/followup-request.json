@@ -1,0 +1,31 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Describe this image briefly."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "I cannot see the image you are referring to. As an AI, I don't have the capability to view or process visual information directly.\n\nTo describe it briefly, I would need you to describe it to me first, or provide any accompanying text/details!"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "mediaResolution": "MEDIA_RESOLUTION_LOW"
+  }
+}

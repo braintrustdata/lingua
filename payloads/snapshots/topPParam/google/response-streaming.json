@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Hi!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 36,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "thoughtsTokenCount": 30
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWadnXIKST_uMPgo6KmAo"
+  }
+]

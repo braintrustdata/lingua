@@ -1,0 +1,31 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say hi."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "Hi."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "topP": 0.9
+  }
+}

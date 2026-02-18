@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That's a very open-ended question! To give you a helpful suggestion, I need a little more context.\n\nPlease tell me:\n\n1.  **What have you just finished doing?** (e.g., working, eating, relaxing, exercising, a specific task)\n2.  **What kind of mood are you in?** (e.g., productive, tired, bored, energetic, creative)\n3.  **What are your goals right now?** (e.g., relax, be productive, learn something, have fun, get errands done)\n4.  **How much time do you have?** (e.g., 15 minutes, an hour, the rest of the day)\n5.  **Where are you?** (e.g., at home, at work, outside, traveling)\n\nIn the meantime, here are some general ideas, depending on your situation:\n\n**If you need a break or want to relax:**\n*   Read a book or an article.\n*   Listen to music or a podcast.\n*   Watch a show or a movie.\n*   Take a short walk.\n*   Meditate or practice mindfulness.\n*   Do some gentle stretching.\n*   Have a snack or a drink.\n\n**If you want to be productive or get things done:**\n*   Tackle the next item on your to-do list.\n*   Organize a small space (desk, a drawer, digital files).\n*   Plan your next day or week.\n*   Do a quick chore (laundry, dishes, tidying).\n*   Answer emails or messages.\n*   Learn something new (online course, tutorial).\n\n**If you're feeling energetic or creative:**\n*   Exercise or do a workout.\n*   Start a new hobby or project.\n*   Write, draw, paint, or play music.\n*   Go for a run or a bike ride.\n*   Cook or bake something new.\n\nLet me know more about what you're looking for!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 135,
+    "candidatesTokenCount": 439,
+    "totalTokenCount": 1555,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 135
+      }
+    ],
+    "thoughtsTokenCount": 981
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "l0yWaeeqEJnO_uMPrJqqwQM"
+}

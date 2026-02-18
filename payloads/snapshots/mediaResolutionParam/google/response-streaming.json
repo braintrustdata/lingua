@@ -1,0 +1,90 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I cannot see the image you are referring to. As a text-based AI, I"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 18,
+      "totalTokenCount": 714,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 690
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaeuXIbTc_uMP0YKnoQk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " don't have visual capabilities.\n\nTo describe it briefly, please tell me:\n*   What is the main subject?\n*   What is happening?\n*   What does the background look like?\n*   Are there"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 66,
+      "totalTokenCount": 762,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 690
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaeuXIbTc_uMP0YKnoQk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " any prominent colors or features?\n\nOnce you provide some details, I can help you formulate a brief description!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 88,
+      "totalTokenCount": 784,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 690
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaeuXIbTc_uMP0YKnoQk"
+  }
+]

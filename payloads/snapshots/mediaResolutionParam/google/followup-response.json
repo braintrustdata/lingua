@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Given my previous response that I cannot see the image, here are a few things you could do next:\n\n1.  **Describe the image to me:** Tell me about the image! Describe what you see in as much detail as you can. I can then help you formulate a brief description, answer questions about it based on your description, or use that information for other tasks.\n2.  **Ask a different question:** If you no longer want to discuss the image, just tell me what new task or question you have.\n3.  **Explain what you were hoping to achieve:** Sometimes knowing your underlying goal helps me provide better guidance. Were you trying to get a quick caption, understand a complex scene, or something else?\n\nWhat would you like to do?"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 68,
+    "candidatesTokenCount": 158,
+    "totalTokenCount": 1151,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 68
+      }
+    ],
+    "thoughtsTokenCount": 925
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "l0yWaYqrC9Xh_uMPxOWCqAU"
+}

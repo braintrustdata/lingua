@@ -1,0 +1,59 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Hi"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 7,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaf2lH57S_uMP2PGYqQQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 8,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaf2lH57S_uMP2PGYqQQ"
+  }
+]

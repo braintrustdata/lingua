@@ -1,0 +1,41 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Tokyo weather"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get weather",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "location": {
+                "type": "STRING"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY",
+      "allowedFunctionNames": [
+        "get_weather"
+      ]
+    }
+  }
+}

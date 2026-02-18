@@ -1,0 +1,65 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Weather?"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "functionCall": {
+            "name": "get_weather",
+            "args": {
+              "location": "San Francisco"
+            }
+          },
+          "thoughtSignature": "CvkBAb4+9vuAJaBKazt5g1m+XbULLxbYW/Ggl0pqKXx/njeyjpydrbuiANaXLjOm6cm5HO/LbUMUnlYM1Es35Q4O1AVPXuA9bSMYzxbEjLI4P5qFYHoF/LBfe11PjVJ+ECAZ5jZX4p66u/gar6s57DyI0KBxDugTUz+hI1xrioZuT33hXvDpVma1uSChTJMjl+c5aqAqmRNtXHpuCjqaQWLucDewxRn9RN4ylkFhg4XrhZ5MtewA7t8SP9sI4kB5pjn4iW0sa7HCLMbPXVEtjaciI4kTOhXIwM+6Vd1FOSHNvX/BqKCgzHClNIHLJT2o6Rs3KQs0r4nsD1hz"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_weather",
+            "response": {
+              "temperature": "71 degrees"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get weather",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "location": {
+                "type": "STRING"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY"
+    }
+  }
+}

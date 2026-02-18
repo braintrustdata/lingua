@@ -1,0 +1,322 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Initiating Problem-Solving**\n\nI'm starting by recognizing the broad nature of the initial request. It's too abstract to directly \"solve.\" My primary focus now is to guide the user towards clarifying the actual complex problem. I'm considering providing examples or prompts to help define what kind of problem needs addressing, because a general statement like this doesn't offer enough to work with.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "totalTokenCount": 6,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ]
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I would be happy to help, but **you haven't provided the problem yet!**\n\nPlease paste the details"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 24,
+      "totalTokenCount": 402,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " of the problem below. To give you the best solution, feel free to include:\n\n1.  **The Goal"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 48,
+      "totalTokenCount": 426,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ":** What are you trying to achieve?\n2.  **The Context:** Any specific constraints, data points, or background"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 73,
+      "totalTokenCount": 451,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " information.\n3.  **The Format:** Do you need a step-by-step mathematical proof, a block"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 97,
+      "totalTokenCount": 475,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " of code, a logical analysis, or a strategic recommendation?\n\n**I specialize in solving:**\n*   **Mathematics"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 121,
+      "totalTokenCount": 499,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " & Physics** (Calculus, Linear Algebra, Mechanics)\n*   **Programming & Logic** (Python, C"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 145,
+      "totalTokenCount": 523,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "++, Algorithms, Debugging)\n*   **Business & Strategy** (Data analysis, Case studies, Economics)\n*   "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 171,
+      "totalTokenCount": 549,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Writing & Linguistics** (Structural analysis, Complex summarization)\n\n**Paste your problem and I will get to work!"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 196,
+      "totalTokenCount": 574,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 197,
+      "totalTokenCount": 575,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "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"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 197,
+      "totalTokenCount": 575,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 372
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "lUyWaeifC7C0_uMP1pDckQo"
+  }
+]
