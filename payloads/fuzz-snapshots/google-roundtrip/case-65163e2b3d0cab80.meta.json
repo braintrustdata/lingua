@@ -1,8 +1,8 @@
 {
   "issues": [
     "lost: tools",
-    "changed: contents[0].role (\"a\" -> \"user\")",
-    "changed: contents[0].parts.length (1 -> 0)"
+    "changed: contents[0].parts.length (1 -> 0)",
+    "changed: contents[0].role (\"a\" -> \"user\")"
   ],
   "kind": "request-roundtrip",
   "provider": "google"

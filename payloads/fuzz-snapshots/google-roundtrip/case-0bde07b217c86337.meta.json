@@ -1,23 +1,13 @@
 {
   "issues": [
-    "lost: cachedContent",
     "lost: systemInstruction",
-    "lost: generationConfig.speechConfig",
-    "lost: generationConfig.responseMimeType",
-    "lost: generationConfig.seed",
-    "lost: generationConfig.responseModalities",
-    "lost: generationConfig.mediaResolution",
-    "lost: generationConfig.logprobs",
-    "lost: generationConfig.presencePenalty",
-    "lost: generationConfig.responseLogprobs",
-    "lost: generationConfig.responseJsonSchema",
-    "lost: generationConfig.candidateCount",
-    "lost: generationConfig.frequencyPenalty",
     "lost: toolConfig.functionCallingConfig.allowedFunctionNames",
+    "lost: generationConfig.responseMimeType",
+    "lost: generationConfig.speechConfig.multiSpeakerVoiceConfig.speakerVoiceConfigs[0].voiceConfig.prebuiltVoiceConfig",
     "added: generationConfig.responseSchema",
+    "changed: toolConfig.functionCallingConfig.mode (\"VALIDATED\" -> \"AUTO\")",
     "changed: contents[0].parts.length (1 -> 0)",
-    "changed: contents[0].role (\"092,?JS.,02,N4 ..xQ3X..d6!p8u?l.aq73k,FK!tG?5I\" -> \"user\")",
-    "changed: toolConfig.functionCallingConfig.mode (\"VALIDATED\" -> \"AUTO\")"
+    "changed: contents[0].role (\"092,?JS.,02,N4 ..xQ3X..d6!p8u?l.aq73k,FK!tG?5I\" -> \"user\")"
   ],
   "kind": "request-roundtrip",
   "provider": "google"

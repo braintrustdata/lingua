@@ -1,16 +1,8 @@
 {
   "issues": [
     "lost: toolConfig",
-    "lost: cachedContent",
-    "lost: generationConfig._responseJsonSchema",
     "lost: generationConfig.responseMimeType",
-    "lost: generationConfig.mediaResolution",
-    "lost: generationConfig.logprobs",
-    "lost: generationConfig.speechConfig",
-    "lost: generationConfig.frequencyPenalty",
-    "lost: generationConfig.imageConfig",
     "lost: generationConfig.responseJsonSchema",
-    "lost: generationConfig.responseModalities",
     "lost: contents[0].parts[0].executableCode",
     "lost: contents[0].parts[0].mediaResolution",
     "lost: contents[0].parts[0].videoMetadata",

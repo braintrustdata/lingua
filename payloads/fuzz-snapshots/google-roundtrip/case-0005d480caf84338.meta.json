@@ -1,13 +1,13 @@
 {
   "issues": [
-    "lost: toolConfig",
     "lost: systemInstruction",
-    "lost: contents[0].parts[0].thought",
-    "lost: contents[0].parts[0].functionCall",
+    "lost: toolConfig",
     "lost: contents[0].parts[0].thoughtSignature",
     "lost: contents[0].parts[0].videoMetadata",
     "lost: contents[0].parts[0].partMetadata",
     "lost: contents[0].parts[0].functionResponse",
+    "lost: contents[0].parts[0].thought",
+    "lost: contents[0].parts[0].functionCall",
     "added: contents[0].role"
   ],
   "kind": "request-roundtrip",

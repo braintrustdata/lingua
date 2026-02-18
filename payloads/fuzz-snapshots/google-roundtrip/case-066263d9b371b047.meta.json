@@ -1,8 +1,7 @@
 {
   "issues": [
-    "lost: safetySettings",
-    "lost: systemInstruction",
     "lost: toolConfig",
+    "lost: systemInstruction",
     "lost: contents[0].parts[0].videoMetadata",
     "lost: contents[0].parts[0].mediaResolution",
     "lost: contents[0].parts[0].thoughtSignature",

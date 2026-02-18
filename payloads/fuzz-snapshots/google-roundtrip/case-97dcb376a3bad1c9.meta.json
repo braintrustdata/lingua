@@ -1,11 +1,11 @@
 {
   "issues": [
     "lost: systemInstruction",
-    "lost: contents[0].parts[0].thought",
-    "lost: contents[0].parts[0].functionCall",
     "lost: contents[0].parts[0].thoughtSignature",
-    "lost: contents[0].parts[0].videoMetadata",
+    "lost: contents[0].parts[0].thought",
     "lost: contents[0].parts[0].fileData",
+    "lost: contents[0].parts[0].videoMetadata",
+    "lost: contents[0].parts[0].functionCall",
     "added: contents[0].parts[0].inlineData",
     "changed: contents[0].role (\"N,L770L K,H,?,.l4n ,\" -> \"user\")"
   ],

@@ -1,9 +1,7 @@
 {
   "issues": [
-    "lost: safetySettings",
-    "lost: systemInstruction",
     "lost: toolConfig",
-    "lost: cachedContent",
+    "lost: systemInstruction",
     "changed: contents.length (3 -> 1)"
   ],
   "kind": "request-roundtrip",

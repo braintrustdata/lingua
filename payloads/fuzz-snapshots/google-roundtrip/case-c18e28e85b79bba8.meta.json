@@ -1,8 +1,7 @@
 {
   "issues": [
-    "lost: toolConfig",
-    "lost: cachedContent",
     "lost: systemInstruction",
+    "lost: toolConfig",
     "lost: tools[0].urlContext",
     "lost: tools[0].fileSearch",
     "lost: tools[0].computerUse",
