@@ -1,0 +1,32 @@
+{
+  "issues": [
+    "universal(1->2): added: params.response_format.json_schema.schema.items",
+    "universal(1->2): changed: params.presence_penalty (42.567216991235036 -> null)",
+    "universal(1->2): changed: params.top_logprobs (778 -> null)",
+    "universal(1->2): changed: params.response_format.json_schema.strict (false -> null)",
+    "universal(1->2): changed: params.response_format.json_schema.name (\"! !c6Z4,a. 7?vRj??.?7,.GoO09Mh\" -> \"response\")",
+    "universal(1->2): changed: params.tools.length (2 -> 1)",
+    "universal(1->2): changed: params.parallel_tool_calls (true -> null)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.seed (476 -> null)",
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "google(1->2): lost: systemInstruction",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: function_call",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: audio",
+    "chat(final): lost: functions",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: seed",
+    "chat(final): lost: response_format.json_schema.strict",
+    "chat(final): added: response_format.json_schema.schema.items",
+    "chat(final): changed: response_format.json_schema.name (\"! !c6Z4,a. 7?vRj??.?7,.GoO09Mh\" -> \"response\")",
+    "chat(final): changed: messages.length (1 -> 0)",
+    "chat(final): changed: tools.length (2 -> 1)"
+  ],
+  "kind": "chat-google-two-arm",
+  "provider": "chat-completions"
+}

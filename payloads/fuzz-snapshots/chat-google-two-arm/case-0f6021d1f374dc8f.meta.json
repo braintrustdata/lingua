@@ -1,0 +1,30 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "universal(1->2): changed: params.parallel_tool_calls (false -> null)",
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "universal(1->2): changed: params.store (true -> null)",
+    "universal(1->2): changed: params.top_logprobs (-581 -> null)",
+    "universal(1->2): changed: params.stream (true -> null)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.seed (573 -> null)",
+    "google(1->2): lost: systemInstruction",
+    "chat(final): lost: n",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: store",
+    "chat(final): lost: seed",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: max_tokens",
+    "chat(final): lost: stream",
+    "chat(final): lost: modalities",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: function_call",
+    "chat(final): added: max_completion_tokens",
+    "chat(final): changed: messages.length (1 -> 0)",
+    "chat(final): changed: reasoning_effort (\"minimal\" -> \"low\")"
+  ],
+  "kind": "chat-google-two-arm",
+  "provider": "chat-completions"
+}

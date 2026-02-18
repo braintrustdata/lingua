@@ -1,0 +1,99 @@
+{
+  "audio": {
+    "format": "wav",
+    "voice": "w?!L"
+  },
+  "function_call": "auto",
+  "functions": [
+    {
+      "description": ".Zw?E",
+      "name": "d",
+      "parameters": {}
+    },
+    {
+      "description": "7Qb?,!As ? 4JdK !!!2! D,?xo l",
+      "name": "NJW.N.z0u9!aP,lI4,k.2,M2U0K"
+    },
+    {
+      "description": ". ,nGTl.d..yZBuF.,b5lgE  .EIkP.L",
+      "name": "!"
+    }
+  ],
+  "logit_bias": {},
+  "max_completion_tokens": 416,
+  "max_tokens": 357,
+  "messages": [
+    {
+      "content": null,
+      "name": "B,.?!N7iTxUU9P,v,!q!75? E.TB 0!j.GVvD.C2",
+      "role": "function"
+    },
+    {
+      "content": "MJ1.a,kg6!?.HDr,e0,.s.Kx02",
+      "role": "system"
+    },
+    {
+      "content": ",V.i7x,rD,..a?p5 0?Z",
+      "role": "tool",
+      "tool_call_id": "BW "
+    }
+  ],
+  "model": "gpt-4-turbo-preview",
+  "prediction": {
+    "content": [
+      {
+        "text": "h?92fv9z3G, ?,?c..?P,,0,Y.R,?.NEK,OGe?",
+        "type": "text"
+      },
+      {
+        "text": " .?gAD.gXaD?.r,GJ?.",
+        "type": "text"
+      },
+      {
+        "text": ".!.!.6?J1,.7gO?j3v? W.s,,?2O,.? QG,b4m?o.",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "reasoning_effort": "high",
+  "response_format": {
+    "json_schema": {
+      "description": ",?N !u3d?Z0?F  ",
+      "name": "i?.Bn.S?eF.K!.9v rPD,?,.1R.LY92i,,?..OY8,?,!W.",
+      "schema": {},
+      "strict": null
+    },
+    "type": "json_schema"
+  },
+  "seed": -566,
+  "stop": "7QY,1D c,.9K.n,,,k!,1?fcO",
+  "store": false,
+  "stream_options": null,
+  "tool_choice": {
+    "function": {
+      "name": "9d.o!.GQZ,? ??A O?s,"
+    },
+    "type": "function"
+  },
+  "tools": [
+    {
+      "custom": {
+        "description": "Owd5Y!XouwrA4x..qh11U !?74 m ?VFbY,k ce!.k eE",
+        "name": ".XDT!ckr9,,?wXL?.,.x u !2,.1?  5b!9o!HAF.?7"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "format": {
+          "type": "text"
+        },
+        "name": "Y,,o.uPG6,cEg!f.fA83B4.6umV?N ?uZJ!,vi"
+      },
+      "type": "custom"
+    }
+  ],
+  "top_logprobs": -941,
+  "verbosity": null
+}

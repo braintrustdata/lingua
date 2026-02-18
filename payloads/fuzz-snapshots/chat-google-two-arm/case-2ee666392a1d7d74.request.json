@@ -1,0 +1,37 @@
+{
+  "frequency_penalty": 46.10292730424837,
+  "functions": [
+    {
+      "name": "vDrB3? ",
+      "parameters": {}
+    },
+    {
+      "description": "8oiu?.G,yt28!o?,",
+      "name": "WDz,7Wr0,Tqu.VRWfyE."
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "messages": [
+    {
+      "content": "?S?W",
+      "role": "tool",
+      "tool_call_id": "4.?,W!3 z e,.?, 8a.S .3C.t"
+    }
+  ],
+  "modalities": null,
+  "model": "3!4. .5..T?!!IkJ5wDX?9 ?V.?tg?8",
+  "n": 913,
+  "parallel_tool_calls": false,
+  "reasoning_effort": "high",
+  "response_format": {
+    "type": "text"
+  },
+  "stream": true,
+  "stream_options": null,
+  "tool_choice": "none",
+  "verbosity": "low",
+  "web_search_options": {
+    "search_context_size": "high"
+  }
+}

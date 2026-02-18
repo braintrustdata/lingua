@@ -1,0 +1,14 @@
+{
+  "issues": [
+    "lost: toolConfig",
+    "lost: cachedContent",
+    "lost: systemInstruction",
+    "lost: tools[0].urlContext",
+    "lost: tools[0].fileSearch",
+    "lost: tools[0].computerUse",
+    "lost: tools[0].googleMaps",
+    "changed: contents.length (3 -> 1)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

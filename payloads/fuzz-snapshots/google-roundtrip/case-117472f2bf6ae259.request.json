@@ -1,0 +1,157 @@
+{
+  "cachedContent": "?j.JUM04?.k3rAjkY ,?R! 25J.?,8M3MkbN7?6, ,a.ZHe",
+  "contents": [
+    {
+      "parts": [
+        {
+          "codeExecutionResult": {
+            "outcome": "OUTCOME_UNSPECIFIED"
+          },
+          "fileData": {},
+          "functionResponse": {
+            "id": "Zi aFh?a6aG2H?.pMlo,P.m,Py .gj",
+            "parts": [
+              {
+                "inlineData": null
+              }
+            ],
+            "scheduling": "INTERRUPT",
+            "willContinue": true
+          },
+          "mediaResolution": {
+            "level": "MEDIA_RESOLUTION_HIGH"
+          },
+          "partMetadata": {},
+          "text": "e?T.3z0P,7a8  ,m8!.e.? ..,N.n,zaN2Ez!hoydi",
+          "thought": true
+        },
+        {
+          "functionCall": {
+            "args": {},
+            "id": ". .?2T jy!..yx.Sy1? .6P"
+          },
+          "functionResponse": {
+            "id": "wC?0 ,ha jvdb!,.,n,9?E!.O fn.wOgAc,26",
+            "response": {},
+            "willContinue": true
+          },
+          "inlineData": {},
+          "mediaResolution": {
+            "level": "MEDIA_RESOLUTION_UNSPECIFIED"
+          },
+          "partMetadata": {},
+          "text": "yu?9MLHSL",
+          "thought": true
+        }
+      ]
+    },
+    {
+      "parts": [
+        {
+          "executableCode": {
+            "code": "Wt, 1?OVQqtM0V2?,fd1IX?.o,?.144uE",
+            "language": "LANGUAGE_UNSPECIFIED"
+          },
+          "fileData": {
+            "mimeType": "SrZB3J,.!"
+          },
+          "functionCall": {
+            "args": {},
+            "name": "DyN!?,,,.Li8?d,Al9u7M,,L5,xXm M"
+          },
+          "functionResponse": {
+            "id": ",??,ec. j4WkMARA?8y,!.?gXTqo..3s?H jnR,.er8?g!,",
+            "name": ".L!.URw.,en!",
+            "response": {},
+            "scheduling": "WHEN_IDLE"
+          },
+          "inlineData": {
+            "data": "4.?7,Z?Z!R.,,3A .v2,rQ,?,!.lo.?!1i,Mm G2w eI0j0"
+          },
+          "text": "?2.I!1QnE,q?9u.E.S.!W.T,4..26.!3?p.z..gO",
+          "thought": false,
+          "thoughtSignature": "OAl!w8R L?, e0 !?v.w? 6",
+          "videoMetadata": {
+            "endOffset": "?.?dimZDh.?6VgY.!D?7S.. Q.A3a.,?!n",
+            "fps": 31.80004873880053,
+            "startOffset": ".56.1I.,,"
+          }
+        },
+        {
+          "codeExecutionResult": {
+            "outcome": "OUTCOME_FAILED",
+            "output": "ov2."
+          },
+          "executableCode": {
+            "language": "LANGUAGE_UNSPECIFIED"
+          },
+          "fileData": {
+            "fileUri": ".8Kp oG.P.8?u Uc",
+            "mimeType": "?t?0.r?Y.."
+          },
+          "inlineData": {
+            "mimeType": " Z .?l.,.V8UOK"
+          },
+          "mediaResolution": {
+            "level": "MEDIA_RESOLUTION_LOW"
+          },
+          "text": " nQ7UhFf9,cJ5dO3,8?2??1b",
+          "thought": true,
+          "videoMetadata": {
+            "fps": -87.21323262709994,
+            "startOffset": "5Ps.Q,s!??Y84.,bh??G??!! "
+          }
+        }
+      ]
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {}
+          },
+          "inlineData": {
+            "data": "?ijMBl4H,,w..?.vW1 v?,Nx6mq?a?A?8,5E"
+          },
+          "mediaResolution": {},
+          "thoughtSignature": "AVJlL,u.?Y?PN Tsr",
+          "videoMetadata": {
+            "fps": 65.50903686895178,
+            "startOffset": "?Z?R,.Fu d. ,"
+          }
+        }
+      ]
+    }
+  ],
+  "model": "D ",
+  "safetySettings": [
+    {}
+  ],
+  "systemInstruction": {
+    "parts": [
+      {
+        "codeExecutionResult": {
+          "outcome": "OUTCOME_UNSPECIFIED"
+        },
+        "executableCode": {
+          "code": " 9.!?..t3VA.2?",
+          "language": "LANGUAGE_UNSPECIFIED"
+        },
+        "functionResponse": {
+          "response": {},
+          "willContinue": false
+        },
+        "text": "z,f 7,IZlg, N!W,u?a f5,4U!.2!,d,.",
+        "thought": true,
+        "thoughtSignature": ",KheB??KQqCP,M1!.c.e.,2gzDKYJ.?,FBt,Pk8"
+      }
+    ]
+  },
+  "toolConfig": {
+    "retrievalConfig": {
+      "latLng": {
+        "longitude": -49.83756195325235
+      }
+    }
+  }
+}

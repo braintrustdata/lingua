@@ -1,0 +1,48 @@
+{
+  "audio": {
+    "format": "mp3",
+    "voice": "cedar"
+  },
+  "logit_bias": {},
+  "logprobs": false,
+  "max_completion_tokens": -236,
+  "messages": [
+    {
+      "content": "m u.??a.21lI4,!?",
+      "name": "s.Q,..Y 2 UgW9L!.6Zq368,.?quY5O.PH  .s,?V.1",
+      "role": "developer"
+    },
+    {
+      "content": "!. p .?",
+      "name": "z.QMa9 JWyz,m?.Wc?g,I..!! Rl?3?arL?xjkG",
+      "role": "system"
+    },
+    {
+      "content": "?iM..Rc,h2iyR.!!,?xP72.iK!M0,t W! lCgjP!ks,!ex,!, ",
+      "role": "assistant"
+    }
+  ],
+  "model": "n?36xW.,,!!..y?.d3.1NjounY ,F.",
+  "presence_penalty": -78.0783387945037,
+  "stop": ".?,O,m.zJVSm bFX,.,.Rg.OB,",
+  "stream": false,
+  "stream_options": {},
+  "tools": [
+    {
+      "function": {
+        "name": "B.qb?,2x1fK!!S?,V4E!JN?hf.,dU.G.WYDk8.rxI.Y0xuH.!?"
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "kcG!yMV ?3qs.3 !?J6,.?LzDX1HZ",
+        "parameters": {},
+        "strict": null
+      },
+      "type": "function"
+    }
+  ],
+  "top_logprobs": -218,
+  "verbosity": "high"
+}

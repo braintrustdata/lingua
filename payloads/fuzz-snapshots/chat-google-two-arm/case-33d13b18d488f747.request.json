@@ -1,0 +1,98 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "?,R.l..YBo?,j.!1a.CT!3es.P?W893?,Mjli"
+  },
+  "frequency_penalty": 8.40294665126246,
+  "functions": [
+    {
+      "description": "?e4W,DB?.?4VO??T?4e.EZ6.?D,5?5.v5j.D,pG5.uX ",
+      "name": "N,O?.,9,.d,.4 75fh,wl?04!.9 4e ..?4A",
+      "parameters": {}
+    },
+    {
+      "name": "Dbjw??"
+    },
+    {
+      "name": "!O,??",
+      "parameters": {}
+    },
+    {
+      "name": "NXf.?S, 1OO2??R.o!vC,x.7?bS ku,,R?EigRM ?yUx,Y?SJz",
+      "parameters": {}
+    }
+  ],
+  "max_completion_tokens": -902,
+  "max_tokens": 586,
+  "messages": [
+    {
+      "function_call": null,
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "text": ",S!?6!s,AyB.Wn3T,us.g.3",
+          "type": "text"
+        }
+      ],
+      "name": "?S.3Y.?3?55Q.71Ot5RoF1,P60?.?bjE.?8??XM4?P?m,,?",
+      "role": "developer"
+    },
+    {
+      "audio": null,
+      "content": ".A4.1.a,,4L.ni,8.ve,?qnsu6?P",
+      "name": "b5,!O!k l.HQJI!Bi0c!!,",
+      "role": "assistant"
+    }
+  ],
+  "model": "a,1?0?.7,BTr57g?W.N7 ,h3IJr S4 nc",
+  "n": 159,
+  "parallel_tool_calls": true,
+  "prediction": {
+    "content": [
+      {
+        "text": ",6?Q ",
+        "type": "text"
+      },
+      {
+        "text": "8x?x?9..N. !..Lm.? ?4.,??LuO.A5Uj",
+        "type": "text"
+      },
+      {
+        "text": "DZBe .7 .?,J6Q?Qcy!.il52., ,!",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "presence_penalty": -17.30499605635964,
+  "seed": -695,
+  "tool_choice": "required",
+  "tools": [
+    {
+      "custom": {
+        "description": " .?!BQ.,1S!83?.vy4",
+        "name": "V3.Zj.hB?nc.L?Ql.,c4?f?x1uPsO.,,,.?ya?,4?e"
+      },
+      "type": "custom"
+    },
+    {
+      "custom": {
+        "format": {
+          "grammar": {
+            "definition": "6.2xx?Wt,!c?A?f,2Za?O, L J3Jy.8,yp.",
+            "syntax": "lark"
+          },
+          "type": "grammar"
+        },
+        "name": "264!F?j8F"
+      },
+      "type": "custom"
+    }
+  ],
+  "top_logprobs": 328,
+  "web_search_options": {
+    "search_context_size": "medium"
+  }
+}

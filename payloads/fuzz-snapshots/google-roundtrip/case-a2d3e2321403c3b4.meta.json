@@ -1,0 +1,24 @@
+{
+  "issues": [
+    "lost: toolConfig",
+    "lost: cachedContent",
+    "lost: contents[0].parts[0].thoughtSignature",
+    "lost: contents[0].parts[0].functionCall",
+    "lost: contents[0].parts[0].codeExecutionResult",
+    "lost: contents[0].parts[0].executableCode",
+    "lost: contents[0].parts[0].partMetadata",
+    "lost: generationConfig.logprobs",
+    "lost: generationConfig.presencePenalty",
+    "lost: generationConfig.imageConfig",
+    "lost: generationConfig._responseJsonSchema",
+    "lost: generationConfig.speechConfig",
+    "lost: generationConfig.responseModalities",
+    "lost: generationConfig.enableEnhancedCivicAnswers",
+    "added: generationConfig.responseSchema",
+    "added: generationConfig.thinkingConfig.thinkingBudget",
+    "changed: contents[0].role (\"!,B?.p,.J9H\" -> \"user\")",
+    "changed: generationConfig.thinkingConfig.includeThoughts (false -> true)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

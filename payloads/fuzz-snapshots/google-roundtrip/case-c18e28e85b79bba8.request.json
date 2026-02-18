@@ -1,0 +1,116 @@
+{
+  "cachedContent": " , oQC,?,,q,, p5?.94nKlh?1X?,S,W",
+  "contents": [
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {}
+          },
+          "functionResponse": {
+            "id": "XZo.5,Co. P",
+            "scheduling": "SCHEDULING_UNSPECIFIED"
+          },
+          "mediaResolution": {
+            "level": "MEDIA_RESOLUTION_LOW"
+          },
+          "partMetadata": {},
+          "videoMetadata": {
+            "endOffset": "Z?!g!rE,53E,2Z?9YAmEOJK.Mx.31?V,4 !3 !Z,"
+          }
+        }
+      ],
+      "role": ",B.?!8??,y!?"
+    },
+    {
+      "parts": [
+        {
+          "executableCode": {
+            "code": ",q3gj8!T,.Dg.?!k8d?C,F!J7?q?!Pwb.."
+          },
+          "text": "!,? ? ! ",
+          "thoughtSignature": "O.Vla, !"
+        },
+        {
+          "codeExecutionResult": {},
+          "fileData": {
+            "fileUri": "Bbv..,!gr6c3.,,,,!6.p!Hkg.Cx11 ,.Fx"
+          },
+          "inlineData": {
+            "data": ".4??,Kyu 4?S?c?.,9HXyV,,1F.RN.,8gx,,P?",
+            "mimeType": "?G?,.!?,?? Vg.s7Y,gb,hV?1.?Tz0Vg2"
+          },
+          "mediaResolution": {},
+          "partMetadata": {},
+          "videoMetadata": {
+            "endOffset": "A.,!H5.3?TuvHw!lM"
+          }
+        },
+        {
+          "inlineData": {},
+          "mediaResolution": {},
+          "partMetadata": {},
+          "text": "8U?,Xlzb?.,I!6R?.Q9Zi???Uf0E",
+          "thoughtSignature": "?b7?hP,7?Zau F!.Pxw.b",
+          "videoMetadata": {
+            "startOffset": "!?B..S ,e.,..?.ox50o.?4.,.?Tf!Ig A"
+          }
+        }
+      ],
+      "role": ",,,!"
+    },
+    {
+      "parts": [
+        {
+          "codeExecutionResult": {
+            "outcome": "OUTCOME_UNSPECIFIED",
+            "output": "F?.?D2"
+          },
+          "partMetadata": {},
+          "text": ",,w?,aq2pq",
+          "thought": true,
+          "thoughtSignature": "5?0doC"
+        }
+      ],
+      "role": "?!?z..FPc.6 !??en?1!T?.,sq9zWp"
+    }
+  ],
+  "systemInstruction": {
+    "parts": [
+      {
+        "codeExecutionResult": {
+          "output": "o?oKV,X.gyZ?.?C?7..rJG Ci?o?,QIO9N51M8,IjEF"
+        },
+        "fileData": {
+          "mimeType": "K1.A .?w8!"
+        },
+        "functionResponse": {
+          "parts": [
+            {}
+          ],
+          "scheduling": "WHEN_IDLE",
+          "willContinue": true
+        },
+        "partMetadata": {},
+        "text": ".,. ,??68F?wZtr WCfmVZ.!.,F0z,!zA.v"
+      }
+    ]
+  },
+  "toolConfig": {},
+  "tools": [
+    {
+      "computerUse": {
+        "environment": "ENVIRONMENT_BROWSER"
+      },
+      "fileSearch": {
+        "metadataFilter": ",4W L.ApfF?a,3m! ? ?fb. 4SIgm8",
+        "topK": 382
+      },
+      "googleMaps": {
+        "enableWidget": false
+      },
+      "googleSearch": {},
+      "urlContext": {}
+    }
+  ]
+}

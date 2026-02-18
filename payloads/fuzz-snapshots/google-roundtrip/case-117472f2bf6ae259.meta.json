@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: safetySettings",
+    "lost: systemInstruction",
+    "lost: toolConfig",
+    "lost: cachedContent",
+    "changed: contents.length (3 -> 1)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

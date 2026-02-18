@@ -1,0 +1,32 @@
+{
+  "function_call": {
+    "name": "6."
+  },
+  "logit_bias": {},
+  "logprobs": true,
+  "max_tokens": -780,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "FnoiN.!,?JL6?1es?5?",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4-turbo-preview",
+  "n": 353,
+  "parallel_tool_calls": false,
+  "reasoning_effort": "minimal",
+  "response_format": {
+    "type": "json_object"
+  },
+  "seed": 573,
+  "store": true,
+  "stream": true,
+  "top_logprobs": -581,
+  "verbosity": null
+}

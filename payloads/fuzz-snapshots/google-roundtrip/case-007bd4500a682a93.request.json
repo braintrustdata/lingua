@@ -1,0 +1,27 @@
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "inlineData": {}
+        }
+      ],
+      "role": "a"
+    }
+  ],
+  "tools": [
+    {
+      "computerUse": {
+        "excludedPredefinedFunctions": [
+          "?.bi.?,p"
+        ]
+      },
+      "googleSearch": {
+        "timeRangeFilter": {
+          "startTime": "QDBDMGS.?lxG,,?.X?9?j.k?TA.!x.R,?9,"
+        }
+      },
+      "googleSearchRetrieval": {}
+    }
+  ]
+}

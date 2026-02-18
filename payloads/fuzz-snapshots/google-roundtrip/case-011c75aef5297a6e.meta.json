@@ -1,0 +1,11 @@
+{
+  "issues": [
+    "lost: toolConfig",
+    "lost: safetySettings",
+    "changed: tools.length (1 -> 2)",
+    "changed: contents[0].role (\"n7R?!!.8!hC4l85,Qwt5o UJX?K,.812 !ULY!!!Y?5k4yLf\" -> \"user\")",
+    "changed: contents[0].parts.length (1 -> 0)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

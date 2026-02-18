@@ -1,0 +1,97 @@
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "id": "xJ9iB"
+          },
+          "functionResponse": {
+            "id": ".qM?",
+            "name": ",W?zH.p??d 3!",
+            "willContinue": true
+          },
+          "partMetadata": {},
+          "text": "52, .X?,!Z 1L s!,GH!!!aFdv.mKl,l?,.?Dq",
+          "thought": true,
+          "thoughtSignature": " Kl,6?",
+          "videoMetadata": {
+            "endOffset": "Bpv?? !,,Jr,giuk!n. EZe66,1!buc?",
+            "fps": 11.271011959752407,
+            "startOffset": "5P3Q,w,n,3e,x"
+          }
+        }
+      ]
+    }
+  ],
+  "systemInstruction": {
+    "parts": [
+      {
+        "codeExecutionResult": {
+          "output": "?I.,?jJ!f. .DuF1374!.Ahv2q7,9j22T3zHbO.Rn4?A"
+        },
+        "executableCode": {
+          "code": "!?B?D.N!U??us1?.x??,,S4f2b6.L",
+          "language": "LANGUAGE_UNSPECIFIED"
+        },
+        "fileData": {
+          "fileUri": "?!.jj?!,PC8. 6.??,x8,?s?pw33A,R?L L",
+          "mimeType": ",,.?.!w1w0 3i.9!?...yQ.x,FVL!.."
+        },
+        "functionCall": {
+          "args": {},
+          "id": "7?. 5.sjWl9 2Qc 5,! z. ??Qo H.q47. OPvJuB.,!iNi v",
+          "name": ".3A?.?4g?IO!?Ymdx!a??s!,p?.fOGE?.e,Vg?"
+        },
+        "functionResponse": {
+          "id": "!,cd,fy.. hA?82S9Fhp 4m.h?!DJ!u8?j.?N9g1,",
+          "parts": [
+            {
+              "inlineData": {
+                "mimeType": null
+              }
+            },
+            {},
+            {
+              "inlineData": {
+                "data": null
+              }
+            }
+          ]
+        },
+        "partMetadata": {},
+        "text": "S"
+      },
+      {
+        "codeExecutionResult": {
+          "outcome": "OUTCOME_DEADLINE_EXCEEDED",
+          "output": "a.MGjQ4"
+        },
+        "fileData": {
+          "mimeType": "7.Q8 NZ..D..Q?yNAc?KVNg,?p8.??,"
+        },
+        "functionResponse": {
+          "parts": [
+            {
+              "inlineData": {}
+            },
+            {
+              "inlineData": {
+                "data": null
+              }
+            }
+          ],
+          "response": {},
+          "scheduling": "INTERRUPT"
+        },
+        "inlineData": {},
+        "videoMetadata": {
+          "endOffset": " .,.?g9.,j,Ly2O,47.XqVw.p?Oe?0?ZA",
+          "fps": 69.29815115247787,
+          "startOffset": "i ?x?71He,si?1.?.IW,B?!I!0"
+        }
+      }
+    ]
+  },
+  "toolConfig": {}
+}

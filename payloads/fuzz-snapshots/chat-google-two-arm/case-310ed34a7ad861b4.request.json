@@ -1,0 +1,29 @@
+{
+  "function_call": "auto",
+  "messages": [
+    {
+      "audio": {
+        "id": "mjK.?,NZp..6. N0? 8.?TUh.?r cvG!o.v!8xIa1k 7MpF6q5"
+      },
+      "role": "assistant"
+    },
+    {
+      "content": null,
+      "name": "Q,ovM?",
+      "role": "function"
+    }
+  ],
+  "model": ",YaO?5!H?z?x.4!SH F?,.X0TDS?.Px,!8A,,p",
+  "n": 673,
+  "prediction": {
+    "content": "c..o,T?x7D.?.m!?6!Q ?i? ",
+    "type": "content"
+  },
+  "reasoning_effort": null,
+  "response_format": {
+    "type": "json_object"
+  },
+  "store": false,
+  "stream_options": null,
+  "tool_choice": "none"
+}

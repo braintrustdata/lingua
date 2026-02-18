@@ -1,0 +1,16 @@
+{
+  "issues": [
+    "lost: cachedContent",
+    "lost: generationConfig.enableEnhancedCivicAnswers",
+    "lost: generationConfig.candidateCount",
+    "lost: generationConfig.imageConfig",
+    "lost: generationConfig.responseMimeType",
+    "lost: generationConfig.responseLogprobs",
+    "lost: generationConfig._responseJsonSchema",
+    "lost: generationConfig.seed",
+    "added: generationConfig.responseSchema",
+    "changed: contents.length (2 -> 1)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}
