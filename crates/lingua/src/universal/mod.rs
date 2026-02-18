@@ -30,7 +30,10 @@ pub use request::{
     ToolChoiceMode, UniversalParams, UniversalRequest,
 };
 pub use response::{FinishReason, UniversalResponse, UniversalUsage};
-pub use stream::{UniversalStreamChoice, UniversalStreamChunk};
+pub use stream::{
+    UniversalReasoningDelta, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta,
+};
 pub use tools::{
     tools_to_openai_chat_value, tools_to_responses_value, BuiltinToolProvider, UniversalTool,
     UniversalToolType,

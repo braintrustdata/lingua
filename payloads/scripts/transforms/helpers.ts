@@ -166,6 +166,18 @@ export function getResponsePath(
   return join(TRANSFORMS_DIR, `${source}_to_${target}`, `${caseName}.json`);
 }
 
+export function getStreamingResponsePath(
+  source: string,
+  target: string,
+  caseName: string
+): string {
+  return join(
+    TRANSFORMS_DIR,
+    `${source}_to_${target}`,
+    `${caseName}-streaming.json`
+  );
+}
+
 export const TARGET_MODELS: Record<SourceFormat, string> = {
   anthropic: ANTHROPIC_MODEL,
   "chat-completions": OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -190,4 +202,18 @@ export function getTransformableCases(
     const testCase = allTestCases[caseName];
     return sourceCase != null && !testCase?.expect;
   });
+}
+
+// Streaming: only chat-completions → anthropic for now
+export const STREAMING_PAIRS: TransformPair[] = TRANSFORM_PAIRS.filter(
+  (p) => p.source === "chat-completions" && p.target === "anthropic"
+);
+
+export function getStreamingTransformableCases(
+  pair: TransformPair,
+  filter?: string
+): string[] {
+  return getTransformableCases(pair, filter).filter(
+    (caseName) => !isParamCase(caseName)
+  );
 }

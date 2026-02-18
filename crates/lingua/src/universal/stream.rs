@@ -27,6 +27,46 @@ pub struct UniversalStreamChoice {
     pub finish_reason: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UniversalToolFunctionDelta {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UniversalReasoningDelta {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UniversalToolCallDelta {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub index: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, rename = "type", skip_serializing_if = "Option::is_none")]
+    pub call_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function: Option<UniversalToolFunctionDelta>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UniversalStreamDelta {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default)]
+    pub tool_calls: Vec<UniversalToolCallDelta>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub reasoning: Vec<UniversalReasoningDelta>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reasoning_signature: Option<String>,
+}
+
 /// A normalized streaming chunk following OpenAI's format.
 ///
 /// This is the universal representation for streaming events from all providers.
@@ -134,6 +174,11 @@ impl UniversalStreamChunk {
 }
 
 impl UniversalStreamChoice {
+    pub fn delta_view(&self) -> Option<UniversalStreamDelta> {
+        let delta = self.delta.clone()?;
+        serde_json::from_value::<UniversalStreamDelta>(delta).ok()
+    }
+
     /// Create a new stream choice with a text delta.
     pub fn text_delta(index: u32, content: &str) -> Self {
         Self {
@@ -153,6 +198,37 @@ impl UniversalStreamChoice {
             delta: Some(serde_json::json!({})),
             finish_reason: Some(reason.to_string()),
         }
+    }
+}
+
+impl From<UniversalStreamDelta> for Value {
+    fn from(delta: UniversalStreamDelta) -> Self {
+        let has_structured_delta = !delta.tool_calls.is_empty()
+            || !delta.reasoning.is_empty()
+            || delta.reasoning_signature.is_some();
+        let mut map = serde_json::Map::new();
+        if let Some(role) = delta.role {
+            map.insert("role".into(), Value::String(role));
+        }
+        if let Some(content) = delta.content {
+            map.insert("content".into(), Value::String(content));
+        } else if has_structured_delta {
+            // Preserve explicit null content for tool/reasoning deltas to maintain
+            // roundtrip-equivalent semantics with existing universal stream snapshots.
+            map.insert("content".into(), Value::Null);
+        }
+        if !delta.tool_calls.is_empty() {
+            let value = serde_json::to_value(delta.tool_calls).unwrap_or(Value::Array(vec![]));
+            map.insert("tool_calls".into(), value);
+        }
+        if !delta.reasoning.is_empty() {
+            let value = serde_json::to_value(delta.reasoning).unwrap_or(Value::Array(vec![]));
+            map.insert("reasoning".into(), value);
+        }
+        if let Some(signature) = delta.reasoning_signature {
+            map.insert("reasoning_signature".into(), Value::String(signature));
+        }
+        Value::Object(map)
     }
 }
 
@@ -239,6 +315,42 @@ mod tests {
     }
 
     #[test]
+    fn test_stream_choice_delta_view() {
+        let choice = UniversalStreamChoice {
+            index: 0,
+            delta: Some(crate::serde_json::json!({
+                "role": "assistant",
+                "content": "hello",
+                "tool_calls": [
+                    {
+                        "index": 1,
+                        "id": "call_1",
+                        "type": "function",
+                        "function": {
+                            "name": "get_weather",
+                            "arguments": "{\"location\":\"SF\"}"
+                        }
+                    }
+                ]
+            })),
+            finish_reason: None,
+        };
+
+        let delta = choice.delta_view().unwrap();
+        assert_eq!(delta.role.as_deref(), Some("assistant"));
+        assert_eq!(delta.content.as_deref(), Some("hello"));
+        assert_eq!(delta.tool_calls.len(), 1);
+        assert_eq!(delta.tool_calls[0].id.as_deref(), Some("call_1"));
+        assert_eq!(
+            delta.tool_calls[0]
+                .function
+                .as_ref()
+                .and_then(|f| f.name.as_deref()),
+            Some("get_weather")
+        );
+    }
+
+    #[test]
     fn test_serialization() {
         let chunk = UniversalStreamChunk::new(
             Some("test-id".to_string()),
@@ -253,5 +365,24 @@ mod tests {
         assert_eq!(json["model"], "gpt-4");
         assert_eq!(json["created"], 1234567890);
         assert!(json.get("keep_alive").is_none()); // Should be skipped
+    }
+
+    #[test]
+    fn test_stream_delta_reasoning_from_into_value() {
+        let delta = UniversalStreamDelta {
+            role: Some("assistant".to_string()),
+            reasoning: vec![UniversalReasoningDelta {
+                content: Some("thought".to_string()),
+            }],
+            reasoning_signature: Some("sig_123".to_string()),
+            ..Default::default()
+        };
+
+        let value = Value::from(delta.clone());
+        let parsed: UniversalStreamDelta = serde_json::from_value(value).unwrap();
+        assert_eq!(parsed.role.as_deref(), Some("assistant"));
+        assert_eq!(parsed.reasoning.len(), 1);
+        assert_eq!(parsed.reasoning[0].content.as_deref(), Some("thought"));
+        assert_eq!(parsed.reasoning_signature.as_deref(), Some("sig_123"));
     }
 }

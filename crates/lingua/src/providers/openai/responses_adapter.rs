@@ -29,6 +29,7 @@ use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
+use serde::Deserialize;
 use std::convert::TryInto;
 
 fn system_text(message: &Message) -> Option<&str> {
@@ -51,6 +52,18 @@ fn system_text(message: &Message) -> Option<&str> {
 
 /// Adapter for OpenAI Responses API (used by reasoning models like o1).
 pub struct ResponsesAdapter;
+
+#[derive(Debug, Deserialize, Default)]
+struct ResponsesOutputItemAddedEvent {
+    item: Option<Value>,
+    output_index: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ResponsesFunctionCallArgumentsDeltaEvent {
+    delta: Option<String>,
+    output_index: Option<u32>,
+}
 
 fn parse_responses_extras(
     extras: Option<&Map<String, Value>>,
@@ -671,7 +684,10 @@ impl ProviderAdapter for ResponsesAdapter {
 
             "response.output_item.added" => {
                 // Tool call start - extract call_id, name, and output_index
-                let item = payload.get("item");
+                let parsed =
+                    serde_json::from_value::<ResponsesOutputItemAddedEvent>(payload.clone())
+                        .unwrap_or_default();
+                let item = parsed.item.as_ref();
                 let item_type = item.and_then(|i| i.get("type")).and_then(Value::as_str);
 
                 if item_type == Some("function_call") {
@@ -683,16 +699,13 @@ impl ProviderAdapter for ResponsesAdapter {
                         .and_then(|i| i.get("name"))
                         .and_then(Value::as_str)
                         .unwrap_or("");
-                    let output_index = payload
-                        .get("output_index")
-                        .and_then(Value::as_u64)
-                        .unwrap_or(0) as u32;
+                    let output_index = parsed.output_index.unwrap_or(0);
 
                     return Ok(Some(UniversalStreamChunk::new(
                         None,
                         None,
                         vec![UniversalStreamChoice {
-                            index: 0,
+                            index: output_index,
                             delta: Some(serde_json::json!({
                                 "role": "assistant",
                                 "content": Value::Null,
@@ -717,17 +730,18 @@ impl ProviderAdapter for ResponsesAdapter {
             }
 
             "response.function_call_arguments.delta" => {
-                let arguments = payload.get("delta").and_then(Value::as_str).unwrap_or("");
-                let output_index = payload
-                    .get("output_index")
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0) as u32;
+                let parsed = serde_json::from_value::<ResponsesFunctionCallArgumentsDeltaEvent>(
+                    payload.clone(),
+                )
+                .unwrap_or_default();
+                let arguments = parsed.delta.unwrap_or_default();
+                let output_index = parsed.output_index.unwrap_or(0);
 
                 Ok(Some(UniversalStreamChunk::new(
                     None,
                     None,
                     vec![UniversalStreamChoice {
-                        index: 0,
+                        index: output_index,
                         delta: Some(serde_json::json!({
                             "tool_calls": [{
                                 "index": output_index,

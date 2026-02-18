@@ -1,0 +1,9608 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`streaming: chat-completions → anthropic > complexReasoningRequest > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_01Jbqq7pu2VC5ixYeKCSgU7y",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 80,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 84,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "I need to count",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " frequency",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " of each digit (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "0-9) across",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " all times from 00:00 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "to 23:59.
+
+Let",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " me break this down by position",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ":
+
+**Hours",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (00 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "to 23):**
+- First",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " digit: 0 (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "00",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "09) appears 10",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " times,",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 1 (10-19)",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " appears 10 times, 2",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (20-23",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") appears 4",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " times
+- Second digit: ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "0-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "9 appears in",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " a",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " pattern",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+**Minutes (00 to 59",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "):**
+- First digit: ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "0-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "5",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " each",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " appears",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 10",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " times",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- Second digit: 0-9",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " each appears 6",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " times",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+Let",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " me count systemat",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ically:
+
+**Total",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " time",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " displays",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ":**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " hours × 60 minutes =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 1,",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "440 times",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+**For",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " each",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " digit:**
+
+**Hours",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " -",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " First position",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "H",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "H:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "MM):**
+- 0:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 00",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "09 =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 10 occ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "urrences
+- 1: ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "10-19 = 10 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "occurrences  ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- 2: 20-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "23 = 4 occurr",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ences",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "Hours - Second position (HH:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "MM):**
+- 0:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 00,",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 10",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ", 20 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "= 3 occurrences",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- 1: 01, ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "11, 21 = 3",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " occurrences
+- 2",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ": 02, 12, ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "22 = 3 occurr",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ences",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- 3: 03, ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "13, 23 = 3",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " occurrences
+- 4",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "9: 04-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "09,",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 14-19 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "= 2",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " occurrences each
+
+**Minutes",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " - First position (H",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "H:MM):**
+- ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "0: 00-09",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 10 occurrences",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- 1: 10-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "19 = 10 occurr",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ences
+- 2: 20",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "-29",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 10 occurrences",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- 3: 30-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "39 = 10 occurr",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ences
+- 4: 40",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "-49 = 10 occ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "urrences
+- 5: ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "50-59 = 10 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "occurrences
+
+**Minutes - Second",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " position (HH:MM):**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- 0-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "9",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ": Each",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " appears 6 times (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "X",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ", X1, X2...",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " X9 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "where X =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 0,",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "1,2,3,4,",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "5)",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+**Total",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " count",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " per",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " digit (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "across",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " all ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "1",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ",440 times):**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "0**: (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "10×",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "60",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") + (3×60) +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (10",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (6",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×24) = 600 +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 180 + 240 +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 144 = **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "1",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ",164",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "**
+- **1**: (10",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×60) + (3×60",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") + (10×24) +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (6×24) = 600",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 180 + 240",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 144 = **1",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ",164**
+- **2**:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (4",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×60) + (3×60",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") + (10×24) +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (6×24) = 240",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 180 + 240",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 144 = **804",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "**
+- **3**: (0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×60) + (3",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×60) + (10×24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") + (6×24) =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 0 + 180 +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 240 + 144 =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " **564",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "**
+- **4**: (0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×60) + (2",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×60) + (10×24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") + (6×24) =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 0 + 120 +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 240 + 144 =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " **504",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "**
+- **5**: (0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×60) + (2×60",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") + (10×24) +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (6×24) = 0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 120 + 240",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 144 = **504",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "**
+- **6**: (0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×60) + (2×60",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") + (0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×24) + (6×24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") = 0 + 120",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 0 + 144",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = **264**
+- **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "7**: (0×60) +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (2×60) + (0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×24) + (6×24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") = 0 + 120",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 0 + 144",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = **264**
+- **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "8**: (0×60) +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (2×60) + (0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×24) + (6×24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") = 0 + 120",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 0 + 144",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = **264**
+- **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "9**: (0×60) +",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (2×60) + (0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "×24) + (6×24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ") = 0 + 120",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " + 0 + 144",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = **264**
+
+**Results",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ":**
+- **Most common:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 0",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "and",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 1** (tied",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " at 1,164 occurr",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ences =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "20",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ".21",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "%**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " each",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ")
+- **Rarest:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 6",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ",",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 7, 8, and",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 9** (tied",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " at 264",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " occurrences = **4.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "58",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "%** each)",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "stop",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1123,
+        "prompt_tokens": 80,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 1203,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
+exports[`streaming: chat-completions → anthropic > multimodalRequest > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_01L36xrgC61VuJn2KpZwc1hG",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 278,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 279,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "This",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " is an",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " ador",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "able image",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " of a young",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " tab",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "by ki",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "tten lying",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " on a",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " wooden",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " floor with",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " its",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " head til",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ted to the side. The kitten",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " has:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+- **Distinctive",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " markings**:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Gray",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " and",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " brown",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " stri",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ped tab",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "by coat",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " pattern",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- **Striking",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " eyes**: Large",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ", bright",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " yellow",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "green eyes looking",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " directly at the camera
+- **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "Cute",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " pose",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "**: The",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " kitten is lying down",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " with",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " its head",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " til",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ted at",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " an",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " end",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "earing angle,",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " r",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "esting on or",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " near its",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " p",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "aws
+- **Notable",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " features**:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Prominent",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " whiskers, pink",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " nose, and alert",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " pointed",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " ears",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+The background",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " is",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " soft",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ly blurred, showing",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " what",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " appears to be an",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " indoor home",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " setting",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " with some",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " furniture visible. The lighting is bright",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " and natural, which",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " highlights the kitten's fur",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " texture and eye",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " color beau",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "tifully.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " The overall composition creates",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " a char",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ming, portrait",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "-style",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " photograph",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " that captures the",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " play",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "ful and",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " curious",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " nature typical",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " of young",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " cats.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "stop",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 191,
+        "prompt_tokens": 278,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 469,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
+exports[`streaming: chat-completions → anthropic > reasoningRequest > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_01K9siESHp7XobPKYd98zCcM",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 45,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 46,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "#",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Finding Average",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Speed
+
+I",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " need to find the average speed for",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the entire trip",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ".",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+##",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Step 1: Calculate distance",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " for",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " each segment
+
+**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "First",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " segment:**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- Speed",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 60 mph
+- Time =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 2 hours
+- Distance =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "60 ×",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 2 = 120 miles",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+**Second segment:**
+- Speed",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 80 mph
+- Time",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 1 hour
+- Distance",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 80 × 1 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "= 80 miles
+
+## Step",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 2: Find",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " total distance and",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " total time
+
+**Total distance**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 120 + 80 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "= 200 miles
+
+**Total",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " time** = 2 + ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "1 = 3 hours",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+## Step 3: Calculate average",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " speed
+
+Average speed = Total distance ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "÷ Total time",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+Average speed = 200 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "÷ 3 = **66",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ".67 mph**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (or",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 66",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "⅔ mph)
+
+---",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+**Answer",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ":",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " The",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " average speed is 66.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "67 mph**
+
+Note",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ": Average",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " speed is",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " NOT",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the average",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " of",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the speeds",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "which",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " would be 70",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " mph).",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " It",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " must",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " be calculated using",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " total",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " distance divided",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " by total time.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "stop",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 256,
+        "prompt_tokens": 45,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 301,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
+exports[`streaming: chat-completions → anthropic > reasoningRequestTruncated > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_01SLUwCj8vVHyHqcWLr8wd5j",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 45,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 46,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "#",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Finding Average",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Speed
+
+I",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " need to find the average speed for",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " entire trip",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ".
+
+##",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Step 1: Calculate distance",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " for",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " each segment
+
+**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "First segment:**",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- Speed",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 60 mph
+- Time =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 2 hours
+- Distance =",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "60 ×",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " 2 = 120 miles",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+**Second segment:**
+- Speed",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 80 mph
+- Time",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 1 hour
+- Distance",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 80 × 1 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "= 80",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "length",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 100,
+        "prompt_tokens": 45,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 145,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
+exports[`streaming: chat-completions → anthropic > reasoningWithOutput > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_01ATejJuuWLMS3jZptCGQNfs",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 13,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 17,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "The sky is typically",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " blue during",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the day.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+This",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " happens",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " because molecules",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " in Earth",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "'s atmosphere scatter sun",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "light,",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " and",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " blue light is scattered",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " more than other colors due",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " to its",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " shorter wavelength (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "a",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " phenomenon",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " called Rayleigh scattering",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ").",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+
+The",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " sky can",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " also appear other",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " colors depending on conditions",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ":",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- **Red",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "/",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "orange",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "/",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "pink** at",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " sunrise and",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " sunset
+- **Gray",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " or",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " white** when",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " clou",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "dy
+- **Dark",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " blue to",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " black",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "** at",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " night",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- **Yellow",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "/orange",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "/",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "gray",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "** in",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " areas",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " with",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " pollution",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " or",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " dust",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "stop",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 112,
+        "prompt_tokens": 13,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 125,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
+exports[`streaming: chat-completions → anthropic > simpleRequest > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_01XARvsH8viL66Z6UXBufpaj",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 43,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 44,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": null,
+            "reasoning": [
+              {
+                "content": "This",
+              },
+            ],
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": null,
+            "reasoning": [
+              {
+                "content": " is a straightforward factual question.",
+              },
+            ],
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": null,
+            "reasoning": [
+              {
+                "content": " The capital of France is Paris.",
+              },
+            ],
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": null,
+            "reasoning_signature": "EvMBCkYICxgCKkDsXMudeAkWyUdLs7q0K8uoXQGccpti5m6ysDhHMq4AbbpPpaNTz3Tl4H5DslxzxTChDdbvuVbLDTAFOWqGkgO0EgxTlAQJL899Zi968iEaDEJX3e6IKrw/NqvXTCIwI8lztdkqmBOyI3eiom/n7OmolaryTpfgKX09CRCyArwBUHff0gnYi/R3Hl6bBzckKltCZdIE8pPQ1t7Z6gMXznEqtamO4z2vXnzmOdmeKSKZlA+cznEXRuhbeDyLjXM7pAvTI85Ps6k6NjtUzTG4ZD++kmytJoZukW83hEvmrJT6EDoeuLa7vz/41IxJGAE=",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "The",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 1,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " capital of France is Paris.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 1,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "stop",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 34,
+        "prompt_tokens": 43,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 77,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
+exports[`streaming: chat-completions → anthropic > systemMessageArrayContent > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_01ViMT5Zr4MFq7VLoraoi9u3",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 2,
+        "prompt_tokens": 33,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 35,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "I'll",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " help",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " you find",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " recent",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " errors from",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the project logs",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ". Let me query",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the data",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " source for you",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ".
+
+\`\`\`",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "sql
+SELECT 
+  ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "timestamp",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ",
+  error_message",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ",
+  error",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "_code",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ",
+  severity,
+  source",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+FROM \`",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "abc",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "-123.project_logs.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "logs",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "\`
+WHERE",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " severity",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " = 'ERROR'
+  AND",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " timestamp >=",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " TIMESTAMP",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "_",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "SUB(CURRENT_TIMESTAMP",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "(), INTERVAL 24",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " HOUR)
+ORDER",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " BY timestamp DESC
+LIMIT 100",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+\`\`\`
+
+This",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " query will show you:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+- **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "Recent",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " errors** from the last 24 ",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "hours
+- **Error details",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "** including",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " message",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " and",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " code
+- **When",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " they",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " occurred** (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "timestamp)
+- **Where",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " they came",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " from** (source)
+-",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Sorted",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " with",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " most recent errors first
+
+Would you like",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " me to:",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+1.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " Extend",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " the time range (",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "e",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ".g., last 7 days",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": ")?",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "
+2. Filter by",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " specific error codes or sources",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "?
+3. Group",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " errors",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " by type",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " to",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " see which",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " are",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " most common?
+4. Show",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " additional",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " context",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " fields",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " if",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " available?",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "stop",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 234,
+        "prompt_tokens": 33,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 267,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
+exports[`streaming: chat-completions → anthropic > toolCallRequest > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_01GnRRpWSW8zsivZMM2PYutN",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 585,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 586,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": null,
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "",
+                  "name": "get_weather",
+                },
+                "id": "toolu_0134jFg3Mf5vSfFfXS493Rri",
+                "index": 0,
+                "type": "function",
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "",
+                },
+                "index": 0,
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "{"l",
+                },
+                "index": 0,
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "oca",
+                },
+                "index": 0,
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "tio",
+                },
+                "index": 0,
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "n"",
+                },
+                "index": 0,
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": ": "San Fran",
+                },
+                "index": 0,
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "cis",
+                },
+                "index": 0,
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "co, CA"}",
+                },
+                "index": 0,
+              },
+            ],
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "tool_calls",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 56,
+        "prompt_tokens": 585,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 641,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;

@@ -34,10 +34,45 @@ pub struct ChatCompletionRequestMessageExt {
     #[serde(flatten)]
     pub base: openai::ChatCompletionRequestMessage,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning: Option<String>,
+    pub reasoning: Option<ChatCompletionRequestReasoning>,
     /// Encrypted reasoning signature for cross-provider roundtrips (e.g., Anthropic's signature)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning_signature: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ChatCompletionRequestReasoning {
+    String(String),
+    Parts(Vec<ChatCompletionRequestReasoningPart>),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatCompletionRequestReasoningPart {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+}
+
+impl ChatCompletionRequestReasoning {
+    fn into_text(self) -> Option<String> {
+        match self {
+            Self::String(text) => Some(text),
+            Self::Parts(parts) => {
+                let mut combined = String::new();
+                for part in parts {
+                    if let Some(content) = part.content {
+                        combined.push_str(&content);
+                    }
+                }
+                if combined.is_empty() {
+                    return None;
+                }
+                Some(combined)
+            }
+        }
+    }
 }
 
 /// Helper function to build ToolCallArguments from a JSON value
@@ -2412,7 +2447,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                 // Add reasoning FIRST if present (natural model output order)
                 // Note: We preserve empty reasoning strings because the presence of the
                 // reasoning field indicates reasoning occurred (content may be hidden/summarized)
-                if let Some(reasoning) = msg.reasoning {
+                if let Some(reasoning) = msg.reasoning.and_then(|r| r.into_text()) {
                     content_parts.push(AssistantContentPart::Reasoning {
                         text: reasoning,
                         encrypted_content: msg.reasoning_signature.clone(),
@@ -2692,7 +2727,7 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                         function_call: None,
                         refusal: None,
                     },
-                    reasoning,
+                    reasoning: reasoning.map(ChatCompletionRequestReasoning::String),
                     reasoning_signature,
                 })
             }
@@ -3076,6 +3111,45 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                 type_name: "role",
                 value: format!("{:?}", msg),
             }),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::serde_json::json;
+
+    #[test]
+    fn request_message_reasoning_accepts_array_objects() {
+        let value = json!({
+            "role": "assistant",
+            "content": "The Greek name for the Sun is Helios.",
+            "reasoning": [
+                {
+                    "id": "reasoning_1",
+                    "content": "Identify Greek name for Sun."
+                }
+            ]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt =
+            serde_json::from_value(value).expect("message should deserialize");
+        assert!(parsed.reasoning.is_some());
+
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("message should convert");
+        match message {
+            Message::Assistant { content, .. } => {
+                let has_reasoning = match content {
+                    AssistantContent::Array(parts) => parts
+                        .iter()
+                        .any(|part| matches!(part, AssistantContentPart::Reasoning { .. })),
+                    AssistantContent::String(_) => false,
+                };
+                assert!(has_reasoning, "request reasoning should be preserved");
+            }
+            _ => panic!("expected assistant message"),
         }
     }
 }
