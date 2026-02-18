@@ -1,0 +1,95 @@
+{
+  "cachedContent": "MIL?l v.,! Y??m?j?a.,.?vzX,c3K m.DGjy.!",
+  "contents": [
+    {
+      "parts": [
+        {
+          "executableCode": {
+            "language": "LANGUAGE_UNSPECIFIED"
+          },
+          "inlineData": {
+            "data": "i?9O,2.,.H0rl7.,5.?Q,f?,n67aVy?dP",
+            "mimeType": "99bn9.?jx9?5Xu?F.6t.Q,q.V3.7ER."
+          },
+          "mediaResolution": {
+            "level": "MEDIA_RESOLUTION_ULTRA_HIGH"
+          },
+          "thoughtSignature": "?u!eIug..9C? soB0.8sTxo.q.k?65W??,p4 g.i3mX6 u7??",
+          "videoMetadata": {
+            "fps": 51.698216934714644
+          }
+        }
+      ],
+      "role": "? ,gbww6.kgJ7Pi.6P7z.K?,J8!2?f.N.!0?"
+    }
+  ],
+  "generationConfig": {
+    "_responseJsonSchema": "Z aX5ge66 6D 59xXsGnF",
+    "frequencyPenalty": 2.6697296059110456,
+    "imageConfig": {
+      "imageSize": "BZw,!JpI?T?CHAOT4?w .8!?P MMuh ?2S,?."
+    },
+    "logprobs": -41,
+    "maxOutputTokens": -889,
+    "mediaResolution": "MEDIA_RESOLUTION_UNSPECIFIED",
+    "responseJsonSchema": null,
+    "responseMimeType": "yH? .rM!6 .",
+    "responseModalities": [
+      "AUDIO",
+      "AUDIO"
+    ],
+    "responseSchema": {
+      "default": "u U712X",
+      "description": "1!?mw!9,T??NU.9E321?92.ySf 1UXL5.!,Lf.b?l87ZJ3V.D,",
+      "enum": [
+        "4N,?c?.??p?.EJ5vq..UOc4,,?s1H,ZHt.D3,? ",
+        ".dROe b.53",
+        "a D?1vG.vQ.,,Kk?Pq.A8.R,"
+      ],
+      "format": ",p..E , .Zv",
+      "items": {
+        "description": ",j,.!,Ng!c.chY",
+        "example": null,
+        "format": "7i8KLWM!,r6.J  !j?Q0.t???,N?.!?.!9?B,v6z6,?MN!Qt",
+        "maxLength": " ",
+        "minItems": "?? ,?HzCp8,G?..? qr Fwj",
+        "minProperties": ",..sN.U O VN?LjP,,Z?? dhpK.d1v7.Z1,l",
+        "nullable": true,
+        "properties": {},
+        "propertyOrdering": [
+          "K !.?N,!y!!,29yTXWe?,,21 ?,.",
+          "t 69",
+          ". z,t??2"
+        ],
+        "type": "NULL"
+      },
+      "maxLength": "bpL!zlx Lbu?z,Wym.g3P!,. UE,RGT!c!64y7p?hOpTOh.",
+      "maxProperties": "4 .,",
+      "maximum": 19.61703789371374,
+      "minProperties": "!,Y.!s.?UW o,Q??!.f6!?o i",
+      "required": [
+        "?,? ?G,? nW.mg2e?02 R5M a6E0IP?!.,035M,,86?.",
+        "PFq?L",
+        ".k,,?.BB6j6J"
+      ],
+      "title": "0..QG7D,u.P?pJqM?f1?x?D,?xu0SKP,",
+      "type": "ARRAY"
+    },
+    "speechConfig": {
+      "languageCode": "9avd?RZ?9hs.,n?6?!HX?.",
+      "voiceConfig": {
+        "prebuiltVoiceConfig": {}
+      }
+    },
+    "stopSequences": [
+      ",9BK hokEj Y9zD?,k!,??KLXuP?7l,,5y"
+    ],
+    "thinkingConfig": {
+      "thinkingBudget": 763
+    },
+    "topK": 207,
+    "topP": -3.3063070170643147
+  },
+  "model": "4 .,,9I4xTh,1  w?,.3rYaJMR!?? Vq.H.!.kiKyp0,?!h?D9",
+  "toolConfig": {}
+}

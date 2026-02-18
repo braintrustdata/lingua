@@ -1,0 +1,24 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.top_logprobs (571 -> null)",
+    "universal(1->2): changed: params.stream (false -> null)",
+    "universal(1->2): changed: messages[0].content[0].output (\"\" -> {\"output\":\"\"})",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: n",
+    "chat(final): lost: prediction",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: stream",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: function_call",
+    "chat(final): lost: modalities",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: messages[0].name",
+    "chat(final): added: messages[0].tool_call_id",
+    "chat(final): changed: messages[0].role (\"function\" -> \"tool\")",
+    "chat(final): changed: messages[0].content (null -> \"{\\\"output\\\":\\\"\\\"}\")",
+    "chat(final): changed: stop (\"qWI.O,G YvnirG?!..6Ne?a?Y ?B?.. Xg..\" -> [\"qWI.O,G YvnirG?!..6Ne?a?Y ?B?.. Xg..\"])"
+  ],
+  "kind": "chat-google-two-arm",
+  "provider": "chat-completions"
+}

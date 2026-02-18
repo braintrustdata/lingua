@@ -1,0 +1,21 @@
+{
+  "issues": [
+    "universal(1->2): changed: messages[0].content (\"\" -> [{\"text\":\"\",\"type\":\"text\"}])",
+    "universal(1->2): changed: messages[1].content[0].output (\"\" -> {\"output\":\"\"})",
+    "universal(1->2): changed: params.store (false -> null)",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: prediction",
+    "chat(final): lost: function_call",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: store",
+    "chat(final): lost: n",
+    "chat(final): lost: messages[0].audio",
+    "chat(final): lost: messages[1].name",
+    "chat(final): added: messages[0].content",
+    "chat(final): added: messages[1].tool_call_id",
+    "chat(final): changed: messages[1].content (null -> \"{\\\"output\\\":\\\"\\\"}\")",
+    "chat(final): changed: messages[1].role (\"function\" -> \"tool\")"
+  ],
+  "kind": "chat-google-two-arm",
+  "provider": "chat-completions"
+}

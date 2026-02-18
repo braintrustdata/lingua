@@ -1,0 +1,53 @@
+{
+  "cachedContent": "Zx.yEkOd0",
+  "contents": [
+    {
+      "role": ".,i?0"
+    },
+    {
+      "role": "?kV.k ,,LMM.3f,1?,mlxb6I3IG"
+    }
+  ],
+  "generationConfig": {
+    "_responseJsonSchema": null,
+    "frequencyPenalty": -60.42419908836965,
+    "imageConfig": {},
+    "logprobs": -825,
+    "maxOutputTokens": -266,
+    "presencePenalty": 62.34146184198899,
+    "responseMimeType": "S",
+    "responseModalities": [
+      "IMAGE"
+    ],
+    "speechConfig": {
+      "multiSpeakerVoiceConfig": {
+        "speakerVoiceConfigs": [
+          {
+            "voiceConfig": {
+              "prebuiltVoiceConfig": null
+            }
+          }
+        ]
+      }
+    },
+    "stopSequences": [
+      "zA!,2.xB,TLcC. jfvuE.,k!xy S.?5I?2c.o"
+    ],
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": -573,
+      "thinkingLevel": "MINIMAL"
+    }
+  },
+  "safetySettings": [
+    {},
+    {}
+  ],
+  "systemInstruction": {},
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO"
+    },
+    "retrievalConfig": {}
+  }
+}

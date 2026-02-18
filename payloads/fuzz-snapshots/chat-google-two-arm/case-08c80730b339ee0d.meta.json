@@ -1,0 +1,21 @@
+{
+  "issues": [
+    "universal(1->2): changed: params.tools.length (3 -> 2)",
+    "universal(1->2): changed: params.logprobs (false -> null)",
+    "universal(1->2): changed: params.stream (true -> null)",
+    "universal(1->2): changed: messages.length (1 -> 0)",
+    "google(1->2): lost: systemInstruction",
+    "chat(final): lost: functions",
+    "chat(final): lost: logit_bias",
+    "chat(final): lost: stream",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: verbosity",
+    "chat(final): lost: tool_choice",
+    "chat(final): lost: logprobs",
+    "chat(final): changed: stop (\"f0OdJ.T,\" -> [\"f0OdJ.T,\"])",
+    "chat(final): changed: tools.length (3 -> 2)",
+    "chat(final): changed: messages.length (1 -> 0)"
+  ],
+  "kind": "chat-google-two-arm",
+  "provider": "chat-completions"
+}

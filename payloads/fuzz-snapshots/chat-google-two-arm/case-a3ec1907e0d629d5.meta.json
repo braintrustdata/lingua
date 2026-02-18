@@ -1,0 +1,28 @@
+{
+  "issues": [
+    "universal(1->2): lost: params.tools[0].strict",
+    "universal(1->2): changed: messages.length (3 -> 0)",
+    "universal(1->2): changed: params.logprobs (true -> null)",
+    "universal(1->2): changed: params.frequency_penalty (-70.06246855099464 -> null)",
+    "universal(1->2): changed: params.stream (true -> null)",
+    "universal(1->2): changed: params.store (false -> null)",
+    "google(1->2): lost: systemInstruction",
+    "chat(final): lost: store",
+    "chat(final): lost: reasoning_effort",
+    "chat(final): lost: audio",
+    "chat(final): lost: modalities",
+    "chat(final): lost: prediction",
+    "chat(final): lost: stream",
+    "chat(final): lost: frequency_penalty",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: function_call",
+    "chat(final): lost: stream_options",
+    "chat(final): lost: functions",
+    "chat(final): lost: logprobs",
+    "chat(final): lost: tools[0].function.strict",
+    "chat(final): changed: stop (\".9.h?,!3X cix?R7?b.mP7x4p6H??6!?7pC,?k?U\" -> [\".9.h?,!3X cix?R7?b.mP7x4p6H??6!?7pC,?k?U\"])",
+    "chat(final): changed: messages.length (3 -> 0)"
+  ],
+  "kind": "chat-google-two-arm",
+  "provider": "chat-completions"
+}

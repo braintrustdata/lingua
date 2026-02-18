@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "format": "opus",
+    "voice": "ballad"
+  },
+  "function_call": "none",
+  "functions": [
+    {
+      "description": "l.iLO??Nj?Mg ?,.",
+      "name": "Go?.k!.dNG.,6.64Gg.9cfMP3w, fCdg??lt??,,YpIm .Y.68",
+      "parameters": {}
+    },
+    {
+      "name": "5Zi!tj,"
+    },
+    {
+      "description": "XKu!? z .pA3k,0.2D5za  08a!,,hqJ.5K?,w,.j?!6",
+      "name": "?D,l ,5H9Wb? ",
+      "parameters": {}
+    },
+    {
+      "description": ",!.5??w6z,9qP.pR.i,?R.?,?paRrUJcdB ?OD.?4a5K.,",
+      "name": "g?t,9?G Via?v,",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "b..??.d97 ???E7z,b,1.???",
+          "type": "text"
+        }
+      ],
+      "role": "developer"
+    }
+  ],
+  "modalities": null,
+  "model": "gpt-4-turbo-2024-04-09",
+  "prediction": {
+    "content": [
+      {
+        "text": ",fL.?,.O8H?!.Cy6rWC7pK!,e?",
+        "type": "text"
+      }
+    ],
+    "type": "content"
+  },
+  "response_format": {
+    "json_schema": {
+      "description": "bAw Vx,T8z?uT",
+      "name": ".5UiXyS 6ege9yt?4.64.",
+      "strict": null
+    },
+    "type": "json_schema"
+  },
+  "seed": 438,
+  "store": false,
+  "stream": false,
+  "tools": [
+    {
+      "function": {
+        "description": "S.NGOKC.?3,",
+        "name": "S q!gI06 e,w,?l,s??4.SG9W?pZS3,.V?ZE,.FsiZ,.9"
+      },
+      "type": "function"
+    }
+  ],
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "country": "!.6.H  9q6!?Ex??,",
+        "timezone": "0.,"
+      },
+      "type": "approximate"
+    }
+  }
+}

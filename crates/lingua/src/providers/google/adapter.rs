@@ -31,6 +31,11 @@ use crate::universal::{
     UniversalStreamChunk, UniversalUsage, UserContent,
 };
 
+/// Internal extras key used to stash generationConfig fields that don't have
+/// universal equivalents (candidateCount, speechConfig, responseModalities, etc.)
+/// so they survive a roundtrip through the universal format.
+const GENERATION_CONFIG_EXTRAS_KEY: &str = "_generationConfigExtras";
+
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
 
@@ -67,37 +72,49 @@ impl ProviderAdapter for GoogleAdapter {
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         // Extract params from generationConfig (now typed in params struct)
-        let (temperature, top_p, top_k, max_tokens, stop, reasoning) =
-            if let Some(config) = &typed_params.generation_config {
-                let max_tokens = config.max_output_tokens;
-                // Convert Google's thinkingConfig to ReasoningConfig
-                // thinkingBudget: 0 means disabled
-                let reasoning = config.thinking_config.as_ref().map(|tc| {
-                    let is_disabled = tc.thinking_budget == Some(0);
-                    let budget_tokens = tc.thinking_budget;
-                    // Derive effort from budget_tokens
-                    let effort = budget_tokens
-                        .map(|b| crate::universal::reasoning::budget_to_effort(b, None));
-                    crate::universal::ReasoningConfig {
-                        enabled: Some(!is_disabled),
-                        effort,
-                        budget_tokens,
-                        canonical: Some(crate::universal::ReasoningCanonical::BudgetTokens),
-                        ..Default::default()
-                    }
-                });
-                let stop = config.stop_sequences.clone().filter(|s| !s.is_empty());
-                (
-                    config.temperature,
-                    config.top_p,
-                    config.top_k,
-                    max_tokens,
-                    stop,
-                    reasoning,
-                )
-            } else {
-                (None, None, None, None, None, None)
-            };
+        let (
+            temperature,
+            top_p,
+            top_k,
+            max_tokens,
+            stop,
+            reasoning,
+            seed,
+            presence_penalty,
+            frequency_penalty,
+        ) = if let Some(config) = &typed_params.generation_config {
+            let max_tokens = config.max_output_tokens;
+            // Convert Google's thinkingConfig to ReasoningConfig
+            // thinkingBudget: 0 means disabled
+            let reasoning = config.thinking_config.as_ref().map(|tc| {
+                let is_disabled = tc.thinking_budget == Some(0);
+                let budget_tokens = tc.thinking_budget;
+                // Derive effort from budget_tokens
+                let effort =
+                    budget_tokens.map(|b| crate::universal::reasoning::budget_to_effort(b, None));
+                crate::universal::ReasoningConfig {
+                    enabled: Some(!is_disabled),
+                    effort,
+                    budget_tokens,
+                    canonical: Some(crate::universal::ReasoningCanonical::BudgetTokens),
+                    ..Default::default()
+                }
+            });
+            let stop = config.stop_sequences.clone().filter(|s| !s.is_empty());
+            (
+                config.temperature,
+                config.top_p,
+                config.top_k,
+                max_tokens,
+                stop,
+                reasoning,
+                config.seed,
+                config.presence_penalty,
+                config.frequency_penalty,
+            )
+        } else {
+            (None, None, None, None, None, None, None, None, None)
+        };
 
         // Convert tools using typed conversions
         let tools = typed_params
@@ -127,9 +144,9 @@ impl ProviderAdapter for GoogleAdapter {
             tools,
             tool_choice,
             response_format,
-            seed: None, // Google doesn't support seed
-            presence_penalty: None,
-            frequency_penalty: None,
+            seed,
+            presence_penalty,
+            frequency_penalty,
             stream: None, // Google uses endpoint-based streaming
             // New canonical fields - Google doesn't support most of these
             parallel_tool_calls: None,
@@ -142,12 +159,50 @@ impl ProviderAdapter for GoogleAdapter {
             extras: Default::default(),
         };
 
-        // Use extras captured automatically via #[serde(flatten)]
-        if !typed_params.extras.is_empty() {
-            params.extras.insert(
-                ProviderFormat::Google,
-                typed_params.extras.into_iter().collect(),
-            );
+        // Collect Google-specific extras: serde-flatten unknowns + known fields
+        // that don't map to universal params.
+        let mut google_extras: Map<String, Value> = typed_params.extras.into_iter().collect();
+
+        if let Some(v) = typed_params.safety_settings {
+            google_extras.insert("safetySettings".into(), v);
+        }
+        if let Some(v) = typed_params.cached_content {
+            google_extras.insert("cachedContent".into(), Value::String(v));
+        }
+
+        // Preserve generationConfig fields that don't have universal equivalents.
+        // Serialize the whole config, strip fields we already handle, keep the rest.
+        if let Some(config) = &typed_params.generation_config {
+            if let Ok(Value::Object(mut config_map)) = serde_json::to_value(config) {
+                // Remove fields handled canonically above
+                for key in &[
+                    "temperature",
+                    "topP",
+                    "topK",
+                    "maxOutputTokens",
+                    "stopSequences",
+                    "thinkingConfig",
+                    "responseMimeType",
+                    "responseSchema",
+                    "seed",
+                    "presencePenalty",
+                    "frequencyPenalty",
+                ] {
+                    config_map.remove(*key);
+                }
+                // Remove null entries
+                config_map.retain(|_, v| !v.is_null());
+                if !config_map.is_empty() {
+                    google_extras.insert(
+                        GENERATION_CONFIG_EXTRAS_KEY.into(),
+                        Value::Object(config_map),
+                    );
+                }
+            }
+        }
+
+        if !google_extras.is_empty() {
+            params.extras.insert(ProviderFormat::Google, google_extras);
         }
 
         Ok(UniversalRequest {
@@ -220,13 +275,23 @@ impl ProviderAdapter for GoogleAdapter {
             .map(|r| !r.is_effectively_disabled())
             .unwrap_or(false);
         let has_response_format = req.params.response_format.is_some();
+        let has_gen_config_extras = req
+            .params
+            .extras
+            .get(&ProviderFormat::Google)
+            .and_then(|e| e.get(GENERATION_CONFIG_EXTRAS_KEY))
+            .is_some();
         let has_params = req.params.temperature.is_some()
             || req.params.top_p.is_some()
             || req.params.top_k.is_some()
             || req.params.output_token_budget().is_some()
             || req.params.stop.is_some()
+            || req.params.seed.is_some()
+            || req.params.presence_penalty.is_some()
+            || req.params.frequency_penalty.is_some()
             || has_reasoning
-            || has_response_format;
+            || has_response_format
+            || has_gen_config_extras;
 
         if has_params {
             // Convert ReasoningConfig to Google's thinkingConfig
@@ -254,6 +319,9 @@ impl ProviderAdapter for GoogleAdapter {
                 max_output_tokens: req.params.output_token_budget(),
                 stop_sequences,
                 thinking_config,
+                seed: req.params.seed,
+                presence_penalty: req.params.presence_penalty,
+                frequency_penalty: req.params.frequency_penalty,
                 ..Default::default()
             };
 
@@ -262,11 +330,30 @@ impl ProviderAdapter for GoogleAdapter {
                 apply_response_format_to_generation_config(&mut config, format);
             }
 
-            obj.insert(
-                "generationConfig".into(),
-                serde_json::to_value(config)
-                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-            );
+            let mut config_value = serde_json::to_value(config)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+
+            // Strip null entries (e.g. responseSchema which is Box<Option<Schema>>
+            // and always serializes, producing null when None)
+            if let Some(config_map) = config_value.as_object_mut() {
+                config_map.retain(|_, v| !v.is_null());
+            }
+
+            // Merge back generationConfig extras (candidateCount, speechConfig, etc.)
+            if let Some(extras) = req.params.extras.get(&ProviderFormat::Google) {
+                if let Some(Value::Object(config_extras)) = extras.get(GENERATION_CONFIG_EXTRAS_KEY)
+                {
+                    if let Some(config_map) = config_value.as_object_mut() {
+                        for (k, v) in config_extras {
+                            if !config_map.contains_key(k) {
+                                config_map.insert(k.clone(), v.clone());
+                            }
+                        }
+                    }
+                }
+            }
+
+            obj.insert("generationConfig".into(), config_value);
         }
 
         // Add tools if present
@@ -296,6 +383,10 @@ impl ProviderAdapter for GoogleAdapter {
         // Merge back provider-specific extras (only for Google)
         if let Some(extras) = req.params.extras.get(&ProviderFormat::Google) {
             for (k, v) in extras {
+                // _generationConfigExtras is merged into generationConfig above
+                if k == GENERATION_CONFIG_EXTRAS_KEY {
+                    continue;
+                }
                 // Don't overwrite canonical fields we already handled
                 if !obj.contains_key(k) {
                     obj.insert(k.clone(), v.clone());
@@ -526,6 +617,11 @@ mod tests {
     use super::*;
     use crate::serde_json::json;
 
+    /// Parse a reconstructed JSON Value back into typed GoogleParams for assertions.
+    fn parse_params(value: &Value) -> GoogleParams {
+        serde_json::from_value(value.clone()).expect("should parse as GoogleParams")
+    }
+
     #[test]
     fn test_google_detect_request() {
         let adapter = GoogleAdapter;
@@ -553,7 +649,6 @@ mod tests {
         });
 
         let universal = adapter.request_to_universal(payload).unwrap();
-        // Use approximate comparison due to f32->f64 conversion precision
         assert!((universal.params.temperature.unwrap() - 0.7).abs() < 0.001);
         assert_eq!(
             universal.params.token_budget,
@@ -561,8 +656,9 @@ mod tests {
         );
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        assert!(reconstructed.get("contents").is_some());
-        assert!(reconstructed.get("generationConfig").is_some());
+        let params = parse_params(&reconstructed);
+        assert!(params.contents.is_some());
+        assert!(params.generation_config.is_some());
     }
 
     #[test]
@@ -577,10 +673,113 @@ mod tests {
         });
 
         let universal = adapter.request_to_universal(payload).unwrap();
-        // safetySettings is a known key, so it won't be in extras
-        // but it should be preserved through serialization
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let params = parse_params(&reconstructed);
+        assert!(params.contents.is_some());
+        assert_eq!(
+            params.safety_settings,
+            Some(json!([{"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"}]))
+        );
+    }
+
+    #[test]
+    fn test_google_roundtrip_generation_config_extras() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "contents": [{"role": "user", "parts": [{"text": "hi"}]}],
+            "generationConfig": {
+                "temperature": 0.5,
+                "seed": 42,
+                "presencePenalty": 0.3,
+                "frequencyPenalty": 0.7,
+                "candidateCount": 2,
+                "responseLogprobs": true,
+                "responseModalities": ["TEXT"],
+                "mediaResolution": "MEDIA_RESOLUTION_LOW"
+            }
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert_eq!(universal.params.seed, Some(42));
+        assert!((universal.params.presence_penalty.unwrap() - 0.3).abs() < 0.001);
+        assert!((universal.params.frequency_penalty.unwrap() - 0.7).abs() < 0.001);
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        assert!(reconstructed.get("contents").is_some());
+        let params = parse_params(&reconstructed);
+        let config = params.generation_config.unwrap();
+        assert_eq!(config.seed, Some(42));
+        assert_eq!(config.candidate_count, Some(2));
+        assert_eq!(config.response_logprobs, Some(true));
+        assert!(config.response_modalities.is_some());
+        assert!(config.media_resolution.is_some());
+    }
+
+    #[test]
+    fn test_google_roundtrip_cached_content() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "contents": [{"role": "user", "parts": [{"text": "hi"}]}],
+            "cachedContent": "cachedContents/abc123"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let params = parse_params(&reconstructed);
+        assert_eq!(params.cached_content, Some("cachedContents/abc123".into()));
+    }
+
+    #[test]
+    fn test_google_openai_google_roundtrip_seed_and_penalties() {
+        use crate::processing::adapters::adapter_for_format;
+        use crate::providers::openai::params::OpenAIChatParams;
+
+        let google = adapter_for_format(ProviderFormat::Google).unwrap();
+        let openai = adapter_for_format(ProviderFormat::ChatCompletions).unwrap();
+
+        let google_payload = json!({
+            "model": "gemini-2.0-flash",
+            "contents": [{"role": "user", "parts": [{"text": "hello"}]}],
+            "generationConfig": {
+                "seed": 42,
+                "presencePenalty": 0.5,
+                "frequencyPenalty": 0.8,
+                "candidateCount": 2,
+                "responseModalities": ["TEXT"],
+                "temperature": 0.7
+            },
+            "safetySettings": [{"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_ONLY_HIGH"}],
+            "cachedContent": "cachedContents/test123"
+        });
+
+        // Google -> Universal
+        let universal = google.request_to_universal(google_payload.clone()).unwrap();
+        assert_eq!(universal.params.seed, Some(42));
+        assert!((universal.params.presence_penalty.unwrap() - 0.5).abs() < 0.001);
+        assert!((universal.params.frequency_penalty.unwrap() - 0.8).abs() < 0.001);
+
+        // Universal -> OpenAI ChatCompletions
+        let openai_payload = openai.request_from_universal(&universal).unwrap();
+        let openai_params: OpenAIChatParams =
+            serde_json::from_value(openai_payload.clone()).unwrap();
+        assert_eq!(openai_params.seed, Some(42));
+
+        // OpenAI -> Universal (back)
+        let universal_2 = openai.request_to_universal(openai_payload).unwrap();
+        assert_eq!(universal_2.params.seed, Some(42));
+
+        // Universal -> Google (back)
+        let google_out = google.request_from_universal(&universal_2).unwrap();
+        let params = parse_params(&google_out);
+        let config = params.generation_config.unwrap();
+        // Universal params survive cross-provider roundtrip
+        assert_eq!(config.seed, Some(42));
+        assert!(config.presence_penalty.is_some());
+        assert!(config.frequency_penalty.is_some());
+        assert!(config.temperature.is_some());
+
+        // Google-specific extras (candidateCount, responseModalities, safetySettings,
+        // cachedContent) are stored under ProviderFormat::Google in extras, so they
+        // survive a Google->Google roundtrip but NOT a cross-provider trip through OpenAI.
+        // This is expected: OpenAI doesn't know about Google's candidateCount etc.
     }
 }

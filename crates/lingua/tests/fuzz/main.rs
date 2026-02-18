@@ -25,6 +25,8 @@ const SNAPSHOT_SUITE_ANTHROPIC: &str = "anthropic-roundtrip";
 const SNAPSHOT_SUITE_CHAT_ANTHROPIC_TWO_ARM: &str = "chat-anthropic-two-arm";
 const SNAPSHOT_SUITE_CHAT_RESPONSES_ANTHROPIC_THREE_ARM: &str =
     "chat-responses-anthropic-three-arm";
+const SNAPSHOT_SUITE_GOOGLE: &str = "google-roundtrip";
+const SNAPSHOT_SUITE_CHAT_GOOGLE_TWO_ARM: &str = "chat-google-two-arm";
 
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -497,6 +499,123 @@ fn assert_responses_roundtrip_verbose(payload: &Value) -> Result<bool, String> {
     assert_provider_roundtrip_verbose(ProviderFormat::Responses, payload)
 }
 
+fn assert_google_roundtrip(payload: &Value) -> Option<Vec<String>> {
+    assert_provider_roundtrip(ProviderFormat::Google, payload)
+}
+
+fn assert_google_roundtrip_verbose(payload: &Value) -> Result<bool, String> {
+    assert_provider_roundtrip_verbose(ProviderFormat::Google, payload)
+}
+
+fn assert_chat_google_two_arm(payload: &Value) -> Option<Vec<String>> {
+    let chat = adapter_for_format(ProviderFormat::ChatCompletions)?;
+    let google = adapter_for_format(ProviderFormat::Google)?;
+
+    let universal_1 = match chat.request_to_universal(payload.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("chat->universal error: {e}")]),
+    };
+    let google_1 = match google.request_from_universal(&universal_1) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->google(1) error: {e}")]),
+    };
+    let universal_2 = match google.request_to_universal(google_1.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("google->universal(1) error: {e}")]),
+    };
+    let google_2 = match google.request_from_universal(&universal_2) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->google(2) error: {e}")]),
+    };
+    let universal_3 = match google.request_to_universal(google_2.clone()) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("google->universal(2) error: {e}")]),
+    };
+    let chat_out = match chat.request_from_universal(&universal_3) {
+        Ok(v) => v,
+        Err(e) => return Some(vec![format!("universal->chat error: {e}")]),
+    };
+
+    let mut issues = Vec::new();
+    let universal_1_json = serde_json::to_value(&universal_1).unwrap_or(Value::Null);
+    let universal_2_json = serde_json::to_value(&universal_2).unwrap_or(Value::Null);
+    append_diff_issues(
+        "universal(1->2):",
+        &universal_1_json,
+        &universal_2_json,
+        &mut issues,
+    );
+    append_diff_issues("google(1->2):", &google_1, &google_2, &mut issues);
+    append_diff_issues("chat(final):", payload, &chat_out, &mut issues);
+
+    Some(issues)
+}
+
+fn assert_chat_google_two_arm_verbose(payload: &Value) -> Result<bool, String> {
+    let chat = adapter_for_format(ProviderFormat::ChatCompletions)
+        .ok_or_else(|| "No chat-completions adapter".to_string())?;
+    let google = adapter_for_format(ProviderFormat::Google)
+        .ok_or_else(|| "No google adapter".to_string())?;
+
+    let universal_1 = chat
+        .request_to_universal(payload.clone())
+        .map_err(|e| format!("chat->universal error: {e}"))?;
+    let google_1 = google
+        .request_from_universal(&universal_1)
+        .map_err(|e| format!("universal->google(1) error: {e}"))?;
+    let universal_2 = google
+        .request_to_universal(google_1.clone())
+        .map_err(|e| format!("google->universal(1) error: {e}"))?;
+    let google_2 = google
+        .request_from_universal(&universal_2)
+        .map_err(|e| format!("universal->google(2) error: {e}"))?;
+    let universal_3 = google
+        .request_to_universal(google_2.clone())
+        .map_err(|e| format!("google->universal(2) error: {e}"))?;
+    let chat_out = chat
+        .request_from_universal(&universal_3)
+        .map_err(|e| format!("universal->chat error: {e}"))?;
+
+    let mut issues = Vec::new();
+    let universal_1_json = serde_json::to_value(&universal_1).unwrap_or(Value::Null);
+    let universal_2_json = serde_json::to_value(&universal_2).unwrap_or(Value::Null);
+    append_diff_issues(
+        "universal(1->2):",
+        &universal_1_json,
+        &universal_2_json,
+        &mut issues,
+    );
+    append_diff_issues("google(1->2):", &google_1, &google_2, &mut issues);
+    append_diff_issues("chat(final):", payload, &chat_out, &mut issues);
+
+    if issues.is_empty() {
+        return Ok(true);
+    }
+
+    Err(format!(
+        "chat->universal->google->universal->google->universal->chat mismatch:\n{}\n\n\
+         chat_input: {}\n\
+         universal_1: {}\n\
+         google_1: {}\n\
+         universal_2: {}\n\
+         google_2: {}\n\
+         universal_3: {}\n\
+         chat_output: {}",
+        issues
+            .iter()
+            .map(|i| format!("  {i}"))
+            .collect::<Vec<_>>()
+            .join("\n"),
+        as_pretty_json(payload),
+        as_pretty_json(&universal_1),
+        as_pretty_json(&google_1),
+        as_pretty_json(&universal_2),
+        as_pretty_json(&google_2),
+        as_pretty_json(&universal_3),
+        as_pretty_json(&chat_out),
+    ))
+}
+
 fn assert_chat_responses_anthropic_three_arm(payload: &Value) -> Option<Vec<String>> {
     let chat = adapter_for_format(ProviderFormat::ChatCompletions)?;
     let responses = adapter_for_format(ProviderFormat::Responses)?;
@@ -666,7 +785,9 @@ fn assert_chat_responses_anthropic_three_arm_verbose(payload: &Value) -> Result<
 // ============================================================================
 
 mod strategies {
-    use super::schema_strategy::{load_openapi_definitions, strategy_for_schema_name};
+    use super::schema_strategy::{
+        load_discovery_definitions, load_openapi_definitions, strategy_for_schema_name,
+    };
     use super::*;
 
     fn specs_dir() -> String {
@@ -698,6 +819,50 @@ mod strategies {
             .prop_filter(
                 "payload must include model for universal->responses conversion",
                 |payload| payload.get("model").and_then(Value::as_str).is_some(),
+            )
+            .boxed()
+    }
+
+    pub fn arb_google_payload() -> BoxedStrategy<Value> {
+        let defs =
+            load_discovery_definitions(&format!("{}/specs/google/discovery.json", specs_dir()));
+        strategy_for_schema_name("GenerateContentRequest", &defs)
+            .prop_filter("payload must parse as Google params", |payload| {
+                lingua::providers::google::try_parse_google(payload).is_ok()
+            })
+            .prop_filter(
+                "contents must be valid Google API input (valid roles, non-empty parts with data)",
+                |payload| {
+                    let part_has_data = |part: &Value| {
+                        part.get("text").and_then(Value::as_str).is_some()
+                            || part.get("inlineData").and_then(|d| d.get("data")).is_some()
+                            || part
+                                .get("fileData")
+                                .and_then(|d| d.get("fileUri"))
+                                .is_some()
+                            || part
+                                .get("functionCall")
+                                .and_then(|d| d.get("name"))
+                                .is_some()
+                            || part
+                                .get("functionResponse")
+                                .and_then(|d| d.get("name"))
+                                .is_some()
+                    };
+                    payload
+                        .get("contents")
+                        .and_then(|c| c.as_array())
+                        .is_some_and(|contents| {
+                            contents.iter().all(|entry| {
+                                matches!(
+                                    entry.get("role").and_then(Value::as_str),
+                                    Some("user" | "model")
+                                ) && entry.get("parts").and_then(|p| p.as_array()).is_some_and(
+                                    |parts| !parts.is_empty() && parts.iter().all(part_has_data),
+                                )
+                            })
+                        })
+                },
             )
             .boxed()
     }
@@ -978,6 +1143,19 @@ fn chat_responses_anthropic_three_arm_saved_snapshots() {
     );
 }
 
+#[test]
+fn google_roundtrip_saved_snapshots() {
+    run_saved_snapshots_suite(SNAPSHOT_SUITE_GOOGLE, assert_google_roundtrip);
+}
+
+#[test]
+fn chat_google_two_arm_saved_snapshots() {
+    run_saved_snapshots_suite(
+        SNAPSHOT_SUITE_CHAT_GOOGLE_TWO_ARM,
+        assert_chat_google_two_arm,
+    );
+}
+
 /// Prune fuzz snapshots in a loop until stable:
 /// - remove malformed request/meta pairs
 /// - remove orphan meta files
@@ -1015,6 +1193,21 @@ fn chat_responses_anthropic_three_arm_prune_snapshots() {
     run_prune_snapshots_suite(
         SNAPSHOT_SUITE_CHAT_RESPONSES_ANTHROPIC_THREE_ARM,
         assert_chat_responses_anthropic_three_arm,
+    );
+}
+
+#[test]
+#[ignore]
+fn google_roundtrip_prune_snapshots() {
+    run_prune_snapshots_suite(SNAPSHOT_SUITE_GOOGLE, assert_google_roundtrip);
+}
+
+#[test]
+#[ignore]
+fn chat_google_two_arm_prune_snapshots() {
+    run_prune_snapshots_suite(
+        SNAPSHOT_SUITE_CHAT_GOOGLE_TWO_ARM,
+        assert_chat_google_two_arm,
     );
 }
 
@@ -1085,6 +1278,32 @@ fn chat_responses_anthropic_three_arm() {
     );
 }
 
+#[test]
+#[ignore]
+fn google_roundtrip() {
+    run_fail_fast_suite(
+        SNAPSHOT_SUITE_GOOGLE,
+        "google",
+        "request-roundtrip",
+        strategies::arb_google_payload(),
+        assert_google_roundtrip,
+        assert_google_roundtrip_verbose,
+    );
+}
+
+#[test]
+#[ignore]
+fn chat_google_two_arm() {
+    run_fail_fast_suite(
+        SNAPSHOT_SUITE_CHAT_GOOGLE_TWO_ARM,
+        "chat-completions",
+        "chat-google-two-arm",
+        strategies::arb_openai_payload(),
+        assert_chat_google_two_arm,
+        assert_chat_google_two_arm_verbose,
+    );
+}
+
 /// Run all cases and report an aggregated summary of unique issues.
 /// Use for triaging the full scope of failures.
 #[test]
@@ -1149,5 +1368,31 @@ fn chat_responses_anthropic_three_arm_stats() {
         "Chat->Responses->Anthropic three-arm fuzz",
         strategies::arb_openai_payload(),
         assert_chat_responses_anthropic_three_arm,
+    );
+}
+
+#[test]
+#[ignore]
+fn google_roundtrip_stats() {
+    run_stats_suite(
+        SNAPSHOT_SUITE_GOOGLE,
+        "google",
+        "request-roundtrip",
+        "Google roundtrip fuzz",
+        strategies::arb_google_payload(),
+        assert_google_roundtrip,
+    );
+}
+
+#[test]
+#[ignore]
+fn chat_google_two_arm_stats() {
+    run_stats_suite(
+        SNAPSHOT_SUITE_CHAT_GOOGLE_TWO_ARM,
+        "chat-completions",
+        "chat-google-two-arm",
+        "Chat->Google two-arm fuzz",
+        strategies::arb_openai_payload(),
+        assert_chat_google_two_arm,
     );
 }

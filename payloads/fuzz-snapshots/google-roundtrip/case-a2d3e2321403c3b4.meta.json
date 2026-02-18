@@ -1,0 +1,16 @@
+{
+  "issues": [
+    "lost: toolConfig",
+    "lost: contents[0].parts[0].partMetadata",
+    "lost: contents[0].parts[0].thoughtSignature",
+    "lost: contents[0].parts[0].codeExecutionResult",
+    "lost: contents[0].parts[0].executableCode",
+    "lost: contents[0].parts[0].functionCall",
+    "added: generationConfig.responseSchema",
+    "added: generationConfig.thinkingConfig.thinkingBudget",
+    "changed: contents[0].role (\"!,B?.p,.J9H\" -> \"user\")",
+    "changed: generationConfig.thinkingConfig.includeThoughts (false -> true)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

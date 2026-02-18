@@ -322,6 +322,20 @@ pub fn load_openapi_definitions(spec_path: &str) -> Map<String, Value> {
         .unwrap_or_else(|| panic!("No components.schemas in {}", spec_path))
 }
 
+/// Load a Google Discovery REST spec and extract the top-level `schemas` map.
+pub fn load_discovery_definitions(spec_path: &str) -> Map<String, Value> {
+    let content = std::fs::read_to_string(spec_path)
+        .unwrap_or_else(|e| panic!("Failed to read spec at {}: {}", spec_path, e));
+
+    let spec: Value = serde_json::from_str(&content)
+        .unwrap_or_else(|e| panic!("Failed to parse spec at {}: {}", spec_path, e));
+
+    spec.get("schemas")
+        .and_then(|s| s.as_object())
+        .cloned()
+        .unwrap_or_else(|| panic!("No schemas in {}", spec_path))
+}
+
 /// Build a strategy for a named schema from the definitions map.
 pub fn strategy_for_schema_name(
     name: &str,

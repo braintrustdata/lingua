@@ -1,0 +1,94 @@
+{
+  "cachedContent": "1FfW7eP9!!!wV!c?4?758Z2i?8a1.B?8b,6X.M.?5?,",
+  "contents": [
+    {
+      "parts": [
+        {
+          "codeExecutionResult": {
+            "output": "ql.H,?Ewf973 g.I,XZ?bqw7,nZ? kGi !S?1ia?k"
+          },
+          "executableCode": {
+            "code": ",A.. Q.J?TD",
+            "language": "LANGUAGE_UNSPECIFIED"
+          },
+          "fileData": {
+            "mimeType": "?. 2?77o.3,krV00 am6,z"
+          },
+          "mediaResolution": {
+            "level": "MEDIA_RESOLUTION_HIGH"
+          },
+          "partMetadata": {},
+          "thought": true,
+          "videoMetadata": {}
+        }
+      ],
+      "role": "092,?JS.,02,N4 ..xQ3X..d6!p8u?l.aq73k,FK!tG?5I"
+    }
+  ],
+  "generationConfig": {
+    "candidateCount": -720,
+    "frequencyPenalty": -2.548798129137723,
+    "logprobs": -608,
+    "mediaResolution": "MEDIA_RESOLUTION_HIGH",
+    "presencePenalty": -81.12346234355222,
+    "responseJsonSchema": " 4c09s BvUzow4y6G3UV7w1 qqs2",
+    "responseLogprobs": true,
+    "responseMimeType": "M,Q.,NU.,N",
+    "responseModalities": [
+      "AUDIO",
+      "MODALITY_UNSPECIFIED",
+      "IMAGE"
+    ],
+    "seed": 562,
+    "speechConfig": {
+      "languageCode": "!VH,",
+      "multiSpeakerVoiceConfig": {
+        "speakerVoiceConfigs": [
+          {
+            "voiceConfig": {
+              "prebuiltVoiceConfig": null
+            }
+          },
+          {
+            "voiceConfig": {}
+          },
+          {
+            "speaker": "N,?K0wu.R!o.,E hVT,!,O,38v 5"
+          }
+        ]
+      }
+    },
+    "topP": 30.900514366320234
+  },
+  "model": "IerC,???XA,Iy7N1n4,..y! ?.KO ",
+  "systemInstruction": {
+    "parts": [
+      {
+        "executableCode": {
+          "code": "e!CfUzN.i? .... 55r.Z3LQf41",
+          "language": "PYTHON"
+        },
+        "functionCall": {
+          "args": {}
+        },
+        "functionResponse": {
+          "id": ". .X",
+          "name": "oat09o.n3RQ4.E ?3ZEJp?t!E9,P ,wms",
+          "response": {}
+        },
+        "mediaResolution": {},
+        "thought": false,
+        "thoughtSignature": "L9p5"
+      }
+    ],
+    "role": "Z,?WUq?M,Dm9MY 2.4mA8,0 ,XD7M?,, 1.7fE6!! XNb9"
+  },
+  "toolConfig": {
+    "functionCallingConfig": {
+      "allowedFunctionNames": [
+        ",??0X.7x?MJ.8XD!,T27t?hQJ"
+      ],
+      "mode": "VALIDATED"
+    }
+  }
+}

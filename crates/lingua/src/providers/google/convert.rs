@@ -55,12 +55,7 @@ impl TryFromLLM<GoogleContent> for Message {
     type Error = ConvertError;
 
     fn try_from(content: GoogleContent) -> Result<Self, Self::Error> {
-        let role = content
-            .role
-            .as_deref()
-            .ok_or(ConvertError::MissingRequiredField {
-                field: "role".to_string(),
-            })?;
+        let role = content.role.as_deref().unwrap_or("user");
         let parts = content.parts.ok_or(ConvertError::MissingRequiredField {
             field: "parts".to_string(),
         })?;
@@ -875,6 +870,23 @@ mod tests {
         assert_eq!(parts.len(), 1);
         let fc = parts[0].function_call.as_ref().unwrap();
         assert_eq!(fc.name.as_deref(), Some("get_weather"));
+    }
+
+    #[test]
+    fn test_google_content_to_message_missing_role_defaults_to_user() {
+        let content = GoogleContent {
+            role: None,
+            parts: Some(vec![text_part("Hello".to_string())]),
+        };
+
+        let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
+        match message {
+            Message::User { content } => match content {
+                UserContent::String(s) => assert_eq!(s, "Hello"),
+                _ => panic!("Expected string content"),
+            },
+            _ => panic!("Expected user message"),
+        }
     }
 
     #[test]

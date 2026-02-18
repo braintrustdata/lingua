@@ -1,0 +1,10 @@
+{
+  "issues": [
+    "lost: toolConfig",
+    "lost: contents[0].parts[0].inlineData",
+    "lost: contents[0].parts[0].videoMetadata",
+    "changed: contents[0].role (\"j.,.kD8c,v! ?\" -> \"user\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

@@ -1,0 +1,16 @@
+{
+  "issues": [
+    "lost: toolConfig",
+    "lost: generationConfig.responseMimeType",
+    "lost: generationConfig.responseJsonSchema",
+    "lost: contents[0].parts[0].executableCode",
+    "lost: contents[0].parts[0].mediaResolution",
+    "lost: contents[0].parts[0].videoMetadata",
+    "lost: contents[0].parts[0].thoughtSignature",
+    "added: generationConfig.thinkingConfig.includeThoughts",
+    "changed: generationConfig.responseSchema ({\"default\":\"u U712X\",\"description\":\"1!?mw!9,T??NU.9E321?92.ySf 1UXL5.!,Lf.b?l87ZJ3V.D,\",\"enum\":[\"4N,?c?.??p?.EJ5vq..UOc4,,?s1H,ZHt.D3,? \",\".dROe b.53\",\"a D?1vG.vQ.,,Kk?Pq.A8.R,\"],\"format\":\",p..E , .Zv\",\"items\":{\"description\":\",j,.!,Ng!c.chY\",\"example\":null,\"format\":\"7i8KLWM!,r6.J  !j?Q0.t???,N?.!?.!9?B,v6z6,?MN!Qt\",\"maxLength\":\" \",\"minItems\":\"?? ,?HzCp8,G?..? qr Fwj\",\"minProperties\":\",..sN.U O VN?LjP,,Z?? dhpK.d1v7.Z1,l\",\"nullable\":true,\"properties\":{},\"propertyOrdering\":[\"K !.?N,!y!!,29yTXWe?,,21 ?,.\",\"t 69\",\". z,t??2\"],\"type\":\"NULL\"},\"maxLength\":\"bpL!zlx Lbu?z,Wym.g3P!,. UE,RGT!c!64y7p?hOpTOh.\",\"maxProperties\":\"4 .,\",\"maximum\":19.61703789371374,\"minProperties\":\"!,Y.!s.?UW o,Q??!.f6!?o i\",\"required\":[\"?,? ?G,? nW.mg2e?02 R5M a6E0IP?!.,035M,,86?.\",\"PFq?L\",\".k,,?.BB6j6J\"],\"title\":\"0..QG7D,u.P?pJqM?f1?x?D,?xu0SKP,\",\"type\":\"ARRAY\"} -> null)",
+    "changed: contents[0].role (\"? ,gbww6.kgJ7Pi.6P7z.K?,J8!2?f.N.!0?\" -> \"user\")"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

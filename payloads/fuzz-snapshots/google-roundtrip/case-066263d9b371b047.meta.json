@@ -1,0 +1,13 @@
+{
+  "issues": [
+    "lost: toolConfig",
+    "lost: systemInstruction",
+    "lost: contents[0].parts[0].videoMetadata",
+    "lost: contents[0].parts[0].mediaResolution",
+    "lost: contents[0].parts[0].thoughtSignature",
+    "added: contents[0].role",
+    "added: contents[0].parts[0].inlineData.mimeType"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

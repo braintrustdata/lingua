@@ -1,0 +1,28 @@
+{
+  "issues": [
+    "universal(1->2): added: params.tools[0].parameters.items",
+    "universal(1->2): changed: messages[0].content[0].output (\"\" -> {\"output\":\"\"})",
+    "universal(1->2): changed: messages[1].content (\"F.sO.G!g?ba?8bDF F,Dd.Dg,.,Z?0,xA,5i?!!?..9oZecMc\" -> [{\"text\":\"F.sO.G!g?ba?8bDF F,Dd.Dg,.,Z?0,xA,5i?!!?..9oZecMc\",\"type\":\"text\"}])",
+    "universal(1->2): changed: params.presence_penalty (17.299183099790024 -> null)",
+    "universal(1->2): changed: params.reasoning.canonical (\"effort\" -> \"budget_tokens\")",
+    "universal(1->2): changed: params.top_logprobs (672 -> null)",
+    "universal(1->2): changed: params.parallel_tool_calls (true -> null)",
+    "chat(final): lost: parallel_tool_calls",
+    "chat(final): lost: n",
+    "chat(final): lost: top_logprobs",
+    "chat(final): lost: web_search_options",
+    "chat(final): lost: prediction",
+    "chat(final): lost: presence_penalty",
+    "chat(final): lost: messages[0].name",
+    "chat(final): lost: messages[1].audio",
+    "chat(final): lost: messages[1].function_call",
+    "chat(final): lost: messages[1].refusal",
+    "chat(final): added: tools[0].function.parameters.items",
+    "chat(final): added: messages[0].tool_call_id",
+    "chat(final): changed: stop (\"!D.k?R?p L!N,qnWi,s 8.5,l L. k!h\" -> [\"!D.k?R?p L!N,qnWi,s 8.5,l L. k!h\"])",
+    "chat(final): changed: messages[0].content (null -> \"{\\\"output\\\":\\\"\\\"}\")",
+    "chat(final): changed: messages[0].role (\"function\" -> \"tool\")"
+  ],
+  "kind": "chat-google-two-arm",
+  "provider": "chat-completions"
+}

@@ -1,0 +1,50 @@
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "inlineData": {
+            "data": ".vW1 v?,Nx6mq?a?A?8,5E"
+          },
+          "mediaResolution": {},
+          "thoughtSignature": "AVJlL,u.?Y?PN Tsr",
+          "videoMetadata": {
+            "fps": 65.50903686895178,
+            "startOffset": "?Z?R,.Fu d. ,"
+          }
+        }
+      ]
+    }
+  ],
+  "model": "D ",
+  "safetySettings": [
+    {}
+  ],
+  "systemInstruction": {
+    "parts": [
+      {
+        "codeExecutionResult": {
+          "outcome": "OUTCOME_UNSPECIFIED"
+        },
+        "executableCode": {
+          "code": " 9.!?..t3VA.2?",
+          "language": "LANGUAGE_UNSPECIFIED"
+        },
+        "functionResponse": {
+          "response": {},
+          "willContinue": false
+        },
+        "text": "z,f 7,IZlg, N!W,u?a f5,4U!.2!,d,.",
+        "thought": true,
+        "thoughtSignature": ",KheB??KQqCP,M1!.c.e.,2gzDKYJ.?,FBt,Pk8"
+      }
+    ]
+  },
+  "toolConfig": {
+    "retrievalConfig": {
+      "latLng": {
+        "longitude": -49.83756195325235
+      }
+    }
+  }
+}

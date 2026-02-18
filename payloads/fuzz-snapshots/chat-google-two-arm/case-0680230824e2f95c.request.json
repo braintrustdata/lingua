@@ -1,0 +1,39 @@
+{
+  "function_call": "auto",
+  "logit_bias": {},
+  "messages": [
+    {
+      "content": null,
+      "name": "rE?nA ..Iaz7,",
+      "role": "function"
+    }
+  ],
+  "modalities": [
+    "audio",
+    "text",
+    "audio"
+  ],
+  "model": "gpt-3.5-turbo-0125",
+  "n": 79,
+  "prediction": {
+    "content": "6F???!I8E3q.?l s!HCJ6r,6ipo,a1,tfnL n?GLD..iI",
+    "type": "content"
+  },
+  "reasoning_effort": null,
+  "stop": "qWI.O,G YvnirG?!..6Ne?a?Y ?B?.. Xg..",
+  "stream": false,
+  "stream_options": {
+    "include_obfuscation": false
+  },
+  "top_logprobs": 571,
+  "web_search_options": {
+    "user_location": {
+      "approximate": {
+        "city": "U1?x4.0vCuuf5758r.92.",
+        "country": "KHvr?1?,.",
+        "region": ".P R.5a,U!j.uH3!?.ZayNP5.???UnH?z.,?s.,xa2ixO.B"
+      },
+      "type": "approximate"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "cachedContent": "..? !?3?!?U4,F!H7.B,!,?,t,?zP !F,.Z?,?XGJa",
+  "contents": [
+    {
+      "parts": [
+        {
+          "codeExecutionResult": {
+            "outcome": "OUTCOME_DEADLINE_EXCEEDED",
+            "output": "NSO?6?r,T !.8Y kfN.!"
+          },
+          "executableCode": {},
+          "functionCall": {
+            "args": {},
+            "id": "b!V!qCx?Ov?Qm?9FKKY,t,?8",
+            "name": "?AX4??PUX.m.9ZJ.w.o,o7XVJJ.?y?.!Bt 4!.2.0,?,l ,2,"
+          },
+          "inlineData": {
+            "data": "ARCQ?3tWv!?Ss.aA!1XUZ!6G?,6e.2D??,D?!5TA",
+            "mimeType": "p.b,28!m?k,Zz20td.83n,.WiazGM?lB!,.I2GIy,"
+          },
+          "partMetadata": {},
+          "thoughtSignature": "y.Rb?? .,??V?7...,O.!!?pXEh,b?.?,?Pg!?!!F91.c ,xd."
+        }
+      ],
+      "role": "!,B?.p,.J9H"
+    }
+  ],
+  "generationConfig": {
+    "_responseJsonSchema": "o8  2Wo hA3MC q 8v  A0nfE",
+    "enableEnhancedCivicAnswers": false,
+    "imageConfig": {},
+    "logprobs": 397,
+    "maxOutputTokens": 650,
+    "presencePenalty": -24.12705797021374,
+    "responseModalities": [
+      "TEXT",
+      "MODALITY_UNSPECIFIED"
+    ],
+    "speechConfig": {
+      "voiceConfig": {}
+    },
+    "temperature": -85.88575612520403,
+    "thinkingConfig": {
+      "includeThoughts": false
+    },
+    "topP": -20.02183526273265
+  },
+  "model": "!PB!YL,lai...XDJ,x??e,L0.3?3..w?C905?",
+  "toolConfig": {}
+}

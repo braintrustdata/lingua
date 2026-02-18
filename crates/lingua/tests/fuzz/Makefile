@@ -1,4 +1,4 @@
-.PHONY: run stats prune run-openai stats-openai prune-openai run-responses stats-responses prune-responses run-anthropic stats-anthropic prune-anthropic run-two-arm stats-two-arm prune-two-arm run-three-arm stats-three-arm prune-three-arm refresh-snapshots
+.PHONY: run stats prune run-openai stats-openai prune-openai run-responses stats-responses prune-responses run-anthropic stats-anthropic prune-anthropic run-google stats-google prune-google run-two-arm stats-two-arm prune-two-arm run-google-two-arm stats-google-two-arm prune-google-two-arm run-three-arm stats-three-arm prune-three-arm refresh-snapshots
 
 run: run-openai
 
@@ -33,6 +33,24 @@ stats-anthropic:
 prune-anthropic:
 	cargo test -p lingua --test fuzz anthropic_roundtrip_prune_snapshots -- --ignored --nocapture --exact
 
+run-google:
+	cargo test -p lingua --test fuzz google_roundtrip -- --ignored --nocapture --exact
+
+stats-google:
+	cargo test -p lingua --test fuzz google_roundtrip_stats -- --ignored --nocapture --exact
+
+prune-google:
+	cargo test -p lingua --test fuzz google_roundtrip_prune_snapshots -- --ignored --nocapture --exact
+
+run-google-two-arm:
+	cargo test -p lingua --test fuzz chat_google_two_arm -- --ignored --nocapture --exact
+
+stats-google-two-arm:
+	cargo test -p lingua --test fuzz chat_google_two_arm_stats -- --ignored --nocapture --exact
+
+prune-google-two-arm:
+	cargo test -p lingua --test fuzz chat_google_two_arm_prune_snapshots -- --ignored --nocapture --exact
+
 run-two-arm:
 	cargo test -p lingua --test fuzz chat_anthropic_two_arm -- --ignored --nocapture --exact
 
@@ -64,8 +82,14 @@ refresh-snapshots:
 	-cargo test -p lingua --test fuzz chat_anthropic_two_arm_stats -- --ignored --nocapture --exact
 	-cargo test -p lingua --test fuzz chat_responses_anthropic_three_arm -- --ignored --nocapture --exact
 	-cargo test -p lingua --test fuzz chat_responses_anthropic_three_arm_stats -- --ignored --nocapture --exact
+	-cargo test -p lingua --test fuzz google_roundtrip -- --ignored --nocapture --exact
+	-cargo test -p lingua --test fuzz google_roundtrip_stats -- --ignored --nocapture --exact
+	-cargo test -p lingua --test fuzz chat_google_two_arm -- --ignored --nocapture --exact
+	-cargo test -p lingua --test fuzz chat_google_two_arm_stats -- --ignored --nocapture --exact
 	cargo test -p lingua --test fuzz openai_roundtrip_prune_snapshots -- --ignored --nocapture --exact
 	cargo test -p lingua --test fuzz responses_roundtrip_prune_snapshots -- --ignored --nocapture --exact
 	cargo test -p lingua --test fuzz anthropic_roundtrip_prune_snapshots -- --ignored --nocapture --exact
 	cargo test -p lingua --test fuzz chat_anthropic_two_arm_prune_snapshots -- --ignored --nocapture --exact
 	cargo test -p lingua --test fuzz chat_responses_anthropic_three_arm_prune_snapshots -- --ignored --nocapture --exact
+	cargo test -p lingua --test fuzz google_roundtrip_prune_snapshots -- --ignored --nocapture --exact
+	cargo test -p lingua --test fuzz chat_google_two_arm_prune_snapshots -- --ignored --nocapture --exact

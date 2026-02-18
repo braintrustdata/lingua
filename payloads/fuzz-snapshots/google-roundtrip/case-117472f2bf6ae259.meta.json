@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "lost: toolConfig",
+    "lost: systemInstruction",
+    "changed: contents.length (3 -> 1)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

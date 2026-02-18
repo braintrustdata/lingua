@@ -1,0 +1,9 @@
+{
+  "issues": [
+    "changed: contents[0].role (\"a\" -> \"user\")",
+    "changed: contents[0].parts.length (1 -> 0)",
+    "changed: tools.length (1 -> 2)"
+  ],
+  "kind": "request-roundtrip",
+  "provider": "google"
+}

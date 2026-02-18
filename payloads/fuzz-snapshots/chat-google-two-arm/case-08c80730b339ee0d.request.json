@@ -1,0 +1,74 @@
+{
+  "functions": [
+    {
+      "description": ".u.OqTee1,?",
+      "name": "?,k.z? ?kB8v!E.?,1tIg..4xR2i?",
+      "parameters": {}
+    },
+    {
+      "description": "v,4!S?52L?",
+      "name": "?Vm?0L!,14.HRw?oUn8L!19!.5o.u,. ",
+      "parameters": {}
+    },
+    {
+      "name": "S.911sUGo..,. .DxB,c? .?2  dY8W ?5?e,Q ,s?8li ?.a?",
+      "parameters": {}
+    },
+    {
+      "description": "?44wV1?!Mn.D92z! ?,!iq8 G,r. ,?",
+      "name": ",q.?FT5?",
+      "parameters": {}
+    }
+  ],
+  "logit_bias": {},
+  "logprobs": false,
+  "messages": [
+    {
+      "content": "4 .!3.4D,pb! 0gNe!oyk?R47.jK",
+      "name": ".0?.??!.??i..V.Hi6.c. eLS8v2!x,3",
+      "role": "system"
+    }
+  ],
+  "model": "u1!7B!g.d?wEVv!Pt?CVD?11 2..M",
+  "stop": "f0OdJ.T,",
+  "stream": true,
+  "stream_options": {
+    "include_obfuscation": true,
+    "include_usage": true
+  },
+  "tool_choice": {
+    "allowed_tools": {
+      "mode": "auto",
+      "tools": [
+        {},
+        {}
+      ]
+    },
+    "type": "allowed_tools"
+  },
+  "tools": [
+    {
+      "custom": {
+        "description": "?70,.S?.,O,?3.N43X,L? 6 f",
+        "name": "n,kI,A"
+      },
+      "type": "custom"
+    },
+    {
+      "function": {
+        "name": "GhZ?,!1.j .3?!,.?4.6",
+        "parameters": {}
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": " ",
+        "parameters": {},
+        "strict": null
+      },
+      "type": "function"
+    }
+  ],
+  "verbosity": "medium"
+}
