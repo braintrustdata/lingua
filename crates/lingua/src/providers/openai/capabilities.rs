@@ -10,6 +10,8 @@ pub enum ModelTransform {
     StripTemperature,
     /// Convert max_tokens to max_completion_tokens
     ForceMaxCompletionTokens,
+    /// Convert max_completion_tokens to max_tokens
+    ForceMaxTokens,
 }
 
 use ModelTransform::*;
@@ -21,6 +23,12 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
     ("o3", &[StripTemperature, ForceMaxCompletionTokens]),
     ("o4", &[StripTemperature, ForceMaxCompletionTokens]),
     ("gpt-5", &[StripTemperature, ForceMaxCompletionTokens]),
+    ("mistral", &[ForceMaxTokens]),
+    ("magistral", &[ForceMaxTokens]),
+    ("codestral", &[ForceMaxTokens]),
+    ("pixstral", &[ForceMaxTokens]),
+    ("devstral", &[ForceMaxTokens]),
+    ("voxstral", &[ForceMaxTokens]),
 ];
 
 /// Get the transforms required for a model.
@@ -55,6 +63,12 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
                 // (Chat Completions API) max_tokens is deprecated - convert to max_completion_tokens.
                 if let Some(max_tokens) = obj.remove("max_tokens") {
                     obj.entry("max_completion_tokens").or_insert(max_tokens);
+                }
+            }
+            ForceMaxTokens => {
+                // Mistral does not support max_completion_tokens yet, use max_tokens instead
+                if let Some(max_tokens) = obj.remove("max_completion_tokens") {
+                    obj.entry("max_tokens").or_insert(max_tokens);
                 }
             }
         }

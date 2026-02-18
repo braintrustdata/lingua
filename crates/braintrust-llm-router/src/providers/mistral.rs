@@ -11,7 +11,6 @@ use crate::client::{default_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
-use lingua::serde_json::Value;
 use lingua::ProviderFormat;
 
 #[derive(Debug, Clone)]
@@ -86,30 +85,6 @@ fn extract_retry_after(status: StatusCode) -> Option<Duration> {
     }
 }
 
-/// Sanitize a payload for Mistral's API by removing unsupported fields and
-/// converting OpenAI-only parameter names to their Mistral equivalents.
-///
-/// Mistral's API does not support:
-/// - `max_completion_tokens` (use `max_tokens` instead)
-/// - `stream_options` (extra_forbidden)
-fn sanitize_payload(payload: Bytes) -> Bytes {
-    let Ok(mut body) = lingua::serde_json::from_slice::<Value>(&payload) else {
-        return payload;
-    };
-    let Some(obj) = body.as_object_mut() else {
-        return payload;
-    };
-
-    if let Some(v) = obj.remove("max_completion_tokens") {
-        obj.entry("max_tokens").or_insert(v);
-    }
-    obj.remove("stream_options");
-
-    lingua::serde_json::to_vec(obj)
-        .map(Bytes::from)
-        .unwrap_or(payload)
-}
-
 #[async_trait]
 impl crate::providers::Provider for MistralProvider {
     fn id(&self) -> &'static str {
@@ -117,7 +92,9 @@ impl crate::providers::Provider for MistralProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::ChatCompletions]
+        // TODO: Remove mistral format? It is slightly different from chat completions, but we
+        // transform the payload to make it work with chat completions
+        vec![ProviderFormat::Mistral, ProviderFormat::ChatCompletions]
     }
 
     async fn complete(
@@ -128,7 +105,6 @@ impl crate::providers::Provider for MistralProvider {
         _format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let payload = sanitize_payload(payload);
         let url = self.chat_url()?;
 
         #[cfg(feature = "tracing")]
@@ -188,7 +164,6 @@ impl crate::providers::Provider for MistralProvider {
         format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
-        let payload = sanitize_payload(payload);
         if !spec.supports_streaming {
             let response = self
                 .complete(payload, auth, spec, format, client_headers)
