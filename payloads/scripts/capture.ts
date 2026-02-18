@@ -265,8 +265,7 @@ async function main() {
   console.log(`\n--- Transform captures ---`);
   const transformResult = await captureTransforms(
     options.filter,
-    options.force,
-    options.providers
+    options.force
   );
 
   if (transformResult.captured > 0) {

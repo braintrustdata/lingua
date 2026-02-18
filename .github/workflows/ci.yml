@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -84,6 +83,9 @@ jobs:
           exit 1
         fi
         echo "✅ Generated TypeScript types are up to date"
+
+  cross-transformation-coverage:
+    uses: ./.github/workflows/cross-transformation-coverage.yml
 
   test-typescript:
     runs-on: ubuntu-latest

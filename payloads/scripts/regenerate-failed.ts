@@ -46,40 +46,51 @@ try {
 // Parse JSON output
 const results = JSON.parse(testOutput);
 
-// Extract failed test cases from all test files
-const failedCases: string[] = [];
+// Extract failed test cases grouped by transform pair
+const failedByPair: Map<string, Set<string>> = new Map();
 for (const testFile of results.testResults) {
   for (const assertion of testFile.assertionResults) {
     if (assertion.status === "failed") {
-      // The title field contains the case name directly
-      failedCases.push(assertion.title);
+      const pair = assertion.ancestorTitles[0] ?? "unknown";
+      const existing = failedByPair.get(pair);
+      if (existing) {
+        existing.add(assertion.title);
+      } else {
+        failedByPair.set(pair, new Set([assertion.title]));
+      }
     }
   }
 }
 
-if (failedCases.length === 0) {
+if (failedByPair.size === 0) {
   console.log("No failed tests found.");
   process.exit(1);
 }
 
-// Remove duplicates
-const uniqueCases = [...new Set(failedCases)];
+let totalCases = 0;
+console.log(`\n🔄 Regenerating failed case(s):`);
+for (const [pair, cases] of failedByPair) {
+  for (const caseName of cases) {
+    console.log(`  - ${pair} / ${caseName}`);
+    totalCases++;
+  }
+}
+console.log(`\n${totalCases} case(s) across ${failedByPair.size} pair(s)\n`);
 
-console.log(`\n🔄 Regenerating ${uniqueCases.length} failed case(s):`);
-uniqueCases.forEach((caseName) => console.log(`  - ${caseName}`));
-console.log();
-
-// Recapture transforms for each failed case
+// Recapture transforms scoped to the specific provider pair
 try {
-  for (const caseName of uniqueCases) {
-    console.log(`\n📦 Recapturing transforms for: ${caseName}`);
-    execSync(
-      `pnpm tsx scripts/transforms/capture-transforms.ts ${caseName} --force`,
-      {
-        cwd: __dirname + "/..",
-        stdio: "inherit",
-      }
-    );
+  for (const [pair, cases] of failedByPair) {
+    const [source, target] = pair.split(" → ");
+    for (const caseName of cases) {
+      console.log(`\n📦 Recapturing: ${pair} / ${caseName}`);
+      execSync(
+        `pnpm tsx scripts/transforms/capture-transforms.ts ${caseName} --force --pair ${source},${target}`,
+        {
+          cwd: __dirname + "/..",
+          stdio: "inherit",
+        }
+      );
+    }
   }
 
   console.log("\n✅ Transform captures complete! Updating snapshots...\n");

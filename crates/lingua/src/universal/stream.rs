@@ -183,7 +183,7 @@ impl UniversalStreamChoice {
     pub fn text_delta(index: u32, content: &str) -> Self {
         Self {
             index,
-            delta: Some(crate::serde_json::json!({
+            delta: Some(serde_json::json!({
                 "role": "assistant",
                 "content": content
             })),
@@ -229,22 +229,6 @@ impl From<UniversalStreamDelta> for Value {
             map.insert("reasoning_signature".into(), Value::String(signature));
         }
         Value::Object(map)
-    }
-}
-
-impl TryFrom<Value> for UniversalStreamDelta {
-    type Error = serde_json::Error;
-
-    fn try_from(value: Value) -> Result<Self, Self::Error> {
-        serde_json::from_value(value)
-    }
-}
-
-impl TryFrom<&Value> for UniversalStreamDelta {
-    type Error = serde_json::Error;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        serde_json::from_value(value.clone())
     }
 }
 
@@ -395,7 +379,7 @@ mod tests {
         };
 
         let value = Value::from(delta.clone());
-        let parsed = UniversalStreamDelta::try_from(value).unwrap();
+        let parsed: UniversalStreamDelta = serde_json::from_value(value).unwrap();
         assert_eq!(parsed.role.as_deref(), Some("assistant"));
         assert_eq!(parsed.reasoning.len(), 1);
         assert_eq!(parsed.reasoning[0].content.as_deref(), Some("thought"));

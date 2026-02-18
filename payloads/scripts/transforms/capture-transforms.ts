@@ -92,7 +92,7 @@ async function callProvider(
 export async function captureTransforms(
   filter?: string,
   force?: boolean,
-  providers?: string[]
+  pair?: { source: string; target: string }
 ): Promise<{ captured: number; skipped: number; failed: number }> {
   mkdirSync(TRANSFORMS_DIR, { recursive: true });
 
@@ -100,22 +100,17 @@ export async function captureTransforms(
     skipped = 0,
     failed = 0;
 
-  for (const pair of TRANSFORM_PAIRS) {
-    // Skip pairs that don't involve any of the specified providers
-    if (
-      providers &&
-      !providers.includes(pair.source) &&
-      !providers.includes(pair.target)
-    ) {
+  for (const p of TRANSFORM_PAIRS) {
+    if (pair && (p.source !== pair.source || p.target !== pair.target)) {
       continue;
     }
-    const cases = getTransformableCases(pair, filter);
+    const cases = getTransformableCases(p, filter);
 
     for (const caseName of cases) {
-      const responsePath = getResponsePath(pair.source, pair.target, caseName);
+      const responsePath = getResponsePath(p.source, p.target, caseName);
       mkdirSync(dirname(responsePath), { recursive: true });
 
-      const input = getCaseForProvider(allTestCases, caseName, pair.source);
+      const input = getCaseForProvider(allTestCases, caseName, p.source);
 
       // Capture non-streaming response
       if (existsSync(responsePath) && !force) {
@@ -125,29 +120,29 @@ export async function captureTransforms(
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
           const request = transformAndValidateRequest(
             input,
-            pair.wasmTarget,
-            pair.target
+            p.wasmTarget,
+            p.target
           ) as Record<string, unknown>;
 
           const targetCase = getCaseForProvider(
             allTestCases,
             caseName,
-            pair.target
+            p.target
           );
           request.model =
             targetCase &&
             typeof targetCase === "object" &&
             "model" in targetCase
               ? targetCase.model
-              : TARGET_MODELS[pair.target];
+              : TARGET_MODELS[p.target];
 
-          const response = await callProvider(pair.target, request);
+          const response = await callProvider(p.target, request);
 
           const responseJson = JSON.stringify(response, null, 2);
-          RESPONSE_VALIDATORS[pair.target](responseJson);
+          RESPONSE_VALIDATORS[p.target](responseJson);
 
           writeFileSync(responsePath, responseJson);
-          console.log(`✅ ${pair.source} → ${pair.target} / ${caseName}`);
+          console.log(`✅ ${p.source} → ${p.target} / ${caseName}`);
           captured++;
         } catch (e) {
           const errorObj = e && typeof e === "object" ? e : {};
@@ -157,9 +152,7 @@ export async function captureTransforms(
             ...("response" in errorObj ? { response: errorObj.response } : {}),
           };
           writeFileSync(responsePath, JSON.stringify(errorData, null, 2));
-          console.error(
-            `❌ ${pair.source} → ${pair.target} / ${caseName}: ${e}`
-          );
+          console.error(`❌ ${p.source} → ${p.target} / ${caseName}: ${e}`);
           failed++;
         }
       }
@@ -249,9 +242,14 @@ export async function captureTransforms(
 async function main() {
   const args = process.argv.slice(2);
   const force = args.includes("--force");
-  const filter = args.find((a) => !a.startsWith("--"));
+  const pairIdx = args.indexOf("--pair");
+  const pairArg = pairIdx !== -1 ? args[pairIdx + 1] : undefined;
+  const pair = pairArg
+    ? { source: pairArg.split(",")[0], target: pairArg.split(",")[1] }
+    : undefined;
+  const filter = args.find((a, i) => !a.startsWith("--") && i !== pairIdx + 1);
 
-  const { failed } = await captureTransforms(filter, force);
+  const { failed } = await captureTransforms(filter, force, pair);
   process.exit(failed > 0 ? 1 : 0);
 }
 
