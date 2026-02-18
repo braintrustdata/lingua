@@ -1,0 +1,6 @@
+# Auto-generated API payload snapshots — do not edit by hand
+snapshots/**/*.json linguist-generated=true
+fuzz-snapshots/**/*.json linguist-generated=true
+transforms/**/*.json linguist-generated=true
+import-cases/**/*.json linguist-generated=true
+**/__snapshots__/*.snap linguist-generated=true
