@@ -2499,7 +2499,6 @@ exports[`chat-completions → google > complexReasoningRequest > request 1`] = `
   ],
   "generationConfig": {
     "maxOutputTokens": 20000,
-    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
 }
@@ -2616,6 +2615,9 @@ exports[`chat-completions → google > frequencyPenaltyParam > request 1`] = `
       "role": "user",
     },
   ],
+  "generationConfig": {
+    "frequencyPenalty": 0.5,
+  },
   "model": "gemini-2.5-flash",
 }
 `;
@@ -2798,7 +2800,6 @@ exports[`chat-completions → google > maxCompletionTokensParam > request 1`] = 
   ],
   "generationConfig": {
     "maxOutputTokens": 500,
-    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
 }
@@ -2895,7 +2896,6 @@ exports[`chat-completions → google > multimodalRequest > request 1`] = `
   ],
   "generationConfig": {
     "maxOutputTokens": 300,
-    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
 }
@@ -3279,6 +3279,9 @@ exports[`chat-completions → google > presencePenaltyParam > request 1`] = `
       "role": "user",
     },
   ],
+  "generationConfig": {
+    "presencePenalty": 0.5,
+  },
   "model": "gemini-2.5-flash",
 }
 `;
@@ -3368,7 +3371,6 @@ exports[`chat-completions → google > reasoningEffortLowParam > request 1`] = `
     },
   ],
   "generationConfig": {
-    "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
       "thinkingBudget": 1024,
@@ -3500,7 +3502,6 @@ exports[`chat-completions → google > reasoningRequestTruncated > request 1`] =
   ],
   "generationConfig": {
     "maxOutputTokens": 100,
-    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
 }
@@ -3547,7 +3548,6 @@ exports[`chat-completions → google > reasoningSummaryParam > request 1`] = `
     },
   ],
   "generationConfig": {
-    "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
       "thinkingBudget": 2048,
@@ -3704,6 +3704,9 @@ exports[`chat-completions → google > seedParam > request 1`] = `
       "role": "user",
     },
   ],
+  "generationConfig": {
+    "seed": 12345,
+  },
   "model": "gemini-2.5-flash",
 }
 `;
@@ -3793,7 +3796,6 @@ exports[`chat-completions → google > simpleRequest > request 1`] = `
     },
   ],
   "generationConfig": {
-    "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
       "thinkingBudget": 1024,
@@ -3849,7 +3851,6 @@ exports[`chat-completions → google > stopSequencesParam > request 1`] = `
     },
   ],
   "generationConfig": {
-    "responseSchema": null,
     "stopSequences": [
       "10",
       "ten",
@@ -3945,7 +3946,6 @@ exports[`chat-completions → google > systemMessageArrayContent > request 1`] =
   ],
   "generationConfig": {
     "maxOutputTokens": 300,
-    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
   "systemInstruction": {
@@ -4017,7 +4017,6 @@ exports[`chat-completions → google > temperatureParam > request 1`] = `
     },
   ],
   "generationConfig": {
-    "responseSchema": null,
     "temperature": 0.7,
   },
   "model": "gemini-2.5-flash",
@@ -4066,7 +4065,6 @@ exports[`chat-completions → google > textFormatJsonObjectParam > request 1`] =
   ],
   "generationConfig": {
     "responseMimeType": "application/json",
-    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
 }
@@ -4244,7 +4242,6 @@ exports[`chat-completions → google > textFormatTextParam > request 1`] = `
   ],
   "generationConfig": {
     "responseMimeType": "text/plain",
-    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
 }
@@ -4459,7 +4456,6 @@ exports[`chat-completions → google > topPParam > request 1`] = `
     },
   ],
   "generationConfig": {
-    "responseSchema": null,
     "topP": 0.9,
   },
   "model": "gemini-2.5-flash",

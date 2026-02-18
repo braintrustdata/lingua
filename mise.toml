@@ -3,3 +3,4 @@ _.file = ".env"
 
 [tools]
 pnpm = "10.26.2"
+nodejs = "22.15.0"

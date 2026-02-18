@@ -333,6 +333,12 @@ impl ProviderAdapter for GoogleAdapter {
             let mut config_value = serde_json::to_value(config)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
+            // Strip null entries (e.g. responseSchema which is Box<Option<Schema>>
+            // and always serializes, producing null when None)
+            if let Some(config_map) = config_value.as_object_mut() {
+                config_map.retain(|_, v| !v.is_null());
+            }
+
             // Merge back generationConfig extras (candidateCount, speechConfig, etc.)
             if let Some(extras) = req.params.extras.get(&ProviderFormat::Google) {
                 if let Some(Value::Object(config_extras)) = extras.get(GENERATION_CONFIG_EXTRAS_KEY)
