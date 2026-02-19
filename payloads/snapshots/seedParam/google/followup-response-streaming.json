@@ -1,0 +1,148 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's an excellent question, and it really depends on what you're in the mood for!\n\nGiven that I just picked 42, here are a few ideas:\n\n1.  **Contemplate the meaning"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 46,
+      "totalTokenCount": 1037,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 959
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lkyWabuONbGa_uMPrdy9wAM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " of life, the universe, and everything!** (Of course!)\n2.  **Ask me another question.** Anything at all!\n3.  **Tell me *your* favorite number** and why.\n4.  "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 93,
+      "totalTokenCount": 1084,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 959
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lkyWabuONbGa_uMPrdy9wAM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**We could play a game.** Like \"20 Questions,\" \"Would You Rather,\" or a simple word game.\n5.  **Give me a creative challenge.** \"Write a haiku about 42,\" \"Describe a world"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 142,
+      "totalTokenCount": 1133,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 959
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lkyWabuONbGa_uMPrdy9wAM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " where 42 is a magical number,\" etc.\n6.  **Ask me for a fact** about anything you're curious about.\n7.  **Share something interesting** you've learned recently.\n\nWhat sounds good to"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 192,
+      "totalTokenCount": 1183,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 959
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lkyWabuONbGa_uMPrdy9wAM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you? Or do you have something else in mind?"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 32,
+      "candidatesTokenCount": 203,
+      "totalTokenCount": 1194,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 32
+        }
+      ],
+      "thoughtsTokenCount": 959
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lkyWabuONbGa_uMPrdy9wAM"
+  }
+]

@@ -349,11 +349,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
 
                     let output = input.output.unwrap_or_else(|| "".to_string());
 
-                    let output_value = serde_json::Value::String(output);
+                    let output_value =
+                        serde_json::from_str(&output).unwrap_or(serde_json::Value::String(output));
 
                     let tool_result = ToolResultContentPart {
                         tool_call_id,
-                        tool_name: String::new(), // OpenAI doesn't provide tool name in output
+                        tool_name: input.name.clone().unwrap_or_default(),
                         output: output_value,
                         provider_options: None,
                     };
@@ -425,6 +426,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                         .ok_or_else(|| ConvertError::MissingRequiredField {
                             field: "text".to_string(),
                         })?,
+                    encrypted_content: None,
                     provider_options: None,
                 })
             }
@@ -491,6 +493,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                         .ok_or_else(|| ConvertError::MissingRequiredField {
                             field: "text".to_string(),
                         })?,
+                    encrypted_content: None,
                     provider_options: None,
                 })
             }
@@ -498,6 +501,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 // Handle refusal - treat as regular text for now
                 UserContentPart::Text(TextContentPart {
                     text: value.text.unwrap_or_else(|| REFUSAL_TEXT.to_string()),
+                    encrypted_content: None,
                     provider_options: None,
                 })
             }
@@ -584,9 +588,12 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
-            _ => {
+            UserContentPart::File { media_type, .. } => {
                 return Err(ConvertError::UnsupportedInputType {
-                    type_info: format!("UserContentPart variant: {:?}", part),
+                    type_info: format!(
+                        "UserContentPart::File (media_type: {}) is not supported by OpenAI",
+                        media_type
+                    ),
                 })
             }
         })
@@ -711,9 +718,12 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                     });
                 }
             }
-            _ => {
+            AssistantContentPart::File { media_type, .. } => {
                 return Err(ConvertError::UnsupportedInputType {
-                    type_info: format!("AssistantContentPart variant: {:?}", part),
+                    type_info: format!(
+                        "AssistantContentPart::File (media_type: {}) is not supported by OpenAI",
+                        media_type
+                    ),
                 })
             }
         })
@@ -769,6 +779,7 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
                         .ok_or_else(|| ConvertError::MissingRequiredField {
                             field: "text".to_string(),
                         })?,
+                    encrypted_content: None,
                     provider_options,
                 })
             }
@@ -1133,6 +1144,11 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 input_item_type: Some(openai::InputItemType::FunctionCallOutput),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(output_string),
+                                name: if tool_result.tool_name.is_empty() {
+                                    None
+                                } else {
+                                    Some(tool_result.tool_name.clone())
+                                },
                                 ..Default::default()
                             });
                         }
@@ -1350,6 +1366,11 @@ pub fn universal_to_responses_input(
                                 input_item_type: Some(openai::InputItemType::FunctionCallOutput),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(output_string),
+                                name: if tool_result.tool_name.is_empty() {
+                                    None
+                                } else {
+                                    Some(tool_result.tool_name.clone())
+                                },
                                 ..Default::default()
                             });
                         }
@@ -1599,7 +1620,7 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             action: output_item.action,
             pending_safety_checks: output_item.pending_safety_checks,
             acknowledged_safety_checks: None,
-            output: None,
+            output: output_item.output,
             encrypted_content: output_item.encrypted_content,
             result: output_item.result,
             code: output_item.code,
@@ -1757,6 +1778,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                                     };
                                 text_parts.push(AssistantContentPart::Text(TextContentPart {
                                     text,
+                                    encrypted_content: None,
                                     provider_options,
                                 }));
                             }
@@ -2460,6 +2482,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                         if !text.is_empty() {
                             content_parts.push(AssistantContentPart::Text(TextContentPart {
                                 text,
+                                encrypted_content: None,
                                 provider_options: None,
                             }));
                         }
@@ -2474,6 +2497,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                                         if let Some(text) = part.text {
                                             Ok(AssistantContentPart::Text(TextContentPart {
                                                 text,
+                                                encrypted_content: None,
                                                 provider_options: None,
                                             }))
                                         } else {
@@ -2569,10 +2593,14 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                         })?;
 
                 // Convert to universal Tool message format
+                // Try to parse as JSON, fall back to string if parsing fails
+                let output_value = serde_json::from_str(&content_text)
+                    .unwrap_or(serde_json::Value::String(content_text));
+
                 let tool_result = ToolResultContentPart {
                     tool_call_id: tool_call_id.clone(),
                     tool_name: String::new(), // OpenAI doesn't provide tool name in tool messages
-                    output: serde_json::Value::String(content_text),
+                    output: output_value,
                     provider_options: None,
                 };
 
@@ -2623,6 +2651,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 if let Some(text) = part.text {
                     Ok(UserContentPart::Text(TextContentPart {
                         text,
+                        encrypted_content: None,
                         provider_options: None,
                     }))
                 } else {
@@ -2970,6 +2999,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                     if !text.is_empty() {
                         content_parts.push(AssistantContentPart::Text(TextContentPart {
                             text: text.clone(),
+                            encrypted_content: None,
                             provider_options: None,
                         }));
                     }

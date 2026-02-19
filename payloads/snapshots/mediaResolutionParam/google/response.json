@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I cannot see the image you are referring to. As an AI, I don't have the capability to view or process visual information directly.\n\nTo describe it briefly, I would need you to describe it to me first, or provide any accompanying text/details!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 6,
+    "candidatesTokenCount": 54,
+    "totalTokenCount": 696,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 6
+      }
+    ],
+    "thoughtsTokenCount": 636
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "k0yWaa73IOCd_uMPuZb4kAc"
+}

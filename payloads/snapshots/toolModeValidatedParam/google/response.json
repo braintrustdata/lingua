@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "Tokyo"
+              }
+            },
+            "thoughtSignature": "CucBAb4+9vsKH3ZcdEkdOhwk2kw2psRA2fC3VvZw/TnsEp9tfhrAvwzpPPHWVt7pl2AyHA8k91KzhPEZOtvzV1e4QvOObeinegJ+NBS186jStfD3qSd7Zj2tkWKv6CN7jZ8D/tkpWV02SKEEKSC3D26np1eC7IyA6idgrSxgYSTZMUB5X8OLLMShMKynt30LNW8UnMWhbX4N9GbGW01RuDjnPv/SsTIxF5LR59FXpTnU0rXt8iyg4UYDLm5HZMurXvqE1pxEeTLl5qw+4OaUPiHWAVe597A98rFedv+GHKkvEn2uYHm78vBU"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 39,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 100,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 39
+      }
+    ],
+    "thoughtsTokenCount": 46
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "k0yWaZS-IL6T_uMP-vCa4Ao"
+}

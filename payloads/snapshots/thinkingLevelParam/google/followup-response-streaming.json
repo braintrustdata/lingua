@@ -1,0 +1,438 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Awaiting Initial Input**\n\nI'm currently stuck, as I need the user to define the actual problem. Without that, my thought process is stalled. My primary directive is to facilitate their next move, either by prompting them to provide the problem directly or, failing that, exploring a more collaborative path. I'm focusing on guiding them toward the necessary input.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "totalTokenCount": 577,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ]
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "To help you move forward, I need to know what stage you are at. Since"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 17,
+      "totalTokenCount": 846,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " I don't have the \"complex problem\" yet, here are the three most likely next steps for you:\n\n### 1"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 44,
+      "totalTokenCount": 873,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ". If you have the problem ready:\n**Paste it right here.** Don’t worry about formatting it perfectly."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 68,
+      "totalTokenCount": 897,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " Just provide the raw text, the image description, or the data, and tell me what your goal is (e.g., \""
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 95,
+      "totalTokenCount": 924,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "solve for X,\" \"find the bug,\" or \"summarize this\").\n\n### 2. If you are looking"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 119,
+      "totalTokenCount": 948,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " for inspiration:\nIf you don't have a specific problem but want to see what I can do, ask me to generate"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 145,
+      "totalTokenCount": 974,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " a challenge for us to solve together. For example:\n*   \"Give me a logic puzzle to solve.\"\n*"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 170,
+      "totalTokenCount": 999,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "   \"Create a complex coding challenge in Python.\"\n*   \"Present a business case study for me to analyze.\"\n\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 195,
+      "totalTokenCount": 1024,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "### 3. If you are asking \"What should I do next?\" in a broader sense:\nIf you are"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 219,
+      "totalTokenCount": 1048,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " feeling stuck or overwhelmed with work or a project, tell me:\n1.  **What are you working on?"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 243,
+      "totalTokenCount": 1072,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**\n2.  **What is the biggest thing blocking you right now?**\n3.  **How much time do you"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 270,
+      "totalTokenCount": 1099,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " have?**\n\nI can then help you prioritize your tasks and create a \"Next Steps\" action plan.\n\n**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 294,
+      "totalTokenCount": 1123,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Which one is it? I'm standing by!**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 306,
+      "totalTokenCount": 1135,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EooJCocJAb4+9vsM+svTDRDdb776padwc/NZ/1hrNIQ0IgaPbdhsWJvXpu1ReeEdcFqu9AEsD4hjkFKtBQoLaw+XEd6Mi1tty4fk8mBtFlL4iI/tRhssauIAXzNxngabS8PlEvc8hQh1mq085EaN0C/32D+/fO9pwTRz7bJjtWJwI9RcRDmmN2MypNbi8tcRU5ArAadqw1uG84ENlc7kV+n94ecEqP14wH2E8I1KfBmgQkTYJYjl+uO1CV1xE7lKEyy7ChXMnmy+O1AwZu6bSVSyyiXI5XKg4YOSgrjIeh8kvLOvnOpmXGd6M977S5wb0Ji9ZZg65x5iAPbDw7yBbPY2ZedsPjYCWY/jFOzrU3FZP5Eh7r1sG6UQVaCNrSifaMm6UDSESj035wWejJZ0lHzEKRWlAdJU81OPPGJKVz0VldBg9OhMyflaJqZyX0soyBcnJuH+qthX/qovoTM7k12DneeREnq/3/DK/bOO76+a8TONUhsPRYpY3RSTSveH803rhb30oSRww5vY5msHW53jtyeR1We+ocw7Pfci8cB37hktLJ8z3cKkzaJFZKiXv14BYVRIADOd+OmkjR1HMPVrh6VfT0iEG06AigHXlJ1wnoVPCHvL1KxcdhT5+NWQUhYduoE7+qaPcBpZHNJuDe3L1q/cow8e/M88Z9w2CRKJ/22HrpDKFJJfrccBvSjP2K7dMiarAilruiME8nANAW2cLwA8XE2dbq9+T85d+XNi/9ztJntE3Qa1pRp/oMZg+NnmWiNW9/yl8o0nV6mUzUvTZ6p0awnneFjj89Pq1QqOjuptubxb/bIdt4cYcJ5kEtVa301infeDzmf9SAblpXYHiRS3CNdUQEVxEG770O59y8QXPxDR3FhzM0Fo5D+Z8NzAjdYikmWaVVaLRpQqhvpjHns3upNhWgg2qgLlbc04wa2jZ1scezhw0ipFwtumDYoohVg1JXuu6Nqavp8fENLQerUrq95ZZCPsKGAd7eyRPrDY0vOMc7LB0gztCEC+3vrTUgUlLsaEbeHK5yZNR9N6NhGWrdj5/2ybAxxby+3X1q/rnYcxnpN9J5e96mLvv06bfQkMxmuZRDSu6gj7C0QdVTWWADeTExgTCk66pfIhtHc3EE0xw4eSY4jRLGSPP3Ly2H93zGpxgbZW52QI96d47nQguzw5eZNG0zOPsjSvc8oqrwjTYwhgPrOmSLEpMr0WgmaZT9LQre5yzGfQ4oKneZwnxhC5GFfyVhnzZ8doWbzkw47aOHdTZ1i2qdK5virNhVR4I4eNw+vLTNBq9EI0LJ45UOp5WqEVL+BMxI2d0gRHYvl8MOCaiAEoxlf01urj1vd9ADDQxkNoEZ/rZY3+jSd1QRE+/Cj7TLTYJRtPkMgjScJ+U/vEtKHOmdfSTQurEDaAiQySNqdVc4nnZu+rmQa6iTrm4LtnEODp0qQzz74n3RgWiJLGGyuZqh+RaCVwEiPZxMuBZvG9sBRLObKXuzGJ1gynt27uxg1HKa/hORLw4XwyCS9bIis9gmbfgwjPfXul4fZNmgswGg=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 577,
+      "candidatesTokenCount": 306,
+      "totalTokenCount": 1135,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 577
+        }
+      ],
+      "thoughtsTokenCount": 252
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "m0yWaYLIM7Lj_uMPlNCZCA"
+  }
+]

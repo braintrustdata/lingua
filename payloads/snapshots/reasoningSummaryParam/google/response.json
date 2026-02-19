@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here's a summary of my thinking process, assuming the user is an expert:\n\n**Addressing a Simple Query**\n\nOkay, so I see a straightforward arithmetic question. It's incredibly basic, but that's alright, everyone starts somewhere. My primary goal here is to deliver the correct answer with complete clarity. No need for elaborate explanations or unnecessary framing. My focus should be precise and concise. The user will likely have the intelligence to do with the answer what they wish.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 33,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 17
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "k0yWaZDXHYTL_uMPm7704AM"
+}

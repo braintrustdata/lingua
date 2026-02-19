@@ -720,6 +720,7 @@ mod tests {
                         },
                         AssistantContentPart::Text(TextContentPart {
                             text: "OK".to_string(),
+                            encrypted_content: None,
                             provider_options: None,
                         }),
                     ]),

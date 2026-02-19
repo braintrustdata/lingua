@@ -1,0 +1,206 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends entirely on what you're looking to do or what you"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 14,
+      "totalTokenCount": 1271,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1234
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeOCBNyi_uMPmtXYqAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " need right now! To give you a good suggestion, I need a little more context.\n\nTell me:\n*   **What kind of mood are you in?** (Productive, creative, bored, relaxed?)\n*   "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 61,
+      "totalTokenCount": 1318,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1234
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeOCBNyi_uMPmtXYqAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**What are you trying to achieve?** (Learn something new, get work done, have fun, solve a problem?)\n*   **How much time do you have?** (A few minutes, an hour, all day?)"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 109,
+      "totalTokenCount": 1366,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1234
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeOCBNyi_uMPmtXYqAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "\n*   **What resources do you have available?** (Computer, outdoors, craft supplies, specific tools?)\n\nIn the meantime, here are some general ideas, depending on what you might be looking for:\n\n*   **If"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 156,
+      "totalTokenCount": 1413,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1234
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeOCBNyi_uMPmtXYqAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you're looking to be productive:** Make a to-do list, tackle a small chore, reply to emails.\n*   **If you want to learn:** Read an article, watch a documentary, explore a new topic online."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 204,
+      "totalTokenCount": 1461,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1234
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeOCBNyi_uMPmtXYqAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "\n*   **If you need to relax or be entertained:** Listen to music, read a book, watch a show, play a game.\n*   **If you're feeling creative:** Doodle, write a short story, brainstorm"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 251,
+      "totalTokenCount": 1508,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1234
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeOCBNyi_uMPmtXYqAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " ideas.\n*   **If you need to move:** Stand up and stretch, take a short walk.\n\nLet me know more details, and I can give you a more tailored recommendation!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 290,
+      "totalTokenCount": 1547,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 1234
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeOCBNyi_uMPmtXYqAc"
+  }
+]

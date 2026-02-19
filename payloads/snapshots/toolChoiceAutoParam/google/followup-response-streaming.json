@@ -1,0 +1,120 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I can help with many things,",
+              "thoughtSignature": "CiQBvj72+zpr0hkru6yFIA/LTq6oCAVpQfJGZWeUIdn8KFAhNFwKaQG+Pvb7qQhgBlrnVSy2s8f1Y3mfatDwBlAfAkOyGDz+x5lFMSIIHDmSY247AvqbEWKO7m36Ag419t7249nc7OQYMv6Oo8nkcI80OWIH3i6Vx1Oo5IGfrRhRKiyrgjydbaEE6aZHDNGYSwr7AQG+Pvb7SQhKbnVPeqLhq/qOscisPWDyIdc2FkXQzvEnVGzckHQmYGg4zTYn1v8yK9R2J4J3lR4RDtQNNNaBgfH6+aeLXoximhpvYVof2kLXOcXJBTzyYd2yxeOELFIQXdEuC4VHSLnvPgBbS98IGAc/+B02hD+AfNzmBtfrzBzKUk87hZUoi5aHvwHYP98h8gSpD7dfQ24nkYOwpiP0MEeJukEHOg2qOlUapBBZdELuOBkZgTFi7GfS0xqSw6GHPZNDJ3ItclJ/LhPwNES93IIpdy001pxxfawYTV9jB6ZsnzZe8MQii4jsExbgJXGlRei4NJTAmejhCYJF"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 52,
+      "candidatesTokenCount": 7,
+      "totalTokenCount": 119,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 52
+        }
+      ],
+      "thoughtsTokenCount": 60
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaarsFIeV_uMPv66LkAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " but I need a little more information. What are you looking to do or achieve? For example, are you looking for:\n\n*   **Ideas for activities?** (e.g., \"I'm bored,\" \"What can"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 52,
+      "candidatesTokenCount": 55,
+      "totalTokenCount": 167,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 52
+        }
+      ],
+      "thoughtsTokenCount": 60
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaarsFIeV_uMPv66LkAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " I do for fun?\")\n*   **Help with a task?** (e.g., \"I need to plan dinner,\" \"Help me write an email.\")\n*   **Information about a topic?** (e.g., \""
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 52,
+      "candidatesTokenCount": 105,
+      "totalTokenCount": 217,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 52
+        }
+      ],
+      "thoughtsTokenCount": 60
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaarsFIeV_uMPv66LkAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Tell me about current events,\" \"Explain AI.\")\n*   **Something else entirely?**\n\nThe more details you provide, the better I can assist you!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 52,
+      "candidatesTokenCount": 138,
+      "totalTokenCount": 250,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 52
+        }
+      ],
+      "thoughtsTokenCount": 60
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaarsFIeV_uMPv66LkAc"
+  }
+]

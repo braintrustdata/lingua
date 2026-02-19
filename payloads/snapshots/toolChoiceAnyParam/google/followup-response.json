@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "San Francisco"
+              }
+            },
+            "thoughtSignature": "CqMDAb4+9vv4x3mFfdnX958hxQuG3wh2YfRZIetQ9d7hV26DQCodHozL6FMbJmq8LWQNaHqaRHyMRvvgbC/e7YZo8rA6w4SROR/1rLE1kDOli91BMMbQvfo4C0rpPLg5YINm2EyDSsnmDKK/QgYHoifG0TpPQFljThkiqZjIX+i77w7485nUhUu4IxwtSjIKgORZ+aXfejVbRY0x1U5Pk3ZTKDG6grxmg5JILvDMdkdFNF3zf1jlVIPbZAkTJrzLI+GfsOTXYX43aoGfw02B3I6M1oB2fX4Nvh8BM/Dxn9cdM5936uThDsFrNLSk39glAwCCgAXRfVs1YPZLqdin93/gFdAgQk1S7lepAuzF0GsjJQY1xOIfGytCRZeiGFiXLTdEFLegtJrvKVBayc+CZCUVAT3uOsJ1yha8Bk0NpKeDtBZaypam/ezZUD+xfbflrdLT1lHywkt6ehh1BaVEUq/WO3Z0b7XDTzhtDGuPwlfXH4uwJ3w9UpNSQ8G+LYrQZA7SCDONSomG+budGH2n+im1Ppqpq33PWN3BzEgVTPv4JogaE14="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 70,
+    "candidatesTokenCount": 16,
+    "totalTokenCount": 182,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 70
+      }
+    ],
+    "thoughtsTokenCount": 96
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWaeugE8zd_uMPwpPC8Ac"
+}

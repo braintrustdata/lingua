@@ -1,0 +1,61 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "You"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 45,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 408,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 45
+        }
+      ],
+      "thoughtsTokenCount": 362
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWacvnCpO8_uMPnMLCqAc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " should continue counting from where I left off!\n\nThe next number would be **"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 45,
+      "candidatesTokenCount": 17,
+      "totalTokenCount": 424,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 45
+        }
+      ],
+      "thoughtsTokenCount": 362
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWacvnCpO8_uMPnMLCqAc"
+  }
+]

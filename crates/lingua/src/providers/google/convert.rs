@@ -51,6 +51,59 @@ fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
     }
 }
 
+/// Denormalizes JSON Schema "type" fields from uppercase to lowercase.
+/// Reverses Google's uppercase format back to standard JSON Schema format.
+/// Also strips null fields added by Google's Schema struct serialization (e.g. `items: null`).
+pub fn denormalize_json_schema_types(schema: &mut Value) {
+    match schema {
+        Value::Object(map) => {
+            if let Some(type_value) = map.get_mut("type") {
+                if let Value::String(type_str) = type_value {
+                    *type_value = Value::String(
+                        match type_str.as_ref() {
+                            "STRING" => "string",
+                            "NUMBER" => "number",
+                            "INTEGER" => "integer",
+                            "BOOLEAN" => "boolean",
+                            "ARRAY" => "array",
+                            "OBJECT" => "object",
+                            "NULL" => "null",
+                            _ => type_str.as_ref(),
+                        }
+                        .to_string(),
+                    );
+                }
+            }
+
+            if let Some(Value::Object(props)) = map.get_mut("properties") {
+                for prop_schema in props.values_mut() {
+                    denormalize_json_schema_types(prop_schema);
+                }
+            }
+
+            if let Some(items) = map.get_mut("items") {
+                denormalize_json_schema_types(items);
+            }
+
+            for key in &["allOf", "anyOf", "oneOf"] {
+                if let Some(Value::Array(schemas)) = map.get_mut(*key) {
+                    for schema in schemas {
+                        denormalize_json_schema_types(schema);
+                    }
+                }
+            }
+
+            map.retain(|_, v| !v.is_null());
+        }
+        Value::Array(arr) => {
+            for item in arr {
+                denormalize_json_schema_types(item);
+            }
+        }
+        _ => {}
+    }
+}
+
 impl TryFromLLM<GoogleContent> for Message {
     type Error = ConvertError;
 
@@ -71,14 +124,18 @@ impl TryFromLLM<GoogleContent> for Message {
 
                 for part in &parts {
                     if let Some(t) = &part.text {
-                        if part.thought_signature.is_some() {
+                        if part.thought == Some(true) {
+                            // Thinking part: thought=true marks model's internal reasoning
+                            // The encrypted_content (thoughtSignature) may be on this or the next part
                             assistant_parts.push(AssistantContentPart::Reasoning {
                                 text: t.clone(),
                                 encrypted_content: part.thought_signature.clone(),
                             });
                         } else {
+                            // Regular text part. May carry a thoughtSignature (signature for preceding thought)
                             assistant_parts.push(AssistantContentPart::Text(TextContentPart {
                                 text: t.clone(),
+                                encrypted_content: part.thought_signature.clone(),
                                 provider_options: None,
                             }));
                         }
@@ -103,6 +160,18 @@ impl TryFromLLM<GoogleContent> for Message {
                                 provider_executed: None,
                             });
                         }
+                    } else if let Some(blob) = &part.inline_data {
+                        if let Some(data) = &blob.data {
+                            assistant_parts.push(AssistantContentPart::File {
+                                data: Value::String(data.clone()),
+                                filename: None,
+                                media_type: blob
+                                    .mime_type
+                                    .clone()
+                                    .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
+                                provider_options: None,
+                            });
+                        }
                     }
                 }
 
@@ -121,6 +190,7 @@ impl TryFromLLM<GoogleContent> for Message {
                     if let Some(t) = &part.text {
                         user_parts.push(UserContentPart::Text(TextContentPart {
                             text: t.clone(),
+                            encrypted_content: None,
                             provider_options: None,
                         }));
                     } else if let Some(blob) = &part.inline_data {
@@ -265,7 +335,11 @@ impl TryFromLLM<Message> for GoogleContent {
                         for p in parts {
                             match p {
                                 AssistantContentPart::Text(t) => {
-                                    converted.push(text_part(t.text));
+                                    converted.push(GooglePart {
+                                        text: Some(t.text),
+                                        thought_signature: t.encrypted_content,
+                                        ..Default::default()
+                                    });
                                 }
                                 AssistantContentPart::ToolCall {
                                     tool_call_id,
@@ -301,7 +375,23 @@ impl TryFromLLM<Message> for GoogleContent {
                                 } => {
                                     converted.push(GooglePart {
                                         text: Some(text),
+                                        thought: Some(true),
                                         thought_signature: encrypted_content,
+                                        ..Default::default()
+                                    });
+                                }
+                                AssistantContentPart::File {
+                                    data, media_type, ..
+                                } => {
+                                    let data_str = match data {
+                                        Value::String(s) => Some(s),
+                                        _ => None,
+                                    };
+                                    converted.push(GooglePart {
+                                        inline_data: Some(GoogleBlob {
+                                            data: data_str,
+                                            mime_type: Some(media_type),
+                                        }),
                                         ..Default::default()
                                     });
                                 }
@@ -378,11 +468,12 @@ pub fn universal_to_google(messages: &[Message]) -> Result<Value, ConvertError> 
 
 impl From<&FunctionDeclaration> for UniversalTool {
     fn from(decl: &FunctionDeclaration) -> Self {
-        let parameters = decl
-            .parameters
-            .as_ref()
-            .as_ref()
-            .and_then(|schema| serde_json::to_value(schema).ok());
+        let parameters = decl.parameters_json_schema.clone().or_else(|| {
+            decl.parameters
+                .as_ref()
+                .as_ref()
+                .and_then(|schema| serde_json::to_value(schema).ok())
+        });
 
         UniversalTool::function(
             decl.name.as_deref().unwrap_or(""),
@@ -398,27 +489,12 @@ impl TryFrom<&UniversalTool> for FunctionDeclaration {
 
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
-            UniversalToolType::Function => {
-                let parameters = tool
-                    .parameters
-                    .as_ref()
-                    .map(|v| {
-                        serde_json::from_value(v.clone()).map_err(|e| {
-                            ConvertError::JsonSerializationFailed {
-                                field: format!("tool '{}' parameters", tool.name),
-                                error: e.to_string(),
-                            }
-                        })
-                    })
-                    .transpose()?;
-
-                Ok(FunctionDeclaration {
-                    name: Some(tool.name.clone()),
-                    description: tool.description.clone(),
-                    parameters: Box::new(parameters),
-                    ..Default::default()
-                })
-            }
+            UniversalToolType::Function => Ok(FunctionDeclaration {
+                name: Some(tool.name.clone()),
+                description: tool.description.clone(),
+                parameters_json_schema: tool.parameters.clone(),
+                ..Default::default()
+            }),
             UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
                 tool_name: tool.name.clone(),
                 tool_type: "custom".to_string(),
@@ -631,61 +707,106 @@ impl TryFrom<&ToolChoiceConfig> for ToolConfig {
     }
 }
 
-/// Extract response format from a Google GenerationConfig.
-pub fn response_format_from_generation_config(
-    config: &GenerationConfig,
-) -> Option<ResponseFormatConfig> {
-    let mime = config.response_mime_type.as_deref()?;
+impl From<&GenerationConfig> for ResponseFormatConfig {
+    fn from(config: &GenerationConfig) -> Self {
+        let Some(mime) = config.response_mime_type.as_deref() else {
+            return ResponseFormatConfig::default();
+        };
 
-    match mime {
-        "application/json" => {
-            if let Some(schema) = config.response_schema.as_ref() {
-                let schema_value = serde_json::to_value(schema).ok()?;
-                Some(ResponseFormatConfig {
-                    format_type: Some(ResponseFormatType::JsonSchema),
-                    json_schema: Some(JsonSchemaConfig {
-                        name: "response".to_string(),
-                        schema: schema_value,
-                        strict: None,
-                        description: None,
-                    }),
-                })
-            } else {
-                Some(ResponseFormatConfig {
-                    format_type: Some(ResponseFormatType::JsonObject),
-                    json_schema: None,
-                })
+        match mime {
+            "application/json" => {
+                // Canonical path: responseJsonSchema. Fallback: typed responseSchema.
+                let mut schema_value = config.generation_config_response_json_schema.clone();
+                if schema_value.is_none() {
+                    schema_value = config
+                        .response_schema
+                        .as_ref()
+                        .as_ref()
+                        .and_then(|schema| serde_json::to_value(schema).ok());
+                }
+
+                if let Some(mut schema) = schema_value {
+                    // Normalize typed-schema artifacts on fallback path.
+                    denormalize_json_schema_types(&mut schema);
+
+                    let mut name = "response".to_string();
+                    let mut description = None;
+                    if let Value::Object(map) = &mut schema {
+                        if let Some(Value::String(title)) = map.remove("title") {
+                            name = title;
+                        }
+                        if let Some(Value::String(desc)) = map.remove("description") {
+                            description = Some(desc);
+                        }
+                    }
+
+                    ResponseFormatConfig {
+                        format_type: Some(ResponseFormatType::JsonSchema),
+                        json_schema: Some(JsonSchemaConfig {
+                            name,
+                            schema,
+                            // Google has no strict equivalent.
+                            strict: None,
+                            description,
+                        }),
+                    }
+                } else {
+                    ResponseFormatConfig {
+                        format_type: Some(ResponseFormatType::JsonObject),
+                        json_schema: None,
+                    }
+                }
             }
+            "text/plain" => ResponseFormatConfig {
+                format_type: Some(ResponseFormatType::Text),
+                json_schema: None,
+            },
+            _ => ResponseFormatConfig::default(),
         }
-        "text/plain" => Some(ResponseFormatConfig {
-            format_type: Some(ResponseFormatType::Text),
-            json_schema: None,
-        }),
-        // text/x.enum or other types - store as Text for now
-        _ => None,
     }
 }
 
-/// Apply a ResponseFormatConfig to a GenerationConfig.
-pub fn apply_response_format_to_generation_config(
-    config: &mut GenerationConfig,
-    format: &ResponseFormatConfig,
-) {
-    match format.format_type {
-        Some(ResponseFormatType::JsonSchema) => {
-            config.response_mime_type = Some("application/json".to_string());
-            if let Some(js) = &format.json_schema {
-                let schema = serde_json::from_value(js.schema.clone()).ok();
-                *config.response_schema = schema;
+impl TryFrom<&ResponseFormatConfig> for GenerationConfig {
+    type Error = ConvertError;
+
+    fn try_from(format: &ResponseFormatConfig) -> Result<Self, Self::Error> {
+        let mut config = GenerationConfig::default();
+
+        match format.format_type {
+            Some(ResponseFormatType::JsonSchema) => {
+                let js = format
+                    .json_schema
+                    .as_ref()
+                    .ok_or(ConvertError::MissingRequiredField {
+                        field: "json_schema".to_string(),
+                    })?;
+
+                let mut schema = js.schema.clone();
+                if let Value::Object(obj) = &mut schema {
+                    // Canonical mapping for OpenAI-style metadata.
+                    obj.insert("title".to_string(), Value::String(js.name.clone()));
+                    if let Some(desc) = &js.description {
+                        obj.insert("description".to_string(), Value::String(desc.clone()));
+                    }
+                }
+
+                config.response_mime_type = Some("application/json".to_string());
+                config.generation_config_response_json_schema = Some(schema);
+                // Keep typed schema unset to avoid lossy conversion artifacts.
+                *config.response_schema = None;
             }
+            Some(ResponseFormatType::JsonObject) => {
+                config.response_mime_type = Some("application/json".to_string());
+                *config.response_schema = None;
+            }
+            Some(ResponseFormatType::Text) => {
+                config.response_mime_type = Some("text/plain".to_string());
+                *config.response_schema = None;
+            }
+            None => {}
         }
-        Some(ResponseFormatType::JsonObject) => {
-            config.response_mime_type = Some("application/json".to_string());
-        }
-        Some(ResponseFormatType::Text) => {
-            config.response_mime_type = Some("text/plain".to_string());
-        }
-        None => {}
+
+        Ok(config)
     }
 }
 
@@ -749,6 +870,15 @@ impl From<&UniversalUsage> for UsageMetadata {
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use serde::Deserialize;
+
+    #[derive(Debug, Deserialize)]
+    struct JsonSchemaMetadataView {
+        #[serde(default)]
+        title: Option<String>,
+        #[serde(default)]
+        description: Option<String>,
+    }
 
     #[test]
     fn test_google_content_to_message_user() {
@@ -968,7 +1098,7 @@ mod tests {
         let decl = FunctionDeclaration::try_from(&tool).unwrap();
         assert_eq!(decl.name, Some("get_weather".to_string()));
         assert_eq!(decl.description, Some("Get weather info".to_string()));
-        assert!(decl.parameters.is_some());
+        assert!(decl.parameters_json_schema.is_some());
     }
 
     #[test]
@@ -1120,32 +1250,35 @@ mod tests {
     fn test_response_format_json_schema_from_generation_config() {
         let config = GenerationConfig {
             response_mime_type: Some("application/json".to_string()),
-            response_schema: Box::new(Some(
-                serde_json::from_value(json!({
-                    "type": "OBJECT",
-                    "properties": {
-                        "name": {"type": "STRING"}
-                    }
-                }))
-                .unwrap(),
-            )),
+            generation_config_response_json_schema: Some(json!({
+                "type": "object",
+                "title": "person_info",
+                "description": "Extract person fields",
+                "properties": {
+                    "name": {"type": "string"}
+                }
+            })),
             ..Default::default()
         };
 
-        let format = response_format_from_generation_config(&config).unwrap();
+        let format = ResponseFormatConfig::from(&config);
         assert_eq!(format.format_type, Some(ResponseFormatType::JsonSchema));
-        assert!(format.json_schema.is_some());
+        let json_schema = format.json_schema.expect("json schema should exist");
+        assert_eq!(json_schema.name, "person_info");
+        assert_eq!(
+            json_schema.description,
+            Some("Extract person fields".to_string())
+        );
     }
 
     #[test]
     fn test_response_format_json_object_from_generation_config() {
         let config = GenerationConfig {
             response_mime_type: Some("application/json".to_string()),
-            response_schema: Box::new(None),
             ..Default::default()
         };
 
-        let format = response_format_from_generation_config(&config).unwrap();
+        let format = ResponseFormatConfig::from(&config);
         assert_eq!(format.format_type, Some(ResponseFormatType::JsonObject));
         assert!(format.json_schema.is_none());
     }
@@ -1157,51 +1290,81 @@ mod tests {
             ..Default::default()
         };
 
-        let format = response_format_from_generation_config(&config).unwrap();
+        let format = ResponseFormatConfig::from(&config);
         assert_eq!(format.format_type, Some(ResponseFormatType::Text));
     }
 
     #[test]
-    fn test_apply_json_schema_to_generation_config() {
+    fn test_response_format_json_schema_to_generation_config() {
         let format = ResponseFormatConfig {
             format_type: Some(ResponseFormatType::JsonSchema),
             json_schema: Some(JsonSchemaConfig {
                 name: "response".to_string(),
                 schema: json!({
-                    "type": "OBJECT",
+                    "type": "object",
                     "properties": {
-                        "name": {"type": "STRING"}
+                        "name": {"type": "string"}
                     }
                 }),
-                strict: None,
-                description: None,
+                strict: Some(true),
+                description: Some("Structured response".to_string()),
             }),
         };
 
-        let mut config = GenerationConfig::default();
-        apply_response_format_to_generation_config(&mut config, &format);
-
-        assert_eq!(
-            config.response_mime_type,
-            Some("application/json".to_string())
-        );
-        assert!(config.response_schema.is_some());
-    }
-
-    #[test]
-    fn test_apply_json_object_to_generation_config() {
-        let format = ResponseFormatConfig {
-            format_type: Some(ResponseFormatType::JsonObject),
-            json_schema: None,
-        };
-
-        let mut config = GenerationConfig::default();
-        apply_response_format_to_generation_config(&mut config, &format);
+        let config = GenerationConfig::try_from(&format).unwrap();
 
         assert_eq!(
             config.response_mime_type,
             Some("application/json".to_string())
         );
         assert!(config.response_schema.is_none());
+        let schema_value = config
+            .generation_config_response_json_schema
+            .clone()
+            .expect("responseJsonSchema must be present");
+        let schema: JsonSchemaMetadataView = serde_json::from_value(schema_value)
+            .expect("responseJsonSchema should deserialize into metadata view");
+        assert_eq!(schema.title.as_deref(), Some("response"));
+        assert_eq!(schema.description.as_deref(), Some("Structured response"));
+    }
+
+    #[test]
+    fn test_response_format_json_object_to_generation_config() {
+        let format = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonObject),
+            json_schema: None,
+        };
+
+        let config = GenerationConfig::try_from(&format).unwrap();
+
+        assert_eq!(
+            config.response_mime_type,
+            Some("application/json".to_string())
+        );
+        assert!(config.response_schema.is_none());
+        assert!(config.generation_config_response_json_schema.is_none());
+    }
+
+    #[test]
+    fn test_response_format_prefers_response_json_schema_over_response_schema() {
+        let config = GenerationConfig {
+            response_mime_type: Some("application/json".to_string()),
+            generation_config_response_json_schema: Some(json!({
+                "type": "object",
+                "title": "from_json_schema"
+            })),
+            response_schema: Box::new(Some(
+                serde_json::from_value(json!({
+                    "type": "OBJECT",
+                    "title": "from_typed_schema"
+                }))
+                .expect("schema literal should deserialize"),
+            )),
+            ..Default::default()
+        };
+
+        let format = ResponseFormatConfig::from(&config);
+        let json_schema = format.json_schema.expect("json schema should exist");
+        assert_eq!(json_schema.name, "from_json_schema");
     }
 }

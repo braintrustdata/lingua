@@ -1,0 +1,18 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Count from 1 to 20."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "stopSequences": [
+      "10",
+      "ten"
+    ]
+  }
+}

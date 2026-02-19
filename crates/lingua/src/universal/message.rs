@@ -166,6 +166,7 @@ pub struct ToolResultContentPart {
 #[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct TextContentPart {
     pub text: String,
+    pub encrypted_content: Option<String>,
     pub provider_options: Option<ProviderOptions>,
 }
 

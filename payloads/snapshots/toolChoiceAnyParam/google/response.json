@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "San Francisco"
+              }
+            },
+            "thoughtSignature": "CvkBAb4+9vuAJaBKazt5g1m+XbULLxbYW/Ggl0pqKXx/njeyjpydrbuiANaXLjOm6cm5HO/LbUMUnlYM1Es35Q4O1AVPXuA9bSMYzxbEjLI4P5qFYHoF/LBfe11PjVJ+ECAZ5jZX4p66u/gar6s57DyI0KBxDugTUz+hI1xrioZuT33hXvDpVma1uSChTJMjl+c5aqAqmRNtXHpuCjqaQWLucDewxRn9RN4ylkFhg4XrhZ5MtewA7t8SP9sI4kB5pjn4iW0sa7HCLMbPXVEtjaciI4kTOhXIwM+6Vd1FOSHNvX/BqKCgzHClNIHLJT2o6Rs3KQs0r4nsD1hz"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 16,
+    "totalTokenCount": 105,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 52
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "k0yWaeeDINXh_uMPxOWCqAU"
+}

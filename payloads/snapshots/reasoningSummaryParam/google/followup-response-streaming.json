@@ -1,0 +1,235 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Considering Next Steps**\n\nI've analyzed the user's previous query, a straightforward arithmetic question answered with a simple fact. Now, I'm assessing their follow-up, \"What should I do next?\". It seems open-ended, shifting focus to a directive or guidance. I am identifying the implicit objective.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 122,
+      "totalTokenCount": 191,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 122
+        }
+      ],
+      "thoughtsTokenCount": 69
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeTQK7WV_uMP4_mB8Qc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Formulating an Approach**\n\nI'm now formulating a comprehensive response. Given the ambiguous nature of \"What should I do next?\", I've decided on a multi-pronged approach. First, I'll acknowledge their query and directly state the need for more context. Then, I'll provide examples of clarifying questions to elicit more details about their current situation, their goals, interests, and the kind of tasks they're interested in performing.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 122,
+      "totalTokenCount": 487,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 122
+        }
+      ],
+      "thoughtsTokenCount": 365
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeTQK7WV_uMP4_mB8Qc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Developing a Response**\n\nI've organized my thoughts into a coherent framework. Recognizing the user's need for guidance after a simple question, I'm composing a response that acknowledges the lack of context and offers a structured approach to elicit more information. I'm focusing on categories like context, goals, interests, and tasks to facilitate the conversation and help guide the user toward useful next steps. I'll provide these categories as options to prompt them for more information.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 122,
+      "totalTokenCount": 782,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 122
+        }
+      ],
+      "thoughtsTokenCount": 660
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeTQK7WV_uMP4_mB8Qc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Structuring a Response**\n\nI've outlined a structured response to address the user's open-ended query. I will begin by acknowledging the lack of specific context. I'll then guide the user by suggesting some common ways to generate more information, such as asking what the user had in mind, what their goals might be, and the type of tasks they might wish to perform. Finally, I will end the response by inviting the user to provide more details about their context.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 122,
+      "totalTokenCount": 846,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 122
+        }
+      ],
+      "thoughtsTokenCount": 724
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeTQK7WV_uMP4_mB8Qc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends entirely on what you're trying to do or what you're interested in!\n\nTo give you a good suggestion, I need a little more context. For example"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 122,
+      "candidatesTokenCount": 32,
+      "totalTokenCount": 878,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 122
+        }
+      ],
+      "thoughtsTokenCount": 724
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeTQK7WV_uMP4_mB8Qc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ":\n\n*   **Are you working on something?** (e.g., a project, an essay, a problem)\n*   **Are you looking for something fun or entertaining?** (e.g., a game, a story"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 122,
+      "candidatesTokenCount": 82,
+      "totalTokenCount": 928,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 122
+        }
+      ],
+      "thoughtsTokenCount": 724
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeTQK7WV_uMP4_mB8Qc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", a creative prompt)\n*   **Do you want to learn something new?** (e.g., a fact, a skill, a topic)\n*   **Are you just looking to chat or explore ideas?**\n*"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 122,
+      "candidatesTokenCount": 131,
+      "totalTokenCount": 977,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 122
+        }
+      ],
+      "thoughtsTokenCount": 724
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeTQK7WV_uMP4_mB8Qc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "   **Do you have another question in mind?**\n\nTell me a bit more about what's on your mind, and I can give you a more specific suggestion!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 122,
+      "candidatesTokenCount": 165,
+      "totalTokenCount": 1011,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 122
+        }
+      ],
+      "thoughtsTokenCount": 724
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeTQK7WV_uMP4_mB8Qc"
+  }
+]

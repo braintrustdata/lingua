@@ -482,7 +482,7 @@ fn generate_markdown_report(
                         report.push_str(&format!(
                             "      - `{}` - {}{}\n",
                             test_case,
-                            error,
+                            compact::truncate_str(&error, 200),
                             format_diff(&diff)
                         ));
                     }
@@ -532,7 +532,7 @@ fn generate_markdown_report(
                         report.push_str(&format!(
                             "      - `{}` - {}{}\n",
                             test_case,
-                            error,
+                            compact::truncate_str(&error, 200),
                             format_diff(&diff)
                         ));
                     }
@@ -582,7 +582,7 @@ fn generate_markdown_report(
                         report.push_str(&format!(
                             "      - `{}` - {}{}\n",
                             test_case,
-                            error,
+                            compact::truncate_str(&error, 200),
                             format_diff(&diff)
                         ));
                     }

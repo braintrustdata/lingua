@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "To give you the best suggestion, I need a little more information! What kind of mood are you in, what are you trying to achieve, or what are your current circumstances?\n\nFor example, are you looking to:\n\n*   **Relax and unwind?** (Read a book, listen to music, watch a movie, meditate)\n*   **Be productive?** (Tackle a chore, work on a personal project, plan your week)\n*   **Learn something new?** (Watch a documentary, read an article, try a new skill)\n*   **Be creative?** (Draw, write, play an instrument, cook something new)\n*   **Get active?** (Go for a walk, exercise, stretch)\n*   **Connect with others?** (Call a friend, spend time with family)\n*   **Explore?** (Look up a new place to visit, browse interesting topics online)\n\nTell me a bit more about what you're looking for!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 14,
+    "candidatesTokenCount": 209,
+    "totalTokenCount": 1096,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 14
+      }
+    ],
+    "thoughtsTokenCount": 873
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWaeizCf7e_uMPxtLXuAs"
+}

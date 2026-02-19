@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That depends entirely on what you're trying to do or learn! Since we just did a simple math problem, here are a few ideas for what you could do next:\n\n1.  **Ask another math problem:** A harder one, or a word problem!\n2.  **Ask a general question:** About history, science, current events, definitions, etc.\n3.  **Ask for an explanation:** \"How does a car engine work?\" or \"What is quantum physics?\"\n4.  **Ask for creative writing:** \"Write a short story about a talking cat\" or \"Write a poem about a rainy day.\"\n5.  **Ask for brainstorming help:** \"Give me ideas for a birthday gift for my friend who likes hiking.\"\n6.  **Ask for advice or opinions (with caveats):** \"What are some good ways to stay organized?\"\n7.  **Ask for help with a task:** \"Summarize this article for me\" (if you provide one) or \"Help me plan a simple dinner menu.\"\n8.  **Just tell me what's on your mind!**\n\nWhat are you interested in, or what are you working on?"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 23,
+    "candidatesTokenCount": 247,
+    "totalTokenCount": 1242,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 23
+      }
+    ],
+    "thoughtsTokenCount": 972
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWaZfzA4TL_uMP5tX1gAk"
+}

@@ -1,0 +1,148 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Okay, since I can't see the image, here are a few things you could do next, depending on what you're trying to achieve:\n\n1.  **Describe the image to me:** If"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 68,
+      "candidatesTokenCount": 43,
+      "totalTokenCount": 1020,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 68
+        }
+      ],
+      "thoughtsTokenCount": 909
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWaaKmDITL_uMPm7704AM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you still want a description, you'll need to tell me what's in it. Be as detailed as you can!\n    *   What are the main subjects or objects?\n    *   What colors do you see?\n    *"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 68,
+      "candidatesTokenCount": 94,
+      "totalTokenCount": 1071,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 68
+        }
+      ],
+      "thoughtsTokenCount": 909
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWaaKmDITL_uMPm7704AM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "   What's the setting or background?\n    *   Is there any action happening, or are people/objects in a particular pose?\n    *   What's the overall mood or style (e.g., photo, drawing"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 68,
+      "candidatesTokenCount": 142,
+      "totalTokenCount": 1119,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 68
+        }
+      ],
+      "thoughtsTokenCount": 909
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWaaKmDITL_uMPm7704AM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", vibrant, subdued)?\n\n2.  **Ask me a different question:** If you're done with the image or want to move on, feel free to ask me about anything else!\n\n3.  **Provide more context:** If"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 68,
+      "candidatesTokenCount": 191,
+      "totalTokenCount": 1168,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 68
+        }
+      ],
+      "thoughtsTokenCount": 909
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWaaKmDITL_uMPm7704AM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " there was a specific reason you wanted the image described (e.g., for a presentation, a story, identification), knowing that might help me guide you better.\n\nWhat would you like to do?"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 68,
+      "candidatesTokenCount": 232,
+      "totalTokenCount": 1209,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 68
+        }
+      ],
+      "thoughtsTokenCount": 909
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWaaKmDITL_uMPm7704AM"
+  }
+]

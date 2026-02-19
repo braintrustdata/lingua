@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That's a very open-ended question! To give you the best suggestion, I need a little more information. Tell me:\n\n1.  **What kind of \"next\" are you looking for?** (e.g., something productive, relaxing, entertaining, creative, a learning activity, something to get you moving, etc.)\n2.  **What's your current mood or energy level?** (e.g., bored, energetic, tired, stressed, happy, curious)\n3.  **What have you just been doing?** (e.g., working, relaxing, thinking, browsing online)\n4.  **How much time do you have?** (e.g., 5 minutes, an hour, the rest of the day)\n5.  **Are you alone or with others?**\n\nIn the meantime, here are some general ideas across different categories:\n\n**If you want to be productive:**\n*   Make a to-do list for the rest of the day/week.\n*   Tackle one small chore you've been putting off.\n*   Organize your digital files or email inbox.\n*   Plan a meal or your grocery list.\n\n**If you want to relax:**\n*   Listen to some music or a podcast.\n*   Read a book or an interesting article.\n*   Do some light stretching or meditate for a few minutes.\n*   Make yourself a cup of tea or coffee.\n\n**If you want to be entertained:**\n*   Watch a short video or a show.\n*   Play a quick game on your phone or computer.\n*   Browse a new subreddit or explore a topic you're curious about.\n*   Listen to a new album or artist.\n\n**If you want to be creative:**\n*   Doodle or sketch something.\n*   Write a short story or a journal entry.\n*   Brainstorm ideas for a project or hobby.\n\n**If you want to learn something new:**\n*   Look up a random fact or concept on Wikipedia.\n*   Watch a short educational video on YouTube.\n*   Practice a language you're learning.\n\nTell me more about what you're looking for!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 14,
+    "candidatesTokenCount": 469,
+    "totalTokenCount": 1368,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 14
+      }
+    ],
+    "thoughtsTokenCount": 885
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWacuYA4Sh_PUPy9DloAk"
+}

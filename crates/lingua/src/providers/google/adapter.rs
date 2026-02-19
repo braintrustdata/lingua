@@ -11,24 +11,22 @@ Google's API has some unique characteristics:
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
-use crate::providers::google::convert::{
-    apply_response_format_to_generation_config, response_format_from_generation_config,
-};
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
     Content as GoogleContent, GenerateContentResponse, GenerationConfig, ThinkingConfig,
-    Tool as GoogleTool, ToolConfig, UsageMetadata,
+    ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::Message;
+use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
 use crate::universal::request::ToolChoiceConfig;
 use crate::universal::tools::UniversalTool;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, TokenBudget,
     UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalUsage, UserContent,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UniversalUsage, UserContent,
 };
 
 /// Adapter for Google AI GenerateContent API.
@@ -67,17 +65,33 @@ impl ProviderAdapter for GoogleAdapter {
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         // Extract params from generationConfig (now typed in params struct)
-        let (temperature, top_p, top_k, max_tokens, stop, reasoning) =
-            if let Some(config) = &typed_params.generation_config {
-                let max_tokens = config.max_output_tokens;
-                // Convert Google's thinkingConfig to ReasoningConfig
-                // thinkingBudget: 0 means disabled
-                let reasoning = config.thinking_config.as_ref().map(|tc| {
+        let (temperature, top_p, top_k, max_tokens, stop, reasoning) = if let Some(config) =
+            &typed_params.generation_config
+        {
+            let max_tokens = config.max_output_tokens;
+            // Convert Google's thinkingConfig to ReasoningConfig
+            // thinkingLevel: Gemini 3 (effort-based)
+            // thinkingBudget: Gemini 2.5 (budget-based), 0 means disabled
+            let reasoning = config.thinking_config.as_ref().map(|tc| {
+                use crate::providers::google::capabilities::thinking_level_to_effort;
+
+                if let Some(ref level) = tc.thinking_level {
+                    // Gemini 3 style: thinkingLevel is canonical (effort-based)
+                    let effort = thinking_level_to_effort(level);
+                    let budget = crate::universal::reasoning::effort_to_budget(effort, max_tokens);
+                    crate::universal::ReasoningConfig {
+                        enabled: Some(true),
+                        effort: Some(effort),
+                        budget_tokens: Some(budget),
+                        canonical: Some(crate::universal::ReasoningCanonical::Effort),
+                        ..Default::default()
+                    }
+                } else {
+                    // Gemini 2.5 style: thinkingBudget is canonical (budget-based)
                     let is_disabled = tc.thinking_budget == Some(0);
                     let budget_tokens = tc.thinking_budget;
-                    // Derive effort from budget_tokens
                     let effort = budget_tokens
-                        .map(|b| crate::universal::reasoning::budget_to_effort(b, None));
+                        .map(|b| crate::universal::reasoning::budget_to_effort(b, max_tokens));
                     crate::universal::ReasoningConfig {
                         enabled: Some(!is_disabled),
                         effort,
@@ -85,19 +99,20 @@ impl ProviderAdapter for GoogleAdapter {
                         canonical: Some(crate::universal::ReasoningCanonical::BudgetTokens),
                         ..Default::default()
                     }
-                });
-                let stop = config.stop_sequences.clone().filter(|s| !s.is_empty());
-                (
-                    config.temperature,
-                    config.top_p,
-                    config.top_k,
-                    max_tokens,
-                    stop,
-                    reasoning,
-                )
-            } else {
-                (None, None, None, None, None, None)
-            };
+                }
+            });
+            let stop = config.stop_sequences.clone().filter(|s| !s.is_empty());
+            (
+                config.temperature,
+                config.top_p,
+                config.top_k,
+                max_tokens,
+                stop,
+                reasoning,
+            )
+        } else {
+            (None, None, None, None, None, None)
+        };
 
         // Convert tools using typed conversions
         let tools = typed_params
@@ -116,7 +131,8 @@ impl ProviderAdapter for GoogleAdapter {
         let response_format = typed_params
             .generation_config
             .as_ref()
-            .and_then(response_format_from_generation_config);
+            .map(crate::universal::request::ResponseFormatConfig::from)
+            .filter(|rf| rf.format_type.is_some());
 
         let mut params = UniversalParams {
             temperature,
@@ -219,7 +235,12 @@ impl ProviderAdapter for GoogleAdapter {
             .as_ref()
             .map(|r| !r.is_effectively_disabled())
             .unwrap_or(false);
-        let has_response_format = req.params.response_format.is_some();
+        let has_response_format = req
+            .params
+            .response_format
+            .as_ref()
+            .map(|rf| rf.format_type.is_some())
+            .unwrap_or(false);
         let has_params = req.params.temperature.is_some()
             || req.params.top_p.is_some()
             || req.params.top_k.is_some()
@@ -230,19 +251,43 @@ impl ProviderAdapter for GoogleAdapter {
 
         if has_params {
             // Convert ReasoningConfig to Google's thinkingConfig
+            // Use capabilities to determine whether to use thinkingLevel (Gemini 3) or thinkingBudget (Gemini 2.5)
             let thinking_config = req.params.reasoning.as_ref().and_then(|r| {
+                use crate::providers::google::capabilities::{
+                    effort_to_thinking_level, GoogleCapabilities, GoogleThinkingStyle,
+                };
+
                 if r.is_effectively_disabled() {
                     return None;
                 }
-                // Use budget_tokens or default minimum
-                let budget = r
-                    .budget_tokens
-                    .unwrap_or(crate::universal::reasoning::MIN_THINKING_BUDGET);
-                Some(ThinkingConfig {
-                    include_thoughts: Some(true),
-                    thinking_budget: Some(budget),
-                    ..Default::default()
-                })
+
+                let caps = GoogleCapabilities::detect(req.model.as_deref());
+
+                match caps.thinking_style {
+                    GoogleThinkingStyle::ThinkingLevelBased => {
+                        // Gemini 3: use thinkingLevel (effort-based)
+                        let level = r
+                            .effort
+                            .map(effort_to_thinking_level)
+                            .unwrap_or(ThinkingLevel::High);
+                        Some(ThinkingConfig {
+                            include_thoughts: Some(true),
+                            thinking_budget: None,
+                            thinking_level: Some(level),
+                        })
+                    }
+                    GoogleThinkingStyle::ThinkingBudget | GoogleThinkingStyle::None => {
+                        // Gemini 2.5: use thinkingBudget (budget-based)
+                        let budget = r
+                            .budget_tokens
+                            .unwrap_or(crate::universal::reasoning::MIN_THINKING_BUDGET);
+                        Some(ThinkingConfig {
+                            include_thoughts: Some(true),
+                            thinking_budget: Some(budget),
+                            thinking_level: None,
+                        })
+                    }
+                }
             });
 
             let stop_sequences = req.params.stop.clone();
@@ -259,7 +304,12 @@ impl ProviderAdapter for GoogleAdapter {
 
             // Apply response format to generationConfig
             if let Some(format) = &req.params.response_format {
-                apply_response_format_to_generation_config(&mut config, format);
+                let response_config = GenerationConfig::try_from(format)
+                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+                config.response_mime_type = response_config.response_mime_type;
+                config.generation_config_response_json_schema =
+                    response_config.generation_config_response_json_schema;
+                config.response_schema = response_config.response_schema;
             }
 
             obj.insert(
@@ -306,12 +356,22 @@ impl ProviderAdapter for GoogleAdapter {
         Ok(Value::Object(obj))
     }
 
+    fn apply_defaults(&self, req: &mut UniversalRequest) {
+        // Google has no strict response-schema equivalent. Canonically drop it so
+        // cross-provider semantic comparison does not treat this as a regression.
+        if let Some(format) = &mut req.params.response_format {
+            if let Some(json_schema) = &mut format.json_schema {
+                json_schema.strict = None;
+            }
+        }
+    }
+
     fn detect_response(&self, payload: &Value) -> bool {
-        // Google response has candidates[].content structure
+        // Google response has candidates array (content may be missing for NO_IMAGE etc)
         payload
             .get("candidates")
             .and_then(Value::as_array)
-            .is_some_and(|arr| arr.first().and_then(|c| c.get("content")).is_some())
+            .is_some_and(|arr| !arr.is_empty())
     }
 
     fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
@@ -332,6 +392,26 @@ impl ProviderAdapter for GoogleAdapter {
                 finish_reason = candidate.finish_reason.as_ref().map(FinishReason::from);
             }
         }
+
+        let has_tool_calls = messages.iter().any(|m| {
+            if let Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } = m
+            {
+                parts
+                    .iter()
+                    .any(|p| matches!(p, AssistantContentPart::ToolCall { .. }))
+            } else {
+                false
+            }
+        });
+
+        let finish_reason = if has_tool_calls {
+            Some(FinishReason::ToolCalls)
+        } else {
+            finish_reason
+        };
 
         let usage = response.usage_metadata.as_ref().map(UniversalUsage::from);
 
@@ -372,6 +452,10 @@ impl ProviderAdapter for GoogleAdapter {
         let mut map = serde_json::Map::new();
         map.insert("candidates".into(), Value::Array(candidates));
 
+        if let Some(model) = &resp.model {
+            map.insert("modelVersion".into(), Value::String(model.clone()));
+        }
+
         if let Some(usage) = &resp.usage {
             let metadata = UsageMetadata::from(usage);
             let value = serde_json::to_value(&metadata)
@@ -396,62 +480,84 @@ impl ProviderAdapter for GoogleAdapter {
         &self,
         payload: Value,
     ) -> Result<Option<UniversalStreamChunk>, TransformError> {
-        let candidates = payload
-            .get("candidates")
-            .and_then(Value::as_array)
+        let typed_payload: GenerateContentResponse =
+            serde_json::from_value(payload).map_err(|e| {
+                TransformError::ToUniversalFailed(format!("failed to parse stream payload: {e}"))
+            })?;
+        let candidates = typed_payload
+            .candidates
             .ok_or_else(|| TransformError::ToUniversalFailed("missing candidates".to_string()))?;
 
         let mut choices = Vec::new();
 
         for candidate in candidates {
-            let index = candidate.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
-
-            // Extract text from content.parts
-            let text: String = candidate
-                .get("content")
-                .and_then(|c| c.get("parts"))
-                .and_then(Value::as_array)
-                .map(|parts| {
-                    parts
-                        .iter()
-                        .filter_map(|p| p.get("text").and_then(Value::as_str))
-                        .collect::<Vec<_>>()
-                        .join("")
-                })
+            let index = candidate.index.unwrap_or(0) as u32;
+            let parts = candidate
+                .content
+                .and_then(|content| content.parts)
                 .unwrap_or_default();
+
+            let text = parts
+                .iter()
+                .filter_map(|part| part.text.as_deref())
+                .collect::<Vec<_>>()
+                .join("");
+
+            let tool_calls = parts
+                .iter()
+                .enumerate()
+                .filter_map(|(i, part)| {
+                    part.function_call
+                        .as_ref()
+                        .map(|function_call| UniversalToolCallDelta {
+                            index: Some(i as u32),
+                            id: function_call.id.clone(),
+                            call_type: Some("function".to_string()),
+                            function: Some(UniversalToolFunctionDelta {
+                                name: function_call.name.clone(),
+                                arguments: function_call
+                                    .args
+                                    .as_ref()
+                                    .map(|args| Value::Object(args.clone()).to_string()),
+                            }),
+                        })
+                })
+                .collect();
 
             // Map finish reason using centralized helper
             let finish_reason = candidate
-                .get("finishReason")
-                .and_then(Value::as_str)
-                .map(|r| FinishReason::from_provider_string(r, self.format()).to_string());
+                .finish_reason
+                .as_ref()
+                .and_then(|reason| serde_json::to_value(reason).ok())
+                .and_then(|reason| match reason {
+                    Value::String(s) => Some(s),
+                    _ => None,
+                })
+                .map(|reason| {
+                    FinishReason::from_provider_string(&reason, self.format()).to_string()
+                });
+
+            let delta = UniversalStreamDelta {
+                role: Some("assistant".to_string()),
+                content: Some(text),
+                tool_calls,
+                reasoning: vec![],
+                reasoning_signature: None,
+            };
 
             choices.push(UniversalStreamChoice {
                 index,
-                delta: Some(serde_json::json!({
-                    "role": "assistant",
-                    "content": text
-                })),
+                delta: Some(Value::from(delta)),
                 finish_reason,
             });
         }
 
-        let usage = payload
-            .get("usageMetadata")
-            .map(|v| serde_json::from_value::<UsageMetadata>(v.clone()))
-            .transpose()
-            .map_err(|e| TransformError::ToUniversalFailed(format!("usageMetadata: {e}")))?
-            .map(|u| UniversalUsage::from(&u));
-
-        let model = payload
-            .get("modelVersion")
-            .and_then(Value::as_str)
-            .map(String::from);
-
-        let id = payload
-            .get("responseId")
-            .and_then(Value::as_str)
-            .map(String::from);
+        let usage = typed_payload
+            .usage_metadata
+            .as_ref()
+            .map(UniversalUsage::from);
+        let model = typed_payload.model_version;
+        let id = typed_payload.response_id;
 
         Ok(Some(UniversalStreamChunk::new(
             id, model, choices, None, usage,
@@ -470,13 +576,47 @@ impl ProviderAdapter for GoogleAdapter {
             .choices
             .iter()
             .map(|c| {
-                // Extract text content from delta
-                let text = c
-                    .delta
+                let delta = c.delta_view();
+
+                // Build parts array from text and tool_calls
+                let mut parts: Vec<Value> = Vec::new();
+
+                // Add text part if present
+                let text = delta
                     .as_ref()
-                    .and_then(|d| d.get("content"))
-                    .and_then(Value::as_str)
+                    .and_then(|d| d.content.as_deref())
                     .unwrap_or("");
+                if !text.is_empty() {
+                    parts.push(serde_json::json!({"text": text}));
+                }
+
+                // Add functionCall parts from tool_calls
+                if let Some(ref d) = delta {
+                    for tc in &d.tool_calls {
+                        if let Some(ref func) = tc.function {
+                            let mut fc_map = serde_json::Map::new();
+                            if let Some(ref name) = func.name {
+                                fc_map.insert("name".into(), Value::String(name.clone()));
+                            }
+                            if let Some(ref id) = tc.id {
+                                fc_map.insert("id".into(), Value::String(id.clone()));
+                            }
+                            if let Some(ref args) = func.arguments {
+                                if args.is_empty() {
+                                    fc_map.insert("args".into(), serde_json::json!({}));
+                                } else if let Ok(args_val) = serde_json::from_str::<Value>(args) {
+                                    fc_map.insert("args".into(), args_val);
+                                }
+                            }
+                            parts.push(serde_json::json!({"functionCall": fc_map}));
+                        }
+                    }
+                }
+
+                // Ensure at least one empty text part if no parts
+                if parts.is_empty() {
+                    parts.push(serde_json::json!({"text": ""}));
+                }
 
                 let finish_reason = c.finish_reason.as_ref().map(|r| {
                     let fr: FinishReason = r.parse().unwrap_or(FinishReason::Other(r.clone()));
@@ -488,7 +628,7 @@ impl ProviderAdapter for GoogleAdapter {
                 candidate_map.insert(
                     "content".into(),
                     serde_json::json!({
-                        "parts": [{"text": text}],
+                        "parts": parts,
                         "role": "model"
                     }),
                 );
@@ -525,6 +665,7 @@ impl ProviderAdapter for GoogleAdapter {
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use crate::universal::request::ToolChoiceMode;
 
     #[test]
     fn test_google_detect_request() {
@@ -582,5 +723,79 @@ mod tests {
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
         assert!(reconstructed.get("contents").is_some());
+    }
+
+    #[test]
+    fn test_google_tool_choice_to_universal() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Hello"}]
+            }],
+            "toolConfig": {
+                "functionCallingConfig": {
+                    "mode": "AUTO"
+                }
+            }
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let tool_choice = universal.params.tool_choice.unwrap();
+        assert_eq!(tool_choice.mode, Some(ToolChoiceMode::Auto));
+    }
+
+    #[test]
+    fn test_google_tool_choice_from_universal() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: None,
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".into()),
+            }],
+            params: UniversalParams {
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Required),
+                    tool_name: None,
+                    disable_parallel: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed_payload: crate::providers::google::generated::GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let mode = typed_payload
+            .tool_config
+            .and_then(|tool_config| tool_config.function_calling_config)
+            .and_then(|config| config.mode);
+        assert_eq!(
+            mode,
+            Some(crate::providers::google::generated::FunctionCallingConfigMode::Any)
+        );
+    }
+
+    #[test]
+    fn test_google_response_model_version_roundtrip() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "modelVersion": "gemini-1.5",
+            "candidates": [{
+                "content": {
+                    "role": "model",
+                    "parts": [{"text": "Hi"}]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+        assert_eq!(universal.model, Some("gemini-1.5".into()));
+
+        let back = adapter.response_from_universal(&universal).unwrap();
+        let back_typed: GenerateContentResponse =
+            serde_json::from_value(back).expect("response should deserialize");
+        assert_eq!(back_typed.model_version.as_deref(), Some("gemini-1.5"));
     }
 }

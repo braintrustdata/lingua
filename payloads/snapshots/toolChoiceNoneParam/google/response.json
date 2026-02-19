@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "To give you the most accurate weather information, I need to know your **location**!\n\nPlease tell me your **city and state/country**, or even a **zip code/postal code**, and I'll do my best to provide the current conditions.\n\nAlternatively, you can easily check the weather yourself by searching 'weather near me' or 'weather in [your city]' on a search engine, or using a dedicated weather app."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 90,
+    "totalTokenCount": 838,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 711
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "k0yWae3hIN27_uMP7Iu82Ak"
+}

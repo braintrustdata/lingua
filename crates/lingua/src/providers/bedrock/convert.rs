@@ -87,6 +87,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                         BedrockContentBlock::Text { text } => {
                             content_parts.push(AssistantContentPart::Text(TextContentPart {
                                 text,
+                                encrypted_content: None,
                                 provider_options: None,
                             }));
                         }
@@ -109,6 +110,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                 if content_parts.is_empty() {
                     content_parts.push(AssistantContentPart::Text(TextContentPart {
                         text: String::new(),
+                        encrypted_content: None,
                         provider_options: None,
                     }));
                 }
@@ -296,6 +298,7 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
                 BedrockOutputContentBlock::Text { text } => {
                     content_parts.push(AssistantContentPart::Text(TextContentPart {
                         text,
+                        encrypted_content: None,
                         provider_options: None,
                     }));
                 }
@@ -317,6 +320,7 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
         if content_parts.is_empty() {
             content_parts.push(AssistantContentPart::Text(TextContentPart {
                 text: String::new(),
+                encrypted_content: None,
                 provider_options: None,
             }));
         }

@@ -1,0 +1,59 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "The weather"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 117,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 119,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 117
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWacO7E4ma_uMPj9G5qQk"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " in Tokyo is 71 degrees."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 117,
+      "candidatesTokenCount": 10,
+      "totalTokenCount": 127,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 117
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWacO7E4ma_uMPj9G5qQk"
+  }
+]

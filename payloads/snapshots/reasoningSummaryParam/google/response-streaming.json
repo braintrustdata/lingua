@@ -1,0 +1,90 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Providing the Answer Directly**\n\nI've decided to address the user's arithmetic question with a straightforward and accurate response. My current approach involves delivering the correct solution without any extra commentary.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "totalTokenCount": 25,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 17
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaeK1HN27_uMP7Iu82Ak"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "2 +"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 26,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 17
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaeK1HN27_uMP7Iu82Ak"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " 2 = 4"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "candidatesTokenCount": 5,
+      "totalTokenCount": 30,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 17
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaeK1HN27_uMP7Iu82Ak"
+  }
+]

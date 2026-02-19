@@ -2992,18 +2992,18 @@ exports[`chat-completions → google > parallelToolCallsDisabledParam > request 
         {
           "description": "Get weather",
           "name": "get_weather",
-          "parameters": {
-            "items": null,
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
             "properties": {
               "location": {
-                "items": null,
-                "type": "STRING",
+                "type": "string",
               },
             },
             "required": [
               "location",
             ],
-            "type": "OBJECT",
+            "type": "object",
           },
           "response": null,
         },
@@ -3017,7 +3017,7 @@ exports[`chat-completions → google > parallelToolCallsDisabledParam > response
 {
   "choices": [
     {
-      "finish_reason": "stop",
+      "finish_reason": "tool_calls",
       "index": 0,
       "message": {
         "annotations": [],
@@ -3048,12 +3048,12 @@ exports[`chat-completions → google > parallelToolCallsDisabledParam > response
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 101,
+    "completion_tokens": 94,
     "completion_tokens_details": {
-      "reasoning_tokens": 71,
+      "reasoning_tokens": 64,
     },
     "prompt_tokens": 41,
-    "total_tokens": 142,
+    "total_tokens": 135,
   },
 }
 `;
@@ -3386,12 +3386,15 @@ exports[`chat-completions → google > reasoningEffortLowParam > response 1`] = 
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "Here's a possible summary:
+        "content": "2 + 2 = 4",
+        "reasoning": "**My Mental Calculation Process**
 
-**Addressing the Fundamentals**
+Alright, let's break this down. The core request here is a simple "2+2." My immediate instinct, being so well-versed in numerical operations, is to recognize this as a foundational addition problem. No complex algorithms or symbolic manipulation needed. It's straight arithmetic.
 
-Alright, a straightforward arithmetic query. No need to overcomplicate things here. The goal is simply to provide the correct answer as clearly and concisely as possible. I'll get straight to the solution, assuming they're looking for a simple, direct response.
-2 + 2 = 4",
+Next, I execute the calculation. I start with the first operand, which is 2. Then, I add the second operand, another 2, to that initial value. The sum, after the operation, yields a result: 4.
+
+Finally, I formulate the definitive answer: The solution to "2+2" is, unequivocally, 4. No ambiguity, no room for interpretation. It's a fundamental mathematical truth.
+",
         "role": "assistant",
       },
     },
@@ -3401,12 +3404,12 @@ Alright, a straightforward arithmetic query. No need to overcomplicate things he
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 25,
+    "completion_tokens": 84,
     "completion_tokens_details": {
-      "reasoning_tokens": 17,
+      "reasoning_tokens": 76,
     },
     "prompt_tokens": 8,
-    "total_tokens": 33,
+    "total_tokens": 92,
   },
 }
 `;
@@ -3565,10 +3568,13 @@ exports[`chat-completions → google > reasoningSummaryParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "**My Immediate Response to the Query**
+        "content": "2 + 2 = 4",
+        "reasoning": "Okay, here's my interpretation of that scenario, summarized as if I'm the AI:
 
-Okay, so the user's just given me "What is 2+2?". Right. No need to overthink this. First, I need to analyze the request – it's a straightforward arithmetic query. There's no hidden complexity here, no nuanced interpretation required. Straightforward. Next, I need to retrieve the fundamental fact. It's an instant recall: 2 plus 2 equals 4. It's practically ingrained. Finally, I need to formulate the response, presenting the answer in a clear and direct manner. No embellishment needed.
-2+2 = 4",
+**Processing a Basic Arithmetic Query**
+
+Alright, a straightforward arithmetic question has popped up. It looks like the user's asking for a simple addition. My primary task here is clear: I need to isolate the numbers involved, perform the addition accurately, and then confidently deliver the result back to the user. No need for complex analysis or extraneous information – just a clean, concise numerical answer. This is my bread and butter, a quick and efficient calculation. Let's get this done.
+",
         "role": "assistant",
       },
     },
@@ -3578,12 +3584,12 @@ Okay, so the user's just given me "What is 2+2?". Right. No need to overthink th
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 69,
+    "completion_tokens": 29,
     "completion_tokens_details": {
-      "reasoning_tokens": 62,
+      "reasoning_tokens": 21,
     },
     "prompt_tokens": 8,
-    "total_tokens": 77,
+    "total_tokens": 37,
   },
 }
 `;
@@ -3811,12 +3817,11 @@ exports[`chat-completions → google > simpleRequest > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "Okay, here's the summary of the thought process, as if I'm having these thoughts:
+        "content": "The capital of France is **Paris**.",
+        "reasoning": "**My Thought Process on Identifying the Capital of France**
 
-**Addressing the Direct Inquiry**
-
-Alright, a clear and concise question has been presented. It's a matter of fact, and the expectation is a direct and accurate response. My primary focus is to ensure the information provided is correct and relevant to the user's specific inquiry. No room for ambiguity here; precision is key. I'll need to recall the relevant data or knowledge and communicate it in a straightforward manner. My expertise is relied upon here, so accuracy is of paramount importance. Let's get this right.
-The capital of France is **Paris**.",
+Alright, a straightforward question: "What is the capital of France?" Okay, let's break this down. First, I quickly identify the core task – the user is explicitly asking for the capital of France. Nothing tricky, just a direct information retrieval request. Now, I need to access my knowledge base – the data I've been trained on and the information I have readily available. I instantly scan for the relevant fact: the capital of France. The next step is simply retrieving that information. In this case, the capital of France is Paris. Finally, I need to formulate a response. Given the user's direct question, I'd want to respond concisely but completely. "Paris" is technically correct, but "The capital of France is Paris" is more thorough and directly addresses the question's phrasing. So, I'd likely choose the latter for clarity. Done!
+",
         "role": "assistant",
       },
     },
@@ -3826,12 +3831,12 @@ The capital of France is **Paris**.",
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 25,
+    "completion_tokens": 101,
     "completion_tokens_details": {
-      "reasoning_tokens": 17,
+      "reasoning_tokens": 93,
     },
     "prompt_tokens": 8,
-    "total_tokens": 33,
+    "total_tokens": 109,
   },
 }
 `;
@@ -4113,25 +4118,25 @@ exports[`chat-completions → google > textFormatJsonSchemaParam > request 1`] =
     },
   ],
   "generationConfig": {
-    "responseMimeType": "application/json",
-    "responseSchema": {
-      "items": null,
+    "responseJsonSchema": {
+      "additionalProperties": false,
       "properties": {
         "age": {
-          "items": null,
-          "type": "NUMBER",
+          "type": "number",
         },
         "name": {
-          "items": null,
-          "type": "STRING",
+          "type": "string",
         },
       },
       "required": [
         "name",
         "age",
       ],
-      "type": "OBJECT",
+      "title": "person_info",
+      "type": "object",
     },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
 }
@@ -4145,7 +4150,10 @@ exports[`chat-completions → google > textFormatJsonSchemaParam > response 1`] 
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "{"name": "John", "age": 25}",
+        "content": "{
+"age": 25,
+"name": "John"
+}",
         "role": "assistant",
       },
     },
@@ -4155,12 +4163,12 @@ exports[`chat-completions → google > textFormatJsonSchemaParam > response 1`] 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 114,
+    "completion_tokens": 145,
     "completion_tokens_details": {
-      "reasoning_tokens": 101,
+      "reasoning_tokens": 127,
     },
     "prompt_tokens": 9,
-    "total_tokens": 123,
+    "total_tokens": 154,
   },
 }
 `;
@@ -4178,25 +4186,26 @@ exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam 
     },
   ],
   "generationConfig": {
-    "responseMimeType": "application/json",
-    "responseSchema": {
-      "items": null,
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "description": "Extract person information from text",
       "properties": {
         "age": {
-          "items": null,
-          "type": "NUMBER",
+          "type": "number",
         },
         "name": {
-          "items": null,
-          "type": "STRING",
+          "type": "string",
         },
       },
       "required": [
         "name",
         "age",
       ],
-      "type": "OBJECT",
+      "title": "person_info",
+      "type": "object",
     },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
   },
   "model": "gemini-2.5-flash",
 }
@@ -4210,7 +4219,10 @@ exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam 
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "{"name":"John","age":25}",
+        "content": "{
+  "age": 25,
+  "name": "John"
+}",
         "role": "assistant",
       },
     },
@@ -4220,12 +4232,12 @@ exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam 
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 87,
+    "completion_tokens": 72,
     "completion_tokens_details": {
-      "reasoning_tokens": 77,
+      "reasoning_tokens": 52,
     },
     "prompt_tokens": 9,
-    "total_tokens": 96,
+    "total_tokens": 81,
   },
 }
 `;
@@ -4302,19 +4314,18 @@ exports[`chat-completions → google > toolCallRequest > request 1`] = `
         {
           "description": "Get the current weather for a location",
           "name": "get_weather",
-          "parameters": {
-            "items": null,
+          "parameters": null,
+          "parametersJsonSchema": {
             "properties": {
               "location": {
                 "description": "The city and state, e.g. San Francisco, CA",
-                "items": null,
-                "type": "STRING",
+                "type": "string",
               },
             },
             "required": [
               "location",
             ],
-            "type": "OBJECT",
+            "type": "object",
           },
           "response": null,
         },
@@ -4328,7 +4339,7 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
 {
   "choices": [
     {
-      "finish_reason": "stop",
+      "finish_reason": "tool_calls",
       "index": 0,
       "message": {
         "annotations": [],
@@ -4351,12 +4362,12 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 94,
+    "completion_tokens": 114,
     "completion_tokens_details": {
-      "reasoning_tokens": 76,
+      "reasoning_tokens": 96,
     },
     "prompt_tokens": 62,
-    "total_tokens": 156,
+    "total_tokens": 176,
   },
 }
 `;
@@ -4388,18 +4399,18 @@ exports[`chat-completions → google > toolChoiceRequiredParam > request 1`] = `
         {
           "description": "Get weather",
           "name": "get_weather",
-          "parameters": {
-            "items": null,
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
             "properties": {
               "location": {
-                "items": null,
-                "type": "STRING",
+                "type": "string",
               },
             },
             "required": [
               "location",
             ],
-            "type": "OBJECT",
+            "type": "object",
           },
           "response": null,
         },
@@ -4413,7 +4424,7 @@ exports[`chat-completions → google > toolChoiceRequiredParam > response 1`] = 
 {
   "choices": [
     {
-      "finish_reason": "stop",
+      "finish_reason": "tool_calls",
       "index": 0,
       "message": {
         "annotations": [],

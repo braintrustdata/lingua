@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\"response\": \"I cannot provide personal advice.\"}"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 25,
+    "candidatesTokenCount": 11,
+    "totalTokenCount": 682,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 25
+      }
+    ],
+    "thoughtsTokenCount": 646
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWad_tAovd_uMPsJjC6QQ"
+}

@@ -1,0 +1,119 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a very open-ended question! To give you the best advice, I need a little more context. Could you tell me:\n\n*   **What were you just doing or thinking about?**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 135,
+      "candidatesTokenCount": 43,
+      "totalTokenCount": 1036,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 135
+        }
+      ],
+      "thoughtsTokenCount": 858
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWabbZELLj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " (This helps establish the current situation.)\n*   **What kind of 'next' are you looking for?** (e.g., a specific task, a fun activity, a new project, a decision you need to make,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 135,
+      "candidatesTokenCount": 91,
+      "totalTokenCount": 1084,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 135
+        }
+      ],
+      "thoughtsTokenCount": 858
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWabbZELLj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " something to learn, a break?)\n*   **What are your current goals or interests?** (e.g., trying to be productive, relax, learn something new, solve a problem?)\n*   **Is there anything specific on your mind"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 135,
+      "candidatesTokenCount": 142,
+      "totalTokenCount": 1135,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 135
+        }
+      ],
+      "thoughtsTokenCount": 858
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWabbZELLj_uMPlNCZCA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " right now?**\n\nOnce I have a bit more information, I can offer some tailored suggestions!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 135,
+      "candidatesTokenCount": 162,
+      "totalTokenCount": 1155,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 135
+        }
+      ],
+      "thoughtsTokenCount": 858
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "l0yWabbZELLj_uMPlNCZCA"
+  }
+]

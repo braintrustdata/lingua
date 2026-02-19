@@ -4,7 +4,7 @@
       "content": {
         "parts": [
           {
-            "text": "{\"name\": \"John\", \"age\": 25}"
+            "text": "{\n\"age\": 25,\n\"name\": \"John\"\n}"
           }
         ],
         "role": "model"
@@ -15,16 +15,16 @@
   ],
   "usageMetadata": {
     "promptTokenCount": 9,
-    "candidatesTokenCount": 13,
-    "totalTokenCount": 123,
+    "candidatesTokenCount": 18,
+    "totalTokenCount": 154,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 9
       }
     ],
-    "thoughtsTokenCount": 101
+    "thoughtsTokenCount": 127
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "fvuPabyINJusjMcPrv_M-Ak"
+  "responseId": "v3mWadiGFfCHjMcPs4WwwQY"
 }

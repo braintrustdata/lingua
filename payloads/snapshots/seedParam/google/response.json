@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'll pick 42. It's a rather significant number, after all!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 5,
+    "candidatesTokenCount": 19,
+    "totalTokenCount": 573,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 5
+      }
+    ],
+    "thoughtsTokenCount": 549
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "k0yWaeOeIJ7S_uMP2PGYqQQ"
+}

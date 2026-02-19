@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\"name\": \"What should I do next?\", \"age\": 0}"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 30,
+    "candidatesTokenCount": 16,
+    "totalTokenCount": 104,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 30
+      }
+    ],
+    "thoughtsTokenCount": 58
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWadX7F9fP_uMP48Gh4Qk"
+}

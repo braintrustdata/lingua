@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\"advice\": \"Please provide more context about what you're trying to achieve or what you've done so far, and I can give you more specific guidance.\"}"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 25,
+      "candidatesTokenCount": 35,
+      "totalTokenCount": 226,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 25
+        }
+      ],
+      "thoughtsTokenCount": 166
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWaeCeA-Hi_uMPyu6XiAE"
+  }
+]

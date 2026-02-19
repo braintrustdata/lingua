@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'm not sure, what are your interests? Are you looking for something to do for fun, to be productive, or something else?",
+            "thoughtSignature": "CuICAb4+9vupL7xf0IWLYDMVUnbkx1LPGwesOBKCtCwzAwH6jq+EUZvYZMYV+fSDA6E9K5IQ1kCA9oYIzQ5llhTY1zR5XP6glm8yENg+ZEY5CkAwdjUHqzQF9eHKCivpncJRXaf2Z/YHhr3xG3djtOxjt+Tp5iUFB5XAKsiRJyLlWH6mz+LRiDyFCGbXbvZGpPLyBRWEqEyny1yRp0D04y5oxIN6ytFgjIOcjJSgtjpI4Q77XYxqaM6/70BeOnoQh54LY1U7w8u5NaGgEC2QVET4luZyEJkEdKOveSf2bOaUpRgLaVDZjvRnoqkskjEBOW5DQNEh5D5DNv3B9vpOvio1yaIPhp/v/+cmEe3w97UB9KgZKt5qA9lFtMy+0aNV0hGWeBxwozSrhN86XZIo0u6WGydEfDA9C4vuYe8lquiMSQq9/91PKIqMciFFgGfVLmaLdDmPuX8zYLsCqRq3olMOJBBD"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 52,
+    "candidatesTokenCount": 29,
+    "totalTokenCount": 148,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 52
+      }
+    ],
+    "thoughtsTokenCount": 67
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lEyWaamsFIvd_uMPsdaNsQg"
+}

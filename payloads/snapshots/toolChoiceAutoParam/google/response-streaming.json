@@ -1,0 +1,33 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Please tell me the location to get the weather.",
+              "thoughtSignature": "ClsBvj72+0NhEe/xnoJ2Mwyl0PNwqK7Qoow2hyH1Wym8vw1hlmM2RsZNlgtPn6aITmAtURiMFcMfTUMOzNF4buuMXiFtGOfTM95lNu85EVWrqHFmgQlQFTdxy45cCvMBAb4+9vufY5RuzZXjYYiG/TiC109blooeWdKZ9ItssPe3ZpKDLqa0KiC7xLg2MWaMlrtMTPCJftTC+ALEI800SKEUXMa/RIqvm0U/NN+cgRYPYCAyst2o/zOaObhUb5DPTGR7RGKMWmxVEFs0jH0B+VnRkg+M2xwsJ7VNf9afj1oyQg6CLNdDKhctTaRAYZ4WR3X/Xj9y2QTYrUn5UrfQS3yHQoGJeRQcKI3fIDBAGUXhhuB90Sb1+DdN8DzHnSYU5jLGcw1a6HqL4QohXbc8+xijD6dmJbKOEP9HiaWL+g1TpZDXgL2U3qnbChSfxVqyvNs2CkYBvj72+/+0nRmEZB611Q2L0SCgdz8w0AYxsjD/1/9Xr9ySrxR/YWf6G82MzNXMQLC2ys+PCYyPDWouw2MY4VGysxnOMzpt"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 10,
+      "totalTokenCount": 121,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 74
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "k0yWaaOxIKHc_uMPrJ_FwQM"
+  }
+]

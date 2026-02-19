@@ -1,0 +1,206 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a great question! The possibilities are endless. To"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 13,
+      "totalTokenCount": 913,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 886
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWafaAA6bn_uMP8OygyQQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " give you the best suggestion, what kind of mood are you in, or what are you hoping to do?\n\nHere are a few ideas to get us started:\n\n1.  **Ask me anything!** Do you have a burning"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 61,
+      "totalTokenCount": 961,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 886
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWafaAA6bn_uMP8OygyQQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " question about a topic, a piece of trivia you're curious about, or a concept you want explained?\n2.  **Let's get creative.** We could brainstorm ideas, write a short story together, come up with a poem"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 110,
+      "totalTokenCount": 1010,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 886
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWafaAA6bn_uMP8OygyQQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", or design something.\n3.  **Need help with something?** I can help you outline a project, draft an email, practice a new language, or come up with solutions to a problem.\n4.  **Let"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 158,
+      "totalTokenCount": 1058,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 886
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWafaAA6bn_uMP8OygyQQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "'s play a game!** We could do 20 Questions, a riddle, or I can quiz you on a topic.\n5.  **Just chat!** Tell me about your day, your interests, or let's discuss"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 208,
+      "totalTokenCount": 1108,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 886
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWafaAA6bn_uMP8OygyQQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " a random topic.\n6.  **Learn something new.** Ask me for a fun fact, a quick history lesson, or an explanation of a scientific concept.\n\nWhat sounds good to you? Or maybe you have something else in mind entirely"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 257,
+      "totalTokenCount": 1157,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 886
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWafaAA6bn_uMP8OygyQQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 14,
+      "candidatesTokenCount": 258,
+      "totalTokenCount": 1158,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 14
+        }
+      ],
+      "thoughtsTokenCount": 886
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lEyWafaAA6bn_uMP8OygyQQ"
+  }
+]
