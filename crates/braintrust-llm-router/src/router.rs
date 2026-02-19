@@ -536,14 +536,8 @@ mod tests {
             .build()
             .expect("router builds");
 
-        assert_eq!(
-            router.provider_alias(vertex_model).unwrap(),
-            "vertex"
-        );
-        assert_eq!(
-            router.provider_alias(google_model).unwrap(),
-            "google"
-        );
+        assert_eq!(router.provider_alias(vertex_model).unwrap(), "vertex");
+        assert_eq!(router.provider_alias(google_model).unwrap(), "google");
     }
 
     #[test]
@@ -566,9 +560,6 @@ mod tests {
             .build()
             .expect("router builds");
 
-        assert_eq!(
-            router.provider_alias(vertex_model).unwrap(),
-            "google"
-        );
+        assert_eq!(router.provider_alias(vertex_model).unwrap(), "google");
     }
 }
