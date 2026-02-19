@@ -23,6 +23,8 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
     ("o3", &[StripTemperature, ForceMaxCompletionTokens]),
     ("o4", &[StripTemperature, ForceMaxCompletionTokens]),
     ("gpt-5", &[StripTemperature, ForceMaxCompletionTokens]),
+    // TODO: would be nice if we could apply these rules by provider instead of model name, and
+    // apply these to all Mistral models
     ("mistral", &[ForceMaxTokens]),
     ("magistral", &[ForceMaxTokens]),
     ("codestral", &[ForceMaxTokens]),
@@ -223,5 +225,37 @@ mod tests {
             !obj.contains_key("max_completion_tokens"),
             "should not convert max_output_tokens"
         );
+    }
+
+    #[test]
+    fn test_force_max_tokens() {
+        for model in [
+            "mistral",
+            "magistral",
+            "codestral",
+            "pixstral",
+            "devstral",
+            "voxstral",
+        ] {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "max_completion_tokens": 100
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                obj.contains_key("max_tokens"),
+                "{} should add max_tokens",
+                model
+            );
+            assert!(
+                !obj.contains_key("max_completion_tokens"),
+                "{} should remove max_completion_tokens",
+                model
+            );
+        }
     }
 }
