@@ -50,6 +50,7 @@ pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
 
                     UserContentPart::Text(TextContentPart {
                         text: block.text,
+                        encrypted_content: None,
                         provider_options,
                     })
                 })
@@ -98,9 +99,8 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     (block.tool_use_id, block.content)
                                 {
                                     let output = match content {
-                                        generated::Content::String(s) => {
-                                            serde_json::Value::String(s)
-                                        }
+                                        generated::Content::String(s) => serde_json::from_str(&s)
+                                            .unwrap_or(serde_json::Value::String(s)),
                                         generated::Content::BlockArray(blocks) => {
                                             serde_json::to_value(blocks).map_err(|e| {
                                                 ConvertError::JsonSerializationFailed {
@@ -154,6 +154,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         content_parts.push(UserContentPart::Text(
                                             TextContentPart {
                                                 text,
+                                                encrypted_content: None,
                                                 provider_options: None,
                                             },
                                         ));
@@ -300,6 +301,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         content_parts.push(AssistantContentPart::Text(
                                             TextContentPart {
                                                 text,
+                                                encrypted_content: None,
                                                 provider_options,
                                             },
                                         ));
@@ -394,6 +396,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                             AssistantContent::Array(vec![AssistantContentPart::Text(
                                 TextContentPart {
                                     text: String::new(),
+                                    encrypted_content: None,
                                     provider_options: None,
                                 },
                             )])
@@ -885,6 +888,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                         });
                         content_parts.push(AssistantContentPart::Text(TextContentPart {
                             text,
+                            encrypted_content: None,
                             provider_options,
                         }));
                     }
@@ -973,6 +977,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
         if content_parts.is_empty() {
             content_parts.push(AssistantContentPart::Text(TextContentPart {
                 text: String::new(),
+                encrypted_content: None,
                 provider_options: None,
             }));
         }

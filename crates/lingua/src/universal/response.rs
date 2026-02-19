@@ -197,7 +197,7 @@ impl FinishReason {
                 | ProviderFormat::BedrockAnthropic
                 | ProviderFormat::Converse,
             ) => "tool_use",
-            (Self::ToolCalls, ProviderFormat::Google) => "TOOL_CALLS",
+            (Self::ToolCalls, ProviderFormat::Google) => "STOP",
             (Self::ToolCalls, ProviderFormat::Responses) => "completed", // Tool calls also complete
             (
                 Self::ToolCalls,
@@ -341,13 +341,16 @@ impl UniversalUsage {
                     serde_json::json!(prompt + completion),
                 );
 
+                let cached = self.prompt_cached_tokens.unwrap_or(0);
                 map.insert(
                     "input_tokens_details".into(),
-                    serde_json::json!({ "cached_tokens": self.prompt_cached_tokens.unwrap_or(0) }),
+                    serde_json::json!({ "cached_tokens": cached }),
                 );
+
+                let reasoning = self.completion_reasoning_tokens.unwrap_or(0);
                 map.insert(
                     "output_tokens_details".into(),
-                    serde_json::json!({ "reasoning_tokens": self.completion_reasoning_tokens.unwrap_or(0) }),
+                    serde_json::json!({ "reasoning_tokens": reasoning }),
                 );
 
                 Value::Object(map)
@@ -381,7 +384,39 @@ impl UniversalUsage {
                 "inputTokens": prompt,
                 "outputTokens": completion
             }),
-            ProviderFormat::Google => unreachable!("Google usage is handled via typed From trait"),
+            ProviderFormat::Google => {
+                let mut map = serde_json::Map::new();
+
+                if let Some(p) = self.prompt_tokens {
+                    map.insert("promptTokenCount".into(), serde_json::json!(p));
+                }
+                if let Some(c) = self.completion_tokens {
+                    map.insert("candidatesTokenCount".into(), serde_json::json!(c));
+                }
+
+                if self.prompt_tokens.is_some() || self.completion_tokens.is_some() {
+                    map.insert(
+                        "totalTokenCount".into(),
+                        serde_json::json!(prompt + completion),
+                    );
+                }
+
+                if let Some(cached_tokens) = self.prompt_cached_tokens {
+                    map.insert(
+                        "cachedContentTokenCount".into(),
+                        serde_json::json!(cached_tokens),
+                    );
+                }
+
+                if let Some(reasoning_tokens) = self.completion_reasoning_tokens {
+                    map.insert(
+                        "thoughtsTokenCount".into(),
+                        serde_json::json!(reasoning_tokens),
+                    );
+                }
+
+                Value::Object(map)
+            }
         }
     }
 }

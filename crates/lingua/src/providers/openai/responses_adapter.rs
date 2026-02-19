@@ -389,7 +389,7 @@ impl ProviderAdapter for ResponsesAdapter {
         let messages: Vec<Message> = TryFromLLM::try_from(output_items)
             .map_err(|e: ConvertError| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        let has_tool_calls = messages.iter().any(|m| {
+        let has_actionable_tool_calls = messages.iter().any(|m| {
             if let Message::Assistant {
                 content: AssistantContent::Array(parts),
                 ..
@@ -398,7 +398,10 @@ impl ProviderAdapter for ResponsesAdapter {
                 parts.iter().any(|p| {
                     matches!(
                         p,
-                        crate::universal::message::AssistantContentPart::ToolCall { .. }
+                        crate::universal::message::AssistantContentPart::ToolCall {
+                            provider_executed,
+                            ..
+                        } if *provider_executed != Some(true)
                     )
                 })
             } else {
@@ -406,7 +409,7 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         });
 
-        let finish_reason = if has_tool_calls {
+        let finish_reason = if has_actionable_tool_calls {
             Some(FinishReason::ToolCalls)
         } else {
             match payload.get("status").and_then(Value::as_str) {

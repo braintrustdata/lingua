@@ -11,6 +11,14 @@
       ]
     },
     {
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "choices[*].delta.role", "reason": "Google streaming emits role/content on final events that other providers don't" },
+        { "pattern": "choices[*].delta.content", "reason": "Google streaming emits role/content on final events that other providers don't" }
+      ]
+    },
+    {
       "source": "Anthropic",
       "target": "*",
       "fields": [
@@ -59,6 +67,27 @@
       "target": "*",
       "fields": [
         { "pattern": "usage.prompt_tokens", "reason": "Bedrock Anthropic message_delta only has output_tokens; prompt_tokens=0 added during roundtrip" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "*",
+      "fields": [
+        { "pattern": "id", "reason": "Google streams responseId once; other providers expect it on every/specific events" },
+        { "pattern": "model", "reason": "Google streams modelVersion once; other providers repeat model per event" },
+        { "pattern": "usage", "reason": "Google combines all usage in single event; other providers distribute across events" },
+        { "pattern": "usage.completion_reasoning_tokens", "reason": "Google thoughtsTokenCount only in single streaming event; lost when converting to multi-event formats" },
+        { "pattern": "choices[*].delta.role", "reason": "Google sends role with content in single event; Anthropic content_block_delta doesn't include role" },
+        { "pattern": "choices[*].finish_reason", "reason": "Google sends finish_reason with content in single event; Anthropic separates into message_delta" },
+        { "pattern": "choices[*].delta.content", "reason": "Google sends content with metadata in single event; content normalization differs across providers" },
+        { "pattern": "choices[*].delta.tool_calls", "reason": "Google streaming functionCall parts don't survive cross-provider roundtrip" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "choices[*].delta.tool_calls", "reason": "Streaming tool_call deltas lose argument increments and index through Google functionCall conversion" }
       ]
     }
   ],

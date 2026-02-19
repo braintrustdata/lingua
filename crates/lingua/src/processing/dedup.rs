@@ -247,6 +247,7 @@ mod tests {
             Message::User {
                 content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                     text: "foo".to_string(),
+                    encrypted_content: None,
                     provider_options: None,
                 })]),
             },
@@ -288,6 +289,7 @@ mod tests {
                 content: AssistantContent::Array(vec![AssistantContentPart::Text(
                     TextContentPart {
                         text: "response".to_string(),
+                        encrypted_content: None,
                         provider_options: None,
                     },
                 )]),
@@ -412,10 +414,12 @@ mod tests {
                 content: UserContent::Array(vec![
                     UserContentPart::Text(TextContentPart {
                         text: "hello".to_string(),
+                        encrypted_content: None,
                         provider_options: None,
                     }),
                     UserContentPart::Text(TextContentPart {
                         text: "world".to_string(),
+                        encrypted_content: None,
                         provider_options: None,
                     }),
                 ]),
@@ -424,10 +428,12 @@ mod tests {
                 content: UserContent::Array(vec![
                     UserContentPart::Text(TextContentPart {
                         text: "hello".to_string(),
+                        encrypted_content: None,
                         provider_options: None,
                     }),
                     UserContentPart::Text(TextContentPart {
                         text: "world".to_string(),
+                        encrypted_content: None,
                         provider_options: None,
                     }),
                 ]),
@@ -444,12 +450,14 @@ mod tests {
             Message::User {
                 content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                     text: "test".to_string(),
+                    encrypted_content: None,
                     provider_options: None,
                 })]),
             },
             Message::User {
                 content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                     text: "test".to_string(),
+                    encrypted_content: None,
                     provider_options: Some(crate::universal::ProviderOptions {
                         options: serde_json::Map::new(),
                     }),
@@ -468,6 +476,7 @@ mod tests {
         let original = Message::User {
             content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                 text: "preserve me".to_string(),
+                encrypted_content: None,
                 provider_options: Some(crate::universal::ProviderOptions {
                     options: {
                         let mut map = serde_json::Map::new();
@@ -492,6 +501,7 @@ mod tests {
             if let UserContentPart::Text(TextContentPart {
                 text,
                 provider_options,
+                ..
             }) = &parts[0]
             {
                 assert_eq!(text, "preserve me");

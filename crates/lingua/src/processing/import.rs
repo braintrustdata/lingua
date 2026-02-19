@@ -224,6 +224,7 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(UserContentPart::Text(TextContentPart {
                                     text: text.clone(),
+                                    encrypted_content: None,
                                     provider_options: None,
                                 }));
                             }
@@ -255,6 +256,7 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
                                 parts.push(crate::universal::AssistantContentPart::Text(
                                     TextContentPart {
                                         text: text.clone(),
+                                        encrypted_content: None,
                                         provider_options: None,
                                     },
                                 ));

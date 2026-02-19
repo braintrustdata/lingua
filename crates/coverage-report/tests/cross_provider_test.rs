@@ -6,7 +6,7 @@ unexpected failures. Known limitations (documented in expected_differences.json)
 are allowed, but regressions will cause this test to fail.
 */
 
-use coverage_report::runner::run_all_tests;
+use coverage_report::runner::{run_all_tests, truncate_error};
 use coverage_report::types::TestFilter;
 use lingua::capabilities::ProviderFormat;
 use lingua::processing::adapters::adapters;
@@ -18,6 +18,7 @@ const REQUIRED_PROVIDERS: &[ProviderFormat] = &[
     ProviderFormat::ChatCompletions, // ChatCompletions
     ProviderFormat::Anthropic,
     ProviderFormat::BedrockAnthropic,
+    ProviderFormat::Google,
 ];
 
 #[test]
@@ -46,8 +47,10 @@ fn cross_provider_transformations_have_no_unexpected_failures() {
                 // Collect detailed failure messages
                 for (test_case, error, _diff) in &pair_result.failures {
                     failures.push(format!(
-                        "  [{category}] {:?} -> {:?}: {test_case}\n    Error: {error}",
-                        src_format, tgt_format
+                        "  [{category}] {:?} -> {:?}: {test_case}\n    Error: {}",
+                        src_format,
+                        tgt_format,
+                        truncate_error(error.clone(), 1000)
                     ));
                 }
             }

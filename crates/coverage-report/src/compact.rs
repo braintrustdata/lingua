@@ -43,7 +43,7 @@ pub struct PatternGroup {
 
 /// Truncate a string to a maximum number of characters, adding "..." if truncated.
 /// Uses character count, not byte count, to avoid UTF-8 panics.
-fn truncate_str(s: &str, max_chars: usize) -> String {
+pub fn truncate_str(s: &str, max_chars: usize) -> String {
     let char_count = s.chars().count();
     if char_count > max_chars {
         let truncated: String = s.chars().take(max_chars.saturating_sub(3)).collect();

@@ -81,6 +81,7 @@ fn normalize_assistant_content(content: &mut AssistantContent) {
 fn text_part(text: String) -> TextContentPart {
     TextContentPart {
         text,
+        encrypted_content: None,
         provider_options: None,
     }
 }
