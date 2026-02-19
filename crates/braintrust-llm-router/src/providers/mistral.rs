@@ -92,7 +92,9 @@ impl crate::providers::Provider for MistralProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::Mistral]
+        // TODO: Remove mistral format? It is slightly different from chat completions, but we
+        // transform the payload to make it work with chat completions
+        vec![ProviderFormat::Mistral, ProviderFormat::ChatCompletions]
     }
 
     async fn complete(
