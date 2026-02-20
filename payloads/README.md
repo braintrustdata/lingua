@@ -284,6 +284,12 @@ Detailed workflow and file format:
 
 - `payloads/import-cases/README.md`
 
+Anonymize content strings in a span fixture (from repo root):
+
+```bash
+pnpm --dir payloads anonymize -- import-cases/<name>.spans.json
+```
+
 Generate missing assertions from spans (from repo root):
 
 ```bash
