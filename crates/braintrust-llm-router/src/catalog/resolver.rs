@@ -37,14 +37,20 @@ impl ModelResolver {
             && lingua::is_bedrock_anthropic_model(model)
         {
             ProviderFormat::BedrockAnthropic
+        } else if spec.format == ProviderFormat::Anthropic
+            && lingua::is_vertex_anthropic_model(model)
+        {
+            ProviderFormat::VertexAnthropic
         } else {
             spec.format
         };
-        let provider_alias = self
-            .aliases
-            .get(model)
-            .cloned()
-            .unwrap_or_else(|| format_identifier(format));
+        let provider_alias = self.aliases.get(model).cloned().unwrap_or_else(|| {
+            if lingua::is_vertex_model(model) {
+                "vertex".to_string()
+            } else {
+                format_identifier(format)
+            }
+        });
         Ok((spec, format, provider_alias))
     }
 }
@@ -54,6 +60,7 @@ fn format_identifier(format: ProviderFormat) -> String {
         ProviderFormat::ChatCompletions => "openai",
         ProviderFormat::Anthropic => "anthropic",
         ProviderFormat::BedrockAnthropic => "bedrock",
+        ProviderFormat::VertexAnthropic => "vertex",
         ProviderFormat::Google => "google",
         ProviderFormat::Mistral => "mistral",
         ProviderFormat::Converse => "bedrock",
@@ -146,5 +153,41 @@ mod tests {
         let (_, format, alias) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::Anthropic);
         assert_eq!(alias, "anthropic");
+    }
+
+    #[test]
+    fn resolve_vertex_model_routes_to_vertex() {
+        let model = "publishers/google/models/gemini-pro";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec(model, ProviderFormat::Google));
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::Google);
+        assert_eq!(alias, "vertex");
+    }
+
+    #[test]
+    fn resolve_non_vertex_google_stays_google() {
+        let model = "gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec(model, ProviderFormat::Google));
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::Google);
+        assert_eq!(alias, "google");
+    }
+
+    #[test]
+    fn resolve_vertex_anthropic_model_routes_to_vertex() {
+        let model = "publishers/anthropic/models/claude-haiku-4-5";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec(model, ProviderFormat::Anthropic));
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::VertexAnthropic);
+        assert_eq!(alias, "vertex");
     }
 }

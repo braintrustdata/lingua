@@ -114,6 +114,7 @@ impl FinishReason {
                 "end_turn" | "stop_sequence",
                 ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
                 | ProviderFormat::Converse,
             ) => Self::Stop,
             ("STOP", ProviderFormat::Google) => Self::Stop,
@@ -125,6 +126,7 @@ impl FinishReason {
                 "max_tokens",
                 ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
                 | ProviderFormat::Converse,
             ) => Self::Length,
             ("MAX_TOKENS", ProviderFormat::Google) => Self::Length,
@@ -136,6 +138,7 @@ impl FinishReason {
                 "tool_use",
                 ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
                 | ProviderFormat::Converse,
             ) => Self::ToolCalls,
             ("TOOL_CALLS", ProviderFormat::Google) => Self::ToolCalls,
@@ -167,6 +170,7 @@ impl FinishReason {
                 Self::Stop,
                 ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
                 | ProviderFormat::Converse,
             ) => "end_turn",
             (Self::Stop, ProviderFormat::Google) => "STOP",
@@ -187,6 +191,7 @@ impl FinishReason {
                 Self::Length,
                 ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
                 | ProviderFormat::Converse,
             ) => "max_tokens",
 
@@ -195,6 +200,7 @@ impl FinishReason {
                 Self::ToolCalls,
                 ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
                 | ProviderFormat::Converse,
             ) => "tool_use",
             (Self::ToolCalls, ProviderFormat::Google) => "STOP",
@@ -213,6 +219,7 @@ impl FinishReason {
                 ProviderFormat::ChatCompletions
                 | ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic
                 | ProviderFormat::Mistral
                 | ProviderFormat::Unknown,
             ) => "content_filter",
@@ -267,7 +274,9 @@ impl UniversalUsage {
                     .and_then(Value::as_i64)
                     .filter(|&v| v > 0),
             },
-            ProviderFormat::Anthropic | ProviderFormat::BedrockAnthropic => Self {
+            ProviderFormat::Anthropic
+            | ProviderFormat::BedrockAnthropic
+            | ProviderFormat::VertexAnthropic => Self {
                 prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
                 completion_tokens: usage.get("output_tokens").and_then(Value::as_i64),
                 prompt_cached_tokens: usage.get("cache_read_input_tokens").and_then(Value::as_i64),
@@ -355,7 +364,9 @@ impl UniversalUsage {
 
                 Value::Object(map)
             }
-            ProviderFormat::Anthropic | ProviderFormat::BedrockAnthropic => {
+            ProviderFormat::Anthropic
+            | ProviderFormat::BedrockAnthropic
+            | ProviderFormat::VertexAnthropic => {
                 let mut map = serde_json::Map::new();
                 if let Some(p) = self.prompt_tokens {
                     map.insert("input_tokens".into(), serde_json::json!(p));
