@@ -15,9 +15,25 @@ The test runner is:
 
 1. Copy a span object from the UI.
 2. Save a fixture as `payloads/import-cases/<name>.spans.json`.
-3. Run the Rust test with `GENERATE_MISSING=1` to create missing assertions.
-4. Review/edit the generated `*.assertions.json`.
-5. Run the Rust test without flags for strict assertion mode.
+3. Optional: anonymize content, metadata, context, and output strings in the fixture.
+4. Run the Rust test with `GENERATE_MISSING=1` to create missing assertions.
+5. Review/edit the generated `*.assertions.json`.
+6. Run the Rust test without flags for strict assertion mode.
+
+## Anonymize fixture strings
+
+Run from repo root:
+
+```bash
+pnpm --dir payloads anonymize -- import-cases/<name>.spans.json
+```
+
+Notes:
+
+- Default mode anonymizes strings under `content`, `metadata*`, `context`, and `output` subtrees.
+- It removes `metadata*.prompt` completely.
+- It preserves structural keys (`role`, `type`) and keeps `metadata.model` unchanged.
+- Use `--all-strings` to anonymize every string value in the file.
 
 ## File formats
 

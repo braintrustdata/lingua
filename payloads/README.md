@@ -284,6 +284,15 @@ Detailed workflow and file format:
 
 - `payloads/import-cases/README.md`
 
+Anonymize content, metadata* (including `metadata2`), context, and output strings in a span fixture (from repo root):
+
+```bash
+pnpm --dir payloads anonymize -- import-cases/<name>.spans.json
+```
+
+Default behavior removes `metadata*.prompt`.
+Default behavior preserves `metadata.model`.
+
 Generate missing assertions from spans (from repo root):
 
 ```bash
