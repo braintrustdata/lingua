@@ -79,4 +79,104 @@ describe("anonymizeJsonValue", () => {
     expect(result.replacedStringCount).toBe(1);
     expect(result.uniqueReplacementCount).toBe(1);
   });
+
+  it("anonymizes all metadata strings", () => {
+    const input = {
+      metadata: {
+        model: "gpt-5.1-2025-11-13",
+        trace_id: "trace-1",
+        route: "base",
+        tool_definitions: [
+          {
+            name: "fetch_weather",
+            description: "Get weather by city",
+            parameters: {
+              type: "object",
+              properties: {
+                city: { type: "string", description: "City name" },
+              },
+            },
+          },
+        ],
+      },
+    };
+
+    const result = anonymizeJsonValue(input as unknown as JsonValue);
+    const output = result.value as typeof input;
+
+    expect(output.metadata.model).toBe("gpt-5.1-2025-11-13");
+    expect(output.metadata.trace_id).toBe("anon_1");
+    expect(output.metadata.route).toBe("anon_2");
+    expect(output.metadata.tool_definitions[0].name).toBe("anon_3");
+    expect(output.metadata.tool_definitions[0].description).toBe("anon_4");
+    expect(output.metadata.tool_definitions[0].parameters.type).toBe("object");
+    expect(
+      output.metadata.tool_definitions[0].parameters.properties.city.type
+    ).toBe("string");
+    expect(
+      output.metadata.tool_definitions[0].parameters.properties.city.description
+    ).toBe("anon_5");
+  });
+
+  it("anonymizes metadata variants like metadata2", () => {
+    const input = {
+      metadata2: {
+        chatChannel: "SOLO_TOLAN:usr_abc",
+        chatID: "cht_123",
+        isFirstMessage: false,
+      },
+    };
+
+    const result = anonymizeJsonValue(input as unknown as JsonValue);
+    const output = result.value as typeof input;
+
+    expect(output.metadata2.chatChannel).toBe("anon_1");
+    expect(output.metadata2.chatID).toBe("anon_2");
+    expect(output.metadata2.isFirstMessage).toBe(false);
+  });
+
+  it("removes metadata prompt subtree entirely", () => {
+    const input = {
+      metadata: {
+        prompt: {
+          id: "prm_123",
+          key: "chat",
+          variables: {
+            activeChatType: { CONVERSATION_DEFAULT: true },
+            medium: "TEXT",
+          },
+        },
+        route: "base",
+      },
+    };
+
+    const result = anonymizeJsonValue(input as unknown as JsonValue);
+    const output = result.value as {
+      metadata: { prompt?: unknown; route: string };
+    };
+
+    expect(output.metadata.prompt).toBeUndefined();
+    expect(output.metadata.route).toBe("anon_1");
+  });
+
+  it("anonymizes strings under context and output", () => {
+    const input = {
+      context: {
+        caller_filename: "file:///tmp/project/src/main.ts",
+        caller_functionname: "runJob",
+        caller_lineno: 42,
+      },
+      output: "Final assistant response text",
+      model: "gpt-5.1-2025-11-13",
+    };
+
+    const result = anonymizeJsonValue(input as unknown as JsonValue);
+    const output = result.value as typeof input;
+
+    expect(output.context.caller_filename).toBe("anon_1");
+    expect(output.context.caller_functionname).toBe("anon_2");
+    expect(output.context.caller_lineno).toBe(42);
+    expect(output.output).toBe("anon_3");
+    expect(output.model).toBe("gpt-5.1-2025-11-13");
+  });
 });

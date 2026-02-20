@@ -20,6 +20,15 @@ export interface AnonymizeResult {
   uniqueReplacementCount: number;
 }
 
+function isMetadataModelPath(path: ReadonlyArray<string>): boolean {
+  const n = path.length;
+  return (
+    n >= 2 &&
+    path[n - 2].toLowerCase() === "metadata" &&
+    path[n - 1].toLowerCase() === "model"
+  );
+}
+
 function normalizeKeySet(keys: Set<string>): Set<string> {
   return new Set(Array.from(keys).map((key) => key.toLowerCase()));
 }
@@ -62,25 +71,68 @@ export function anonymizeJsonValue(
 
   function walk(
     value: JsonValue,
+    path: string[],
     currentKey?: string,
-    withinContent = false
+    withinContent = false,
+    withinMetadata = false,
+    withinContext = false,
+    withinOutput = false
   ): JsonValue {
     if (typeof value === "string") {
-      if (!allStrings && !withinContent) {
+      if (isMetadataModelPath(path)) {
+        return value;
+      }
+
+      if (
+        !allStrings &&
+        !withinContent &&
+        !withinMetadata &&
+        !withinContext &&
+        !withinOutput
+      ) {
         return value;
       }
       return replaceString(value, currentKey);
     }
 
     if (Array.isArray(value)) {
-      return value.map((item) => walk(item, currentKey, withinContent));
+      return value.map((item, index) =>
+        walk(
+          item,
+          [...path, String(index)],
+          currentKey,
+          withinContent,
+          withinMetadata,
+          withinContext,
+          withinOutput
+        )
+      );
     }
 
     if (value && typeof value === "object") {
       const out: { [key: string]: JsonValue } = {};
       for (const [key, nested] of Object.entries(value)) {
-        const childWithinContent = withinContent || key.toLowerCase() === "content";
-        out[key] = walk(nested, key, childWithinContent);
+        const lowerKey = key.toLowerCase();
+        const childWithinContent = withinContent || lowerKey === "content";
+        const childWithinMetadata =
+          withinMetadata || lowerKey.startsWith("metadata");
+        const childWithinContext = withinContext || lowerKey === "context";
+        const childWithinOutput = withinOutput || lowerKey === "output";
+
+        // Remove metadata.prompt entirely: prompt key names/shape can leak sensitive context.
+        if (childWithinMetadata && lowerKey === "prompt") {
+          continue;
+        }
+
+        out[key] = walk(
+          nested,
+          [...path, key],
+          key,
+          childWithinContent,
+          childWithinMetadata,
+          childWithinContext,
+          childWithinOutput
+        );
       }
       return out;
     }
@@ -88,7 +140,7 @@ export function anonymizeJsonValue(
     return value;
   }
 
-  const value = walk(input);
+  const value = walk(input, []);
   return {
     value,
     replacedStringCount,
@@ -112,7 +164,9 @@ function usage(): string {
     "",
     "Defaults:",
     "  --output same path as input (in-place)",
-    "  only strings under 'content' are anonymized",
+    "  anonymizes strings under 'content', 'metadata*', 'context', and 'output' subtrees",
+    "  removes metadata*.prompt",
+    "  preserves metadata.model",
     "  --preserve-keys role,type (ignored when --all-strings is set)",
     `  --prefix ${DEFAULT_TOKEN_PREFIX}`,
   ].join("\n");
@@ -245,12 +299,13 @@ async function main(): Promise<void> {
     `Replaced ${anonymized.replacedStringCount} string value(s) across ${anonymized.uniqueReplacementCount} unique value(s)`
   );
   if (!options.allStrings) {
-    console.log("Scope: content-only");
+    console.log("Scope: content + metadata + context + output");
   }
   if (!options.allStrings) {
     console.log(
       `Preserved keys: ${Array.from(options.preserveKeys).sort().join(", ")}`
     );
+    console.log("Preserved path: metadata.model");
   }
 }
 
