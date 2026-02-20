@@ -78,10 +78,18 @@ impl VertexProvider {
             .map(|s| s.to_string())
             .unwrap_or_else(|| DEFAULT_LOCATION.to_string());
 
-        let endpoint = endpoint.cloned().unwrap_or_else(|| {
-            Url::parse(&format!("https://{location}-aiplatform.googleapis.com/"))
-                .expect("valid Vertex endpoint")
-        });
+        let endpoint = endpoint
+            .cloned()
+            .filter(|url| {
+                // Ignore the global aiplatform.googleapis.com endpoint — Vertex requires
+                // the location-prefixed hostname (e.g. us-east5-aiplatform.googleapis.com)
+                // for operations like rawPredict.
+                url.host_str() != Some("aiplatform.googleapis.com")
+            })
+            .unwrap_or_else(|| {
+                Url::parse(&format!("https://{location}-aiplatform.googleapis.com/"))
+                    .expect("valid Vertex endpoint")
+            });
 
         let config = VertexConfig {
             endpoint,
@@ -96,6 +104,10 @@ impl VertexProvider {
     fn determine_mode(&self, model: &str) -> VertexMode {
         if model.starts_with("publishers/meta") {
             VertexMode::OpenApi
+        } else if model.starts_with("publishers/anthropic/") {
+            VertexMode::Anthropic {
+                model_path: model.to_string(),
+            }
         } else if model.starts_with("publishers/") {
             VertexMode::Generative {
                 model_path: model.to_string(),
@@ -125,6 +137,20 @@ impl VertexProvider {
                 if stream {
                     url.query_pairs_mut().append_pair("alt", "sse");
                 }
+                Ok(url)
+            }
+            VertexMode::Anthropic { model_path } => {
+                let method = if stream {
+                    "streamRawPredict"
+                } else {
+                    "rawPredict"
+                };
+                let mut url = self.config.endpoint.clone();
+                let path = format!(
+                    "v1/projects/{}/locations/{}/{}:{}",
+                    self.config.project, location, model_path, method
+                );
+                url.set_path(&path);
                 Ok(url)
             }
             VertexMode::OpenApi => {
@@ -159,6 +185,11 @@ impl crate::providers::Provider for VertexProvider {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let mode = self.determine_mode(&spec.model);
+        let payload = if let VertexMode::Anthropic { .. } = &mode {
+            inject_anthropic_version(payload)?
+        } else {
+            payload
+        };
         let url = self.endpoint_for_mode(&mode, false)?;
 
         #[cfg(feature = "tracing")]
@@ -226,6 +257,11 @@ impl crate::providers::Provider for VertexProvider {
         }
 
         let mode = self.determine_mode(&spec.model);
+        let payload = if let VertexMode::Anthropic { .. } = &mode {
+            inject_anthropic_version(payload)?
+        } else {
+            payload
+        };
         let url = self.endpoint_for_mode(&mode, true)?;
 
         #[cfg(feature = "tracing")]
@@ -301,6 +337,28 @@ impl crate::providers::Provider for VertexProvider {
     }
 }
 
+/// Prepare the request body for Vertex Anthropic endpoints.
+///
+/// Vertex AI's rawPredict endpoint requires:
+/// - `anthropic_version` in the request body (not the `anthropic-version` HTTP header)
+/// - No `model` field (model is specified in the URL path)
+fn inject_anthropic_version(payload: Bytes) -> Result<Bytes> {
+    let mut body: lingua::serde_json::Value =
+        lingua::serde_json::from_slice(&payload).map_err(|e| {
+            Error::InvalidRequest(format!("failed to parse request body: {e}"))
+        })?;
+    if let Some(obj) = body.as_object_mut() {
+        obj.entry("anthropic_version")
+            .or_insert_with(|| lingua::serde_json::Value::String("vertex-2023-10-16".to_string()));
+        // Vertex specifies the model in the URL path; it rejects a `model` body field.
+        obj.remove("model");
+    }
+    let bytes = lingua::serde_json::to_vec(&body).map_err(|e| {
+        Error::InvalidRequest(format!("failed to serialize request body: {e}"))
+    })?;
+    Ok(Bytes::from(bytes))
+}
+
 fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
     if status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error() {
         Some(Duration::from_secs(2))
@@ -311,6 +369,7 @@ fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
 
 enum VertexMode {
     Generative { model_path: String },
+    Anthropic { model_path: String },
     OpenApi,
 }
 
@@ -335,7 +394,7 @@ mod tests {
             VertexMode::Generative { model_path } => {
                 assert_eq!(model_path, "publishers/google/models/gemini-pro");
             }
-            VertexMode::OpenApi => panic!("expected generative mode"),
+            _ => panic!("expected generative mode"),
         }
     }
 
@@ -345,6 +404,15 @@ mod tests {
         assert!(matches!(
             provider.determine_mode("publishers/meta/models/llama"),
             VertexMode::OpenApi
+        ));
+    }
+
+    #[test]
+    fn selects_anthropic_mode_for_anthropic_models() {
+        let provider = provider();
+        assert!(matches!(
+            provider.determine_mode("publishers/anthropic/models/claude-haiku-4-5"),
+            VertexMode::Anthropic { .. }
         ));
     }
 
@@ -360,6 +428,40 @@ mod tests {
     }
 
     #[test]
+    fn builds_anthropic_rawpredict_endpoint() {
+        let provider = provider();
+        let mode = provider.determine_mode("publishers/anthropic/models/claude-haiku-4-5");
+        let url = provider.endpoint_for_mode(&mode, false).expect("url");
+        assert_eq!(
+            url.as_str(),
+            "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/publishers/anthropic/models/claude-haiku-4-5:rawPredict"
+        );
+    }
+
+    #[test]
+    fn builds_anthropic_stream_rawpredict_endpoint() {
+        let provider = provider();
+        let mode = provider.determine_mode("publishers/anthropic/models/claude-haiku-4-5");
+        let url = provider.endpoint_for_mode(&mode, true).expect("url");
+        assert_eq!(
+            url.as_str(),
+            "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/publishers/anthropic/models/claude-haiku-4-5:streamRawPredict"
+        );
+    }
+
+    #[test]
+    fn builds_anthropic_endpoint_with_version_suffix() {
+        let provider = provider();
+        let mode = provider.determine_mode("publishers/anthropic/models/claude-3-5-haiku@20241022");
+        let url = provider.endpoint_for_mode(&mode, false).expect("url");
+        // @ must NOT be percent-encoded — Vertex requires the literal @ in the model path
+        assert_eq!(
+            url.as_str(),
+            "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/publishers/anthropic/models/claude-3-5-haiku@20241022:rawPredict"
+        );
+    }
+
+    #[test]
     fn builds_openapi_endpoint() {
         let provider = provider();
         let mode = provider.determine_mode("publishers/meta/models/llama");
@@ -367,6 +469,63 @@ mod tests {
         assert_eq!(
             url.as_str(),
             "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/test-project/locations/us-central1/endpoints/openapi/chat/completions"
+        );
+    }
+
+    #[test]
+    fn inject_anthropic_version_adds_field() {
+        let payload = Bytes::from(r#"{"messages":[{"role":"user","content":"hi"}],"max_tokens":50}"#);
+        let result = inject_anthropic_version(payload).expect("inject succeeds");
+        let body: lingua::serde_json::Value = lingua::serde_json::from_slice(&result).unwrap();
+        assert_eq!(body["anthropic_version"], "vertex-2023-10-16");
+        assert!(body["messages"].is_array());
+        assert!(body.get("model").is_none(), "model field should be stripped");
+    }
+
+    #[test]
+    fn inject_anthropic_version_strips_model_field() {
+        let payload = Bytes::from(r#"{"model":"claude-haiku","messages":[],"max_tokens":10}"#);
+        let result = inject_anthropic_version(payload).expect("inject succeeds");
+        let body: lingua::serde_json::Value = lingua::serde_json::from_slice(&result).unwrap();
+        assert_eq!(body["anthropic_version"], "vertex-2023-10-16");
+        assert!(body.get("model").is_none(), "model field should be stripped");
+    }
+
+    #[test]
+    fn inject_anthropic_version_preserves_existing() {
+        let payload = Bytes::from(r#"{"anthropic_version":"custom","messages":[]}"#);
+        let result = inject_anthropic_version(payload).expect("inject succeeds");
+        let body: lingua::serde_json::Value = lingua::serde_json::from_slice(&result).unwrap();
+        assert_eq!(body["anthropic_version"], "custom");
+    }
+
+    #[test]
+    fn from_config_ignores_global_api_base() {
+        let global_endpoint = Url::parse("https://aiplatform.googleapis.com/").unwrap();
+        let mut metadata = std::collections::HashMap::new();
+        metadata.insert("project".into(), Value::String("my-project".into()));
+        metadata.insert("location".into(), Value::String("us-east5".into()));
+
+        let provider =
+            VertexProvider::from_config(Some(&global_endpoint), None, &metadata).unwrap();
+        assert_eq!(
+            provider.config.endpoint.as_str(),
+            "https://us-east5-aiplatform.googleapis.com/"
+        );
+    }
+
+    #[test]
+    fn from_config_preserves_custom_endpoint() {
+        let custom_endpoint = Url::parse("https://my-proxy.example.com/").unwrap();
+        let mut metadata = std::collections::HashMap::new();
+        metadata.insert("project".into(), Value::String("my-project".into()));
+        metadata.insert("location".into(), Value::String("us-east5".into()));
+
+        let provider =
+            VertexProvider::from_config(Some(&custom_endpoint), None, &metadata).unwrap();
+        assert_eq!(
+            provider.config.endpoint.as_str(),
+            "https://my-proxy.example.com/"
         );
     }
 }

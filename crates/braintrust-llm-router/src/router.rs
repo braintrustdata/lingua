@@ -235,16 +235,36 @@ impl Router {
         output_format: ProviderFormat,
     ) -> Result<ResolvedRoute<'_>> {
         let (spec, catalog_format, alias) = self.resolver.resolve(model)?;
+        #[cfg(feature = "tracing")]
+        let registered: Vec<&str> = self.providers.keys().map(String::as_str).collect();
         let alias = if self.providers.contains_key(&alias) {
             alias
         } else {
+            #[cfg(feature = "tracing")]
+            tracing::debug!(
+                model,
+                resolver_alias = %alias,
+                format = ?catalog_format,
+                registered = ?registered,
+                "resolver alias not found in providers, falling back to format slot"
+            );
             self.formats.get(&catalog_format).cloned().unwrap_or(alias)
         };
         let provider = self
             .providers
             .get(&alias)
             .cloned()
-            .ok_or_else(|| Error::NoProvider(catalog_format))?;
+            .ok_or_else(|| {
+                #[cfg(feature = "tracing")]
+                tracing::warn!(
+                    model,
+                    alias = %alias,
+                    format = ?catalog_format,
+                    registered = ?registered,
+                    "no provider found for resolved alias"
+                );
+                Error::NoProvider(catalog_format)
+            })?;
         let format = if output_format != catalog_format
             && provider.provider_formats().contains(&output_format)
         {
