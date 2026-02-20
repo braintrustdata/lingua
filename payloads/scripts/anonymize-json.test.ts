@@ -12,7 +12,7 @@ interface DefaultFixture {
 }
 
 describe("anonymizeJsonValue", () => {
-  it("anonymizes only strings inside content by default", () => {
+  it("anonymizes content and metadata strings by default", () => {
     const input: DefaultFixture = {
       input: [
         { role: "user", content: "hello world", id: "user-1" },
@@ -36,12 +36,12 @@ describe("anonymizeJsonValue", () => {
     expect(output.input[0].id).toBe("user-1");
     expect(secondContent[0].type).toBe("text");
     expect(output.input[1].finish_reason).toBe("stop");
-    expect(output.metadata).toBe("leave me alone");
+    expect(output.metadata).toBe("anon_2");
 
     expect(output.input[0].content).toBe("anon_1");
     expect(secondContent[0].text).toBe("anon_1");
-    expect(result.replacedStringCount).toBe(2);
-    expect(result.uniqueReplacementCount).toBe(1);
+    expect(result.replacedStringCount).toBe(3);
+    expect(result.uniqueReplacementCount).toBe(2);
   });
 
   it("anonymizes all strings when allStrings is enabled", () => {
