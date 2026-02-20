@@ -79,7 +79,11 @@ impl AzureProvider {
         if let Some(t) = timeout {
             config.timeout = Some(t);
         }
-        if let Some(deployment) = metadata.get("deployment").and_then(Value::as_str) {
+        if let Some(deployment) = metadata
+            .get("deployment")
+            .and_then(Value::as_str)
+            .filter(|s| !s.is_empty())
+        {
             config.deployment = Some(deployment.to_string());
         }
         if let Some(version) = metadata.get("api_version").and_then(Value::as_str) {
@@ -305,5 +309,47 @@ fn normalize_deployment(name: &str) -> String {
         name.replace("gpt-3.5", "gpt-35")
     } else {
         name.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    fn endpoint() -> Url {
+        Url::parse("https://myorg.openai.azure.com/").unwrap()
+    }
+
+    fn make_provider(metadata: HashMap<String, Value>) -> AzureProvider {
+        AzureProvider::from_config(Some(&endpoint()), None, &metadata).unwrap()
+    }
+
+    #[test]
+    fn empty_deployment_string_falls_back_to_model_name() {
+        let mut metadata = HashMap::new();
+        metadata.insert("deployment".into(), Value::String("".into()));
+        let provider = make_provider(metadata);
+
+        assert!(provider.config.deployment.is_none());
+
+        let url = provider.chat_url("gpt-4o").unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://myorg.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2023-07-01-preview"
+        );
+    }
+
+    #[test]
+    fn explicit_deployment_overrides_model_name() {
+        let mut metadata = HashMap::new();
+        metadata.insert("deployment".into(), Value::String("my-deploy".into()));
+        let provider = make_provider(metadata);
+
+        let url = provider.chat_url("gpt-4o").unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://myorg.openai.azure.com/openai/deployments/my-deploy/chat/completions?api-version=2023-07-01-preview"
+        );
     }
 }
