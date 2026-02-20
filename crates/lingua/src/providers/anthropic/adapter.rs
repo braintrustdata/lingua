@@ -152,10 +152,12 @@ impl ProviderAdapter for AnthropicAdapter {
                     }
                 })
                 .or_else(|| {
-                    typed_params
-                        .thinking
-                        .as_ref()
-                        .map(crate::universal::request::ReasoningConfig::from)
+                    typed_params.thinking.as_ref().map(|t| {
+                        crate::universal::request::ReasoningConfig::from((
+                            t,
+                            typed_params.max_tokens,
+                        ))
+                    })
                 }),
             metadata: typed_params
                 .metadata
@@ -1452,6 +1454,68 @@ mod tests {
         assert!(
             result.is_none(),
             "message_stop should return None (terminal event)"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_thinking_to_openai_effort_with_small_max_tokens() {
+        // BUG REPRO: Anthropic request with thinking budget_tokens=1024 and max_tokens=1024
+        // should translate to OpenAI reasoning_effort="high" (budget is 100% of max_tokens).
+        // Instead, From<&Thinking> ignores max_tokens and uses DEFAULT=4096,
+        // computing 1024/4096=0.25 → "low".
+        use crate::providers::openai::adapter::OpenAIAdapter;
+
+        let anthropic_adapter = AnthropicAdapter;
+        let openai_adapter = OpenAIAdapter;
+
+        let anthropic_payload = json!({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Think hard about 2+2"}],
+            "thinking": {
+                "type": "enabled",
+                "budget_tokens": 1024
+            }
+        });
+
+        // Anthropic → Universal
+        let universal = anthropic_adapter
+            .request_to_universal(anthropic_payload)
+            .unwrap();
+
+        // Verify the universal representation has reasoning
+        let reasoning = universal
+            .params
+            .reasoning
+            .as_ref()
+            .expect("reasoning should exist");
+        assert_eq!(reasoning.enabled, Some(true));
+        assert_eq!(reasoning.budget_tokens, Some(1024));
+
+        // The bug: effort is computed as Low (1024/4096=0.25) instead of High (1024/1024=1.0)
+        assert_eq!(
+            reasoning.effort,
+            Some(ReasoningEffort::High),
+            "budget_tokens=1024 with max_tokens=1024 should be High effort, not {:?}",
+            reasoning.effort
+        );
+
+        // Universal → OpenAI
+        let mut universal_for_openai = universal;
+        universal_for_openai.model = Some("gpt-5-nano".to_string());
+        let openai_result = openai_adapter
+            .request_from_universal(&universal_for_openai)
+            .unwrap();
+
+        assert_eq!(
+            openai_result
+                .get("reasoning_effort")
+                .unwrap()
+                .as_str()
+                .unwrap(),
+            "high",
+            "OpenAI should get reasoning_effort=high, got: {}",
+            openai_result.get("reasoning_effort").unwrap()
         );
     }
 }
