@@ -173,7 +173,7 @@ impl crate::providers::Provider for VertexProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::Google]
+        vec![ProviderFormat::Google, ProviderFormat::VertexAnthropic]
     }
 
     async fn complete(
@@ -185,11 +185,6 @@ impl crate::providers::Provider for VertexProvider {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let mode = self.determine_mode(&spec.model);
-        let payload = if let VertexMode::Anthropic { .. } = &mode {
-            inject_anthropic_version(payload)?
-        } else {
-            payload
-        };
         let url = self.endpoint_for_mode(&mode, false)?;
 
         #[cfg(feature = "tracing")]
@@ -257,11 +252,6 @@ impl crate::providers::Provider for VertexProvider {
         }
 
         let mode = self.determine_mode(&spec.model);
-        let payload = if let VertexMode::Anthropic { .. } = &mode {
-            inject_anthropic_version(payload)?
-        } else {
-            payload
-        };
         let url = self.endpoint_for_mode(&mode, true)?;
 
         #[cfg(feature = "tracing")]
@@ -335,28 +325,6 @@ impl crate::providers::Provider for VertexProvider {
             })
         }
     }
-}
-
-/// Prepare the request body for Vertex Anthropic endpoints.
-///
-/// Vertex AI's rawPredict endpoint requires:
-/// - `anthropic_version` in the request body (not the `anthropic-version` HTTP header)
-/// - No `model` field (model is specified in the URL path)
-fn inject_anthropic_version(payload: Bytes) -> Result<Bytes> {
-    let mut body: lingua::serde_json::Value =
-        lingua::serde_json::from_slice(&payload).map_err(|e| {
-            Error::InvalidRequest(format!("failed to parse request body: {e}"))
-        })?;
-    if let Some(obj) = body.as_object_mut() {
-        obj.entry("anthropic_version")
-            .or_insert_with(|| lingua::serde_json::Value::String("vertex-2023-10-16".to_string()));
-        // Vertex specifies the model in the URL path; it rejects a `model` body field.
-        obj.remove("model");
-    }
-    let bytes = lingua::serde_json::to_vec(&body).map_err(|e| {
-        Error::InvalidRequest(format!("failed to serialize request body: {e}"))
-    })?;
-    Ok(Bytes::from(bytes))
 }
 
 fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
@@ -470,33 +438,6 @@ mod tests {
             url.as_str(),
             "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/test-project/locations/us-central1/endpoints/openapi/chat/completions"
         );
-    }
-
-    #[test]
-    fn inject_anthropic_version_adds_field() {
-        let payload = Bytes::from(r#"{"messages":[{"role":"user","content":"hi"}],"max_tokens":50}"#);
-        let result = inject_anthropic_version(payload).expect("inject succeeds");
-        let body: lingua::serde_json::Value = lingua::serde_json::from_slice(&result).unwrap();
-        assert_eq!(body["anthropic_version"], "vertex-2023-10-16");
-        assert!(body["messages"].is_array());
-        assert!(body.get("model").is_none(), "model field should be stripped");
-    }
-
-    #[test]
-    fn inject_anthropic_version_strips_model_field() {
-        let payload = Bytes::from(r#"{"model":"claude-haiku","messages":[],"max_tokens":10}"#);
-        let result = inject_anthropic_version(payload).expect("inject succeeds");
-        let body: lingua::serde_json::Value = lingua::serde_json::from_slice(&result).unwrap();
-        assert_eq!(body["anthropic_version"], "vertex-2023-10-16");
-        assert!(body.get("model").is_none(), "model field should be stripped");
-    }
-
-    #[test]
-    fn inject_anthropic_version_preserves_existing() {
-        let payload = Bytes::from(r#"{"anthropic_version":"custom","messages":[]}"#);
-        let result = inject_anthropic_version(payload).expect("inject succeeds");
-        let body: lingua::serde_json::Value = lingua::serde_json::from_slice(&result).unwrap();
-        assert_eq!(body["anthropic_version"], "custom");
     }
 
     #[test]

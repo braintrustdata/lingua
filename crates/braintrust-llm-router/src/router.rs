@@ -250,21 +250,17 @@ impl Router {
             );
             self.formats.get(&catalog_format).cloned().unwrap_or(alias)
         };
-        let provider = self
-            .providers
-            .get(&alias)
-            .cloned()
-            .ok_or_else(|| {
-                #[cfg(feature = "tracing")]
-                tracing::warn!(
-                    model,
-                    alias = %alias,
-                    format = ?catalog_format,
-                    registered = ?registered,
-                    "no provider found for resolved alias"
-                );
-                Error::NoProvider(catalog_format)
-            })?;
+        let provider = self.providers.get(&alias).cloned().ok_or_else(|| {
+            #[cfg(feature = "tracing")]
+            tracing::warn!(
+                model,
+                alias = %alias,
+                format = ?catalog_format,
+                registered = ?registered,
+                "no provider found for resolved alias"
+            );
+            Error::NoProvider(catalog_format)
+        })?;
         let format = if output_format != catalog_format
             && provider.provider_formats().contains(&output_format)
         {

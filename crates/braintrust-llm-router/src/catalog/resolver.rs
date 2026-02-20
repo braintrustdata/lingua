@@ -37,6 +37,10 @@ impl ModelResolver {
             && lingua::is_bedrock_anthropic_model(model)
         {
             ProviderFormat::BedrockAnthropic
+        } else if spec.format == ProviderFormat::Anthropic
+            && lingua::is_vertex_anthropic_model(model)
+        {
+            ProviderFormat::VertexAnthropic
         } else {
             spec.format
         };
@@ -56,6 +60,7 @@ fn format_identifier(format: ProviderFormat) -> String {
         ProviderFormat::ChatCompletions => "openai",
         ProviderFormat::Anthropic => "anthropic",
         ProviderFormat::BedrockAnthropic => "bedrock",
+        ProviderFormat::VertexAnthropic => "vertex",
         ProviderFormat::Google => "google",
         ProviderFormat::Mistral => "mistral",
         ProviderFormat::Converse => "bedrock",
@@ -182,7 +187,7 @@ mod tests {
         let resolver = ModelResolver::new(Arc::new(catalog));
 
         let (_, format, alias) = resolver.resolve(model).expect("resolves");
-        assert_eq!(format, ProviderFormat::Anthropic);
+        assert_eq!(format, ProviderFormat::VertexAnthropic);
         assert_eq!(alias, "vertex");
     }
 }
