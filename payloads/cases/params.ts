@@ -1037,6 +1037,29 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  // Anthropic thinking enabled with budget_tokens - exercises budget→effort conversion
+  // with small max_tokens (1024). budget/max_tokens = 100% → high effort.
+  thinkingEnabledParam: {
+    "chat-completions": {
+      model: OPENAI_RESPONSES_MODEL,
+      messages: [{ role: "user", content: "Think hard about 2+2" }],
+      reasoning_effort: "high",
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Think hard about 2+2" }],
+      reasoning: { effort: "high" },
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Think hard about 2+2" }],
+      thinking: { type: "enabled", budget_tokens: 1024 },
+    },
+    google: null,
+    bedrock: null,
+  },
+
   // === Output Config (structured output) ===
 
   outputFormatJsonSchemaParam: {

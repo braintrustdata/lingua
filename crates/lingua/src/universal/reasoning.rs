@@ -176,6 +176,26 @@ impl From<&Thinking> for ReasoningConfig {
     }
 }
 
+/// Convert Anthropic Thinking to ReasoningConfig with max_tokens context.
+///
+/// Uses actual max_tokens for budget→effort conversion instead of DEFAULT_MAX_TOKENS.
+/// This produces correct effort levels when max_tokens differs from the default.
+impl From<(&Thinking, Option<i64>)> for ReasoningConfig {
+    fn from((thinking, max_tokens): (&Thinking, Option<i64>)) -> Self {
+        let enabled = matches!(thinking.thinking_type, ThinkingType::Enabled);
+        let budget_tokens = thinking.budget_tokens;
+        let effort = budget_tokens.map(|b| budget_to_effort(b, max_tokens));
+
+        ReasoningConfig {
+            enabled: Some(enabled),
+            effort,
+            budget_tokens,
+            canonical: Some(ReasoningCanonical::BudgetTokens),
+            ..Default::default()
+        }
+    }
+}
+
 /// Convert OpenAI ReasoningEffort to ReasoningConfig with context (for Chat API).
 ///
 /// OpenAI's effort is canonical. Budget_tokens is derived.
@@ -517,6 +537,18 @@ mod tests {
         let config = ReasoningConfig::from(&thinking);
         assert_eq!(config.enabled, Some(true));
         assert_eq!(config.budget_tokens, Some(2048));
+    }
+
+    #[test]
+    fn test_from_anthropic_thinking_without_max_tokens_uses_default() {
+        // Without max_tokens context, falls back to DEFAULT_MAX_TOKENS.
+        // budget=1024 / 4096 = 0.25 → Low
+        let thinking = Thinking {
+            thinking_type: ThinkingType::Enabled,
+            budget_tokens: Some(1024),
+        };
+        let config = ReasoningConfig::from(&thinking);
+        assert_eq!(config.effort, Some(ReasoningEffort::Low));
     }
 
     #[test]
