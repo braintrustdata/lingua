@@ -369,6 +369,7 @@ pub fn is_openai_compatible(kind: &str) -> bool {
             | "baseten"
             | "cerebras"
             | "xai"
+            | "xAI"
             | "ollama"
             | "databricks"
     )
@@ -412,7 +413,7 @@ pub fn openai_compatible_endpoint(kind: &str) -> Option<OpenAICompatibleEndpoint
             url: "https://api.cerebras.ai/v1",
             is_template: false,
         }),
-        "xai" => Some(OpenAICompatibleEndpoint {
+        "xai" | "xAI" => Some(OpenAICompatibleEndpoint {
             url: "https://api.x.ai/v1",
             is_template: false,
         }),
