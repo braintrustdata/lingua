@@ -3,8 +3,18 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": ["nodejs/**", "web/**"]
+      "outputs": ["nodejs/**", "web/**"],
+      "inputs": [
+        "package.json",
+        "../../Cargo.toml",
+        "../../Cargo.lock",
+        "../../.cargo/config.toml",
+        "../../crates/lingua/Cargo.toml",
+        "../../crates/lingua/build.rs",
+        "../../crates/lingua/src/**/*.rs",
+        "../../serde_json/Cargo.toml",
+        "../../serde_json/src/**/*.rs"
+      ]
     }
   }
 }
-
