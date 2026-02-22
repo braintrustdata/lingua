@@ -1,0 +1,227 @@
+[
+  {
+    "_pagination_key": "p07609590732847841280",
+    "_xact_id": "1000196705393003428",
+    "classifications": null,
+    "created": "2026-02-22T07:38:28.122Z",
+    "facets": null,
+    "id": "dcfc36e7-e8b7-4b0d-a281-8772745815db",
+    "metrics": {
+      "cached": 0,
+      "completion_tokens": 80,
+      "end": 1771745910.815,
+      "prompt_tokens": 1713,
+      "start": 1771745908.122,
+      "time_to_first_token": 2.68999981880188,
+      "tokens": 1793,
+      "estimated_cost": 0.00411775
+    },
+    "model": "gpt-5.2",
+    "origin": null,
+    "root_span_id": "d55134c9-2499-403f-b280-9a045e047973",
+    "scores": null,
+    "span_attributes": {
+      "exec_counter": 8,
+      "name": "Chat Completion",
+      "type": "llm"
+    },
+    "span_id": "d55134c9-2499-403f-b280-9a045e047973",
+    "tags": [],
+    "_async_scoring_state": null,
+    "audit_data": [
+      {
+        "_xact_id": "1000196705392805248",
+        "audit_data": {
+          "action": "upsert"
+        },
+        "metadata": {},
+        "source": "api"
+      },
+      {
+        "_xact_id": "1000196705392937837",
+        "audit_data": {
+          "action": "merge",
+          "from": null,
+          "path": [
+            "metrics"
+          ],
+          "to": {
+            "cached": 0
+          }
+        },
+        "metadata": {},
+        "source": "api"
+      },
+      {
+        "_xact_id": "1000196705393003428",
+        "audit_data": {
+          "action": "merge",
+          "path": [
+            "metadata"
+          ]
+        },
+        "metadata": {},
+        "source": "api"
+      }
+    ],
+    "context": {},
+    "input": [
+      {
+        "content": "main system prompt",
+        "role": "system"
+      }
+    ],
+    "is_root": true,
+    "log_id": "g",
+    "metadata": {
+      "max_tokens": 300,
+      "model": "gpt-5.2",
+      "parallel_tool_calls": false,
+      "stream": false,
+      "temperature": 0.7,
+      "tool_choice": "anon_2",
+      "tools": [
+        {
+          "function": {
+            "description": "anon_3",
+            "name": "anon_4",
+            "parameters": {
+              "properties": {
+                "participant": {
+                  "enum": [
+                    "anon_5",
+                    "anon_6"
+                  ],
+                  "type": "string"
+                },
+                "reaction": {
+                  "enum": [
+                    "anon_7",
+                    "anon_8",
+                    "anon_9",
+                    "anon_10",
+                    "anon_11",
+                    "anon_12"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_13",
+                "anon_14"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_15",
+            "name": "anon_16",
+            "parameters": {
+              "properties": {
+                "messages": {
+                  "description": "anon_17",
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 3,
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "participant": {
+                  "enum": [
+                    "anon_5",
+                    "anon_6"
+                  ],
+                  "type": "string"
+                },
+                "reaction": {
+                  "description": "anon_18",
+                  "enum": [
+                    "anon_7",
+                    "anon_8",
+                    "anon_9",
+                    "anon_10",
+                    "anon_11",
+                    "anon_12"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_13",
+                "anon_19"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_20",
+            "name": "anon_21",
+            "parameters": {
+              "properties": {},
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_22",
+            "name": "anon_23",
+            "parameters": {
+              "properties": {
+                "message": {
+                  "description": "anon_24",
+                  "type": "string"
+                },
+                "participant": {
+                  "enum": [
+                    "anon_5",
+                    "anon_6"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_13",
+                "anon_25"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        }
+      ]
+    },
+    "org_id": "c690e7f3-fb85-473d-811f-488d3c9f8939",
+    "output": [
+      {
+        "finish_reason": "anon_26",
+        "index": 0,
+        "message": {
+          "annotations": [],
+          "content": null,
+          "refusal": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "anon_27",
+                "name": "anon_16"
+              },
+              "id": "anon_28",
+              "type": "function"
+            }
+          ]
+        }
+      }
+    ],
+    "project_id": "10c58300-6f13-4f14-ab09-e7b3a09bc10d"
+  }
+]
