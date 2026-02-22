@@ -1,0 +1,8 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "system",
+    "assistant"
+  ],
+  "mustContainText": ["main system prompt"]
+}
