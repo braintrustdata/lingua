@@ -2,6 +2,7 @@ use lingua::processing::{import_messages_from_spans, Span};
 use lingua::serde_json;
 use lingua::Message;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -25,29 +26,71 @@ fn workspace_root() -> PathBuf {
 
 fn discover_import_case_paths() -> Vec<PathBuf> {
     let import_cases_dir = workspace_root().join("payloads/import-cases");
-    let mut paths: Vec<PathBuf> = fs::read_dir(import_cases_dir)
+    let mut candidate_paths: Vec<PathBuf> = fs::read_dir(import_cases_dir)
         .expect("payloads/import-cases should be readable")
         .filter_map(|entry| {
             let path = entry.ok()?.path();
             let name = path.file_name()?.to_str()?;
-            if name.ends_with(".spans.json") {
+            if name.ends_with(".json") && !name.ends_with(".assertions.json") {
                 Some(path)
             } else {
                 None
             }
         })
         .collect();
-    paths.sort();
-    paths
+    candidate_paths.sort();
+
+    let mut by_case_name: BTreeMap<String, PathBuf> = BTreeMap::new();
+    for path in candidate_paths {
+        let case_name = case_name_from_fixture_path(&path);
+        let current_is_legacy = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .map(|name| name.ends_with(".spans.json"))
+            .expect("fixture filename must be valid utf-8");
+
+        if let Some(existing_path) = by_case_name.get(&case_name) {
+            let existing_is_legacy = existing_path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .map(|name| name.ends_with(".spans.json"))
+                .expect("fixture filename must be valid utf-8");
+
+            match (existing_is_legacy, current_is_legacy) {
+                (true, false) => {
+                    by_case_name.insert(case_name, path);
+                }
+                (false, true) => {}
+                _ => {
+                    panic!(
+                        "ambiguous import fixtures for case '{}': '{}' and '{}'",
+                        case_name,
+                        existing_path.display(),
+                        path.display()
+                    );
+                }
+            }
+        } else {
+            by_case_name.insert(case_name, path);
+        }
+    }
+
+    by_case_name.into_values().collect()
 }
 
-fn case_name_from_spans_path(path: &Path) -> String {
-    let stem = path
-        .file_stem()
+fn case_name_from_fixture_path(path: &Path) -> String {
+    let name = path
+        .file_name()
         .and_then(|s| s.to_str())
         .expect("fixture filename must be valid utf-8");
-    stem.strip_suffix(".spans")
-        .expect("fixture name must end with .spans")
+
+    let without_json = name
+        .strip_suffix(".json")
+        .expect("fixture name must end with .json");
+
+    without_json
+        .strip_suffix(".spans")
+        .unwrap_or(without_json)
         .to_string()
 }
 
@@ -152,7 +195,7 @@ fn test_import_cases_from_shared_fixtures() {
     let mut checked_count = 0usize;
 
     for spans_path in case_paths {
-        let case_name = case_name_from_spans_path(&spans_path);
+        let case_name = case_name_from_fixture_path(&spans_path);
         if let Some(filter) = &case_filter {
             if !case_name.contains(filter) {
                 continue;

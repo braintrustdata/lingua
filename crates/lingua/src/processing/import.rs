@@ -109,16 +109,10 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         }
     }
 
-    // Try Anthropic format
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<anthropic::InputMessage>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<anthropic::InputMessage>>>::try_from(provider_messages)
-        {
-            if !messages.is_empty() {
-                return messages;
-            }
+    // Try Anthropic format (including role-based system/developer messages).
+    if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse) {
+        if !anthropic_messages.is_empty() {
+            return anthropic_messages;
         }
     }
 
@@ -138,6 +132,57 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     }
 
     Vec::new()
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+enum AnthropicOrSystemMessage {
+    Anthropic(anthropic::InputMessage),
+    SystemOrDeveloper(SystemOrDeveloperMessage),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct SystemOrDeveloperMessage {
+    role: SystemOrDeveloperRole,
+    content: Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum SystemOrDeveloperRole {
+    System,
+    Developer,
+}
+
+fn try_parse_anthropic_or_system_message(item: AnthropicOrSystemMessage) -> Option<Message> {
+    match item {
+        AnthropicOrSystemMessage::Anthropic(provider_message) => {
+            <Message as TryFromLLM<anthropic::InputMessage>>::try_from(provider_message).ok()
+        }
+        AnthropicOrSystemMessage::SystemOrDeveloper(system_or_developer) => {
+            let value = serde_json::to_value(system_or_developer).ok()?;
+            parse_lenient_message_item(&value)
+        }
+    }
+}
+
+fn try_anthropic_or_system_messages(data: &Value) -> Option<Vec<Message>> {
+    let items: Vec<AnthropicOrSystemMessage> = serde_json::from_value(data.clone()).ok()?;
+    if items.is_empty() {
+        return None;
+    }
+
+    let messages: Option<Vec<Message>> = items
+        .into_iter()
+        .map(try_parse_anthropic_or_system_message)
+        .collect();
+    let messages = messages?;
+
+    if messages.is_empty() {
+        None
+    } else {
+        Some(messages)
+    }
 }
 
 /// Lenient message parser for messages that don't match strict provider schemas
