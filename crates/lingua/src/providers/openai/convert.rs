@@ -189,11 +189,10 @@ where
     }
 }
 
-fn normalize_responses_import_item_object(
-    obj: &serde_json::Map<String, serde_json::Value>,
+fn normalize_responses_import_item_value(
+    original: &serde_json::Value,
 ) -> Option<serde_json::Value> {
-    let original = serde_json::Value::Object(obj.clone());
-
+    let original = original.clone();
     let item_kind = serde_json::from_value::<ResponsesImportItemKindProbe>(original.clone())
         .ok()
         .map(|probe| probe.item_type);
@@ -237,20 +236,16 @@ fn normalize_responses_import_item_object(
 }
 
 fn normalize_responses_import_items(data: &serde_json::Value) -> Option<serde_json::Value> {
-    let arr = data.as_array()?;
+    let arr = serde_json::from_value::<Vec<serde_json::Value>>(data.clone()).ok()?;
     let mut changed = false;
     let mut normalized = Vec::with_capacity(arr.len());
 
     for item in arr {
-        let Some(obj) = item.as_object() else {
-            normalized.push(item.clone());
-            continue;
-        };
-        if let Some(normalized_item) = normalize_responses_import_item_object(obj) {
+        if let Some(normalized_item) = normalize_responses_import_item_value(&item) {
             changed = true;
             normalized.push(normalized_item);
         } else {
-            normalized.push(item.clone());
+            normalized.push(item);
         }
     }
 
