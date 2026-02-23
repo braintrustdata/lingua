@@ -19,6 +19,7 @@ const REQUIRED_PROVIDERS: &[ProviderFormat] = &[
     ProviderFormat::Anthropic,
     ProviderFormat::BedrockAnthropic,
     ProviderFormat::Google,
+    ProviderFormat::VertexAnthropic,
 ];
 
 #[test]
