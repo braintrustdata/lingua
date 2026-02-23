@@ -8,6 +8,7 @@ use crate::universal::{
     ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
+use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 
 /// Extended ChatCompletionRequest/ResponseMessage with reasoning support.
@@ -104,7 +105,7 @@ fn parse_builtin_field<T: serde::de::DeserializeOwned>(
     }
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 enum ResponsesImportItemKind {
     #[serde(rename = "function_call_output")]
     FunctionCallOutput,
@@ -116,10 +117,123 @@ enum ResponsesImportItemKind {
     ImageGenerationCall,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+enum ResponsesImportItemType {
+    Known(ResponsesImportItemKind),
+    Other(String),
+}
+
 #[derive(Debug, Deserialize)]
 struct ResponsesImportItemKindProbe {
     #[serde(rename = "type")]
     item_type: ResponsesImportItemKind,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ResponsesImportCallIdCompatItem {
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    item_type: Option<ResponsesImportItemType>,
+    #[serde(default, alias = "callId", skip_serializing_if = "Option::is_none")]
+    call_id: Option<serde_json::Value>,
+    #[serde(flatten)]
+    extra: serde_json::Map<String, serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+enum ResponsesImportFunctionOutputKind {
+    #[serde(rename = "function_call_output")]
+    FunctionCallOutput,
+    #[serde(rename = "function_call_result")]
+    FunctionCallResult,
+    #[serde(rename = "custom_tool_call_output")]
+    CustomToolCallOutput,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ResponsesImportFunctionOutputCompatItem {
+    #[serde(rename = "type")]
+    item_type: ResponsesImportFunctionOutputKind,
+    #[serde(default, alias = "callId", skip_serializing_if = "Option::is_none")]
+    call_id: Option<serde_json::Value>,
+    #[serde(default, deserialize_with = "deserialize_optional_string_or_json")]
+    output: Option<String>,
+    #[serde(flatten)]
+    extra: serde_json::Map<String, serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ResponsesImportImageGenerationCompatItem {
+    #[serde(rename = "type")]
+    item_type: ResponsesImportItemKind,
+    #[serde(default, alias = "callId", skip_serializing_if = "Option::is_none")]
+    call_id: Option<serde_json::Value>,
+    #[serde(default, deserialize_with = "deserialize_optional_string_or_json")]
+    result: Option<String>,
+    #[serde(flatten)]
+    extra: serde_json::Map<String, serde_json::Value>,
+}
+
+fn deserialize_optional_string_or_json<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = Option::<serde_json::Value>::deserialize(deserializer)?;
+    let Some(value) = value else {
+        return Ok(None);
+    };
+
+    match value {
+        serde_json::Value::String(s) => Ok(Some(s)),
+        other => Ok(Some(other.to_string())),
+    }
+}
+
+fn normalize_responses_import_item_object(
+    obj: &serde_json::Map<String, serde_json::Value>,
+) -> Option<serde_json::Value> {
+    let original = serde_json::Value::Object(obj.clone());
+
+    let item_kind = serde_json::from_value::<ResponsesImportItemKindProbe>(original.clone())
+        .ok()
+        .map(|probe| probe.item_type);
+
+    let normalized = match item_kind {
+        Some(
+            ResponsesImportItemKind::FunctionCallOutput
+            | ResponsesImportItemKind::FunctionCallResult,
+        )
+        | Some(ResponsesImportItemKind::CustomToolCallOutput) => {
+            let mut compat =
+                serde_json::from_value::<ResponsesImportFunctionOutputCompatItem>(original.clone())
+                    .ok()?;
+            if matches!(
+                compat.item_type,
+                ResponsesImportFunctionOutputKind::FunctionCallResult
+            ) {
+                compat.item_type = ResponsesImportFunctionOutputKind::FunctionCallOutput;
+            }
+            serde_json::to_value(compat).ok()?
+        }
+        Some(ResponsesImportItemKind::ImageGenerationCall) => {
+            let compat = serde_json::from_value::<ResponsesImportImageGenerationCompatItem>(
+                original.clone(),
+            )
+            .ok()?;
+            serde_json::to_value(compat).ok()?
+        }
+        _ => {
+            let compat =
+                serde_json::from_value::<ResponsesImportCallIdCompatItem>(original.clone()).ok()?;
+            serde_json::to_value(compat).ok()?
+        }
+    };
+
+    if normalized == original {
+        None
+    } else {
+        Some(normalized)
+    }
 }
 
 fn normalize_responses_import_items(data: &serde_json::Value) -> Option<serde_json::Value> {
@@ -132,63 +246,12 @@ fn normalize_responses_import_items(data: &serde_json::Value) -> Option<serde_js
             normalized.push(item.clone());
             continue;
         };
-
-        let mut map = obj.clone();
-
-        if map.contains_key("callId") && !map.contains_key("call_id") {
-            if let Some(call_id) = map.get("callId").cloned() {
-                map.insert("call_id".to_string(), call_id);
-                changed = true;
-            }
-        }
-
-        let item_kind = serde_json::from_value::<ResponsesImportItemKindProbe>(
-            serde_json::Value::Object(map.clone()),
-        )
-        .ok()
-        .map(|probe| probe.item_type);
-
-        if matches!(item_kind, Some(ResponsesImportItemKind::FunctionCallResult)) {
-            map.insert(
-                "type".to_string(),
-                serde_json::Value::String("function_call_output".to_string()),
-            );
+        if let Some(normalized_item) = normalize_responses_import_item_object(obj) {
             changed = true;
+            normalized.push(normalized_item);
+        } else {
+            normalized.push(item.clone());
         }
-
-        if matches!(
-            item_kind,
-            Some(ResponsesImportItemKind::FunctionCallOutput)
-                | Some(ResponsesImportItemKind::FunctionCallResult)
-                | Some(ResponsesImportItemKind::CustomToolCallOutput)
-        ) {
-            if let Some(output_value) = map.get("output") {
-                if !output_value.is_string() && !output_value.is_null() {
-                    map.insert(
-                        "output".to_string(),
-                        serde_json::Value::String(output_value.to_string()),
-                    );
-                    changed = true;
-                }
-            }
-        }
-
-        if matches!(
-            item_kind,
-            Some(ResponsesImportItemKind::ImageGenerationCall)
-        ) {
-            if let Some(result_value) = map.get("result") {
-                if !result_value.is_string() && !result_value.is_null() {
-                    map.insert(
-                        "result".to_string(),
-                        serde_json::Value::String(result_value.to_string()),
-                    );
-                    changed = true;
-                }
-            }
-        }
-
-        normalized.push(serde_json::Value::Object(map));
     }
 
     if changed {
