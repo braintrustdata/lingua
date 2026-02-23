@@ -130,25 +130,10 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         }
     }
 
-    // Try Anthropic format
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<anthropic::InputMessage>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<anthropic::InputMessage>>>::try_from(provider_messages)
-        {
-            if !messages.is_empty() {
-                return messages;
-            }
-        }
-    }
-
-    // Try per-item typed parsing for role-based arrays.
-    // This handles mixed arrays (for example Anthropic-style arrays that include a
-    // top-level system message), where strict provider-wide parsing may fail.
-    if let Some(role_based_messages) = try_role_based_message_parsing(data_to_parse) {
-        if !role_based_messages.is_empty() {
-            return role_based_messages;
+    // Try Anthropic format (including role-based system/developer messages).
+    if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse) {
+        if !anthropic_messages.is_empty() {
+            return anthropic_messages;
         }
     }
 
@@ -170,67 +155,49 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     Vec::new()
 }
 
-fn try_parse_single_role_based_message_item(item: &Value) -> Option<Vec<Message>> {
-    let role = item.as_object()?.get("role")?.as_str()?;
-
-    // Anthropic has a top-level `system` parameter rather than role-based system
-    // messages, so system/developer entries need a separate parser.
-    if role == "system" || role == "developer" {
-        return parse_lenient_message_item(item).map(|message| vec![message]);
-    }
-
-    if let Ok(provider_message) = serde_json::from_value::<anthropic::InputMessage>(item.clone()) {
-        if let Ok(message) =
-            <Message as TryFromLLM<anthropic::InputMessage>>::try_from(provider_message)
-        {
-            return Some(vec![message]);
-        }
-    }
-
-    if let Ok(provider_message) =
-        serde_json::from_value::<ChatCompletionRequestMessageExt>(item.clone())
-    {
-        if let Ok(message) =
-            <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(provider_message)
-        {
-            return Some(vec![message]);
-        }
-    }
-
-    if let Ok(provider_message) = serde_json::from_value::<openai::InputItem>(item.clone()) {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![provider_message])
-        {
-            if !messages.is_empty() {
-                return Some(messages);
-            }
-        }
-    }
-
-    parse_lenient_message_item(item).map(|message| vec![message])
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+enum AnthropicOrSystemMessage {
+    Anthropic(anthropic::InputMessage),
+    SystemOrDeveloper(SystemOrDeveloperMessage),
 }
 
-fn try_role_based_message_parsing(data: &Value) -> Option<Vec<Message>> {
-    let items = data.as_array()?;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct SystemOrDeveloperMessage {
+    role: SystemOrDeveloperRole,
+    content: Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum SystemOrDeveloperRole {
+    System,
+    Developer,
+}
+
+fn try_parse_anthropic_or_system_message(item: AnthropicOrSystemMessage) -> Option<Message> {
+    match item {
+        AnthropicOrSystemMessage::Anthropic(provider_message) => {
+            <Message as TryFromLLM<anthropic::InputMessage>>::try_from(provider_message).ok()
+        }
+        AnthropicOrSystemMessage::SystemOrDeveloper(system_or_developer) => {
+            let value = serde_json::to_value(system_or_developer).ok()?;
+            parse_lenient_message_item(&value)
+        }
+    }
+}
+
+fn try_anthropic_or_system_messages(data: &Value) -> Option<Vec<Message>> {
+    let items: Vec<AnthropicOrSystemMessage> = serde_json::from_value(data.clone()).ok()?;
     if items.is_empty() {
         return None;
     }
 
-    // Only apply this path to arrays that are explicitly role-based messages.
-    if !items.iter().all(|item| {
-        item.as_object()
-            .and_then(|obj| obj.get("role"))
-            .and_then(Value::as_str)
-            .is_some()
-    }) {
-        return None;
-    }
-
-    let mut messages = Vec::new();
-    for item in items {
-        let parsed = try_parse_single_role_based_message_item(item)?;
-        messages.extend(parsed);
-    }
+    let messages: Option<Vec<Message>> = items
+        .into_iter()
+        .map(try_parse_anthropic_or_system_message)
+        .collect();
+    let messages = messages?;
 
     if messages.is_empty() {
         None
