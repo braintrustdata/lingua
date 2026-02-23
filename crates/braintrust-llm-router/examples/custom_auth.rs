@@ -136,6 +136,7 @@ async fn main() -> Result<()> {
         .complete(
             body,
             model,
+            None,
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )

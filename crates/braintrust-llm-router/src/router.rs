@@ -127,7 +127,8 @@ impl Router {
     ///
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
-    /// * `output_format` - The output format, or None to auto-detect from body
+    /// * `provider` - Optional provider alias. When omitted, the router uses its default provider for the model format
+    /// * `output_format` - Desired response format
     /// * `client_headers` - Client headers to forward to the upstream provider
     ///
     /// The body will be automatically transformed to the target provider's format if needed.
@@ -144,11 +145,12 @@ impl Router {
         &self,
         body: Bytes,
         model: &str,
+        provider: Option<&str>,
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let (provider, auth, spec, format, strategy) =
-            self.resolve_provider(model, output_format)?;
+            self.resolve_provider(model, provider, output_format)?;
         let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
@@ -184,7 +186,8 @@ impl Router {
     ///
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
-    /// * `output_format` - The output format, or None to auto-detect from body
+    /// * `provider` - Optional provider alias. When omitted, the router uses its default provider for the model format
+    /// * `output_format` - Desired stream chunk format
     /// * `client_headers` - Client headers to forward to the upstream provider
     ///
     /// The body will be automatically transformed to the target provider's format if needed.
@@ -201,10 +204,12 @@ impl Router {
         &self,
         body: Bytes,
         model: &str,
+        provider: Option<&str>,
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
-        let (provider, auth, spec, format, _) = self.resolve_provider(model, output_format)?;
+        let (provider, auth, spec, format, _) =
+            self.resolve_provider(model, provider, output_format)?;
         let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
@@ -219,23 +224,51 @@ impl Router {
         Ok(transform_stream(raw_stream, output_format))
     }
 
-    pub fn provider_alias(&self, model: &str) -> Result<String> {
+    pub fn available_providers(&self) -> Result<Vec<String>> {
+        // filter down to providers that have auth configured
+        let mut provider_aliases: Vec<String> = self
+            .providers
+            .keys()
+            .filter(|alias| self.auth_configs.contains_key(alias.as_str()))
+            .cloned()
+            .collect();
+        provider_aliases.sort();
+        Ok(provider_aliases)
+    }
+
+    pub fn default_provider_for_model(&self, model: &str) -> Result<String> {
         let (_, format, alias) = self.resolver.resolve(model)?;
-        Ok(self.formats.get(&format).cloned().unwrap_or(alias))
+        let alias = self.formats.get(&format).cloned().unwrap_or(alias);
+        if self.providers.contains_key(&alias) {
+            Ok(alias)
+        } else {
+            Err(Error::NoProvider(format))
+        }
     }
 
     fn resolve_provider(
         &self,
         model: &str,
+        selected_provider: Option<&str>,
         output_format: ProviderFormat,
     ) -> Result<ResolvedRoute<'_>> {
         let (spec, catalog_format, alias) = self.resolver.resolve(model)?;
-        let alias = self.formats.get(&catalog_format).cloned().unwrap_or(alias);
-        let provider = self
-            .providers
-            .get(&alias)
-            .cloned()
-            .ok_or_else(|| Error::NoProvider(catalog_format))?;
+        let alias = selected_provider.map_or_else(
+            || self.formats.get(&catalog_format).cloned().unwrap_or(alias),
+            str::to_owned,
+        );
+        let provider = self.providers.get(&alias).cloned().ok_or_else(|| {
+            if selected_provider.is_some() {
+                Error::InvalidRequest(format!("provider '{alias}' is not configured"))
+            } else {
+                Error::NoProvider(catalog_format)
+            }
+        })?;
+        if !provider.provider_formats().contains(&catalog_format) {
+            return Err(Error::InvalidRequest(format!(
+                "provider '{alias}' does not support model '{model}' with format '{catalog_format:?}'"
+            )));
+        }
         let format = if output_format != catalog_format
             && provider.provider_formats().contains(&output_format)
         {

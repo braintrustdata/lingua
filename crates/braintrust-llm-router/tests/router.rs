@@ -84,6 +84,69 @@ impl Provider for StubProvider {
     }
 }
 
+#[derive(Clone)]
+struct LabeledProvider {
+    id: &'static str,
+    label: &'static str,
+}
+
+#[async_trait]
+impl Provider for LabeledProvider {
+    fn id(&self) -> &'static str {
+        self.id
+    }
+
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::ChatCompletions]
+    }
+
+    async fn complete(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<Bytes> {
+        let response = json!({
+            "id": "stub-response",
+            "object": "chat.completion",
+            "model": "stub-model",
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": self.label
+                },
+                "finish_reason": "stop"
+            }],
+            "usage": {
+                "prompt_tokens": 1,
+                "completion_tokens": 1,
+                "total_tokens": 2
+            }
+        });
+        let bytes = braintrust_llm_router::serde_json::to_vec(&response)
+            .map_err(|e| Error::InvalidRequest(e.to_string()))?;
+        Ok(Bytes::from(bytes))
+    }
+
+    async fn complete_stream(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
+        Ok(Box::pin(tokio_stream::empty()))
+    }
+
+    async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
+        Ok(())
+    }
+}
+
 #[tokio::test]
 async fn router_routes_to_stub_provider() {
     let mut catalog = ModelCatalog::empty();
@@ -124,6 +187,17 @@ async fn router_routes_to_stub_provider() {
         .expect("router builds");
 
     let model = "stub-model";
+    assert_eq!(
+        router
+            .default_provider_for_model(model)
+            .expect("default provider"),
+        "stub"
+    );
+    assert_eq!(
+        router.default_provider_for_model(model).expect("provider alias"),
+        "stub"
+    );
+
     let body = to_body(json!({
         "model": model,
         "messages": [
@@ -136,6 +210,7 @@ async fn router_routes_to_stub_provider() {
         .complete(
             body,
             model,
+            None,
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
@@ -149,6 +224,154 @@ async fn router_routes_to_stub_provider() {
         Some("stub-model")
     );
     assert!(response.get("choices").is_some());
+}
+
+#[tokio::test]
+async fn router_lists_available_providers() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "stub-model".into(),
+        ModelSpec {
+            model: "stub-model".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+        },
+    );
+    let router = RouterBuilder::new()
+        .with_catalog(Arc::new(catalog))
+        .add_provider(
+            "alpha",
+            LabeledProvider {
+                id: "alpha",
+                label: "alpha",
+            },
+        )
+        .add_provider(
+            "beta",
+            LabeledProvider {
+                id: "beta",
+                label: "beta",
+            },
+        )
+        .add_auth(
+            "alpha",
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: None,
+                prefix: None,
+            },
+        )
+        .add_auth(
+            "beta",
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: None,
+                prefix: None,
+            },
+        )
+        .build()
+        .expect("router builds");
+
+    let providers = router.available_providers().expect("available providers");
+    assert_eq!(providers.len(), 2);
+    assert!(providers.contains(&"alpha".to_string()));
+    assert!(providers.contains(&"beta".to_string()));
+}
+
+#[tokio::test]
+async fn router_routes_to_explicit_provider() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "stub-model".into(),
+        ModelSpec {
+            model: "stub-model".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+        },
+    );
+    let router = RouterBuilder::new()
+        .with_catalog(Arc::new(catalog))
+        .add_provider(
+            "alpha",
+            LabeledProvider {
+                id: "alpha",
+                label: "alpha",
+            },
+        )
+        .add_provider(
+            "beta",
+            LabeledProvider {
+                id: "beta",
+                label: "beta",
+            },
+        )
+        .add_auth(
+            "alpha",
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: None,
+                prefix: None,
+            },
+        )
+        .add_auth(
+            "beta",
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: None,
+                prefix: None,
+            },
+        )
+        .build()
+        .expect("router builds");
+
+    let body = to_body(json!({
+        "model": "stub-model",
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+    let bytes = router
+        .complete(
+            body,
+            "stub-model",
+            Some("beta"),
+            ProviderFormat::ChatCompletions,
+            &ClientHeaders::default(),
+        )
+        .await
+        .expect("complete");
+    let response: Value =
+        braintrust_llm_router::serde_json::from_slice(&bytes).expect("valid json");
+    assert_eq!(
+        response
+            .get("choices")
+            .and_then(Value::as_array)
+            .and_then(|choices| choices.first())
+            .and_then(|choice| choice.get("message"))
+            .and_then(|message| message.get("content"))
+            .and_then(Value::as_str),
+        Some("beta")
+    );
 }
 
 #[tokio::test]
@@ -191,6 +414,7 @@ async fn router_requires_auth_for_provider() {
         .complete(
             body,
             model,
+            None,
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
@@ -237,6 +461,7 @@ async fn router_reports_missing_provider() {
         .complete(
             body,
             model,
+            None,
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
@@ -273,6 +498,7 @@ async fn router_propagates_validation_errors() {
         .complete(
             body,
             "",
+            None,
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
@@ -388,6 +614,7 @@ async fn router_retries_and_propagates_terminal_error() {
         .complete(
             body,
             model,
+            None,
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )

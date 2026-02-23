@@ -115,9 +115,10 @@ Two entry points:
 // handle() - auto-extracts model from body, detects streaming
 let result = router.handle(body, ProviderFormat::ChatCompletions, None).await?;
 
-// complete() / complete_stream() - explicit model parameter
-let bytes = router.complete(body, "gpt-4", ProviderFormat::ChatCompletions, None).await?;
-let stream = router.complete_stream(body, "gpt-4", ProviderFormat::ChatCompletions, None).await?;
+// complete() / complete_stream() - explicit model + default provider alias
+let provider = router.default_provider_for_model("gpt-4")?;
+let bytes = router.complete(body, "gpt-4", provider, ProviderFormat::ChatCompletions, &ClientHeaders::default()).await?;
+let stream = router.complete_stream(body, "gpt-4", provider, ProviderFormat::ChatCompletions, &ClientHeaders::default()).await?;
 ```
 
 ### Authentication

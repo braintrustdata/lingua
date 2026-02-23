@@ -63,6 +63,7 @@ async fn main() -> Result<()> {
         .complete_stream(
             body,
             model,
+            None,
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
@@ -142,6 +143,7 @@ async fn main() -> Result<()> {
             .complete_stream(
                 body,
                 model,
+                None,
                 ProviderFormat::ChatCompletions,
                 &ClientHeaders::default(),
             )

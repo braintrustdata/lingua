@@ -72,6 +72,8 @@ async fn main() -> Result<()> {
     if openai_key.is_some() {
         println!("📍 Sending request to GPT-4...");
         let model = "gpt-4";
+        let provider = router.default_provider_for_model(model)?;
+        println!("   Selected provider: {provider}");
         let payload = json!({
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
@@ -83,6 +85,7 @@ async fn main() -> Result<()> {
             .complete(
                 body,
                 model,
+                Some(provider.as_str()),
                 ProviderFormat::ChatCompletions,
                 &ClientHeaders::default(),
             )
@@ -103,6 +106,8 @@ async fn main() -> Result<()> {
     if anthropic_key.is_some() {
         println!("📍 Sending request to Claude...");
         let model = "claude-3-5-haiku-20241022";
+        let provider = router.default_provider_for_model(model)?;
+        println!("   Selected provider: {provider}");
         let payload = json!({
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
@@ -114,6 +119,7 @@ async fn main() -> Result<()> {
             .complete(
                 body,
                 model,
+                Some(provider.as_str()),
                 ProviderFormat::ChatCompletions,
                 &ClientHeaders::default(),
             )
