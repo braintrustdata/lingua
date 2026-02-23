@@ -1,0 +1,1101 @@
+[
+  {
+    "_pagination_key": "p07579631028854849547",
+    "_xact_id": "1000196248244001644",
+    "created": "2025-12-03T13:59:21.799Z",
+    "id": "cfce074d2e284f8f",
+    "metrics": {
+      "cached_write_cost_usd": 0.1412409375,
+      "completion_tokens": 413,
+      "end": 1764770370.3563888,
+      "input_cost_usd": 0.1412589375,
+      "output_cost_usd": 0.004646249999999999,
+      "prompt_cache_creation_tokens": 50219,
+      "prompt_tokens": 50227,
+      "regular_read_cost_usd": 0.000018,
+      "start": 1764770361.7998126,
+      "tokens": 50640,
+      "total_cost_usd": 0.14590518749999998,
+      "estimated_cost": 0.32423375
+    },
+    "model": "claude-opus-4-5-20251101",
+    "origin": null,
+    "root_span_id": "e4452dd493cb8dff197ef51523ffa7c4",
+    "scores": null,
+    "span_attributes": {
+      "name": "main_agent - first_generation",
+      "type": "llm"
+    },
+    "span_id": "cfce074d2e284f8f",
+    "span_parents": [
+      "fc779945c083d979"
+    ],
+    "tags": [],
+    "_async_scoring_state": null,
+    "audit_data": [
+      {
+        "_xact_id": "1000196248244001644",
+        "audit_data": {
+          "action": "upsert"
+        },
+        "metadata": {},
+        "source": "api"
+      }
+    ],
+    "classifications": null,
+    "facets": null,
+    "input": [
+      {
+        "content": [
+          {
+            "text": "anon_1",
+            "type": "text"
+          }
+        ],
+        "role": "system"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_2",
+            "type": "text"
+          }
+        ],
+        "role": "user"
+      },
+      {
+        "content": [
+          {
+            "signature": "anon_3",
+            "thinking": "anon_4",
+            "type": "thinking"
+          },
+          {
+            "text": "anon_5",
+            "type": "text"
+          },
+          {
+            "id": "anon_6",
+            "input": {
+              "content": "anon_7",
+              "file_path": "anon_8"
+            },
+            "name": "anon_9",
+            "type": "tool_use"
+          },
+          {
+            "id": "anon_10",
+            "input": {
+              "content": "anon_11",
+              "file_path": "anon_12"
+            },
+            "name": "anon_9",
+            "type": "tool_use"
+          },
+          {
+            "id": "anon_13",
+            "input": {
+              "content": "anon_14",
+              "file_path": "anon_15"
+            },
+            "name": "anon_9",
+            "type": "tool_use"
+          },
+          {
+            "id": "anon_16",
+            "input": {
+              "content": "anon_17",
+              "file_path": "anon_18"
+            },
+            "name": "anon_9",
+            "type": "tool_use"
+          },
+          {
+            "id": "anon_19",
+            "input": {
+              "content": "anon_20",
+              "file_path": "anon_21"
+            },
+            "name": "anon_9",
+            "type": "tool_use"
+          },
+          {
+            "id": "anon_22",
+            "input": {
+              "content": "anon_23",
+              "file_path": "anon_24"
+            },
+            "name": "anon_9",
+            "type": "tool_use"
+          }
+        ],
+        "role": "assistant"
+      },
+      {
+        "content": [
+          {
+            "content": "tool_result_1",
+            "tool_use_id": "anon_6",
+            "type": "tool_result"
+          },
+          {
+            "content": "tool_result_2",
+            "tool_use_id": "anon_10",
+            "type": "tool_result"
+          },
+          {
+            "content": "tool_result_3",
+            "tool_use_id": "anon_13",
+            "type": "tool_result"
+          },
+          {
+            "content": "tool_result_4",
+            "tool_use_id": "anon_16",
+            "type": "tool_result"
+          },
+          {
+            "content": "tool_result_5",
+            "tool_use_id": "anon_19",
+            "type": "tool_result"
+          },
+          {
+            "content": "tool_result_6",
+            "tool_use_id": "anon_22",
+            "type": "tool_result"
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "is_root": false,
+    "log_id": "g",
+    "metadata": {
+      "braintrust.app_url": "anon_26",
+      "braintrust.org": "anon_27",
+      "braintrust.parent": "anon_28",
+      "braintrust.span_attributes.type": "anon_29",
+      "external_request_id": "anon_30",
+      "model": "claude-opus-4-5-20251101",
+      "model_description": "anon_31",
+      "provider": "anon_32",
+      "purpose": "anon_33",
+      "subpurpose": "anon_34",
+      "tools": [
+        {
+          "function": {
+            "description": "anon_35",
+            "name": "anon_36",
+            "parameters": {
+              "properties": {},
+              "required": [],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_37",
+            "name": "anon_38",
+            "parameters": {
+              "properties": {
+                "secret_names": {
+                  "example": "anon_39",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "anon_40"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_41",
+            "name": "anon_42",
+            "parameters": {
+              "properties": {
+                "secret_names": {
+                  "example": "anon_39",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "anon_40"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_43",
+            "name": "anon_44",
+            "parameters": {
+              "properties": {
+                "secret_names": {
+                  "example": "anon_39",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "anon_40"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_45",
+            "name": "anon_46",
+            "parameters": {
+              "properties": {
+                "package": {
+                  "example": "anon_47",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_48"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_49",
+            "name": "anon_9",
+            "parameters": {
+              "properties": {
+                "content": {
+                  "example": "anon_50",
+                  "type": "string"
+                },
+                "file_path": {
+                  "example": "anon_51",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_52",
+                "anon_53"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_54",
+            "name": "anon_55",
+            "parameters": {
+              "properties": {
+                "file_path": {
+                  "example": "anon_56",
+                  "type": "string"
+                },
+                "first_replaced_line": {
+                  "description": "anon_57",
+                  "example": "anon_58",
+                  "type": "number"
+                },
+                "last_replaced_line": {
+                  "description": "anon_59",
+                  "example": "anon_60",
+                  "type": "number"
+                },
+                "replace": {
+                  "description": "anon_61",
+                  "example": "anon_62",
+                  "type": "string"
+                },
+                "search": {
+                  "description": "anon_63",
+                  "example": "anon_64",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_52",
+                "anon_65",
+                "anon_66",
+                "anon_67",
+                "anon_68"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_69",
+            "name": "anon_70",
+            "parameters": {
+              "properties": {
+                "formats": {
+                  "description": "anon_71",
+                  "example": "anon_72",
+                  "type": "string"
+                },
+                "url": {
+                  "example": "anon_73",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_74"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_75",
+            "name": "anon_76",
+            "parameters": {
+              "properties": {
+                "source_url": {
+                  "description": "anon_77",
+                  "example": "anon_78",
+                  "type": "string"
+                },
+                "target_path": {
+                  "description": "anon_79",
+                  "example": "anon_80",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_81",
+                "anon_82"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_83",
+            "name": "anon_84",
+            "parameters": {
+              "properties": {
+                "destination_file_path": {
+                  "example": "anon_85",
+                  "type": "string"
+                },
+                "source_file_path": {
+                  "example": "anon_51",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_86",
+                "anon_87"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_88",
+            "name": "anon_89",
+            "parameters": {
+              "properties": {
+                "search": {
+                  "example": "anon_90",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_65"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_91",
+            "name": "anon_92",
+            "parameters": {
+              "properties": {
+                "search": {
+                  "example": "anon_90",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_65"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_93",
+            "name": "anon_94",
+            "parameters": {
+              "properties": {
+                "package": {
+                  "example": "anon_95",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_48"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_96",
+            "name": "anon_97",
+            "parameters": {
+              "properties": {
+                "package": {
+                  "example": "anon_95",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_48"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_98",
+            "name": "anon_99",
+            "parameters": {
+              "properties": {
+                "new_file_path": {
+                  "example": "anon_100",
+                  "type": "string"
+                },
+                "original_file_path": {
+                  "example": "anon_51",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_101",
+                "anon_102"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_103",
+            "name": "anon_104",
+            "parameters": {
+              "properties": {
+                "file_path": {
+                  "example": "anon_105",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_52"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_106",
+            "name": "anon_107",
+            "parameters": {
+              "properties": {
+                "case_sensitive": {
+                  "example": "anon_108",
+                  "type": "boolean"
+                },
+                "exclude_dirs": {
+                  "example": "anon_109",
+                  "type": "string"
+                },
+                "exclude_patterns": {
+                  "example": "anon_110",
+                  "type": "string"
+                },
+                "include_patterns": {
+                  "example": "anon_111",
+                  "type": "string"
+                },
+                "query": {
+                  "example": "anon_112",
+                  "type": "string"
+                },
+                "search_dir": {
+                  "example": "anon_113",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_114"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_115",
+            "name": "anon_116",
+            "parameters": {
+              "properties": {
+                "file_path": {
+                  "example": "anon_105",
+                  "type": "string"
+                },
+                "lines": {
+                  "example": "anon_117",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_52"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_118",
+            "name": "anon_119",
+            "parameters": {
+              "properties": {
+                "dir_path": {
+                  "example": "anon_113",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_120"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_121",
+            "name": "anon_122",
+            "parameters": {
+              "properties": {
+                "file_path": {
+                  "description": "anon_123",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_52"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_124",
+            "name": "anon_125",
+            "parameters": {
+              "properties": {
+                "path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_126"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_127",
+            "name": "anon_128",
+            "parameters": {
+              "properties": {
+                "seconds": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "anon_129"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_130",
+            "name": "anon_131",
+            "parameters": {
+              "properties": {
+                "height": {
+                  "description": "anon_132",
+                  "type": "number"
+                },
+                "model": {
+                  "description": "anon_133",
+                  "type": "string"
+                },
+                "target_path": {
+                  "description": "anon_134",
+                  "type": "string"
+                },
+                "width": {
+                  "description": "anon_135",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "anon_136",
+                "anon_82"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_137",
+            "name": "anon_138",
+            "parameters": {
+              "properties": {
+                "image_paths": {
+                  "description": "anon_139",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "target_path": {
+                  "description": "anon_140",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_141",
+                "anon_136",
+                "anon_82"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_142",
+            "name": "anon_143",
+            "parameters": {
+              "properties": {
+                "category": {
+                  "description": "anon_144",
+                  "type": "string"
+                },
+                "imageLinks": {
+                  "description": "anon_145",
+                  "type": "number"
+                },
+                "links": {
+                  "description": "anon_146",
+                  "type": "number"
+                },
+                "numResults": {
+                  "description": "anon_147",
+                  "type": "number"
+                },
+                "query": {
+                  "description": "anon_148",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_114"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_149",
+            "name": "anon_150",
+            "parameters": {
+              "properties": {
+                "query": {
+                  "description": "anon_151",
+                  "type": "string"
+                },
+                "tokensNum": {
+                  "description": "anon_152",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_114"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_153",
+            "name": "anon_154",
+            "parameters": {
+              "properties": {
+                "enddate": {
+                  "type": "string"
+                },
+                "granularity": {
+                  "type": "string"
+                },
+                "startdate": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "anon_155",
+                "anon_156",
+                "anon_157"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_158",
+            "name": "anon_159",
+            "parameters": {
+              "properties": {},
+              "required": [],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_160",
+            "name": "anon_161",
+            "parameters": {
+              "properties": {},
+              "required": [],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_162",
+            "name": "anon_163",
+            "parameters": {
+              "properties": {
+                "force": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "anon_164"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_165",
+            "name": "anon_166",
+            "parameters": {
+              "properties": {},
+              "required": [],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_167",
+            "name": "anon_168",
+            "parameters": {
+              "properties": {
+                "operations": {
+                  "description": "anon_169",
+                  "items": {
+                    "properties": {
+                      "finding": {
+                        "description": "anon_170",
+                        "properties": {
+                          "category": {
+                            "description": "anon_171",
+                            "type": "string"
+                          },
+                          "description": {
+                            "description": "anon_172",
+                            "type": "string"
+                          },
+                          "details": {
+                            "description": "anon_173",
+                            "type": "string"
+                          },
+                          "id": {
+                            "description": "anon_174",
+                            "type": "string"
+                          },
+                          "ignore": {
+                            "description": "anon_175",
+                            "type": "boolean"
+                          },
+                          "ignore_reason": {
+                            "description": "anon_176",
+                            "type": "string"
+                          },
+                          "internal_id": {
+                            "description": "anon_177",
+                            "type": "string"
+                          },
+                          "level": {
+                            "description": "anon_178",
+                            "enum": [
+                              "anon_179",
+                              "anon_180",
+                              "anon_90"
+                            ],
+                            "type": "string"
+                          },
+                          "link": {
+                            "description": "anon_181",
+                            "type": "string"
+                          },
+                          "name": {
+                            "description": "anon_182",
+                            "type": "string"
+                          },
+                          "remediation_difficulty": {
+                            "description": "anon_183",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "internal_id": {
+                        "description": "anon_184",
+                        "type": "string"
+                      },
+                      "operation": {
+                        "description": "anon_185",
+                        "enum": [
+                          "anon_186",
+                          "anon_187",
+                          "anon_188"
+                        ],
+                        "type": "string"
+                      },
+                      "scanner_name": {
+                        "description": "anon_189",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "anon_190"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "anon_191"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_192",
+            "name": "anon_193",
+            "parameters": {
+              "properties": {},
+              "required": [],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "anon_194",
+            "name": "anon_195",
+            "parameters": {
+              "properties": {
+                "questions": {
+                  "description": "anon_196",
+                  "items": {
+                    "properties": {
+                      "header": {
+                        "description": "anon_197",
+                        "example": "anon_198",
+                        "type": "string"
+                      },
+                      "multiSelect": {
+                        "description": "anon_199",
+                        "example": "anon_108",
+                        "type": "boolean"
+                      },
+                      "options": {
+                        "description": "anon_200",
+                        "items": {
+                          "properties": {
+                            "description": {
+                              "description": "anon_201",
+                              "example": "anon_202",
+                              "type": "string"
+                            },
+                            "label": {
+                              "description": "anon_203",
+                              "example": "anon_204",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "anon_205",
+                            "anon_206"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "question": {
+                        "description": "anon_207",
+                        "example": "anon_208",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "anon_209",
+                      "anon_210",
+                      "anon_211",
+                      "anon_212"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "anon_213"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        }
+      ],
+      "user_id": "anon_214",
+      "workspace_id": "anon_215",
+      "workspace_plan": "anon_216"
+    },
+    "org_id": "4b521632-af96-4523-b331-993c9084b2cf",
+    "output": [
+      {
+        "content": [
+          {
+            "signature": "anon_217",
+            "thinking": "anon_218",
+            "type": "thinking"
+          },
+          {
+            "id": "anon_219",
+            "input": {
+              "file_path": "anon_220",
+              "first_replaced_line": 8,
+              "last_replaced_line": 8,
+              "replace": "anon_221",
+              "search": "anon_222"
+            },
+            "name": "anon_55",
+            "type": "tool_use"
+          },
+          {
+            "id": "anon_223",
+            "input": {
+              "file_path": "anon_224",
+              "first_replaced_line": 6,
+              "last_replaced_line": 7,
+              "replace": "anon_225",
+              "search": "anon_226"
+            },
+            "name": "anon_55",
+            "type": "tool_use"
+          }
+        ],
+        "role": "assistant"
+      }
+    ],
+    "project_id": "e3124aef-f99c-47cf-9633-6b4978a13259",
+    "Annotations": null,
+    "User ID": "MYO32tuJfngp1ZkRwjbOxSnLMH92",
+    "Project ID": null
+  }
+]

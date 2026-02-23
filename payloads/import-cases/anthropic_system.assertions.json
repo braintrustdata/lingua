@@ -1,0 +1,24 @@
+{
+  "expectedMessageCount": 5,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "assistant",
+    "tool",
+    "assistant"
+  ],
+  "mustContainText": [
+    "anon_6",
+    "anon_10",
+    "anon_13",
+    "anon_16",
+    "anon_19",
+    "anon_22",
+    "tool_result_1",
+    "tool_result_2",
+    "tool_result_3",
+    "tool_result_4",
+    "tool_result_5",
+    "tool_result_6"
+  ]
+}
