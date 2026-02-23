@@ -1,6 +1,7 @@
 use crate::providers::anthropic::generated as anthropic;
-use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
-use crate::providers::openai::generated as openai;
+use crate::providers::openai::convert::{
+    try_parse_responses_items_for_import, ChatCompletionRequestMessageExt,
+};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
@@ -20,99 +21,6 @@ pub struct Span {
     pub output: Option<Value>,
     #[serde(flatten)]
     pub other: serde_json::Map<String, Value>,
-}
-
-fn is_openai_responses_item_type(type_name: &str) -> bool {
-    matches!(
-        type_name,
-        "message"
-            | "reasoning"
-            | "function_call"
-            | "function_call_output"
-            | "function_call_result"
-            | "web_search_call"
-            | "file_search_call"
-            | "computer_call"
-            | "image_generation_call"
-            | "code_interpreter_call"
-            | "local_shell_call"
-            | "mcp_call"
-            | "mcp_list_tools"
-            | "mcp_approval_request"
-            | "custom_tool_call"
-            | "custom_tool_call_output"
-    )
-}
-
-fn normalize_openai_responses_items(data: &Value) -> Option<Value> {
-    let arr = data.as_array()?;
-    let mut changed = false;
-    let mut normalized = Vec::with_capacity(arr.len());
-
-    for item in arr {
-        let Some(obj) = item.as_object() else {
-            normalized.push(item.clone());
-            continue;
-        };
-
-        let mut map = obj.clone();
-
-        if map.contains_key("callId") && !map.contains_key("call_id") {
-            if let Some(call_id) = map.get("callId").cloned() {
-                map.insert("call_id".to_string(), call_id);
-                changed = true;
-            }
-        }
-
-        if let Some(Value::String(item_type)) = map.get("type") {
-            if item_type == "function_call_result" {
-                map.insert(
-                    "type".to_string(),
-                    Value::String("function_call_output".to_string()),
-                );
-                changed = true;
-            }
-        }
-
-        let item_type = map
-            .get("type")
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let is_function_output = matches!(
-            item_type.as_deref(),
-            Some("function_call_output") | Some("custom_tool_call_output")
-        );
-        if is_function_output {
-            if let Some(output_value) = map.get("output") {
-                if !output_value.is_string() && !output_value.is_null() {
-                    let output_str = serde_json::to_string(output_value).ok()?;
-                    map.insert("output".to_string(), Value::String(output_str));
-                    changed = true;
-                }
-            }
-        }
-
-        // Responses image generation results may be structured attachment objects in traces,
-        // but the typed schema expects `result` as a string.
-        if matches!(item_type.as_deref(), Some("image_generation_call")) {
-            if let Some(result_value) = map.get("result") {
-                if !result_value.is_string() && !result_value.is_null() {
-                    let result_str = serde_json::to_string(result_value).ok()?;
-                    map.insert("result".to_string(), Value::String(result_str));
-                    changed = true;
-                }
-            }
-        }
-
-        normalized.push(Value::Object(map));
-    }
-
-    if changed {
-        Some(Value::Array(normalized))
-    } else {
-        None
-    }
 }
 
 /// Cheap check to see if a value looks like it might contain messages
@@ -138,30 +46,22 @@ fn has_message_structure(data: &Value) -> bool {
                             return true;
                         }
                     }
-                    // OpenAI Responses items can be tool calls/results/reasoning without a role field
-                    if let Some(item_type) = obj.get("type").and_then(Value::as_str) {
-                        if is_openai_responses_item_type(item_type) {
-                            return true;
-                        }
-                    }
                 }
             }
             false
         }
         // Check if it's an object with "role" field (single message)
-        Value::Object(obj) => {
-            obj.contains_key("role")
-                || obj
-                    .get("type")
-                    .and_then(Value::as_str)
-                    .is_some_and(is_openai_responses_item_type)
-        }
+        Value::Object(obj) => obj.contains_key("role"),
         _ => false,
     }
 }
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+    if let Some(messages) = try_parse_responses_items_for_import(data) {
+        return messages;
+    }
+
     // Early bailout: if data doesn't have message structure, skip expensive deserializations
     if !has_message_structure(data) {
         // Still try nested object search (for wrapped messages like {messages: [...]})
@@ -205,38 +105,6 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         {
             if !messages.is_empty() {
                 return messages;
-            }
-        }
-    }
-
-    let normalized_openai = normalize_openai_responses_items(data_to_parse);
-
-    // Try Responses API format
-    for candidate in std::iter::once(data_to_parse).chain(normalized_openai.as_ref()) {
-        if let Ok(provider_messages) =
-            serde_json::from_value::<Vec<openai::InputItem>>(candidate.clone())
-        {
-            if let Ok(messages) =
-                <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
-            {
-                if !messages.is_empty() {
-                    return messages;
-                }
-            }
-        }
-    }
-
-    // Try Responses API output format
-    for candidate in std::iter::once(data_to_parse).chain(normalized_openai.as_ref()) {
-        if let Ok(provider_messages) =
-            serde_json::from_value::<Vec<openai::OutputItem>>(candidate.clone())
-        {
-            if let Ok(messages) =
-                <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(provider_messages)
-            {
-                if !messages.is_empty() {
-                    return messages;
-                }
             }
         }
     }

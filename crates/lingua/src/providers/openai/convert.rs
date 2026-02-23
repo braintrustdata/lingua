@@ -104,6 +104,147 @@ fn parse_builtin_field<T: serde::de::DeserializeOwned>(
     }
 }
 
+#[derive(Debug, Clone, Copy, Deserialize)]
+enum ResponsesImportItemKind {
+    #[serde(rename = "function_call_output")]
+    FunctionCallOutput,
+    #[serde(rename = "function_call_result")]
+    FunctionCallResult,
+    #[serde(rename = "custom_tool_call_output")]
+    CustomToolCallOutput,
+    #[serde(rename = "image_generation_call")]
+    ImageGenerationCall,
+}
+
+#[derive(Debug, Deserialize)]
+struct ResponsesImportItemKindProbe {
+    #[serde(rename = "type")]
+    item_type: ResponsesImportItemKind,
+}
+
+fn normalize_responses_import_items(data: &serde_json::Value) -> Option<serde_json::Value> {
+    let arr = data.as_array()?;
+    let mut changed = false;
+    let mut normalized = Vec::with_capacity(arr.len());
+
+    for item in arr {
+        let Some(obj) = item.as_object() else {
+            normalized.push(item.clone());
+            continue;
+        };
+
+        let mut map = obj.clone();
+
+        if map.contains_key("callId") && !map.contains_key("call_id") {
+            if let Some(call_id) = map.get("callId").cloned() {
+                map.insert("call_id".to_string(), call_id);
+                changed = true;
+            }
+        }
+
+        let item_kind = serde_json::from_value::<ResponsesImportItemKindProbe>(
+            serde_json::Value::Object(map.clone()),
+        )
+        .ok()
+        .map(|probe| probe.item_type);
+
+        if matches!(item_kind, Some(ResponsesImportItemKind::FunctionCallResult)) {
+            map.insert(
+                "type".to_string(),
+                serde_json::Value::String("function_call_output".to_string()),
+            );
+            changed = true;
+        }
+
+        if matches!(
+            item_kind,
+            Some(ResponsesImportItemKind::FunctionCallOutput)
+                | Some(ResponsesImportItemKind::FunctionCallResult)
+                | Some(ResponsesImportItemKind::CustomToolCallOutput)
+        ) {
+            if let Some(output_value) = map.get("output") {
+                if !output_value.is_string() && !output_value.is_null() {
+                    map.insert(
+                        "output".to_string(),
+                        serde_json::Value::String(output_value.to_string()),
+                    );
+                    changed = true;
+                }
+            }
+        }
+
+        if matches!(
+            item_kind,
+            Some(ResponsesImportItemKind::ImageGenerationCall)
+        ) {
+            if let Some(result_value) = map.get("result") {
+                if !result_value.is_string() && !result_value.is_null() {
+                    map.insert(
+                        "result".to_string(),
+                        serde_json::Value::String(result_value.to_string()),
+                    );
+                    changed = true;
+                }
+            }
+        }
+
+        normalized.push(serde_json::Value::Object(map));
+    }
+
+    if changed {
+        Some(serde_json::Value::Array(normalized))
+    } else {
+        None
+    }
+}
+
+fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<Vec<Message>> {
+    let wrapped;
+    let candidate = if candidate.is_object() {
+        wrapped = serde_json::Value::Array(vec![candidate.clone()]);
+        &wrapped
+    } else {
+        candidate
+    };
+
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<openai::InputItem>>(candidate.clone())
+    {
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
+        {
+            if !messages.is_empty() {
+                return Some(messages);
+            }
+        }
+    }
+
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<openai::OutputItem>>(candidate.clone())
+    {
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(provider_messages)
+        {
+            if !messages.is_empty() {
+                return Some(messages);
+            }
+        }
+    }
+
+    None
+}
+
+pub(crate) fn try_parse_responses_items_for_import(
+    data: &serde_json::Value,
+) -> Option<Vec<Message>> {
+    if let Some(messages) = try_from_responses_items_candidate(data) {
+        return Some(messages);
+    }
+
+    let normalized = normalize_responses_import_items(data)?;
+    try_from_responses_items_candidate(&normalized)
+}
+
 fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Message> {
     let mut merged: Vec<Message> = Vec::with_capacity(messages.len());
 
@@ -149,13 +290,13 @@ fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Me
         let mut combined_parts = reasoning_parts;
         match next_content {
             AssistantContent::Array(parts) => combined_parts.extend(parts),
-            AssistantContent::String(text) => combined_parts.push(AssistantContentPart::Text(
-                TextContentPart {
+            AssistantContent::String(text) => {
+                combined_parts.push(AssistantContentPart::Text(TextContentPart {
                     text,
                     encrypted_content: None,
                     provider_options: None,
-                },
-            )),
+                }))
+            }
         }
 
         merged.push(Message::Assistant {
@@ -1811,7 +1952,10 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
 
         for mut item in items {
             let item_id = item.id.clone();
-            let is_reasoning_item = matches!(item.output_item_type.clone(), Some(openai::OutputItemType::Reasoning));
+            let is_reasoning_item = matches!(
+                item.output_item_type.clone(),
+                Some(openai::OutputItemType::Reasoning)
+            );
 
             let parts: Vec<AssistantContentPart> = match item.output_item_type {
                 Some(openai::OutputItemType::Message) => {
