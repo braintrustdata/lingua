@@ -1,0 +1,23 @@
+[
+  {
+    "input": [
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "toolu_1",
+            "name": "tool1",
+            "input": { "param": "value1" }
+          },
+          {
+            "type": "tool_use",
+            "id": "toolu_2",
+            "name": "tool2",
+            "input": { "param": "value2" }
+          }
+        ]
+      }
+    ]
+  }
+]

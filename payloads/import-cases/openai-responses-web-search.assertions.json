@@ -1,0 +1,12 @@
+{
+  "_migrationNote": "Diverges from app/ui/trace/converters/openai-response-converter.test.ts (Web search): the old converter normalized string input into a user message plus two assistant output messages (web_search call + answer). lingua import_messages_from_spans currently drops string input and imports only the two assistant-side messages.",
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "assistant",
+    "assistant"
+  ],
+  "mustContainText": [
+    "latest AI news",
+    "comprehensive overview"
+  ]
+}

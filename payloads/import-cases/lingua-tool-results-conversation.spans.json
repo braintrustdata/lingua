@@ -1,0 +1,29 @@
+[
+  {
+    "input": [
+      { "role": "user", "content": "What's the weather?" }
+    ],
+    "output": [
+      {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_weather",
+            "type": "function",
+            "function": { "name": "get_weather", "arguments": "{}" }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": "Sunny, 75F",
+        "tool_call_id": "call_weather"
+      },
+      {
+        "role": "assistant",
+        "content": "It's sunny and 75F!"
+      }
+    ]
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "input": [
+      {
+        "type": "function_call_output",
+        "call_id": "call_weather_1",
+        "output": "{\"temperature\":18.2,\"windspeed\":23.2}"
+      }
+    ],
+    "output": [
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "The current weather in Chicago is approximately 18.2 C."
+          }
+        ]
+      }
+    ]
+  }
+]

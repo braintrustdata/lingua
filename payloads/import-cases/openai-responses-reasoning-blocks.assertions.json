@@ -1,0 +1,14 @@
+{
+  "_migrationNote": "Diverges from app/ui/trace/converters/openai-response-converter.test.ts (Reasoning blocks): the old converter merged reasoning summaries into the following assistant message, while lingua import_messages_from_spans currently imports reasoning as a separate assistant message, resulting in 3 messages instead of 2.",
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant",
+    "assistant"
+  ],
+  "mustContainText": [
+    "South American countries",
+    "Step 1: List all countries",
+    "Estimating South American capitals"
+  ]
+}

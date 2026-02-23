@@ -1,0 +1,19 @@
+[
+  {
+    "input": [
+      { "role": "system", "content": "Content evaluator" },
+      { "role": "user", "content": "Evaluate this content" }
+    ],
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_reasoning_only",
+        "summary": [
+          { "type": "summary_text", "text": "aaaaa" },
+          { "type": "summary_text", "text": "aaaa" },
+          { "type": "summary_text", "text": "aaaaa" }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "_migrationNote": "Diverges from app/ui/trace/converters/langchain-converter.test.ts (human/ai basic): the old converter normalized LangChain message wrappers (`type: human/ai`, nested `generations`) into user+assistant messages, but lingua import_messages_from_spans currently imports 0 messages for this raw LangChain shape.",
+  "expectedMessageCount": 0,
+  "expectedRolesInOrder": [],
+  "mustContainText": []
+}

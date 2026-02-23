@@ -1,0 +1,46 @@
+[
+  {
+    "input": {
+      "model": {
+        "config": {
+          "fileIdPrefixes": ["file-"],
+          "provider": "openai.responses"
+        },
+        "modelId": "gpt-5-mini",
+        "specificationVersion": "v2"
+      },
+      "prompt": "What is the capital of France?"
+    },
+    "output": {
+      "body": "<omitted>",
+      "steps": [
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_123",
+                  "reasoningEncryptedContent": null
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "msg_456"
+                }
+              },
+              "text": "The capital of France is Paris.",
+              "type": "text"
+            }
+          ],
+          "finishReason": "stop",
+          "request": { "body": "<omitted>" },
+          "response": { "body": "<omitted>" }
+        }
+      ]
+    }
+  }
+]

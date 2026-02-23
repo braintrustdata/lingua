@@ -1,0 +1,10 @@
+{
+  "_migrationNote": "Diverges from app/ui/trace/converters/openai-response-converter.test.ts (function_call_output handling): the old converter test expected a tool message from input.function_call_output plus the assistant output, but lingua import_messages_from_spans currently imports only the assistant message for this fixture.",
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "assistant"
+  ],
+  "mustContainText": [
+    "weather in Chicago"
+  ]
+}
