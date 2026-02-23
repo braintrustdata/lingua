@@ -143,6 +143,15 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         }
     }
 
+    // Try per-item typed parsing for role-based arrays.
+    // This handles mixed arrays (for example Anthropic-style arrays that include a
+    // top-level system message), where strict provider-wide parsing may fail.
+    if let Some(role_based_messages) = try_role_based_message_parsing(data_to_parse) {
+        if !role_based_messages.is_empty() {
+            return role_based_messages;
+        }
+    }
+
     // Try lenient parsing for non-standard message formats
     if let Some(lenient_messages) = try_lenient_message_parsing(data_to_parse) {
         if !lenient_messages.is_empty() {
@@ -159,6 +168,75 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     }
 
     Vec::new()
+}
+
+fn try_parse_single_role_based_message_item(item: &Value) -> Option<Vec<Message>> {
+    let role = item.as_object()?.get("role")?.as_str()?;
+
+    // Anthropic has a top-level `system` parameter rather than role-based system
+    // messages, so system/developer entries need a separate parser.
+    if role == "system" || role == "developer" {
+        return parse_lenient_message_item(item).map(|message| vec![message]);
+    }
+
+    if let Ok(provider_message) = serde_json::from_value::<anthropic::InputMessage>(item.clone()) {
+        if let Ok(message) =
+            <Message as TryFromLLM<anthropic::InputMessage>>::try_from(provider_message)
+        {
+            return Some(vec![message]);
+        }
+    }
+
+    if let Ok(provider_message) =
+        serde_json::from_value::<ChatCompletionRequestMessageExt>(item.clone())
+    {
+        if let Ok(message) =
+            <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(provider_message)
+        {
+            return Some(vec![message]);
+        }
+    }
+
+    if let Ok(provider_message) = serde_json::from_value::<openai::InputItem>(item.clone()) {
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![provider_message])
+        {
+            if !messages.is_empty() {
+                return Some(messages);
+            }
+        }
+    }
+
+    parse_lenient_message_item(item).map(|message| vec![message])
+}
+
+fn try_role_based_message_parsing(data: &Value) -> Option<Vec<Message>> {
+    let items = data.as_array()?;
+    if items.is_empty() {
+        return None;
+    }
+
+    // Only apply this path to arrays that are explicitly role-based messages.
+    if !items.iter().all(|item| {
+        item.as_object()
+            .and_then(|obj| obj.get("role"))
+            .and_then(Value::as_str)
+            .is_some()
+    }) {
+        return None;
+    }
+
+    let mut messages = Vec::new();
+    for item in items {
+        let parsed = try_parse_single_role_based_message_item(item)?;
+        messages.extend(parsed);
+    }
+
+    if messages.is_empty() {
+        None
+    } else {
+        Some(messages)
+    }
 }
 
 /// Lenient message parser for messages that don't match strict provider schemas
