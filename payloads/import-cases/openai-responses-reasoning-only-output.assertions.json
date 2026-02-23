@@ -1,9 +1,9 @@
 {
-  "_migrationNote": "Diverges from app/ui/trace/converters/openai-response-converter.test.ts (reasoning-only output failure case): the old converter synthesized an assistant message with empty content plus reasoning blocks, but lingua import_messages_from_spans currently drops reasoning-only output and imports only the system and user messages.",
-  "expectedMessageCount": 2,
+  "expectedMessageCount": 3,
   "expectedRolesInOrder": [
     "system",
-    "user"
+    "user",
+    "assistant"
   ],
   "mustContainText": [
     "Evaluate this content"

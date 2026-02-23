@@ -1,8 +1,9 @@
 {
-  "_migrationNote": "Diverges from app/ui/trace/converters/openai-response-converter.test.ts (real-world OpenAI tool loop): the old converter produced 4 messages including assistant tool call + tool result, but lingua import_messages_from_spans currently imports only the user prompt and final assistant message for this Responses payload.",
-  "expectedMessageCount": 2,
+  "expectedMessageCount": 4,
   "expectedRolesInOrder": [
     "user",
+    "assistant",
+    "tool",
     "assistant"
   ],
   "mustContainText": [

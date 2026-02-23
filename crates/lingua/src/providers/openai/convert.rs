@@ -104,6 +104,69 @@ fn parse_builtin_field<T: serde::de::DeserializeOwned>(
     }
 }
 
+fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Message> {
+    let mut merged: Vec<Message> = Vec::with_capacity(messages.len());
+
+    for message in messages {
+        let can_merge = match (merged.last(), &message) {
+            (
+                Some(Message::Assistant {
+                    content: AssistantContent::Array(prev_parts),
+                    ..
+                }),
+                Message::Assistant { .. },
+            ) => {
+                !prev_parts.is_empty()
+                    && prev_parts
+                        .iter()
+                        .all(|part| matches!(part, AssistantContentPart::Reasoning { .. }))
+            }
+            _ => false,
+        };
+
+        if !can_merge {
+            merged.push(message);
+            continue;
+        }
+
+        let previous = merged.pop().expect("previous message should exist");
+        let Message::Assistant {
+            content: AssistantContent::Array(reasoning_parts),
+            id: reasoning_id,
+        } = previous
+        else {
+            unreachable!("checked previous assistant reasoning message above");
+        };
+
+        let Message::Assistant {
+            content: next_content,
+            id: next_id,
+        } = message
+        else {
+            unreachable!("checked current assistant message above");
+        };
+
+        let mut combined_parts = reasoning_parts;
+        match next_content {
+            AssistantContent::Array(parts) => combined_parts.extend(parts),
+            AssistantContent::String(text) => combined_parts.push(AssistantContentPart::Text(
+                TextContentPart {
+                    text,
+                    encrypted_content: None,
+                    provider_options: None,
+                },
+            )),
+        }
+
+        merged.push(Message::Assistant {
+            content: AssistantContent::Array(combined_parts),
+            id: next_id.or(reasoning_id),
+        });
+    }
+
+    merged
+}
+
 /// Convert OpenAI InputItem collection to universal Message collection
 /// This handles OpenAI-specific logic for combining or transforming multiple items
 impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
@@ -396,7 +459,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
             };
         }
 
-        Ok(result)
+        Ok(merge_adjacent_reasoning_assistant_messages(result))
     }
 }
 
@@ -1743,9 +1806,12 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
 
     fn try_from(items: Vec<openai::OutputItem>) -> Result<Vec<Message>, Self::Error> {
         let mut messages: Vec<Message> = Vec::new();
+        let mut pending_reasoning_parts: Vec<AssistantContentPart> = Vec::new();
+        let mut pending_reasoning_id: Option<String> = None;
 
         for mut item in items {
             let item_id = item.id.clone();
+            let is_reasoning_item = matches!(item.output_item_type.clone(), Some(openai::OutputItemType::Reasoning));
 
             let parts: Vec<AssistantContentPart> = match item.output_item_type {
                 Some(openai::OutputItemType::Message) => {
@@ -1961,16 +2027,42 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                 }
             };
 
-            // Only create a message if there are parts
-            if !parts.is_empty() {
-                messages.push(Message::Assistant {
-                    content: AssistantContent::Array(parts),
-                    id: item_id,
-                });
+            if parts.is_empty() {
+                continue;
             }
+
+            // Merge standalone Responses reasoning items into the next assistant output item.
+            if is_reasoning_item {
+                if pending_reasoning_id.is_none() {
+                    pending_reasoning_id = item_id;
+                }
+                pending_reasoning_parts.extend(parts);
+                continue;
+            }
+
+            let final_parts = if pending_reasoning_parts.is_empty() {
+                parts
+            } else {
+                let mut merged = std::mem::take(&mut pending_reasoning_parts);
+                merged.extend(parts);
+                merged
+            };
+
+            messages.push(Message::Assistant {
+                content: AssistantContent::Array(final_parts),
+                id: item_id.or_else(|| pending_reasoning_id.take()),
+            });
+            pending_reasoning_id = None;
         }
 
-        Ok(messages)
+        if !pending_reasoning_parts.is_empty() {
+            messages.push(Message::Assistant {
+                content: AssistantContent::Array(pending_reasoning_parts),
+                id: pending_reasoning_id,
+            });
+        }
+
+        Ok(merge_adjacent_reasoning_assistant_messages(messages))
     }
 }
 
