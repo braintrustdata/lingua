@@ -134,32 +134,32 @@
       {
         "content": [
           {
-            "content": "anon_25",
+            "content": "tool_result_1",
             "tool_use_id": "anon_6",
             "type": "tool_result"
           },
           {
-            "content": "anon_25",
+            "content": "tool_result_2",
             "tool_use_id": "anon_10",
             "type": "tool_result"
           },
           {
-            "content": "anon_25",
+            "content": "tool_result_3",
             "tool_use_id": "anon_13",
             "type": "tool_result"
           },
           {
-            "content": "anon_25",
+            "content": "tool_result_4",
             "tool_use_id": "anon_16",
             "type": "tool_result"
           },
           {
-            "content": "anon_25",
+            "content": "tool_result_5",
             "tool_use_id": "anon_19",
             "type": "tool_result"
           },
           {
-            "content": "anon_25",
+            "content": "tool_result_6",
             "tool_use_id": "anon_22",
             "type": "tool_result"
           }
