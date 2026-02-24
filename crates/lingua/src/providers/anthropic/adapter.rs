@@ -1310,10 +1310,11 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
+        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
 
-        assert!(result.get("tool_choice").is_some());
+        assert!(parsed.tool_choice.is_some());
         assert!(
-            result.get("thinking").is_none(),
+            parsed.thinking.is_none(),
             "Enabled thinking should be omitted when tool_choice forces tool use"
         );
     }
@@ -1347,10 +1348,11 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
+        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
 
-        assert!(result.get("tool_choice").is_some());
+        assert!(parsed.tool_choice.is_some());
         assert!(
-            result.get("thinking").is_some(),
+            parsed.thinking.is_some(),
             "Enabled thinking should be preserved when tool_choice is not forced"
         );
     }
@@ -1383,14 +1385,12 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
+        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
 
-        assert!(result.get("tool_choice").is_some());
+        assert!(parsed.tool_choice.is_some());
         assert_eq!(
-            result
-                .get("thinking")
-                .and_then(|thinking| thinking.get("type"))
-                .and_then(Value::as_str),
-            Some("disabled"),
+            parsed.thinking.map(|thinking| thinking.thinking_type),
+            Some(ThinkingType::Disabled),
             "Disabled thinking should be preserved with forced tool_choice"
         );
     }
