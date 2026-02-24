@@ -1,7 +1,6 @@
 use crate::providers::anthropic::generated as anthropic;
-use crate::providers::openai::convert::{
-    try_parse_responses_items_for_import, ChatCompletionRequestMessageExt,
-};
+use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
+use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
@@ -58,10 +57,6 @@ fn has_message_structure(data: &Value) -> bool {
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
-    if let Some(messages) = try_parse_responses_items_for_import(data) {
-        return messages;
-    }
-
     // Early bailout: if data doesn't have message structure, skip expensive deserializations
     if !has_message_structure(data) {
         // Still try nested object search (for wrapped messages like {messages: [...]})
@@ -102,6 +97,32 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
             <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
                 provider_messages,
             )
+        {
+            if !messages.is_empty() {
+                return messages;
+            }
+        }
+    }
+
+    // Try Responses API format
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<openai::InputItem>>(data_to_parse.clone())
+    {
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
+        {
+            if !messages.is_empty() {
+                return messages;
+            }
+        }
+    }
+
+    // Try Responses API output format
+    if let Ok(provider_messages) =
+        serde_json::from_value::<Vec<openai::OutputItem>>(data_to_parse.clone())
+    {
+        if let Ok(messages) =
+            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(provider_messages)
         {
             if !messages.is_empty() {
                 return messages;
@@ -244,7 +265,7 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
             for item in arr {
                 if let Some(obj) = item.as_object() {
                     if let Some(Value::String(text_type)) = obj.get("type") {
-                        if matches!(text_type.as_str(), "text" | "input_text" | "output_text") {
+                        if text_type == "text" {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(UserContentPart::Text(TextContentPart {
                                     text: text.clone(),
@@ -275,7 +296,7 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
             for item in arr {
                 if let Some(obj) = item.as_object() {
                     if let Some(Value::String(text_type)) = obj.get("type") {
-                        if matches!(text_type.as_str(), "text" | "output_text" | "input_text") {
+                        if text_type == "text" {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(crate::universal::AssistantContentPart::Text(
                                     TextContentPart {
@@ -404,12 +425,8 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
     let mut messages = Vec::new();
 
     for span in spans {
-        // Preserve raw string prompts as user messages (common in Responses API traces).
-        if let Some(Value::String(input_text)) = &span.input {
-            messages.push(Message::User {
-                content: UserContent::String(input_text.clone()),
-            });
-        } else if let Some(input) = &span.input {
+        // Try to extract messages from input
+        if let Some(input) = &span.input {
             let input_messages = try_converting_to_messages(input);
             messages.extend(input_messages);
         }
