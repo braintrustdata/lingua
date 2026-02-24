@@ -22,43 +22,59 @@ pub struct Span {
     pub other: serde_json::Map<String, Value>,
 }
 
-/// Cheap check to see if a value looks like it might contain messages
-/// Returns early to avoid expensive deserialization attempts on non-message data
-fn has_message_structure(data: &Value) -> bool {
-    match data {
-        // Check if it's an array where ANY element has "role" field or is a choice object
-        Value::Array(arr) => {
-            if arr.is_empty() {
-                return false;
-            }
-            // Check if ANY element in the array looks like a message (not just the first)
-            // This handles mixed-type arrays from Responses API
-            for item in arr {
-                if let Value::Object(obj) = item {
-                    // Direct message format: has "role" field
-                    if obj.contains_key("role") {
+/// Try to convert a value to lingua messages by attempting multiple format conversions
+fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+    fn is_responses_item_type(item_type: &str) -> bool {
+        matches!(
+            item_type,
+            "message"
+                | "reasoning"
+                | "function_call"
+                | "function_call_output"
+                | "function_call_result"
+                | "custom_tool_call"
+                | "custom_tool_call_output"
+                | "web_search_call"
+                | "image_generation_call"
+                | "file_search_call"
+                | "computer_call"
+                | "code_interpreter_call"
+                | "local_shell_call"
+                | "mcp_call"
+                | "mcp_list_tools"
+                | "mcp_approval_request"
+        )
+    }
+
+    // Cheap check to see if a value looks like it might contain messages.
+    // Returns early to avoid expensive deserialization attempts on non-message data.
+    let has_message_structure = match data {
+        // Check if it's an array where any element has "role", nested "message.role",
+        // or a known Responses item type.
+        Value::Array(arr) => arr.iter().any(|item| match item {
+            Value::Object(obj) => {
+                if obj.contains_key("role") {
+                    return true;
+                }
+                if let Some(Value::Object(msg)) = obj.get("message") {
+                    if msg.contains_key("role") {
                         return true;
                     }
-                    // Chat completions response choices format: has "message" field with role inside
-                    if let Some(Value::Object(msg)) = obj.get("message") {
-                        if msg.contains_key("role") {
-                            return true;
-                        }
-                    }
                 }
+                if let Some(Value::String(item_type)) = obj.get("type") {
+                    return is_responses_item_type(item_type);
+                }
+                false
             }
-            false
-        }
+            _ => false,
+        }),
         // Check if it's an object with "role" field (single message)
         Value::Object(obj) => obj.contains_key("role"),
         _ => false,
-    }
-}
+    };
 
-/// Try to convert a value to lingua messages by attempting multiple format conversions
-fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     // Early bailout: if data doesn't have message structure, skip expensive deserializations
-    if !has_message_structure(data) {
+    if !has_message_structure {
         // Still try nested object search (for wrapped messages like {messages: [...]})
         if let Value::Object(obj) = data {
             for key in [
@@ -389,9 +405,8 @@ fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
     for item in arr {
         let obj = item.as_object()?;
 
-        // Check if this looks like a choice object (has "message" or "finish_reason")
-        // Note: has_message_structure only checks the first element, so we need to validate
-        // each element here to ensure the entire array is a valid choices array
+        // Check if this looks like a choice object (has "message" or "finish_reason").
+        // We still validate each element here to ensure the entire array is a valid choices array.
         if !obj.contains_key("message") && !obj.contains_key("finish_reason") {
             return None; // Not a choices array
         }
