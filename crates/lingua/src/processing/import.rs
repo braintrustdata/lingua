@@ -25,6 +25,9 @@ pub struct Span {
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     fn is_responses_item_type(item_type: &str) -> bool {
+        // Some traces use SDK/frontend compatibility shapes (for example
+        // `function_call_result` with `callId`) that are not present in our
+        // generated OpenAI enums from the canonical API schema.
         matches!(
             item_type,
             "message"
@@ -281,7 +284,7 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
             for item in arr {
                 if let Some(obj) = item.as_object() {
                     if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "text" {
+                        if matches!(text_type.as_str(), "text" | "input_text" | "output_text") {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(UserContentPart::Text(TextContentPart {
                                     text: text.clone(),
@@ -312,7 +315,7 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
             for item in arr {
                 if let Some(obj) = item.as_object() {
                     if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "text" {
+                        if matches!(text_type.as_str(), "text" | "input_text" | "output_text") {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(crate::universal::AssistantContentPart::Text(
                                     TextContentPart {
@@ -441,7 +444,11 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
 
     for span in spans {
         // Try to extract messages from input
-        if let Some(input) = &span.input {
+        if let Some(Value::String(input_text)) = &span.input {
+            messages.push(Message::User {
+                content: UserContent::String(input_text.clone()),
+            });
+        } else if let Some(input) = &span.input {
             let input_messages = try_converting_to_messages(input);
             messages.extend(input_messages);
         }
