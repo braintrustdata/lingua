@@ -1,7 +1,6 @@
+use crate::processing::import_openai_responses::try_import_openai_responses;
 use crate::providers::anthropic::generated as anthropic;
-use crate::providers::openai::convert::{
-    try_parse_responses_items_for_import, ChatCompletionRequestMessageExt,
-};
+use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
@@ -58,7 +57,7 @@ fn has_message_structure(data: &Value) -> bool {
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
-    if let Some(messages) = try_parse_responses_items_for_import(data) {
+    if let Some(messages) = try_import_openai_responses(data) {
         return messages;
     }
 
