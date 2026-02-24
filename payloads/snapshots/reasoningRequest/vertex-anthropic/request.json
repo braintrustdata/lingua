@@ -1,0 +1,10 @@
+{
+  "anthropic_version": "vertex-2023-10-16",
+  "max_tokens": 20000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+    }
+  ]
+}

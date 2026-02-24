@@ -1,0 +1,24 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "id": "msg_vrtx_012gc71DkWppqojhsdaPDYF5",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That depends on what you're interested in! Here are some common options:\n\n- **Learn more** - Ask questions about Paris, France, or another topic\n- **Plan a trip** - Get travel advice or recommendations\n- **Continue a conversation** - Tell me what you'd like to discuss\n- **Get help with a task** - Ask me to help with writing, coding, research, etc.\n- **Explore something new** - Let me know what interests you\n\nWhat would you like to do?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 33,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 110
+  }
+}

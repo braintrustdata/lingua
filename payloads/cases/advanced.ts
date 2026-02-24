@@ -6,6 +6,7 @@ import {
   ANTHROPIC_MODEL,
   BEDROCK_MODEL,
   BEDROCK_ANTHROPIC_MODEL,
+  VERTEX_ANTHROPIC_MODEL,
 } from "./models";
 
 const IMAGE_BASE64 =
@@ -398,6 +399,36 @@ export const advancedCases: TestCaseCollection = {
 
     "bedrock-anthropic": {
       model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 20_000,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather like in San Francisco?",
+        },
+      ],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: {
+        type: "auto",
+      },
+    },
+
+    "vertex-anthropic": {
+      model: VERTEX_ANTHROPIC_MODEL,
       max_tokens: 20_000,
       messages: [
         {

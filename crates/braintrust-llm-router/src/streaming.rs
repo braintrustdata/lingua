@@ -201,6 +201,22 @@ where
 
 /// Extract JSON bytes and optional event type from an SSE event without parsing.
 /// Returns None for [DONE] signal, Some(StreamChunk) for data events.
+fn parse_non_sse_chunk(raw: &str) -> Option<StreamChunk> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Some(StreamChunk::data(Bytes::new()));
+    }
+    if trimmed == "[DONE]" {
+        return None;
+    }
+    // Vertex Anthropic streamRawPredict may emit raw JSON lines instead of SSE
+    // "data:" lines. Accept those chunks as stream payloads.
+    if trimmed.starts_with('{') || trimmed.starts_with('[') {
+        return Some(StreamChunk::data(Bytes::from(trimmed.to_owned())));
+    }
+    Some(StreamChunk::data(Bytes::new()))
+}
+
 fn extract_json_bytes_from_sse(event: Bytes) -> Result<Option<StreamChunk>> {
     let raw = String::from_utf8_lossy(&event);
     let mut data = String::new();
@@ -222,7 +238,7 @@ fn extract_json_bytes_from_sse(event: Bytes) -> Result<Option<StreamChunk>> {
     }
 
     if data.is_empty() {
-        return Ok(Some(StreamChunk::data(Bytes::new())));
+        return Ok(parse_non_sse_chunk(&raw));
     }
 
     let chunk = match event_type {
