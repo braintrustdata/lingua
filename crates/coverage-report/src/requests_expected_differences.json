@@ -399,6 +399,30 @@
       "fields": [
         { "pattern": "messages.length", "reason": "Google reasoning content expands to separate output items in Responses format" }
       ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.reasoning", "reason": "Anthropic rejects enabled thinking when tool_choice forces a specific tool; thinking is intentionally dropped" }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.reasoning", "reason": "Anthropic rejects enabled thinking when tool_choice forces a specific tool; thinking is intentionally dropped" }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "ChatCompletions",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "params.reasoning", "reason": "Anthropic rejects enabled thinking when tool_choice forces a specific tool; thinking is intentionally dropped" }
+      ]
     }
   ]
 }
