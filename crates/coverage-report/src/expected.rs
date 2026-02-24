@@ -112,7 +112,10 @@ fn get_expected_differences(category: TestCategory) -> &'static ExpectedDifferen
 /// Bedrock Anthropic delegates all conversion to `AnthropicAdapter`, so it
 /// shares every known limitation with "Anthropic".
 fn inherits_from(provider: &str, parent: &str) -> bool {
-    matches!((provider, parent), ("Bedrock Anthropic", "Anthropic"))
+    matches!(
+        (provider, parent),
+        ("Bedrock Anthropic", "Anthropic") | ("Vertex Anthropic", "Anthropic")
+    )
 }
 
 /// Helper function for source/target matching with wildcard support.

@@ -80,6 +80,7 @@ pub fn test_request_transformation(
         ProviderFormat::Google => Some("gemini-1.5-pro"),
         ProviderFormat::Converse => Some("anthropic.claude-3-sonnet"),
         ProviderFormat::BedrockAnthropic => Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
+        ProviderFormat::VertexAnthropic => Some("publishers/anthropic/models/claude-haiku-4-5"),
         _ => None,
     };
 

@@ -1,0 +1,26 @@
+[
+  {
+    "model": "claude-haiku-4-5-20251001",
+    "id": "msg_vrtx_01EmvpNySLbNL5cRudxQ3pRJ",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "# Average Speed Problem\n\n**Step 1: Find the distance for each segment**\n\n- First segment: 60 mph × 2 hours = **120 miles**\n- Second segment: 80 mph × 1 hour = **80 miles**\n\n**Step 2: Find the total distance**\n\n120 + 80 = **200 miles**\n\n**Step 3: Find the total time**\n\n2 + 1 = **3 hours**\n\n**Step 4: Calculate average speed**\n\nAverage speed = Total distance ÷ Total time\n\nAverage speed = 200 ÷ 3 = **66.67 mph** (or 66⅔ mph)\n\n---\n\n**Key point:** Average speed is not the average of the speeds (60 + 80) ÷ 2. You must use total distance and total time."
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 45,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 201
+    }
+  }
+]
