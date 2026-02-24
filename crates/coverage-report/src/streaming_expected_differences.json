@@ -109,6 +109,15 @@
         { "pattern": "id", "reason": "Responses streaming separates metadata from content events; id lost when first chunk has tool_calls" },
         { "pattern": "model", "reason": "Responses streaming separates metadata from content events; model lost when first chunk has tool_calls" }
       ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "id", "reason": "Responses streaming separates metadata from content events; id lost when first chunk has tool_calls" },
+        { "pattern": "model", "reason": "Responses streaming separates metadata from content events; model lost when first chunk has tool_calls" }
+      ]
     }
   ]
 }
