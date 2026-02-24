@@ -1,0 +1,41 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Immediate Task: Weather in Tokyo**\n\nOkay, the user wants the weather for Tokyo. That's straightforward enough. I have a `get_weather` tool at my disposal, which is exactly what it's designed for.  So, I need to use that tool.  My plan is simple: I'll call the `get_weather` tool. The input I need to provide is the location, and in this case, the location is \"Tokyo\". I'll pass that to the tool and wait for the results.  Easy peasy. Let's get them the information they're requesting.\n",
+            "thought": true
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "Tokyo"
+              }
+            },
+            "thoughtSignature": "CoUCAb4+9vsPi6plLx+hUrVtqvQefpV5ZdGpmi1Eh5d8Ztzq56MaXbHV0ba1yRyocTMqFi7MIrvdruFmbf8LmovFjuFUQf24dWNqCSMV8cFfijwcmT95bfQ0PukyikyoiKvAZSNfCmWGQ64gjwrEBVhpkVMwn2GWP/1ay4Kn/gE1CCYJhSn3jiytZwIz+HMXf9kun45179tmCyE3QG06oyJxsCoDQlYbPIfP+Bt+4kCSnVLmM6p8XPppAB2DP1jSedW55FSGyLF908tsOrxH7PriOrGq5ZxfIkOFDOJINp4Ht+iACXrA766NfmTjnrptJtH4F49siaeKzhN7KxlDpjCmF8G9B162"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 104,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 52
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "SPmdaeToMoHRjMcP5bzoiQk"
+}

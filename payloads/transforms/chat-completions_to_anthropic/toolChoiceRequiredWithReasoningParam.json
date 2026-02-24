@@ -1,0 +1,33 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_017f5RTMoGsZcmM494YpPd8W",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01U9vJCPNTaaHh9JXfFH8v54",
+      "name": "get_weather",
+      "input": {
+        "location": "Tokyo"
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 659,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 33,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

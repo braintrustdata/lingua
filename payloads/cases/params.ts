@@ -435,6 +435,35 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  toolChoiceRequiredWithReasoningParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Tokyo weather" }],
+      reasoning_effort: "medium",
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather",
+            strict: true,
+            parameters: {
+              type: "object",
+              properties: { location: { type: "string" } },
+              required: ["location"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "get_weather" } },
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   parallelToolCallsDisabledParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

@@ -17,7 +17,8 @@ use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::convert::system_to_user_content;
 use crate::providers::anthropic::generated::{
-    ContentBlock, EffortLevel, InputMessage, OutputConfig, Tool,
+    ContentBlock, EffortLevel, InputMessage, OutputConfig, Thinking, ThinkingType, Tool,
+    ToolChoice, ToolChoiceType,
 };
 use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
 use crate::providers::anthropic::try_parse_anthropic;
@@ -55,6 +56,24 @@ fn parse_anthropic_extras(
             TransformError::FromUniversalFailed(format!("invalid Anthropic extras shape: {}", e))
         })
         .map(|v: Option<AnthropicExtrasView>| v.unwrap_or_default())
+}
+
+fn is_forced_tool_choice(value: &Value) -> bool {
+    let parsed: Result<ToolChoice, _> = serde_json::from_value(value.clone());
+    parsed.ok().is_some_and(|tool_choice| {
+        tool_choice.tool_choice_type == ToolChoiceType::Tool
+            && tool_choice
+                .name
+                .as_ref()
+                .is_some_and(|name| !name.is_empty())
+    })
+}
+
+fn is_enabled_thinking(value: &Value) -> bool {
+    let parsed: Result<Thinking, _> = serde_json::from_value(value.clone());
+    parsed
+        .ok()
+        .is_some_and(|thinking| thinking.thinking_type == ThinkingType::Enabled)
 }
 /// Adapter for Anthropic Messages API.
 pub struct AnthropicAdapter;
@@ -310,10 +329,16 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Convert tool_choice using helper method (handles parallel_tool_calls internally)
-        if let Some(raw_tool_choice) = anthropic_extras_view.tool_choice.as_ref() {
-            obj.insert("tool_choice".into(), raw_tool_choice.clone());
-        } else if let Some(tool_choice_val) = req.params.tool_choice_for(ProviderFormat::Anthropic)
-        {
+        let tool_choice_value =
+            if let Some(raw_tool_choice) = anthropic_extras_view.tool_choice.as_ref() {
+                Some(raw_tool_choice.clone())
+            } else {
+                req.params.tool_choice_for(ProviderFormat::Anthropic)
+            };
+        let forced_tool_choice = tool_choice_value
+            .as_ref()
+            .is_some_and(is_forced_tool_choice);
+        if let Some(tool_choice_val) = tool_choice_value {
             obj.insert("tool_choice".into(), tool_choice_val);
         }
         insert_opt_bool(&mut obj, "stream", req.params.stream);
@@ -357,10 +382,14 @@ impl ProviderAdapter for AnthropicAdapter {
 
         // Add thinking for legacy reasoning (non-Opus models)
         if let Some(raw_thinking) = raw_thinking {
-            obj.insert("thinking".into(), raw_thinking.clone());
+            if !(forced_tool_choice && is_enabled_thinking(raw_thinking)) {
+                obj.insert("thinking".into(), raw_thinking.clone());
+            }
         } else if raw_output_config.is_none() {
             if let Some(thinking) = thinking_val {
-                obj.insert("thinking".into(), thinking);
+                if !(forced_tool_choice && is_enabled_thinking(&thinking)) {
+                    obj.insert("thinking".into(), thinking);
+                }
             }
         }
 
@@ -1249,6 +1278,120 @@ mod tests {
         assert!(
             result.get("thinking").is_none(),
             "thinking field should not be present"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_omits_enabled_thinking_with_forced_tool_choice() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceMode};
+
+        let adapter = AnthropicAdapter;
+
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-4-5-20250929".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Tokyo weather".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    budget_tokens: Some(2048),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Tool),
+                    tool_name: Some("get_weather".to_string()),
+                    disable_parallel: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert!(result.get("tool_choice").is_some());
+        assert!(
+            result.get("thinking").is_none(),
+            "Enabled thinking should be omitted when tool_choice forces tool use"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_preserves_enabled_thinking_with_auto_tool_choice() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceMode};
+
+        let adapter = AnthropicAdapter;
+
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-4-5-20250929".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Tokyo weather".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    budget_tokens: Some(2048),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Auto),
+                    tool_name: None,
+                    disable_parallel: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert!(result.get("tool_choice").is_some());
+        assert!(
+            result.get("thinking").is_some(),
+            "Enabled thinking should be preserved when tool_choice is not forced"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_preserves_disabled_thinking_with_forced_tool_choice() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceMode};
+
+        let adapter = AnthropicAdapter;
+
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-4-5-20250929".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Tokyo weather".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(false),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Tool),
+                    tool_name: Some("get_weather".to_string()),
+                    disable_parallel: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert!(result.get("tool_choice").is_some());
+        assert_eq!(
+            result
+                .get("thinking")
+                .and_then(|thinking| thinking.get("type"))
+                .and_then(Value::as_str),
+            Some("disabled"),
+            "Disabled thinking should be preserved with forced tool_choice"
         );
     }
 
