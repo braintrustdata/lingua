@@ -82,6 +82,78 @@ Each provider should have:
 **Round-trip testing**: Ensure lossless serialization/deserialization
 **Real API integration**: Test with actual provider APIs when possible
 
+## Required workflow for provider behavior changes
+
+When fixing provider transform behavior, follow this order. Do not skip steps.
+
+1. **Add or update the payload case first.**
+   - For provider parameter behavior, start in `payloads/cases/params.ts`.
+   - Use a case name that maps directly to the behavior being fixed.
+2. **Capture and triage failures.**
+   - Run `make capture FILTER=<case_name>`.
+   - If capture emits failed requests/transforms, treat this as unresolved logic in adapter/converter code.
+   - Use transform path names to triage ownership:
+     - `payloads/transforms/chat-completions_to_anthropic/<case>.json` → Anthropic adapter path
+     - `payloads/transforms/chat-completions_to_google/<case>.json` → Google adapter path
+     - same pattern for other providers.
+3. **Write the fix plan before implementation.**
+   - Create `plan.md` in `lingua/` before making code changes.
+   - The plan must include:
+     - root cause,
+     - target files,
+     - expected behavior after fix,
+     - tests to add/update,
+     - expected-diff impact (if any),
+     - command sequence to validate.
+4. **Fix adapter/converter logic first.**
+   - Do not use artifact regeneration as a substitute for code fixes.
+   - Prefer provider `adapter.rs` for cross-field policy/orchestration fixes.
+   - Keep typed boundaries: parse into typed structs/enums; avoid new ad-hoc raw `Value` access.
+5. **Run targeted tests, then re-capture.**
+   - Run focused Rust tests for touched adapters first.
+   - Re-run capture for the affected case/pair.
+   - Run payload tests and sync checks.
+6. **Only then update expected diffs (if intentional behavior loss remains).**
+   - Use narrow `perTestCase` entries in:
+     - `crates/coverage-report/src/requests_expected_differences.json`
+     - `crates/coverage-report/src/streaming_expected_differences.json`
+     - `crates/coverage-report/src/responses_expected_differences.json`
+   - Do not add broad global exceptions for case-specific behavior.
+
+### Validation command sequence
+
+Use this exact flow after implementing a fix:
+
+```bash
+# 1) Capture and inspect this behavior
+make capture FILTER=<case_name>
+
+# 2) Run focused adapter tests
+cargo test -p lingua <targeted_test_name_or_module>
+
+# 3) Re-capture transforms for fixed behavior
+make capture FILTER=<case_name>
+
+# 4) Run payload transform checks
+make test-payloads
+
+# 5) If snapshots/transforms are stale after logic fix, regenerate failed artifacts
+make regenerate-failed-transforms
+
+# 6) Cross-provider guard
+cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures
+
+# 7) Typed-boundary checks
+make typed-boundary-check
+make typed-boundary-check-branch BASE=main
+```
+
+### Anti-patterns
+
+- Do not run `make regenerate-failed-transforms` before fixing adapter/converter logic.
+- Do not patch transform/snapshot files manually to hide failing transforms.
+- Do not add new direct `Value.get(...)` assertions/logic in typed-boundary-protected paths.
+
 ## Development priorities
 
 1. **Correctness over convenience**: Match provider APIs exactly
