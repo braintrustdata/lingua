@@ -261,13 +261,20 @@ impl Router {
             );
             Error::NoProvider(catalog_format)
         })?;
-        let format = if output_format != catalog_format
-            && provider.provider_formats().contains(&output_format)
+        let provider_formats = provider.provider_formats();
+        let mut format =
+            if output_format != catalog_format && provider_formats.contains(&output_format) {
+                output_format
+            } else {
+                catalog_format
+            };
+        if output_format == ProviderFormat::ChatCompletions
+            && format == ProviderFormat::ChatCompletions
+            && provider_formats.contains(&ProviderFormat::Responses)
+            && spec.requires_responses_api()
         {
-            output_format
-        } else {
-            catalog_format
-        };
+            format = ProviderFormat::Responses;
+        }
         let auth = self
             .auth_configs
             .get(&alias)
@@ -514,6 +521,25 @@ mod tests {
         }
     }
 
+    fn openai_spec(model: &str, flavor: ModelFlavor) -> ModelSpec {
+        ModelSpec {
+            model: model.to_string(),
+            format: ProviderFormat::ChatCompletions,
+            flavor,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+        }
+    }
+
     fn dummy_auth() -> AuthConfig {
         AuthConfig::ApiKey {
             key: "test".into(),
@@ -577,5 +603,101 @@ mod tests {
             .expect("router builds");
 
         assert_eq!(router.provider_alias(vertex_model).unwrap(), "google");
+    }
+
+    #[test]
+    fn responses_required_model_forces_responses_format_for_chat_output() {
+        let model = "gpt-5-pro";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                },
+            )
+            .add_auth("openai", dummy_auth())
+            .build()
+            .expect("router builds");
+
+        let (_, _, _, format, _) = router
+            .resolve_provider(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(format, ProviderFormat::Responses);
+    }
+
+    #[test]
+    fn codex_variant_forces_responses_format_for_chat_output() {
+        let model = "gpt-5.1-codex";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                },
+            )
+            .add_auth("openai", dummy_auth())
+            .build()
+            .expect("router builds");
+
+        let (_, _, _, format, _) = router
+            .resolve_provider(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(format, ProviderFormat::Responses);
+    }
+
+    #[test]
+    fn non_responses_model_keeps_chat_completions_format() {
+        let model = "gpt-5-mini";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                },
+            )
+            .add_auth("openai", dummy_auth())
+            .build()
+            .expect("router builds");
+
+        let (_, _, _, format, _) = router
+            .resolve_provider(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn responses_required_model_without_responses_support_stays_chat_completions() {
+        let model = "gpt-5-pro";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+            )
+            .add_auth("openai", dummy_auth())
+            .build()
+            .expect("router builds");
+
+        let (_, _, _, format, _) = router
+            .resolve_provider(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(format, ProviderFormat::ChatCompletions);
     }
 }
