@@ -262,19 +262,16 @@ impl Router {
             Error::NoProvider(catalog_format)
         })?;
         let provider_formats = provider.provider_formats();
-        let mut format =
-            if output_format != catalog_format && provider_formats.contains(&output_format) {
-                output_format
-            } else {
-                catalog_format
-            };
-        if output_format == ProviderFormat::ChatCompletions
-            && format == ProviderFormat::ChatCompletions
+        let format = if output_format == ProviderFormat::ChatCompletions
             && provider_formats.contains(&ProviderFormat::Responses)
             && spec.requires_responses_api()
         {
-            format = ProviderFormat::Responses;
-        }
+            ProviderFormat::Responses
+        } else if output_format != catalog_format && provider_formats.contains(&output_format) {
+            output_format
+        } else {
+            catalog_format
+        };
         let auth = self
             .auth_configs
             .get(&alias)
