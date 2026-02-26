@@ -35,6 +35,10 @@ pub enum ProviderFormat {
     #[serde(skip_serializing, skip_deserializing)]
     #[ts(skip)]
     BedrockAnthropic,
+    /// Internal-only format for Vertex AI Anthropic rawPredict envelope handling.
+    #[serde(skip_serializing, skip_deserializing)]
+    #[ts(skip)]
+    VertexAnthropic,
     /// Unknown or undetectable format
     #[default]
     #[serde(other)]
@@ -58,6 +62,7 @@ impl std::fmt::Display for ProviderFormat {
             ProviderFormat::Converse => "converse",
             ProviderFormat::Responses => "responses",
             ProviderFormat::BedrockAnthropic => "bedrock_anthropic",
+            ProviderFormat::VertexAnthropic => "vertex_anthropic",
             ProviderFormat::Unknown => "unknown",
         };
         write!(f, "{}", s)

@@ -11,6 +11,9 @@ pub mod bedrock;
 #[cfg(feature = "anthropic")]
 pub mod bedrock_anthropic;
 
+#[cfg(feature = "anthropic")]
+pub mod vertex_anthropic;
+
 #[cfg(feature = "google")]
 pub mod google;
 

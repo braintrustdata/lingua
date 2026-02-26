@@ -3,7 +3,10 @@
 import { readFile, writeFile } from "fs/promises";
 
 type JsonPrimitive = string | number | boolean | null;
-export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+export type JsonValue =
+  | JsonPrimitive
+  | JsonValue[]
+  | { [key: string]: JsonValue };
 
 const DEFAULT_PRESERVE_KEYS = ["role", "type"];
 const DEFAULT_TOKEN_PREFIX = "anon";
@@ -18,6 +21,29 @@ export interface AnonymizeResult {
   value: JsonValue;
   replacedStringCount: number;
   uniqueReplacementCount: number;
+}
+
+function isJsonValue(value: unknown): value is JsonValue {
+  if (value === null) {
+    return true;
+  }
+
+  switch (typeof value) {
+    case "string":
+    case "number":
+    case "boolean":
+      return true;
+    case "object":
+      break;
+    default:
+      return false;
+  }
+
+  if (Array.isArray(value)) {
+    return value.every((item) => isJsonValue(item));
+  }
+
+  return Object.values(value).every((item) => isJsonValue(item));
 }
 
 function isMetadataModelPath(path: ReadonlyArray<string>): boolean {
@@ -274,9 +300,9 @@ async function main(): Promise<void> {
 
   const raw = await readFile(inputPath, "utf8");
 
-  let parsed: JsonValue;
+  let parsedRaw: unknown;
   try {
-    parsed = JSON.parse(raw) as JsonValue;
+    parsedRaw = JSON.parse(raw);
   } catch (error) {
     throw new Error(
       `Failed to parse JSON from '${inputPath}': ${
@@ -284,6 +310,10 @@ async function main(): Promise<void> {
       }`
     );
   }
+  if (!isJsonValue(parsedRaw)) {
+    throw new Error(`Parsed value from '${inputPath}' is not valid JSON`);
+  }
+  const parsed = parsedRaw;
 
   const anonymized = anonymizeJsonValue(parsed, {
     allStrings: options.allStrings,

@@ -121,6 +121,14 @@
     },
     {
       "source": "*",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "model", "reason": "Vertex Anthropic rawPredict body omits model (selected by URL path)" },
+        { "pattern": "params.stream", "reason": "Vertex Anthropic uses endpoint-based streaming" }
+      ]
+    },
+    {
+      "source": "*",
       "target": "Google",
       "fields": [
         { "pattern": "params.stream", "reason": "Google uses endpoint-based streaming" },
@@ -390,6 +398,30 @@
       "target": "Responses",
       "fields": [
         { "pattern": "messages.length", "reason": "Google reasoning content expands to separate output items in Responses format" }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.reasoning", "reason": "Anthropic rejects enabled thinking when tool_choice forces a specific tool; thinking is intentionally dropped" }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.reasoning", "reason": "Anthropic rejects enabled thinking when tool_choice forces a specific tool; thinking is intentionally dropped" }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "ChatCompletions",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "params.reasoning", "reason": "Anthropic rejects enabled thinking when tool_choice forces a specific tool; thinking is intentionally dropped" }
       ]
     }
   ]

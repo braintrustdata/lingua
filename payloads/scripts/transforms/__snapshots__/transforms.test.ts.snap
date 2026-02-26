@@ -2443,6 +2443,79 @@ exports[`chat-completions → anthropic > toolChoiceRequiredParam > response 1`]
 }
 `;
 
+exports[`chat-completions → anthropic > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "toolu_01U9vJCPNTaaHh9JXfFH8v54",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 33,
+    "prompt_tokens": 659,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 692,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > topPParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -4453,6 +4526,102 @@ exports[`chat-completions → google > toolChoiceRequiredParam > response 1`] = 
     },
     "prompt_tokens": 37,
     "total_tokens": 99,
+  },
+}
+`;
+
+exports[`chat-completions → google > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 2048,
+    },
+  },
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "allowedFunctionNames": [
+        "get_weather",
+      ],
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "**My Immediate Task: Weather in Tokyo**
+
+Okay, the user wants the weather for Tokyo. That's straightforward enough. I have a \`get_weather\` tool at my disposal, which is exactly what it's designed for.  So, I need to use that tool.  My plan is simple: I'll call the \`get_weather\` tool. The input I need to provide is the location, and in this case, the location is "Tokyo". I'll pass that to the tool and wait for the results.  Easy peasy. Let's get them the information they're requesting.
+",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 67,
+    "completion_tokens_details": {
+      "reasoning_tokens": 52,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 104,
   },
 }
 `;

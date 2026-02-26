@@ -13,6 +13,7 @@ import { anthropicExecutor } from "./providers/anthropic";
 import { googleExecutor } from "./providers/google";
 import { bedrockExecutor } from "./providers/bedrock";
 import { bedrockAnthropicExecutor } from "./providers/bedrock-anthropic";
+import { vertexAnthropicExecutor } from "./providers/vertex-anthropic";
 import { type ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
@@ -23,6 +24,7 @@ const allProviders = [
   googleExecutor,
   bedrockExecutor,
   bedrockAnthropicExecutor,
+  vertexAnthropicExecutor,
 ] as const;
 
 interface CaptureOptions {
@@ -263,9 +265,10 @@ async function main() {
   await captureProviderSnapshots(allCases, options);
 
   console.log(`\n--- Transform captures ---`);
+  const forceTransforms = options.force && !options.providers;
   const transformResult = await captureTransforms(
     options.filter,
-    options.force
+    forceTransforms
   );
 
   if (transformResult.captured > 0) {

@@ -1,19 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { anonymizeJsonValue, type JsonValue } from "./anonymize-json";
 
-interface DefaultFixture {
-  input: Array<{
-    role: string;
-    content: string | Array<{ type: string; text: string }>;
-    id?: string;
-    finish_reason?: string;
-  }>;
-  metadata: string;
-}
-
 describe("anonymizeJsonValue", () => {
   it("anonymizes content and metadata strings by default", () => {
-    const input: DefaultFixture = {
+    const input: JsonValue = {
       input: [
         { role: "user", content: "hello world", id: "user-1" },
         {
@@ -25,21 +15,18 @@ describe("anonymizeJsonValue", () => {
       metadata: "leave me alone",
     };
 
-    const result = anonymizeJsonValue(input as unknown as JsonValue);
-    const output = result.value as unknown as DefaultFixture;
-    const secondContent = output.input[1].content as Array<{
-      type: string;
-      text: string;
-    }>;
-
-    expect(output.input[0].role).toBe("user");
-    expect(output.input[0].id).toBe("user-1");
-    expect(secondContent[0].type).toBe("text");
-    expect(output.input[1].finish_reason).toBe("stop");
-    expect(output.metadata).toBe("anon_2");
-
-    expect(output.input[0].content).toBe("anon_1");
-    expect(secondContent[0].text).toBe("anon_1");
+    const result = anonymizeJsonValue(input);
+    expect(result.value).toEqual({
+      input: [
+        { role: "user", content: "anon_1", id: "user-1" },
+        {
+          role: "assistant",
+          content: [{ type: "text", text: "anon_1" }],
+          finish_reason: "stop",
+        },
+      ],
+      metadata: "anon_2",
+    });
     expect(result.replacedStringCount).toBe(3);
     expect(result.uniqueReplacementCount).toBe(2);
   });
@@ -51,14 +38,14 @@ describe("anonymizeJsonValue", () => {
       type: "text",
     };
 
-    const result = anonymizeJsonValue(input as unknown as JsonValue, {
+    const result = anonymizeJsonValue(input, {
       allStrings: true,
     });
-    const output = result.value as typeof input;
-
-    expect(output.role).toBe("anon_1");
-    expect(output.content).toBe("anon_2");
-    expect(output.type).toBe("anon_3");
+    expect(result.value).toEqual({
+      role: "anon_1",
+      content: "anon_2",
+      type: "anon_3",
+    });
     expect(result.replacedStringCount).toBe(3);
     expect(result.uniqueReplacementCount).toBe(3);
   });
@@ -68,14 +55,12 @@ describe("anonymizeJsonValue", () => {
       content: [{ toolName: "bash", text: "run ls", type: "text" }],
     };
 
-    const result = anonymizeJsonValue(input as unknown as JsonValue, {
+    const result = anonymizeJsonValue(input, {
       preserveKeys: new Set(["type", "toolName"]),
     });
-    const output = result.value as typeof input;
-
-    expect(output.content[0].toolName).toBe("bash");
-    expect(output.content[0].type).toBe("text");
-    expect(output.content[0].text).toBe("anon_1");
+    expect(result.value).toEqual({
+      content: [{ toolName: "bash", text: "anon_1", type: "text" }],
+    });
     expect(result.replacedStringCount).toBe(1);
     expect(result.uniqueReplacementCount).toBe(1);
   });
@@ -101,21 +86,26 @@ describe("anonymizeJsonValue", () => {
       },
     };
 
-    const result = anonymizeJsonValue(input as unknown as JsonValue);
-    const output = result.value as typeof input;
-
-    expect(output.metadata.model).toBe("gpt-5.1-2025-11-13");
-    expect(output.metadata.trace_id).toBe("anon_1");
-    expect(output.metadata.route).toBe("anon_2");
-    expect(output.metadata.tool_definitions[0].name).toBe("anon_3");
-    expect(output.metadata.tool_definitions[0].description).toBe("anon_4");
-    expect(output.metadata.tool_definitions[0].parameters.type).toBe("object");
-    expect(
-      output.metadata.tool_definitions[0].parameters.properties.city.type
-    ).toBe("string");
-    expect(
-      output.metadata.tool_definitions[0].parameters.properties.city.description
-    ).toBe("anon_5");
+    const result = anonymizeJsonValue(input);
+    expect(result.value).toEqual({
+      metadata: {
+        model: "gpt-5.1-2025-11-13",
+        trace_id: "anon_1",
+        route: "anon_2",
+        tool_definitions: [
+          {
+            name: "anon_3",
+            description: "anon_4",
+            parameters: {
+              type: "object",
+              properties: {
+                city: { type: "string", description: "anon_5" },
+              },
+            },
+          },
+        ],
+      },
+    });
   });
 
   it("anonymizes metadata variants like metadata2", () => {
@@ -127,12 +117,14 @@ describe("anonymizeJsonValue", () => {
       },
     };
 
-    const result = anonymizeJsonValue(input as unknown as JsonValue);
-    const output = result.value as typeof input;
-
-    expect(output.metadata2.chatChannel).toBe("anon_1");
-    expect(output.metadata2.chatID).toBe("anon_2");
-    expect(output.metadata2.isFirstMessage).toBe(false);
+    const result = anonymizeJsonValue(input);
+    expect(result.value).toEqual({
+      metadata2: {
+        chatChannel: "anon_1",
+        chatID: "anon_2",
+        isFirstMessage: false,
+      },
+    });
   });
 
   it("removes metadata prompt subtree entirely", () => {
@@ -150,13 +142,12 @@ describe("anonymizeJsonValue", () => {
       },
     };
 
-    const result = anonymizeJsonValue(input as unknown as JsonValue);
-    const output = result.value as {
-      metadata: { prompt?: unknown; route: string };
-    };
-
-    expect(output.metadata.prompt).toBeUndefined();
-    expect(output.metadata.route).toBe("anon_1");
+    const result = anonymizeJsonValue(input);
+    expect(result.value).toEqual({
+      metadata: {
+        route: "anon_1",
+      },
+    });
   });
 
   it("anonymizes strings under context and output", () => {
@@ -170,13 +161,15 @@ describe("anonymizeJsonValue", () => {
       model: "gpt-5.1-2025-11-13",
     };
 
-    const result = anonymizeJsonValue(input as unknown as JsonValue);
-    const output = result.value as typeof input;
-
-    expect(output.context.caller_filename).toBe("anon_1");
-    expect(output.context.caller_functionname).toBe("anon_2");
-    expect(output.context.caller_lineno).toBe(42);
-    expect(output.output).toBe("anon_3");
-    expect(output.model).toBe("gpt-5.1-2025-11-13");
+    const result = anonymizeJsonValue(input);
+    expect(result.value).toEqual({
+      context: {
+        caller_filename: "anon_1",
+        caller_functionname: "anon_2",
+        caller_lineno: 42,
+      },
+      output: "anon_3",
+      model: "gpt-5.1-2025-11-13",
+    });
   });
 });

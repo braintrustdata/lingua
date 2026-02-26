@@ -31,3 +31,11 @@ pub use generated::{
 
 // Type aliases for convenience
 pub type SafetySettings = Vec<SafetySetting>;
+
+/// Returns true if the model ID represents a Vertex AI model.
+///
+/// Vertex models use the `publishers/` prefix
+/// (e.g. `publishers/google/models/gemini-2.5-flash-preview-04-17`).
+pub fn is_vertex_model(model: &str) -> bool {
+    model.starts_with("publishers/")
+}

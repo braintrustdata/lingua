@@ -1,0 +1,59 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tokyo weather"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_EbBgXp3RMiWM8hKac7aKHlJf",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\":\"Tokyo\"}"
+          }
+        }
+      ],
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_EbBgXp3RMiWM8hKac7aKHlJf",
+      "content": "71 degrees"
+    }
+  ],
+  "reasoning_effort": "medium",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get weather",
+        "strict": true,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "location"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "function",
+    "function": {
+      "name": "get_weather"
+    }
+  }
+}
