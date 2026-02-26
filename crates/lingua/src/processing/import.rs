@@ -1,6 +1,7 @@
 use crate::providers::anthropic::generated as anthropic;
-use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
-use crate::providers::openai::generated as openai;
+use crate::providers::openai::convert::{
+    try_parse_responses_items_for_import, ChatCompletionRequestMessageExt,
+};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
@@ -24,36 +25,14 @@ pub struct Span {
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
-    fn is_responses_item_type(item_type: &str) -> bool {
-        // Some traces use SDK/frontend compatibility shapes (for example
-        // `function_call_result` with `callId`) that are not present in our
-        // generated OpenAI enums from the canonical API schema.
-        matches!(
-            item_type,
-            "message"
-                | "reasoning"
-                | "function_call"
-                | "function_call_output"
-                | "function_call_result"
-                | "custom_tool_call"
-                | "custom_tool_call_output"
-                | "web_search_call"
-                | "image_generation_call"
-                | "file_search_call"
-                | "computer_call"
-                | "code_interpreter_call"
-                | "local_shell_call"
-                | "mcp_call"
-                | "mcp_list_tools"
-                | "mcp_approval_request"
-        )
+    if let Some(messages) = try_parse_responses_items_for_import(data) {
+        return messages;
     }
 
     // Cheap check to see if a value looks like it might contain messages.
     // Returns early to avoid expensive deserialization attempts on non-message data.
     let has_message_structure = match data {
-        // Check if it's an array where any element has "role", nested "message.role",
-        // or a known Responses item type.
+        // Check if it's an array where any element has "role" or nested "message.role".
         Value::Array(arr) => arr.iter().any(|item| match item {
             Value::Object(obj) => {
                 if obj.contains_key("role") {
@@ -63,9 +42,6 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
                     if msg.contains_key("role") {
                         return true;
                     }
-                }
-                if let Some(Value::String(item_type)) = obj.get("type") {
-                    return is_responses_item_type(item_type);
                 }
                 false
             }
@@ -116,32 +92,6 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
             <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
                 provider_messages,
             )
-        {
-            if !messages.is_empty() {
-                return messages;
-            }
-        }
-    }
-
-    // Try Responses API format
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::InputItem>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
-        {
-            if !messages.is_empty() {
-                return messages;
-            }
-        }
-    }
-
-    // Try Responses API output format
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::OutputItem>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(provider_messages)
         {
             if !messages.is_empty() {
                 return messages;
