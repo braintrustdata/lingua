@@ -1,10 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::time::sleep;
-
-#[cfg(feature = "tracing")]
-use tracing::Instrument;
 
 use bytes::Bytes;
 
@@ -12,7 +8,6 @@ use crate::auth::AuthConfig;
 use crate::catalog::{load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec};
 use crate::error::{Error, Result};
 use crate::providers::{ClientHeaders, Provider};
-use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_stream, ResponseStream};
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
@@ -103,7 +98,6 @@ type ResolvedRoute<'a> = (
     &'a AuthConfig,
     Arc<ModelSpec>,
     ProviderFormat,
-    RetryStrategy,
 );
 
 pub struct Router {
@@ -112,7 +106,6 @@ pub struct Router {
     providers: HashMap<String, Arc<dyn Provider>>, // alias -> provider
     formats: HashMap<ProviderFormat, String>,      // format -> alias
     auth_configs: HashMap<String, AuthConfig>,     // alias -> auth
-    retry_policy: RetryPolicy,
 }
 
 impl Router {
@@ -150,8 +143,7 @@ impl Router {
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let (provider, auth, spec, format, strategy) =
-            self.resolve_provider(model, output_format)?;
+        let (provider, auth, spec, format) = self.resolve_provider(model, output_format)?;
         let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
@@ -159,16 +151,8 @@ impl Router {
             Err(e) => return Err(e.into()),
         };
 
-        let response_bytes = self
-            .execute_with_retry(
-                provider.clone(),
-                auth,
-                spec,
-                format,
-                payload,
-                strategy,
-                client_headers,
-            )
+        let response_bytes = provider
+            .complete(payload, auth, &spec, format, client_headers)
             .await?;
 
         let result = lingua::transform_response(response_bytes.clone(), output_format)?;
@@ -207,7 +191,7 @@ impl Router {
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
-        let (provider, auth, spec, format, _) = self.resolve_provider(model, output_format)?;
+        let (provider, auth, spec, format) = self.resolve_provider(model, output_format)?;
         let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
@@ -279,71 +263,7 @@ impl Router {
             .auth_configs
             .get(&alias)
             .ok_or_else(|| Error::NoAuth(alias.clone()))?;
-        let strategy = self.retry_policy.strategy();
-        Ok((provider, auth, spec, format, strategy))
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    async fn execute_with_retry(
-        &self,
-        provider: Arc<dyn Provider>,
-        auth: &AuthConfig,
-        spec: Arc<ModelSpec>,
-        format: ProviderFormat,
-        payload: Bytes,
-        mut strategy: RetryStrategy,
-        client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
-        #[cfg(feature = "tracing")]
-        let mut attempt = 0u32;
-
-        loop {
-            #[cfg(feature = "tracing")]
-            {
-                attempt += 1;
-            }
-
-            #[cfg(feature = "tracing")]
-            let result = {
-                let span = tracing::info_span!(
-                    "bt.router.provider.attempt",
-                    llm.provider = %provider.id(),
-                    attempt = attempt,
-                );
-                async {
-                    provider
-                        .complete(payload.clone(), auth, &spec, format, client_headers)
-                        .await
-                }
-                .instrument(span)
-                .await
-            };
-
-            #[cfg(not(feature = "tracing"))]
-            let result = provider
-                .complete(payload.clone(), auth, &spec, format, client_headers)
-                .await;
-
-            match result {
-                Ok(response) => return Ok(response),
-                Err(err) => {
-                    if let Some(delay) = strategy.next_delay(&err) {
-                        #[cfg(feature = "tracing")]
-                        tracing::info!(
-                            llm.provider = %provider.id(),
-                            attempt = attempt,
-                            delay_ms = delay.as_millis() as u64,
-                            error = %err,
-                            "retrying after delay"
-                        );
-                        sleep(delay).await;
-                        continue;
-                    } else {
-                        return Err(err);
-                    }
-                }
-            }
-        }
+        Ok((provider, auth, spec, format))
     }
 }
 
@@ -352,7 +272,6 @@ pub struct RouterBuilder {
     providers: HashMap<String, Arc<dyn Provider>>,
     formats: HashMap<ProviderFormat, String>,
     auth_configs: HashMap<String, AuthConfig>,
-    retry_policy: RetryPolicy,
 }
 
 impl Default for RouterBuilder {
@@ -368,7 +287,6 @@ impl RouterBuilder {
             providers: HashMap::new(),
             formats: HashMap::new(),
             auth_configs: HashMap::new(),
-            retry_policy: RetryPolicy::default(),
         }
     }
 
@@ -380,11 +298,6 @@ impl RouterBuilder {
 
     pub fn with_catalog(mut self, catalog: Arc<ModelCatalog>) -> Self {
         self.catalog = Some(catalog);
-        self
-    }
-
-    pub fn with_retry_policy(mut self, policy: RetryPolicy) -> Self {
-        self.retry_policy = policy;
         self
     }
 
@@ -443,7 +356,6 @@ impl RouterBuilder {
             providers: self.providers,
             formats: self.formats,
             auth_configs: self.auth_configs,
-            retry_policy: self.retry_policy,
         })
     }
 }
@@ -623,7 +535,7 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format, _) = router
+        let (_, _, _, format) = router
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::Responses);
@@ -647,7 +559,7 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format, _) = router
+        let (_, _, _, format) = router
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::Responses);
@@ -671,7 +583,7 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format, _) = router
+        let (_, _, _, format) = router
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::ChatCompletions);
@@ -695,7 +607,7 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format, _) = router
+        let (_, _, _, format) = router
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::ChatCompletions);
