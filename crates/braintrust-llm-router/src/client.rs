@@ -18,10 +18,13 @@ pub struct ClientSettings {
 impl Default for ClientSettings {
     fn default() -> Self {
         Self {
-            connect_timeout: Duration::from_secs(10),
-            request_timeout: Duration::from_secs(300),
+            // Similar to what anthropic and openai SDKs use
+            // https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/_constants.py
+            // https://github.com/openai/openai-python/blob/main/src/openai/_constants.py
+            connect_timeout: Duration::from_secs(5),
+            request_timeout: Duration::from_secs(600),
             pool_idle_timeout: Duration::from_secs(90),
-            pool_max_idle_per_host: 16,
+            pool_max_idle_per_host: 100,
             user_agent: format!("braintrust-llm-router/{}", env!("CARGO_PKG_VERSION")),
         }
     }

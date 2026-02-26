@@ -90,20 +90,12 @@ async fn main() -> anyhow::Result<()> {
 ### Router construction
 
 ```rust
-use braintrust_llm_router::{Router, RetryPolicy, OpenAIProvider, OpenAIConfig};
-use std::time::Duration;
+use braintrust_llm_router::{OpenAIConfig, OpenAIProvider, Router};
 
 let router = Router::builder()
     .load_models("model_list.json")?           // Load model catalog
     .add_provider("openai", OpenAIProvider::new(OpenAIConfig::default())?)
     .add_api_key("openai", "sk-...")           // Convenience for Bearer auth
-    .with_retry_policy(RetryPolicy {
-        max_attempts: 3,
-        initial_delay: Duration::from_millis(100),
-        max_delay: Duration::from_secs(10),
-        exponential_base: 2.0,
-        jitter: true,
-    })
     .build()?;
 ```
 
@@ -112,12 +104,16 @@ let router = Router::builder()
 Two entry points:
 
 ```rust
-// handle() - auto-extracts model from body, detects streaming
-let result = router.handle(body, ProviderFormat::ChatCompletions, None).await?;
+use braintrust_llm_router::{ClientHeaders, ProviderFormat};
 
 // complete() / complete_stream() - explicit model parameter
-let bytes = router.complete(body, "gpt-4", ProviderFormat::ChatCompletions, None).await?;
-let stream = router.complete_stream(body, "gpt-4", ProviderFormat::ChatCompletions, None).await?;
+let headers = ClientHeaders::default();
+let bytes = router
+    .complete(body, "gpt-4", ProviderFormat::ChatCompletions, &headers)
+    .await?;
+let stream = router
+    .complete_stream(body, "gpt-4", ProviderFormat::ChatCompletions, &headers)
+    .await?;
 ```
 
 ### Authentication

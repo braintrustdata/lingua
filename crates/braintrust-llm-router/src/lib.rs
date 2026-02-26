@@ -3,7 +3,6 @@ mod catalog;
 mod client;
 mod error;
 mod providers;
-mod retry;
 mod router;
 mod streaming;
 
@@ -27,7 +26,6 @@ pub use providers::{
     GoogleProvider, MistralConfig, MistralProvider, OpenAICompatibleEndpoint, OpenAIConfig,
     OpenAIProvider, Provider, VertexConfig, VertexProvider,
 };
-pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{create_provider, extract_request_hints, RequestHints, Router, RouterBuilder};
 pub use streaming::{RawResponseStream, ResponseStream, StreamChunk};
 
