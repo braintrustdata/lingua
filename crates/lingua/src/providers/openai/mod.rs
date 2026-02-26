@@ -11,6 +11,7 @@ pub mod capabilities;
 pub mod convert;
 pub mod detect;
 pub mod generated;
+pub(crate) mod import;
 pub mod params;
 pub mod responses_adapter;
 pub(crate) mod tool_parsing;

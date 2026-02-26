@@ -1,6 +1,5 @@
-use crate::processing::import_openai_responses::try_import_openai_responses;
 use crate::providers::anthropic::generated as anthropic;
-use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
+use crate::providers::openai::import::{is_openai_responses_item, try_import_openai_messages};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
@@ -39,6 +38,10 @@ fn has_message_structure(data: &Value) -> bool {
                     if obj.contains_key("role") {
                         return true;
                     }
+                    // OpenAI Responses format items use typed "type" enums instead of "role".
+                    if is_openai_responses_item(obj) {
+                        return true;
+                    }
                     // Chat completions response choices format: has "message" field with role inside
                     if let Some(Value::Object(msg)) = obj.get("message") {
                         if msg.contains_key("role") {
@@ -50,17 +53,13 @@ fn has_message_structure(data: &Value) -> bool {
             false
         }
         // Check if it's an object with "role" field (single message)
-        Value::Object(obj) => obj.contains_key("role"),
+        Value::Object(obj) => obj.contains_key("role") || is_openai_responses_item(obj),
         _ => false,
     }
 }
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
-    if let Some(messages) = try_import_openai_responses(data) {
-        return messages;
-    }
-
     // Early bailout: if data doesn't have message structure, skip expensive deserializations
     if !has_message_structure(data) {
         // Still try nested object search (for wrapped messages like {messages: [...]})
@@ -92,19 +91,9 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         data
     };
 
-    // Try Chat Completions format (most common)
-    // Use extended type to capture reasoning field from vLLM/OpenRouter convention
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<ChatCompletionRequestMessageExt>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
-                provider_messages,
-            )
-        {
-            if !messages.is_empty() {
-                return messages;
-            }
+    if let Some(openai_messages) = try_import_openai_messages(data_to_parse) {
+        if !openai_messages.is_empty() {
+            return openai_messages;
         }
     }
 
