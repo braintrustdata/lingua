@@ -3,6 +3,7 @@ use crate::import_parse::{
     non_empty_messages, try_convert_non_empty, try_parse, try_parse_vec_or_single,
 };
 use crate::providers::openai::generated as openai;
+use crate::providers::openai::params::OpenAIResponsesExtrasView;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, REFUSAL_TEXT};
@@ -302,17 +303,14 @@ fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<
 }
 
 fn extract_instructions_from_openai_metadata_value(metadata: &serde_json::Value) -> Option<String> {
-    match metadata {
-        serde_json::Value::Object(obj) => obj
-            .get("instructions")
-            .and_then(serde_json::Value::as_str)
-            .map(ToOwned::to_owned),
+    let typed = match metadata {
         serde_json::Value::String(metadata_json) => {
             let parsed = serde_json::from_str::<serde_json::Value>(metadata_json).ok()?;
-            extract_instructions_from_openai_metadata_value(&parsed)
+            serde_json::from_value::<OpenAIResponsesExtrasView>(parsed).ok()?
         }
-        _ => None,
-    }
+        _ => serde_json::from_value::<OpenAIResponsesExtrasView>(metadata.clone()).ok()?,
+    };
+    typed.instructions
 }
 
 pub(crate) fn try_system_message_from_openai_metadata(
