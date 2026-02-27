@@ -139,16 +139,16 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
 }
 
 fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
-    let mut provider_parsers: Vec<MessageParser> = Vec::new();
-
-    #[cfg(feature = "openai")]
-    provider_parsers.push(try_parse_openai_for_import);
-    #[cfg(feature = "anthropic")]
-    provider_parsers.push(try_parse_anthropic_for_import);
-    #[cfg(feature = "google")]
-    provider_parsers.push(try_parse_google_for_import);
-    #[cfg(feature = "bedrock")]
-    provider_parsers.push(try_parse_bedrock_for_import);
+    let provider_parsers: Vec<MessageParser> = vec![
+        #[cfg(feature = "openai")]
+        try_parse_openai_for_import,
+        #[cfg(feature = "anthropic")]
+        try_parse_anthropic_for_import,
+        #[cfg(feature = "google")]
+        try_parse_google_for_import,
+        #[cfg(feature = "bedrock")]
+        try_parse_bedrock_for_import,
+    ];
 
     try_parsers_in_order(data, &provider_parsers)
 }
