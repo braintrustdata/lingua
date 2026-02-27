@@ -301,6 +301,32 @@ fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<
     }
 }
 
+fn extract_instructions_from_openai_metadata_value(metadata: &serde_json::Value) -> Option<String> {
+    match metadata {
+        serde_json::Value::Object(obj) => obj
+            .get("instructions")
+            .and_then(serde_json::Value::as_str)
+            .map(ToOwned::to_owned),
+        serde_json::Value::String(metadata_json) => {
+            let parsed = serde_json::from_str::<serde_json::Value>(metadata_json).ok()?;
+            extract_instructions_from_openai_metadata_value(&parsed)
+        }
+        _ => None,
+    }
+}
+
+pub(crate) fn try_system_message_from_openai_metadata(
+    metadata: &serde_json::Value,
+) -> Option<Message> {
+    let instructions = extract_instructions_from_openai_metadata_value(metadata)?;
+    if instructions.is_empty() {
+        return None;
+    }
+    Some(Message::System {
+        content: UserContent::String(instructions),
+    })
+}
+
 pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
     if let Some(messages) = try_parse_responses_items_for_import(data) {
         return Some(messages);

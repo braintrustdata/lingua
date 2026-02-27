@@ -9,7 +9,8 @@ use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
 use crate::providers::google::convert::try_parse_google_for_import;
 #[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
-    try_parse_openai_for_import, ChatCompletionRequestMessageExt,
+    try_parse_openai_for_import, try_system_message_from_openai_metadata,
+    ChatCompletionRequestMessageExt,
 };
 use crate::serde_json;
 use crate::serde_json::Value;
@@ -427,15 +428,31 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
     let mut messages = Vec::new();
 
     for span in spans {
+        let mut span_messages = Vec::new();
+
         // Try to extract messages from input
         if let Some(Value::String(input_text)) = &span.input {
-            messages.push(Message::User {
+            span_messages.push(Message::User {
                 content: UserContent::String(input_text.clone()),
             });
         } else if let Some(input) = &span.input {
             let input_messages = try_converting_to_messages(input);
-            messages.extend(input_messages);
+            span_messages.extend(input_messages);
         }
+
+        #[cfg(feature = "openai")]
+        if let Some(metadata) = span.other.get("metadata") {
+            if let Some(system_message) = try_system_message_from_openai_metadata(metadata) {
+                let has_system_message = span_messages
+                    .iter()
+                    .any(|message| matches!(message, Message::System { .. }));
+                if !has_system_message {
+                    span_messages.insert(0, system_message);
+                }
+            }
+        }
+
+        messages.extend(span_messages);
 
         // Try to extract messages from output
         if let Some(output) = &span.output {
