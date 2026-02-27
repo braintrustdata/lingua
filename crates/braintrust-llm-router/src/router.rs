@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -97,6 +98,35 @@ type ResolvedRoute<'a> = (
     ProviderFormat,
 );
 
+#[derive(Clone)]
+pub struct CompletionRequest {
+    /// The input model name
+    pub input_model: String,
+    /// The format we want to transform the response to.
+    pub output_format: ProviderFormat,
+    /// The payload to send to the provider.
+    payload: Bytes,
+    /// The format of the request payload.
+    request_format: ProviderFormat,
+    /// The provider to send the request to.
+    provider: Arc<dyn Provider>,
+    /// The authentication configuration to use for the request.
+    auth: AuthConfig,
+    /// The model specification to use for the request.
+    spec: Arc<ModelSpec>,
+}
+
+impl fmt::Debug for CompletionRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CompletionRequest")
+            .field("request_format", &self.request_format)
+            .field("output_format", &self.output_format)
+            .field("auth", &self.auth)
+            .field("spec", &self.spec)
+            .finish_non_exhaustive()
+    }
+}
+
 pub struct Router {
     catalog: Arc<ModelCatalog>,
     resolver: ModelResolver,
@@ -114,32 +144,23 @@ impl Router {
         Arc::clone(&self.catalog)
     }
 
-    /// Execute a completion request with the given body bytes.
+    /// Create a pre-processed completion request from a model and output format.
     ///
     /// # Arguments
     ///
-    /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
-    /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
-    /// * `output_format` - The output format, or None to auto-detect from body
-    /// * `client_headers` - Client headers to forward to the upstream provider
+    /// * `body` - The raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.).
+    /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus").
+    /// * `output_format` - The output format to transform the response to.
     ///
-    /// The body will be automatically transformed to the target provider's format if needed.
-    /// The response will be converted to the requested output format.
-    #[cfg_attr(
-        feature = "tracing",
-        tracing::instrument(
-            name = "bt.router.complete",
-            skip(self, body, client_headers),
-            fields(llm.model = %model)
-        )
-    )]
-    pub async fn complete(
+    /// # Returns
+    ///
+    /// A `CompletionRequest` struct that can be executed with `complete()` or `complete_stream()`.
+    pub fn completion_request(
         &self,
         body: Bytes,
         model: &str,
         output_format: ProviderFormat,
-        client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
+    ) -> Result<CompletionRequest> {
         let (provider, auth, spec, format) = self.resolve_provider(model, output_format)?;
         let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
@@ -147,12 +168,51 @@ impl Router {
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
             Err(e) => return Err(e.into()),
         };
+        Ok(CompletionRequest {
+            input_model: model.to_string(),
+            output_format,
+            payload,
+            request_format: format,
+            provider,
+            auth: auth.clone(),
+            spec,
+        })
+    }
 
-        let response_bytes = provider
-            .complete(payload, auth, &spec, format, client_headers)
+    /// Execute a completion request with the given body bytes.
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - The pre-processed completion request to execute.
+    /// * `client_headers` - Client headers to forward to the upstream provider
+    ///
+    /// The body and response will be automatically transformed to the formats
+    /// based on the pre-processed request.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete",
+            skip(self, request, client_headers),
+            fields(llm.model = %request.spec.model, output_format = %request.output_format)
+        )
+    )]
+    pub async fn complete(
+        &self,
+        request: CompletionRequest,
+        client_headers: &ClientHeaders,
+    ) -> Result<Bytes> {
+        let response_bytes = request
+            .provider
+            .complete(
+                request.payload,
+                &request.auth,
+                &request.spec,
+                request.request_format,
+                client_headers,
+            )
             .await?;
 
-        let result = lingua::transform_response(response_bytes.clone(), output_format)?;
+        let result = lingua::transform_response(response_bytes.clone(), request.output_format)?;
 
         let response = match result {
             TransformResult::PassThrough(bytes) => bytes,
@@ -166,41 +226,36 @@ impl Router {
     ///
     /// # Arguments
     ///
-    /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
-    /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
-    /// * `output_format` - The output format, or None to auto-detect from body
+    /// * `request` - The pre-processed completion request to execute.
     /// * `client_headers` - Client headers to forward to the upstream provider
     ///
-    /// The body will be automatically transformed to the target provider's format if needed.
-    /// Stream chunks will be transformed to the requested output format.
+    /// The body and response will be automatically transformed to the formats
+    /// based on the pre-processed request.
     #[cfg_attr(
         feature = "tracing",
         tracing::instrument(
             name = "bt.router.complete_stream",
-            skip(self, body, client_headers),
-            fields(llm.model = %model)
+            skip(self, request, client_headers),
+            fields(llm.model = %request.spec.model, output_format = %request.output_format)
         )
     )]
     pub async fn complete_stream(
         &self,
-        body: Bytes,
-        model: &str,
-        output_format: ProviderFormat,
+        request: CompletionRequest,
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
-        let (provider, auth, spec, format) = self.resolve_provider(model, output_format)?;
-        let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => bytes,
-            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(e.into()),
-        };
-
-        let raw_stream = provider
-            .complete_stream(payload, auth, &spec, format, client_headers)
+        let raw_stream = request
+            .provider
+            .complete_stream(
+                request.payload,
+                &request.auth,
+                &request.spec,
+                request.request_format,
+                client_headers,
+            )
             .await?;
 
-        Ok(transform_stream(raw_stream, output_format))
+        Ok(transform_stream(raw_stream, request.output_format))
     }
 
     pub fn provider_alias(&self, model: &str) -> Result<String> {

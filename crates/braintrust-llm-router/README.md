@@ -101,19 +101,18 @@ let router = Router::builder()
 
 ### Making requests
 
-Two entry points:
+Build a `CompletionRequest` from body, model, and output format; then call `complete` or `complete_stream`:
 
 ```rust
 use braintrust_llm_router::{ClientHeaders, ProviderFormat};
 
-// complete() / complete_stream() - explicit model parameter
 let headers = ClientHeaders::default();
-let bytes = router
-    .complete(body, "gpt-4", ProviderFormat::ChatCompletions, &headers)
-    .await?;
-let stream = router
-    .complete_stream(body, "gpt-4", ProviderFormat::ChatCompletions, &headers)
-    .await?;
+let request = router.completion_request(body, "gpt-4", ProviderFormat::ChatCompletions)?;
+let bytes = router.complete(request, &headers).await?;
+
+// Streaming
+let request = router.completion_request(body, "gpt-4", ProviderFormat::ChatCompletions)?;
+let stream = router.complete_stream(request, &headers).await?;
 ```
 
 ### Authentication

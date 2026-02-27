@@ -26,7 +26,9 @@ pub use providers::{
     GoogleProvider, MistralConfig, MistralProvider, OpenAICompatibleEndpoint, OpenAIConfig,
     OpenAIProvider, Provider, VertexConfig, VertexProvider,
 };
-pub use router::{create_provider, extract_request_hints, RequestHints, Router, RouterBuilder};
+pub use router::{
+    create_provider, extract_request_hints, CompletionRequest, RequestHints, Router, RouterBuilder,
+};
 pub use streaming::{RawResponseStream, ResponseStream, StreamChunk};
 
 // Provider trait requirement (for custom provider implementations)
