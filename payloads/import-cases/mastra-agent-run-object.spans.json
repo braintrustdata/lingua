@@ -1,0 +1,7 @@
+[
+  {
+    "input": { "query": "test" },
+    "output": { "text": "Agent response" },
+    "metadata": { "spanType": "agent_run" }
+  }
+]

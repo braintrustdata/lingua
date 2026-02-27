@@ -1,0 +1,42 @@
+[
+  {
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Generate an image using this photo where the person looks like a werewolf."
+          },
+          {
+            "type": "input_image",
+            "image": {
+              "type": "braintrust_attachment",
+              "content_type": "image/jpeg",
+              "filename": "file.jpeg",
+              "key": "input-image-key"
+            }
+          }
+        ]
+      }
+    ],
+    "output": [
+      {
+        "type": "braintrust_attachment",
+        "content_type": "image/jpeg",
+        "filename": "file.jpeg",
+        "key": "output-image-key"
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Here is the transformed image with a spooky werewolf vibe."
+          }
+        ]
+      }
+    ]
+  }
+]

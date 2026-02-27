@@ -1,0 +1,27 @@
+[
+  {
+    "output": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": [{ "type": "input_text", "text": "Before running tool" }]
+      },
+      {
+        "type": "function_call",
+        "name": "click_search_result",
+        "arguments": "{\"elementDescription\":\"Example\"}",
+        "call_id": "call_output_steps"
+      },
+      {
+        "type": "function_call_result",
+        "call_id": "call_output_steps",
+        "output": { "text": "Clicked result" }
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [{ "type": "input_text", "text": "After running tool" }]
+      }
+    ]
+  }
+]

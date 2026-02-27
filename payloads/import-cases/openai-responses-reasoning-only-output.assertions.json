@@ -1,0 +1,11 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "Evaluate this content"
+  ]
+}

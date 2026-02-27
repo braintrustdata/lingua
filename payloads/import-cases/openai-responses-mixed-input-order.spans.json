@@ -1,0 +1,27 @@
+[
+  {
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": [{ "type": "input_text", "text": "Initial snapshot" }]
+      },
+      {
+        "type": "function_call",
+        "name": "fill_field",
+        "arguments": "{\"value\":\"Example\"}",
+        "callId": "call_input_steps"
+      },
+      {
+        "type": "function_call_output",
+        "callId": "call_input_steps",
+        "output": { "text": "Filled value" }
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [{ "type": "input_text", "text": "Current state after tool" }]
+      }
+    ]
+  }
+]

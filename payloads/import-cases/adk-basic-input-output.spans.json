@@ -1,0 +1,25 @@
+[
+  {
+    "input": {
+      "model": "gemini-2.0-flash-exp",
+      "contents": [
+        {
+          "role": "user",
+          "parts": [{ "text": "What is the capital of France?" }]
+        }
+      ]
+    },
+    "output": {
+      "content": {
+        "role": "model",
+        "parts": [{ "text": "The capital of France is Paris." }]
+      },
+      "usageMetadata": {
+        "promptTokenCount": 10,
+        "candidatesTokenCount": 8,
+        "totalTokenCount": 18
+      },
+      "finishReason": "STOP"
+    }
+  }
+]

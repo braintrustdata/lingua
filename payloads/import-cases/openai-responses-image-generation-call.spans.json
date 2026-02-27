@@ -1,0 +1,29 @@
+[
+  {
+    "input": "Generate an image of a serene mountain landscape at sunset.",
+    "output": [
+      {
+        "type": "image_generation_call",
+        "id": "ig_1",
+        "status": "completed",
+        "output_format": "png",
+        "result": {
+          "type": "braintrust_attachment",
+          "content_type": "image/png",
+          "filename": "mountain.png",
+          "key": "img_key_1"
+        }
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Here is the serene mountain landscape at sunset."
+          }
+        ]
+      }
+    ]
+  }
+]

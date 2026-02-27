@@ -1,0 +1,13 @@
+{
+  "expectedMessageCount": 4,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant",
+    "tool",
+    "assistant"
+  ],
+  "mustContainText": [
+    "indoor shrimp farming",
+    "mystical 8-ball"
+  ]
+}

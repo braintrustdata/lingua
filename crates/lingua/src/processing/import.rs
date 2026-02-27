@@ -1,6 +1,7 @@
 use crate::providers::anthropic::generated as anthropic;
-use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
-use crate::providers::openai::generated as openai;
+use crate::providers::openai::convert::{
+    try_parse_responses_items_for_import, ChatCompletionRequestMessageExt,
+};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
@@ -22,43 +23,37 @@ pub struct Span {
     pub other: serde_json::Map<String, Value>,
 }
 
-/// Cheap check to see if a value looks like it might contain messages
-/// Returns early to avoid expensive deserialization attempts on non-message data
-fn has_message_structure(data: &Value) -> bool {
-    match data {
-        // Check if it's an array where ANY element has "role" field or is a choice object
-        Value::Array(arr) => {
-            if arr.is_empty() {
-                return false;
-            }
-            // Check if ANY element in the array looks like a message (not just the first)
-            // This handles mixed-type arrays from Responses API
-            for item in arr {
-                if let Value::Object(obj) = item {
-                    // Direct message format: has "role" field
-                    if obj.contains_key("role") {
+/// Try to convert a value to lingua messages by attempting multiple format conversions
+fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+    if let Some(messages) = try_parse_responses_items_for_import(data) {
+        return messages;
+    }
+
+    // Cheap check to see if a value looks like it might contain messages.
+    // Returns early to avoid expensive deserialization attempts on non-message data.
+    let has_message_structure = match data {
+        // Check if it's an array where any element has "role" or nested "message.role".
+        Value::Array(arr) => arr.iter().any(|item| match item {
+            Value::Object(obj) => {
+                if obj.contains_key("role") {
+                    return true;
+                }
+                if let Some(Value::Object(msg)) = obj.get("message") {
+                    if msg.contains_key("role") {
                         return true;
                     }
-                    // Chat completions response choices format: has "message" field with role inside
-                    if let Some(Value::Object(msg)) = obj.get("message") {
-                        if msg.contains_key("role") {
-                            return true;
-                        }
-                    }
                 }
+                false
             }
-            false
-        }
+            _ => false,
+        }),
         // Check if it's an object with "role" field (single message)
         Value::Object(obj) => obj.contains_key("role"),
         _ => false,
-    }
-}
+    };
 
-/// Try to convert a value to lingua messages by attempting multiple format conversions
-fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     // Early bailout: if data doesn't have message structure, skip expensive deserializations
-    if !has_message_structure(data) {
+    if !has_message_structure {
         // Still try nested object search (for wrapped messages like {messages: [...]})
         if let Value::Object(obj) = data {
             for key in [
@@ -97,32 +92,6 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
             <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
                 provider_messages,
             )
-        {
-            if !messages.is_empty() {
-                return messages;
-            }
-        }
-    }
-
-    // Try Responses API format
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::InputItem>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
-        {
-            if !messages.is_empty() {
-                return messages;
-            }
-        }
-    }
-
-    // Try Responses API output format
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::OutputItem>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(provider_messages)
         {
             if !messages.is_empty() {
                 return messages;
@@ -265,7 +234,7 @@ fn parse_user_content(value: &Value) -> Option<UserContent> {
             for item in arr {
                 if let Some(obj) = item.as_object() {
                     if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "text" {
+                        if matches!(text_type.as_str(), "text" | "input_text" | "output_text") {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(UserContentPart::Text(TextContentPart {
                                     text: text.clone(),
@@ -296,7 +265,7 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
             for item in arr {
                 if let Some(obj) = item.as_object() {
                     if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "text" {
+                        if matches!(text_type.as_str(), "text" | "input_text" | "output_text") {
                             if let Some(Value::String(text)) = obj.get("text") {
                                 parts.push(crate::universal::AssistantContentPart::Text(
                                     TextContentPart {
@@ -389,9 +358,8 @@ fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
     for item in arr {
         let obj = item.as_object()?;
 
-        // Check if this looks like a choice object (has "message" or "finish_reason")
-        // Note: has_message_structure only checks the first element, so we need to validate
-        // each element here to ensure the entire array is a valid choices array
+        // Check if this looks like a choice object (has "message" or "finish_reason").
+        // We still validate each element here to ensure the entire array is a valid choices array.
         if !obj.contains_key("message") && !obj.contains_key("finish_reason") {
             return None; // Not a choices array
         }
@@ -426,7 +394,11 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
 
     for span in spans {
         // Try to extract messages from input
-        if let Some(input) = &span.input {
+        if let Some(Value::String(input_text)) = &span.input {
+            messages.push(Message::User {
+                content: UserContent::String(input_text.clone()),
+            });
+        } else if let Some(input) = &span.input {
             let input_messages = try_converting_to_messages(input);
             messages.extend(input_messages);
         }

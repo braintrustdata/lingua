@@ -1,0 +1,12 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant",
+    "assistant"
+  ],
+  "mustContainText": [
+    "latest AI news",
+    "comprehensive overview"
+  ]
+}

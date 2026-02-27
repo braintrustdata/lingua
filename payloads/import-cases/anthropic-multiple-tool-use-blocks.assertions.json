@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": ["assistant"],
+  "mustContainText": ["tool1", "tool2", "toolu_1", "toolu_2"]
+}

@@ -1,0 +1,10 @@
+{
+  "_migrationNote": "Diverges from app/ui/trace/converters/ai-sdk-converter.test.ts (legacy AI SDK format): lingua imports the nested input `messages` array but currently drops the legacy output object (`content`/`text` fields), while the old converter normalized both user and assistant messages.",
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "user"
+  ],
+  "mustContainText": [
+    "Hello, how are you?"
+  ]
+}

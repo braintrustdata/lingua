@@ -1,0 +1,26 @@
+[
+  {
+    "input": "What are the latest developments in artificial intelligence from this week?",
+    "output": [
+      {
+        "type": "web_search_call",
+        "id": "ws_1",
+        "status": "completed",
+        "action": {
+          "type": "search",
+          "query": "latest AI news this week"
+        }
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Here is a comprehensive overview of recent AI developments."
+          }
+        ]
+      }
+    ]
+  }
+]

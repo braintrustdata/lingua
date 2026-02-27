@@ -69,6 +69,10 @@ Supported keys:
 - `expectedRolesInOrder` (string array)
 - `mustContainText` (string array)
 
+Notes:
+
+- Unknown keys are ignored by the current test runner. We use `_migrationNote` to document intentional expectation changes when porting from older frontend converter tests.
+
 ## Test modes
 
 Default mode (strict):

@@ -1,0 +1,13 @@
+[
+  {
+    "input": [
+      {
+        "id": "3By20HRG0qPzog54",
+        "role": "user",
+        "parts": [{ "type": "text", "text": "why did this task fail?" }]
+      }
+    ],
+    "output": { "text": "Agent response text" },
+    "metadata": { "spanType": "agent_run" }
+  }
+]

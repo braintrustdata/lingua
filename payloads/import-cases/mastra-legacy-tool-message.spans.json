@@ -1,0 +1,11 @@
+[
+  {
+    "input": {
+      "messages": [
+        { "role": "user", "content": "Question" },
+        { "role": "tool", "content": "Result", "toolId": "myTool" }
+      ]
+    },
+    "output": { "text": "Answer" }
+  }
+]
