@@ -59,13 +59,9 @@ async fn main() -> Result<()> {
     });
 
     let body = Bytes::from(serde_json::to_vec(&payload)?);
+    let request = router.completion_request(body, model, ProviderFormat::ChatCompletions)?;
     let mut stream = router
-        .complete_stream(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+        .complete_stream(request, &ClientHeaders::default())
         .await?;
 
     // Process the stream
@@ -138,13 +134,9 @@ async fn main() -> Result<()> {
             "stream": true
         });
         let body = Bytes::from(serde_json::to_vec(&payload)?);
+        let request = router.completion_request(body, model, ProviderFormat::ChatCompletions)?;
         let stream = router
-            .complete_stream(
-                body,
-                model,
-                ProviderFormat::ChatCompletions,
-                &ClientHeaders::default(),
-            )
+            .complete_stream(request, &ClientHeaders::default())
             .await?;
         streams.push((model.to_string(), stream));
     }

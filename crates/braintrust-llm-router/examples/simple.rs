@@ -57,14 +57,8 @@ async fn main() -> Result<()> {
 
     // Convert payload to bytes and send request
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let bytes = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
-        .await?;
+    let request = router.completion_request(body, model, ProviderFormat::ChatCompletions)?;
+    let bytes = router.complete(request, &ClientHeaders::default()).await?;
     let response: Value = serde_json::from_slice(&bytes)?;
 
     println!("📝 Response:\n");
