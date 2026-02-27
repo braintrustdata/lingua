@@ -1,0 +1,421 @@
+{
+  "_pagination_key": "p07611319713718796304",
+  "_xact_id": "1000196732210642950",
+  "classifications": null,
+  "created": "2026-02-26T23:27:48.242Z",
+  "facets": null,
+  "id": "5ce5ac55-0f44-49ee-b741-7ee7c20ad21b",
+  "metrics": {
+    "completion_reasoning_tokens": 0,
+    "completion_tokens": 67,
+    "end": 1771557633.053,
+    "prompt_cached_tokens": 0,
+    "prompt_tokens": 7463,
+    "start": 1771557631.357,
+    "time_to_first_token": 1.6579999923706055,
+    "tokens": 7530,
+    "estimated_cost": 0.0030924000000000004
+  },
+  "model": "gpt-4.1-mini-2025-04-14",
+  "origin": null,
+  "root_span_id": "10462236014",
+  "scores": null,
+  "span_attributes": {
+    "exec_counter": 187,
+    "name": "openai.responses.create",
+    "type": "llm"
+  },
+  "span_id": "ba83cef7-c295-4d5f-9395-e1722edea867",
+  "span_parents": [
+    "26114f49-e5a8-4916-a53b-8bfe4d7c5da1"
+  ],
+  "tags": [],
+  "_async_scoring_state": null,
+  "audit_data": [
+    {
+      "_xact_id": "1000196693053874233",
+      "audit_data": {
+        "action": "upsert"
+      },
+      "metadata": {},
+      "source": "api"
+    },
+    {
+      "_xact_id": "1000196693054006718",
+      "audit_data": {
+        "action": "merge",
+        "path": [
+          "output"
+        ]
+      },
+      "metadata": {},
+      "source": "api"
+    },
+    {
+      "_xact_id": "1000196693054006856",
+      "audit_data": {
+        "action": "merge",
+        "from": null,
+        "path": [
+          "metrics"
+        ],
+        "to": {
+          "end": 1771557633.053
+        }
+      },
+      "metadata": {},
+      "source": "api"
+    },
+    {
+      "_xact_id": "1000196731774959651",
+      "audit_data": {
+        "action": "merge",
+        "path": [
+          "audit_data"
+        ]
+      },
+      "metadata": {
+        "user_id": "anon_1"
+      },
+      "source": "app"
+    },
+    {
+      "_xact_id": "1000196731933884445",
+      "audit_data": {
+        "action": "merge",
+        "path": [
+          "audit_data"
+        ]
+      },
+      "metadata": {
+        "user_id": "anon_1"
+      },
+      "source": "app"
+    },
+    {
+      "_xact_id": "1000196732210642950",
+      "audit_data": {
+        "action": "merge",
+        "path": [
+          "audit_data"
+        ]
+      },
+      "metadata": {
+        "user_id": "anon_1"
+      },
+      "source": "app"
+    }
+  ],
+  "context": {},
+  "input": [
+    {
+      "content": "anon_2",
+      "role": "user"
+    }
+  ],
+  "is_root": false,
+  "log_id": "g",
+  "metadata": {
+    "background": false,
+    "billing": {
+      "payer": "anon_3"
+    },
+    "completed_at": 1771557632,
+    "conversation": {
+      "id": "anon_4"
+    },
+    "created_at": 1771557631,
+    "error": null,
+    "frequency_penalty": 0,
+    "id": "anon_5",
+    "incomplete_details": null,
+    "instructions": "anon_6",
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "metadata": {
+      "experiment": "anon_7",
+      "language": "anon_8",
+      "threadId": "anon_9"
+    },
+    "model": "gpt-4.1-mini-2025-04-14",
+    "object": "anon_10",
+    "output_text": "",
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "provider": "anon_11",
+    "reasoning": {
+      "effort": null,
+      "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "anon_12",
+    "status": "completed",
+    "store": true,
+    "temperature": 0.5,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "anon_14"
+    },
+    "tool_choice": "anon_15",
+    "tools": [
+      {
+        "description": "anon_16",
+        "name": "anon_17",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "description": "anon_18",
+              "type": "string"
+            }
+          },
+          "required": [
+            "anon_19"
+          ],
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      },
+      {
+        "description": "anon_20",
+        "name": "anon_21",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "features": {
+              "description": "anon_22",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6,
+              "minItems": 2,
+              "type": "array"
+            }
+          },
+          "required": [
+            "anon_23"
+          ],
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      },
+      {
+        "description": "anon_24",
+        "name": "anon_25",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "packages": {
+              "description": "anon_26",
+              "items": {
+                "description": "anon_27",
+                "enum": [
+                  "anon_28",
+                  "anon_29",
+                  "anon_30",
+                  "anon_31",
+                  "anon_32",
+                  "anon_33",
+                  "anon_34",
+                  "anon_35",
+                  "anon_36",
+                  "anon_37",
+                  "anon_38",
+                  "anon_39",
+                  "anon_40",
+                  "anon_41",
+                  "anon_42",
+                  "anon_43",
+                  "anon_44",
+                  "anon_45",
+                  "anon_46",
+                  "anon_47",
+                  "anon_48",
+                  "anon_49",
+                  "anon_50",
+                  "anon_51",
+                  "anon_52",
+                  "anon_53"
+                ],
+                "type": "string"
+              },
+              "maxItems": 6,
+              "minItems": 1,
+              "type": "array"
+            }
+          },
+          "required": [
+            "anon_54"
+          ],
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      },
+      {
+        "description": "anon_55",
+        "name": "anon_56",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "competitor": {
+              "description": "anon_57",
+              "type": "string"
+            },
+            "feature": {
+              "description": "anon_58",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "anon_59",
+            "anon_60"
+          ],
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      },
+      {
+        "description": "anon_61",
+        "name": "anon_62",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "confirmed": {
+              "description": "anon_63",
+              "type": "boolean"
+            },
+            "reason": {
+              "description": "anon_64",
+              "type": "string"
+            }
+          },
+          "required": [
+            "anon_65",
+            "anon_66"
+          ],
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      },
+      {
+        "description": "anon_67",
+        "name": "anon_68",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "topic": {
+              "description": "anon_69",
+              "type": "string"
+            }
+          },
+          "required": [
+            "anon_70"
+          ],
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      },
+      {
+        "description": "anon_71",
+        "name": "anon_72",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      },
+      {
+        "description": "anon_73",
+        "name": "anon_74",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "confirmed": {
+              "description": "anon_75",
+              "type": "boolean"
+            },
+            "reason": {
+              "description": "anon_76",
+              "type": "string"
+            }
+          },
+          "required": [
+            "anon_65",
+            "anon_66"
+          ],
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      },
+      {
+        "description": "anon_77",
+        "name": "anon_78",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "package": {
+              "description": "anon_79",
+              "enum": [
+                "anon_28",
+                "anon_31",
+                "anon_34",
+                "anon_35",
+                "anon_38",
+                "anon_41",
+                "anon_44"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "anon_80"
+          ],
+          "type": "object"
+        },
+        "strict": true,
+        "type": "function"
+      }
+    ],
+    "top_logprobs": 0,
+    "top_p": 1,
+    "truncation": "anon_81",
+    "user": null
+  },
+  "org_id": "bccc9127-65c4-4fd1-98e9-bc294603dcea",
+  "output": [
+    {
+      "arguments": "anon_82",
+      "call_id": "anon_83",
+      "id": "anon_84",
+      "name": "anon_25",
+      "status": "completed",
+      "type": "function_call"
+    },
+    {
+      "arguments": "anon_85",
+      "call_id": "anon_86",
+      "id": "anon_87",
+      "name": "anon_21",
+      "status": "completed",
+      "type": "function_call"
+    }
+  ],
+  "project_id": "6c503c8e-2050-4d06-ba9e-e6381437fd3a"
+}
