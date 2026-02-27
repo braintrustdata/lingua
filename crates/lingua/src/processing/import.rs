@@ -1,6 +1,10 @@
+use crate::import_parse::{try_parsers_in_order, MessageParser};
+use crate::providers::anthropic::convert::try_parse_anthropic_for_import;
 use crate::providers::anthropic::generated as anthropic;
+use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
+use crate::providers::google::convert::try_parse_google_for_import;
 use crate::providers::openai::convert::{
-    try_parse_responses_items_for_import, ChatCompletionRequestMessageExt,
+    try_parse_openai_for_import, ChatCompletionRequestMessageExt,
 };
 use crate::serde_json;
 use crate::serde_json::Value;
@@ -25,7 +29,7 @@ pub struct Span {
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
-    if let Some(messages) = try_parse_responses_items_for_import(data) {
+    if let Some(messages) = try_parse_provider_messages_for_import(data) {
         return messages;
     }
 
@@ -122,6 +126,16 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     }
 
     Vec::new()
+}
+
+fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
+    const PROVIDER_PARSERS: &[MessageParser] = &[
+        try_parse_openai_for_import,
+        try_parse_anthropic_for_import,
+        try_parse_google_for_import,
+        try_parse_bedrock_for_import,
+    ];
+    try_parsers_in_order(data, PROVIDER_PARSERS)
 }
 
 #[derive(Debug, Clone, Deserialize)]

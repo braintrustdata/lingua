@@ -1,4 +1,7 @@
 use crate::error::ConvertError;
+use crate::import_parse::{
+    non_empty_messages, try_convert_non_empty, try_parse, try_parse_vec_or_single,
+};
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
@@ -260,35 +263,15 @@ fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Me
 }
 
 fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<Vec<Message>> {
-    let wrapped;
-    let candidate = if candidate.is_object() {
-        wrapped = serde_json::Value::Array(vec![candidate.clone()]);
-        &wrapped
-    } else {
-        candidate
-    };
-
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::InputItem>>(candidate.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
-        {
-            if !messages.is_empty() {
-                return Some(merge_adjacent_reasoning_assistant_messages(messages));
-            }
+    if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate) {
+        if let Some(messages) = try_convert_non_empty(provider_messages) {
+            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
         }
     }
 
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::OutputItem>>(candidate.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(provider_messages)
-        {
-            if !messages.is_empty() {
-                return Some(merge_adjacent_reasoning_assistant_messages(messages));
-            }
+    if let Some(provider_messages) = try_parse_vec_or_single::<openai::OutputItem>(candidate) {
+        if let Some(messages) = try_convert_non_empty(provider_messages) {
+            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
         }
     }
 
@@ -304,6 +287,39 @@ pub(crate) fn try_parse_responses_items_for_import(
 
     let normalized = normalize_responses_items_for_import(data)?;
     try_from_responses_items_candidate(&normalized)
+}
+
+fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<Vec<Message>> {
+    match input {
+        openai::Instructions::InputItemArray(items) => {
+            let messages = try_convert_non_empty(items)?;
+            non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages))
+        }
+        openai::Instructions::String(text) => Some(vec![Message::User {
+            content: UserContent::String(text),
+        }]),
+    }
+}
+
+pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
+    if let Some(messages) = try_parse_responses_items_for_import(data) {
+        return Some(messages);
+    }
+
+    if let Some(request) = try_parse::<openai::CreateResponseClass>(data) {
+        if let Some(input) = request.input {
+            if let Some(messages) = try_messages_from_openai_instructions(input) {
+                return Some(messages);
+            }
+        }
+    }
+
+    if let Some(response) = try_parse::<openai::TheResponseObject>(data) {
+        let messages = try_convert_non_empty(response.output)?;
+        return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
+    }
+
+    None
 }
 
 /// Convert OpenAI InputItem collection to universal Message collection
