@@ -1,8 +1,13 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
+#[cfg(feature = "anthropic")]
 use crate::providers::anthropic::convert::try_parse_anthropic_for_import;
+#[cfg(feature = "anthropic")]
 use crate::providers::anthropic::generated as anthropic;
+#[cfg(feature = "bedrock")]
 use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
+#[cfg(feature = "google")]
 use crate::providers::google::convert::try_parse_google_for_import;
+#[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
     try_parse_openai_for_import, ChatCompletionRequestMessageExt,
 };
@@ -89,24 +94,29 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
 
     // Try Chat Completions format (most common)
     // Use extended type to capture reasoning field from vLLM/OpenRouter convention
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<ChatCompletionRequestMessageExt>>(data_to_parse.clone())
+    #[cfg(feature = "openai")]
     {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
-                provider_messages,
-            )
+        if let Ok(provider_messages) =
+            serde_json::from_value::<Vec<ChatCompletionRequestMessageExt>>(data_to_parse.clone())
         {
-            if !messages.is_empty() {
-                return messages;
+            if let Ok(messages) = <Vec<Message> as TryFromLLM<
+                Vec<ChatCompletionRequestMessageExt>,
+            >>::try_from(provider_messages)
+            {
+                if !messages.is_empty() {
+                    return messages;
+                }
             }
         }
     }
 
     // Try Anthropic format (including role-based system/developer messages).
-    if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse) {
-        if !anthropic_messages.is_empty() {
-            return anthropic_messages;
+    #[cfg(feature = "anthropic")]
+    {
+        if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse) {
+            if !anthropic_messages.is_empty() {
+                return anthropic_messages;
+            }
         }
     }
 
@@ -129,15 +139,21 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
 }
 
 fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
-    const PROVIDER_PARSERS: &[MessageParser] = &[
-        try_parse_openai_for_import,
-        try_parse_anthropic_for_import,
-        try_parse_google_for_import,
-        try_parse_bedrock_for_import,
-    ];
-    try_parsers_in_order(data, PROVIDER_PARSERS)
+    let mut provider_parsers: Vec<MessageParser> = Vec::new();
+
+    #[cfg(feature = "openai")]
+    provider_parsers.push(try_parse_openai_for_import);
+    #[cfg(feature = "anthropic")]
+    provider_parsers.push(try_parse_anthropic_for_import);
+    #[cfg(feature = "google")]
+    provider_parsers.push(try_parse_google_for_import);
+    #[cfg(feature = "bedrock")]
+    provider_parsers.push(try_parse_bedrock_for_import);
+
+    try_parsers_in_order(data, &provider_parsers)
 }
 
+#[cfg(feature = "anthropic")]
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 enum AnthropicOrSystemMessage {
@@ -145,12 +161,14 @@ enum AnthropicOrSystemMessage {
     SystemOrDeveloper(SystemOrDeveloperMessage),
 }
 
+#[cfg(feature = "anthropic")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SystemOrDeveloperMessage {
     role: SystemOrDeveloperRole,
     content: Value,
 }
 
+#[cfg(feature = "anthropic")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum SystemOrDeveloperRole {
@@ -158,6 +176,7 @@ enum SystemOrDeveloperRole {
     Developer,
 }
 
+#[cfg(feature = "anthropic")]
 fn try_parse_anthropic_or_system_message(item: AnthropicOrSystemMessage) -> Option<Message> {
     match item {
         AnthropicOrSystemMessage::Anthropic(provider_message) => {
@@ -170,6 +189,7 @@ fn try_parse_anthropic_or_system_message(item: AnthropicOrSystemMessage) -> Opti
     }
 }
 
+#[cfg(feature = "anthropic")]
 fn try_anthropic_or_system_messages(data: &Value) -> Option<Vec<Message>> {
     let items: Vec<AnthropicOrSystemMessage> = serde_json::from_value(data.clone()).ok()?;
     if items.is_empty() {
