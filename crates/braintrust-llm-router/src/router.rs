@@ -109,8 +109,9 @@ pub struct CompletionRequest {
     pub output_format: ProviderFormat,
     /// The payload to send to the provider.
     payload: Bytes,
-    /// The format of the request payload.
-    request_format: ProviderFormat,
+    /// The format of the payload that the router is going to send to the
+    /// provider. May differ from the input format from the caller.c:w
+    provider_format: ProviderFormat,
     /// The provider to send the request to.
     provider: Arc<dyn Provider>,
     /// The authentication configuration to use for the request.
@@ -122,7 +123,7 @@ pub struct CompletionRequest {
 impl fmt::Debug for CompletionRequest {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("CompletionRequest")
-            .field("request_format", &self.request_format)
+            .field("provider_format", &self.provider_format)
             .field("output_format", &self.output_format)
             .field("auth", &self.auth)
             .field("spec", &self.spec)
@@ -175,7 +176,7 @@ impl Router {
             input_model: model.to_string(),
             output_format,
             payload,
-            request_format: format,
+            provider_format: format,
             provider,
             auth: auth.clone(),
             spec,
@@ -210,7 +211,7 @@ impl Router {
                 request.payload,
                 &request.auth,
                 &request.spec,
-                request.request_format,
+                request.provider_format,
                 client_headers,
             )
             .await?;
@@ -253,7 +254,7 @@ impl Router {
                 request.payload,
                 &request.auth,
                 &request.spec,
-                request.request_format,
+                request.provider_format,
                 client_headers,
             )
             .await?;
