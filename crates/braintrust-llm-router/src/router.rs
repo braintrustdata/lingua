@@ -1,10 +1,7 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::time::sleep;
-
-#[cfg(feature = "tracing")]
-use tracing::Instrument;
 
 use bytes::Bytes;
 
@@ -12,7 +9,6 @@ use crate::auth::AuthConfig;
 use crate::catalog::{load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec};
 use crate::error::{Error, Result};
 use crate::providers::{ClientHeaders, Provider};
-use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_stream, ResponseStream};
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
@@ -100,8 +96,37 @@ type ResolvedRoute<'a> = (
     &'a AuthConfig,
     Arc<ModelSpec>,
     ProviderFormat,
-    RetryStrategy,
 );
+
+#[derive(Clone)]
+pub struct CompletionRequest {
+    /// The input model name
+    pub input_model: String,
+    /// The format we want to transform the response to.
+    pub output_format: ProviderFormat,
+    /// The payload to send to the provider.
+    payload: Bytes,
+    /// The format of the payload that the router is going to send to the
+    /// provider. May differ from the input format from the caller.c:w
+    provider_format: ProviderFormat,
+    /// The provider to send the request to.
+    provider: Arc<dyn Provider>,
+    /// The authentication configuration to use for the request.
+    auth: AuthConfig,
+    /// The model specification to use for the request.
+    spec: Arc<ModelSpec>,
+}
+
+impl fmt::Debug for CompletionRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CompletionRequest")
+            .field("provider_format", &self.provider_format)
+            .field("output_format", &self.output_format)
+            .field("auth", &self.auth)
+            .field("spec", &self.spec)
+            .finish_non_exhaustive()
+    }
+}
 
 pub struct Router {
     catalog: Arc<ModelCatalog>,
@@ -109,7 +134,6 @@ pub struct Router {
     providers: HashMap<String, Arc<dyn Provider>>, // alias -> provider
     formats: HashMap<ProviderFormat, String>,      // format -> alias
     auth_configs: HashMap<String, AuthConfig>,     // alias -> auth
-    retry_policy: RetryPolicy,
 }
 
 impl Router {
@@ -121,54 +145,75 @@ impl Router {
         Arc::clone(&self.catalog)
     }
 
-    /// Execute a completion request with the given body bytes.
+    /// Create a pre-processed completion request from a model and output format.
     ///
     /// # Arguments
     ///
-    /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
-    /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
-    /// * `output_format` - The output format, or None to auto-detect from body
-    /// * `client_headers` - Client headers to forward to the upstream provider
+    /// * `body` - The raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.).
+    /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus").
+    /// * `output_format` - The output format to transform the response to.
     ///
-    /// The body will be automatically transformed to the target provider's format if needed.
-    /// The response will be converted to the requested output format.
-    #[cfg_attr(
-        feature = "tracing",
-        tracing::instrument(
-            name = "bt.router.complete",
-            skip(self, body, client_headers),
-            fields(llm.model = %model)
-        )
-    )]
-    pub async fn complete(
+    /// # Returns
+    ///
+    /// A `CompletionRequest` struct that can be executed with `complete()` or `complete_stream()`.
+    pub fn completion_request(
         &self,
         body: Bytes,
         model: &str,
         output_format: ProviderFormat,
-        client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
-        let (provider, auth, spec, format, strategy) =
-            self.resolve_provider(model, output_format)?;
+    ) -> Result<CompletionRequest> {
+        let (provider, auth, spec, format) = self.resolve_provider(model, output_format)?;
         let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
             Ok(TransformResult::PassThrough(bytes)) => bytes,
             Ok(TransformResult::Transformed { bytes, .. }) => bytes,
             Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
             Err(e) => return Err(e.into()),
         };
+        Ok(CompletionRequest {
+            input_model: model.to_string(),
+            output_format,
+            payload,
+            provider_format: format,
+            provider,
+            auth: auth.clone(),
+            spec,
+        })
+    }
 
-        let response_bytes = self
-            .execute_with_retry(
-                provider.clone(),
-                auth,
-                spec,
-                format,
-                payload,
-                strategy,
+    /// Execute a completion request with the given body bytes.
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - The pre-processed completion request to execute.
+    /// * `client_headers` - Client headers to forward to the upstream provider
+    ///
+    /// The body and response will be automatically transformed to the formats
+    /// based on the pre-processed request.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete",
+            skip(self, request, client_headers),
+            fields(llm.model = %request.spec.model, output_format = %request.output_format)
+        )
+    )]
+    pub async fn complete(
+        &self,
+        request: CompletionRequest,
+        client_headers: &ClientHeaders,
+    ) -> Result<Bytes> {
+        let response_bytes = request
+            .provider
+            .complete(
+                request.payload,
+                &request.auth,
+                &request.spec,
+                request.provider_format,
                 client_headers,
             )
             .await?;
 
-        let result = lingua::transform_response(response_bytes.clone(), output_format)?;
+        let result = lingua::transform_response(response_bytes.clone(), request.output_format)?;
 
         let response = match result {
             TransformResult::PassThrough(bytes) => bytes,
@@ -182,41 +227,36 @@ impl Router {
     ///
     /// # Arguments
     ///
-    /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
-    /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
-    /// * `output_format` - The output format, or None to auto-detect from body
+    /// * `request` - The pre-processed completion request to execute.
     /// * `client_headers` - Client headers to forward to the upstream provider
     ///
-    /// The body will be automatically transformed to the target provider's format if needed.
-    /// Stream chunks will be transformed to the requested output format.
+    /// The body and response will be automatically transformed to the formats
+    /// based on the pre-processed request.
     #[cfg_attr(
         feature = "tracing",
         tracing::instrument(
             name = "bt.router.complete_stream",
-            skip(self, body, client_headers),
-            fields(llm.model = %model)
+            skip(self, request, client_headers),
+            fields(llm.model = %request.spec.model, output_format = %request.output_format)
         )
     )]
     pub async fn complete_stream(
         &self,
-        body: Bytes,
-        model: &str,
-        output_format: ProviderFormat,
+        request: CompletionRequest,
         client_headers: &ClientHeaders,
     ) -> Result<ResponseStream> {
-        let (provider, auth, spec, format, _) = self.resolve_provider(model, output_format)?;
-        let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => bytes,
-            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(e.into()),
-        };
-
-        let raw_stream = provider
-            .complete_stream(payload, auth, &spec, format, client_headers)
+        let raw_stream = request
+            .provider
+            .complete_stream(
+                request.payload,
+                &request.auth,
+                &request.spec,
+                request.provider_format,
+                client_headers,
+            )
             .await?;
 
-        Ok(transform_stream(raw_stream, output_format))
+        Ok(transform_stream(raw_stream, request.output_format))
     }
 
     pub fn provider_alias(&self, model: &str) -> Result<String> {
@@ -276,71 +316,7 @@ impl Router {
             .auth_configs
             .get(&alias)
             .ok_or_else(|| Error::NoAuth(alias.clone()))?;
-        let strategy = self.retry_policy.strategy();
-        Ok((provider, auth, spec, format, strategy))
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    async fn execute_with_retry(
-        &self,
-        provider: Arc<dyn Provider>,
-        auth: &AuthConfig,
-        spec: Arc<ModelSpec>,
-        format: ProviderFormat,
-        payload: Bytes,
-        mut strategy: RetryStrategy,
-        client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
-        #[cfg(feature = "tracing")]
-        let mut attempt = 0u32;
-
-        loop {
-            #[cfg(feature = "tracing")]
-            {
-                attempt += 1;
-            }
-
-            #[cfg(feature = "tracing")]
-            let result = {
-                let span = tracing::info_span!(
-                    "bt.router.provider.attempt",
-                    llm.provider = %provider.id(),
-                    attempt = attempt,
-                );
-                async {
-                    provider
-                        .complete(payload.clone(), auth, &spec, format, client_headers)
-                        .await
-                }
-                .instrument(span)
-                .await
-            };
-
-            #[cfg(not(feature = "tracing"))]
-            let result = provider
-                .complete(payload.clone(), auth, &spec, format, client_headers)
-                .await;
-
-            match result {
-                Ok(response) => return Ok(response),
-                Err(err) => {
-                    if let Some(delay) = strategy.next_delay(&err) {
-                        #[cfg(feature = "tracing")]
-                        tracing::info!(
-                            llm.provider = %provider.id(),
-                            attempt = attempt,
-                            delay_ms = delay.as_millis() as u64,
-                            error = %err,
-                            "retrying after delay"
-                        );
-                        sleep(delay).await;
-                        continue;
-                    } else {
-                        return Err(err);
-                    }
-                }
-            }
-        }
+        Ok((provider, auth, spec, format))
     }
 }
 
@@ -349,7 +325,6 @@ pub struct RouterBuilder {
     providers: HashMap<String, Arc<dyn Provider>>,
     formats: HashMap<ProviderFormat, String>,
     auth_configs: HashMap<String, AuthConfig>,
-    retry_policy: RetryPolicy,
 }
 
 impl Default for RouterBuilder {
@@ -365,7 +340,6 @@ impl RouterBuilder {
             providers: HashMap::new(),
             formats: HashMap::new(),
             auth_configs: HashMap::new(),
-            retry_policy: RetryPolicy::default(),
         }
     }
 
@@ -377,11 +351,6 @@ impl RouterBuilder {
 
     pub fn with_catalog(mut self, catalog: Arc<ModelCatalog>) -> Self {
         self.catalog = Some(catalog);
-        self
-    }
-
-    pub fn with_retry_policy(mut self, policy: RetryPolicy) -> Self {
-        self.retry_policy = policy;
         self
     }
 
@@ -440,7 +409,6 @@ impl RouterBuilder {
             providers: self.providers,
             formats: self.formats,
             auth_configs: self.auth_configs,
-            retry_policy: self.retry_policy,
         })
     }
 }
@@ -620,7 +588,7 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format, _) = router
+        let (_, _, _, format) = router
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::Responses);
@@ -644,7 +612,7 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format, _) = router
+        let (_, _, _, format) = router
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::Responses);
@@ -668,7 +636,7 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format, _) = router
+        let (_, _, _, format) = router
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::ChatCompletions);
@@ -692,7 +660,7 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format, _) = router
+        let (_, _, _, format) = router
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::ChatCompletions);
