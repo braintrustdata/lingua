@@ -3,12 +3,13 @@
   "extends": [
     "//"
   ],
-  "globalDependencies": [
-    "../../crates/lingua/src/**/*.rs",
-    "../../crates/lingua/Cargo.toml"
-  ],
   "tasks": {
     "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "../../crates/lingua/src/**/*.rs",
+        "../../crates/lingua/Cargo.toml"
+      ],
       "outputs": [
         "nodejs/**",
         "web/**"
