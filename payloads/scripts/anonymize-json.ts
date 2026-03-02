@@ -59,6 +59,22 @@ function normalizeKeySet(keys: Set<string>): Set<string> {
   return new Set(Array.from(keys).map((key) => key.toLowerCase()));
 }
 
+function isArgumentsKey(currentKey?: string): boolean {
+  return currentKey?.toLowerCase() === "arguments";
+}
+
+function tryParseJsonString(value: string): JsonValue | undefined {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (isJsonValue(parsed)) {
+      return parsed;
+    }
+  } catch {
+    // Ignore parse errors and fall back to plain string anonymization.
+  }
+  return undefined;
+}
+
 export function anonymizeJsonValue(
   input: JsonValue,
   options: AnonymizeOptions = {}
@@ -109,14 +125,36 @@ export function anonymizeJsonValue(
         return value;
       }
 
+      const isToolArguments = isArgumentsKey(currentKey);
       if (
         !allStrings &&
         !withinContent &&
         !withinMetadata &&
         !withinContext &&
-        !withinOutput
+        !withinOutput &&
+        !isToolArguments
       ) {
         return value;
+      }
+
+      if (isToolArguments) {
+        const parsedArguments = tryParseJsonString(value);
+        if (
+          parsedArguments &&
+          (Array.isArray(parsedArguments) ||
+            typeof parsedArguments === "object")
+        ) {
+          const anonymizedArguments = walk(
+            parsedArguments,
+            [...path, "<parsed_json>"],
+            undefined,
+            true,
+            withinMetadata,
+            withinContext,
+            withinOutput
+          );
+          return JSON.stringify(anonymizedArguments);
+        }
       }
       return replaceString(value, currentKey);
     }
@@ -190,7 +228,7 @@ function usage(): string {
     "",
     "Defaults:",
     "  --output same path as input (in-place)",
-    "  anonymizes strings under 'content', 'metadata*', 'context', and 'output' subtrees",
+    "  anonymizes strings under 'content', 'metadata*', 'context', 'output', and tool-call 'arguments'",
     "  removes metadata*.prompt",
     "  preserves metadata.model",
     "  --preserve-keys role,type (ignored when --all-strings is set)",
@@ -329,7 +367,7 @@ async function main(): Promise<void> {
     `Replaced ${anonymized.replacedStringCount} string value(s) across ${anonymized.uniqueReplacementCount} unique value(s)`
   );
   if (!options.allStrings) {
-    console.log("Scope: content + metadata + context + output");
+    console.log("Scope: content + metadata + context + output + arguments");
   }
   if (!options.allStrings) {
     console.log(

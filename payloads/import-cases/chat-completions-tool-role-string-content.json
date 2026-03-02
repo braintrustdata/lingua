@@ -1,0 +1,955 @@
+[
+  {
+    "_pagination_key": "p07612716874649042950",
+    "_xact_id": "1000196753093943572",
+    "classifications": null,
+    "created": "2026-03-02T17:48:35.488Z",
+    "facets": null,
+    "id": "db9f450e-d907-45d9-b388-43e3ac5f7067",
+    "metrics": {
+      "completion_tokens": 170,
+      "end": 1771364303.728221,
+      "prompt_tokens": 143966,
+      "reasoning_tokens": 0,
+      "start": 1771364279.6567612,
+      "tokens": 144136,
+      "total_cost": 0.434448,
+      "estimated_cost": 0.434448
+    },
+    "model": "claude-sonnet-4-5-20250929",
+    "origin": null,
+    "root_span_id": "9e26c65f-7839-4ac5-a570-22b46b14262e",
+    "scores": null,
+    "span_attributes": {
+      "exec_counter": 571,
+      "name": "[sonnet45]AgenticDraftingAgent",
+      "type": "llm"
+    },
+    "span_id": "c832540c-2e29-402c-b42f-33887d7188ce",
+    "span_parents": [
+      "8a7866ab-512f-48de-8e4b-591da2e9cdf2"
+    ],
+    "tags": [],
+    "_async_scoring_state": null,
+    "audit_data": [
+      {
+        "_xact_id": "1000196680382462889",
+        "audit_data": {
+          "action": "upsert"
+        },
+        "metadata": {},
+        "source": "api"
+      },
+      {
+        "_xact_id": "1000196680384012658",
+        "audit_data": {
+          "action": "merge",
+          "path": [
+            "metrics"
+          ]
+        },
+        "metadata": {},
+        "source": "api"
+      },
+      {
+        "_xact_id": "1000196753093943572",
+        "audit_data": {
+          "action": "merge",
+          "path": [
+            "audit_data"
+          ]
+        },
+        "metadata": {
+          "user_id": "anon_1"
+        },
+        "source": "app"
+      }
+    ],
+    "context": {
+      "caller_filename": "anon_2",
+      "caller_functionname": "anon_3",
+      "caller_lineno": 867
+    },
+    "input": [
+      {
+        "content": [
+          {
+            "text": "anon_4",
+            "type": "text"
+          }
+        ],
+        "role": "user"
+      },
+      {
+        "content": [
+          {
+            "signature": "anon_5",
+            "thinking": "anon_6",
+            "type": "thinking"
+          },
+          {
+            "text": "anon_7",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{}",
+              "name": "ListBlueprints"
+            },
+            "id": "toolu_01FyrcYvTymFi2P8rDijXs8r",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{}",
+              "name": "MatterCrmContextTool"
+            },
+            "id": "toolu_014VgfJSBDYMyG4LJjfHMZ1N",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_8",
+        "role": "tool",
+        "tool_call_id": "toolu_01FyrcYvTymFi2P8rDijXs8r"
+      },
+      {
+        "content": "anon_9",
+        "role": "tool",
+        "tool_call_id": "toolu_014VgfJSBDYMyG4LJjfHMZ1N"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_10",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"blueprint_id\":\"anon_11\"}",
+              "name": "ReadFromBlueprintSampleDocuments"
+            },
+            "id": "toolu_01DQH6CZhHZ97SfRpUxrNHs5",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_12",
+        "role": "tool",
+        "tool_call_id": "toolu_01DQH6CZhHZ97SfRpUxrNHs5"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_13",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"items\":[\"anon_14\",\"anon_15\",\"anon_16\",\"anon_17\",\"anon_18\",\"anon_19\",\"anon_20\",\"anon_21\",\"anon_22\",\"anon_23\"]}",
+              "name": "CreateTodoList"
+            },
+            "id": "toolu_01QU9Z5Vzqjp8y8jw3e4YvJN",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_24",
+        "role": "tool",
+        "tool_call_id": "toolu_01QU9Z5Vzqjp8y8jw3e4YvJN"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_25",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"item_id\":1,\"status\":\"anon_26\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_016epm2vYTt2hKoifHyf543T",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{\"queries\":[\"anon_27\",\"anon_28\",\"anon_29\",\"anon_30\",\"anon_31\",\"anon_32\",\"anon_33\",\"anon_34\",\"anon_35\",\"anon_36\"],\"data_store_type\":\"anon_37\"}",
+              "name": "RAGContentSearchTool"
+            },
+            "id": "toolu_01JyhffXWF9TG1QyT7DEr3pm",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_38",
+        "role": "tool",
+        "tool_call_id": "toolu_016epm2vYTt2hKoifHyf543T"
+      },
+      {
+        "content": "anon_39",
+        "role": "tool",
+        "tool_call_id": "toolu_01JyhffXWF9TG1QyT7DEr3pm"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_40",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"queries\":[\"anon_41\",\"anon_42\",\"anon_43\",\"anon_44\",\"anon_45\",\"anon_46\"],\"data_store_type\":\"anon_37\"}",
+              "name": "RAGContentSearchTool"
+            },
+            "id": "toolu_01AFLuht8ToZFqP7dPudGQ6X",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_47",
+        "role": "tool",
+        "tool_call_id": "toolu_01AFLuht8ToZFqP7dPudGQ6X"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_48",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"item_id\":1,\"status\":\"anon_49\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_01ACz1F6aPmADAutM8R1ESdY",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{\"item_id\":2,\"status\":\"anon_26\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_01PmYWFnYfjZCvFypdxxYthe",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_50",
+        "role": "tool",
+        "tool_call_id": "toolu_01ACz1F6aPmADAutM8R1ESdY"
+      },
+      {
+        "content": "anon_51",
+        "role": "tool",
+        "tool_call_id": "toolu_01PmYWFnYfjZCvFypdxxYthe"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_52",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"text\":\"anon_53\"}",
+              "name": "WriteToDraft"
+            },
+            "id": "tooluse_EtIK6GdHTtNlDs2Z9n1cID",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_54",
+        "role": "tool",
+        "tool_call_id": "tooluse_EtIK6GdHTtNlDs2Z9n1cID"
+      },
+      {
+        "content": "",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"item_id\":2,\"status\":\"anon_49\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "tooluse_egcwpkvAyLcY8wXNiOmuX9",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{\"item_id\":3,\"status\":\"anon_26\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "tooluse_EIhvIxT3SLMCG5kA00obul",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{\"text\":\"anon_55\"}",
+              "name": "WriteToDraft"
+            },
+            "id": "tooluse_MfMRiOwBieK7IWrpMM3eEe",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_56",
+        "role": "tool",
+        "tool_call_id": "tooluse_egcwpkvAyLcY8wXNiOmuX9"
+      },
+      {
+        "content": "anon_57",
+        "role": "tool",
+        "tool_call_id": "tooluse_EIhvIxT3SLMCG5kA00obul"
+      },
+      {
+        "content": "anon_58",
+        "role": "tool",
+        "tool_call_id": "tooluse_MfMRiOwBieK7IWrpMM3eEe"
+      },
+      {
+        "content": "",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"item_id\":3,\"status\":\"anon_49\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_01HLVR6DDfhhcpXKSNiMXDzT",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{\"item_id\":4,\"status\":\"anon_26\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_01D7g5JbfvnTmzd25d1pg265",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{\"text\":\"anon_59\"}",
+              "name": "WriteToDraft"
+            },
+            "id": "toolu_01BtieGH8hsaKEtqkXnk4Vuu",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_60",
+        "role": "tool",
+        "tool_call_id": "toolu_01HLVR6DDfhhcpXKSNiMXDzT"
+      },
+      {
+        "content": "anon_61",
+        "role": "tool",
+        "tool_call_id": "toolu_01D7g5JbfvnTmzd25d1pg265"
+      },
+      {
+        "content": "anon_62",
+        "role": "tool",
+        "tool_call_id": "toolu_01BtieGH8hsaKEtqkXnk4Vuu"
+      },
+      {
+        "content": "",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"text\":\"anon_63\"}",
+              "name": "WriteToDraft"
+            },
+            "id": "toolu_01BjLKArxPD91BDtzcMPRtDb",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_64",
+        "role": "tool",
+        "tool_call_id": "toolu_01BjLKArxPD91BDtzcMPRtDb"
+      },
+      {
+        "content": "",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"text\":\"anon_65\"}",
+              "name": "WriteToDraft"
+            },
+            "id": "tooluse_z76HtBxomXiVV2wznMqSZQ",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_66",
+        "role": "tool",
+        "tool_call_id": "tooluse_z76HtBxomXiVV2wznMqSZQ"
+      },
+      {
+        "content": "",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"item_id\":4,\"status\":\"anon_67\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_01Grzca6Q7ncdEwwdZQzK9qz",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{\"item_id\":5,\"status\":\"anon_26\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_01LTJMLLV7cpHrfuv86SwkTG",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_68",
+        "role": "tool",
+        "tool_call_id": "toolu_01Grzca6Q7ncdEwwdZQzK9qz"
+      },
+      {
+        "content": "anon_69",
+        "role": "tool",
+        "tool_call_id": "toolu_01LTJMLLV7cpHrfuv86SwkTG"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_70",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"text\":\"anon_71\"}",
+              "name": "WriteToDraft"
+            },
+            "id": "toolu_016Jzjvom1i5TZuPiEJBhEAU",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_72",
+        "role": "tool",
+        "tool_call_id": "toolu_016Jzjvom1i5TZuPiEJBhEAU"
+      },
+      {
+        "content": [
+          {
+            "text": "anon_73",
+            "type": "text"
+          }
+        ],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"item_id\":5,\"status\":\"anon_49\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_01Kiz3hgg63X3uKJH84PXHrU",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{\"item_id\":6,\"status\":\"anon_26\"}",
+              "name": "UpdateTodoItem"
+            },
+            "id": "toolu_015Xg1zDD7w1eQsowaBvPwyH",
+            "type": "function"
+          },
+          {
+            "function": {
+              "arguments": "{}",
+              "name": "ReadFromDraft"
+            },
+            "id": "toolu_01WHEtxXNFPoigQ3fnzMGqdu",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "anon_74",
+        "role": "tool",
+        "tool_call_id": "toolu_01Kiz3hgg63X3uKJH84PXHrU"
+      },
+      {
+        "content": "anon_75",
+        "role": "tool",
+        "tool_call_id": "toolu_015Xg1zDD7w1eQsowaBvPwyH"
+      },
+      {
+        "content": "anon_76",
+        "role": "tool",
+        "tool_call_id": "toolu_01WHEtxXNFPoigQ3fnzMGqdu"
+      }
+    ],
+    "is_root": false,
+    "log_id": "g",
+    "metadata": {
+      "api_path": "anon_77",
+      "model": "claude-sonnet-4-5-20250929",
+      "model_router": true,
+      "params": {
+        "context_window_fallbacks": [
+          {
+            "LLMName.ANTHROPIC_CLAUDE_4_5_SONNET": [
+              "anon_78"
+            ]
+          }
+        ],
+        "extra_headers": {
+          "anthropic-beta": "anon_79"
+        },
+        "max_tokens": 64000,
+        "metadata": {
+          "call_desc": null,
+          "call_name": "anon_80",
+          "model_short_name": "anon_81",
+          "parent_bt_span_export": "anon_82",
+          "routing_strategy": "anon_83"
+        },
+        "reasoning_effort": "anon_84",
+        "stream": false,
+        "temperature": 1,
+        "timeout": 6000,
+        "tool_choice": "anon_85",
+        "tools": [
+          {
+            "function": {
+              "description": "anon_86",
+              "name": "anon_87",
+              "parameters": {
+                "$defs": {
+                  "RAGDataStoreType": {
+                    "enum": [
+                      "anon_88",
+                      "anon_89",
+                      "anon_90"
+                    ],
+                    "title": "anon_91",
+                    "type": "string"
+                  }
+                },
+                "properties": {
+                  "data_store_type": {
+                    "$ref": "anon_92",
+                    "description": "anon_93"
+                  },
+                  "queries": {
+                    "description": "anon_94",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "anon_95",
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "anon_96",
+                  "anon_97"
+                ],
+                "title": "anon_98",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_99",
+              "name": "anon_100",
+              "parameters": {
+                "description": "anon_101",
+                "properties": {},
+                "title": "anon_102",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_103",
+              "name": "anon_104",
+              "parameters": {
+                "properties": {},
+                "title": "anon_105",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_106",
+              "name": "anon_107",
+              "parameters": {
+                "properties": {
+                  "blueprint_id": {
+                    "description": "anon_108",
+                    "title": "anon_109",
+                    "type": "string"
+                  },
+                  "document_index": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "anon_110",
+                    "title": "anon_111"
+                  }
+                },
+                "required": [
+                  "anon_112"
+                ],
+                "title": "anon_113",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_114",
+              "name": "anon_115",
+              "parameters": {
+                "properties": {
+                  "blueprint_id": {
+                    "description": "anon_116",
+                    "title": "anon_109",
+                    "type": "string"
+                  },
+                  "document_index": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "anon_117",
+                    "title": "anon_111"
+                  }
+                },
+                "required": [
+                  "anon_112"
+                ],
+                "title": "anon_118",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_119",
+              "name": "anon_120",
+              "parameters": {
+                "properties": {
+                  "items": {
+                    "description": "anon_121",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "anon_122",
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "anon_123"
+                ],
+                "title": "anon_124",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_125",
+              "name": "anon_126",
+              "parameters": {
+                "properties": {
+                  "items": {
+                    "description": "anon_127",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "anon_122",
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "anon_123"
+                ],
+                "title": "anon_128",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_129",
+              "name": "anon_130",
+              "parameters": {
+                "properties": {},
+                "title": "anon_131",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_132",
+              "name": "anon_133",
+              "parameters": {
+                "properties": {
+                  "item_id": {
+                    "description": "anon_134",
+                    "title": "anon_135",
+                    "type": "integer"
+                  },
+                  "status": {
+                    "description": "anon_136",
+                    "enum": [
+                      "anon_137",
+                      "anon_138",
+                      "anon_139"
+                    ],
+                    "title": "anon_140",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "anon_141",
+                  "anon_142"
+                ],
+                "title": "anon_143",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_144",
+              "name": "anon_145",
+              "parameters": {
+                "properties": {
+                  "text": {
+                    "description": "anon_146",
+                    "title": "anon_147",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "anon_148"
+                ],
+                "title": "anon_149",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_150",
+              "name": "anon_151",
+              "parameters": {
+                "properties": {},
+                "title": "anon_152",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_153",
+              "name": "anon_154",
+              "parameters": {
+                "properties": {
+                  "end_line": {
+                    "description": "anon_155",
+                    "title": "anon_156",
+                    "type": "integer"
+                  },
+                  "new_text": {
+                    "description": "anon_157",
+                    "title": "anon_158",
+                    "type": "string"
+                  },
+                  "start_line": {
+                    "description": "anon_159",
+                    "title": "anon_160",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "anon_161",
+                  "anon_162",
+                  "anon_163"
+                ],
+                "title": "anon_164",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_165",
+              "name": "anon_166",
+              "parameters": {
+                "properties": {
+                  "text": {
+                    "description": "anon_146",
+                    "title": "anon_147",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "anon_148"
+                ],
+                "title": "anon_149",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_167",
+              "name": "anon_168",
+              "parameters": {
+                "properties": {},
+                "title": "anon_152",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "anon_169",
+              "name": "anon_170",
+              "parameters": {
+                "properties": {
+                  "end_line": {
+                    "description": "anon_155",
+                    "title": "anon_156",
+                    "type": "integer"
+                  },
+                  "new_text": {
+                    "description": "anon_157",
+                    "title": "anon_158",
+                    "type": "string"
+                  },
+                  "start_line": {
+                    "description": "anon_159",
+                    "title": "anon_160",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "anon_161",
+                  "anon_162",
+                  "anon_163"
+                ],
+                "title": "anon_164",
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ]
+      },
+      "requested_model": "anon_78",
+      "response_id": "anon_171",
+      "response_model": "anon_78",
+      "session_id": null
+    },
+    "org_id": "5d7c97d7-fef1-4cb7-bda6-7e3756a0ca8e",
+    "output": {
+      "content": [
+        {
+          "text": "anon_172",
+          "type": "text"
+        }
+      ],
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "anon_173",
+            "name": "anon_133"
+          },
+          "id": "anon_174",
+          "type": "function"
+        },
+        {
+          "function": {
+            "arguments": "anon_175",
+            "name": "anon_133"
+          },
+          "id": "anon_176",
+          "type": "function"
+        }
+      ]
+    },
+    "project_id": "111c0512-3f74-4e0d-9fa7-8b94db93491b"
+  }
+]

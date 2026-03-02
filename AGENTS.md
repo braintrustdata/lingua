@@ -19,6 +19,8 @@ Lingua is a universal message format that compiles to provider-specific formats 
 - **Typed boundaries only**: At provider boundaries, parse into well-defined typed structs/enums. Do not add lenient raw-JSON parsing that guesses defaults for required fields (for example defaulting missing `role` to `user`, lowercasing unknown roles, or inventing empty `content`).
 - **Do not handwrite provider-format structs**: Do not manually define Rust structs/enums that represent provider wire formats when generated or canonical provider types already exist. Fix generation or add typed adapters around canonical types instead.
 - **Do not inspect `serde_json::Value` directly for provider semantics**: Do not branch on provider-format fields via ad-hoc `Value` map access. Deserialize into typed provider or typed compatibility structs first, then convert.
+- **Lenient import paths are typed boundaries too**: Files like `processing/import.rs` are not exempt. For any `role`/`content`/`tool_call_id` compatibility handling, first deserialize into typed compatibility structs (with serde aliases as needed), then branch on typed enums/fields.
+- **Pre-edit parser guardrail**: Before finalizing parser/converter changes in typed-boundary code, scan your diff for new `as_object()`, `.get(\"...\")`, `Value::Object`, or raw `Map<String, Value>` field-plucking used for semantics. If present, rewrite to typed deserialization or stop and ask.
 - **Fix via types or explicit errors**: If fuzzing finds unsupported/ambiguous shapes, either model them explicitly in types/converters or return a clear error. Do not silently coerce invalid input into a "best effort" shape.
 - **Typed-boundary CI gate**: CI enforces `make typed-boundary-check-branch BASE=origin/<base-branch>` on pull requests. Running `make typed-boundary-check` locally is recommended for faster feedback, but not required as a pre-commit hook.
 - **Typed extras views over raw map access**: If provider extras must be read, deserialize extras into a typed view struct first; do not pluck fields ad-hoc with `map.get(...)`.
@@ -83,6 +85,28 @@ Each provider should have:
 **Type compatibility**: Verify Rust-generated TypeScript matches provider SDK types
 **Round-trip testing**: Ensure lossless serialization/deserialization
 **Real API integration**: Test with actual provider APIs when possible
+
+## Required workflow for new import fixture cases
+
+When adding or fixing a case under `payloads/import-cases/`, follow this order.
+
+1. **Anonymize first (if needed).**
+   - If the span includes non-anonymized user/company/PII content, ask the user whether to anonymize now and confirm expected anonymization level.
+   - Do not proceed with fixture assertions on unanonymized sensitive data unless the user explicitly approves.
+2. **Generate baseline assertions from imported messages.**
+   - Run exactly:
+   ```bash
+   GENERATE_MISSING=1 cargo test -p lingua --test import_fixtures -- --nocapture
+   ```
+3. **Confirm the failing behavior intentionally.**
+   - Re-run the test without `GENERATE_MISSING` and verify the target case fails for the expected reason.
+   - If expected behavior is unclear, stop and ask for clarification before implementing a fallback.
+4. **Fix importer/converter logic.**
+   - Keep typed boundaries (typed structs/enums at provider boundaries and compatibility boundaries).
+   - Add or update assertions only after the code fix, not as a substitute for the fix.
+5. **Name the case by behavior, not by span ID.**
+   - Rename fixture pairs to descriptive kebab-case names that describe behavior (for example `chat-completions-tool-role-string-content.json`).
+   - Avoid UUID or `span_<id>` filenames once behavior is understood.
 
 ## Required workflow for provider behavior changes
 
@@ -155,6 +179,7 @@ make typed-boundary-check-branch BASE=main
 - Do not run `make regenerate-failed-transforms` before fixing adapter/converter logic.
 - Do not patch transform/snapshot files manually to hide failing transforms.
 - Do not add new direct `Value.get(...)` assertions/logic in typed-boundary-protected paths.
+- Do not add new semantic branching in `parse_lenient_*` or import compatibility code using raw JSON map access; use typed compatibility structs/enums.
 
 ## Development priorities
 

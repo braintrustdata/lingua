@@ -326,6 +326,17 @@ pub(crate) fn try_system_message_from_openai_metadata(
 }
 
 pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
+    // Prefer chat-completions request messages before Responses InputItem parsing.
+    // Chat-completions arrays can deserialize as InputItems, but that path drops
+    // assistant `tool_calls` arguments and is lossy for import.
+    if let Some(provider_messages) =
+        try_parse_vec_or_single::<ChatCompletionRequestMessageExt>(data)
+    {
+        if let Some(messages) = try_convert_non_empty(provider_messages) {
+            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
+        }
+    }
+
     if let Some(messages) = try_parse_responses_items_for_import(data) {
         return Some(messages);
     }
