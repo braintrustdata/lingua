@@ -23,8 +23,8 @@ pub use lingua::{extract_request_hints, RequestHints};
 use reqwest::Url;
 
 use crate::providers::{
-    is_openai_compatible, AnthropicProvider, AzureProvider, BedrockProvider, GoogleProvider,
-    MistralProvider, OpenAIProvider, VertexProvider,
+    is_openai_compatible, AnthropicProvider, AzureProvider, BedrockProvider, DatabricksProvider,
+    GoogleProvider, MistralProvider, OpenAIProvider, VertexProvider,
 };
 
 /// Create a provider instance from configuration parameters.
@@ -80,6 +80,9 @@ pub fn create_provider(
         )?)),
         "bedrock" => Ok(Arc::new(BedrockProvider::from_config(
             endpoint, timeout, metadata,
+        )?)),
+        "databricks" => Ok(Arc::new(DatabricksProvider::from_config(
+            endpoint, timeout,
         )?)),
         "mistral" => Ok(Arc::new(MistralProvider::from_config(endpoint, timeout)?)),
         kind if is_openai_compatible(kind) => Ok(Arc::new(OpenAIProvider::from_config(

@@ -1,6 +1,7 @@
 mod anthropic;
 mod azure;
 mod bedrock;
+mod databricks;
 mod google;
 mod mistral;
 mod openai;
@@ -9,6 +10,7 @@ mod vertex;
 pub use anthropic::{AnthropicConfig, AnthropicProvider};
 pub use azure::{AzureConfig, AzureProvider};
 pub use bedrock::{BedrockConfig, BedrockProvider};
+pub use databricks::{DatabricksConfig, DatabricksProvider};
 pub use google::{GoogleConfig, GoogleProvider};
 pub use mistral::{MistralConfig, MistralProvider};
 pub use openai::{
