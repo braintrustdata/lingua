@@ -1,0 +1,13 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "role": "user",
+          "content": "anon_input"
+        }
+      ]
+    },
+    "output": "anon_output"
+  }
+]

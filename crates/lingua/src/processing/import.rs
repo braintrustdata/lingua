@@ -535,7 +535,14 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
         messages.extend(span_messages);
 
         // Try to extract messages from output
-        if let Some(output) = &span.output {
+        if let Some(Value::String(output_text)) = &span.output {
+            if !output_text.is_empty() {
+                messages.push(Message::Assistant {
+                    content: AssistantContent::String(output_text.clone()),
+                    id: None,
+                });
+            }
+        } else if let Some(output) = &span.output {
             let output_messages = try_converting_to_messages(output);
             messages.extend(output_messages);
         }
