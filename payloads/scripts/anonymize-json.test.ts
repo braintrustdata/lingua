@@ -186,7 +186,7 @@ describe("anonymizeJsonValue", () => {
               function: {
                 name: "CreateTodoList",
                 arguments:
-                  '{"items":["Review all CLIENT DOCS.pdf","Draft case timeline"],"status":"in_progress"}',
+                  '{"items":["task_alpha","task_beta"],"status":"queued"}',
               },
             },
           ],
