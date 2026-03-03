@@ -2,7 +2,6 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use bytes::Bytes;
-use lingua::serde_json;
 use reqwest::header::HeaderMap;
 use reqwest::{Client, StatusCode, Url};
 
@@ -45,30 +44,6 @@ impl DatabricksProvider {
             .cloned()
             .ok_or_else(|| Error::InvalidRequest("databricks provider requires api_base".into()))?;
         Self::new(DatabricksConfig { api_base, timeout })
-    }
-
-    /// Normalize a payload for Databricks serving endpoints:
-    /// - Strip `stream_options` (unsupported)
-    /// - Convert `max_completion_tokens` → `max_tokens` (unsupported)
-    fn normalize_payload(&self, payload: Bytes) -> Bytes {
-        let Ok(mut value) = serde_json::from_slice::<serde_json::Value>(&payload) else {
-            return payload;
-        };
-        let Some(obj) = value.as_object_mut() else {
-            return payload;
-        };
-        let mut changed = false;
-        if obj.remove("stream_options").is_some() {
-            changed = true;
-        }
-        if let Some(max_completion_tokens) = obj.remove("max_completion_tokens") {
-            obj.entry("max_tokens").or_insert(max_completion_tokens);
-            changed = true;
-        }
-        if changed {
-            return Bytes::from(serde_json::to_vec(&value).unwrap_or_else(|_| payload.to_vec()));
-        }
-        payload
     }
 
     // This does not support Databrick's new AI gateway URL format yet, only
@@ -114,7 +89,6 @@ impl crate::providers::Provider for DatabricksProvider {
         _format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let payload = self.normalize_payload(payload);
         let url = self.serving_url(&spec.model)?;
 
         #[cfg(feature = "tracing")]
@@ -174,8 +148,6 @@ impl crate::providers::Provider for DatabricksProvider {
         format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
-        let payload = self.normalize_payload(payload);
-
         if !spec.supports_streaming {
             let response = self
                 .complete(payload, auth, spec, format, client_headers)
@@ -299,55 +271,5 @@ mod tests {
     fn from_config_requires_api_base() {
         let err = DatabricksProvider::from_config(None, None).unwrap_err();
         assert!(matches!(err, Error::InvalidRequest(_)));
-    }
-
-    fn make_provider() -> DatabricksProvider {
-        DatabricksProvider::new(DatabricksConfig {
-            api_base: Url::parse("https://adb-123.azuredatabricks.net").unwrap(),
-            timeout: None,
-        })
-        .unwrap()
-    }
-
-    #[test]
-    fn normalize_payload_strips_stream_options() {
-        let provider = make_provider();
-        let payload = Bytes::from(
-            r#"{"model":"m","messages":[],"stream":true,"stream_options":{"include_usage":true}}"#,
-        );
-        let out = provider.normalize_payload(payload);
-        let value: serde_json::Value = serde_json::from_slice(&out).unwrap();
-        assert!(value.get("stream_options").is_none());
-        assert!(value.get("stream").is_some());
-    }
-
-    #[test]
-    fn normalize_payload_converts_max_completion_tokens() {
-        let provider = make_provider();
-        let payload = Bytes::from(r#"{"model":"m","messages":[],"max_completion_tokens":50}"#);
-        let out = provider.normalize_payload(payload);
-        let value: serde_json::Value = serde_json::from_slice(&out).unwrap();
-        assert!(value.get("max_completion_tokens").is_none());
-        assert_eq!(value.get("max_tokens").and_then(|v| v.as_i64()), Some(50));
-    }
-
-    #[test]
-    fn normalize_payload_preserves_max_tokens_when_both_present() {
-        let provider = make_provider();
-        let payload = Bytes::from(
-            r#"{"model":"m","messages":[],"max_tokens":100,"max_completion_tokens":50}"#,
-        );
-        let out = provider.normalize_payload(payload);
-        let value: serde_json::Value = serde_json::from_slice(&out).unwrap();
-        assert!(value.get("max_completion_tokens").is_none());
-        assert_eq!(value.get("max_tokens").and_then(|v| v.as_i64()), Some(100));
-    }
-
-    #[test]
-    fn normalize_payload_no_op_when_nothing_to_strip() {
-        let provider = make_provider();
-        let raw = r#"{"model":"m","messages":[],"stream":true}"#;
-        let out = provider.normalize_payload(Bytes::from(raw));
-        assert_eq!(std::str::from_utf8(&out).unwrap(), raw);
     }
 }
