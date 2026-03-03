@@ -35,6 +35,10 @@ pub struct Span {
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+    if is_role_message_array(data) {
+        return try_parse_mixed_role_messages_for_import(data).unwrap_or_default();
+    }
+
     if let Some(messages) = try_parse_provider_messages_for_import(data) {
         return messages;
     }
@@ -139,8 +143,20 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     Vec::new()
 }
 
-fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
-    let provider_parsers: Vec<MessageParser> = vec![
+fn is_role_message_array(data: &Value) -> bool {
+    let Value::Array(items) = data else {
+        return false;
+    };
+
+    !items.is_empty()
+        && items.iter().all(|item| match item {
+            Value::Object(obj) => matches!(obj.get("role"), Some(Value::String(_))),
+            _ => false,
+        })
+}
+
+fn provider_parsers_for_import() -> Vec<MessageParser> {
+    vec![
         #[cfg(feature = "openai")]
         try_parse_openai_for_import,
         #[cfg(feature = "anthropic")]
@@ -149,7 +165,38 @@ fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> 
         try_parse_google_for_import,
         #[cfg(feature = "bedrock")]
         try_parse_bedrock_for_import,
-    ];
+    ]
+}
+
+fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>> {
+    let items = data.as_array()?;
+    let provider_parsers = provider_parsers_for_import();
+    let mut messages = Vec::new();
+
+    for item in items {
+        let mut parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
+            let wrapped_item = Value::Array(vec![item.clone()]);
+            try_parsers_in_order(&wrapped_item, &provider_parsers)
+        });
+
+        if parsed_messages.is_none() {
+            parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
+        }
+
+        if let Some(mut parsed_messages) = parsed_messages {
+            messages.append(&mut parsed_messages);
+        }
+    }
+
+    if messages.is_empty() {
+        None
+    } else {
+        Some(messages)
+    }
+}
+
+fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
+    let provider_parsers = provider_parsers_for_import();
 
     try_parsers_in_order(data, &provider_parsers)
 }
@@ -217,6 +264,14 @@ fn try_anthropic_or_system_messages(data: &Value) -> Option<Vec<Message>> {
 /// - Custom LLM wrappers
 /// - Logging that doesn't perfectly match provider formats
 /// - Messages with extra/missing fields
+#[derive(Debug, Clone, Deserialize)]
+struct LenientToolMessageCompat {
+    #[serde(default, alias = "tool_call_id", alias = "toolCallId")]
+    tool_call_id: Option<String>,
+    #[serde(default)]
+    name: Option<String>,
+}
+
 fn parse_lenient_message_item(item: &Value) -> Option<Message> {
     let obj = item.as_object()?;
     let role_str = obj.get("role")?.as_str()?;
@@ -236,11 +291,36 @@ fn parse_lenient_message_item(item: &Value) -> Option<Message> {
             content: parse_assistant_content(content_value)?,
             id: None,
         }),
-        "tool" => Some(Message::Tool {
-            content: parse_tool_content(content_value)?,
-        }),
+        "tool" => parse_lenient_tool_message(item, content_value),
         _ => None,
     }
+}
+
+fn parse_lenient_tool_message(item: &Value, content_value: &Value) -> Option<Message> {
+    if let Some(content) = parse_tool_content(content_value) {
+        return Some(Message::Tool { content });
+    }
+
+    let parsed = LenientToolMessageCompat::deserialize(item).ok()?;
+    let tool_call_id = parsed.tool_call_id?;
+    let tool_name = parsed.name.unwrap_or_default();
+
+    let output = match content_value {
+        Value::String(text) => match serde_json::from_str::<Value>(text) {
+            Ok(parsed) => parsed,
+            Err(_) => Value::String(text.clone()),
+        },
+        other => other.clone(),
+    };
+
+    Some(Message::Tool {
+        content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+            tool_call_id,
+            tool_name,
+            output,
+            provider_options: None,
+        })],
+    })
 }
 
 fn try_lenient_message_parsing(data: &Value) -> Option<Vec<Message>> {
