@@ -306,7 +306,7 @@ fn parse_lenient_tool_message(item: &Value, content_value: &Value) -> Option<Mes
     let tool_name = parsed.name.unwrap_or_default();
 
     let output = match content_value {
-        Value::String(text) => match serde_json::from_str::<Value>(&text) {
+        Value::String(text) => match serde_json::from_str::<Value>(text) {
             Ok(parsed) => parsed,
             Err(_) => Value::String(text.clone()),
         },
