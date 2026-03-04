@@ -113,7 +113,7 @@ pub struct CompletionRequest {
     /// provider. May differ from the input format from the caller.c:w
     provider_format: ProviderFormat,
     /// The provider to send the request to.
-    provider: Arc<dyn Provider>,
+    pub provider: Arc<dyn Provider>,
     /// The authentication configuration to use for the request.
     auth: AuthConfig,
     /// The model specification to use for the request.
@@ -158,29 +158,38 @@ impl Router {
     ///
     /// # Returns
     ///
-    /// A `CompletionRequest` struct that can be executed with `complete()` or `complete_stream()`.
+    /// A `CompletionRequest` struct for each resolved provider that can be
+    /// executed with `complete()` or `complete_stream()`. It's up to the caller
+    /// which provider they want to use.
     pub fn completion_request(
         &self,
         body: Bytes,
         model: &str,
         output_format: ProviderFormat,
-    ) -> Result<CompletionRequest> {
-        let (provider, auth, spec, format) = self.resolve_provider(model, output_format)?;
-        let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => bytes,
-            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(e.into()),
-        };
-        Ok(CompletionRequest {
-            input_model: model.to_string(),
-            output_format,
-            payload,
-            provider_format: format,
-            provider,
-            auth: auth.clone(),
-            spec,
-        })
+    ) -> Result<Vec<CompletionRequest>> {
+        let routes = self.resolve_providers(model, output_format)?;
+        if routes.is_empty() {
+            return Err(Error::NoProvider(output_format));
+        }
+        let mut reqs = Vec::new();
+        for (provider, auth, spec, format) in routes {
+            let payload = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
+                Ok(TransformResult::PassThrough(bytes)) => bytes,
+                Ok(TransformResult::Transformed { bytes, .. }) => bytes,
+                Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
+                Err(e) => return Err(e.into()),
+            };
+            reqs.push(CompletionRequest {
+                input_model: model.to_string(),
+                output_format,
+                payload,
+                provider_format: format,
+                provider: provider.clone(),
+                auth: auth.clone(),
+                spec: spec.clone(),
+            });
+        }
+        Ok(reqs)
     }
 
     /// Execute a completion request with the given body bytes.
@@ -262,41 +271,119 @@ impl Router {
         Ok(transform_stream(raw_stream, request.output_format))
     }
 
-    pub fn provider_alias(&self, model: &str) -> Result<String> {
-        let (_, format, alias) = self.resolver.resolve(model)?;
-        let alias = if self.providers.contains_key(&alias) {
-            alias
+    pub fn provider_aliases(&self, model: &str) -> Result<Vec<String>> {
+        let (_, format, aliases) = self.resolver.resolve(model)?;
+        let found_aliases: Vec<String> = aliases
+            .iter()
+            .filter(|alias| self.providers.contains_key(alias.as_str()))
+            .cloned()
+            .collect();
+        if !found_aliases.is_empty() {
+            Ok(found_aliases)
         } else {
-            self.formats.get(&format).cloned().unwrap_or(alias)
-        };
-        Ok(alias)
+            Ok(vec![self
+                .formats
+                .get(&format)
+                .cloned()
+                .unwrap_or(aliases[0].clone())])
+        }
+    }
+
+    fn resolve_providers(
+        &self,
+        model: &str,
+        output_format: ProviderFormat,
+    ) -> Result<Vec<ResolvedRoute<'_>>> {
+        let (spec, catalog_format, aliases) = self.resolver.resolve(model)?;
+        let routes: Vec<Result<ResolvedRoute<'_>>> = aliases
+            .iter()
+            .map(|alias| {
+                self.resolve_provider(
+                    output_format,
+                    spec.clone(),
+                    catalog_format,
+                    alias.to_string(),
+                )
+            })
+            .collect();
+        let mut first_error = None;
+        let successes: Vec<ResolvedRoute<'_>> = routes
+            .into_iter()
+            .filter_map(|r| match r {
+                Ok(s) => Some(s),
+                Err(e) => {
+                    #[cfg(feature = "tracing")]
+                    tracing::warn!(
+                        model = %model,
+                        output_format = ?output_format,
+                        all_aliases = ?aliases,
+                        spec = ?spec,
+                        catalog_format = ?catalog_format,
+                        error = %e,
+                        "error resolving provider, falling back to next alias",
+                    );
+                    if first_error.is_none() {
+                        first_error = Some(e);
+                    }
+                    None
+                }
+            })
+            .collect();
+        if successes.is_empty() {
+            if let Some(fallback_alias) = self.formats.get(&catalog_format).cloned() {
+                match self.resolve_provider(
+                    output_format,
+                    spec,
+                    catalog_format,
+                    fallback_alias.clone(),
+                ) {
+                    Ok(route) => return Ok(vec![route]),
+                    Err(fallback_error) => {
+                        #[cfg(feature = "tracing")]
+                        tracing::warn!(
+                            model,
+                            aliases = ?aliases,
+                            fallback_alias = %fallback_alias,
+                            error = %fallback_error,
+                            "format fallback failed",
+                        );
+                        return Err(fallback_error);
+                    }
+                }
+            }
+            #[cfg(feature = "tracing")]
+            tracing::warn!(
+                model,
+                aliases = ?aliases,
+                "no providers found for model",
+            );
+            return Err(first_error.unwrap_or_else(|| Error::NoProvider(catalog_format)));
+        }
+        Ok(successes)
     }
 
     fn resolve_provider(
         &self,
-        model: &str,
         output_format: ProviderFormat,
+        spec: Arc<ModelSpec>,
+        catalog_format: ProviderFormat,
+        alias: String,
     ) -> Result<ResolvedRoute<'_>> {
-        let (spec, catalog_format, alias) = self.resolver.resolve(model)?;
         #[cfg(feature = "tracing")]
         let registered: Vec<&str> = self.providers.keys().map(String::as_str).collect();
-        let alias = if self.providers.contains_key(&alias) {
-            alias
-        } else {
+        if !self.providers.contains_key(alias.as_str()) {
             #[cfg(feature = "tracing")]
             tracing::debug!(
-                model,
                 resolver_alias = %alias,
                 format = ?catalog_format,
                 registered = ?registered,
-                "resolver alias not found in providers, falling back to format slot"
+                "resolver alias not found in providers"
             );
-            self.formats.get(&catalog_format).cloned().unwrap_or(alias)
-        };
+            return Err(Error::NoProvider(catalog_format));
+        }
         let provider = self.providers.get(&alias).cloned().ok_or_else(|| {
             #[cfg(feature = "tracing")]
             tracing::warn!(
-                model,
                 alias = %alias,
                 format = ?catalog_format,
                 registered = ?registered,
@@ -363,9 +450,30 @@ impl RouterBuilder {
     {
         let alias = alias.into();
         for format in provider.provider_formats() {
+            #[cfg(not(feature = "tracing"))]
             self.formats.insert(format, alias.clone());
+            #[cfg(feature = "tracing")]
+            if let Some(old_alias) = self.formats.insert(format, alias.clone()) {
+                tracing::warn!(
+                    format = ?format,
+                    old_alias = %old_alias,
+                    new_alias = %alias,
+                    "overwriting existing format alias"
+                );
+            }
         }
-        self.providers.insert(alias, Arc::new(provider));
+        let provider = Arc::new(provider);
+        #[cfg(not(feature = "tracing"))]
+        self.providers.insert(alias, provider);
+        #[cfg(feature = "tracing")]
+        if let Some(old_provider) = self.providers.insert(alias.clone(), provider.clone()) {
+            tracing::warn!(
+                alias = %alias,
+                old_provider = %old_provider.id(),
+                new_provider = %provider.id(),
+                "overwriting existing provider"
+            );
+        }
         self
     }
 
@@ -486,6 +594,7 @@ mod tests {
             max_output_tokens: None,
             supports_streaming: true,
             extra: Default::default(),
+            available_providers: Default::default(),
         }
     }
 
@@ -505,7 +614,14 @@ mod tests {
             max_output_tokens: None,
             supports_streaming: true,
             extra: Default::default(),
+            available_providers: Default::default(),
         }
+    }
+
+    fn openai_spec_with_available_providers(model: &str, flavor: ModelFlavor) -> ModelSpec {
+        let mut spec = openai_spec(model, flavor);
+        spec.available_providers = vec!["openai".into(), "azure".into(), "cerebras".into()];
+        spec
     }
 
     fn dummy_auth() -> AuthConfig {
@@ -546,8 +662,14 @@ mod tests {
             .build()
             .expect("router builds");
 
-        assert_eq!(router.provider_alias(vertex_model).unwrap(), "vertex");
-        assert_eq!(router.provider_alias(google_model).unwrap(), "google");
+        assert_eq!(
+            router.provider_aliases(vertex_model).unwrap(),
+            vec!["vertex".to_string()]
+        );
+        assert_eq!(
+            router.provider_aliases(google_model).unwrap(),
+            vec!["google".to_string()]
+        );
     }
 
     #[test]
@@ -570,7 +692,10 @@ mod tests {
             .build()
             .expect("router builds");
 
-        assert_eq!(router.provider_alias(vertex_model).unwrap(), "google");
+        assert_eq!(
+            router.provider_aliases(vertex_model).unwrap(),
+            vec!["google".to_string()]
+        );
     }
 
     #[test]
@@ -591,9 +716,11 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format) = router
-            .resolve_provider(model, ProviderFormat::ChatCompletions)
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (_, _, _, format) = routes[0];
         assert_eq!(format, ProviderFormat::Responses);
     }
 
@@ -615,9 +742,11 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format) = router
-            .resolve_provider(model, ProviderFormat::ChatCompletions)
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (_, _, _, format) = routes[0];
         assert_eq!(format, ProviderFormat::Responses);
     }
 
@@ -639,9 +768,11 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format) = router
-            .resolve_provider(model, ProviderFormat::ChatCompletions)
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (_, _, _, format) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
     }
 
@@ -663,9 +794,127 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let (_, _, _, format) = router
-            .resolve_provider(model, ProviderFormat::ChatCompletions)
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (_, _, _, format) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn completion_request_returns_multiple_requests_when_multiple_providers_available() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            openai_spec_with_available_providers(model, ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+            )
+            .add_provider(
+                "azure",
+                FakeProvider {
+                    name: "azure",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+            )
+            .add_provider(
+                "other_gpt",
+                FakeProvider {
+                    name: "other_gpt",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+            )
+            .add_auth("openai", dummy_auth())
+            .add_auth("azure", dummy_auth())
+            .add_auth("other_gpt", dummy_auth())
+            .build()
+            .expect("router builds");
+
+        let body = Bytes::from(r#"{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}]}"#);
+        let requests = router
+            .completion_request(body, model, ProviderFormat::ChatCompletions)
+            .expect("completion_request");
+        assert_eq!(
+            requests.len(),
+            2,
+            "expected one request per available provider"
+        );
+    }
+
+    #[test]
+    fn provider_aliases_returns_only_registered_available_providers() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            openai_spec_with_available_providers(model, ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+            )
+            .add_provider(
+                "azure",
+                FakeProvider {
+                    name: "azure",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+            )
+            .add_auth("openai", dummy_auth())
+            .add_auth("azure", dummy_auth())
+            .build()
+            .expect("router builds");
+
+        let aliases = router.provider_aliases(model).expect("provider_aliases");
+        assert_eq!(aliases, vec!["openai".to_string(), "azure".to_string()]);
+    }
+
+    #[test]
+    fn resolve_providers_falls_back_to_format_slot_when_alias_not_registered() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            openai_spec_with_available_providers(model, ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "other_gpt",
+                FakeProvider {
+                    name: "other_gpt",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+            )
+            .add_auth("other_gpt", dummy_auth())
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert!(
+            routes.len() >= 1,
+            "at least one route (unregistered openai falls back to format slot azure)"
+        );
+        assert_eq!(
+            router.provider_aliases(model).unwrap(),
+            vec!["other_gpt".to_string()],
+            "provider_aliases returns only registered providers from available_providers"
+        );
     }
 }

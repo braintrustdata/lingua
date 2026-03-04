@@ -103,6 +103,7 @@ async fn router_routes_to_stub_provider() {
             max_output_tokens: None,
             supports_streaming: true,
             extra: Default::default(),
+            available_providers: Default::default(),
         },
     );
     let catalog = Arc::new(catalog);
@@ -132,7 +133,10 @@ async fn router_routes_to_stub_provider() {
 
     let request = router
         .completion_request(body, model, ProviderFormat::ChatCompletions)
-        .expect("completion_request");
+        .expect("completion_request")
+        .into_iter()
+        .next()
+        .expect("at least one provider");
     let bytes = router
         .complete(request, &ClientHeaders::default())
         .await
@@ -167,6 +171,7 @@ async fn router_requires_auth_for_provider() {
             max_output_tokens: None,
             supports_streaming: true,
             extra: Default::default(),
+            available_providers: Default::default(),
         },
     );
     let catalog = Arc::new(catalog);
@@ -209,6 +214,7 @@ async fn router_reports_missing_provider() {
             max_output_tokens: None,
             supports_streaming: true,
             extra: Default::default(),
+            available_providers: Default::default(),
         },
     );
 
@@ -323,6 +329,7 @@ async fn router_propagates_provider_error() {
             max_output_tokens: None,
             supports_streaming: true,
             extra: Default::default(),
+            available_providers: Default::default(),
         },
     );
     let catalog = Arc::new(catalog);
@@ -355,7 +362,10 @@ async fn router_propagates_provider_error() {
 
     let request = router
         .completion_request(body, model, ProviderFormat::ChatCompletions)
-        .expect("completion_request");
+        .expect("completion_request")
+        .into_iter()
+        .next()
+        .expect("at least one provider");
     let err = router
         .complete(request, &ClientHeaders::default())
         .await

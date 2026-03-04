@@ -44,6 +44,8 @@ pub struct ModelSpec {
     pub supports_streaming: bool,
     #[serde(default)]
     pub extra: serde_json::Map<String, serde_json::Value>,
+    #[serde(default)]
+    pub available_providers: Vec<String>,
 }
 
 fn default_true() -> bool {
@@ -115,6 +117,7 @@ mod tests {
             max_output_tokens: None,
             supports_streaming: true,
             extra: serde_json::Map::new(),
+            available_providers: vec![],
         };
         assert!(spec.requires_responses_api());
     }

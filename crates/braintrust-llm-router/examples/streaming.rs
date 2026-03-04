@@ -59,7 +59,11 @@ async fn main() -> Result<()> {
     });
 
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let request = router.completion_request(body, model, ProviderFormat::ChatCompletions)?;
+    let request = router
+        .completion_request(body, model, ProviderFormat::ChatCompletions)?
+        .into_iter()
+        .next()
+        .expect("at least one provider");
     let mut stream = router
         .complete_stream(request, &ClientHeaders::default())
         .await?;
@@ -134,7 +138,11 @@ async fn main() -> Result<()> {
             "stream": true
         });
         let body = Bytes::from(serde_json::to_vec(&payload)?);
-        let request = router.completion_request(body, model, ProviderFormat::ChatCompletions)?;
+        let request = router
+            .completion_request(body, model, ProviderFormat::ChatCompletions)?
+            .into_iter()
+            .next()
+            .expect("at least one provider");
         let stream = router
             .complete_stream(request, &ClientHeaders::default())
             .await?;
