@@ -1,12 +1,11 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
 
 use async_trait::async_trait;
 use braintrust_llm_router::{
     serde_json::{json, Value},
     AuthConfig, ClientHeaders, Error, ModelCatalog, ModelFlavor, ModelSpec, Provider,
-    ProviderFormat, RawResponseStream, RetryPolicy, RouterBuilder,
+    ProviderFormat, RawResponseStream, RouterBuilder,
 };
 use bytes::Bytes;
 
@@ -110,7 +109,6 @@ async fn router_routes_to_stub_provider() {
 
     let router = RouterBuilder::new()
         .with_catalog(Arc::clone(&catalog))
-        .with_retry_policy(RetryPolicy::default())
         .add_provider("stub", StubProvider)
         .add_auth(
             "stub",
@@ -132,13 +130,11 @@ async fn router_routes_to_stub_provider() {
         ]
     }));
 
+    let request = router
+        .completion_request(body, model, ProviderFormat::ChatCompletions)
+        .expect("completion_request");
     let bytes = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+        .complete(request, &ClientHeaders::default())
         .await
         .expect("complete");
     // Parse bytes to Value using braintrust_llm_router's serde_json
@@ -188,13 +184,7 @@ async fn router_requires_auth_for_provider() {
     }));
 
     let err = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
-        .await
+        .completion_request(body, model, ProviderFormat::ChatCompletions)
         .expect_err("missing auth");
     assert!(matches!(err, Error::NoAuth(alias) if alias == "stub"));
 }
@@ -234,13 +224,7 @@ async fn router_reports_missing_provider() {
     }));
 
     let err = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
-        .await
+        .completion_request(body, model, ProviderFormat::ChatCompletions)
         .expect_err("missing provider");
     assert!(matches!(
         err,
@@ -270,13 +254,7 @@ async fn router_propagates_validation_errors() {
         "messages": []
     }));
     let err = router
-        .complete(
-            body,
-            "",
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
-        .await
+        .completion_request(body, "", ProviderFormat::ChatCompletions)
         .expect_err("validation");
     // Empty model is treated as unknown model, not invalid request
     assert!(matches!(err, Error::UnknownModel(_)));
@@ -326,7 +304,7 @@ impl Provider for FailingProvider {
 }
 
 #[tokio::test]
-async fn router_retries_and_propagates_terminal_error() {
+async fn router_propagates_provider_error() {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
         "retry-model".into(),
@@ -350,16 +328,7 @@ async fn router_retries_and_propagates_terminal_error() {
     let catalog = Arc::new(catalog);
 
     let attempts = Arc::new(AtomicUsize::new(0));
-    let retry_policy = RetryPolicy {
-        max_attempts: 2,
-        initial_delay: Duration::from_millis(0),
-        max_delay: Duration::from_millis(0),
-        exponential_base: 2.0,
-        jitter: false,
-    };
-
     let router = RouterBuilder::new()
-        .with_retry_policy(retry_policy)
         .with_catalog(Arc::clone(&catalog))
         .add_provider(
             "failing",
@@ -384,15 +353,13 @@ async fn router_retries_and_propagates_terminal_error() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
+    let request = router
+        .completion_request(body, model, ProviderFormat::ChatCompletions)
+        .expect("completion_request");
     let err = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+        .complete(request, &ClientHeaders::default())
         .await
         .expect_err("terminal error");
     assert!(matches!(err, Error::Timeout));
-    assert_eq!(attempts.load(Ordering::SeqCst), 3);
+    assert_eq!(attempts.load(Ordering::SeqCst), 1);
 }
