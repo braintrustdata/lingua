@@ -9,7 +9,7 @@ use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
 use crate::providers::google::convert::try_parse_google_for_import;
 #[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
-    try_parse_openai_for_import, try_system_message_from_openai_metadata,
+    try_parse_openai_for_import, try_system_message_from_openai_metadata, try_tools_from_metadata,
     ChatCompletionRequestMessageExt,
 };
 use crate::serde_json;
@@ -17,8 +17,9 @@ use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::Message;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, TextContentPart, ToolCallArguments, ToolContent,
-    ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    tools::UniversalTool, AssistantContent, AssistantContentPart, TextContentPart,
+    ToolCallArguments, ToolContent, ToolContentPart, ToolResultContentPart, UserContent,
+    UserContentPart,
 };
 use serde::{Deserialize, Serialize};
 
@@ -31,6 +32,15 @@ pub struct Span {
     pub output: Option<Value>,
     #[serde(flatten)]
     pub other: serde_json::Map<String, Value>,
+}
+
+/// Results from importing messages and tools from spans
+#[derive(Debug, Clone)]
+pub struct ImportResult {
+    /// Extracted messages from spans
+    pub messages: Vec<Message>,
+    /// Extracted tool definitions from metadata
+    pub tools: Vec<UniversalTool>,
 }
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
@@ -551,8 +561,270 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
     messages
 }
 
+/// Import messages and tools from a list of spans
+///
+/// This function processes spans and extracts both messages and tool definitions
+/// from their input/output fields and metadata, converting them to lingua format.
+pub fn import_messages_and_tools_from_spans(spans: Vec<Span>) -> ImportResult {
+    let mut messages = Vec::new();
+    let mut tools = Vec::new();
+
+    for span in spans {
+        let mut span_messages = Vec::new();
+
+        // Try to extract messages from input
+        if let Some(Value::String(input_text)) = &span.input {
+            span_messages.push(Message::User {
+                content: UserContent::String(input_text.clone()),
+            });
+        } else if let Some(input) = &span.input {
+            let input_messages = try_converting_to_messages(input);
+            span_messages.extend(input_messages);
+        }
+
+        #[cfg(feature = "openai")]
+        if let Some(metadata) = span.other.get("metadata") {
+            // Extract system message from metadata
+            if let Some(system_message) = try_system_message_from_openai_metadata(metadata) {
+                let has_system_message = span_messages
+                    .iter()
+                    .any(|message| matches!(message, Message::System { .. }));
+                if !has_system_message {
+                    span_messages.insert(0, system_message);
+                }
+            }
+
+            // Extract tools from metadata
+            if let Some(span_tools) = try_tools_from_metadata(metadata) {
+                // Deduplicate tools by name (keep the first occurrence)
+                for tool in span_tools {
+                    if !tools
+                        .iter()
+                        .any(|existing: &UniversalTool| existing.name == tool.name)
+                    {
+                        tools.push(tool);
+                    }
+                }
+            }
+        }
+
+        messages.extend(span_messages);
+
+        // Try to extract messages from output
+        if let Some(output) = &span.output {
+            let output_messages = try_converting_to_messages(output);
+            messages.extend(output_messages);
+        }
+    }
+
+    ImportResult { messages, tools }
+}
+
 /// Import and deduplicate messages from spans in a single operation
 pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
     let messages = import_messages_from_spans(spans);
     super::dedup::deduplicate_messages(messages)
+}
+
+/// Import and deduplicate messages and tools from spans in a single operation
+pub fn import_and_deduplicate_messages_and_tools(spans: Vec<Span>) -> ImportResult {
+    let mut result = import_messages_and_tools_from_spans(spans);
+    result.messages = super::dedup::deduplicate_messages(result.messages);
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::serde_json::json;
+
+    fn create_test_span_with_metadata(metadata: Value) -> Span {
+        Span {
+            input: Some(json!("Hello, world!")),
+            output: Some(json!("Hi there!")),
+            other: {
+                let mut map = serde_json::Map::new();
+                map.insert("metadata".to_string(), metadata);
+                map
+            },
+        }
+    }
+
+    #[test]
+    fn test_import_messages_and_tools_from_spans_with_tools() {
+        let metadata = json!({
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "description": "Get current weather",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "location": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            ]
+        });
+
+        let spans = vec![create_test_span_with_metadata(metadata)];
+        let result = import_messages_and_tools_from_spans(spans);
+
+        // Should extract messages
+        assert!(!result.messages.is_empty());
+
+        // Should extract tools
+        assert_eq!(result.tools.len(), 1);
+        assert_eq!(result.tools[0].name, "get_weather");
+        assert_eq!(
+            result.tools[0].description,
+            Some("Get current weather".to_string())
+        );
+        assert!(result.tools[0].is_function());
+    }
+
+    #[test]
+    fn test_import_messages_and_tools_from_spans_with_duplicate_tools() {
+        let metadata = json!({
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "description": "Get current weather"
+                    }
+                }
+            ]
+        });
+
+        // Create two spans with the same tool
+        let spans = vec![
+            create_test_span_with_metadata(metadata.clone()),
+            create_test_span_with_metadata(metadata),
+        ];
+
+        let result = import_messages_and_tools_from_spans(spans);
+
+        // Should deduplicate tools by name
+        assert_eq!(result.tools.len(), 1);
+        assert_eq!(result.tools[0].name, "get_weather");
+    }
+
+    #[test]
+    fn test_import_messages_and_tools_from_spans_with_different_tools() {
+        let metadata1 = json!({
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "description": "Get current weather"
+                    }
+                }
+            ]
+        });
+
+        let metadata2 = json!({
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "search",
+                        "description": "Search the web"
+                    }
+                }
+            ]
+        });
+
+        let spans = vec![
+            create_test_span_with_metadata(metadata1),
+            create_test_span_with_metadata(metadata2),
+        ];
+
+        let result = import_messages_and_tools_from_spans(spans);
+
+        // Should collect both unique tools
+        assert_eq!(result.tools.len(), 2);
+
+        let tool_names: Vec<&str> = result.tools.iter().map(|t| t.name.as_str()).collect();
+        assert!(tool_names.contains(&"get_weather"));
+        assert!(tool_names.contains(&"search"));
+    }
+
+    #[test]
+    fn test_import_messages_and_tools_from_spans_no_metadata() {
+        let span = Span {
+            input: Some(json!("Hello")),
+            output: Some(json!("Hi")),
+            other: serde_json::Map::new(),
+        };
+
+        let result = import_messages_and_tools_from_spans(vec![span]);
+
+        // Should extract messages but no tools
+        assert!(!result.messages.is_empty());
+        assert!(result.tools.is_empty());
+    }
+
+    #[test]
+    fn test_import_messages_and_tools_from_spans_empty_metadata() {
+        let metadata = json!({});
+        let spans = vec![create_test_span_with_metadata(metadata)];
+
+        let result = import_messages_and_tools_from_spans(spans);
+
+        // Should extract messages but no tools
+        assert!(!result.messages.is_empty());
+        assert!(result.tools.is_empty());
+    }
+
+    #[test]
+    fn test_import_and_deduplicate_messages_and_tools() {
+        let metadata = json!({
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "description": "Get current weather"
+                    }
+                }
+            ]
+        });
+
+        let spans = vec![create_test_span_with_metadata(metadata)];
+
+        let result = import_and_deduplicate_messages_and_tools(spans);
+
+        // Should have both messages and tools
+        assert!(!result.messages.is_empty());
+        assert_eq!(result.tools.len(), 1);
+        assert_eq!(result.tools[0].name, "get_weather");
+    }
+
+    #[test]
+    fn test_import_result_debug_format() {
+        let result = ImportResult {
+            messages: vec![],
+            tools: vec![],
+        };
+
+        // Should be able to debug format
+        let debug_str = format!("{:?}", result);
+        assert!(debug_str.contains("ImportResult"));
+    }
+
+    #[test]
+    fn test_import_result_clone() {
+        let result = ImportResult {
+            messages: vec![],
+            tools: vec![],
+        };
+
+        // Should be cloneable
+        let _cloned = result.clone();
+    }
 }
