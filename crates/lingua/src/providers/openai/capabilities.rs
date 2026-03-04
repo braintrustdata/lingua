@@ -87,7 +87,7 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serde_json::json;
+    use crate::serde_json::{self, json};
 
     #[test]
     fn test_get_model_transforms() {
@@ -268,14 +268,12 @@ mod tests {
 
     #[test]
     fn test_strip_stream_options() {
-        let mut obj = json!({
+        let mut obj: Map<String, Value> = serde_json::from_value(json!({
             "model": "databricks-model",
             "messages": [{"role": "user", "content": "Hello"}],
             "stream_options": { "include_usage": true }
-        })
-        .as_object()
-        .unwrap()
-        .clone();
+        }))
+        .unwrap();
         apply_model_transforms("databricks-model", &mut obj);
         assert!(
             !obj.contains_key("stream_options"),
