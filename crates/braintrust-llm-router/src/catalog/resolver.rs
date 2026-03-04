@@ -28,7 +28,7 @@ impl ModelResolver {
         Arc::clone(&self.catalog)
     }
 
-    pub fn resolve(&self, model: &str) -> Result<(Arc<ModelSpec>, ProviderFormat, String)> {
+    pub fn resolve(&self, model: &str) -> Result<(Arc<ModelSpec>, ProviderFormat, Vec<String>)> {
         let spec = self
             .catalog
             .get(model)
@@ -44,14 +44,20 @@ impl ModelResolver {
         } else {
             spec.format
         };
-        let provider_alias = self.aliases.get(model).cloned().unwrap_or_else(|| {
-            if lingua::is_vertex_model(model) {
-                "vertex".to_string()
-            } else {
-                format_identifier(format)
-            }
-        });
-        Ok((spec, format, provider_alias))
+        let provider_aliases = self
+            .aliases
+            .get(model)
+            .map(|alias| vec![alias.clone()])
+            .unwrap_or_else(|| {
+                if !spec.available_providers.is_empty() {
+                    spec.available_providers.clone()
+                } else if lingua::is_vertex_model(model) {
+                    vec!["vertex".to_string()]
+                } else {
+                    vec![format_identifier(format)]
+                }
+            });
+        Ok((spec, format, provider_aliases))
     }
 }
 
@@ -95,7 +101,18 @@ mod tests {
             max_output_tokens: None,
             supports_streaming: true,
             extra: Default::default(),
+            available_providers: Default::default(),
         }
+    }
+
+    fn spec_with_available_providers(
+        model: &str,
+        format: ProviderFormat,
+        providers: Vec<String>,
+    ) -> ModelSpec {
+        let mut s = spec(model, format);
+        s.available_providers = providers;
+        s
     }
 
     #[test]
@@ -107,9 +124,9 @@ mod tests {
         );
         let resolver = ModelResolver::new(Arc::new(catalog));
 
-        let (_, format, alias) = resolver.resolve("model").expect("resolves");
+        let (_, format, aliases) = resolver.resolve("model").expect("resolves");
         assert_eq!(format, ProviderFormat::ChatCompletions);
-        assert_eq!(alias, "openai");
+        assert_eq!(aliases, vec!["openai".to_string()]);
     }
 
     #[test]
@@ -119,9 +136,9 @@ mod tests {
         let resolver = ModelResolver::new(Arc::new(catalog))
             .with_aliases(HashMap::from([("model".into(), "custom".into())]));
 
-        let (_, format, alias) = resolver.resolve("model").expect("resolves");
+        let (_, format, aliases) = resolver.resolve("model").expect("resolves");
         assert_eq!(format, ProviderFormat::Anthropic);
-        assert_eq!(alias, "custom");
+        assert_eq!(aliases, vec!["custom".to_string()]);
     }
 
     #[test]
@@ -138,9 +155,9 @@ mod tests {
         catalog.insert(model.into(), spec(model, ProviderFormat::Anthropic));
         let resolver = ModelResolver::new(Arc::new(catalog));
 
-        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::BedrockAnthropic);
-        assert_eq!(alias, "bedrock");
+        assert_eq!(aliases, vec!["bedrock".to_string()]);
     }
 
     #[test]
@@ -150,9 +167,9 @@ mod tests {
         catalog.insert(model.into(), spec(model, ProviderFormat::Anthropic));
         let resolver = ModelResolver::new(Arc::new(catalog));
 
-        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::Anthropic);
-        assert_eq!(alias, "anthropic");
+        assert_eq!(aliases, vec!["anthropic".to_string()]);
     }
 
     #[test]
@@ -162,9 +179,9 @@ mod tests {
         catalog.insert(model.into(), spec(model, ProviderFormat::Google));
         let resolver = ModelResolver::new(Arc::new(catalog));
 
-        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::Google);
-        assert_eq!(alias, "vertex");
+        assert_eq!(aliases, vec!["vertex".to_string()]);
     }
 
     #[test]
@@ -174,9 +191,9 @@ mod tests {
         catalog.insert(model.into(), spec(model, ProviderFormat::Google));
         let resolver = ModelResolver::new(Arc::new(catalog));
 
-        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::Google);
-        assert_eq!(alias, "google");
+        assert_eq!(aliases, vec!["google".to_string()]);
     }
 
     #[test]
@@ -186,8 +203,47 @@ mod tests {
         catalog.insert(model.into(), spec(model, ProviderFormat::Anthropic));
         let resolver = ModelResolver::new(Arc::new(catalog));
 
-        let (_, format, alias) = resolver.resolve(model).expect("resolves");
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::VertexAnthropic);
-        assert_eq!(alias, "vertex");
+        assert_eq!(aliases, vec!["vertex".to_string()]);
+    }
+
+    #[test]
+    fn resolve_returns_available_providers_when_no_alias() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            spec_with_available_providers(
+                model,
+                ProviderFormat::ChatCompletions,
+                vec!["openai".to_string(), "azure".to_string()],
+            ),
+        );
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::ChatCompletions);
+        assert_eq!(aliases, vec!["openai".to_string(), "azure".to_string()]);
+    }
+
+    #[test]
+    fn resolve_custom_alias_overrides_available_providers() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            spec_with_available_providers(
+                model,
+                ProviderFormat::ChatCompletions,
+                vec!["openai".to_string(), "azure".to_string()],
+            ),
+        );
+        let resolver = ModelResolver::new(Arc::new(catalog))
+            .with_aliases(HashMap::from([(model.into(), "custom".into())]));
+
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::ChatCompletions);
+        assert_eq!(aliases, vec!["custom".to_string()]);
     }
 }
