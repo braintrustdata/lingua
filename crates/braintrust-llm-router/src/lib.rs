@@ -23,9 +23,9 @@ pub use lingua::ProviderFormat;
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};
 pub use providers::{
     is_openai_compatible, openai_compatible_endpoint, AnthropicConfig, AnthropicProvider,
-    AzureConfig, AzureProvider, BedrockConfig, BedrockProvider, ClientHeaders, GoogleConfig,
-    GoogleProvider, MistralConfig, MistralProvider, OpenAICompatibleEndpoint, OpenAIConfig,
-    OpenAIProvider, Provider, VertexConfig, VertexProvider,
+    AzureConfig, AzureProvider, BedrockConfig, BedrockProvider, ClientHeaders, DatabricksConfig,
+    DatabricksProvider, GoogleConfig, GoogleProvider, MistralConfig, MistralProvider,
+    OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, Provider, VertexConfig, VertexProvider,
 };
 pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{create_provider, extract_request_hints, RequestHints, Router, RouterBuilder};
