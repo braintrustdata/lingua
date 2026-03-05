@@ -80,15 +80,18 @@ async fn main() -> Result<()> {
 
         let body = Bytes::from(serde_json::to_vec(&payload)?);
         match router.completion_request(body, model, ProviderFormat::ChatCompletions) {
-            Ok(request) => match router.complete(request, &ClientHeaders::default()).await {
-                Ok(bytes) => {
-                    if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
-                        if let Some(text) = extract_assistant_text(&response) {
-                            println!("   Response: {}\n", text.trim());
+            Ok(requests) => match requests.into_iter().next() {
+                Some(request) => match router.complete(request, &ClientHeaders::default()).await {
+                    Ok(bytes) => {
+                        if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
+                            if let Some(text) = extract_assistant_text(&response) {
+                                println!("   Response: {}\n", text.trim());
+                            }
                         }
                     }
-                }
-                Err(e) => println!("   Error: {e}\n"),
+                    Err(e) => println!("   Error: {e}\n"),
+                },
+                None => println!("   Error: no provider\n"),
             },
             Err(e) => println!("   Error: {e}\n"),
         }
@@ -106,15 +109,18 @@ async fn main() -> Result<()> {
 
         let body = Bytes::from(serde_json::to_vec(&payload)?);
         match router.completion_request(body, model, ProviderFormat::ChatCompletions) {
-            Ok(request) => match router.complete(request, &ClientHeaders::default()).await {
-                Ok(bytes) => {
-                    if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
-                        if let Some(text) = extract_assistant_text(&response) {
-                            println!("   Response: {}\n", text.trim());
+            Ok(requests) => match requests.into_iter().next() {
+                Some(request) => match router.complete(request, &ClientHeaders::default()).await {
+                    Ok(bytes) => {
+                        if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
+                            if let Some(text) = extract_assistant_text(&response) {
+                                println!("   Response: {}\n", text.trim());
+                            }
                         }
                     }
-                }
-                Err(e) => println!("   Error: {e}\n"),
+                    Err(e) => println!("   Error: {e}\n"),
+                },
+                None => println!("   Error: no provider\n"),
             },
             Err(e) => println!("   Error: {e}\n"),
         }
