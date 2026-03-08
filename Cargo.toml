@@ -49,6 +49,7 @@ serde-wasm-bindgen = "0.6"
 
 # Native HTTP client (non-WASM only)
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip"] }
+reqwest-middleware = { version = "0.4" }
 
 # Python
 pyo3 = { version = "0.20", features = ["extension-module"] }
