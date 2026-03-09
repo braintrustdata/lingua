@@ -1,6 +1,8 @@
 mod auth;
 mod catalog;
 mod client;
+pub use client::{clear_override_client, set_override_client};
+pub use reqwest_middleware::ClientWithMiddleware;
 mod error;
 mod providers;
 mod retry;
