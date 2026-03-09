@@ -44,22 +44,22 @@ pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMi
     Ok(reqwest_middleware::ClientBuilder::new(client).build())
 }
 
-static DEFAULT_CLIENT: Lazy<RwLock<Option<ClientWithMiddleware>>> =
+static OVERRIDE_CLIENT: Lazy<RwLock<Option<ClientWithMiddleware>>> =
     Lazy::new(|| RwLock::new(None));
 
-pub fn default_client() -> Result<ClientWithMiddleware> {
-    if let Some(existing) = DEFAULT_CLIENT.read().clone() {
+pub fn override_client() -> Result<ClientWithMiddleware> {
+    if let Some(existing) = OVERRIDE_CLIENT.read().clone() {
         return Ok(existing);
     }
     let client = build_middleware_client(&ClientSettings::default())?;
-    *DEFAULT_CLIENT.write() = Some(client.clone());
+    *OVERRIDE_CLIENT.write() = Some(client.clone());
     Ok(client)
 }
 
-pub fn set_default_client(client: ClientWithMiddleware) {
-    *DEFAULT_CLIENT.write() = Some(client);
+pub fn set_override_client(client: ClientWithMiddleware) {
+    *OVERRIDE_CLIENT.write() = Some(client);
 }
 
-pub fn clear_default_client() {
-    *DEFAULT_CLIENT.write() = None;
+pub fn clear_override_client() {
+    *OVERRIDE_CLIENT.write() = None;
 }
