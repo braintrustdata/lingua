@@ -272,6 +272,62 @@ struct LenientToolMessageCompat {
     name: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "type")]
+enum LenientTextContentPartCompat {
+    #[serde(rename = "text", alias = "input_text", alias = "output_text")]
+    Text { text: String },
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "type")]
+enum LenientAssistantContentPartCompat {
+    #[serde(rename = "text", alias = "input_text", alias = "output_text")]
+    Text { text: String },
+    #[serde(rename = "reasoning")]
+    Reasoning {
+        text: String,
+        #[serde(default)]
+        encrypted_content: Option<String>,
+    },
+    #[serde(rename = "tool_call", alias = "tool-call", alias = "toolCall")]
+    ToolCall {
+        #[serde(alias = "toolCallId")]
+        tool_call_id: String,
+        #[serde(default, alias = "toolName")]
+        tool_name: String,
+        #[serde(default, alias = "input")]
+        arguments: Option<Value>,
+        #[serde(default)]
+        encrypted_content: Option<String>,
+        #[serde(default, alias = "providerExecuted")]
+        provider_executed: Option<bool>,
+    },
+    #[serde(rename = "tool_result", alias = "tool-result", alias = "toolResult")]
+    ToolResult {
+        #[serde(alias = "toolCallId")]
+        tool_call_id: String,
+        #[serde(default, alias = "toolName")]
+        tool_name: String,
+        #[serde(default)]
+        output: Value,
+    },
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "type")]
+enum LenientToolContentPartCompat {
+    #[serde(rename = "tool_result", alias = "tool-result", alias = "toolResult")]
+    ToolResult {
+        #[serde(alias = "toolCallId")]
+        tool_call_id: String,
+        #[serde(default, alias = "toolName")]
+        tool_name: String,
+        #[serde(default)]
+        output: Value,
+    },
+}
+
 fn parse_lenient_message_item(item: &Value) -> Option<Message> {
     let obj = item.as_object()?;
     let role_str = obj.get("role")?.as_str()?;
@@ -340,27 +396,103 @@ fn try_lenient_message_parsing(data: &Value) -> Option<Vec<Message>> {
     }
 }
 
+fn try_parse_lenient_text_content_part(item: &Value) -> Option<TextContentPart> {
+    match serde_json::from_value::<LenientTextContentPartCompat>(item.clone()).ok()? {
+        LenientTextContentPartCompat::Text { text } => Some(TextContentPart {
+            text,
+            encrypted_content: None,
+            provider_options: None,
+        }),
+    }
+}
+
+fn parse_tool_call_arguments(value: Option<Value>) -> Option<ToolCallArguments> {
+    match value {
+        Some(raw) => {
+            if let Ok(arguments) = serde_json::from_value::<ToolCallArguments>(raw.clone()) {
+                return Some(arguments);
+            }
+
+            match raw {
+                Value::Object(map) => Some(ToolCallArguments::Valid(map)),
+                Value::String(text) => Some(ToolCallArguments::Invalid(text)),
+                other => serde_json::to_string(&other)
+                    .ok()
+                    .map(ToolCallArguments::Invalid),
+            }
+        }
+        None => Some(ToolCallArguments::Invalid(String::new())),
+    }
+}
+
+fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantContentPart> {
+    match serde_json::from_value::<LenientAssistantContentPartCompat>(item.clone()).ok()? {
+        LenientAssistantContentPartCompat::Text { text } => {
+            Some(AssistantContentPart::Text(TextContentPart {
+                text,
+                encrypted_content: None,
+                provider_options: None,
+            }))
+        }
+        LenientAssistantContentPartCompat::Reasoning {
+            text,
+            encrypted_content,
+        } => Some(AssistantContentPart::Reasoning {
+            text,
+            encrypted_content,
+        }),
+        LenientAssistantContentPartCompat::ToolCall {
+            tool_call_id,
+            tool_name,
+            arguments,
+            encrypted_content,
+            provider_executed,
+        } => Some(AssistantContentPart::ToolCall {
+            tool_call_id,
+            tool_name,
+            arguments: parse_tool_call_arguments(arguments)?,
+            encrypted_content,
+            provider_options: None,
+            provider_executed,
+        }),
+        LenientAssistantContentPartCompat::ToolResult {
+            tool_call_id,
+            tool_name,
+            output,
+        } => Some(AssistantContentPart::ToolResult {
+            tool_call_id,
+            tool_name,
+            output,
+            provider_options: None,
+        }),
+    }
+}
+
+fn try_parse_lenient_tool_content_part(item: &Value) -> Option<ToolContentPart> {
+    match serde_json::from_value::<LenientToolContentPartCompat>(item.clone()).ok()? {
+        LenientToolContentPartCompat::ToolResult {
+            tool_call_id,
+            tool_name,
+            output,
+        } => Some(ToolContentPart::ToolResult(ToolResultContentPart {
+            tool_call_id,
+            tool_name,
+            output,
+            provider_options: None,
+        })),
+    }
+}
+
 /// Parse user/system content from JSON value
 fn parse_user_content(value: &Value) -> Option<UserContent> {
     match value {
         Value::String(s) => Some(UserContent::String(s.clone())),
         Value::Array(arr) => {
-            let mut parts = Vec::new();
-            for item in arr {
-                if let Some(obj) = item.as_object() {
-                    if let Some(Value::String(text_type)) = obj.get("type") {
-                        if matches!(text_type.as_str(), "text" | "input_text" | "output_text") {
-                            if let Some(Value::String(text)) = obj.get("text") {
-                                parts.push(UserContentPart::Text(TextContentPart {
-                                    text: text.clone(),
-                                    encrypted_content: None,
-                                    provider_options: None,
-                                }));
-                            }
-                        }
-                    }
-                }
-            }
+            let parts: Vec<UserContentPart> = arr
+                .iter()
+                .filter_map(try_parse_lenient_text_content_part)
+                .map(UserContentPart::Text)
+                .collect();
             if parts.is_empty() {
                 None
             } else {
@@ -376,47 +508,10 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
     match value {
         Value::String(s) => Some(AssistantContent::String(s.clone())),
         Value::Array(arr) => {
-            let mut parts = Vec::new();
-            for item in arr {
-                if let Some(obj) = item.as_object() {
-                    if let Some(Value::String(text_type)) = obj.get("type") {
-                        if matches!(text_type.as_str(), "text" | "input_text" | "output_text") {
-                            if let Some(Value::String(text)) = obj.get("text") {
-                                parts.push(crate::universal::AssistantContentPart::Text(
-                                    TextContentPart {
-                                        text: text.clone(),
-                                        encrypted_content: None,
-                                        provider_options: None,
-                                    },
-                                ));
-                            }
-                        } else if text_type == "tool-call" {
-                            let tool_call_id = obj.get("toolCallId")?.as_str()?.to_string();
-                            let tool_name = obj
-                                .get("toolName")
-                                .and_then(Value::as_str)
-                                .unwrap_or_default()
-                                .to_string();
-                            let arguments = match obj.get("input") {
-                                Some(Value::Object(map)) => ToolCallArguments::Valid(map.clone()),
-                                Some(Value::String(s)) => ToolCallArguments::Invalid(s.clone()),
-                                Some(other) => ToolCallArguments::Invalid(
-                                    serde_json::to_string(other).unwrap_or_default(),
-                                ),
-                                None => ToolCallArguments::Invalid(String::new()),
-                            };
-                            parts.push(AssistantContentPart::ToolCall {
-                                tool_call_id,
-                                tool_name,
-                                arguments,
-                                encrypted_content: None,
-                                provider_options: None,
-                                provider_executed: None,
-                            });
-                        }
-                    }
-                }
-            }
+            let parts: Vec<AssistantContentPart> = arr
+                .iter()
+                .filter_map(try_parse_lenient_assistant_content_part)
+                .collect();
             if parts.is_empty() {
                 None
             } else {
@@ -430,28 +525,10 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
 fn parse_tool_content(value: &Value) -> Option<ToolContent> {
     match value {
         Value::Array(arr) => {
-            let mut parts = Vec::new();
-            for item in arr {
-                if let Some(obj) = item.as_object() {
-                    if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "tool-result" {
-                            let tool_call_id = obj.get("toolCallId")?.as_str()?.to_string();
-                            let tool_name = obj
-                                .get("toolName")
-                                .and_then(Value::as_str)
-                                .unwrap_or_default()
-                                .to_string();
-                            let output = obj.get("output").cloned().unwrap_or(Value::Null);
-                            parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
-                                tool_call_id,
-                                tool_name,
-                                output,
-                                provider_options: None,
-                            }));
-                        }
-                    }
-                }
-            }
+            let parts: Vec<ToolContentPart> = arr
+                .iter()
+                .filter_map(try_parse_lenient_tool_content_part)
+                .collect();
             if parts.is_empty() {
                 None
             } else {
