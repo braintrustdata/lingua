@@ -3,7 +3,7 @@
     "input": [
       {
         "role": "user",
-        "content": "Help me choose the next response."
+        "content": "anon_1"
       }
     ],
     "output": {
@@ -11,15 +11,15 @@
       "content": [
         {
           "type": "tool_call",
-          "tool_call_id": "call_choice",
-          "tool_name": "select_choice",
+          "tool_call_id": "anon_2",
+          "tool_name": "anon_3",
           "arguments": {
             "type": "valid",
             "value": {
-              "choice": "Provide viva preparation guidance",
+              "choice": "anon_4",
               "reasons": [
-                "The user asked for concrete, actionable advice about preparing for a PhD viva.",
-                "A structured checklist and sample answers would be immediately useful."
+                "anon_5",
+                "anon_6"
               ]
             }
           }
