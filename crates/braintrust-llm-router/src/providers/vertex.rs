@@ -4,11 +4,12 @@ use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::Value;
 use reqwest::header::HeaderMap;
-use reqwest::{Client, StatusCode, Url};
+use reqwest::{StatusCode, Url};
+use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{default_client, ClientSettings};
+use crate::client::{build_middleware_client, override_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
@@ -38,7 +39,7 @@ impl Default for VertexConfig {
 
 #[derive(Debug, Clone)]
 pub struct VertexProvider {
-    client: Client,
+    client: ClientWithMiddleware,
     config: VertexConfig,
 }
 
@@ -48,11 +49,7 @@ impl VertexProvider {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
-        let client = if config.timeout.is_some() {
-            crate::client::build_client(&settings)?
-        } else {
-            default_client().or_else(|_| crate::client::build_client(&settings))?
-        };
+        let client = override_client().or_else(|_| build_middleware_client(&settings))?;
         Ok(Self { client, config })
     }
 

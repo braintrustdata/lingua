@@ -3,6 +3,7 @@ use std::time::Duration;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use reqwest::{Client, ClientBuilder};
+use reqwest_middleware::ClientWithMiddleware;
 
 use crate::error::{Error, Result};
 
@@ -38,14 +39,27 @@ pub fn build_client(settings: &ClientSettings) -> Result<Client> {
         .map_err(Error::from)
 }
 
-static DEFAULT_CLIENT: Lazy<RwLock<Option<Client>>> = Lazy::new(|| RwLock::new(None));
+pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMiddleware> {
+    let client = build_client(settings)?;
+    Ok(reqwest_middleware::ClientBuilder::new(client).build())
+}
 
-pub fn default_client() -> Result<Client> {
-    if let Some(existing) = DEFAULT_CLIENT.read().clone() {
+static OVERRIDE_CLIENT: Lazy<RwLock<Option<ClientWithMiddleware>>> =
+    Lazy::new(|| RwLock::new(None));
+
+pub fn override_client() -> Result<ClientWithMiddleware> {
+    if let Some(existing) = OVERRIDE_CLIENT.read().clone() {
         return Ok(existing);
     }
-
-    let client = build_client(&ClientSettings::default())?;
-    *DEFAULT_CLIENT.write() = Some(client.clone());
+    let client = build_middleware_client(&ClientSettings::default())?;
+    *OVERRIDE_CLIENT.write() = Some(client.clone());
     Ok(client)
+}
+
+pub fn set_override_client(client: ClientWithMiddleware) {
+    *OVERRIDE_CLIENT.write() = Some(client);
+}
+
+pub fn clear_override_client() {
+    *OVERRIDE_CLIENT.write() = None;
 }

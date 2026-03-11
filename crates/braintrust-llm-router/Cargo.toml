@@ -25,6 +25,7 @@ lingua = { workspace = true, features = ["openai", "anthropic", "google", "bedro
 
 # HTTP client
 reqwest = { workspace = true, features = ["json", "stream", "gzip"] }
+reqwest-middleware = { workspace = true }
 hyper = { workspace = true, optional = true }
 http = { workspace = true }
 
