@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": ["tool"],
+  "mustContainText": ["call_yp7xav4LHCOrsSzYb7nXw56W", "edit_branching", "Branching logic applied"]
+}

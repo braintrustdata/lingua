@@ -1,0 +1,39 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": [
+            {
+              "type": "image",
+              "source": {
+                "type": "braintrust_attachment",
+                "key": "12dc1301-3571-4a7d-8e82-dae969eb3fee",
+                "filename": "file.png",
+                "content_type": "image/png"
+              }
+            },
+            {
+              "type": "text",
+              "text": "What color is this image?"
+            }
+          ],
+          "type": "human"
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "content": "This image is predominantly blue and white.",
+              "type": "ai"
+            },
+            "generation_info": null
+          }
+        ]
+      ]
+    }
+  }
+]
