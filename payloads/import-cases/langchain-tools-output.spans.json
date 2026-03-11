@@ -1,0 +1,224 @@
+[
+  {
+    "_pagination_key": "p07602703072066600963",
+    "_xact_id": "1000196600295576791",
+    "classifications": null,
+    "created": "2026-02-03T18:10:48.511Z",
+    "facets": null,
+    "id": "5169e3e8-d19b-4f8e-b40d-1f6d94ffb7ac",
+    "metrics": {
+      "completion_tokens": 101,
+      "end": 1770142250.7583811,
+      "prompt_cache_creation_tokens": 0,
+      "prompt_cached_tokens": 0,
+      "prompt_tokens": 444,
+      "start": 1770142248.511571,
+      "total_tokens": 545,
+      "tokens": 545,
+      "estimated_cost": 0.002847
+    },
+    "model": "claude-sonnet-4-20250514",
+    "origin": null,
+    "root_span_id": "2d712bfd-381b-4ee9-8ed6-f2013b2a9caf",
+    "scores": null,
+    "span_attributes": {
+      "exec_counter": 104,
+      "name": "ChatAnthropic",
+      "type": "llm"
+    },
+    "span_id": "0f4bb93f-1aa6-4c42-aad8-8905ef426d41",
+    "span_parents": ["e0414af6-26df-4f8f-accf-4594924ab299"],
+    "tags": [],
+    "_async_scoring_state": null,
+    "audit_data": [
+      {
+        "_xact_id": "1000196600295442253",
+        "audit_data": {
+          "action": "upsert"
+        },
+        "metadata": {},
+        "source": "api"
+      },
+      {
+        "_xact_id": "1000196600295576791",
+        "audit_data": {
+          "action": "merge",
+          "from": null,
+          "path": ["metadata"],
+          "to": {
+            "model": "claude-sonnet-4-20250514"
+          }
+        },
+        "metadata": {},
+        "source": "api"
+      }
+    ],
+    "context": {
+      "caller_filename": "/Users/olmo/sources/braintrustdata/braintrust-troi/sdk/integrations/langchain-py/src/braintrust_langchain/callbacks.py",
+      "caller_functionname": "_start_span",
+      "caller_lineno": 123
+    },
+    "input": [
+      [
+        {
+          "additional_kwargs": {},
+          "content": "What is 127 multiplied by 49?",
+          "example": false,
+          "response_metadata": {},
+          "type": "human"
+        }
+      ]
+    ],
+    "is_root": false,
+    "log_id": "g",
+    "metadata": {
+      "batch_size": 1,
+      "braintrust": {
+        "integration_name": "langchain-py",
+        "integration_version": "0.2.1",
+        "language": "python",
+        "sdk_version": "0.5.3"
+      },
+      "invocation_params": {
+        "_type": "anthropic-chat",
+        "default_request_timeout": null,
+        "max_retries": 2,
+        "max_tokens": 500,
+        "model": "claude-sonnet-4-20250514",
+        "model_kwargs": {},
+        "stop": null,
+        "streaming": false,
+        "temperature": null,
+        "thinking": null,
+        "tools": [
+          {
+            "description": "Perform a mathematical calculation.\n\n            Args:\n                operation: The mathematical operation (add, subtract, multiply, divide)\n                a: First number\n                b: Second number",
+            "input_schema": {
+              "properties": {
+                "a": {
+                  "type": "number"
+                },
+                "b": {
+                  "type": "number"
+                },
+                "operation": {
+                  "type": "string"
+                }
+              },
+              "required": ["operation", "a", "b"],
+              "type": "object"
+            },
+            "name": "calculate"
+          }
+        ],
+        "top_k": null,
+        "top_p": null
+      },
+      "metadata": {
+        "ls_max_tokens": 500,
+        "ls_model_name": "claude-sonnet-4-20250514",
+        "ls_model_type": "chat",
+        "ls_provider": "anthropic",
+        "ls_temperature": null
+      },
+      "model": "claude-sonnet-4-20250514",
+      "name": null,
+      "options": {
+        "stop": null
+      },
+      "parent_run_id": null,
+      "run_id": "019c24b3-2e3f-72e1-ba43-482d8a2f62b2",
+      "serialized": {
+        "id": ["langchain", "chat_models", "anthropic", "ChatAnthropic"],
+        "kwargs": {
+          "anthropic_api_key": {
+            "id": ["ANTHROPIC_API_KEY"],
+            "lc": 1,
+            "type": "secret"
+          },
+          "anthropic_api_url": "https://api.anthropic.com",
+          "max_retries": 2,
+          "max_tokens": 500,
+          "model": "claude-sonnet-4-20250514",
+          "stream_usage": true
+        },
+        "lc": 1,
+        "name": "ChatAnthropic",
+        "type": "constructor"
+      },
+      "tags": []
+    },
+    "org_id": "5d7c97d7-fef1-4cb7-bda6-7e3756a0ca8e",
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "additional_kwargs": {},
+              "content": [
+                {
+                  "text": "I'll calculate 127 multiplied by 49 for you.",
+                  "type": "text"
+                },
+                {
+                  "id": "toolu_0145BmCcA7aXKT1FBmKgsjL6",
+                  "input": {
+                    "a": 127,
+                    "b": 49,
+                    "operation": "multiply"
+                  },
+                  "name": "calculate",
+                  "type": "tool_use"
+                }
+              ],
+              "id": "run--019c24b3-2e3f-72e1-ba43-482d8a2f62b2-0",
+              "response_metadata": {
+                "id": "msg_01ReZSUcbbTx1SQ2GDzBx7GU",
+                "model": "claude-sonnet-4-20250514",
+                "model_name": "claude-sonnet-4-20250514",
+                "stop_reason": "tool_use",
+                "stop_sequence": null,
+                "usage": {
+                  "cache_creation": {
+                    "ephemeral_1h_input_tokens": 0,
+                    "ephemeral_5m_input_tokens": 0
+                  },
+                  "cache_creation_input_tokens": 0,
+                  "cache_read_input_tokens": 0,
+                  "input_tokens": 444,
+                  "output_tokens": 101,
+                  "server_tool_use": null,
+                  "service_tier": "standard"
+                }
+              },
+              "type": "ai"
+            },
+            "text": "I'll calculate 127 multiplied by 49 for you.",
+            "type": "ChatGeneration"
+          }
+        ]
+      ],
+      "llm_output": {
+        "id": "msg_01ReZSUcbbTx1SQ2GDzBx7GU",
+        "model": "claude-sonnet-4-20250514",
+        "model_name": "claude-sonnet-4-20250514",
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "input_tokens": 444,
+          "output_tokens": 101,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        }
+      },
+      "type": "LLMResult"
+    },
+    "project_id": "867b4adb-e24d-4ba8-b77b-69c1714e8cf5"
+  }
+]

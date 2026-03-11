@@ -127,6 +127,12 @@ enum LangChainContentPartCompat {
     Image { source: Value },
     #[serde(rename = "file")]
     File { file: LangChainFilePartCompat },
+    #[serde(rename = "tool_use")]
+    ToolUse {
+        id: String,
+        name: String,
+        input: Value,
+    },
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -285,6 +291,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                             provider_options: None,
                         });
                     }
+                    LangChainContentPartCompat::ToolUse { .. } => {}
                 }
             }
             if converted_parts.is_empty() {
@@ -340,14 +347,29 @@ fn parse_assistant_content(
             Value::Array(values) => {
                 let mut parts = Vec::new();
                 for value in values {
-                    let parsed =
-                        serde_json::from_value::<LangChainContentPartCompat>(value).ok()?;
-                    if let LangChainContentPartCompat::Text { text } = parsed {
-                        parts.push(AssistantContentPart::Text(TextContentPart {
-                            text,
-                            encrypted_content: None,
-                            provider_options: None,
-                        }));
+                    let parsed = serde_json::from_value::<LangChainContentPartCompat>(value);
+                    let Ok(parsed) = parsed else {
+                        continue;
+                    };
+                    match parsed {
+                        LangChainContentPartCompat::Text { text } => {
+                            parts.push(AssistantContentPart::Text(TextContentPart {
+                                text,
+                                encrypted_content: None,
+                                provider_options: None,
+                            }));
+                        }
+                        LangChainContentPartCompat::ToolUse { id, name, input } => {
+                            parts.push(AssistantContentPart::ToolCall {
+                                tool_call_id: id,
+                                tool_name: name,
+                                arguments: parse_tool_call_arguments(Some(input)),
+                                encrypted_content: None,
+                                provider_options: None,
+                                provider_executed: None,
+                            });
+                        }
+                        _ => {}
                     }
                 }
                 if parts.is_empty() {
@@ -374,13 +396,29 @@ fn parse_assistant_content(
         }
         Value::Array(values) => {
             for value in values {
-                let parsed = serde_json::from_value::<LangChainContentPartCompat>(value).ok()?;
-                if let LangChainContentPartCompat::Text { text } = parsed {
-                    parts.push(AssistantContentPart::Text(TextContentPart {
-                        text,
-                        encrypted_content: None,
-                        provider_options: None,
-                    }));
+                let parsed = serde_json::from_value::<LangChainContentPartCompat>(value);
+                let Ok(parsed) = parsed else {
+                    continue;
+                };
+                match parsed {
+                    LangChainContentPartCompat::Text { text } => {
+                        parts.push(AssistantContentPart::Text(TextContentPart {
+                            text,
+                            encrypted_content: None,
+                            provider_options: None,
+                        }));
+                    }
+                    LangChainContentPartCompat::ToolUse { id, name, input } => {
+                        parts.push(AssistantContentPart::ToolCall {
+                            tool_call_id: id,
+                            tool_name: name,
+                            arguments: parse_tool_call_arguments(Some(input)),
+                            encrypted_content: None,
+                            provider_options: None,
+                            provider_executed: None,
+                        });
+                    }
+                    _ => {}
                 }
             }
         }
