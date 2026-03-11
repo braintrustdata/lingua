@@ -125,11 +125,26 @@ enum LangChainContentPartCompat {
     ImageUrl { image_url: LangChainImageUrlCompat },
     #[serde(rename = "image")]
     Image { source: Value },
+    #[serde(rename = "file")]
+    File { file: LangChainFilePartCompat },
 }
 
 #[derive(Debug, Clone, Deserialize)]
 struct LangChainImageUrlCompat {
     url: Value,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct LangChainFilePartCompat {
+    file_data: Value,
+    #[serde(default)]
+    filename: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct LangChainAttachmentCompat {
+    #[serde(default, alias = "contentType")]
+    content_type: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -224,14 +239,17 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
         Value::Array(parts) => {
             let mut converted_parts = Vec::new();
             for part in parts {
-                let parsed = serde_json::from_value::<LangChainContentPartCompat>(part).ok()?;
+                let parsed = serde_json::from_value::<LangChainContentPartCompat>(part);
+                let Ok(parsed) = parsed else {
+                    continue;
+                };
                 match parsed {
                     LangChainContentPartCompat::Text { text } => {
                         converted_parts.push(UserContentPart::Text(TextContentPart {
                             text,
                             encrypted_content: None,
                             provider_options: None,
-                        }));
+                        }))
                     }
                     LangChainContentPartCompat::ImageUrl { image_url } => {
                         converted_parts.push(UserContentPart::Image {
@@ -241,7 +259,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                             }),
                             media_type: None,
                             provider_options: None,
-                        });
+                        })
                     }
                     LangChainContentPartCompat::Image { source } => {
                         converted_parts.push(UserContentPart::Image {
@@ -250,6 +268,20 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                                 "image_url": { "url": source }
                             }),
                             media_type: None,
+                            provider_options: None,
+                        })
+                    }
+                    LangChainContentPartCompat::File { file } => {
+                        let media_type = serde_json::from_value::<LangChainAttachmentCompat>(
+                            file.file_data.clone(),
+                        )
+                        .ok()
+                        .and_then(|attachment| attachment.content_type)
+                        .unwrap_or_else(|| "application/octet-stream".to_string());
+                        converted_parts.push(UserContentPart::File {
+                            data: file.file_data,
+                            filename: file.filename,
+                            media_type,
                             provider_options: None,
                         });
                     }
