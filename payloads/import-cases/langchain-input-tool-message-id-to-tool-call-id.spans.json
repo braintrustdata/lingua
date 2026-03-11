@@ -1,0 +1,26 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "The weather is sunny",
+          "type": "tool",
+          "id": "call_xyz789",
+          "name": "get_weather"
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "content": "Based on the tool result...",
+              "type": "ai"
+            }
+          }
+        ]
+      ]
+    }
+  }
+]

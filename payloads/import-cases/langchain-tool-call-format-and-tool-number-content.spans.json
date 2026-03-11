@@ -1,0 +1,49 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "What is 127 multiplied by 49?",
+          "type": "human"
+        },
+        {
+          "content": "",
+          "type": "ai",
+          "tool_calls": [
+            {
+              "args": {
+                "a": 127,
+                "b": 49,
+                "operation": "multiply"
+              },
+              "id": "call_GyyfDbPBvye2Pyyp8HG1ud9E",
+              "name": "calculate",
+              "type": "tool_call"
+            }
+          ]
+        },
+        {
+          "content": 6223,
+          "type": "tool",
+          "id": "call_GyyfDbPBvye2Pyyp8HG1ud9E",
+          "name": "calculate"
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "content": "127 multiplied by 49 is 6,223.",
+              "type": "ai"
+            },
+            "generation_info": {
+              "finish_reason": "stop"
+            }
+          }
+        ]
+      ]
+    }
+  }
+]

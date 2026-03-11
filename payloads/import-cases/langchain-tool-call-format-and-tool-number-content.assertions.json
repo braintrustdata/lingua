@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 4,
+  "expectedRolesInOrder": ["user", "assistant", "tool", "assistant"],
+  "mustContainText": ["What is 127 multiplied by 49?", "call_GyyfDbPBvye2Pyyp8HG1ud9E", "calculate", "6223", "127 multiplied by 49 is 6,223."]
+}

@@ -1,0 +1,25 @@
+[
+  {
+    "input": {
+      "description": "Branching based on company size",
+      "logic": "If the 'Company Size' field is greater than 500, direct to the 'high_quality' ending. Otherwise, direct to the 'low_quality' ending."
+    },
+    "output": {
+      "id": ["langchain_core", "messages", "ToolMessage"],
+      "kwargs": {
+        "additional_kwargs": {},
+        "content": {
+          "status": "success",
+          "message": "Branching logic applied",
+          "logic": "Branching based on company size"
+        },
+        "name": "edit_branching",
+        "response_metadata": {},
+        "status": "success",
+        "tool_call_id": "call_yp7xav4LHCOrsSzYb7nXw56W"
+      },
+      "lc": 1
+    },
+    "metadata": "{\"braintrust\":{\"integration_name\":\"langchain-js\"}}"
+  }
+]
