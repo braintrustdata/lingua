@@ -15,8 +15,8 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, AuthConfig, ClientHeaders, OpenAIConfig, OpenAIProvider, ProviderFormat,
-    Router,
+    api_key_auth, serde_json::json, AuthConfig, ClientHeaders, OpenAIConfig, OpenAIProvider,
+    ProviderFormat, Router,
 };
 use bytes::Bytes;
 use serde_json::Value;
@@ -119,8 +119,12 @@ async fn main() -> Result<()> {
 
     let router = Router::builder()
         .with_catalog(catalog)
-        .add_provider("openai", openai_provider)
-        .add_api_key("openai", api_key) // Convenience method
+        .add_provider(
+            "openai",
+            openai_provider,
+            api_key_auth(&api_key),
+            vec![ProviderFormat::ChatCompletions],
+        )
         .build()?;
 
     let model = "gpt-4";
@@ -132,7 +136,7 @@ async fn main() -> Result<()> {
 
     println!("   Sending authenticated request to GPT-4...");
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let bytes = router
+    let bytes: Bytes = router
         .complete(
             body,
             model,

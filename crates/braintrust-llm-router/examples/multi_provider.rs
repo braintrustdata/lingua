@@ -10,8 +10,8 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders, ModelCatalog,
-    OpenAIConfig, OpenAIProvider, ProviderFormat, Router,
+    api_key_auth, serde_json::json, AnthropicConfig, AnthropicProvider, AuthConfig, ClientHeaders,
+    ModelCatalog, OpenAIConfig, OpenAIProvider, ProviderFormat, Router,
 };
 use bytes::Bytes;
 use serde_json::Value;
@@ -40,25 +40,28 @@ async fn main() -> Result<()> {
     // Add OpenAI provider if key is available
     if let Some(key) = &openai_key {
         let openai_provider = OpenAIProvider::new(OpenAIConfig::default())?;
-        builder = builder
-            .add_provider("openai", openai_provider)
-            .add_api_key("openai", key.clone());
+        builder = builder.add_provider(
+            "openai",
+            openai_provider,
+            api_key_auth(key),
+            vec![ProviderFormat::ChatCompletions],
+        );
         println!("✅ OpenAI provider configured");
     }
 
     // Add Anthropic provider if key is available
     if let Some(key) = &anthropic_key {
         let anthropic_provider = AnthropicProvider::new(AnthropicConfig::default())?;
-        builder = builder
-            .add_provider("anthropic", anthropic_provider)
-            .add_auth(
-                "anthropic",
-                AuthConfig::ApiKey {
-                    key: key.clone(),
-                    header: Some("x-api-key".into()),
-                    prefix: None,
-                },
-            );
+        builder = builder.add_provider(
+            "anthropic",
+            anthropic_provider,
+            AuthConfig::ApiKey {
+                key: key.clone(),
+                header: Some("x-api-key".into()),
+                prefix: None,
+            },
+            vec![ProviderFormat::ChatCompletions],
+        );
         println!("✅ Anthropic provider configured");
     }
 

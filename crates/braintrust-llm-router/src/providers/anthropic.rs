@@ -8,7 +8,7 @@ use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{build_middleware_client, override_client, ClientSettings};
+use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
@@ -48,7 +48,7 @@ impl AnthropicProvider {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
-        let client = override_client().or_else(|_| build_middleware_client(&settings))?;
+        let client = build_middleware_client(&settings)?;
         Ok(Self { client, config })
     }
 
