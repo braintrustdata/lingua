@@ -1,0 +1,19 @@
+{
+  "expectedMessageCount": 6,
+  "expectedRolesInOrder": [
+    "user",
+    "user",
+    "assistant",
+    "tool",
+    "tool",
+    "assistant"
+  ],
+  "mustContainText": [
+    "Generate a story about track:1",
+    "call_0pyp4rm31A3T3dm82GobtI0q",
+    "call_WdQz2cxCIdxcQezG8GtwLKNo",
+    "Blinding Lights",
+    "get_track",
+    "get_track_credits"
+  ]
+}

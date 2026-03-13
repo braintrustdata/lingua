@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "assistant"],
+  "mustContainText": ["What is the weather like in Paris, France?", "call_XXommwfr7qiX13Z9cXDYIc02", "get_weather", "Paris, France"]
+}

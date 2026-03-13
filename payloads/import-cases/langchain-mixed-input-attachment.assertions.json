@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "assistant"],
+  "mustContainText": ["What is in this document?", "The document is a test PDF"]
+}

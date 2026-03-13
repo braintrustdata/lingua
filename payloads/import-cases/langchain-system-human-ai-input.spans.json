@@ -1,0 +1,23 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "You are a helpful assistant",
+          "type": "system"
+        },
+        {
+          "content": "Hello",
+          "type": "human"
+        },
+        {
+          "content": "Hi there!",
+          "type": "ai"
+        }
+      ]
+    ],
+    "output": {
+      "generations": [[{ "message": { "content": "response", "type": "ai" } }]]
+    }
+  }
+]

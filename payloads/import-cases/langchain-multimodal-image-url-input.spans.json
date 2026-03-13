@@ -1,0 +1,47 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": [
+            {
+              "type": "image_url",
+              "image_url": {
+                "url": {
+                  "type": "braintrust_attachment",
+                  "key": "746176e4-4e5b-4c27-a851-146e964b4d0c",
+                  "filename": "file.png",
+                  "content_type": "image/png"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "text": "What color is this image?"
+            }
+          ],
+          "type": "human"
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "content": "The image predominantly features dark and stormy blues.",
+              "type": "ai",
+              "additional_kwargs": {
+                "refusal": null
+              }
+            },
+            "generation_info": {
+              "finish_reason": "stop",
+              "logprobs": null
+            }
+          }
+        ]
+      ]
+    }
+  }
+]
