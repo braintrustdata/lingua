@@ -3,12 +3,15 @@
   "extends": [
     "//"
   ],
-  "globalDependencies": [
-    "../../crates/lingua/src/**/*.rs",
-    "../../crates/lingua/Cargo.toml"
-  ],
   "tasks": {
     "build": {
+      "inputs": [
+        "src/**",
+        "package.json",
+        "../../crates/lingua/src/**/*.rs",
+        "../../crates/lingua/Cargo.toml",
+        "../../../Cargo.lock"
+      ],
       "outputs": [
         "nodejs/**",
         "web/**"
