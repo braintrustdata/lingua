@@ -110,8 +110,8 @@ pub struct Router {
     catalog: Arc<ModelCatalog>,
     resolver: ModelResolver,
     providers: HashMap<String, Arc<dyn Provider>>, // alias -> provider
-    formats: HashMap<ProviderFormat, String>,      // format -> alias
     auth_configs: HashMap<String, AuthConfig>,     // alias -> auth
+    formats: HashMap<ProviderFormat, String>,      // format -> default alias
     retry_policy: RetryPolicy,
 }
 
@@ -347,11 +347,17 @@ impl Router {
     }
 }
 
+/// One provider registration: alias, provider, auth, and default formats.
+struct ProviderEntry {
+    alias: String,
+    provider: Arc<dyn Provider>,
+    auth: AuthConfig,
+    default_for_formats: Vec<ProviderFormat>,
+}
+
 pub struct RouterBuilder {
     catalog: Option<Arc<ModelCatalog>>,
-    providers: HashMap<String, Arc<dyn Provider>>,
-    formats: HashMap<ProviderFormat, String>,
-    auth_configs: HashMap<String, AuthConfig>,
+    provider_entries: Vec<ProviderEntry>,
     retry_policy: RetryPolicy,
 }
 
@@ -365,9 +371,7 @@ impl RouterBuilder {
     pub fn new() -> Self {
         Self {
             catalog: None,
-            providers: HashMap::new(),
-            formats: HashMap::new(),
-            auth_configs: HashMap::new(),
+            provider_entries: Vec::new(),
             retry_policy: RetryPolicy::default(),
         }
     }
@@ -388,15 +392,22 @@ impl RouterBuilder {
         self
     }
 
-    pub fn add_provider<P>(mut self, alias: impl Into<String>, provider: P) -> Self
+    pub fn add_provider<P>(
+        mut self,
+        alias: impl Into<String>,
+        provider: P,
+        auth: AuthConfig,
+        default_for_formats: Vec<ProviderFormat>,
+    ) -> Self
     where
         P: Provider + 'static,
     {
-        let alias = alias.into();
-        for format in provider.provider_formats() {
-            self.formats.insert(format, alias.clone());
-        }
-        self.providers.insert(alias, Arc::new(provider));
+        self.provider_entries.push(ProviderEntry {
+            alias: alias.into(),
+            provider: Arc::new(provider),
+            auth,
+            default_for_formats,
+        });
         self
     }
 
@@ -405,29 +416,15 @@ impl RouterBuilder {
         mut self,
         alias: impl Into<String>,
         provider: Arc<dyn Provider>,
+        auth: AuthConfig,
+        default_for_formats: Vec<ProviderFormat>,
     ) -> Self {
-        let alias = alias.into();
-        for format in provider.provider_formats() {
-            self.formats.insert(format, alias.clone());
-        }
-        self.providers.insert(alias, provider);
-        self
-    }
-
-    pub fn add_auth(mut self, alias: impl Into<String>, auth: AuthConfig) -> Self {
-        self.auth_configs.insert(alias.into(), auth);
-        self
-    }
-
-    pub fn add_api_key(mut self, alias: impl Into<String>, key: impl Into<String>) -> Self {
-        self.auth_configs.insert(
-            alias.into(),
-            AuthConfig::ApiKey {
-                key: key.into(),
-                header: Some("authorization".into()),
-                prefix: Some("Bearer".into()),
-            },
-        );
+        self.provider_entries.push(ProviderEntry {
+            alias: alias.into(),
+            provider,
+            auth,
+            default_for_formats,
+        });
         self
     }
 
@@ -437,12 +434,52 @@ impl RouterBuilder {
             .ok_or_else(|| Error::InvalidRequest("model catalog not configured".into()))?;
         let resolver = ModelResolver::new(Arc::clone(&catalog));
 
+        let mut providers = HashMap::new();
+        let mut auth_configs = HashMap::new();
+        let mut formats = HashMap::new();
+        let mut backup_formats = HashMap::new();
+        for entry in self.provider_entries {
+            if providers.contains_key(&entry.alias) {
+                return Err(Error::InvalidRequest(format!(
+                    "provider alias already exists: {}",
+                    entry.alias
+                )));
+            }
+            providers.insert(entry.alias.clone(), entry.provider.clone());
+            auth_configs.insert(entry.alias.clone(), entry.auth);
+
+            for format in entry.default_for_formats {
+                if let Some(existing_alias) = formats.get(&format) {
+                    return Err(Error::InvalidRequest(format!(
+                        "format already has a default provider: {format}: {existing_alias}, {}",
+                        entry.alias
+                    )));
+                }
+                formats.insert(format, entry.alias.clone());
+            }
+            for format in entry.provider.provider_formats() {
+                #[cfg(feature = "tracing")]
+                tracing::debug!(
+                    "adding backup format: {format} -> {alias}",
+                    alias = entry.alias
+                );
+                backup_formats
+                    .entry(format)
+                    .or_insert_with(|| entry.alias.clone());
+            }
+        }
+        // Do a second pass to find any formats with no default provider, and
+        // add a default provider chosen at random.
+        for (format, alias) in backup_formats {
+            formats.entry(format).or_insert(alias);
+        }
+
         Ok(Router {
             catalog,
             resolver,
-            providers: self.providers,
-            formats: self.formats,
-            auth_configs: self.auth_configs,
+            providers,
+            formats,
+            auth_configs,
             retry_policy: self.retry_policy,
         })
     }
@@ -452,6 +489,7 @@ impl RouterBuilder {
 mod tests {
     use super::*;
     use crate::catalog::{ModelCatalog, ModelFlavor, ModelSpec};
+    use crate::error::Error;
     use crate::streaming::RawResponseStream;
     use async_trait::async_trait;
     use reqwest::header::HeaderMap;
@@ -565,6 +603,8 @@ mod tests {
                     name: "google",
                     formats: vec![ProviderFormat::Google],
                 },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
             )
             .add_provider(
                 "vertex",
@@ -572,9 +612,9 @@ mod tests {
                     name: "vertex",
                     formats: vec![ProviderFormat::Google],
                 },
+                dummy_auth(),
+                vec![], // not default; vertex models resolved via catalog
             )
-            .add_auth("google", dummy_auth())
-            .add_auth("vertex", dummy_auth())
             .build()
             .expect("router builds");
 
@@ -597,8 +637,9 @@ mod tests {
                     name: "google",
                     formats: vec![ProviderFormat::Google],
                 },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
             )
-            .add_auth("google", dummy_auth())
             .build()
             .expect("router builds");
 
@@ -618,8 +659,9 @@ mod tests {
                     name: "openai",
                     formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
                 },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
             )
-            .add_auth("openai", dummy_auth())
             .build()
             .expect("router builds");
 
@@ -642,8 +684,9 @@ mod tests {
                     name: "openai",
                     formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
                 },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
             )
-            .add_auth("openai", dummy_auth())
             .build()
             .expect("router builds");
 
@@ -666,8 +709,9 @@ mod tests {
                     name: "openai",
                     formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
                 },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
             )
-            .add_auth("openai", dummy_auth())
             .build()
             .expect("router builds");
 
@@ -690,8 +734,9 @@ mod tests {
                     name: "openai",
                     formats: vec![ProviderFormat::ChatCompletions],
                 },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
             )
-            .add_auth("openai", dummy_auth())
             .build()
             .expect("router builds");
 
@@ -699,5 +744,101 @@ mod tests {
             .resolve_provider(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn build_fails_when_provider_alias_duplicated() {
+        let catalog = Arc::new(ModelCatalog::empty());
+        let result = Router::builder()
+            .with_catalog(Arc::clone(&catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai2",
+                    formats: vec![],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build();
+        let err = match result {
+            Ok(_) => panic!("expected duplicate alias error"),
+            Err(e) => e,
+        };
+        assert!(
+            matches!(err, Error::InvalidRequest(ref msg) if msg.contains("provider alias already exists") && msg.contains("openai")),
+            "expected InvalidRequest about duplicate alias, got: {err:?}"
+        );
+    }
+
+    #[test]
+    fn build_fails_when_format_has_two_default_providers() {
+        let catalog = Arc::new(ModelCatalog::empty());
+        let result = Router::builder()
+            .with_catalog(Arc::clone(&catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "openai2",
+                FakeProvider {
+                    name: "openai2",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build();
+        let err = match result {
+            Ok(_) => panic!("expected duplicate default for format error"),
+            Err(e) => e,
+        };
+        assert!(
+            matches!(err, Error::InvalidRequest(ref msg) if msg.contains("format already has a default provider") && msg.contains("openai") && msg.contains("openai2")),
+            "expected InvalidRequest about format already has default, got: {err:?}"
+        );
+    }
+
+    #[test]
+    fn build_succeeds_when_same_format_multiple_providers_only_one_default() {
+        let catalog = Arc::new(ModelCatalog::empty());
+        let router = Router::builder()
+            .with_catalog(Arc::clone(&catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "openai2",
+                FakeProvider {
+                    name: "openai2",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![], // not default
+            )
+            .build()
+            .expect("router builds");
+        assert!(router.catalog().get("any").is_none());
     }
 }

@@ -14,6 +14,7 @@ mod streaming;
 pub use lingua::serde_json;
 
 pub use auth::{
+    api_key_auth,
     azure::{AzureEntraCredentials, AzureEntraTokenManager},
     databricks::{DatabricksCredentials, DatabricksTokenManager},
     google::{GoogleServiceAccountConfig, GoogleTokenManager, ServiceAccountKey},

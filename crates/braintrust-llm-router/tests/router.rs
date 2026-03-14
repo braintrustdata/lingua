@@ -111,14 +111,15 @@ async fn router_routes_to_stub_provider() {
     let router = RouterBuilder::new()
         .with_catalog(Arc::clone(&catalog))
         .with_retry_policy(RetryPolicy::default())
-        .add_provider("stub", StubProvider)
-        .add_auth(
+        .add_provider(
             "stub",
+            StubProvider,
             AuthConfig::ApiKey {
                 key: "test".into(),
                 header: Some("authorization".into()),
                 prefix: Some("Bearer".into()),
             },
+            vec![ProviderFormat::ChatCompletions],
         )
         .build()
         .expect("router builds");
@@ -132,7 +133,7 @@ async fn router_routes_to_stub_provider() {
         ]
     }));
 
-    let bytes = router
+    let bytes: Bytes = router
         .complete(
             body,
             model,
@@ -177,7 +178,16 @@ async fn router_requires_auth_for_provider() {
 
     let router = RouterBuilder::new()
         .with_catalog(Arc::clone(&catalog))
-        .add_provider("stub", StubProvider)
+        .add_provider(
+            "stub",
+            StubProvider,
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: Some("authorization".into()),
+                prefix: Some("Bearer".into()),
+            },
+            vec![ProviderFormat::ChatCompletions],
+        )
         .build()
         .expect("router builds");
 
@@ -187,7 +197,7 @@ async fn router_requires_auth_for_provider() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let err = router
+    let bytes: Bytes = router
         .complete(
             body,
             model,
@@ -195,8 +205,13 @@ async fn router_requires_auth_for_provider() {
             &ClientHeaders::default(),
         )
         .await
-        .expect_err("missing auth");
-    assert!(matches!(err, Error::NoAuth(alias) if alias == "stub"));
+        .expect("complete succeeds when auth is configured");
+    let response: Value =
+        braintrust_llm_router::serde_json::from_slice(&bytes).expect("valid json");
+    assert_eq!(
+        response.get("model").and_then(Value::as_str),
+        Some("stub-model")
+    );
 }
 
 #[tokio::test]
@@ -252,14 +267,15 @@ async fn router_reports_missing_provider() {
 async fn router_propagates_validation_errors() {
     let router = RouterBuilder::new()
         .with_catalog(Arc::new(ModelCatalog::empty()))
-        .add_provider("stub", StubProvider)
-        .add_auth(
+        .add_provider(
             "stub",
+            StubProvider,
             AuthConfig::ApiKey {
                 key: "test".into(),
                 header: None,
                 prefix: None,
             },
+            vec![ProviderFormat::ChatCompletions],
         )
         .build()
         .expect("router builds");
@@ -269,15 +285,15 @@ async fn router_propagates_validation_errors() {
         "model": "",
         "messages": []
     }));
-    let err = router
+    let err: braintrust_llm_router::Result<Bytes> = router
         .complete(
             body,
             "",
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
-        .await
-        .expect_err("validation");
+        .await;
+    let err = err.expect_err("validation");
     // Empty model is treated as unknown model, not invalid request
     assert!(matches!(err, Error::UnknownModel(_)));
 }
@@ -366,14 +382,12 @@ async fn router_retries_and_propagates_terminal_error() {
             FailingProvider {
                 attempts: Arc::clone(&attempts),
             },
-        )
-        .add_auth(
-            "failing",
             AuthConfig::ApiKey {
                 key: "test".into(),
                 header: None,
                 prefix: None,
             },
+            vec![ProviderFormat::ChatCompletions],
         )
         .build()
         .expect("router builds");
@@ -384,15 +398,15 @@ async fn router_retries_and_propagates_terminal_error() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let err = router
+    let err: braintrust_llm_router::Result<Bytes> = router
         .complete(
             body,
             model,
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
-        .await
-        .expect_err("terminal error");
+        .await;
+    let err = err.expect_err("terminal error");
     assert!(matches!(err, Error::Timeout));
     assert_eq!(attempts.load(Ordering::SeqCst), 3);
 }

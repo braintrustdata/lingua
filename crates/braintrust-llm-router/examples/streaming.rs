@@ -30,14 +30,15 @@ async fn main() -> Result<()> {
 
     let router = Router::builder()
         .with_catalog(catalog)
-        .add_provider("anthropic", anthropic_provider)
-        .add_auth(
+        .add_provider(
             "anthropic",
+            anthropic_provider,
             AuthConfig::ApiKey {
                 key: anthropic_api_key,
                 header: Some("x-api-key".into()),
                 prefix: None,
             },
+            vec![ProviderFormat::ChatCompletions],
         )
         .build()?;
 
@@ -59,7 +60,7 @@ async fn main() -> Result<()> {
     });
 
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let mut stream = router
+    let mut stream: ResponseStream = router
         .complete_stream(
             body,
             model,
