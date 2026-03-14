@@ -57,3 +57,15 @@ pub fn set_override_client(client: ClientWithMiddleware) {
 pub fn clear_override_client() {
     *OVERRIDE_CLIENT.write() = None;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn build_middleware_client_with_no_override() {
+        clear_override_client();
+        let client = build_middleware_client(&ClientSettings::default());
+        assert!(client.is_ok());
+    }
+}
