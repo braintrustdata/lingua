@@ -348,7 +348,12 @@ impl Router {
 }
 
 /// One provider registration: alias, provider, auth, and default formats.
-type ProviderEntry = (String, Arc<dyn Provider>, AuthConfig, Vec<ProviderFormat>);
+struct ProviderEntry {
+    alias: String,
+    provider: Arc<dyn Provider>,
+    auth: AuthConfig,
+    default_for_formats: Vec<ProviderFormat>,
+}
 
 pub struct RouterBuilder {
     catalog: Option<Arc<ModelCatalog>>,
@@ -397,8 +402,12 @@ impl RouterBuilder {
     where
         P: Provider + 'static,
     {
-        self.provider_entries
-            .push((alias.into(), Arc::new(provider), auth, default_for_formats));
+        self.provider_entries.push(ProviderEntry {
+            alias: alias.into(),
+            provider: Arc::new(provider),
+            auth,
+            default_for_formats,
+        });
         self
     }
 
@@ -410,8 +419,12 @@ impl RouterBuilder {
         auth: AuthConfig,
         default_for_formats: Vec<ProviderFormat>,
     ) -> Self {
-        self.provider_entries
-            .push((alias.into(), provider, auth, default_for_formats));
+        self.provider_entries.push(ProviderEntry {
+            alias: alias.into(),
+            provider,
+            auth,
+            default_for_formats,
+        });
         self
     }
 
@@ -425,25 +438,34 @@ impl RouterBuilder {
         let mut auth_configs = HashMap::new();
         let mut formats = HashMap::new();
         let mut backup_formats = HashMap::new();
-        for (alias, provider, auth, default_for_formats) in self.provider_entries {
-            if providers.contains_key(&alias) {
+        for entry in self.provider_entries {
+            if providers.contains_key(&entry.alias) {
                 return Err(Error::InvalidRequest(format!(
-                    "provider alias already exists: {alias}"
+                    "provider alias already exists: {}",
+                    entry.alias
                 )));
             }
-            providers.insert(alias.clone(), provider.clone());
-            auth_configs.insert(alias.clone(), auth);
+            providers.insert(entry.alias.clone(), entry.provider.clone());
+            auth_configs.insert(entry.alias.clone(), entry.auth);
 
-            for format in default_for_formats {
+            for format in entry.default_for_formats {
                 if let Some(existing_alias) = formats.get(&format) {
-                    return Err(Error::InvalidRequest(format!("format already has a default provider: {format}: {existing_alias}, {alias}")));
+                    return Err(Error::InvalidRequest(format!(
+                        "format already has a default provider: {format}: {existing_alias}, {}",
+                        entry.alias
+                    )));
                 }
-                formats.insert(format, alias.clone());
+                formats.insert(format, entry.alias.clone());
             }
-            for format in provider.provider_formats() {
+            for format in entry.provider.provider_formats() {
+                #[cfg(feature = "tracing")]
+                tracing::debug!(
+                    "adding backup format: {format} -> {alias}",
+                    alias = entry.alias
+                );
                 backup_formats
                     .entry(format)
-                    .or_insert_with(|| alias.clone());
+                    .or_insert_with(|| entry.alias.clone());
             }
         }
         // Do a second pass to find any formats with no default provider, and
