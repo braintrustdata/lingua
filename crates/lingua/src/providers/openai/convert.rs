@@ -325,6 +325,121 @@ pub(crate) fn try_system_message_from_openai_metadata(
     })
 }
 
+/// Extract tool definitions from OpenAI metadata.
+///
+/// This function attempts to parse tool definitions from metadata fields that could
+/// contain OpenAI Chat Completions or Responses API tool arrays.
+pub(crate) fn try_tools_from_metadata(
+    metadata: &serde_json::Value,
+) -> Option<Vec<crate::universal::tools::UniversalTool>> {
+    let tools_value = extract_tools_from_openai_metadata_value(metadata)?;
+
+    // Try to parse as OpenAI tool format (ToolElement)
+    if let Ok(openai_tools) = serde_json::from_value::<Vec<openai::ToolElement>>(tools_value) {
+        let universal_tools: Vec<_> = openai_tools
+            .iter()
+            .map(convert_openai_tool_to_universal)
+            .collect();
+        return Some(universal_tools);
+    }
+
+    None
+}
+
+/// Convert OpenAI ToolElement to UniversalTool
+fn convert_openai_tool_to_universal(
+    tool: &openai::ToolElement,
+) -> crate::universal::tools::UniversalTool {
+    match tool.tool_type {
+        openai::ToolType::Function => {
+            if let Some(function) = &tool.function {
+                let parameters = function.parameters.as_ref().map(|params| {
+                    // Convert HashMap<String, Option<Value>> to Value
+                    let mut obj = serde_json::Map::new();
+                    for (key, value) in params {
+                        if let Some(val) = value {
+                            obj.insert(key.clone(), val.clone());
+                        }
+                    }
+                    serde_json::Value::Object(obj)
+                });
+
+                crate::universal::tools::UniversalTool::function(
+                    &function.name,
+                    function.description.clone(),
+                    parameters,
+                    None, // OpenAI Chat doesn't have strict field
+                )
+            } else {
+                // Fallback for malformed function tool
+                crate::universal::tools::UniversalTool::function(
+                    "unknown_function",
+                    Some("Tool with missing function definition".to_string()),
+                    None,
+                    None,
+                )
+            }
+        }
+        openai::ToolType::Custom => {
+            if let Some(custom) = &tool.custom {
+                let format = custom
+                    .format
+                    .as_ref()
+                    .map(|f| serde_json::to_value(f).unwrap_or(serde_json::Value::Null));
+                crate::universal::tools::UniversalTool::custom(
+                    &custom.name,
+                    custom.description.clone(),
+                    format,
+                )
+            } else {
+                // Fallback for malformed custom tool
+                crate::universal::tools::UniversalTool::custom(
+                    "unknown_custom",
+                    Some("Tool with missing custom definition".to_string()),
+                    None,
+                )
+            }
+        }
+    }
+}
+
+/// Extract tools array from OpenAI metadata value.
+///
+/// This handles both string-encoded JSON metadata and direct JSON objects,
+/// looking for tools in both Chat and Responses API parameter formats.
+fn extract_tools_from_openai_metadata_value(
+    metadata: &serde_json::Value,
+) -> Option<serde_json::Value> {
+    let parsed_metadata = match metadata {
+        serde_json::Value::String(metadata_json) => {
+            serde_json::from_str::<serde_json::Value>(metadata_json).ok()?
+        }
+        _ => metadata.clone(),
+    };
+
+    // Try Chat Completions format
+    if let Ok(chat_view) = serde_json::from_value::<
+        crate::providers::openai::params::OpenAIChatExtrasView,
+    >(parsed_metadata.clone())
+    {
+        if let Some(tools) = chat_view.tools {
+            return Some(tools);
+        }
+    }
+
+    // Try Responses API format
+    if let Ok(responses_view) = serde_json::from_value::<
+        crate::providers::openai::params::OpenAIResponsesExtrasView,
+    >(parsed_metadata.clone())
+    {
+        if let Some(tools) = responses_view.tools {
+            return Some(tools);
+        }
+    }
+
+    None
+}
+
 pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
     // Prefer chat-completions request messages before Responses InputItem parsing.
     // Chat-completions arrays can deserialize as InputItems, but that path drops
@@ -3434,5 +3549,248 @@ mod tests {
             }
             _ => panic!("expected assistant message"),
         }
+    }
+
+    #[test]
+    fn test_try_tools_from_metadata_with_function_tools() {
+        let metadata = json!({
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "description": "Get the current weather",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "location": {"type": "string"}
+                            },
+                            "required": ["location"]
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "search",
+                        "description": "Search the internet"
+                    }
+                }
+            ]
+        });
+
+        let tools = try_tools_from_metadata(&metadata).expect("Should extract tools");
+        assert_eq!(tools.len(), 2);
+
+        let get_weather = &tools[0];
+        assert_eq!(get_weather.name, "get_weather");
+        assert_eq!(
+            get_weather.description,
+            Some("Get the current weather".to_string())
+        );
+        assert!(get_weather.is_function());
+        assert!(get_weather.parameters.is_some());
+
+        let search = &tools[1];
+        assert_eq!(search.name, "search");
+        assert_eq!(search.description, Some("Search the internet".to_string()));
+        assert!(search.is_function());
+    }
+
+    #[test]
+    fn test_try_tools_from_metadata_with_custom_tools() {
+        let metadata = json!({
+            "tools": [
+                {
+                    "type": "custom",
+                    "custom": {
+                        "name": "translate",
+                        "description": "Translate text between languages",
+                        "format": {
+                            "type": "text"
+                        }
+                    }
+                }
+            ]
+        });
+
+        let tools = try_tools_from_metadata(&metadata).expect("Should extract tools");
+        assert_eq!(tools.len(), 1);
+
+        let translate = &tools[0];
+        assert_eq!(translate.name, "translate");
+        assert_eq!(
+            translate.description,
+            Some("Translate text between languages".to_string())
+        );
+        assert!(translate.is_custom());
+    }
+
+    #[test]
+    fn test_try_tools_from_metadata_with_string_encoded_json() {
+        let metadata_string =
+            json!(r#"{"tools": [{"type": "function", "function": {"name": "test_tool"}}]}"#);
+
+        let tools = try_tools_from_metadata(&metadata_string).expect("Should extract tools");
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "test_tool");
+    }
+
+    #[test]
+    fn test_try_tools_from_metadata_with_malformed_function_tool() {
+        let metadata = json!({
+            "tools": [
+                {
+                    "type": "function"
+                    // Missing "function" field
+                }
+            ]
+        });
+
+        let tools = try_tools_from_metadata(&metadata).expect("Should extract tools");
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "unknown_function");
+        assert!(tools[0].description.is_some());
+    }
+
+    #[test]
+    fn test_try_tools_from_metadata_with_malformed_custom_tool() {
+        let metadata = json!({
+            "tools": [
+                {
+                    "type": "custom"
+                    // Missing "custom" field
+                }
+            ]
+        });
+
+        let tools = try_tools_from_metadata(&metadata).expect("Should extract tools");
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "unknown_custom");
+        assert!(tools[0].description.is_some());
+    }
+
+    #[test]
+    fn test_try_tools_from_metadata_empty_metadata() {
+        let metadata = json!({});
+        let tools = try_tools_from_metadata(&metadata);
+        assert!(tools.is_none());
+    }
+
+    #[test]
+    fn test_try_tools_from_metadata_no_tools_field() {
+        let metadata = json!({"instructions": "You are a helpful assistant"});
+        let tools = try_tools_from_metadata(&metadata);
+        assert!(tools.is_none());
+    }
+
+    #[test]
+    fn test_try_tools_from_metadata_empty_tools_array() {
+        let metadata = json!({"tools": []});
+        let tools = try_tools_from_metadata(&metadata).expect("Should handle empty array");
+        assert!(tools.is_empty());
+    }
+
+    #[test]
+    fn test_extract_tools_from_openai_metadata_chat_format() {
+        let metadata = json!({
+            "model": "gpt-4o",
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {"name": "test_tool"}
+                }
+            ],
+            "temperature": 0.7
+        });
+
+        let tools_value = extract_tools_from_openai_metadata_value(&metadata)
+            .expect("Should extract tools value");
+
+        assert!(tools_value.is_array());
+        let tools_array = tools_value.as_array().unwrap();
+        assert_eq!(tools_array.len(), 1);
+    }
+
+    #[test]
+    fn test_extract_tools_from_openai_metadata_responses_format() {
+        let metadata = json!({
+            "model": "gpt-5-nano",
+            "instructions": "Be helpful",
+            "tools": [
+                {
+                    "type": "function",
+                    "name": "test_tool"
+                }
+            ]
+        });
+
+        let tools_value = extract_tools_from_openai_metadata_value(&metadata)
+            .expect("Should extract tools value");
+
+        assert!(tools_value.is_array());
+        let tools_array = tools_value.as_array().unwrap();
+        assert_eq!(tools_array.len(), 1);
+    }
+
+    #[test]
+    fn test_convert_openai_tool_to_universal_function() {
+        let openai_tool = openai::ToolElement {
+            tool_type: openai::ToolType::Function,
+            function: Some(openai::FunctionObject {
+                name: "get_weather".to_string(),
+                description: Some("Get weather information".to_string()),
+                parameters: Some({
+                    let mut params = std::collections::HashMap::new();
+                    params.insert("type".to_string(), Some(json!("object")));
+                    params.insert(
+                        "properties".to_string(),
+                        Some(json!({"location": {"type": "string"}})),
+                    );
+                    params
+                }),
+                strict: None,
+            }),
+            custom: None,
+        };
+
+        let universal_tool = convert_openai_tool_to_universal(&openai_tool);
+
+        assert_eq!(universal_tool.name, "get_weather");
+        assert_eq!(
+            universal_tool.description,
+            Some("Get weather information".to_string())
+        );
+        assert!(universal_tool.is_function());
+        assert!(universal_tool.parameters.is_some());
+
+        let params = universal_tool.parameters.unwrap();
+        assert_eq!(params["type"], "object");
+        assert!(params["properties"].is_object());
+    }
+
+    #[test]
+    fn test_convert_openai_tool_to_universal_custom() {
+        let openai_tool = openai::ToolElement {
+            tool_type: openai::ToolType::Custom,
+            function: None,
+            custom: Some(openai::CustomToolProperties {
+                name: "translate".to_string(),
+                description: Some("Translate text".to_string()),
+                format: Some(openai::CustomFormat {
+                    format_type: openai::FormatType::Text,
+                    grammar: None,
+                }),
+            }),
+        };
+
+        let universal_tool = convert_openai_tool_to_universal(&openai_tool);
+
+        assert_eq!(universal_tool.name, "translate");
+        assert_eq!(
+            universal_tool.description,
+            Some("Translate text".to_string())
+        );
+        assert!(universal_tool.is_custom());
     }
 }
