@@ -21,6 +21,7 @@ export {
   // Processing functions
   deduplicateMessages,
   importMessagesFromSpans,
+  importSpanDataFromSpans,
   importAndDeduplicateMessages,
 
   // Chat Completions validation
@@ -45,4 +46,8 @@ export {
 } from "./converters";
 
 // Re-export types
-export type { ValidationResult, TransformStreamChunkResult } from "./converters";
+export type {
+  ImportedSpanData,
+  ValidationResult,
+  TransformStreamChunkResult,
+} from "./converters";

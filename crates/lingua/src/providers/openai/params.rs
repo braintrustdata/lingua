@@ -5,12 +5,18 @@ These structs use `#[serde(flatten)]` to automatically capture unknown fields,
 eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
+use crate::capabilities::ProviderFormat;
 use crate::providers::openai::generated::{
     ChatCompletionRequestMessage, Instructions, Reasoning, ReasoningEffort,
 };
-use crate::serde_json::Value;
+use crate::providers::openai::tool_parsing::parse_openai_responses_tools_array;
+use crate::serde_json::{self, Map, Value};
+use crate::universal::message::{Message, UserContent};
+use crate::universal::request::{ResponseFormatConfig, ToolChoiceConfig};
+use crate::universal::tools::tools_to_openai_chat_value;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::convert::TryInto;
 
 /// OpenAI Chat Completions API request parameters.
 ///
@@ -171,6 +177,154 @@ pub struct OpenAIResponsesExtrasView {
     pub service_tier: Option<Value>,
 }
 
+#[derive(Debug, Clone, Default, Deserialize)]
+struct OpenAIResponsesMetadataFingerprint {
+    pub object: Option<String>,
+    pub id: Option<String>,
+    pub tool_choice: Option<Value>,
+    pub parallel_tool_calls: Option<Value>,
+    pub service_tier: Option<Value>,
+    pub top_logprobs: Option<Value>,
+}
+
+fn parse_metadata_object(metadata: &Value) -> Option<Map<String, Value>> {
+    match metadata {
+        Value::String(metadata_json) => {
+            serde_json::from_str::<Map<String, Value>>(metadata_json).ok()
+        }
+        Value::Object(map) => Some(map.clone()),
+        _ => None,
+    }
+}
+
+fn is_openai_responses_metadata(
+    metadata: &Map<String, Value>,
+    extras: &OpenAIResponsesExtrasView,
+) -> bool {
+    let fingerprint: OpenAIResponsesMetadataFingerprint =
+        serde_json::from_value(Value::Object(metadata.clone())).unwrap_or_default();
+
+    if fingerprint.object.as_deref() == Some("response") {
+        return true;
+    }
+
+    if fingerprint
+        .id
+        .as_deref()
+        .is_some_and(|id| id.starts_with("resp_"))
+    {
+        return true;
+    }
+
+    if extras
+        .tools
+        .as_ref()
+        .is_some_and(|tools| !parse_openai_responses_tools_array(tools).is_empty())
+    {
+        return true;
+    }
+
+    extras.instructions.is_some()
+        || fingerprint.tool_choice.is_some()
+        || fingerprint.parallel_tool_calls.is_some()
+        || fingerprint.service_tier.is_some()
+        || fingerprint.top_logprobs.is_some()
+}
+
+pub(crate) fn extract_openai_responses_metadata_view(
+    metadata: &Value,
+) -> Option<(Map<String, Value>, OpenAIResponsesExtrasView)> {
+    let metadata_object = parse_metadata_object(metadata)?;
+    let extras =
+        serde_json::from_value::<OpenAIResponsesExtrasView>(Value::Object(metadata_object.clone()))
+            .ok()?;
+
+    if !is_openai_responses_metadata(&metadata_object, &extras) {
+        return None;
+    }
+
+    Some((metadata_object, extras))
+}
+
+pub(crate) fn try_system_message_from_openai_metadata(metadata: &Value) -> Option<Message> {
+    let (_, extras) = extract_openai_responses_metadata_view(metadata)?;
+    let instructions = extras.instructions?;
+    if instructions.is_empty() {
+        return None;
+    }
+
+    Some(Message::System {
+        content: UserContent::String(instructions),
+    })
+}
+
+pub(crate) fn normalize_openai_responses_metadata_for_chat_completions(
+    metadata: &Value,
+) -> Option<Value> {
+    let (mut normalized, extras) = extract_openai_responses_metadata_view(metadata)?;
+
+    if let Some(tools) = extras.tools.as_ref() {
+        let parsed_tools = parse_openai_responses_tools_array(tools);
+        if let Ok(Some(chat_tools)) = tools_to_openai_chat_value(&parsed_tools) {
+            normalized.insert("tools".into(), chat_tools);
+        }
+    }
+
+    if let Some(tool_choice) = extras.tool_choice.as_ref() {
+        if let Ok(config) = <(ProviderFormat, &Value) as TryInto<ToolChoiceConfig>>::try_into((
+            ProviderFormat::Responses,
+            tool_choice,
+        )) {
+            if let Ok(Some(chat_tool_choice)) =
+                config.to_provider(ProviderFormat::ChatCompletions, None)
+            {
+                normalized.insert("tool_choice".into(), chat_tool_choice);
+            }
+        }
+    }
+
+    let max_output_tokens = extras
+        .max_output_tokens
+        .as_ref()
+        .and_then(|value| serde_json::from_value::<i64>(value.clone()).ok());
+
+    if let Some(reasoning_value) = extras.reasoning.as_ref() {
+        if let Ok(reasoning) = serde_json::from_value::<Reasoning>(reasoning_value.clone()) {
+            let config =
+                crate::universal::request::ReasoningConfig::from((&reasoning, max_output_tokens));
+            if let Ok(Some(Value::String(reasoning_effort))) =
+                config.to_provider(ProviderFormat::ChatCompletions, max_output_tokens)
+            {
+                normalized.insert("reasoning_effort".into(), Value::String(reasoning_effort));
+            }
+        }
+    }
+
+    if let Some(text_value) = extras.text.as_ref() {
+        if let Some(verbosity) = text_value.get("verbosity") {
+            normalized.insert("verbosity".into(), verbosity.clone());
+        }
+
+        if let Some(format) = text_value.get("format") {
+            if let Ok(config) =
+                <(ProviderFormat, &Value) as TryInto<ResponseFormatConfig>>::try_into((
+                    ProviderFormat::Responses,
+                    format,
+                ))
+            {
+                if let Ok(Some(response_format)) =
+                    config.to_provider(ProviderFormat::ChatCompletions)
+                {
+                    normalized.insert("response_format".into(), response_format);
+                    normalized.remove("text");
+                }
+            }
+        }
+    }
+
+    Some(Value::Object(normalized))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -245,5 +399,94 @@ mod tests {
 
         // Custom field should be preserved
         assert_eq!(back.get("custom_field"), json.get("custom_field"));
+    }
+
+    #[test]
+    fn test_normalize_openai_responses_metadata_for_chat_completions() {
+        let metadata = json!({
+            "object": "response",
+            "id": "resp_123",
+            "instructions": "Be helpful",
+            "tools": [{
+                "type": "function",
+                "name": "lookup_weather",
+                "description": "Find weather",
+                "parameters": { "type": "object" },
+                "strict": true
+            }],
+            "tool_choice": {
+                "type": "function",
+                "name": "lookup_weather"
+            },
+            "reasoning": {
+                "effort": "high"
+            },
+            "text": {
+                "verbosity": "low",
+                "format": {
+                    "type": "json_schema",
+                    "name": "forecast",
+                    "schema": { "type": "object" },
+                    "strict": true
+                }
+            }
+        });
+
+        let normalized =
+            normalize_openai_responses_metadata_for_chat_completions(&metadata).unwrap();
+
+        assert_eq!(normalized.get("instructions"), Some(&json!("Be helpful")));
+        assert_eq!(normalized.get("reasoning_effort"), Some(&json!("high")));
+        assert_eq!(normalized.get("verbosity"), Some(&json!("low")));
+        assert_eq!(
+            normalized.get("response_format"),
+            Some(&json!({
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "forecast",
+                    "schema": { "type": "object" },
+                    "strict": true
+                }
+            }))
+        );
+        assert_eq!(
+            normalized.get("tool_choice"),
+            Some(&json!({
+                "type": "function",
+                "function": {
+                    "name": "lookup_weather"
+                }
+            }))
+        );
+        assert_eq!(
+            normalized.get("tools"),
+            Some(&json!([{
+                "type": "function",
+                "function": {
+                    "name": "lookup_weather",
+                    "description": "Find weather",
+                    "parameters": { "type": "object" },
+                    "strict": true
+                }
+            }]))
+        );
+        assert_eq!(normalized.get("text"), None);
+    }
+
+    #[test]
+    fn test_normalize_openai_responses_metadata_requires_responses_fingerprint() {
+        let metadata = json!({
+            "braintrust": { "integration_name": "langchain-py" },
+            "reasoning": { "effort": "medium" },
+            "text": { "verbosity": "high" },
+            "tools": [{
+                "type": "function",
+                "function": {
+                    "name": "already_normalized"
+                }
+            }]
+        });
+
+        assert!(normalize_openai_responses_metadata_for_chat_completions(&metadata).is_none());
     }
 }

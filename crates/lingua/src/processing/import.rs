@@ -11,8 +11,12 @@ use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
 use crate::providers::google::convert::try_parse_google_for_import;
 #[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
-    try_parse_openai_for_import, try_system_message_from_openai_metadata,
-    ChatCompletionRequestMessageExt,
+    try_parse_openai_for_import, ChatCompletionRequestMessageExt,
+};
+#[cfg(feature = "openai")]
+use crate::providers::openai::params::{
+    normalize_openai_responses_metadata_for_chat_completions,
+    try_system_message_from_openai_metadata,
 };
 use crate::serde_json;
 use crate::serde_json::Value;
@@ -33,6 +37,13 @@ pub struct Span {
     pub output: Option<Value>,
     #[serde(flatten)]
     pub other: serde_json::Map<String, Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportedSpanData {
+    pub messages: Vec<Message>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<Value>,
 }
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
@@ -587,8 +598,9 @@ fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
 ///
 /// This function processes spans and extracts messages from their input/output fields,
 /// attempting to convert them from various provider formats to the lingua format.
-pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
+pub fn import_span_data_from_spans(spans: Vec<Span>) -> ImportedSpanData {
     let mut messages = Vec::new();
+    let mut normalized_metadata = None;
 
     for span in spans {
         let mut span_messages = Vec::new();
@@ -604,14 +616,19 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
         }
 
         #[cfg(feature = "openai")]
-        if let Some(metadata) = span.other.get("metadata") {
-            if let Some(system_message) = try_system_message_from_openai_metadata(metadata) {
+        if let Some(span_metadata) = span.other.get("metadata") {
+            if let Some(system_message) = try_system_message_from_openai_metadata(span_metadata) {
                 let has_system_message = span_messages
                     .iter()
                     .any(|message| matches!(message, Message::System { .. }));
                 if !has_system_message {
                     span_messages.insert(0, system_message);
                 }
+            }
+
+            if normalized_metadata.is_none() {
+                normalized_metadata =
+                    normalize_openai_responses_metadata_for_chat_completions(span_metadata);
             }
         }
 
@@ -631,11 +648,62 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
         }
     }
 
-    messages
+    ImportedSpanData {
+        messages,
+        metadata: normalized_metadata,
+    }
+}
+
+pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
+    import_span_data_from_spans(spans).messages
 }
 
 /// Import and deduplicate messages from spans in a single operation
 pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
     let messages = import_messages_from_spans(spans);
     super::dedup::deduplicate_messages(messages)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::serde_json::json;
+
+    #[test]
+    fn test_import_span_data_from_spans_normalizes_openai_responses_metadata() {
+        let imported = import_span_data_from_spans(vec![Span {
+            input: Some(json!([{ "role": "user", "content": "hello" }])),
+            output: None,
+            other: serde_json::Map::from_iter([(
+                "metadata".into(),
+                json!({
+                    "object": "response",
+                    "id": "resp_123",
+                    "tools": [{
+                        "type": "function",
+                        "name": "lookup_weather",
+                        "description": "Find weather",
+                        "parameters": { "type": "object" }
+                    }]
+                }),
+            )]),
+        }]);
+
+        assert_eq!(imported.messages.len(), 1);
+        assert_eq!(
+            imported.metadata,
+            Some(json!({
+                "object": "response",
+                "id": "resp_123",
+                "tools": [{
+                    "type": "function",
+                    "function": {
+                        "name": "lookup_weather",
+                        "description": "Find weather",
+                        "parameters": { "type": "object" }
+                    }
+                }]
+            }))
+        );
+    }
 }

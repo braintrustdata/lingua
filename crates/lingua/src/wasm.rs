@@ -139,6 +139,20 @@ pub fn import_messages_from_spans(value: JsValue) -> Result<JsValue, JsValue> {
         .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
 }
 
+/// Import messages and normalized metadata from spans
+#[wasm_bindgen]
+pub fn import_span_data_from_spans(value: JsValue) -> Result<JsValue, JsValue> {
+    use crate::processing::import::{import_span_data_from_spans as import, Span};
+
+    let spans: Vec<Span> = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse spans: {}", e)))?;
+
+    let imported = import(spans);
+
+    serde_wasm_bindgen::to_value(&imported)
+        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+}
+
 /// Import and deduplicate messages from spans in a single operation
 #[wasm_bindgen]
 pub fn import_and_deduplicate_messages(value: JsValue) -> Result<JsValue, JsValue> {

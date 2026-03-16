@@ -22,6 +22,11 @@ type ImportSpan = {
   [key: string]: unknown;
 };
 
+export type ImportedSpanData = {
+  messages: Message[];
+  metadata?: unknown;
+};
+
 type GoogleWasmExports = {
   google_contents_to_lingua: (value: unknown) => unknown;
   lingua_to_google_contents: (value: unknown) => unknown;
@@ -375,6 +380,29 @@ export function importMessagesFromSpans(
   } catch (error: unknown) {
     throw new ConversionError(
       "Failed to import messages from spans",
+      undefined,
+      undefined,
+      error
+    );
+  }
+}
+
+/**
+ * Import messages and normalized metadata from logging spans by parsing input/output fields.
+ *
+ * The returned `metadata` is provider-normalized request metadata when the importer can infer it.
+ * Today this is used for OpenAI Responses spans so the UI can consume chat-completions-style params
+ * without running a separate TypeScript-side metadata transform.
+ */
+export function importSpanDataFromSpans(
+  spans: ImportSpan[]
+): ImportedSpanData {
+  try {
+    const result = getWasm().import_span_data_from_spans(spans);
+    return convertMapsToObjects(result) as ImportedSpanData;
+  } catch (error: unknown) {
+    throw new ConversionError(
+      "Failed to import span data from spans",
       undefined,
       undefined,
       error
