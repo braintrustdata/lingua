@@ -318,6 +318,10 @@ fn convert_message_parts(
 }
 
 fn try_parse_wrapper_input(data: &Value) -> Option<Vec<Message>> {
+    if !matches!(data, Value::Object(_)) {
+        return None;
+    }
+
     let wrapper = serde_json::from_value::<PydanticAIWrapperCompat>(data.clone()).ok()?;
     if wrapper.user_prompt.is_none()
         && wrapper.system_prompt.is_none()
@@ -394,12 +398,21 @@ fn try_parse_message_sequence(messages: Vec<PydanticAIMessageLikeCompat>) -> Opt
 }
 
 fn try_parse_output(data: &Value) -> Option<Vec<Message>> {
-    if let Ok(wrapper) = serde_json::from_value::<PydanticAIOutputWrapperCompat>(data.clone()) {
+    let Value::Object(obj) = data else {
+        return None;
+    };
+
+    if obj.contains_key("response") {
+        let wrapper = serde_json::from_value::<PydanticAIOutputWrapperCompat>(data.clone()).ok()?;
         return convert_message_parts(
             PydanticAIMessageKindCompat::Response,
             wrapper.response.instructions,
             wrapper.response.parts,
         );
+    }
+
+    if !obj.contains_key("parts") {
+        return None;
     }
 
     let direct = serde_json::from_value::<PydanticAIOutputMessageCompat>(data.clone()).ok()?;
@@ -425,4 +438,21 @@ pub(crate) fn try_parse_pydantic_ai_for_import(data: &Value) -> Option<Vec<Messa
     }
 
     try_parse_output(data)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_plain_text_item_arrays() {
+        let value = crate::serde_json::json!([
+            {
+                "content": "<lang primary=\"en-US\"/><summary>...",
+                "type": "text"
+            }
+        ]);
+
+        assert!(try_parse_pydantic_ai_for_import(&value).is_none());
+    }
 }
