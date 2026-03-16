@@ -77,6 +77,18 @@ struct PydanticAIOutputMessageCompat {
     instructions: Option<String>,
 }
 
+#[allow(dead_code)]
+#[derive(Debug, Clone, Deserialize)]
+struct PydanticAIMessageMarkerCompat {
+    parts: Vec<PydanticAIPartMarkerCompat>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Deserialize)]
+struct PydanticAIPartMarkerCompat {
+    part_kind: String,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 struct PydanticAIBinaryContentCompat {
     #[serde(rename = "type")]
@@ -356,15 +368,23 @@ fn try_parse_wrapper_input(data: &Value) -> Option<Vec<Message>> {
     }
 }
 
+fn has_pydantic_message_shape(data: &Value) -> bool {
+    serde_json::from_value::<PydanticAIMessageMarkerCompat>(data.clone()).is_ok()
+}
+
 fn try_parse_internal_input(data: &Value) -> Option<Vec<Message>> {
-    if let Ok(wrapper) = serde_json::from_value::<PydanticAIMessagesWrapperCompat>(data.clone()) {
+    if matches!(data, Value::Object(obj) if obj.contains_key("messages"))
+        && serde_json::from_value::<PydanticAIMessagesWrapperCompat>(data.clone()).is_ok()
+    {
+        let wrapper =
+            serde_json::from_value::<PydanticAIMessagesWrapperCompat>(data.clone()).ok()?;
         return try_parse_message_sequence(wrapper.messages);
     }
 
     if !matches!(data, Value::Array(items) if !items.is_empty()
         && items
             .iter()
-            .all(|item| matches!(item, Value::Object(obj) if obj.contains_key("parts"))))
+            .all(has_pydantic_message_shape))
     {
         return None;
     }
@@ -403,6 +423,10 @@ fn try_parse_output(data: &Value) -> Option<Vec<Message>> {
     };
 
     if obj.contains_key("response") {
+        let response = obj.get("response")?;
+        if !has_pydantic_message_shape(response) {
+            return None;
+        }
         let wrapper = serde_json::from_value::<PydanticAIOutputWrapperCompat>(data.clone()).ok()?;
         return convert_message_parts(
             PydanticAIMessageKindCompat::Response,
@@ -411,7 +435,7 @@ fn try_parse_output(data: &Value) -> Option<Vec<Message>> {
         );
     }
 
-    if !obj.contains_key("parts") {
+    if !has_pydantic_message_shape(data) {
         return None;
     }
 
@@ -452,6 +476,54 @@ mod tests {
                 "type": "text"
             }
         ]);
+
+        assert!(try_parse_pydantic_ai_for_import(&value).is_none());
+    }
+
+    #[test]
+    fn rejects_messages_wrapper_without_pydantic_part_kind() {
+        let value = crate::serde_json::json!({
+            "messages": [
+                {
+                    "parts": [
+                        {
+                            "content": "<lang primary=\"en-US\"/><summary>...",
+                            "type": "text"
+                        }
+                    ]
+                }
+            ]
+        });
+
+        assert!(try_parse_pydantic_ai_for_import(&value).is_none());
+    }
+
+    #[test]
+    fn rejects_output_shape_without_pydantic_part_kind() {
+        let value = crate::serde_json::json!({
+            "parts": [
+                {
+                    "content": "<lang primary=\"en-US\"/><summary>...",
+                    "type": "text"
+                }
+            ]
+        });
+
+        assert!(try_parse_pydantic_ai_for_import(&value).is_none());
+    }
+
+    #[test]
+    fn rejects_response_wrapper_without_pydantic_part_kind() {
+        let value = crate::serde_json::json!({
+            "response": {
+                "parts": [
+                    {
+                        "content": "<lang primary=\"en-US\"/><summary>...",
+                        "type": "text"
+                    }
+                ]
+            }
+        });
 
         assert!(try_parse_pydantic_ai_for_import(&value).is_none());
     }
