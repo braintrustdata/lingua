@@ -1,5 +1,9 @@
 use crate::error::ConvertError;
+use crate::import_parse::{
+    non_empty_messages, try_convert_non_empty, try_parse, try_parse_vec_or_single,
+};
 use crate::providers::openai::generated as openai;
+use crate::providers::openai::params::OpenAIResponsesExtrasView;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, REFUSAL_TEXT};
@@ -8,6 +12,7 @@ use crate::universal::{
     ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
+use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 
 /// Extended ChatCompletionRequest/ResponseMessage with reasoning support.
@@ -102,6 +107,254 @@ fn parse_builtin_field<T: serde::de::DeserializeOwned>(
         }),
         None => Ok(None),
     }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+enum ResponsesImportKnownType {
+    // Some SDK/frontend traces use compatibility shapes (`function_call_result`,
+    // camelCase `callId`, JSON-valued `output`/`result`) that are not in the
+    // canonical OpenAI schema used to generate `openai::*` types.
+    #[serde(rename = "function_call_output", alias = "function_call_result")]
+    FunctionCallOutput,
+    #[serde(rename = "custom_tool_call_output")]
+    CustomToolCallOutput,
+    #[serde(rename = "function_call")]
+    FunctionCall,
+    #[serde(rename = "custom_tool_call")]
+    CustomToolCall,
+    #[serde(rename = "image_generation_call")]
+    ImageGenerationCall,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+enum ResponsesImportItemType {
+    Known(ResponsesImportKnownType),
+    Other(String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ResponsesImportCompatItem {
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    item_type: Option<ResponsesImportItemType>,
+    #[serde(default, alias = "callId", skip_serializing_if = "Option::is_none")]
+    call_id: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "deserialize_optional_json_as_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    output: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "deserialize_optional_json_as_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    result: Option<String>,
+    #[serde(flatten)]
+    extra: serde_json::Map<String, serde_json::Value>,
+}
+
+fn deserialize_optional_json_as_string<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = Option::<serde_json::Value>::deserialize(deserializer)?;
+    match value {
+        None | Some(serde_json::Value::Null) => Ok(None),
+        Some(serde_json::Value::String(text)) => Ok(Some(text)),
+        Some(other) => Ok(Some(other.to_string())),
+    }
+}
+
+fn normalize_responses_items_for_import(data: &serde_json::Value) -> Option<serde_json::Value> {
+    let wrapped;
+    let candidate = if data.is_object() {
+        wrapped = serde_json::Value::Array(vec![data.clone()]);
+        &wrapped
+    } else {
+        data
+    };
+
+    let compat_items =
+        serde_json::from_value::<Vec<ResponsesImportCompatItem>>(candidate.clone()).ok()?;
+    let normalized = serde_json::to_value(compat_items).ok()?;
+
+    if normalized == *candidate {
+        None
+    } else {
+        Some(normalized)
+    }
+}
+
+fn is_reasoning_only_assistant_message(message: &Message) -> bool {
+    match message {
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } => {
+            !parts.is_empty()
+                && parts
+                    .iter()
+                    .all(|part| matches!(part, AssistantContentPart::Reasoning { .. }))
+        }
+        _ => false,
+    }
+}
+
+fn merge_adjacent_reasoning_assistant_messages(messages: Vec<Message>) -> Vec<Message> {
+    let mut merged = Vec::with_capacity(messages.len());
+
+    for message in messages {
+        let should_merge = matches!(merged.last(), Some(prev) if is_reasoning_only_assistant_message(prev))
+            && matches!(message, Message::Assistant { .. });
+
+        if !should_merge {
+            merged.push(message);
+            continue;
+        }
+
+        let Some(previous) = merged.pop() else {
+            merged.push(message);
+            continue;
+        };
+
+        let Message::Assistant {
+            content: AssistantContent::Array(reasoning_parts),
+            id: reasoning_id,
+        } = previous
+        else {
+            merged.push(previous);
+            merged.push(message);
+            continue;
+        };
+
+        let Message::Assistant {
+            content: next_content,
+            id: next_id,
+        } = message
+        else {
+            merged.push(Message::Assistant {
+                content: AssistantContent::Array(reasoning_parts),
+                id: reasoning_id,
+            });
+            merged.push(message);
+            continue;
+        };
+
+        let mut combined_parts = reasoning_parts;
+        match next_content {
+            AssistantContent::Array(parts) => combined_parts.extend(parts),
+            AssistantContent::String(text) => {
+                combined_parts.push(AssistantContentPart::Text(TextContentPart {
+                    text,
+                    encrypted_content: None,
+                    provider_options: None,
+                }));
+            }
+        }
+
+        merged.push(Message::Assistant {
+            content: AssistantContent::Array(combined_parts),
+            id: next_id.or(reasoning_id),
+        });
+    }
+
+    merged
+}
+
+fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<Vec<Message>> {
+    if let Some(provider_messages) = try_parse_vec_or_single::<openai::InputItem>(candidate) {
+        if let Some(messages) = try_convert_non_empty(provider_messages) {
+            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
+        }
+    }
+
+    if let Some(provider_messages) = try_parse_vec_or_single::<openai::OutputItem>(candidate) {
+        if let Some(messages) = try_convert_non_empty(provider_messages) {
+            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
+        }
+    }
+
+    None
+}
+
+pub(crate) fn try_parse_responses_items_for_import(
+    data: &serde_json::Value,
+) -> Option<Vec<Message>> {
+    if let Some(messages) = try_from_responses_items_candidate(data) {
+        return Some(messages);
+    }
+
+    let normalized = normalize_responses_items_for_import(data)?;
+    try_from_responses_items_candidate(&normalized)
+}
+
+fn try_messages_from_openai_instructions(input: openai::Instructions) -> Option<Vec<Message>> {
+    match input {
+        openai::Instructions::InputItemArray(items) => {
+            let messages = try_convert_non_empty(items)?;
+            non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages))
+        }
+        openai::Instructions::String(text) => Some(vec![Message::User {
+            content: UserContent::String(text),
+        }]),
+    }
+}
+
+fn extract_instructions_from_openai_metadata_value(metadata: &serde_json::Value) -> Option<String> {
+    let typed = match metadata {
+        serde_json::Value::String(metadata_json) => {
+            let parsed = serde_json::from_str::<serde_json::Value>(metadata_json).ok()?;
+            serde_json::from_value::<OpenAIResponsesExtrasView>(parsed).ok()?
+        }
+        _ => serde_json::from_value::<OpenAIResponsesExtrasView>(metadata.clone()).ok()?,
+    };
+    typed.instructions
+}
+
+pub(crate) fn try_system_message_from_openai_metadata(
+    metadata: &serde_json::Value,
+) -> Option<Message> {
+    let instructions = extract_instructions_from_openai_metadata_value(metadata)?;
+    if instructions.is_empty() {
+        return None;
+    }
+    Some(Message::System {
+        content: UserContent::String(instructions),
+    })
+}
+
+pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
+    // Prefer chat-completions request messages before Responses InputItem parsing.
+    // Chat-completions arrays can deserialize as InputItems, but that path drops
+    // assistant `tool_calls` arguments and is lossy for import.
+    if let Some(provider_messages) =
+        try_parse_vec_or_single::<ChatCompletionRequestMessageExt>(data)
+    {
+        if let Some(messages) = try_convert_non_empty(provider_messages) {
+            return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
+        }
+    }
+
+    if let Some(messages) = try_parse_responses_items_for_import(data) {
+        return Some(messages);
+    }
+
+    if let Some(request) = try_parse::<openai::CreateResponseClass>(data) {
+        if let Some(input) = request.input {
+            if let Some(messages) = try_messages_from_openai_instructions(input) {
+                return Some(messages);
+            }
+        }
+    }
+
+    if let Some(response) = try_parse::<openai::TheResponseObject>(data) {
+        let messages = try_convert_non_empty(response.output)?;
+        return non_empty_messages(merge_adjacent_reasoning_assistant_messages(messages));
+    }
+
+    None
 }
 
 /// Convert OpenAI InputItem collection to universal Message collection

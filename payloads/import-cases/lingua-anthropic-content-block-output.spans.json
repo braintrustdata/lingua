@@ -1,0 +1,18 @@
+[
+  {
+    "input": [
+      { "role": "user", "content": "Tell me about AI" }
+    ],
+    "output": [
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "AI stands for Artificial Intelligence."
+          }
+        ]
+      }
+    ]
+  }
+]

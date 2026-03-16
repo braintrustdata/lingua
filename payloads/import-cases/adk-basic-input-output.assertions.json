@@ -1,0 +1,9 @@
+{
+  "_migrationNote": "Now aligned with app/ui/trace/converters/adk-converter.test.ts (basic ADK input/output): lingua imports ADK/Gemini-shaped `contents/parts` + `content.parts` as user+assistant messages.",
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant"
+  ],
+  "mustContainText": []
+}

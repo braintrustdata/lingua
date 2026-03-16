@@ -1,0 +1,56 @@
+[
+  {
+    "input": {
+      "messages": [
+        { "role": "system", "content": "You are a helpful assistant." },
+        { "role": "user", "content": [{ "type": "text", "text": "What's the weather?" }] },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool-call",
+              "toolCallId": "call_abc",
+              "toolName": "weatherTool",
+              "input": { "location": "SF" }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": [
+            {
+              "type": "tool-result",
+              "toolCallId": "call_abc",
+              "toolName": "weatherTool",
+              "output": { "type": "json", "value": { "temp": 72, "sky": "Clear" } }
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            { "type": "text", "text": "Based on that, " },
+            {
+              "type": "tool-call",
+              "toolCallId": "call_xyz",
+              "toolName": "activitiesTool",
+              "input": { "weather": "Clear" }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": [
+            {
+              "type": "tool-result",
+              "toolCallId": "call_xyz",
+              "toolName": "activitiesTool",
+              "output": "Go hiking"
+            }
+          ]
+        }
+      ]
+    },
+    "output": { "text": "It's 72 and clear. Try hiking!", "files": [] }
+  }
+]

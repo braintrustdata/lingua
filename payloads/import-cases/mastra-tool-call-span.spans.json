@@ -1,0 +1,7 @@
+[
+  {
+    "input": { "location": "NYC" },
+    "output": { "temp": 65, "conditions": "Cloudy" },
+    "metadata": { "spanType": "tool_call", "toolId": "weatherTool", "toolDescription": "Get weather data" }
+  }
+]

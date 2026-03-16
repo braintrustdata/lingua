@@ -1,0 +1,11 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "assistant"],
+  "mustContainText": [
+    "What is 127 multiplied by 49?",
+    "I'll calculate 127 multiplied by 49 for you.",
+    "toolu_0145BmCcA7aXKT1FBmKgsjL6",
+    "calculate",
+    "multiply"
+  ]
+}

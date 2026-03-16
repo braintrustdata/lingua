@@ -1,0 +1,6 @@
+{
+  "_migrationNote": "Diverges from app/ui/trace/converters/mastra-response-converter.test.ts (tool_call span): the old converter synthesized assistant tool-call + tool result messages from raw input/output objects and metadata, but lingua import_messages_from_spans currently imports 0 messages for this Mastra tool_call span shape.",
+  "expectedMessageCount": 0,
+  "expectedRolesInOrder": [],
+  "mustContainText": []
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "input": [
+      { "role": "user", "content": "Calculate 5 + 3" }
+    ],
+    "output": [
+      {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_abc",
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "arguments": "{\"operation\":\"add\",\"a\":5,\"b\":3}"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

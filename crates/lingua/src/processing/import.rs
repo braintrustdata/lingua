@@ -1,6 +1,19 @@
+use crate::import_parse::{try_parsers_in_order, MessageParser};
+mod langchain;
+use crate::processing::import::langchain::try_parse_langchain_for_import;
+#[cfg(feature = "anthropic")]
+use crate::providers::anthropic::convert::try_parse_anthropic_for_import;
+#[cfg(feature = "anthropic")]
 use crate::providers::anthropic::generated as anthropic;
-use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
-use crate::providers::openai::generated as openai;
+#[cfg(feature = "bedrock")]
+use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
+#[cfg(feature = "google")]
+use crate::providers::google::convert::try_parse_google_for_import;
+#[cfg(feature = "openai")]
+use crate::providers::openai::convert::{
+    try_parse_openai_for_import, try_system_message_from_openai_metadata,
+    ChatCompletionRequestMessageExt,
+};
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
@@ -22,43 +35,45 @@ pub struct Span {
     pub other: serde_json::Map<String, Value>,
 }
 
-/// Cheap check to see if a value looks like it might contain messages
-/// Returns early to avoid expensive deserialization attempts on non-message data
-fn has_message_structure(data: &Value) -> bool {
-    match data {
-        // Check if it's an array where ANY element has "role" field or is a choice object
-        Value::Array(arr) => {
-            if arr.is_empty() {
-                return false;
-            }
-            // Check if ANY element in the array looks like a message (not just the first)
-            // This handles mixed-type arrays from Responses API
-            for item in arr {
-                if let Value::Object(obj) = item {
-                    // Direct message format: has "role" field
-                    if obj.contains_key("role") {
+/// Try to convert a value to lingua messages by attempting multiple format conversions
+fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+    if is_role_message_array(data) {
+        return try_parse_mixed_role_messages_for_import(data).unwrap_or_default();
+    }
+
+    if let Some(messages) = try_parse_provider_messages_for_import(data) {
+        return messages;
+    }
+
+    if let Some(messages) = try_parse_langchain_for_import(data) {
+        return messages;
+    }
+
+    // Cheap check to see if a value looks like it might contain messages.
+    // Returns early to avoid expensive deserialization attempts on non-message data.
+    let has_message_structure = match data {
+        // Check if it's an array where any element has "role" or nested "message.role".
+        Value::Array(arr) => arr.iter().any(|item| match item {
+            Value::Object(obj) => {
+                if obj.contains_key("role") {
+                    return true;
+                }
+                if let Some(Value::Object(msg)) = obj.get("message") {
+                    if msg.contains_key("role") {
                         return true;
                     }
-                    // Chat completions response choices format: has "message" field with role inside
-                    if let Some(Value::Object(msg)) = obj.get("message") {
-                        if msg.contains_key("role") {
-                            return true;
-                        }
-                    }
                 }
+                false
             }
-            false
-        }
+            _ => false,
+        }),
         // Check if it's an object with "role" field (single message)
         Value::Object(obj) => obj.contains_key("role"),
         _ => false,
-    }
-}
+    };
 
-/// Try to convert a value to lingua messages by attempting multiple format conversions
-fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     // Early bailout: if data doesn't have message structure, skip expensive deserializations
-    if !has_message_structure(data) {
+    if !has_message_structure {
         // Still try nested object search (for wrapped messages like {messages: [...]})
         if let Value::Object(obj) = data {
             for key in [
@@ -90,50 +105,29 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
 
     // Try Chat Completions format (most common)
     // Use extended type to capture reasoning field from vLLM/OpenRouter convention
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<ChatCompletionRequestMessageExt>>(data_to_parse.clone())
+    #[cfg(feature = "openai")]
     {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
-                provider_messages,
-            )
+        if let Ok(provider_messages) =
+            serde_json::from_value::<Vec<ChatCompletionRequestMessageExt>>(data_to_parse.clone())
         {
-            if !messages.is_empty() {
-                return messages;
-            }
-        }
-    }
-
-    // Try Responses API format
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::InputItem>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(provider_messages)
-        {
-            if !messages.is_empty() {
-                return messages;
-            }
-        }
-    }
-
-    // Try Responses API output format
-    if let Ok(provider_messages) =
-        serde_json::from_value::<Vec<openai::OutputItem>>(data_to_parse.clone())
-    {
-        if let Ok(messages) =
-            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(provider_messages)
-        {
-            if !messages.is_empty() {
-                return messages;
+            if let Ok(messages) = <Vec<Message> as TryFromLLM<
+                Vec<ChatCompletionRequestMessageExt>,
+            >>::try_from(provider_messages)
+            {
+                if !messages.is_empty() {
+                    return messages;
+                }
             }
         }
     }
 
     // Try Anthropic format (including role-based system/developer messages).
-    if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse) {
-        if !anthropic_messages.is_empty() {
-            return anthropic_messages;
+    #[cfg(feature = "anthropic")]
+    {
+        if let Some(anthropic_messages) = try_anthropic_or_system_messages(data_to_parse) {
+            if !anthropic_messages.is_empty() {
+                return anthropic_messages;
+            }
         }
     }
 
@@ -155,6 +149,65 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
     Vec::new()
 }
 
+fn is_role_message_array(data: &Value) -> bool {
+    let Value::Array(items) = data else {
+        return false;
+    };
+
+    !items.is_empty()
+        && items.iter().all(|item| match item {
+            Value::Object(obj) => matches!(obj.get("role"), Some(Value::String(_))),
+            _ => false,
+        })
+}
+
+fn provider_parsers_for_import() -> Vec<MessageParser> {
+    vec![
+        #[cfg(feature = "openai")]
+        try_parse_openai_for_import,
+        #[cfg(feature = "anthropic")]
+        try_parse_anthropic_for_import,
+        #[cfg(feature = "google")]
+        try_parse_google_for_import,
+        #[cfg(feature = "bedrock")]
+        try_parse_bedrock_for_import,
+    ]
+}
+
+fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>> {
+    let items = data.as_array()?;
+    let provider_parsers = provider_parsers_for_import();
+    let mut messages = Vec::new();
+
+    for item in items {
+        let mut parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
+            let wrapped_item = Value::Array(vec![item.clone()]);
+            try_parsers_in_order(&wrapped_item, &provider_parsers)
+        });
+
+        if parsed_messages.is_none() {
+            parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
+        }
+
+        if let Some(mut parsed_messages) = parsed_messages {
+            messages.append(&mut parsed_messages);
+        }
+    }
+
+    if messages.is_empty() {
+        None
+    } else {
+        Some(messages)
+    }
+}
+
+fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
+    let provider_parsers = provider_parsers_for_import();
+
+    try_parsers_in_order(data, &provider_parsers)
+}
+
+#[cfg(feature = "anthropic")]
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 enum AnthropicOrSystemMessage {
@@ -162,12 +215,14 @@ enum AnthropicOrSystemMessage {
     SystemOrDeveloper(SystemOrDeveloperMessage),
 }
 
+#[cfg(feature = "anthropic")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SystemOrDeveloperMessage {
     role: SystemOrDeveloperRole,
     content: Value,
 }
 
+#[cfg(feature = "anthropic")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum SystemOrDeveloperRole {
@@ -175,6 +230,7 @@ enum SystemOrDeveloperRole {
     Developer,
 }
 
+#[cfg(feature = "anthropic")]
 fn try_parse_anthropic_or_system_message(item: AnthropicOrSystemMessage) -> Option<Message> {
     match item {
         AnthropicOrSystemMessage::Anthropic(provider_message) => {
@@ -187,6 +243,7 @@ fn try_parse_anthropic_or_system_message(item: AnthropicOrSystemMessage) -> Opti
     }
 }
 
+#[cfg(feature = "anthropic")]
 fn try_anthropic_or_system_messages(data: &Value) -> Option<Vec<Message>> {
     let items: Vec<AnthropicOrSystemMessage> = serde_json::from_value(data.clone()).ok()?;
     if items.is_empty() {
@@ -213,6 +270,70 @@ fn try_anthropic_or_system_messages(data: &Value) -> Option<Vec<Message>> {
 /// - Custom LLM wrappers
 /// - Logging that doesn't perfectly match provider formats
 /// - Messages with extra/missing fields
+#[derive(Debug, Clone, Deserialize)]
+struct LenientToolMessageCompat {
+    #[serde(default, alias = "tool_call_id", alias = "toolCallId")]
+    tool_call_id: Option<String>,
+    #[serde(default)]
+    name: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "type")]
+enum LenientTextContentPartCompat {
+    #[serde(rename = "text", alias = "input_text", alias = "output_text")]
+    Text { text: String },
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "type")]
+enum LenientAssistantContentPartCompat {
+    #[serde(rename = "text", alias = "input_text", alias = "output_text")]
+    Text { text: String },
+    #[serde(rename = "reasoning")]
+    Reasoning {
+        text: String,
+        #[serde(default)]
+        encrypted_content: Option<String>,
+    },
+    #[serde(rename = "tool_call", alias = "tool-call", alias = "toolCall")]
+    ToolCall {
+        #[serde(alias = "toolCallId")]
+        tool_call_id: String,
+        #[serde(default, alias = "toolName")]
+        tool_name: String,
+        #[serde(default, alias = "input")]
+        arguments: Option<Value>,
+        #[serde(default)]
+        encrypted_content: Option<String>,
+        #[serde(default, alias = "providerExecuted")]
+        provider_executed: Option<bool>,
+    },
+    #[serde(rename = "tool_result", alias = "tool-result", alias = "toolResult")]
+    ToolResult {
+        #[serde(alias = "toolCallId")]
+        tool_call_id: String,
+        #[serde(default, alias = "toolName")]
+        tool_name: String,
+        #[serde(default)]
+        output: Value,
+    },
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "type")]
+enum LenientToolContentPartCompat {
+    #[serde(rename = "tool_result", alias = "tool-result", alias = "toolResult")]
+    ToolResult {
+        #[serde(alias = "toolCallId")]
+        tool_call_id: String,
+        #[serde(default, alias = "toolName")]
+        tool_name: String,
+        #[serde(default)]
+        output: Value,
+    },
+}
+
 fn parse_lenient_message_item(item: &Value) -> Option<Message> {
     let obj = item.as_object()?;
     let role_str = obj.get("role")?.as_str()?;
@@ -232,11 +353,36 @@ fn parse_lenient_message_item(item: &Value) -> Option<Message> {
             content: parse_assistant_content(content_value)?,
             id: None,
         }),
-        "tool" => Some(Message::Tool {
-            content: parse_tool_content(content_value)?,
-        }),
+        "tool" => parse_lenient_tool_message(item, content_value),
         _ => None,
     }
+}
+
+fn parse_lenient_tool_message(item: &Value, content_value: &Value) -> Option<Message> {
+    if let Some(content) = parse_tool_content(content_value) {
+        return Some(Message::Tool { content });
+    }
+
+    let parsed = LenientToolMessageCompat::deserialize(item).ok()?;
+    let tool_call_id = parsed.tool_call_id?;
+    let tool_name = parsed.name.unwrap_or_default();
+
+    let output = match content_value {
+        Value::String(text) => match serde_json::from_str::<Value>(text) {
+            Ok(parsed) => parsed,
+            Err(_) => Value::String(text.clone()),
+        },
+        other => other.clone(),
+    };
+
+    Some(Message::Tool {
+        content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+            tool_call_id,
+            tool_name,
+            output,
+            provider_options: None,
+        })],
+    })
 }
 
 fn try_lenient_message_parsing(data: &Value) -> Option<Vec<Message>> {
@@ -256,27 +402,103 @@ fn try_lenient_message_parsing(data: &Value) -> Option<Vec<Message>> {
     }
 }
 
+fn try_parse_lenient_text_content_part(item: &Value) -> Option<TextContentPart> {
+    match serde_json::from_value::<LenientTextContentPartCompat>(item.clone()).ok()? {
+        LenientTextContentPartCompat::Text { text } => Some(TextContentPart {
+            text,
+            encrypted_content: None,
+            provider_options: None,
+        }),
+    }
+}
+
+fn parse_tool_call_arguments(value: Option<Value>) -> Option<ToolCallArguments> {
+    match value {
+        Some(raw) => {
+            if let Ok(arguments) = serde_json::from_value::<ToolCallArguments>(raw.clone()) {
+                return Some(arguments);
+            }
+
+            match raw {
+                Value::Object(map) => Some(ToolCallArguments::Valid(map)),
+                Value::String(text) => Some(ToolCallArguments::Invalid(text)),
+                other => serde_json::to_string(&other)
+                    .ok()
+                    .map(ToolCallArguments::Invalid),
+            }
+        }
+        None => Some(ToolCallArguments::Invalid(String::new())),
+    }
+}
+
+fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantContentPart> {
+    match serde_json::from_value::<LenientAssistantContentPartCompat>(item.clone()).ok()? {
+        LenientAssistantContentPartCompat::Text { text } => {
+            Some(AssistantContentPart::Text(TextContentPart {
+                text,
+                encrypted_content: None,
+                provider_options: None,
+            }))
+        }
+        LenientAssistantContentPartCompat::Reasoning {
+            text,
+            encrypted_content,
+        } => Some(AssistantContentPart::Reasoning {
+            text,
+            encrypted_content,
+        }),
+        LenientAssistantContentPartCompat::ToolCall {
+            tool_call_id,
+            tool_name,
+            arguments,
+            encrypted_content,
+            provider_executed,
+        } => Some(AssistantContentPart::ToolCall {
+            tool_call_id,
+            tool_name,
+            arguments: parse_tool_call_arguments(arguments)?,
+            encrypted_content,
+            provider_options: None,
+            provider_executed,
+        }),
+        LenientAssistantContentPartCompat::ToolResult {
+            tool_call_id,
+            tool_name,
+            output,
+        } => Some(AssistantContentPart::ToolResult {
+            tool_call_id,
+            tool_name,
+            output,
+            provider_options: None,
+        }),
+    }
+}
+
+fn try_parse_lenient_tool_content_part(item: &Value) -> Option<ToolContentPart> {
+    match serde_json::from_value::<LenientToolContentPartCompat>(item.clone()).ok()? {
+        LenientToolContentPartCompat::ToolResult {
+            tool_call_id,
+            tool_name,
+            output,
+        } => Some(ToolContentPart::ToolResult(ToolResultContentPart {
+            tool_call_id,
+            tool_name,
+            output,
+            provider_options: None,
+        })),
+    }
+}
+
 /// Parse user/system content from JSON value
 fn parse_user_content(value: &Value) -> Option<UserContent> {
     match value {
         Value::String(s) => Some(UserContent::String(s.clone())),
         Value::Array(arr) => {
-            let mut parts = Vec::new();
-            for item in arr {
-                if let Some(obj) = item.as_object() {
-                    if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "text" {
-                            if let Some(Value::String(text)) = obj.get("text") {
-                                parts.push(UserContentPart::Text(TextContentPart {
-                                    text: text.clone(),
-                                    encrypted_content: None,
-                                    provider_options: None,
-                                }));
-                            }
-                        }
-                    }
-                }
-            }
+            let parts: Vec<UserContentPart> = arr
+                .iter()
+                .filter_map(try_parse_lenient_text_content_part)
+                .map(UserContentPart::Text)
+                .collect();
             if parts.is_empty() {
                 None
             } else {
@@ -292,47 +514,10 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
     match value {
         Value::String(s) => Some(AssistantContent::String(s.clone())),
         Value::Array(arr) => {
-            let mut parts = Vec::new();
-            for item in arr {
-                if let Some(obj) = item.as_object() {
-                    if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "text" {
-                            if let Some(Value::String(text)) = obj.get("text") {
-                                parts.push(crate::universal::AssistantContentPart::Text(
-                                    TextContentPart {
-                                        text: text.clone(),
-                                        encrypted_content: None,
-                                        provider_options: None,
-                                    },
-                                ));
-                            }
-                        } else if text_type == "tool-call" {
-                            let tool_call_id = obj.get("toolCallId")?.as_str()?.to_string();
-                            let tool_name = obj
-                                .get("toolName")
-                                .and_then(Value::as_str)
-                                .unwrap_or_default()
-                                .to_string();
-                            let arguments = match obj.get("input") {
-                                Some(Value::Object(map)) => ToolCallArguments::Valid(map.clone()),
-                                Some(Value::String(s)) => ToolCallArguments::Invalid(s.clone()),
-                                Some(other) => ToolCallArguments::Invalid(
-                                    serde_json::to_string(other).unwrap_or_default(),
-                                ),
-                                None => ToolCallArguments::Invalid(String::new()),
-                            };
-                            parts.push(AssistantContentPart::ToolCall {
-                                tool_call_id,
-                                tool_name,
-                                arguments,
-                                encrypted_content: None,
-                                provider_options: None,
-                                provider_executed: None,
-                            });
-                        }
-                    }
-                }
-            }
+            let parts: Vec<AssistantContentPart> = arr
+                .iter()
+                .filter_map(try_parse_lenient_assistant_content_part)
+                .collect();
             if parts.is_empty() {
                 None
             } else {
@@ -346,28 +531,10 @@ fn parse_assistant_content(value: &Value) -> Option<AssistantContent> {
 fn parse_tool_content(value: &Value) -> Option<ToolContent> {
     match value {
         Value::Array(arr) => {
-            let mut parts = Vec::new();
-            for item in arr {
-                if let Some(obj) = item.as_object() {
-                    if let Some(Value::String(text_type)) = obj.get("type") {
-                        if text_type == "tool-result" {
-                            let tool_call_id = obj.get("toolCallId")?.as_str()?.to_string();
-                            let tool_name = obj
-                                .get("toolName")
-                                .and_then(Value::as_str)
-                                .unwrap_or_default()
-                                .to_string();
-                            let output = obj.get("output").cloned().unwrap_or(Value::Null);
-                            parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
-                                tool_call_id,
-                                tool_name,
-                                output,
-                                provider_options: None,
-                            }));
-                        }
-                    }
-                }
-            }
+            let parts: Vec<ToolContentPart> = arr
+                .iter()
+                .filter_map(try_parse_lenient_tool_content_part)
+                .collect();
             if parts.is_empty() {
                 None
             } else {
@@ -389,9 +556,8 @@ fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
     for item in arr {
         let obj = item.as_object()?;
 
-        // Check if this looks like a choice object (has "message" or "finish_reason")
-        // Note: has_message_structure only checks the first element, so we need to validate
-        // each element here to ensure the entire array is a valid choices array
+        // Check if this looks like a choice object (has "message" or "finish_reason").
+        // We still validate each element here to ensure the entire array is a valid choices array.
         if !obj.contains_key("message") && !obj.contains_key("finish_reason") {
             return None; // Not a choices array
         }
@@ -425,14 +591,41 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
     let mut messages = Vec::new();
 
     for span in spans {
+        let mut span_messages = Vec::new();
+
         // Try to extract messages from input
-        if let Some(input) = &span.input {
+        if let Some(Value::String(input_text)) = &span.input {
+            span_messages.push(Message::User {
+                content: UserContent::String(input_text.clone()),
+            });
+        } else if let Some(input) = &span.input {
             let input_messages = try_converting_to_messages(input);
-            messages.extend(input_messages);
+            span_messages.extend(input_messages);
         }
 
+        #[cfg(feature = "openai")]
+        if let Some(metadata) = span.other.get("metadata") {
+            if let Some(system_message) = try_system_message_from_openai_metadata(metadata) {
+                let has_system_message = span_messages
+                    .iter()
+                    .any(|message| matches!(message, Message::System { .. }));
+                if !has_system_message {
+                    span_messages.insert(0, system_message);
+                }
+            }
+        }
+
+        messages.extend(span_messages);
+
         // Try to extract messages from output
-        if let Some(output) = &span.output {
+        if let Some(Value::String(output_text)) = &span.output {
+            if !output_text.is_empty() {
+                messages.push(Message::Assistant {
+                    content: AssistantContent::String(output_text.clone()),
+                    id: None,
+                });
+            }
+        } else if let Some(output) = &span.output {
             let output_messages = try_converting_to_messages(output);
             messages.extend(output_messages);
         }

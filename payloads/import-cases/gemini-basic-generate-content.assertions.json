@@ -1,0 +1,8 @@
+{
+  "_migrationNote": "Now aligned with app/ui/trace/converters/gemini-converter.test.ts (Gemini input without output): lingua imports raw Gemini `contents/parts` request shape as a user message.",
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "user"
+  ],
+  "mustContainText": []
+}

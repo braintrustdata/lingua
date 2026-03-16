@@ -1,0 +1,38 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "Count from 1 to 10 slowly.",
+          "type": "human",
+          "additional_kwargs": {},
+          "example": false
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "type": "ChatGenerationChunk",
+            "text": "Sure, here we go:\n\n1...  \n2...  \n3...  \n4...  \n5...  \n6...  \n7...  \n8...  \n9...  \n10...",
+            "generation_info": {
+              "finish_reason": "stop",
+              "model_name": "gpt-4o-2024-08-06"
+            },
+            "message": {
+              "type": "AIMessageChunk",
+              "content": "Sure, here we go:\n\n1...  \n2...  \n3...  \n4...  \n5...  \n6...  \n7...  \n8...  \n9...  \n10...",
+              "id": "run--0a0a1cb7-55d0-44e1-86d6-7aab4b904e2a",
+              "additional_kwargs": {},
+              "response_metadata": {
+                "finish_reason": "stop"
+              }
+            }
+          }
+        ]
+      ],
+      "type": "LLMResult"
+    }
+  }
+]

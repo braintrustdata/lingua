@@ -1,0 +1,20 @@
+[
+  {
+    "input": [
+      {
+        "role": "developer",
+        "content": "You are a helpful assistant with access to tools."
+      },
+      {
+        "role": "user",
+        "content": "What can you help me with?"
+      }
+    ],
+    "output": [
+      {
+        "role": "assistant",
+        "content": "I can help you with various tasks using the available tools."
+      }
+    ]
+  }
+]

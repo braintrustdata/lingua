@@ -1,0 +1,10 @@
+{
+  "_migrationNote": "Diverges from app/ui/trace/converters/mastra-response-converter.test.ts (legacy tool messages with toolId): the old converter emitted user + tool + assistant, but lingua import_messages_from_spans currently imports only the nested user message from `input.messages` and drops the tool/toolId variant plus `{text}` output.",
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "user"
+  ],
+  "mustContainText": [
+    "Question"
+  ]
+}

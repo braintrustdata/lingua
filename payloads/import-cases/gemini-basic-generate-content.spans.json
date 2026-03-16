@@ -1,0 +1,13 @@
+[
+  {
+    "input": {
+      "model": "gemini-2.0-flash-exp",
+      "contents": [
+        {
+          "role": "user",
+          "parts": [{ "text": "What is the capital of France?" }]
+        }
+      ]
+    }
+  }
+]

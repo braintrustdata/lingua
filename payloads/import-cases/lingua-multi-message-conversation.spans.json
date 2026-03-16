@@ -1,0 +1,13 @@
+[
+  {
+    "input": [
+      { "role": "system", "content": "You are helpful." },
+      { "role": "user", "content": "First question" }
+    ],
+    "output": [
+      { "role": "assistant", "content": "First answer" },
+      { "role": "user", "content": "Follow-up question" },
+      { "role": "assistant", "content": "Follow-up answer" }
+    ]
+  }
+]

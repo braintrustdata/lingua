@@ -1,0 +1,18 @@
+[
+  {
+    "input": [
+      {
+        "role": "developer",
+        "content": [
+          {
+            "type": "text",
+            "text": "You are a specialized assistant."
+          }
+        ]
+      }
+    ],
+    "output": [
+      { "role": "assistant", "content": "Understood." }
+    ]
+  }
+]

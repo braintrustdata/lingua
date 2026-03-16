@@ -1,0 +1,39 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "You are a helpful assistant.",
+          "type": "SystemMessageChunk",
+          "additional_kwargs": {}
+        },
+        {
+          "content": "What is 2+2?",
+          "type": "HumanMessageChunk",
+          "additional_kwargs": {},
+          "example": false
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "type": "ChatGenerationChunk",
+            "text": "2 + 2 equals 4.",
+            "generation_info": {
+              "finish_reason": "stop"
+            },
+            "message": {
+              "type": "AIMessageChunk",
+              "content": "2 + 2 equals 4.",
+              "id": "run--test-123",
+              "additional_kwargs": {}
+            }
+          }
+        ]
+      ],
+      "type": "LLMResult"
+    }
+  }
+]

@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 5,
+  "expectedRolesInOrder": ["system", "user", "assistant", "user", "assistant"],
+  "mustContainText": ["You are helpful", "First question", "Follow-up answer"]
+}

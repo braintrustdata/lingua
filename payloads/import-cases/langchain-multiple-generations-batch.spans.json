@@ -1,0 +1,36 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "Question 1",
+          "type": "human"
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "content": "Answer 1",
+              "type": "ai"
+            },
+            "generation_info": {
+              "finish_reason": "stop"
+            }
+          },
+          {
+            "message": {
+              "content": "Answer 2",
+              "type": "ai"
+            },
+            "generation_info": {
+              "finish_reason": "stop"
+            }
+          }
+        ]
+      ]
+    }
+  }
+]

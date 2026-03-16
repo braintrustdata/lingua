@@ -1,0 +1,96 @@
+[
+  {
+    "_pagination_key": "p07611302904676089857",
+    "_xact_id": "1000196731518474014",
+    "classifications": null,
+    "created": "2026-02-26T22:20:12.210Z",
+    "facets": null,
+    "id": "dfb401fe2b5514b4",
+    "metrics": {
+      "completion_tokens": 8666,
+      "end": 1772144552.146522,
+      "prompt_tokens": 171566,
+      "start": 1772144412.210261,
+      "tokens": 180232,
+      "estimated_cost": 0.6446879999999999
+    },
+    "model": "claude-sonnet-4-5-20250929",
+    "origin": null,
+    "root_span_id": "e96c91ed31ece85733866e1705eaba8d",
+    "scores": null,
+    "span_attributes": {
+      "name": "GenerateSelectFieldOptionDescriptions",
+      "type": "llm"
+    },
+    "span_id": "dfb401fe2b5514b4",
+    "tags": [],
+    "_async_scoring_state": null,
+    "audit_data": [
+      {
+        "_xact_id": "1000196731518474014",
+        "audit_data": {
+          "action": "upsert"
+        },
+        "metadata": {},
+        "source": "api"
+      }
+    ],
+    "input": [
+      {
+        "content": "anon_1",
+        "role": "system"
+      },
+      {
+        "content": "anon_2",
+        "role": "user"
+      }
+    ],
+    "is_root": true,
+    "log_id": "g",
+    "metadata": {
+      "braintrust.metrics.completion_tokens": 8666,
+      "braintrust.metrics.end": 1772144552.146522,
+      "braintrust.metrics.prompt_tokens": 171566,
+      "braintrust.metrics.start": 1772144412.210261,
+      "braintrust.metrics.tokens": 180232,
+      "custom_field_definition_id": "anon_3",
+      "detailed_tokens": {
+        "completion_tokens": 8666,
+        "prompt_tokens": 171566
+      },
+      "ecsService": "anon_4",
+      "gen_ai.operation.name": "anon_5",
+      "gen_ai.provider.name": "anon_6",
+      "gen_ai.request.model": "anon_7",
+      "gen_ai.response.model": "anon_7",
+      "gen_ai.usage.input_tokens": 171566,
+      "gen_ai.usage.output_tokens": 8666,
+      "input": {
+        "custom_field_name": "anon_8",
+        "custom_field_value_options": "anon_9",
+        "sampled_issue_data": "anon_10"
+      },
+      "model": "claude-sonnet-4-5-20250929",
+      "org_id": "anon_11",
+      "org_name": "anon_12",
+      "promptName": "anon_13",
+      "pylon.org.id": "anon_11",
+      "pylon.org.name": "anon_12",
+      "pylon.prompt.name": "anon_13",
+      "pylon.span.emit_always": true
+    },
+    "org_id": "f1b9d63a-0673-4a90-a9aa-fcda2f5313b0",
+    "output": [
+      {
+        "signature": "anon_14",
+        "thinking": "anon_15",
+        "type": "thinking"
+      },
+      {
+        "text": "anon_16",
+        "type": "text"
+      }
+    ],
+    "project_id": "b2fe0186-16e9-429d-8ec5-123da617ef13"
+  }
+]

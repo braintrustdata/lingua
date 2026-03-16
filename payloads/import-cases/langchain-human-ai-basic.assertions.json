@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "assistant"],
+  "mustContainText": ["What is the capital of France?", "The capital of France is Paris."]
+}

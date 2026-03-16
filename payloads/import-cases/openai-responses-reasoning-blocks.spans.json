@@ -1,0 +1,37 @@
+[
+  {
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": "List South American countries by Pacific capital population."
+      }
+    ],
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_1",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "**Estimating South American capitals**"
+          },
+          {
+            "type": "summary_text",
+            "text": "**Estimating capital populations**"
+          }
+        ]
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Step 1: List all countries in South America..."
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -3,11 +3,12 @@ use std::time::Duration;
 use async_trait::async_trait;
 use bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{Client, StatusCode, Url};
+use reqwest::{StatusCode, Url};
+use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{default_client, ClientSettings};
+use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
@@ -37,7 +38,7 @@ impl Default for AnthropicConfig {
 
 #[derive(Debug, Clone)]
 pub struct AnthropicProvider {
-    client: Client,
+    client: ClientWithMiddleware,
     config: AnthropicConfig,
 }
 
@@ -47,11 +48,7 @@ impl AnthropicProvider {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
-        let client = if config.timeout.is_some() {
-            crate::client::build_client(&settings)?
-        } else {
-            default_client().or_else(|_| crate::client::build_client(&settings))?
-        };
+        let client = build_middleware_client(&settings)?;
         Ok(Self { client, config })
     }
 

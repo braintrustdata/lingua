@@ -1,0 +1,27 @@
+[
+  {
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Is this a question?"
+          }
+        ]
+      }
+    ],
+    "output": [
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Question."
+          }
+        ]
+      }
+    ]
+  }
+]

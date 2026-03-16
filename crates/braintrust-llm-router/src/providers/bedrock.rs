@@ -11,11 +11,12 @@ use bytes::Bytes;
 use http::Request as HttpRequest;
 use lingua::serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
-use reqwest::{Client, StatusCode, Url};
+use reqwest::{StatusCode, Url};
+use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::client::{default_client, ClientSettings};
+use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, single_bytes_stream, RawResponseStream};
@@ -41,7 +42,7 @@ impl Default for BedrockConfig {
 
 #[derive(Debug, Clone)]
 pub struct BedrockProvider {
-    client: Client,
+    client: ClientWithMiddleware,
     config: BedrockConfig,
 }
 
@@ -51,11 +52,7 @@ impl BedrockProvider {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
-        let client = if config.timeout.is_some() {
-            crate::client::build_client(&settings)?
-        } else {
-            default_client().or_else(|_| crate::client::build_client(&settings))?
-        };
+        let client = build_middleware_client(&settings)?;
         Ok(Self { client, config })
     }
 

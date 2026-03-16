@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "assistant"],
+  "mustContainText": ["image_url", "12dc1301-3571-4a7d-8e82-dae969eb3fee", "What color is this image?", "blue and white"]
+}

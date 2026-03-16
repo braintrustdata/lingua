@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 4,
+  "expectedRolesInOrder": ["system", "user", "assistant", "assistant"],
+  "mustContainText": ["anon_6"]
+}

@@ -1,10 +1,18 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "extends": ["//"],
+  "extends": [
+    "//"
+  ],
+  "globalDependencies": [
+    "../../crates/lingua/src/**/*.rs",
+    "../../crates/lingua/Cargo.toml"
+  ],
   "tasks": {
     "build": {
-      "outputs": ["nodejs/**", "web/**"]
+      "outputs": [
+        "nodejs/**",
+        "web/**"
+      ]
     }
   }
 }
-

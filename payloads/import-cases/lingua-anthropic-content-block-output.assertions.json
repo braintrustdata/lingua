@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "assistant"],
+  "mustContainText": ["Tell me about AI", "Artificial Intelligence"]
+}

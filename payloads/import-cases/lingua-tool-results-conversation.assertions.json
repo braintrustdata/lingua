@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 4,
+  "expectedRolesInOrder": ["user", "assistant", "tool", "assistant"],
+  "mustContainText": ["What's the weather?", "get_weather", "Sunny, 75F", "It's sunny"]
+}

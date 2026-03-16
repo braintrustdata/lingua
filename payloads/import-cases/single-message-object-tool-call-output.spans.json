@@ -1,0 +1,30 @@
+[
+  {
+    "input": [
+      {
+        "role": "user",
+        "content": "anon_1"
+      }
+    ],
+    "output": {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "tool_call",
+          "tool_call_id": "anon_2",
+          "tool_name": "anon_3",
+          "arguments": {
+            "type": "valid",
+            "value": {
+              "choice": "anon_4",
+              "reasons": [
+                "anon_5",
+                "anon_6"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+]

@@ -12,6 +12,8 @@ pub enum ModelTransform {
     ForceMaxCompletionTokens,
     /// Convert max_completion_tokens to max_tokens
     ForceMaxTokens,
+    /// Strip stream_options parameter
+    StripStreamOptions,
 }
 
 use ModelTransform::*;
@@ -31,6 +33,8 @@ const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
     ("pixstral", &[ForceMaxTokens]),
     ("devstral", &[ForceMaxTokens]),
     ("voxstral", &[ForceMaxTokens]),
+    // Databricks models
+    ("databricks-", &[ForceMaxTokens, StripStreamOptions]),
 ];
 
 /// Get the transforms required for a model.
@@ -73,6 +77,9 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
                     obj.entry("max_tokens").or_insert(max_tokens);
                 }
             }
+            StripStreamOptions => {
+                obj.remove("stream_options");
+            }
         }
     }
 }
@@ -80,7 +87,7 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serde_json::json;
+    use crate::serde_json::{self, json};
 
     #[test]
     fn test_get_model_transforms() {
@@ -257,5 +264,20 @@ mod tests {
                 model
             );
         }
+    }
+
+    #[test]
+    fn test_strip_stream_options() {
+        let mut obj: Map<String, Value> = serde_json::from_value(json!({
+            "model": "databricks-model",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stream_options": { "include_usage": true }
+        }))
+        .unwrap();
+        apply_model_transforms("databricks-model", &mut obj);
+        assert!(
+            !obj.contains_key("stream_options"),
+            "stream_options should be removed"
+        );
     }
 }

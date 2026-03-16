@@ -172,4 +172,87 @@ describe("anonymizeJsonValue", () => {
       model: "gpt-5.1-2025-11-13",
     });
   });
+
+  it("anonymizes JSON-encoded tool call arguments strings", () => {
+    const input = {
+      input: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "toolu_123",
+              type: "function",
+              function: {
+                name: "CreateTodoList",
+                arguments:
+                  '{"items":["task_alpha","task_beta"],"status":"queued"}',
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = anonymizeJsonValue(input);
+    expect(result.value).toEqual({
+      input: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "toolu_123",
+              type: "function",
+              function: {
+                name: "CreateTodoList",
+                arguments: '{"items":["anon_1","anon_2"],"status":"anon_3"}',
+              },
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("anonymizes non-JSON tool call arguments strings as plain strings", () => {
+    const input = {
+      input: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "toolu_123",
+              type: "function",
+              function: {
+                name: "CreateTodoList",
+                arguments: "not-json-content",
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = anonymizeJsonValue(input);
+    expect(result.value).toEqual({
+      input: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "toolu_123",
+              type: "function",
+              function: {
+                name: "CreateTodoList",
+                arguments: "anon_1",
+              },
+            },
+          ],
+        },
+      ],
+    });
+  });
 });

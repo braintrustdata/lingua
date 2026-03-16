@@ -1,0 +1,38 @@
+[
+  {
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": "I have invested considerable money into indoor shrimp farming. Will my venture pay off?"
+      },
+      {
+        "type": "function_call",
+        "name": "magic_8_ball",
+        "arguments": "{\"question\":\"Will my indoor shrimp farming venture pay off?\"}",
+        "callId": "call_magic_8"
+      },
+      {
+        "type": "function_call_result",
+        "callId": "call_magic_8",
+        "name": "magic_8_ball",
+        "output": {
+          "text": "The magic 8-ball says: Signs point to yes",
+          "type": "text"
+        }
+      }
+    ],
+    "output": [
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "I consulted the mystical 8-ball and the outlook is favorable."
+          }
+        ]
+      }
+    ]
+  }
+]

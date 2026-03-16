@@ -1,0 +1,10 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "tool",
+    "assistant"
+  ],
+  "mustContainText": [
+    "weather in Chicago"
+  ]
+}

@@ -6,12 +6,17 @@ AWS Bedrock's Converse API format and Lingua's universal message format.
 */
 
 use crate::error::ConvertError;
+use crate::import_parse::{
+    try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
+};
 use crate::providers::bedrock::request::{
     BedrockContentBlock, BedrockConversationRole, BedrockImageBlock, BedrockImageFormat,
     BedrockImageSource, BedrockMessage, BedrockToolResultBlock, BedrockToolResultContent,
     BedrockToolUseBlock, ConverseRequest,
 };
-use crate::providers::bedrock::response::{BedrockOutputContentBlock, BedrockOutputMessage};
+use crate::providers::bedrock::response::{
+    BedrockOutputContentBlock, BedrockOutputMessage, ConverseResponse,
+};
 use crate::serde_json::{self, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
@@ -280,6 +285,65 @@ pub fn universal_to_bedrock(messages: &[Message]) -> Result<Value, ConvertError>
         field: "messages".to_string(),
         error: e.to_string(),
     })
+}
+
+fn try_messages_from_bedrock_messages(messages: Vec<BedrockMessage>) -> Option<Vec<Message>> {
+    try_convert_non_empty(messages)
+}
+
+fn try_message_from_bedrock_output_message(message: BedrockOutputMessage) -> Option<Vec<Message>> {
+    if message.role != "assistant" {
+        return None;
+    }
+
+    let message = <Message as TryFromLLM<BedrockOutputMessage>>::try_from(message).ok()?;
+    Some(vec![message])
+}
+
+fn try_messages_from_bedrock_output_messages(
+    output_messages: Vec<BedrockOutputMessage>,
+) -> Option<Vec<Message>> {
+    if output_messages
+        .iter()
+        .any(|message| message.role != "assistant")
+    {
+        return None;
+    }
+
+    try_convert_non_empty(output_messages)
+}
+
+fn try_parse_bedrock_message_for_import(data: &Value) -> Option<Vec<Message>> {
+    let messages = try_parse_vec_or_single::<BedrockMessage>(data)?;
+    try_messages_from_bedrock_messages(messages)
+}
+
+fn try_parse_bedrock_request_for_import(data: &Value) -> Option<Vec<Message>> {
+    let request = try_parse::<ConverseRequest>(data)?;
+    try_messages_from_bedrock_messages(request.messages)
+}
+
+fn try_parse_bedrock_output_message_for_import(data: &Value) -> Option<Vec<Message>> {
+    let output_messages = try_parse_vec_or_single::<BedrockOutputMessage>(data)?;
+    if output_messages.len() == 1 {
+        return try_message_from_bedrock_output_message(output_messages.into_iter().next()?);
+    }
+    try_messages_from_bedrock_output_messages(output_messages)
+}
+
+fn try_parse_bedrock_response_for_import(data: &Value) -> Option<Vec<Message>> {
+    let response = try_parse::<ConverseResponse>(data)?;
+    try_message_from_bedrock_output_message(response.output.message)
+}
+
+pub(crate) fn try_parse_bedrock_for_import(data: &Value) -> Option<Vec<Message>> {
+    const PARSERS: &[MessageParser] = &[
+        try_parse_bedrock_message_for_import,
+        try_parse_bedrock_request_for_import,
+        try_parse_bedrock_output_message_for_import,
+        try_parse_bedrock_response_for_import,
+    ];
+    try_parsers_in_order(data, PARSERS)
 }
 
 // ============================================================================

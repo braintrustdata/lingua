@@ -1,0 +1,17 @@
+{
+  "_migrationNote": "Diverges from app/ui/trace/converters/mastra-response-converter.test.ts (llm_generation tool loop): lingua imports the nested `input.messages` conversation (including tool-call/tool-result content blocks) but drops the final assistant message synthesized by the old converter from the object-shaped `{text}` output.",
+  "expectedMessageCount": 6,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "assistant",
+    "tool",
+    "assistant",
+    "tool"
+  ],
+  "mustContainText": [
+    "helpful assistant",
+    "weatherTool",
+    "Go hiking"
+  ]
+}

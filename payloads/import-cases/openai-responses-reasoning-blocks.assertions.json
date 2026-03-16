@@ -1,0 +1,12 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "South American countries",
+    "Step 1: List all countries",
+    "Estimating South American capitals"
+  ]
+}

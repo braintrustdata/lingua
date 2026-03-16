@@ -15,6 +15,12 @@ import type { InputItem } from "./generated/openai/InputItem";
 import type { InputMessage } from "./generated/anthropic/InputMessage";
 
 type GoogleContent = Record<string, unknown>;
+type ImportSpan = {
+  input?: unknown;
+  output?: unknown;
+  metadata?: unknown;
+  [key: string]: unknown;
+};
 
 type GoogleWasmExports = {
   google_contents_to_lingua: (value: unknown) => unknown;
@@ -355,12 +361,12 @@ export function deduplicateMessages(messages: Message[]): Message[] {
  * Only spans with successfully parsed input/output are included. Spans that don't contain
  * valid message data return [].
  *
- * @param spans - Array of span objects with optional input/output fields
+ * @param spans - Array of span objects with optional input/output fields and additional span metadata
  * @returns Array of Lingua messages extracted from spans
  * @throws {ConversionError} If processing fails
  */
 export function importMessagesFromSpans(
-  spans: Array<{ input?: unknown; output?: unknown }>
+  spans: ImportSpan[]
 ): Message[] {
   try {
     const result = getWasm().import_messages_from_spans(spans);
@@ -382,12 +388,12 @@ export function importMessagesFromSpans(
  * Combines importMessagesFromSpans and deduplicateMessages for optimal performance
  * when processing span data. More efficient than calling the functions separately.
  *
- * @param spans - Array of span objects with optional input/output fields
+ * @param spans - Array of span objects with optional input/output fields and additional span metadata
  * @returns Deduplicated array of Lingua messages extracted from spans
  * @throws {ConversionError} If processing fails
  */
 export function importAndDeduplicateMessages(
-  spans: Array<{ input?: unknown; output?: unknown }>
+  spans: ImportSpan[]
 ): Message[] {
   try {
     const result = getWasm().import_and_deduplicate_messages(spans);

@@ -7,11 +7,15 @@ Google's GenerateContent API format and Lingua's universal message format.
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
+use crate::import_parse::{
+    try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
+};
 use crate::providers::google::generated::{
-    Blob as GoogleBlob, Content as GoogleContent, FileData as GoogleFileData,
-    FinishReason as GoogleFinishReason, FunctionCall as GoogleFunctionCall, FunctionCallingConfig,
-    FunctionCallingConfigMode, FunctionDeclaration, FunctionResponse as GoogleFunctionResponse,
-    GenerateContentRequest, GenerationConfig, Part as GooglePart, Tool as GoogleTool, ToolConfig,
+    Blob as GoogleBlob, Candidate as GoogleCandidate, Content as GoogleContent,
+    FileData as GoogleFileData, FinishReason as GoogleFinishReason,
+    FunctionCall as GoogleFunctionCall, FunctionCallingConfig, FunctionCallingConfigMode,
+    FunctionDeclaration, FunctionResponse as GoogleFunctionResponse, GenerateContentRequest,
+    GenerateContentResponse, GenerationConfig, Part as GooglePart, Tool as GoogleTool, ToolConfig,
     UsageMetadata,
 };
 use crate::serde_json::{self, Map, Value};
@@ -464,6 +468,55 @@ pub fn universal_to_google(messages: &[Message]) -> Result<Value, ConvertError> 
         field: "contents".to_string(),
         error: e.to_string(),
     })
+}
+
+fn try_messages_from_google_contents(contents: Vec<GoogleContent>) -> Option<Vec<Message>> {
+    try_convert_non_empty(contents)
+}
+
+fn try_messages_from_google_candidates(candidates: Vec<GoogleCandidate>) -> Option<Vec<Message>> {
+    let contents: Vec<GoogleContent> = candidates
+        .into_iter()
+        .filter_map(|candidate| candidate.content)
+        .collect();
+
+    if contents.is_empty() {
+        None
+    } else {
+        try_messages_from_google_contents(contents)
+    }
+}
+
+fn try_parse_google_content_for_import(data: &Value) -> Option<Vec<Message>> {
+    let contents = try_parse_vec_or_single::<GoogleContent>(data)?;
+    try_messages_from_google_contents(contents)
+}
+
+fn try_parse_google_request_for_import(data: &Value) -> Option<Vec<Message>> {
+    let request = try_parse::<GenerateContentRequest>(data)?;
+    let contents = request.contents?;
+    try_messages_from_google_contents(contents)
+}
+
+fn try_parse_google_response_for_import(data: &Value) -> Option<Vec<Message>> {
+    let response = try_parse::<GenerateContentResponse>(data)?;
+    let candidates = response.candidates?;
+    try_messages_from_google_candidates(candidates)
+}
+
+fn try_parse_google_candidate_for_import(data: &Value) -> Option<Vec<Message>> {
+    let candidates = try_parse_vec_or_single::<GoogleCandidate>(data)?;
+    try_messages_from_google_candidates(candidates)
+}
+
+pub(crate) fn try_parse_google_for_import(data: &Value) -> Option<Vec<Message>> {
+    const PARSERS: &[MessageParser] = &[
+        try_parse_google_content_for_import,
+        try_parse_google_request_for_import,
+        try_parse_google_response_for_import,
+        try_parse_google_candidate_for_import,
+    ];
+    try_parsers_in_order(data, PARSERS)
 }
 
 impl From<&FunctionDeclaration> for UniversalTool {

@@ -1,0 +1,59 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "content": "Generate a story about track:1",
+          "role": "user"
+        }
+      ]
+    },
+    "output": {
+      "messages": [
+        {
+          "content": "Generate a story about track:1",
+          "type": "human"
+        },
+        {
+          "content": "",
+          "type": "ai",
+          "tool_calls": [
+            {
+              "args": {
+                "track_id": "1"
+              },
+              "id": "call_0pyp4rm31A3T3dm82GobtI0q",
+              "name": "get_track",
+              "type": "tool_call"
+            },
+            {
+              "args": {
+                "track_id": "1"
+              },
+              "id": "call_WdQz2cxCIdxcQezG8GtwLKNo",
+              "name": "get_track_credits",
+              "type": "tool_call"
+            }
+          ]
+        },
+        {
+          "content": "{\"name\": \"Blinding Lights\", \"artists\": [\"The Weeknd\"]}",
+          "name": "get_track",
+          "tool_call_id": "call_0pyp4rm31A3T3dm82GobtI0q",
+          "type": "tool"
+        },
+        {
+          "content": "[{\"name\": \"The Weeknd\", \"role\": \"Songwriter\"}]",
+          "name": "get_track_credits",
+          "tool_call_id": "call_WdQz2cxCIdxcQezG8GtwLKNo",
+          "type": "tool"
+        },
+        {
+          "content": "\"Blinding Lights\" by The Weeknd is a synth-heavy track...",
+          "type": "ai"
+        }
+      ]
+    },
+    "metadata": "{\"braintrust\":{\"integration_name\":\"langchain-py\"}}"
+  }
+]

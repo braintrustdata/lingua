@@ -1,0 +1,34 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "What is the capital of France?",
+          "type": "human",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "name": null,
+          "id": null,
+          "example": false
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "content": "The capital of France is Paris.",
+              "type": "ai",
+              "additional_kwargs": { "refusal": null }
+            },
+            "generation_info": {
+              "finish_reason": "stop",
+              "logprobs": null
+            }
+          }
+        ]
+      ]
+    }
+  }
+]

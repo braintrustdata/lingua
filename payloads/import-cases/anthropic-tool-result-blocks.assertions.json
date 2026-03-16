@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": ["tool"],
+  "mustContainText": ["toolu_123", "4"]
+}

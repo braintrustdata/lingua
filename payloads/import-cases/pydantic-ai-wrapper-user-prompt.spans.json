@@ -1,0 +1,22 @@
+[
+  {
+    "input": {
+      "user_prompt": "What is the capital of France?"
+    },
+    "output": {
+      "output": "The capital of France is Paris.",
+      "response": {
+        "finish_reason": "stop",
+        "kind": "response",
+        "model_name": "gpt-4o-2024-08-06",
+        "parts": [
+          {
+            "content": "The capital of France is Paris.",
+            "id": null,
+            "part_kind": "text"
+          }
+        ]
+      }
+    }
+  }
+]
