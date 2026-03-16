@@ -1,0 +1,17 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "kind": "request",
+          "parts": [
+            {
+              "content": "Please try again with valid JSON",
+              "part_kind": "retry-prompt"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "user"
+  ],
+  "mustContainText": [
+    "Please try again with valid JSON"
+  ]
+}

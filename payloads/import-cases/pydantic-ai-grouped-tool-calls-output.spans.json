@@ -1,0 +1,28 @@
+[
+  {
+    "output": {
+      "response": {
+        "parts": [
+          {
+            "content": "",
+            "part_kind": "tool-call",
+            "tool_name": "get_weather",
+            "tool_call_id": "call_1",
+            "args": {
+              "location": "Paris"
+            }
+          },
+          {
+            "content": "",
+            "part_kind": "tool-call",
+            "tool_name": "get_time",
+            "tool_call_id": "call_2",
+            "args": {
+              "timezone": "Europe/Paris"
+            }
+          }
+        ]
+      }
+    }
+  }
+]

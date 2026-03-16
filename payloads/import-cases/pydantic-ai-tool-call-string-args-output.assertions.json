@@ -1,0 +1,11 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "assistant"
+  ],
+  "mustContainText": [
+    "call_52VJrpVyK8Im0450UAeqHlHp",
+    "calculate",
+    "multiply"
+  ]
+}

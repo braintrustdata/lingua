@@ -1,0 +1,10 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "assistant"
+  ],
+  "mustContainText": [
+    "**Analyzing numeric sequence pattern**",
+    "The sequence grows by adding consecutive even numbers."
+  ]
+}

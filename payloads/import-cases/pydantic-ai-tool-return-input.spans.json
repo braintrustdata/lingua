@@ -1,0 +1,19 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "kind": "request",
+          "parts": [
+            {
+              "content": "sunny, 22°C",
+              "part_kind": "tool-return",
+              "tool_name": "get_weather",
+              "tool_call_id": "call_123"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

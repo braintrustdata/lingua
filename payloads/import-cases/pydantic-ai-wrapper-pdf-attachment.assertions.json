@@ -5,7 +5,9 @@
     "assistant"
   ],
   "mustContainText": [
-    "What is the capital of France?",
-    "The capital of France is Paris."
+    "file.pdf",
+    "application/pdf",
+    "What is in this document?",
+    "This is a test PDF."
   ]
 }

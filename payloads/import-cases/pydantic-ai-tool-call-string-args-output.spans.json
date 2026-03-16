@@ -1,0 +1,18 @@
+[
+  {
+    "output": {
+      "finish_reason": "tool_call",
+      "kind": "response",
+      "model_name": "gpt-4o-2024-08-06",
+      "parts": [
+        {
+          "args": "{\"operation\":\"multiply\",\"a\":127,\"b\":49}",
+          "id": null,
+          "part_kind": "tool-call",
+          "tool_call_id": "call_52VJrpVyK8Im0450UAeqHlHp",
+          "tool_name": "calculate"
+        }
+      ]
+    }
+  }
+]
