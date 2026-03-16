@@ -357,6 +357,14 @@ fn try_parse_internal_input(data: &Value) -> Option<Vec<Message>> {
         return try_parse_message_sequence(wrapper.messages);
     }
 
+    if !matches!(data, Value::Array(items) if !items.is_empty()
+        && items
+            .iter()
+            .all(|item| matches!(item, Value::Object(obj) if obj.contains_key("parts"))))
+    {
+        return None;
+    }
+
     let messages = serde_json::from_value::<Vec<PydanticAIMessageLikeCompat>>(data.clone()).ok()?;
     try_parse_message_sequence(messages)
 }
