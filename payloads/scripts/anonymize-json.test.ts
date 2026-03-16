@@ -206,8 +206,7 @@ describe("anonymizeJsonValue", () => {
               type: "function",
               function: {
                 name: "CreateTodoList",
-                arguments:
-                  '{"items":["anon_1","anon_2"],"status":"anon_3"}',
+                arguments: '{"items":["anon_1","anon_2"],"status":"anon_3"}',
               },
             },
           ],

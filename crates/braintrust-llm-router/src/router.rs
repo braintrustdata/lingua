@@ -878,6 +878,35 @@ mod tests {
     }
 
     #[test]
+    fn responses_required_model_falls_back_to_azure_provider() {
+        let model = "gpt-5-pro";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "azure",
+                FakeProvider {
+                    name: "azure",
+                    formats: vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (alias, provider, _, _, format, _) = &routes[0];
+        assert_eq!(alias, "azure");
+        assert_eq!(provider.id(), "azure");
+        assert_eq!(*format, ProviderFormat::Responses);
+    }
+
+    #[test]
     fn build_fails_when_provider_alias_duplicated() {
         let catalog = Arc::new(ModelCatalog::empty());
         let result = Router::builder()

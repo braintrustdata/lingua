@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use bytes::Bytes;
-use lingua::serde_json::Value;
+use lingua::serde_json::Value as MetadataValue;
 use reqwest::header::HeaderMap;
 use reqwest::{StatusCode, Url};
 use reqwest_middleware::ClientWithMiddleware;
@@ -62,7 +62,7 @@ impl AzureProvider {
     pub fn from_config(
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
-        metadata: &std::collections::HashMap<String, Value>,
+        metadata: &std::collections::HashMap<String, MetadataValue>,
     ) -> Result<Self> {
         let endpoint = endpoint
             .cloned()
@@ -78,15 +78,18 @@ impl AzureProvider {
         }
         if let Some(deployment) = metadata
             .get("deployment")
-            .and_then(Value::as_str)
+            .and_then(MetadataValue::as_str)
             .filter(|s| !s.is_empty())
         {
             config.deployment = Some(deployment.to_string());
         }
-        if let Some(version) = metadata.get("api_version").and_then(Value::as_str) {
+        if let Some(version) = metadata.get("api_version").and_then(MetadataValue::as_str) {
             config.api_version = version.to_string();
         }
-        if let Some(no_named) = metadata.get("no_named_deployment").and_then(Value::as_bool) {
+        if let Some(no_named) = metadata
+            .get("no_named_deployment")
+            .and_then(MetadataValue::as_bool)
+        {
             config.no_named_deployment = no_named;
         }
 
@@ -133,6 +136,49 @@ impl AzureProvider {
         }
         Ok(url)
     }
+
+    fn responses_url(&self) -> Result<Url> {
+        let mut url = self.config.endpoint.clone();
+        {
+            let mut segments = url
+                .path_segments_mut()
+                .map_err(|_| Error::InvalidRequest("Azure endpoint must be absolute".into()))?;
+            segments.pop_if_empty();
+            segments.push("openai");
+            segments.push("v1");
+            segments.push("responses");
+        }
+        Ok(url)
+    }
+
+    fn url_for_format(&self, model: &str, format: ProviderFormat) -> Result<Url> {
+        match format {
+            ProviderFormat::Responses => self.responses_url(),
+            _ => self.chat_url(model),
+        }
+    }
+
+    fn prepare_payload(
+        &self,
+        payload: Bytes,
+        model: &str,
+        format: ProviderFormat,
+    ) -> Result<Bytes> {
+        if format != ProviderFormat::Responses {
+            return Ok(payload);
+        }
+
+        let mut value: crate::serde_json::Value = crate::serde_json::from_slice(&payload)?;
+        let object = value.as_object_mut().ok_or_else(|| {
+            Error::InvalidRequest("Azure Responses payload must be a JSON object".into())
+        })?;
+        object.insert(
+            "model".to_string(),
+            crate::serde_json::Value::String(self.deployment_for_request(model)?),
+        );
+
+        Ok(Bytes::from(crate::serde_json::to_vec(&value)?))
+    }
 }
 
 #[async_trait]
@@ -142,7 +188,7 @@ impl crate::providers::Provider for AzureProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::ChatCompletions]
+        vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
     }
 
     async fn complete(
@@ -150,10 +196,11 @@ impl crate::providers::Provider for AzureProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
-        _format: ProviderFormat,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.chat_url(&spec.model)?;
+        let payload = self.prepare_payload(payload, &spec.model, format)?;
+        let url = self.url_for_format(&spec.model, format)?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -220,7 +267,8 @@ impl crate::providers::Provider for AzureProvider {
         }
 
         // Router should have already added stream options to payload
-        let url = self.chat_url(&spec.model)?;
+        let payload = self.prepare_payload(payload, &spec.model, format)?;
+        let url = self.url_for_format(&spec.model, format)?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -312,20 +360,21 @@ fn normalize_deployment(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::serde_json::{self, json};
     use std::collections::HashMap;
 
     fn endpoint() -> Url {
         Url::parse("https://myorg.openai.azure.com/").unwrap()
     }
 
-    fn make_provider(metadata: HashMap<String, Value>) -> AzureProvider {
+    fn make_provider(metadata: HashMap<String, MetadataValue>) -> AzureProvider {
         AzureProvider::from_config(Some(&endpoint()), None, &metadata).unwrap()
     }
 
     #[test]
     fn empty_deployment_string_falls_back_to_model_name() {
         let mut metadata = HashMap::new();
-        metadata.insert("deployment".into(), Value::String("".into()));
+        metadata.insert("deployment".into(), MetadataValue::String("".into()));
         let provider = make_provider(metadata);
 
         assert!(provider.config.deployment.is_none());
@@ -340,7 +389,10 @@ mod tests {
     #[test]
     fn explicit_deployment_overrides_model_name() {
         let mut metadata = HashMap::new();
-        metadata.insert("deployment".into(), Value::String("my-deploy".into()));
+        metadata.insert(
+            "deployment".into(),
+            MetadataValue::String("my-deploy".into()),
+        );
         let provider = make_provider(metadata);
 
         let url = provider.chat_url("gpt-4o").unwrap();
@@ -348,5 +400,53 @@ mod tests {
             url.as_str(),
             "https://myorg.openai.azure.com/openai/deployments/my-deploy/chat/completions?api-version=2023-07-01-preview"
         );
+    }
+
+    #[test]
+    fn resolves_responses_url() {
+        let provider = make_provider(HashMap::new());
+        let url = provider.responses_url().unwrap();
+
+        assert_eq!(
+            url.as_str(),
+            "https://myorg.openai.azure.com/openai/v1/responses"
+        );
+    }
+
+    #[test]
+    fn responses_payload_uses_explicit_deployment_name() {
+        let mut metadata = HashMap::new();
+        metadata.insert(
+            "deployment".into(),
+            MetadataValue::String("my-deploy".into()),
+        );
+        let provider = make_provider(metadata);
+        let payload =
+            Bytes::from(serde_json::to_vec(&json!({"model": "gpt-5-pro", "input": "hi"})).unwrap());
+
+        let payload = provider
+            .prepare_payload(payload, "gpt-5-pro", ProviderFormat::Responses)
+            .unwrap();
+        let json: crate::serde_json::Value = serde_json::from_slice(&payload).unwrap();
+
+        assert_eq!(
+            json.get("model").and_then(|v| v.as_str()),
+            Some("my-deploy")
+        );
+    }
+
+    #[test]
+    fn responses_payload_falls_back_to_model_name() {
+        let provider = make_provider(HashMap::new());
+        let payload = Bytes::from(
+            serde_json::to_vec(&json!({"model": "placeholder", "input": "hi"})).unwrap(),
+        );
+
+        let payload = provider
+            .prepare_payload(payload, "gpt-4o", ProviderFormat::Responses)
+            .unwrap();
+        let json: crate::serde_json::Value = serde_json::from_slice(&payload).unwrap();
+
+        assert_eq!(json.get("model").and_then(|v| v.as_str()), Some("gpt-4o"));
     }
 }

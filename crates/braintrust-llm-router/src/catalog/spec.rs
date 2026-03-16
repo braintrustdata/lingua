@@ -54,9 +54,15 @@ fn default_true() -> bool {
 
 pub fn model_requires_responses_api(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
+    let gpt5_minor = lower
+        .strip_prefix("gpt-5.")
+        .and_then(|rest| rest.split(|c: char| !c.is_ascii_digit()).next())
+        .and_then(|minor| (!minor.is_empty()).then_some(minor))
+        .and_then(|minor| minor.parse::<u32>().ok());
     lower.starts_with("o1-pro")
         || lower.starts_with("o3-pro")
         || lower.starts_with("gpt-5-pro")
+        || gpt5_minor.is_some_and(|minor| minor >= 3)
         || (lower.starts_with("gpt-5") && lower.contains("-codex"))
 }
 
@@ -77,6 +83,10 @@ mod tests {
             "o3-pro",
             "gpt-5-pro",
             "gpt-5-pro-2025-10-06",
+            "gpt-5.3",
+            "gpt-5.3-chat-latest",
+            "gpt-5.4",
+            "gpt-5.5-chat-latest",
             "gpt-5-codex",
             "gpt-5.1-codex",
             "gpt-5.1-codex-mini",
@@ -91,13 +101,27 @@ mod tests {
 
     #[test]
     fn model_requires_responses_api_rejects_non_required_families() {
-        let not_required = ["gpt-5-mini", "gpt-5", "gpt-4o", "claude-sonnet-4"];
+        let not_required = [
+            "gpt-5-mini",
+            "gpt-5",
+            "gpt-5.1",
+            "gpt-5.2-chat-latest",
+            "gpt-4o",
+            "claude-sonnet-4",
+        ];
         for model in not_required {
             assert!(
                 !model_requires_responses_api(model),
                 "expected non-Responses model: {model}"
             );
         }
+    }
+
+    #[test]
+    fn model_requires_responses_api_applies_to_minor_versions_three_and_above() {
+        assert!(!model_requires_responses_api("gpt-5.2"));
+        assert!(model_requires_responses_api("gpt-5.3"));
+        assert!(model_requires_responses_api("gpt-5.10-preview"));
     }
 
     #[test]
