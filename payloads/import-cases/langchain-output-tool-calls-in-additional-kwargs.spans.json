@@ -1,0 +1,44 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "What is the weather like in Paris, France?",
+          "type": "human"
+        }
+      ]
+    ],
+    "output": {
+      "generations": [
+        [
+          {
+            "message": {
+              "content": "",
+              "type": "ai",
+              "additional_kwargs": {
+                "refusal": null,
+                "tool_calls": [
+                  {
+                    "id": "call_XXommwfr7qiX13Z9cXDYIc02",
+                    "function": {
+                      "name": "get_weather",
+                      "arguments": {
+                        "__deserialized__": true,
+                        "location": "Paris, France"
+                      }
+                    },
+                    "type": "function"
+                  }
+                ]
+              }
+            },
+            "generation_info": {
+              "finish_reason": "tool_calls",
+              "logprobs": null
+            }
+          }
+        ]
+      ]
+    }
+  }
+]

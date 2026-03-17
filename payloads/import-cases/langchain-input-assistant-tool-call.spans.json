@@ -1,0 +1,25 @@
+[
+  {
+    "input": [
+      [
+        {
+          "content": "",
+          "type": "ai",
+          "tool_calls": [
+            {
+              "id": "call_123",
+              "function": {
+                "name": "get_weather",
+                "arguments": "{\"location\": \"Paris\"}"
+              },
+              "type": "function"
+            }
+          ]
+        }
+      ]
+    ],
+    "output": {
+      "generations": [[{ "message": { "content": "", "type": "ai" } }]]
+    }
+  }
+]

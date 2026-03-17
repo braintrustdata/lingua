@@ -1,4 +1,8 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
+mod langchain;
+mod pydantic_ai;
+use crate::processing::import::langchain::try_parse_langchain_for_import;
+use crate::processing::import::pydantic_ai::try_parse_pydantic_ai_for_import;
 #[cfg(feature = "anthropic")]
 use crate::providers::anthropic::convert::try_parse_anthropic_for_import;
 #[cfg(feature = "anthropic")]
@@ -39,7 +43,19 @@ fn try_converting_to_messages(data: &Value) -> Vec<Message> {
         return try_parse_mixed_role_messages_for_import(data).unwrap_or_default();
     }
 
+    if let Some(messages) = try_choices_array_parsing(data) {
+        return messages;
+    }
+
     if let Some(messages) = try_parse_provider_messages_for_import(data) {
+        return messages;
+    }
+
+    if let Some(messages) = try_parse_pydantic_ai_for_import(data) {
+        return messages;
+    }
+
+    if let Some(messages) = try_parse_langchain_for_import(data) {
         return messages;
     }
 

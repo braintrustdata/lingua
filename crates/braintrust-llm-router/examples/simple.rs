@@ -7,8 +7,8 @@
 
 use anyhow::Result;
 use braintrust_llm_router::{
-    serde_json::json, ClientHeaders, ModelCatalog, OpenAIConfig, OpenAIProvider, ProviderFormat,
-    Router,
+    api_key_auth, serde_json::json, ClientHeaders, ModelCatalog, OpenAIConfig, OpenAIProvider,
+    ProviderFormat, Router,
 };
 use bytes::Bytes;
 use serde_json::Value;
@@ -37,8 +37,12 @@ async fn main() -> Result<()> {
 
     let router = Router::builder()
         .with_catalog(catalog)
-        .add_provider("openai", openai_provider)
-        .add_api_key("openai", api_key)
+        .add_provider(
+            "openai",
+            openai_provider,
+            api_key_auth(&api_key),
+            vec![ProviderFormat::ChatCompletions],
+        )
         .build()?;
 
     // Simple chat completion
@@ -57,7 +61,7 @@ async fn main() -> Result<()> {
 
     // Convert payload to bytes and send request
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let bytes = router
+    let bytes: Bytes = router
         .complete(
             body,
             model,
@@ -91,7 +95,7 @@ async fn main() -> Result<()> {
     // Print model information
     println!("\n🔍 Model Information:");
     if let Some(spec) = router.catalog().get("gpt-4") {
-        let spec = spec.as_ref();
+        let spec: &braintrust_llm_router::ModelSpec = spec.as_ref();
         println!(
             "  Display Name: {}",
             spec.display_name.as_deref().unwrap_or("GPT-4")

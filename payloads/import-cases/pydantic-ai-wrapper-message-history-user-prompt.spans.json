@@ -1,0 +1,27 @@
+[
+  {
+    "input": {
+      "user_prompt": "What about Germany?",
+      "message_history": [
+        {
+          "kind": "request",
+          "parts": [
+            {
+              "content": "What is the capital of France?",
+              "part_kind": "user-prompt"
+            }
+          ]
+        },
+        {
+          "kind": "response",
+          "parts": [
+            {
+              "content": "The capital of France is Paris.",
+              "part_kind": "text"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

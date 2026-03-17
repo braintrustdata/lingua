@@ -1,6 +1,8 @@
 mod auth;
 mod catalog;
 mod client;
+pub use client::{clear_override_client, set_override_client};
+pub use reqwest_middleware::ClientWithMiddleware;
 mod error;
 mod providers;
 mod retry;
@@ -12,6 +14,7 @@ mod streaming;
 pub use lingua::serde_json;
 
 pub use auth::{
+    api_key_auth,
     azure::{AzureEntraCredentials, AzureEntraTokenManager},
     databricks::{DatabricksCredentials, DatabricksTokenManager},
     google::{GoogleServiceAccountConfig, GoogleTokenManager, ServiceAccountKey},

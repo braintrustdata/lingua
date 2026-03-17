@@ -1,0 +1,32 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "kind": "request",
+          "parts": [
+            {
+              "content": "Use the weather tool",
+              "part_kind": "user-prompt"
+            }
+          ]
+        }
+      ]
+    },
+    "output": {
+      "response": {
+        "parts": [
+          {
+            "content": "",
+            "part_kind": "tool-call",
+            "tool_name": "get_weather",
+            "tool_call_id": "call_123",
+            "args": {
+              "location": "Paris"
+            }
+          }
+        ]
+      }
+    }
+  }
+]

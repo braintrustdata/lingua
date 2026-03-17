@@ -1,0 +1,34 @@
+[
+  {
+    "input": {
+      "user_prompt": [
+        {
+          "attachment": {
+            "content_type": "image/png",
+            "filename": "file.png",
+            "key": "52b61754-85cd-42a7-88fc-2ceb393c83ae",
+            "type": "braintrust_attachment"
+          },
+          "media_type": "image/png",
+          "type": "binary"
+        },
+        "What color is this image?"
+      ]
+    },
+    "output": {
+      "output": "The image predominantly features shades of blue and white, with a dramatic stormy sea and sky.",
+      "response": {
+        "finish_reason": "stop",
+        "kind": "response",
+        "model_name": "gpt-4o-2024-08-06",
+        "parts": [
+          {
+            "content": "The image predominantly features shades of blue and white, with a dramatic stormy sea and sky.",
+            "id": null,
+            "part_kind": "text"
+          }
+        ]
+      }
+    }
+  }
+]

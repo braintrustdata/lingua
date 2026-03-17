@@ -1,0 +1,13 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "speaks like a pirate",
+    "What is the capital of France?",
+    "Ahoy! The capital of France be Paris, matey!"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": ["user", "assistant", "assistant"],
+  "mustContainText": ["Question 1", "Answer 1", "Answer 2"]
+}

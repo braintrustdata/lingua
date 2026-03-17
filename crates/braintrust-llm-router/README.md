@@ -123,9 +123,11 @@ let stream = router.complete_stream(body, "gpt-4", ProviderFormat::ChatCompletio
 ### Authentication
 
 ```rust
-use braintrust_llm_router::AuthConfig;
+use braintrust_llm_router::{api_key_auth, AuthConfig};
 
 // OpenAI-style (Authorization: Bearer <key>)
+api_key_auth("sk-...")
+// Or equivalently:
 AuthConfig::ApiKey {
     key: "sk-...".into(),
     header: Some("authorization".into()),

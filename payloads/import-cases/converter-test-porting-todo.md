@@ -41,6 +41,16 @@ Notes:
   - basic raw ADK input/output shape
 - `langchain-converter.test.ts`
   - basic human/ai wrapper + `generations`
+  - system/human/ai mixed inputs
+  - message chunk role mapping (`SystemMessageChunk` / `HumanMessageChunk` / `AIMessageChunk`)
+  - streaming output chunks
+  - tool_call transformations (`args/name/id/type: tool_call` -> function tool call shape)
+  - tool message `id`/`tool_call_id` handling
+  - output `{ messages: [...] }` tool loop wrappers
+  - multimodal image_url content
+  - anthropic-style image content conversion target behavior
+  - multiple generations in a single batch
+  - js `ToolMessage` output with non-message input
 - `pydantic-ai-converter.test.ts`
   - basic wrapper `user_prompt` + `response.parts`
 - `ai-sdk-converter.test.ts`
@@ -57,13 +67,12 @@ Notes:
   - reasoning/thinking variants
   - doGenerate/doStream/provider-level formats
   - streamObject/object output variants
-- `langchain-converter.test.ts` (many scenarios)
-  - tool_call transformations
-  - tool messages/tool_call_id
-  - metadata extraction variations
-  - multimodal image content
-  - Anthropic image conversions
-  - batch/multiple generation shapes
+- `langchain-converter.test.ts` (remaining non-portable unit tests)
+  - `isLangChainSpan` detection/rejection cases
+  - metadata extraction variations (`model`, `provider`, `max_tokens`, `tools`, etc.)
+  - `toolDefinitions` map assertions
+  - prompt schema (`promptDataSchema`) validation-specific assertions
+  - invalid output passthrough behavior assertions
 - `pydantic-ai-converter.test.ts` (many scenarios)
   - message_history and internal message formats
   - tool calls/returns and grouping

@@ -1,0 +1,13 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "Use the weather tool",
+    "call_123",
+    "get_weather",
+    "Paris"
+  ]
+}

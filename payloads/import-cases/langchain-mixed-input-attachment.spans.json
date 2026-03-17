@@ -1,0 +1,206 @@
+{
+  "_async_scoring_state": null,
+  "_pagination_key": "p07602705285319229442",
+  "_xact_id": "1000196600329280518",
+  "audit_data": [
+    {
+      "_xact_id": "1000196600329213808",
+      "audit_data": {
+        "action": "upsert"
+      },
+      "metadata": {},
+      "source": "api"
+    },
+    {
+      "_xact_id": "1000196600329280518",
+      "audit_data": {
+        "action": "merge",
+        "from": null,
+        "path": ["metadata"],
+        "to": {
+          "model": "gpt-4o-2024-08-06"
+        }
+      },
+      "metadata": {},
+      "source": "api"
+    }
+  ],
+  "classifications": null,
+  "context": {
+    "caller_filename": "/Users/olmo/sources/braintrustdata/braintrust-troi/sdk/integrations/langchain-py/src/braintrust_langchain/callbacks.py",
+    "caller_functionname": "_start_span",
+    "caller_lineno": 123
+  },
+  "created": "2026-02-03T18:19:24.979Z",
+  "facets": null,
+  "id": "1ca75df0-6abe-4c75-81e8-b65c64056f27",
+  "input": [
+    [
+      {
+        "additional_kwargs": {},
+        "content": [
+          {
+            "file": {
+              "file_data": {
+                "content_type": "application/pdf",
+                "filename": "file.pdf",
+                "key": "b9260fc6-901d-4c8f-b264-da90b4b02ef6",
+                "type": "braintrust_attachment"
+              },
+              "filename": "test-document.pdf"
+            },
+            "type": "file"
+          },
+          {
+            "text": "What is in this document?",
+            "type": "text"
+          }
+        ],
+        "response_metadata": {},
+        "type": "human"
+      }
+    ]
+  ],
+  "is_root": false,
+  "log_id": "g",
+  "metadata": {
+    "batch_size": 1,
+    "braintrust": {
+      "integration_name": "langchain-py",
+      "integration_version": "0.2.1",
+      "language": "python",
+      "sdk_version": "0.5.3"
+    },
+    "invocation_params": {
+      "_type": "openai-chat",
+      "max_completion_tokens": 150,
+      "model": "gpt-4o",
+      "model_name": "gpt-4o",
+      "stop": null,
+      "stream": false
+    },
+    "metadata": {
+      "ls_max_tokens": 150,
+      "ls_model_name": "gpt-4o",
+      "ls_model_type": "chat",
+      "ls_provider": "openai",
+      "ls_temperature": null
+    },
+    "model": "gpt-4o-2024-08-06",
+    "name": null,
+    "options": {
+      "stop": null
+    },
+    "parent_run_id": null,
+    "run_id": "019c24bb-0fb3-7fd0-aa1e-5d2fdea921d7",
+    "serialized": {
+      "id": ["langchain", "chat_models", "openai", "ChatOpenAI"],
+      "kwargs": {
+        "max_tokens": 150,
+        "model_name": "gpt-4o",
+        "openai_api_key": {
+          "id": ["OPENAI_API_KEY"],
+          "lc": 1,
+          "type": "secret"
+        }
+      },
+      "lc": 1,
+      "name": "ChatOpenAI",
+      "type": "constructor"
+    },
+    "tags": []
+  },
+  "metrics": {
+    "completion_tokens": 13,
+    "end": 1770142765.6483588,
+    "estimated_cost": 0.000735,
+    "prompt_cached_tokens": 0,
+    "prompt_tokens": 242,
+    "start": 1770142764.979239,
+    "tokens": 255,
+    "total_tokens": 255
+  },
+  "model": "gpt-4o-2024-08-06",
+  "org_id": "5d7c97d7-fef1-4cb7-bda6-7e3756a0ca8e",
+  "origin": null,
+  "output": {
+    "generations": [
+      [
+        {
+          "generation_info": {
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "message": {
+            "additional_kwargs": {
+              "refusal": null
+            },
+            "content": "The document is a test PDF that contains only a few sentences.",
+            "id": "lc_run--019c24bb-0fb3-7fd0-aa1e-5d2fdea921d7-0",
+            "response_metadata": {
+              "finish_reason": "stop",
+              "id": "chatcmpl-D5FHheM39K8jLogSghYSgvmqzGTpB",
+              "logprobs": null,
+              "model_name": "gpt-4o-2024-08-06",
+              "model_provider": "openai",
+              "service_tier": "default",
+              "system_fingerprint": "fp_fa7f5b168b",
+              "token_usage": {
+                "completion_tokens": 13,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "audio_tokens": 0,
+                  "reasoning_tokens": 0,
+                  "rejected_prediction_tokens": 0
+                },
+                "prompt_tokens": 242,
+                "prompt_tokens_details": {
+                  "audio_tokens": 0,
+                  "cached_tokens": 0
+                },
+                "total_tokens": 255
+              }
+            },
+            "type": "ai"
+          },
+          "text": "The document is a test PDF that contains only a few sentences.",
+          "type": "ChatGeneration"
+        }
+      ]
+    ],
+    "llm_output": {
+      "id": "chatcmpl-D5FHheM39K8jLogSghYSgvmqzGTpB",
+      "model_name": "gpt-4o-2024-08-06",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "system_fingerprint": "fp_fa7f5b168b",
+      "token_usage": {
+        "completion_tokens": 13,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens": 242,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cached_tokens": 0
+        },
+        "total_tokens": 255
+      }
+    },
+    "type": "LLMResult"
+  },
+  "project_id": "3dd972aa-3891-4ab8-8f4c-4b3a78431b4b",
+  "root_span_id": "4c2cdc18-8452-4eaf-96ec-4e5a5625d9f3",
+  "scores": null,
+  "span_attributes": {
+    "exec_counter": 8,
+    "name": "ChatOpenAI",
+    "type": "llm"
+  },
+  "span_id": "5a52ddc1-0f9a-4346-8df2-2badf64d8476",
+  "span_parents": ["539c87f3-c44d-42d7-a1b6-f370ae366e4f"],
+  "tags": []
+}

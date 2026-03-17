@@ -1,0 +1,13 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "file.png",
+    "image/png",
+    "What color is this image?",
+    "stormy ocean and a ship"
+  ]
+}

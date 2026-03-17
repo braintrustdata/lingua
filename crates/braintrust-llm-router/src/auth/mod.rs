@@ -50,6 +50,15 @@ pub enum AuthConfig {
     },
 }
 
+/// Convenience function to create an API key authentication configuration.
+pub fn api_key_auth(api_key: &str) -> AuthConfig {
+    AuthConfig::ApiKey {
+        key: api_key.to_string(),
+        header: Some("authorization".into()),
+        prefix: Some("Bearer".into()),
+    }
+}
+
 impl AuthConfig {
     pub fn auth_type(&self) -> AuthType {
         match self {

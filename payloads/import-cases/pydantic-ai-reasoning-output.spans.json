@@ -1,0 +1,22 @@
+[
+  {
+    "output": {
+      "finish_reason": "stop",
+      "kind": "response",
+      "model_name": "gpt-5-codex",
+      "parts": [
+        {
+          "content": "**Analyzing numeric sequence pattern**",
+          "id": "rs_036626277c53955b006945dc9dbadc8194a70f433eec74262d",
+          "part_kind": "thinking",
+          "provider_name": "openai"
+        },
+        {
+          "content": "The sequence grows by adding consecutive even numbers.\nThe pattern is n(n + 1).",
+          "id": "msg_036626277c53955b006945dc9fce5c8194a51013d1ac307da5",
+          "part_kind": "text"
+        }
+      ]
+    }
+  }
+]
