@@ -1,0 +1,17 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "kind": "request",
+          "parts": [
+            {
+              "content": "Certainly! ",
+              "part_kind": "prefill"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

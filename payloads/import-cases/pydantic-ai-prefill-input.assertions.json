@@ -1,0 +1,9 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "assistant"
+  ],
+  "mustContainText": [
+    "Certainly!"
+  ]
+}

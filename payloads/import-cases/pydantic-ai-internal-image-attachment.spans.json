@@ -1,0 +1,44 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "parts": [
+            {
+              "content": [
+                {
+                  "attachment": {
+                    "content_type": "image/png",
+                    "filename": "file.png",
+                    "key": "483d7e9e-f4ac-413d-9f0b-2feb53e1a315",
+                    "type": "braintrust_attachment"
+                  },
+                  "media_type": "image/png",
+                  "type": "binary"
+                },
+                "What color is this image?"
+              ],
+              "part_kind": "user-prompt",
+              "timestamp": "2025-12-19T17:57:55.296218Z"
+            }
+          ]
+        }
+      ],
+      "model_settings": {
+        "max_tokens": 150
+      }
+    },
+    "output": {
+      "finish_reason": "stop",
+      "kind": "response",
+      "model_name": "gpt-4o-2024-08-06",
+      "parts": [
+        {
+          "content": "The image features a dramatic scene with a stormy ocean and a ship.",
+          "id": null,
+          "part_kind": "text"
+        }
+      ]
+    }
+  }
+]

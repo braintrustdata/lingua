@@ -1,0 +1,18 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "kind": "request",
+          "instructions": "You are a helpful assistant.",
+          "parts": [
+            {
+              "content": "Hello",
+              "part_kind": "user-prompt"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
