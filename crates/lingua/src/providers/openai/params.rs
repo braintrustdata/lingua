@@ -187,6 +187,12 @@ struct OpenAIResponsesMetadataFingerprint {
     pub top_logprobs: Option<Value>,
 }
 
+#[derive(Debug, Clone, Default, Deserialize)]
+struct OpenAIResponsesTextView {
+    pub verbosity: Option<Value>,
+    pub format: Option<Value>,
+}
+
 fn parse_metadata_object(metadata: &Value) -> Option<Map<String, Value>> {
     match metadata {
         Value::String(metadata_json) => {
@@ -301,24 +307,28 @@ pub(crate) fn normalize_openai_responses_metadata_for_chat_completions(
     }
 
     if let Some(text_value) = extras.text.as_ref() {
-        if let Some(verbosity) = text_value.get("verbosity") {
-            normalized.insert("verbosity".into(), verbosity.clone());
-        }
+        if let Ok(text) = serde_json::from_value::<OpenAIResponsesTextView>(text_value.clone()) {
+            if let Some(verbosity) = text.verbosity {
+                normalized.insert("verbosity".into(), verbosity);
+            }
 
-        if let Some(format) = text_value.get("format") {
-            if let Ok(config) =
-                <(ProviderFormat, &Value) as TryInto<ResponseFormatConfig>>::try_into((
-                    ProviderFormat::Responses,
-                    format,
-                ))
-            {
-                if let Ok(Some(response_format)) =
-                    config.to_provider(ProviderFormat::ChatCompletions)
+            if let Some(format) = text.format {
+                if let Ok(config) =
+                    <(ProviderFormat, &Value) as TryInto<ResponseFormatConfig>>::try_into((
+                        ProviderFormat::Responses,
+                        &format,
+                    ))
                 {
-                    normalized.insert("response_format".into(), response_format);
-                    normalized.remove("text");
+                    if let Ok(Some(response_format)) =
+                        config.to_provider(ProviderFormat::ChatCompletions)
+                    {
+                        normalized.insert("response_format".into(), response_format);
+                        normalized.remove("text");
+                    }
                 }
             }
+        } else {
+            return Some(Value::Object(normalized));
         }
     }
 
@@ -328,8 +338,21 @@ pub(crate) fn normalize_openai_responses_metadata_for_chat_completions(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::openai::generated::ReasoningEffort;
     use crate::serde_json;
     use crate::serde_json::json;
+    use serde::Deserialize;
+
+    #[derive(Debug, Deserialize)]
+    struct NormalizedChatMetadataView {
+        instructions: Option<String>,
+        tools: Option<Value>,
+        tool_choice: Option<Value>,
+        response_format: Option<Value>,
+        reasoning_effort: Option<ReasoningEffort>,
+        verbosity: Option<String>,
+        text: Option<Value>,
+    }
 
     #[test]
     fn test_chat_params_known_fields() {
@@ -434,13 +457,14 @@ mod tests {
 
         let normalized =
             normalize_openai_responses_metadata_for_chat_completions(&metadata).unwrap();
+        let normalized: NormalizedChatMetadataView = serde_json::from_value(normalized).unwrap();
 
-        assert_eq!(normalized.get("instructions"), Some(&json!("Be helpful")));
-        assert_eq!(normalized.get("reasoning_effort"), Some(&json!("high")));
-        assert_eq!(normalized.get("verbosity"), Some(&json!("low")));
+        assert_eq!(normalized.instructions.as_deref(), Some("Be helpful"));
+        assert_eq!(normalized.reasoning_effort, Some(ReasoningEffort::High));
+        assert_eq!(normalized.verbosity.as_deref(), Some("low"));
         assert_eq!(
-            normalized.get("response_format"),
-            Some(&json!({
+            normalized.response_format,
+            Some(json!({
                 "type": "json_schema",
                 "json_schema": {
                     "name": "forecast",
@@ -450,8 +474,8 @@ mod tests {
             }))
         );
         assert_eq!(
-            normalized.get("tool_choice"),
-            Some(&json!({
+            normalized.tool_choice,
+            Some(json!({
                 "type": "function",
                 "function": {
                     "name": "lookup_weather"
@@ -459,8 +483,8 @@ mod tests {
             }))
         );
         assert_eq!(
-            normalized.get("tools"),
-            Some(&json!([{
+            normalized.tools,
+            Some(json!([{
                 "type": "function",
                 "function": {
                     "name": "lookup_weather",
@@ -470,7 +494,7 @@ mod tests {
                 }
             }]))
         );
-        assert_eq!(normalized.get("text"), None);
+        assert_eq!(normalized.text, None);
     }
 
     #[test]
