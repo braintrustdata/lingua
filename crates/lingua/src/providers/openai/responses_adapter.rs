@@ -424,6 +424,8 @@ impl ProviderAdapter for ResponsesAdapter {
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
+            id: payload.get("id").and_then(Value::as_str).map(String::from),
+            id_format: Some(self.format()),
             model: payload
                 .get("model")
                 .and_then(Value::as_str)
@@ -471,10 +473,7 @@ impl ProviderAdapter for ResponsesAdapter {
 
         // Build response with all required fields for TheResponseObject
         let mut map = serde_json::Map::new();
-        map.insert(
-            "id".into(),
-            Value::String(format!("resp_{}", PLACEHOLDER_ID)),
-        );
+        map.insert("id".into(), Value::String(resp.id_for(self.format())));
         map.insert("object".into(), Value::String("response".into()));
         map.insert(
             "model".into(),
@@ -946,7 +945,10 @@ impl ProviderAdapter for ResponsesAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::processing::adapters::ProviderAdapter;
+    use crate::processing::transform::transform_response;
     use crate::serde_json::json;
+    use bytes::Bytes;
 
     #[test]
     fn test_responses_detect_request() {
@@ -956,5 +958,258 @@ mod tests {
             "input": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    /// When transforming an Anthropic response to the Responses API format, every output
+    /// item must have a string `id` and every text content block must have an `annotations`
+    /// array.  The AI SDK validates these fields with a Zod schema and raises a
+    /// TypeValidationError when they are absent.
+    #[test]
+    fn test_anthropic_to_responses_has_id_and_annotations() {
+        use crate::providers::openai::generated::{OutputItemType, TheResponseObject};
+
+        let anthropic_response = json!({
+            "id": "msg_abc123",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-20250514",
+            "content": [{"type": "text", "text": "Paris."}],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {"input_tokens": 14, "output_tokens": 5}
+        });
+
+        let input = Bytes::from(anthropic_response.to_string());
+        let result = transform_response(input, crate::capabilities::ProviderFormat::Responses)
+            .expect("transform should succeed");
+
+        let response: TheResponseObject = serde_json::from_slice(&result.into_bytes())
+            .expect("must deserialize as TheResponseObject");
+
+        assert!(
+            !response.output.is_empty(),
+            "output must have at least one item"
+        );
+
+        for item in &response.output {
+            assert!(
+                item.id.is_some(),
+                "output item must have an `id`, got: {:?}",
+                item
+            );
+            assert!(item
+                .id
+                .as_ref()
+                .unwrap()
+                .starts_with("msg_transformed_item_"));
+
+            if item.output_item_type == Some(OutputItemType::Message) {
+                if let Some(content) = &item.content {
+                    for c in content {
+                        assert!(
+                            c.annotations.is_some(),
+                            "text content item must have an `annotations` field: {:?}",
+                            c
+                        );
+                        assert_eq!(c.annotations.as_ref().unwrap(), &vec![]);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Transforming an Anthropic response with a tool-use content block to Responses
+    /// format should give every output item a string `id`.
+    #[test]
+    fn test_anthropic_to_responses_tool_use_has_id() {
+        use crate::providers::openai::generated::TheResponseObject;
+
+        let anthropic_response = json!({
+            "id": "msg_def456",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-20250514",
+            "content": [{
+                "type": "tool_use",
+                "id": "toolu_01",
+                "name": "get_weather",
+                "input": { "location": "Paris" }
+            }],
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {"input_tokens": 20, "output_tokens": 10}
+        });
+
+        let input = Bytes::from(anthropic_response.to_string());
+        let result = transform_response(input, crate::capabilities::ProviderFormat::Responses)
+            .expect("transform should succeed");
+
+        let response: TheResponseObject = serde_json::from_slice(&result.into_bytes())
+            .expect("must deserialize as TheResponseObject");
+
+        assert!(!response.output.is_empty());
+        for item in &response.output {
+            assert!(
+                item.id.is_some(),
+                "every output item (including function_call) must have a string `id`: {:?}",
+                item
+            );
+            assert!(item
+                .id
+                .as_ref()
+                .unwrap()
+                .starts_with("msg_transformed_item_"));
+        }
+    }
+
+    /// Round-trip: Anthropic → universal → Responses → universal should not add
+    /// spurious `provider_options` on plain text content parts (i.e. empty `annotations`
+    /// arrays from the Responses format must not leak into the universal representation).
+    /// Note: the synthetic placeholder `id` injected during `response_from_universal` is
+    /// preserved in the second universal representation; we only compare message content.
+    #[test]
+    fn test_responses_empty_annotations_not_stored_in_universal() {
+        use crate::capabilities::ProviderFormat;
+        use crate::processing::adapters::adapter_for_format;
+        use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
+
+        let anthropic_response = json!({
+            "id": "msg_roundtrip",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-20250514",
+            "content": [{"type": "text", "text": "Hello!"}],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {"input_tokens": 5, "output_tokens": 3}
+        });
+
+        let anthropic_adapter = adapter_for_format(ProviderFormat::Anthropic).unwrap();
+        let responses_adapter = adapter_for_format(ProviderFormat::Responses).unwrap();
+
+        let universal_a = anthropic_adapter
+            .response_to_universal(anthropic_response.clone())
+            .expect("Anthropic → universal should succeed");
+
+        let responses_value = responses_adapter
+            .response_from_universal(&universal_a)
+            .expect("universal → Responses should succeed");
+
+        let universal_b = responses_adapter
+            .response_to_universal(responses_value)
+            .expect("Responses → universal should succeed");
+
+        // Extract text content from the universal message list
+        let extract_texts = |msgs: &[Message]| -> Vec<String> {
+            msgs.iter()
+                .filter_map(|m| {
+                    if let Message::Assistant { content, .. } = m {
+                        Some(content)
+                    } else {
+                        None
+                    }
+                })
+                .flat_map(|c| match c {
+                    AssistantContent::String(s) => vec![s.clone()],
+                    AssistantContent::Array(parts) => parts
+                        .iter()
+                        .filter_map(|p| {
+                            if let AssistantContentPart::Text(t) = p {
+                                Some(t.text.clone())
+                            } else {
+                                None
+                            }
+                        })
+                        .collect(),
+                })
+                .collect()
+        };
+
+        assert_eq!(
+            extract_texts(&universal_a.messages),
+            extract_texts(&universal_b.messages),
+            "text content must be identical after Anthropic → Responses round-trip"
+        );
+
+        // Verify that the round-trip does NOT add spurious provider_options from empty
+        // annotations arrays.
+        for msg in &universal_b.messages {
+            if let Message::Assistant { content, .. } = msg {
+                if let AssistantContent::Array(parts) = content {
+                    for part in parts {
+                        if let AssistantContentPart::Text(tp) = part {
+                            assert!(
+                                tp.provider_options.is_none()
+                                    || tp
+                                        .provider_options
+                                        .as_ref()
+                                        .map(|o| o.options.is_empty())
+                                        .unwrap_or(false),
+                                "plain text part must not have spurious provider_options from \
+                                 empty annotations: {:?}",
+                                tp.provider_options
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// `response_from_universal` produces a valid Responses API object even when
+    /// called directly with a universal response whose messages have no IDs.
+    #[test]
+    fn test_response_from_universal_always_sets_id_and_annotations() {
+        use crate::providers::openai::generated::{OutputItemType, TheResponseObject};
+        use crate::universal::message::{AssistantContent, Message};
+        use crate::universal::{FinishReason, UniversalResponse};
+
+        let resp = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: Some("claude-sonnet-4-20250514".to_string()),
+            messages: vec![Message::Assistant {
+                content: AssistantContent::String("Paris.".to_string()),
+                id: None,
+            }],
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+        };
+
+        let adapter = ResponsesAdapter;
+        let value = adapter
+            .response_from_universal(&resp)
+            .expect("response_from_universal should succeed");
+
+        let response: TheResponseObject =
+            serde_json::from_value(value).expect("must deserialize as TheResponseObject");
+
+        assert!(!response.output.is_empty());
+
+        for item in &response.output {
+            assert!(
+                item.id.is_some(),
+                "output item must have a string `id`: {:?}",
+                item
+            );
+            assert!(item
+                .id
+                .as_ref()
+                .unwrap()
+                .starts_with("msg_transformed_item_"));
+
+            if item.output_item_type == Some(OutputItemType::Message) {
+                if let Some(content) = &item.content {
+                    for c in content {
+                        assert!(
+                            c.annotations.is_some(),
+                            "text content item must have an `annotations` field: {:?}",
+                            c
+                        );
+                        assert_eq!(c.annotations.as_ref().unwrap(), &vec![]);
+                    }
+                }
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ converted to/from any provider format.
 
 use crate::capabilities::ProviderFormat;
 use crate::serde_json::{self, Value};
+use crate::universal::defaults::PLACEHOLDER_ID;
 use crate::universal::message::Message;
 use serde::Serialize;
 
@@ -15,6 +16,14 @@ use serde::Serialize;
 /// This type captures the common structure across all provider response formats.
 #[derive(Debug, Clone, Serialize)]
 pub struct UniversalResponse {
+    /// Original response ID from the provider (e.g. "msg_abc123"), and the
+    /// format it came from. Both are skipped during serialization — IDs are
+    /// format-specific and not semantically comparable across providers.
+    #[serde(skip_serializing)]
+    pub id: Option<String>,
+    #[serde(skip_serializing)]
+    pub id_format: Option<ProviderFormat>,
+
     /// Model that generated the response
     pub model: Option<String>,
 
@@ -227,6 +236,35 @@ impl FinishReason {
             // Other - pass through as-is
             (Self::Other(s), _) => s.as_str(),
         }
+    }
+}
+
+impl UniversalResponse {
+    /// Return the response ID to use when serializing to a given provider format.
+    ///
+    /// If the stored ID originated from the same format, it is returned as-is so
+    /// that round-trips preserve the original value.  Otherwise we attempt to
+    /// generate a vaguely reasonable-looking placeholder (e.g.
+    /// `"msg_transformed"`, `"chatcmpl-transformed"`).
+    pub fn id_for(&self, format: ProviderFormat) -> String {
+        self.id
+            .as_deref()
+            .filter(|_| self.id_format == Some(format))
+            .map(String::from)
+            .unwrap_or_else(|| {
+                let prefix = match format {
+                    ProviderFormat::Anthropic
+                    | ProviderFormat::BedrockAnthropic
+                    | ProviderFormat::VertexAnthropic => "msg_",
+                    ProviderFormat::ChatCompletions
+                    | ProviderFormat::Mistral
+                    | ProviderFormat::Unknown => "chatcmpl-",
+                    ProviderFormat::Responses => "resp_",
+                    ProviderFormat::Google => "resp_",
+                    ProviderFormat::Converse => "msg_",
+                };
+                format!("{}{}", prefix, PLACEHOLDER_ID)
+            })
     }
 }
 
