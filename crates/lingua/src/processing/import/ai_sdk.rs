@@ -635,10 +635,10 @@ mod tests {
 
     #[test]
     fn parses_prompt_and_steps_wrapper() {
-        let input = serde_json::json!({
+        let input = crate::serde_json::json!({
             "prompt": "What is the capital of France?"
         });
-        let output = serde_json::json!({
+        let output = crate::serde_json::json!({
             "steps": [
                 {
                     "content": [
@@ -658,7 +658,7 @@ mod tests {
 
     #[test]
     fn parses_provider_level_output_with_reasoning() {
-        let output = serde_json::json!({
+        let output = crate::serde_json::json!({
             "reasoning": "2 plus 2 equals 4",
             "text": "The answer is 4.",
             "toolCalls": []
@@ -670,7 +670,7 @@ mod tests {
 
     #[test]
     fn parses_message_array_with_attachments() {
-        let input = serde_json::json!({
+        let input = crate::serde_json::json!({
             "messages": [
                 {
                     "role": "user",
