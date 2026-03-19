@@ -202,7 +202,7 @@ impl Router {
         tracing::instrument(
             name = "bt.router.complete_stream",
             skip(self, body, client_headers),
-            fields(llm.model = %model)
+            fields(llm.model = %model, http.url = tracing::field::Empty, http.status_code = tracing::field::Empty)
         )
     )]
     pub async fn complete_stream(
@@ -409,6 +409,8 @@ impl Router {
                     "bt.router.provider.attempt",
                     llm.provider = %provider.id(),
                     attempt = attempt,
+                    http.url = tracing::field::Empty,
+                    http.status_code = tracing::field::Empty,
                 );
                 async {
                     provider

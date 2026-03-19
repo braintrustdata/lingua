@@ -103,35 +103,23 @@ impl crate::providers::Provider for MistralProvider {
     ) -> Result<Bytes> {
         let url = self.chat_url()?;
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "mistral",
-            http_url = %url,
-            "sending request to Mistral"
-        );
-
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self
             .client
-            .post(url)
+            .post(url.clone())
             .headers(headers)
             .body(payload)
             .send()
             .await?;
 
         #[cfg(feature = "tracing")]
-        let status_code = response.status().as_u16();
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "mistral",
-            http_status_code = status_code,
-            "received response from Mistral"
-        );
+        {
+            let span = tracing::Span::current();
+            span.record("http.url", tracing::field::display(&url));
+            span.record("http.status_code", response.status().as_u16());
+        }
 
         if !response.status().is_success() {
             let status = response.status();
@@ -170,37 +158,23 @@ impl crate::providers::Provider for MistralProvider {
         // Router should have already added stream options to payload
         let url = self.chat_url()?;
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "mistral",
-            http_url = %url,
-            llm_streaming = true,
-            "sending streaming request to Mistral"
-        );
-
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self
             .client
-            .post(url)
+            .post(url.clone())
             .headers(headers)
             .body(payload)
             .send()
             .await?;
 
         #[cfg(feature = "tracing")]
-        let status_code = response.status().as_u16();
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "mistral",
-            http_status_code = status_code,
-            llm_streaming = true,
-            "received streaming response from Mistral"
-        );
+        {
+            let span = tracing::Span::current();
+            span.record("http.url", tracing::field::display(&url));
+            span.record("http.status_code", response.status().as_u16());
+        }
 
         if !response.status().is_success() {
             let status = response.status();

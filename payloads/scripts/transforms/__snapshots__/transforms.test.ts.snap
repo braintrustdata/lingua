@@ -4700,6 +4700,7 @@ exports[`responses → anthropic > complexReasoningRequest > response 1`] = `
   "output": [
     {
       "encrypted_content": "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",
+      "id": "msg_transformed_item_0",
       "summary": [
         {
           "text": "Let me think about this step by step. I need to count how many times each digit (0-9) appears in a 24-hour digital clock format (00:00 to 23:59).
@@ -4754,6 +4755,7 @@ The sum confirms the calculation: 1,164 + 804 + 564 + 504 + 504 + 264 + 264 + 26
     {
       "content": [
         {
+          "annotations": [],
           "text": "Looking at a 24-hour digital clock (00:00 to 23:59), I need to count how often each digit appears across all 1,440 possible times.
 
 Let me break this down by position:
@@ -4800,6 +4802,7 @@ The digits 0 and 1 dominate because they appear frequently in both hours (00-19)
           "type": "output_text",
         },
       ],
+      "id": "msg_transformed_item_1",
       "role": "assistant",
       "status": "completed",
       "type": "message",
@@ -4901,10 +4904,12 @@ exports[`responses → anthropic > multimodalRequest > response 1`] = `
     {
       "content": [
         {
+          "annotations": [],
           "text": "I see an adorable tabby kitten lying on its side on what appears to be a wooden floor. The kitten has beautiful striped markings in brown and gray, with distinctive large yellow-green eyes that are looking directly at the camera. Its head is tilted in a very cute, curious pose. The kitten appears to be quite young, with soft fur and the typical playful posture of a young cat. In the blurred background, I can see what looks like furniture or shelving. The lighting creates a warm, cozy atmosphere that really highlights the kitten's sweet expression and beautiful markings.",
           "type": "output_text",
         },
       ],
+      "id": "msg_transformed_item_0",
       "role": "assistant",
       "status": "completed",
       "type": "message",
@@ -4955,6 +4960,7 @@ exports[`responses → anthropic > reasoningRequest > response 1`] = `
   "output": [
     {
       "encrypted_content": "Eo0GCkYICxgCKkCWf5Li7DwaRpTlXZCfNw43LgmK9ISm7pa+HJwOBIujpZp0rVwyqs4pp9tyLYcmHMcDn+3snF7mmekHzpIxPnkpEgzmJ2TOpmD7L2HwIH0aDE3GPAjq0ucjYgh3IiIwuHKY7BkarOdihXcA0/3Sd3wOLI6SS2OFQNYJfx+UYpJ3LNOh/Rdj6E3eBJTodUWqKvQEb2v8j7bjyzZT0Y6NCQCDlnmVx2vZDWScj//tuqA6385lL4OhjWyV9QPkzJDmL3aojSR+Jm1N9OFy5tPEHZ3P5OAF4ITS2pSTzxtQgMG5CdTD/GwLneAFoY0UBmDdareTfcoohR4YrPbbWEjR059NfcTzimPwNVI/YcGNLDj6GUPmhPcQlaz1z+rEnLOYwDb+Vv28xnuNMQgrjl3sbcsgrqOBRfkv8EAQqRv8ITZMkZgv5CrS4SOsnjDzYo3Ii91W4IXtsm7lOT3aJhZgLAyriP1dUa7dYByz5U1uqk18GEZMyd907UOtNRZCw+HdnOr5Saf06KemTjVvxaTQdMDurfKCPAVWICGhgLwHlIYv41y5hpyYfaKUB9X4x/j0Op8u72x+s0kqDY+JOpnhyx0CN8Cn0xyiepq0rfi76eBuJvs0k0mEb9TIlCHiSGfYHF7w73pM6NWOd5CHXD4tcxcuyGOjUn4CBb/HrQNGT+7zRQxUsq65XN6kDeWYxV6PhChu6JWuU35FI9Fh1IvEjJVxGcVkJQNQM7Gz7/ZdH19AScmZy79ysQV1A09l72sesM0FwGy3LY+Gr6N9YxjaKRcmJa8Za2qocxR9EDYl6ZS4tIwjbm1+l5bfvwfxiJZznAKxalB+hWR5T9Ifktqny114HuJy/s1lv3LrD06I0D2vF+CboOpYgzHvanjRGVIIRZw8KqQOSoolqAW561kRVFnR+Ra7KVoLqZkpYKwIVXwRG4hKUPViQ6oe43LDRS0rO/7aFYpc1lMMDdIiLxTQdr/Z98NgRV3aAiYCNysgOuVA5u+NplUsezolBViAfPWqLRuwAqHcxRgB",
+      "id": "msg_transformed_item_0",
       "summary": [
         {
           "text": "To find the average speed, I need to use the formula:
@@ -4985,6 +4991,7 @@ Average speed = Total distance / Total time = 200 miles / 3 hours = 66.67 mph (r
     {
       "content": [
         {
+          "annotations": [],
           "text": "I'll solve this step-by-step using the average speed formula.
 
 **Step 1: Calculate distance for each segment**
@@ -5015,6 +5022,7 @@ Note: Average speed is not the same as the average of the speeds (which would be
           "type": "output_text",
         },
       ],
+      "id": "msg_transformed_item_1",
       "role": "assistant",
       "status": "completed",
       "type": "message",
@@ -5108,6 +5116,7 @@ exports[`responses → anthropic > reasoningWithOutput > response 1`] = `
   "output": [
     {
       "encrypted_content": "EpYGCkYICxgCKkDN0nKcZq8FjobVKFRb/xmfE/ZmkXPjejR+8xqPKeX6NMwzUgZBwYF732MyAKiER9EaUnbQDjpWFRkaIQd0aZeSEgwqn1/xoeOa7mMd7iAaDBBrJWYvm/rxe+qXdCIwl09l4kLNYU9hXlt2DplQnw/vXj7+4nkQr9QfDtGPHSfB8qT7N/EvX2u1NNPCE/33Kv0EcrFjnsFD3It5CCbrEBch1E9YSCCqO3lO1toOZv+ZTxyJ+TM1ihlwUVbIYAMWNn0/4+m2Yav7NygZzUXqn23AVsA+dS5snO3DzoS5YMhRVlZD2BwqLcZ+wHB2oDHV32/JCLLS0FukolqHFK8zh/Nlr8NPj0EfY5eaSf7O0JzcwmbjKQh/LNuM4gFbOZHHsCQU53ehWJKIXUNzDZEA2Po/ZlLKCOMKwyPmZrHHKihckJNi2R0cNgb2VfL5yjnOOmyfPwnqlgQxxQB5fJjtIjnZSLo/gIU6ec+8JYriPU4oDAITptadCfTYxqc6sAw2arzkC+DksfWIfzJBU9FihHwvzi1a8QoAzWrn+yRT9CgKfkB8JKLA2LnwWFouMAGBfMuO3wLlmxtftdNjZXroL7jTv3WC6y3S1P0Yk1re+wR2OcNdiOUOgnKASW3ItCj+WD25dsnMOuCm4efKpziFtHEczXIzrs6prTmh6NaVUrQ1UfwTP8zAlpXbSwmBO0fT/GHRQifwk+WWqxclld7lmM9eEqYQ9gv0oXyuFBnG56sbFErHxE3qEOeXJESCTTAutERl9W47KDGfqcUzZ9CaOuKDvBajAgLWtbyXeNYB/tQeQ+Gs8It8mOimYpOIFAZ8fewxwG5uK5rH2qbTbZwR9Xu6+Hqu2t4zHB7Vmyk+m4zo+HTI7/sCibKUnzawqmLuRIpTzlKM8B8sMdV/p/2gps24E4FgpR2ZZqLLSnsn3mvxO6sJdOzo/JbnOZbw5ur0K9VZs6rIiPLHlVtkVmQ0rOhcF+N4afArXpW3/ZfdDlOrsWPJ6dTZJE83oaM75sABow5RSQBtQ4CcZt+M5r3oSRgB",
+      "id": "msg_transformed_item_0",
       "summary": [
         {
           "text": "This is a straightforward question about the color of the sky. The sky appears blue during the day under normal clear weather conditions. This is due to a phenomenon called Rayleigh scattering, where shorter blue wavelengths of light are scattered more by the molecules in Earth's atmosphere than longer wavelengths like red.
@@ -5127,6 +5136,7 @@ I'll give the most common answer but acknowledge it can vary.",
     {
       "content": [
         {
+          "annotations": [],
           "text": "The sky is typically blue during the day when it's clear. This blue color is caused by the way sunlight interacts with particles in Earth's atmosphere - shorter blue wavelengths of light get scattered more than other colors.
 
 However, the sky can appear different colors depending on conditions:
@@ -5137,6 +5147,7 @@ However, the sky can appear different colors depending on conditions:
           "type": "output_text",
         },
       ],
+      "id": "msg_transformed_item_1",
       "role": "assistant",
       "status": "completed",
       "type": "message",
@@ -5193,6 +5204,7 @@ exports[`responses → anthropic > simpleRequest > response 1`] = `
   "output": [
     {
       "encrypted_content": "EsoCCkYICxgCKkD5zM+jgIUOjDIU1NKWmzpNdQCwQNYUkunavnh72prMHBnjZcKGxtNT7MGMpcPg0oPpsj6mhkPR6WqafUiIZ5oXEgxZ3jOspYjQZ1/H2BkaDD2yEjUiKzYpFeL8hCIwsUxcqKLB15jz7steuNJ1I3E6zTBnL8mffUALE2O5kHsEMr66BT58XjJnu+2UDbhOKrEBTltQkF5iDAOchP5zay+8PZkvWQuoGKO2q9IMRvP/69sAXngSnbbp/kMpIfXmVRSC187MAB1RmURe0zzeQAcQz5hTyAOl5sAi00X6pYOgtz1YaDtkO/MSDwMWqIEQwB/kBj9Nat9WXXMH674G9gLcmJij5MumEuvPYcZ6NqfY8hQ0y/tO/Pxhp6gzgthGzQse1EzWI1Shh1LAaoFDRWCHbl/4Rcb4rpPGx0Xon5Qtnv67GAE=",
+      "id": "msg_transformed_item_0",
       "summary": [
         {
           "text": "This is a straightforward factual question about geography. The capital of France is Paris. This is basic, well-established knowledge that I can answer directly.",
@@ -5204,10 +5216,12 @@ exports[`responses → anthropic > simpleRequest > response 1`] = `
     {
       "content": [
         {
+          "annotations": [],
           "text": "The capital of France is Paris.",
           "type": "output_text",
         },
       ],
+      "id": "msg_transformed_item_1",
       "role": "assistant",
       "status": "completed",
       "type": "message",
@@ -5256,6 +5270,7 @@ exports[`responses → anthropic > systemMessageArrayContent > response 1`] = `
     {
       "content": [
         {
+          "annotations": [],
           "text": "I'll help you find recent errors from the project logs. Let me query the data to identify error occurrences.
 
 \`\`\`sql
@@ -5288,6 +5303,7 @@ Would you like me to modify the query for a different time range, or can you sha
           "type": "output_text",
         },
       ],
+      "id": "msg_transformed_item_0",
       "role": "assistant",
       "status": "completed",
       "type": "message",
@@ -5385,10 +5401,12 @@ exports[`responses → anthropic > toolCallRequest > response 1`] = `
     {
       "content": [
         {
+          "annotations": [],
           "text": "I'll check the current weather in San Francisco for you.",
           "type": "output_text",
         },
       ],
+      "id": "msg_transformed_item_0",
       "role": "assistant",
       "status": "completed",
       "type": "message",
@@ -5396,6 +5414,7 @@ exports[`responses → anthropic > toolCallRequest > response 1`] = `
     {
       "arguments": "{"location":"San Francisco, CA"}",
       "call_id": "toolu_01FZCXngG3VBF2g2vvnzsh3T",
+      "id": "msg_transformed_item_1",
       "name": "get_weather",
       "status": "completed",
       "type": "function_call",

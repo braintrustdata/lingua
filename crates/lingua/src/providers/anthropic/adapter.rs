@@ -480,6 +480,8 @@ impl ProviderAdapter for AnthropicAdapter {
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
+            id: UniversalResponse::extract_id_from_payload(&payload),
+            id_format: Some(self.format()),
             model: payload
                 .get("model")
                 .and_then(Value::as_str)
@@ -505,10 +507,7 @@ impl ProviderAdapter for AnthropicAdapter {
             .unwrap_or_else(|| "end_turn".to_string());
 
         let mut map = serde_json::Map::new();
-        map.insert(
-            "id".into(),
-            Value::String(format!("msg_{}", PLACEHOLDER_ID)),
-        );
+        map.insert("id".into(), Value::String(resp.id_for(self.format())));
         map.insert("type".into(), Value::String("message".into()));
         map.insert("role".into(), Value::String("assistant".into()));
         map.insert("content".into(), content_value);
