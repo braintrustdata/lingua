@@ -97,7 +97,7 @@ impl VertexProvider {
                     // for operations like rawPredict.
                     url.host_str() != Some("aiplatform.googleapis.com")
                 })
-                .map(|url| url.as_str().trim_end_matches('/').to_string())
+                .map(|url| url.as_str().to_string())
         });
 
         let config = VertexConfig {
@@ -633,7 +633,7 @@ mod tests {
             VertexProvider::from_config(Some(&custom_endpoint), None, &metadata).unwrap();
         assert_eq!(
             provider.config.api_base.as_deref(),
-            Some("https://my-proxy.example.com")
+            Some("https://my-proxy.example.com/")
         );
     }
 
