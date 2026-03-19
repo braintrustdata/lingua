@@ -380,7 +380,7 @@ impl ProviderAdapter for OpenAIAdapter {
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
-            id: payload.get("id").and_then(Value::as_str).map(String::from),
+            id: UniversalResponse::extract_id_from_payload(&payload),
             id_format: Some(self.format()),
             model: payload
                 .get("model")

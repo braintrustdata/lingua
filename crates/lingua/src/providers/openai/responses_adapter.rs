@@ -424,7 +424,7 @@ impl ProviderAdapter for ResponsesAdapter {
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
-            id: payload.get("id").and_then(Value::as_str).map(String::from),
+            id: UniversalResponse::extract_id_from_payload(&payload),
             id_format: Some(self.format()),
             model: payload
                 .get("model")
@@ -1134,22 +1134,24 @@ mod tests {
         // Verify that the round-trip does NOT add spurious provider_options from empty
         // annotations arrays.
         for msg in &universal_b.messages {
-            if let Message::Assistant { content, .. } = msg {
-                if let AssistantContent::Array(parts) = content {
-                    for part in parts {
-                        if let AssistantContentPart::Text(tp) = part {
-                            assert!(
-                                tp.provider_options.is_none()
-                                    || tp
-                                        .provider_options
-                                        .as_ref()
-                                        .map(|o| o.options.is_empty())
-                                        .unwrap_or(false),
-                                "plain text part must not have spurious provider_options from \
+            if let Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } = msg
+            {
+                for part in parts {
+                    if let AssistantContentPart::Text(tp) = part {
+                        assert!(
+                            tp.provider_options.is_none()
+                                || tp
+                                    .provider_options
+                                    .as_ref()
+                                    .map(|o| o.options.is_empty())
+                                    .unwrap_or(false),
+                            "plain text part must not have spurious provider_options from \
                                  empty annotations: {:?}",
-                                tp.provider_options
-                            );
-                        }
+                            tp.provider_options
+                        );
                     }
                 }
             }

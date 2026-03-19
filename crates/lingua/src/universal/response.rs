@@ -9,7 +9,7 @@ use crate::capabilities::ProviderFormat;
 use crate::serde_json::{self, Value};
 use crate::universal::defaults::PLACEHOLDER_ID;
 use crate::universal::message::Message;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Universal response envelope for LLM API responses.
 ///
@@ -246,6 +246,18 @@ impl UniversalResponse {
     /// that round-trips preserve the original value.  Otherwise we attempt to
     /// generate a vaguely reasonable-looking placeholder (e.g.
     /// `"msg_transformed"`, `"chatcmpl-transformed"`).
+    /// Extract the `id` field from a provider response payload using typed
+    /// deserialization, avoiding direct `Value::get` access.
+    pub fn extract_id_from_payload(payload: &Value) -> Option<String> {
+        #[derive(Deserialize)]
+        struct IdView {
+            id: Option<String>,
+        }
+        serde_json::from_value::<IdView>(payload.clone())
+            .ok()
+            .and_then(|v| v.id)
+    }
+
     pub fn id_for(&self, format: ProviderFormat) -> String {
         self.id
             .as_deref()
