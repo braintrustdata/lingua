@@ -1,0 +1,48 @@
+[
+  {
+    "input": {
+      "model": {
+        "config": {
+          "fileIdPrefixes": [
+            "file-"
+          ],
+          "provider": "openai.responses"
+        },
+        "modelId": "gpt-5-mini",
+        "specificationVersion": "v2"
+      },
+      "prompt": "Generate a product description for a wireless bluetooth headphone."
+    },
+    "output": {
+      "object": {
+        "name": "PulseWave Pro Wireless Bluetooth Headphones",
+        "description": "Experience immersive, studio-quality sound.",
+        "price": 129.99,
+        "features": [
+          "Bluetooth 5.3",
+          "Active Noise Cancellation"
+        ]
+      },
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_abc123",
+          "serviceTier": "default"
+        }
+      },
+      "response": {
+        "headers": "<omitted>",
+        "id": "resp_abc123",
+        "modelId": "gpt-5-mini-2025-08-07",
+        "timestamp": "2025-12-09T22:00:29Z"
+      },
+      "usage": {
+        "cachedInputTokens": 0,
+        "inputTokens": 64,
+        "outputTokens": 434,
+        "reasoningTokens": 192,
+        "totalTokens": 498
+      },
+      "warnings": []
+    }
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "expectedMessageCount": 5,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "assistant",
+    "assistant",
+    "assistant"
+  ],
+  "mustContainText": [
+    "get_store_price",
+    "apply_discount",
+    "SAVE20",
+    "shopping assistant"
+  ]
+}

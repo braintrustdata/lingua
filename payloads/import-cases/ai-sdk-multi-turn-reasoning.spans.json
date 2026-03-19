@@ -1,0 +1,72 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "content": "Look at this sequence: 2, 6, 12, 20, 30. What is the pattern and what would be the formula for the nth term?",
+          "role": "user"
+        },
+        {
+          "content": [
+            {
+              "providerOptions": {
+                "openai": {
+                  "itemId": "rs_1",
+                  "reasoningEncryptedContent": null
+                }
+              },
+              "text": "Identifying the sequence",
+              "type": "reasoning"
+            },
+            {
+              "providerOptions": {
+                "openai": {
+                  "itemId": "rs_2",
+                  "reasoningEncryptedContent": null
+                }
+              },
+              "text": "Clarifying the sequence",
+              "type": "reasoning"
+            },
+            {
+              "providerOptions": {
+                "openai": {
+                  "itemId": "msg_1"
+                }
+              },
+              "text": "Pattern: each term is the product of two consecutive integers.",
+              "type": "text"
+            }
+          ],
+          "role": "assistant"
+        },
+        {
+          "content": "Using the pattern you discovered, what would be the 10th term?",
+          "role": "user"
+        }
+      ],
+      "model": {
+        "modelId": "gpt-5-mini"
+      }
+    },
+    "output": {
+      "finishReason": "stop",
+      "text": "The 10th term is 110.",
+      "steps": [
+        {
+          "content": [
+            {
+              "type": "reasoning",
+              "text": "Calculating the sequence values"
+            },
+            {
+              "type": "text",
+              "text": "The 10th term is 110."
+            }
+          ],
+          "finishReason": "stop"
+        }
+      ]
+    }
+  }
+]

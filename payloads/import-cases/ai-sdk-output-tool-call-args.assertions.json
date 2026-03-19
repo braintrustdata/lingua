@@ -5,7 +5,8 @@
     "assistant"
   ],
   "mustContainText": [
-    "What is the capital of France?",
-    "The capital of France is Paris."
+    "What is the weather like in Paris, France?",
+    "get_weather",
+    "Paris, France"
   ]
 }

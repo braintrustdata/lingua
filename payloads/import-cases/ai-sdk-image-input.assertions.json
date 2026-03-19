@@ -5,7 +5,7 @@
     "assistant"
   ],
   "mustContainText": [
-    "What is the capital of France?",
-    "The capital of France is Paris."
+    "What color is this image?",
+    "Predominantly blue"
   ]
 }
