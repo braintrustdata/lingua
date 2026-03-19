@@ -486,6 +486,7 @@ impl ProviderAdapter for ResponsesAdapter {
         map.insert("tool_choice".into(), Value::String("none".into()));
         map.insert("tools".into(), Value::Array(vec![]));
         map.insert("parallel_tool_calls".into(), Value::Bool(false));
+        map.insert("incomplete_details".into(), Value::Null);
 
         if let Some(usage) = &resp.usage {
             map.insert("usage".into(), usage.to_provider_value(self.format()));

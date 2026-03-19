@@ -4695,6 +4695,7 @@ exports[`responses → anthropic > complexReasoningRequest > response 1`] = `
 {
   "created_at": 0,
   "id": "resp_transformed",
+  "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
   "output": [
@@ -4898,6 +4899,7 @@ exports[`responses → anthropic > multimodalRequest > response 1`] = `
 {
   "created_at": 0,
   "id": "resp_transformed",
+  "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
   "output": [
@@ -4955,6 +4957,7 @@ exports[`responses → anthropic > reasoningRequest > response 1`] = `
 {
   "created_at": 0,
   "id": "resp_transformed",
+  "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
   "output": [
@@ -5111,6 +5114,7 @@ exports[`responses → anthropic > reasoningWithOutput > response 1`] = `
 {
   "created_at": 0,
   "id": "resp_transformed",
+  "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
   "output": [
@@ -5199,6 +5203,7 @@ exports[`responses → anthropic > simpleRequest > response 1`] = `
 {
   "created_at": 0,
   "id": "resp_transformed",
+  "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
   "output": [
@@ -5264,6 +5269,7 @@ exports[`responses → anthropic > systemMessageArrayContent > response 1`] = `
 {
   "created_at": 0,
   "id": "resp_transformed",
+  "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
   "output": [
@@ -5395,6 +5401,7 @@ exports[`responses → anthropic > toolCallRequest > response 1`] = `
 {
   "created_at": 0,
   "id": "resp_transformed",
+  "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
   "output": [
