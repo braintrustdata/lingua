@@ -223,7 +223,10 @@ fn parse_assistant_parts(parts: Vec<Value>) -> Vec<AssistantContentPart> {
                     });
                 }
             }
-            AISDKContentPartCompat::Thinking { thinking, signature } => {
+            AISDKContentPartCompat::Thinking {
+                thinking,
+                signature,
+            } => {
                 if !thinking.is_empty() {
                     converted_parts.push(AssistantContentPart::Reasoning {
                         text: thinking,
@@ -529,7 +532,10 @@ fn parse_step_message(step: &Value) -> Option<Message> {
                             })
                         }
                     }
-                    AISDKContentPartCompat::Thinking { thinking, signature } => {
+                    AISDKContentPartCompat::Thinking {
+                        thinking,
+                        signature,
+                    } => {
                         if thinking.is_empty() {
                             None
                         } else {
@@ -577,7 +583,9 @@ fn parse_step_message(step: &Value) -> Option<Message> {
         .and_then(|response| response.as_object())
         .and_then(|response| response.get("messages"))?;
     let parsed = parse_message_sequence(response_messages)?;
-    parsed.into_iter().find(|message| matches!(message, Message::Assistant { .. }))
+    parsed
+        .into_iter()
+        .find(|message| matches!(message, Message::Assistant { .. }))
 }
 
 fn try_parse_ai_sdk_output(data: &Value) -> Option<Vec<Message>> {
