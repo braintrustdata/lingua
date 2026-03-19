@@ -154,7 +154,135 @@
         ],
         "modelId": "gpt-5-mini-2025-08-07",
         "timestamp": "2025-12-05T00:52:28.000Z"
-      }
+      },
+      "steps": [
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_1"
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "input": {
+                "item": "laptop",
+                "store": "StoreA"
+              },
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "fc_1"
+                }
+              },
+              "toolCallId": "call_storeA",
+              "toolName": "get_store_price",
+              "type": "tool-call"
+            },
+            {
+              "input": {
+                "item": "laptop",
+                "store": "StoreB"
+              },
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "fc_2"
+                }
+              },
+              "toolCallId": "call_storeB",
+              "toolName": "get_store_price",
+              "type": "tool-call"
+            },
+            {
+              "dynamic": false,
+              "input": {
+                "item": "laptop",
+                "store": "StoreA"
+              },
+              "output": "{\"store\":\"StoreA\",\"item\":\"laptop\",\"price\":999}",
+              "toolCallId": "call_storeA",
+              "toolName": "get_store_price",
+              "type": "tool-result"
+            },
+            {
+              "dynamic": false,
+              "input": {
+                "item": "laptop",
+                "store": "StoreB"
+              },
+              "output": "{\"store\":\"StoreB\",\"item\":\"laptop\",\"price\":1099}",
+              "toolCallId": "call_storeB",
+              "toolName": "get_store_price",
+              "type": "tool-result"
+            }
+          ],
+          "finishReason": "tool-calls"
+        },
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_2"
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "input": {
+                "discountCode": "SAVE20",
+                "total": 999
+              },
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "fc_3"
+                }
+              },
+              "toolCallId": "call_discount",
+              "toolName": "apply_discount",
+              "type": "tool-call"
+            },
+            {
+              "dynamic": false,
+              "input": {
+                "discountCode": "SAVE20",
+                "total": 999
+              },
+              "output": "{\"finalTotal\":799.2}",
+              "toolCallId": "call_discount",
+              "toolName": "apply_discount",
+              "type": "tool-result"
+            }
+          ],
+          "finishReason": "tool-calls"
+        },
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_3"
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "msg_final"
+                }
+              },
+              "text": "I checked both stores and applied SAVE20 to the cheaper one.",
+              "type": "text"
+            }
+          ],
+          "finishReason": "stop"
+        }
+      ]
     }
   }
 ]

@@ -1,6 +1,8 @@
 use crate::import_parse::{try_parsers_in_order, MessageParser};
+mod ai_sdk;
 mod langchain;
 mod pydantic_ai;
+use crate::processing::import::ai_sdk::try_parse_ai_sdk_for_import;
 use crate::processing::import::langchain::try_parse_langchain_for_import;
 use crate::processing::import::pydantic_ai::try_parse_pydantic_ai_for_import;
 #[cfg(feature = "anthropic")]
@@ -39,6 +41,10 @@ pub struct Span {
 
 /// Try to convert a value to lingua messages by attempting multiple format conversions
 fn try_converting_to_messages(data: &Value) -> Vec<Message> {
+    if let Some(messages) = try_parse_ai_sdk_for_import(data) {
+        return messages;
+    }
+
     if is_role_message_array(data) {
         return try_parse_mixed_role_messages_for_import(data).unwrap_or_default();
     }
