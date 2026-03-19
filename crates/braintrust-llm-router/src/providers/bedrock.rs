@@ -221,38 +221,23 @@ impl BedrockProvider {
         url: Url,
         payload: Bytes,
         auth: &AuthConfig,
-        stream: bool,
         client_headers: &ClientHeaders,
     ) -> Result<reqwest::Response> {
-        #[cfg(not(feature = "tracing"))]
-        let _ = stream;
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "bedrock",
-            http_url = %url,
-            llm_streaming = stream,
-            "sending request to Bedrock"
-        );
-
         let headers = self.build_headers(&url, payload.as_ref(), auth, client_headers)?;
         let response = self
             .client
-            .post(url)
+            .post(url.clone())
             .headers(headers)
             .body(payload)
             .send()
             .await?;
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "bedrock",
-            http_status_code = response.status().as_u16(),
-            llm_streaming = stream,
-            "received response from Bedrock"
-        );
+        {
+            let span = tracing::Span::current();
+            span.record("http.url", tracing::field::display(&url));
+            span.record("http.status_code", response.status().as_u16());
+        }
 
         if !response.status().is_success() {
             let status = response.status();
@@ -294,9 +279,7 @@ impl crate::providers::Provider for BedrockProvider {
         } else {
             self.converse_url(&spec.model, false)?
         };
-        let response = self
-            .send_signed(url, payload, auth, false, client_headers)
-            .await?;
+        let response = self.send_signed(url, payload, auth, client_headers).await?;
         Ok(response.bytes().await?)
     }
 
@@ -322,9 +305,7 @@ impl crate::providers::Provider for BedrockProvider {
             self.converse_url(&spec.model, true)?
         };
 
-        let response = self
-            .send_signed(url, payload, auth, true, client_headers)
-            .await?;
+        let response = self.send_signed(url, payload, auth, client_headers).await?;
         Ok(bedrock_event_stream(response))
     }
 
