@@ -3,6 +3,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::Value;
+use rand::Rng;
 use reqwest::header::HeaderMap;
 use reqwest::{StatusCode, Url};
 use reqwest_middleware::ClientWithMiddleware;
@@ -16,10 +17,11 @@ use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
 const DEFAULT_LOCATION: &str = "us-central1";
+const ANTHROPIC_DEFAULT_LOCATION: &str = "us-east5";
 
 #[derive(Debug, Clone)]
 pub struct VertexConfig {
-    pub endpoint: Url,
+    pub api_base: Option<String>,
     pub project: String,
     pub location: String,
     pub timeout: Option<Duration>,
@@ -28,8 +30,7 @@ pub struct VertexConfig {
 impl Default for VertexConfig {
     fn default() -> Self {
         Self {
-            endpoint: Url::parse("https://us-central1-aiplatform.googleapis.com/")
-                .expect("valid Vertex endpoint"),
+            api_base: None,
             project: String::new(),
             location: DEFAULT_LOCATION.to_string(),
             timeout: None,
@@ -41,6 +42,12 @@ impl Default for VertexConfig {
 pub struct VertexProvider {
     client: ClientWithMiddleware,
     config: VertexConfig,
+}
+
+#[derive(serde::Deserialize)]
+struct VertexModelExtra {
+    #[serde(default)]
+    locations: Vec<String>,
 }
 
 impl VertexProvider {
@@ -58,6 +65,7 @@ impl VertexProvider {
     /// Extracts Vertex-specific options from metadata:
     /// - `project`: GCP project ID (required)
     /// - `location`: GCP region (defaults to us-central1)
+    /// - `api_base`: Custom API base URL (optional)
     pub fn from_config(
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
@@ -72,24 +80,29 @@ impl VertexProvider {
         let location = metadata
             .get("location")
             .and_then(Value::as_str)
+            .filter(|s| !s.trim().is_empty())
             .map(|s| s.to_string())
             .unwrap_or_else(|| DEFAULT_LOCATION.to_string());
 
-        let endpoint = endpoint
-            .cloned()
-            .filter(|url| {
-                // Ignore the global aiplatform.googleapis.com endpoint — Vertex requires
-                // the location-prefixed hostname (e.g. us-east5-aiplatform.googleapis.com)
-                // for operations like rawPredict.
-                url.host_str() != Some("aiplatform.googleapis.com")
-            })
-            .unwrap_or_else(|| {
-                Url::parse(&format!("https://{location}-aiplatform.googleapis.com/"))
-                    .expect("valid Vertex endpoint")
-            });
+        let api_base_from_metadata = metadata
+            .get("api_base")
+            .and_then(Value::as_str)
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string());
+
+        let api_base = api_base_from_metadata.or_else(|| {
+            endpoint
+                .filter(|url| {
+                    // Ignore the global aiplatform.googleapis.com endpoint — Vertex requires
+                    // the location-prefixed hostname (e.g. us-east5-aiplatform.googleapis.com)
+                    // for operations like rawPredict.
+                    url.host_str() != Some("aiplatform.googleapis.com")
+                })
+                .map(|url| url.as_str().to_string())
+        });
 
         let config = VertexConfig {
-            endpoint,
+            api_base,
             project,
             location,
             timeout,
@@ -98,9 +111,50 @@ impl VertexProvider {
         Self::new(config)
     }
 
+    fn resolve_location(&self, spec: &ModelSpec, default_location: &str) -> String {
+        // Precedence: model spec locations > secret metadata location > default.
+        if let Ok(extra) = ::serde_json::from_value::<VertexModelExtra>(
+            ::serde_json::Value::Object(spec.extra.clone()),
+        ) {
+            if !extra.locations.is_empty() {
+                let idx = rand::thread_rng().gen_range(0..extra.locations.len());
+                return extra.locations[idx].clone();
+            }
+        }
+        if !self.config.location.is_empty() {
+            return self.config.location.clone();
+        }
+        default_location.to_string()
+    }
+
+    fn base_url(&self, location: &str) -> Result<Url> {
+        if let Some(ref api_base) = self.config.api_base {
+            return Url::parse(api_base)
+                .map_err(|e| Error::InvalidRequest(format!("Invalid Vertex api_base URL: {e}")));
+        }
+        let url_str = if location == "global" {
+            "https://aiplatform.googleapis.com/".to_string()
+        } else {
+            format!("https://{location}-aiplatform.googleapis.com/")
+        };
+        Url::parse(&url_str)
+            .map_err(|e| Error::InvalidRequest(format!("Invalid Vertex endpoint URL: {e}")))
+    }
+
+    fn default_location_for_mode(mode: &VertexMode) -> &'static str {
+        match mode {
+            VertexMode::Anthropic { .. } => ANTHROPIC_DEFAULT_LOCATION,
+            _ => DEFAULT_LOCATION,
+        }
+    }
+
     fn determine_mode(&self, model: &str) -> VertexMode {
         if model.starts_with("publishers/meta") {
-            VertexMode::OpenApi
+            VertexMode::OpenApi {
+                api_version: "v1beta1",
+            }
+        } else if model.starts_with("publishers/qwen") {
+            VertexMode::OpenApi { api_version: "v1" }
         } else if model.starts_with("publishers/anthropic/") {
             VertexMode::Anthropic {
                 model_path: model.to_string(),
@@ -116,8 +170,13 @@ impl VertexProvider {
         }
     }
 
-    fn endpoint_for_mode(&self, mode: &VertexMode, stream: bool) -> Result<Url> {
-        let location = &self.config.location;
+    fn endpoint_for_mode(
+        &self,
+        mode: &VertexMode,
+        base_url: &Url,
+        location: &str,
+        stream: bool,
+    ) -> Result<Url> {
         match mode {
             VertexMode::Generative { model_path } => {
                 let method = if stream {
@@ -125,7 +184,7 @@ impl VertexProvider {
                 } else {
                     "generateContent"
                 };
-                let mut url = self.config.endpoint.clone();
+                let mut url = base_url.clone();
                 let path = format!(
                     "v1/projects/{}/locations/{}/{}:{}",
                     self.config.project, location, model_path, method
@@ -142,7 +201,7 @@ impl VertexProvider {
                 } else {
                     "rawPredict"
                 };
-                let mut url = self.config.endpoint.clone();
+                let mut url = base_url.clone();
                 let path = format!(
                     "v1/projects/{}/locations/{}/{}:{}",
                     self.config.project, location, model_path, method
@@ -150,11 +209,11 @@ impl VertexProvider {
                 url.set_path(&path);
                 Ok(url)
             }
-            VertexMode::OpenApi => {
-                let mut url = self.config.endpoint.clone();
+            VertexMode::OpenApi { api_version } => {
+                let mut url = base_url.clone();
                 let path = format!(
-                    "v1beta1/projects/{}/locations/{}/endpoints/openapi/chat/completions",
-                    self.config.project, location
+                    "{}/projects/{}/locations/{}/endpoints/openapi/chat/completions",
+                    api_version, self.config.project, location
                 );
                 url.set_path(&path);
                 Ok(url)
@@ -182,37 +241,27 @@ impl crate::providers::Provider for VertexProvider {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let mode = self.determine_mode(&spec.model);
-        let url = self.endpoint_for_mode(&mode, false)?;
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "vertex",
-            http_url = %url,
-            "sending request to Vertex"
-        );
+        let location = self.resolve_location(spec, Self::default_location_for_mode(&mode));
+        let base_url = self.base_url(&location)?;
+        let url = self.endpoint_for_mode(&mode, &base_url, &location, false)?;
 
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self
             .client
-            .post(url)
+            .post(url.clone())
             .headers(headers)
             .body(payload)
             .send()
             .await?;
 
         #[cfg(feature = "tracing")]
-        let status_code = response.status().as_u16();
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "vertex",
-            http_status_code = status_code,
-            "received response from Vertex"
-        );
+        {
+            let span = tracing::Span::current();
+            span.record("http.url", tracing::field::display(&url));
+            span.record("http.status_code", response.status().as_u16());
+        }
 
         if !response.status().is_success() {
             let status = response.status();
@@ -249,40 +298,27 @@ impl crate::providers::Provider for VertexProvider {
         }
 
         let mode = self.determine_mode(&spec.model);
-        let url = self.endpoint_for_mode(&mode, true)?;
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "vertex",
-            http_url = %url,
-            llm_streaming = true,
-            "sending streaming request to Vertex"
-        );
+        let location = self.resolve_location(spec, Self::default_location_for_mode(&mode));
+        let base_url = self.base_url(&location)?;
+        let url = self.endpoint_for_mode(&mode, &base_url, &location, true)?;
 
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
-        // Router should have already added stream options to payload
         let response = self
             .client
-            .post(url)
+            .post(url.clone())
             .headers(headers)
             .body(payload)
             .send()
             .await?;
 
         #[cfg(feature = "tracing")]
-        let status_code = response.status().as_u16();
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "vertex",
-            http_status_code = status_code,
-            llm_streaming = true,
-            "received streaming response from Vertex"
-        );
+        {
+            let span = tracing::Span::current();
+            span.record("http.url", tracing::field::display(&url));
+            span.record("http.status_code", response.status().as_u16());
+        }
 
         if !response.status().is_success() {
             let status = response.status();
@@ -305,7 +341,9 @@ impl crate::providers::Provider for VertexProvider {
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
         let mode = self.determine_mode("");
-        let url = self.endpoint_for_mode(&mode, false)?;
+        let location = &self.config.location;
+        let base_url = self.base_url(location)?;
+        let url = self.endpoint_for_mode(&mode, &base_url, location, false)?;
         let mut headers = HeaderMap::new();
         auth.apply_headers(&mut headers)?;
 
@@ -335,7 +373,7 @@ fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
 enum VertexMode {
     Generative { model_path: String },
     Anthropic { model_path: String },
-    OpenApi,
+    OpenApi { api_version: &'static str },
 }
 
 #[cfg(test)]
@@ -344,12 +382,20 @@ mod tests {
 
     fn provider() -> VertexProvider {
         let config = VertexConfig {
-            endpoint: Url::parse("https://us-central1-aiplatform.googleapis.com/").unwrap(),
+            api_base: None,
             project: "test-project".into(),
             location: "us-central1".into(),
             timeout: None,
         };
         VertexProvider::new(config).unwrap()
+    }
+
+    fn base_url(location: &str) -> Url {
+        if location == "global" {
+            Url::parse("https://aiplatform.googleapis.com/").unwrap()
+        } else {
+            Url::parse(&format!("https://{location}-aiplatform.googleapis.com/")).unwrap()
+        }
     }
 
     #[test]
@@ -368,7 +414,18 @@ mod tests {
         let provider = provider();
         assert!(matches!(
             provider.determine_mode("publishers/meta/models/llama"),
-            VertexMode::OpenApi
+            VertexMode::OpenApi {
+                api_version: "v1beta1"
+            }
+        ));
+    }
+
+    #[test]
+    fn selects_openapi_mode_for_qwen_models() {
+        let provider = provider();
+        assert!(matches!(
+            provider.determine_mode("publishers/qwen/models/qwen2"),
+            VertexMode::OpenApi { api_version: "v1" }
         ));
     }
 
@@ -385,7 +442,10 @@ mod tests {
     fn builds_generative_endpoint() {
         let provider = provider();
         let mode = provider.determine_mode("publishers/google/models/gemini-pro");
-        let url = provider.endpoint_for_mode(&mode, false).expect("url");
+        let bu = base_url("us-central1");
+        let url = provider
+            .endpoint_for_mode(&mode, &bu, "us-central1", false)
+            .expect("url");
         assert_eq!(
             url.as_str(),
             "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/publishers/google/models/gemini-pro:generateContent"
@@ -396,7 +456,10 @@ mod tests {
     fn builds_anthropic_rawpredict_endpoint() {
         let provider = provider();
         let mode = provider.determine_mode("publishers/anthropic/models/claude-haiku-4-5");
-        let url = provider.endpoint_for_mode(&mode, false).expect("url");
+        let bu = base_url("us-central1");
+        let url = provider
+            .endpoint_for_mode(&mode, &bu, "us-central1", false)
+            .expect("url");
         assert_eq!(
             url.as_str(),
             "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/publishers/anthropic/models/claude-haiku-4-5:rawPredict"
@@ -407,7 +470,10 @@ mod tests {
     fn builds_anthropic_stream_rawpredict_endpoint() {
         let provider = provider();
         let mode = provider.determine_mode("publishers/anthropic/models/claude-haiku-4-5");
-        let url = provider.endpoint_for_mode(&mode, true).expect("url");
+        let bu = base_url("us-central1");
+        let url = provider
+            .endpoint_for_mode(&mode, &bu, "us-central1", true)
+            .expect("url");
         assert_eq!(
             url.as_str(),
             "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/publishers/anthropic/models/claude-haiku-4-5:streamRawPredict"
@@ -418,7 +484,10 @@ mod tests {
     fn builds_anthropic_endpoint_with_version_suffix() {
         let provider = provider();
         let mode = provider.determine_mode("publishers/anthropic/models/claude-3-5-haiku@20241022");
-        let url = provider.endpoint_for_mode(&mode, false).expect("url");
+        let bu = base_url("us-central1");
+        let url = provider
+            .endpoint_for_mode(&mode, &bu, "us-central1", false)
+            .expect("url");
         // @ must NOT be percent-encoded — Vertex requires the literal @ in the model path
         assert_eq!(
             url.as_str(),
@@ -427,13 +496,132 @@ mod tests {
     }
 
     #[test]
-    fn builds_openapi_endpoint() {
+    fn builds_openapi_endpoint_for_meta() {
         let provider = provider();
         let mode = provider.determine_mode("publishers/meta/models/llama");
-        let url = provider.endpoint_for_mode(&mode, false).expect("url");
+        let bu = base_url("us-central1");
+        let url = provider
+            .endpoint_for_mode(&mode, &bu, "us-central1", false)
+            .expect("url");
         assert_eq!(
             url.as_str(),
             "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/test-project/locations/us-central1/endpoints/openapi/chat/completions"
+        );
+    }
+
+    #[test]
+    fn builds_openapi_endpoint_for_qwen() {
+        let provider = provider();
+        let mode = provider.determine_mode("publishers/qwen/models/qwen2");
+        let bu = base_url("us-central1");
+        let url = provider
+            .endpoint_for_mode(&mode, &bu, "us-central1", false)
+            .expect("url");
+        assert_eq!(
+            url.as_str(),
+            "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/endpoints/openapi/chat/completions"
+        );
+    }
+
+    #[test]
+    fn base_url_returns_global_endpoint_for_global_location() {
+        let provider = provider();
+        let url = provider.base_url("global").expect("url");
+        assert_eq!(url.as_str(), "https://aiplatform.googleapis.com/");
+    }
+
+    #[test]
+    fn base_url_returns_regional_endpoint() {
+        let provider = provider();
+        let url = provider.base_url("us-east5").expect("url");
+        assert_eq!(url.as_str(), "https://us-east5-aiplatform.googleapis.com/");
+    }
+
+    #[test]
+    fn base_url_uses_api_base_override() {
+        let config = VertexConfig {
+            api_base: Some("https://custom.example.com".into()),
+            project: "test-project".into(),
+            location: "us-central1".into(),
+            timeout: None,
+        };
+        let provider = VertexProvider::new(config).unwrap();
+        let url = provider.base_url("us-east5").expect("url");
+        assert_eq!(url.as_str(), "https://custom.example.com/");
+    }
+
+    #[test]
+    fn builds_generative_endpoint_with_global_location() {
+        let provider = provider();
+        let mode = provider.determine_mode("publishers/google/models/gemini-3.1-pro-preview");
+        let bu = base_url("global");
+        let url = provider
+            .endpoint_for_mode(&mode, &bu, "global", false)
+            .expect("url");
+        assert_eq!(
+            url.as_str(),
+            "https://aiplatform.googleapis.com/v1/projects/test-project/locations/global/publishers/google/models/gemini-3.1-pro-preview:generateContent"
+        );
+    }
+
+    #[test]
+    fn resolve_location_uses_spec_locations() {
+        let provider = provider();
+        let spec = ModelSpec {
+            model: "publishers/google/models/gemini-3.1-pro-preview".to_string(),
+            format: ProviderFormat::Google,
+            flavor: crate::catalog::ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: {
+                let mut map = ::serde_json::Map::new();
+                map.insert(
+                    "locations".into(),
+                    ::serde_json::Value::Array(vec![::serde_json::Value::String(
+                        "europe-west4".into(),
+                    )]),
+                );
+                map
+            },
+            available_providers: vec![],
+        };
+        assert_eq!(
+            provider.resolve_location(&spec, DEFAULT_LOCATION),
+            "europe-west4"
+        );
+    }
+
+    #[test]
+    fn resolve_location_falls_back_to_config() {
+        let provider = provider();
+        let spec = ModelSpec {
+            model: "publishers/google/models/gemini-pro".to_string(),
+            format: ProviderFormat::Google,
+            flavor: crate::catalog::ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: ::serde_json::Map::new(),
+            available_providers: vec![],
+        };
+        assert_eq!(
+            provider.resolve_location(&spec, DEFAULT_LOCATION),
+            "us-central1"
         );
     }
 
@@ -446,10 +634,8 @@ mod tests {
 
         let provider =
             VertexProvider::from_config(Some(&global_endpoint), None, &metadata).unwrap();
-        assert_eq!(
-            provider.config.endpoint.as_str(),
-            "https://us-east5-aiplatform.googleapis.com/"
-        );
+        assert!(provider.config.api_base.is_none());
+        assert_eq!(provider.config.location, "us-east5");
     }
 
     #[test]
@@ -462,8 +648,44 @@ mod tests {
         let provider =
             VertexProvider::from_config(Some(&custom_endpoint), None, &metadata).unwrap();
         assert_eq!(
-            provider.config.endpoint.as_str(),
-            "https://my-proxy.example.com/"
+            provider.config.api_base.as_deref(),
+            Some("https://my-proxy.example.com/")
         );
+    }
+
+    #[test]
+    fn from_config_reads_api_base_from_metadata() {
+        let mut metadata = std::collections::HashMap::new();
+        metadata.insert("project".into(), Value::String("my-project".into()));
+        metadata.insert(
+            "api_base".into(),
+            Value::String("https://custom-proxy.example.com".into()),
+        );
+
+        let provider = VertexProvider::from_config(None, None, &metadata).unwrap();
+        assert_eq!(
+            provider.config.api_base.as_deref(),
+            Some("https://custom-proxy.example.com")
+        );
+    }
+
+    #[test]
+    fn from_config_ignores_empty_api_base() {
+        let mut metadata = std::collections::HashMap::new();
+        metadata.insert("project".into(), Value::String("my-project".into()));
+        metadata.insert("api_base".into(), Value::String("".into()));
+
+        let provider = VertexProvider::from_config(None, None, &metadata).unwrap();
+        assert!(provider.config.api_base.is_none());
+    }
+
+    #[test]
+    fn from_config_ignores_empty_location() {
+        let mut metadata = std::collections::HashMap::new();
+        metadata.insert("project".into(), Value::String("my-project".into()));
+        metadata.insert("location".into(), Value::String("  ".into()));
+
+        let provider = VertexProvider::from_config(None, None, &metadata).unwrap();
+        assert_eq!(provider.config.location, "us-central1");
     }
 }

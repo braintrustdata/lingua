@@ -28,7 +28,7 @@ use crate::universal::request::{ReasoningConfig, ReasoningEffort, TokenBudget};
 use crate::universal::tools::tools_to_openai_chat_value;
 use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
 };
 use std::convert::TryInto;
 
@@ -380,6 +380,8 @@ impl ProviderAdapter for OpenAIAdapter {
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
+            id: UniversalResponse::extract_id_from_payload(&payload),
+            id_format: Some(self.format()),
             model: payload
                 .get("model")
                 .and_then(Value::as_str)
@@ -424,10 +426,7 @@ impl ProviderAdapter for OpenAIAdapter {
             .map(|u| u.to_provider_value(self.format()));
 
         let mut map = serde_json::Map::new();
-        map.insert(
-            "id".into(),
-            Value::String(format!("chatcmpl-{}", PLACEHOLDER_ID)),
-        );
+        map.insert("id".into(), Value::String(resp.id_for(self.format())));
         map.insert("object".into(), Value::String("chat.completion".into()));
         map.insert("created".into(), serde_json::json!(0));
         map.insert(

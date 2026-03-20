@@ -88,35 +88,23 @@ impl crate::providers::Provider for DatabricksProvider {
     ) -> Result<Bytes> {
         let url = self.serving_url(&spec.model)?;
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "databricks",
-            http_url = %url,
-            "sending request to Databricks"
-        );
-
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
 
         let response = self
             .client
-            .post(url)
+            .post(url.clone())
             .headers(headers)
             .body(payload)
             .send()
             .await?;
 
         #[cfg(feature = "tracing")]
-        let status_code = response.status().as_u16();
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "databricks",
-            http_status_code = status_code,
-            "received response from Databricks"
-        );
+        {
+            let span = tracing::Span::current();
+            span.record("http.url", tracing::field::display(&url));
+            span.record("http.status_code", response.status().as_u16());
+        }
 
         if !response.status().is_success() {
             let status = response.status();
@@ -154,37 +142,23 @@ impl crate::providers::Provider for DatabricksProvider {
 
         let url = self.serving_url(&spec.model)?;
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "databricks",
-            http_url = %url,
-            llm_streaming = true,
-            "sending streaming request to Databricks"
-        );
-
         let mut headers = client_headers.to_json_headers();
         auth.apply_headers(&mut headers)?;
 
         let response = self
             .client
-            .post(url)
+            .post(url.clone())
             .headers(headers)
             .body(payload)
             .send()
             .await?;
 
         #[cfg(feature = "tracing")]
-        let status_code = response.status().as_u16();
-
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            target: "bt.router.provider.http",
-            llm_provider = "databricks",
-            http_status_code = status_code,
-            llm_streaming = true,
-            "received streaming response from Databricks"
-        );
+        {
+            let span = tracing::Span::current();
+            span.record("http.url", tracing::field::display(&url));
+            span.record("http.status_code", response.status().as_u16());
+        }
 
         if !response.status().is_success() {
             let status = response.status();

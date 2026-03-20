@@ -6,7 +6,7 @@ use crate::providers::openai::generated as openai;
 use crate::providers::openai::params::OpenAIResponsesExtrasView;
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
-use crate::universal::defaults::{EMPTY_OBJECT_STR, REFUSAL_TEXT};
+use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, ProviderOptions, TextContentPart,
     ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
@@ -2007,11 +2007,16 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                     if let Some(content) = item.content {
                         for c in content {
                             if let Some(text) = c.text {
-                                // Preserve annotations and logprobs in provider_options
+                                // Preserve logprobs and non-empty annotations in
+                                // provider_options for round-trip fidelity.
+                                // Empty `annotations` arrays are the Responses API default
+                                // injected by `response_from_universal`, so they are not
+                                // stored back to keep the universal representation clean.
+                                let non_empty_annotations = c.annotations.filter(|a| !a.is_empty());
                                 let provider_options =
-                                    if c.annotations.is_some() || c.logprobs.is_some() {
+                                    if non_empty_annotations.is_some() || c.logprobs.is_some() {
                                         let mut options = serde_json::Map::new();
-                                        if let Some(annotations) = c.annotations {
+                                        if let Some(annotations) = non_empty_annotations {
                                             if let Ok(value) = serde_json::to_value(&annotations) {
                                                 options.insert("annotations".to_string(), value);
                                             }
@@ -2247,7 +2252,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                             content: Some(vec![openai::OutputMessageContent {
                                 output_message_content_type: openai::ContentType::OutputText,
                                 text: Some(text),
-                                annotations: None,
+                                annotations: Some(vec![]),
                                 logprobs: None,
                                 refusal: None,
                             }]),
@@ -2313,7 +2318,9 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         &mut id_used,
                                         &id,
                                     );
-                                    // Extract annotations and logprobs from provider_options
+                                    // Extract annotations and logprobs from provider_options.
+                                    // Default annotations to Some(vec![]) so the Responses API
+                                    // output always has the required `annotations` array.
                                     let (annotations, logprobs) = if let Some(ref opts) =
                                         text_part.provider_options
                                     {
@@ -2330,9 +2337,9 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                             )
                                             .ok()
                                         });
-                                        (annotations, logprobs)
+                                        (annotations.or(Some(vec![])), logprobs)
                                     } else {
-                                        (None, None)
+                                        (Some(vec![]), None)
                                     };
                                     result.push(openai::OutputItem {
                                         output_item_type: Some(openai::OutputItemType::Message),
@@ -2575,6 +2582,15 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                         );
                     }
                 }
+            }
+        }
+
+        // Fill in placeholder IDs for any items that don't have one.
+        // Responses API requires every output item to have an id; sources like
+        // Anthropic carry only a response-level id, not per-item ids.
+        for (i, item) in result.iter_mut().enumerate() {
+            if item.id.is_none() {
+                item.id = Some(format!("msg_{}_item_{}", PLACEHOLDER_ID, i));
             }
         }
 

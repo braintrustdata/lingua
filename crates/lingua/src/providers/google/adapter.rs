@@ -416,6 +416,8 @@ impl ProviderAdapter for GoogleAdapter {
         let usage = response.usage_metadata.as_ref().map(UniversalUsage::from);
 
         Ok(UniversalResponse {
+            id: None, // Google doesn't include a top-level response ID
+            id_format: None,
             model: response.model_version,
             messages,
             usage,
