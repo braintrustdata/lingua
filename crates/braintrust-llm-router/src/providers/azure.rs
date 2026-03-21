@@ -3,7 +3,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::Value as MetadataValue;
-use reqwest::header::HeaderMap;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{StatusCode, Url};
 use reqwest_middleware::ClientWithMiddleware;
 
@@ -11,7 +11,8 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::anthropic::{ANTHROPIC_VERSION, DEFAULT_ANTHROPIC_VERSION_VALUE};
+use crate::providers::{ClientHeaders, Provider};
 use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
@@ -30,7 +31,7 @@ impl Default for AzureConfig {
             endpoint: Url::parse("https://example.openai.azure.com/")
                 .expect("valid Azure endpoint"),
             deployment: None,
-            api_version: "2023-07-01-preview".to_string(),
+            api_version: "2024-12-01-preview".to_string(),
             timeout: None,
             no_named_deployment: false,
         }
@@ -151,11 +152,46 @@ impl AzureProvider {
         Ok(url)
     }
 
+    fn messages_url(&self) -> Result<Url> {
+        self.config
+            .endpoint
+            .join("anthropic/v1/messages")
+            .map_err(|_| Error::InvalidRequest("Azure endpoint must be absolute".into()))
+    }
+
     fn url_for_format(&self, model: &str, format: ProviderFormat) -> Result<Url> {
         match format {
             ProviderFormat::Responses => self.responses_url(),
+            ProviderFormat::Anthropic => self.messages_url(),
             _ => self.chat_url(model),
         }
+    }
+
+    fn apply_format_headers(
+        &self,
+        client_headers: &ClientHeaders,
+        auth: &AuthConfig,
+        format: ProviderFormat,
+    ) -> Result<HeaderMap> {
+        let mut headers = self.build_headers(client_headers);
+        if format == ProviderFormat::Anthropic {
+            headers.insert(
+                ANTHROPIC_VERSION,
+                HeaderValue::from_static(DEFAULT_ANTHROPIC_VERSION_VALUE),
+            );
+            if let Some(key) = auth.api_key() {
+                headers.insert(
+                    AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {key}"))
+                        .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
+                );
+            } else {
+                auth.apply_headers(&mut headers)?;
+            }
+        } else {
+            auth.apply_headers(&mut headers)?;
+        }
+        Ok(headers)
     }
 
     fn prepare_payload(
@@ -188,7 +224,11 @@ impl crate::providers::Provider for AzureProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
+        vec![
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Responses,
+            ProviderFormat::Anthropic,
+        ]
     }
 
     async fn complete(
@@ -202,8 +242,7 @@ impl crate::providers::Provider for AzureProvider {
         let payload = self.prepare_payload(payload, &spec.model, format)?;
         let url = self.url_for_format(&spec.model, format)?;
 
-        let mut headers = self.build_headers(client_headers);
-        auth.apply_headers(&mut headers)?;
+        let headers = self.apply_format_headers(client_headers, auth, format)?;
 
         let response = self
             .client
@@ -258,8 +297,7 @@ impl crate::providers::Provider for AzureProvider {
         let payload = self.prepare_payload(payload, &spec.model, format)?;
         let url = self.url_for_format(&spec.model, format)?;
 
-        let mut headers = self.build_headers(client_headers);
-        auth.apply_headers(&mut headers)?;
+        let headers = self.apply_format_headers(client_headers, auth, format)?;
 
         let response = self
             .client
@@ -356,7 +394,7 @@ mod tests {
         let url = provider.chat_url("gpt-4o").unwrap();
         assert_eq!(
             url.as_str(),
-            "https://myorg.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2023-07-01-preview"
+            "https://myorg.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-12-01-preview"
         );
     }
 
@@ -372,7 +410,7 @@ mod tests {
         let url = provider.chat_url("gpt-4o").unwrap();
         assert_eq!(
             url.as_str(),
-            "https://myorg.openai.azure.com/openai/deployments/my-deploy/chat/completions?api-version=2023-07-01-preview"
+            "https://myorg.openai.azure.com/openai/deployments/my-deploy/chat/completions?api-version=2024-12-01-preview"
         );
     }
 
@@ -422,5 +460,105 @@ mod tests {
         let json: crate::serde_json::Value = serde_json::from_slice(&payload).unwrap();
 
         assert_eq!(json.get("model").and_then(|v| v.as_str()), Some("gpt-4o"));
+    }
+
+    #[test]
+    fn resolves_messages_url() {
+        let provider = make_provider(HashMap::new());
+        let url = provider.messages_url().unwrap();
+
+        assert_eq!(
+            url.as_str(),
+            "https://myorg.openai.azure.com/anthropic/v1/messages"
+        );
+    }
+
+    #[test]
+    fn url_for_format_anthropic_returns_messages_url() {
+        let provider = make_provider(HashMap::new());
+        let url = provider
+            .url_for_format("claude-sonnet-4-6", ProviderFormat::Anthropic)
+            .unwrap();
+
+        assert_eq!(
+            url.as_str(),
+            "https://myorg.openai.azure.com/anthropic/v1/messages"
+        );
+    }
+
+    #[test]
+    fn provider_formats_includes_anthropic() {
+        let provider = make_provider(HashMap::new());
+        let formats = provider.provider_formats();
+
+        assert!(formats.contains(&ProviderFormat::Anthropic));
+        assert!(formats.contains(&ProviderFormat::ChatCompletions));
+        assert!(formats.contains(&ProviderFormat::Responses));
+    }
+
+    #[test]
+    fn anthropic_format_uses_bearer_auth() {
+        let provider = make_provider(HashMap::new());
+        let auth = AuthConfig::ApiKey {
+            key: "test-key".into(),
+            header: Some("api-key".into()),
+            prefix: None,
+        };
+        let headers = provider
+            .apply_format_headers(&ClientHeaders::default(), &auth, ProviderFormat::Anthropic)
+            .unwrap();
+
+        assert_eq!(
+            headers.get("authorization").map(|v| v.to_str().unwrap()),
+            Some("Bearer test-key")
+        );
+        assert_eq!(
+            headers
+                .get("anthropic-version")
+                .map(|v| v.to_str().unwrap()),
+            Some("2023-06-01")
+        );
+        assert!(headers.get("api-key").is_none());
+    }
+
+    #[test]
+    fn chat_completions_format_uses_api_key_auth() {
+        let provider = make_provider(HashMap::new());
+        let auth = AuthConfig::ApiKey {
+            key: "test-key".into(),
+            header: Some("api-key".into()),
+            prefix: None,
+        };
+        let headers = provider
+            .apply_format_headers(
+                &ClientHeaders::default(),
+                &auth,
+                ProviderFormat::ChatCompletions,
+            )
+            .unwrap();
+
+        assert_eq!(
+            headers.get("api-key").map(|v| v.to_str().unwrap()),
+            Some("test-key")
+        );
+        assert!(headers.get("anthropic-version").is_none());
+    }
+
+    #[test]
+    fn anthropic_format_payload_passes_through() {
+        let provider = make_provider(HashMap::new());
+        let payload = Bytes::from(
+            serde_json::to_vec(&json!({"model": "claude-sonnet-4-6", "messages": []})).unwrap(),
+        );
+
+        let result = provider
+            .prepare_payload(
+                payload.clone(),
+                "claude-sonnet-4-6",
+                ProviderFormat::Anthropic,
+            )
+            .unwrap();
+
+        assert_eq!(result, payload);
     }
 }
