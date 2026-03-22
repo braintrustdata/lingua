@@ -179,8 +179,18 @@ impl AzureProvider {
                 ANTHROPIC_VERSION,
                 HeaderValue::from_static(DEFAULT_ANTHROPIC_VERSION_VALUE),
             );
+            if let Some(key) = auth.api_key() {
+                headers.insert(
+                    AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {key}"))
+                        .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
+                );
+            } else {
+                auth.apply_headers(&mut headers)?;
+            }
+        } else {
+            auth.apply_headers(&mut headers)?;
         }
-        auth.apply_headers(&mut headers)?;
         Ok(headers)
     }
 
