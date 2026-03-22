@@ -224,11 +224,7 @@ impl crate::providers::Provider for AzureProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![
-            ProviderFormat::ChatCompletions,
-            ProviderFormat::Responses,
-            ProviderFormat::Anthropic,
-        ]
+        vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
     }
 
     async fn complete(
@@ -484,16 +480,6 @@ mod tests {
             url.as_str(),
             "https://myorg.openai.azure.com/anthropic/v1/messages"
         );
-    }
-
-    #[test]
-    fn provider_formats_includes_anthropic() {
-        let provider = make_provider(HashMap::new());
-        let formats = provider.provider_formats();
-
-        assert!(formats.contains(&ProviderFormat::Anthropic));
-        assert!(formats.contains(&ProviderFormat::ChatCompletions));
-        assert!(formats.contains(&ProviderFormat::Responses));
     }
 
     #[test]
