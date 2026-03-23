@@ -1,4 +1,4 @@
-mod anthropic;
+pub(crate) mod anthropic;
 mod azure;
 mod bedrock;
 mod databricks;

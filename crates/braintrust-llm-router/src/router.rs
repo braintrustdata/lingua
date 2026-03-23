@@ -370,6 +370,10 @@ impl Router {
             && spec.requires_responses_api()
         {
             ProviderFormat::Responses
+        } else if provider.id() == "azure" && catalog_format == ProviderFormat::Anthropic {
+            // Anthropic on Azure only supports the messages format and isn’t
+            // interchangeable with other APIs.
+            ProviderFormat::Anthropic
         } else if output_format != catalog_format && provider_formats.contains(&output_format) {
             output_format
         } else {

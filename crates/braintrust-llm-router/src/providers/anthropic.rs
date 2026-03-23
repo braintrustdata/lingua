@@ -14,7 +14,8 @@ use crate::providers::ClientHeaders;
 use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
-const ANTHROPIC_VERSION: &str = "anthropic-version";
+pub const ANTHROPIC_VERSION: &str = "anthropic-version";
+pub const DEFAULT_ANTHROPIC_VERSION_VALUE: &str = "2023-06-01";
 const ANTHROPIC_BETA: &str = "anthropic-beta";
 const STRUCTURED_OUTPUTS_BETA: &str = "structured-outputs-2025-11-13";
 
