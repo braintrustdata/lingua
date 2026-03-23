@@ -595,13 +595,6 @@ fn try_parse_ai_sdk_output(data: &Value) -> Option<Vec<Message>> {
         return None;
     }
 
-    if let Some(steps) = obj.get("steps").and_then(|value| value.as_array()) {
-        let messages: Vec<Message> = steps.iter().filter_map(parse_step_message).collect();
-        if !messages.is_empty() {
-            return Some(messages);
-        }
-    }
-
     if let Some(response_messages) = obj.get("responseMessages") {
         if let Some(messages) = parse_message_sequence(response_messages) {
             return Some(messages);
@@ -614,6 +607,13 @@ fn try_parse_ai_sdk_output(data: &Value) -> Option<Vec<Message>> {
         .and_then(|response| response.get("messages"))
     {
         if let Some(messages) = parse_message_sequence(response_messages) {
+            return Some(messages);
+        }
+    }
+
+    if let Some(steps) = obj.get("steps").and_then(|value| value.as_array()) {
+        let messages: Vec<Message> = steps.iter().filter_map(parse_step_message).collect();
+        if !messages.is_empty() {
             return Some(messages);
         }
     }
@@ -694,5 +694,89 @@ mod tests {
 
         let messages = try_parse_ai_sdk_for_import(&input).expect("should parse input");
         assert_eq!(messages.len(), 1);
+    }
+
+    #[test]
+    fn prefers_response_messages_over_steps_when_tool_results_are_present() {
+        let output = crate::serde_json::json!({
+            "finishReason": "stop",
+            "response": {
+                "messages": [
+                    {
+                        "role": "assistant",
+                        "content": [
+                            {
+                                "type": "tool-call",
+                                "toolCallId": "call_storeA",
+                                "toolName": "get_store_price",
+                                "input": {
+                                    "item": "laptop",
+                                    "store": "StoreA"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "role": "tool",
+                        "content": [
+                            {
+                                "type": "tool-result",
+                                "toolCallId": "call_storeA",
+                                "toolName": "get_store_price",
+                                "output": {
+                                    "type": "text",
+                                    "value": "{\"price\":999}"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "role": "assistant",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "StoreA costs $999."
+                            }
+                        ]
+                    }
+                ]
+            },
+            "steps": [
+                {
+                    "content": [
+                        {
+                            "type": "tool-call",
+                            "toolCallId": "call_storeA",
+                            "toolName": "get_store_price",
+                            "input": {
+                                "item": "laptop",
+                                "store": "StoreA"
+                            }
+                        },
+                        {
+                            "type": "tool-result",
+                            "toolCallId": "call_storeA",
+                            "toolName": "get_store_price",
+                            "output": "{\"price\":999}"
+                        }
+                    ]
+                },
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "StoreA costs $999."
+                        }
+                    ]
+                }
+            ]
+        });
+
+        let messages = try_parse_ai_sdk_for_import(&output).expect("should parse output");
+
+        assert_eq!(messages.len(), 3);
+        assert!(matches!(messages[0], Message::Assistant { .. }));
+        assert!(matches!(messages[1], Message::Tool { .. }));
+        assert!(matches!(messages[2], Message::Assistant { .. }));
     }
 }

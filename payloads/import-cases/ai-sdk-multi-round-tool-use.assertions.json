@@ -1,10 +1,13 @@
 {
-  "expectedMessageCount": 5,
+  "_migrationNote": "When AI SDK output includes full response.messages alongside steps, lingua now imports the complete assistant/tool exchange from response.messages instead of collapsing each step to one assistant message.",
+  "expectedMessageCount": 7,
   "expectedRolesInOrder": [
     "system",
     "user",
     "assistant",
+    "tool",
     "assistant",
+    "tool",
     "assistant"
   ],
   "mustContainText": [
