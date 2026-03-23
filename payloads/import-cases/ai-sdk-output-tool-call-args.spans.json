@@ -1,0 +1,49 @@
+[
+  {
+    "input": {
+      "model": {
+        "config": {
+          "compatibility": "strict",
+          "provider": "openai.chat"
+        },
+        "modelId": "gpt-4o-mini",
+        "settings": {},
+        "specificationVersion": "v1"
+      },
+      "prompt": "What is the weather like in Paris, France?"
+    },
+    "output": {
+      "finishReason": "tool-calls",
+      "text": "",
+      "usage": {
+        "completionTokens": 16,
+        "promptTokens": 67,
+        "totalTokens": 83
+      },
+      "response": {
+        "id": "chatcmpl-123",
+        "messages": [
+          {
+            "content": [
+              {
+                "text": "",
+                "type": "text"
+              },
+              {
+                "args": {
+                  "location": "Paris, France"
+                },
+                "toolCallId": "call_AKkKdggr9xQCgB1Tc3rxTOV7",
+                "toolName": "get_weather",
+                "type": "tool-call"
+              }
+            ],
+            "role": "assistant"
+          }
+        ],
+        "modelId": "gpt-4o-mini-2024-07-18",
+        "timestamp": "2025-11-06T21:58:14Z"
+      }
+    }
+  }
+]

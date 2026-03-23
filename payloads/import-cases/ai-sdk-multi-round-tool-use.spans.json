@@ -1,0 +1,288 @@
+[
+  {
+    "input": {
+      "model": {
+        "config": {
+          "fileIdPrefixes": [
+            "file-"
+          ],
+          "provider": "openai.responses"
+        },
+        "modelId": "gpt-5-mini",
+        "specificationVersion": "v2"
+      },
+      "prompt": "I want to buy a laptop. Get the price from StoreA and StoreB, then apply SAVE20 to whichever is cheaper.",
+      "system": "You are a shopping assistant."
+    },
+    "output": {
+      "finishReason": "stop",
+      "response": {
+        "body": "<omitted>",
+        "headers": "<omitted>",
+        "id": "resp_final",
+        "messages": [
+          {
+            "content": [
+              {
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_1"
+                  }
+                },
+                "text": "",
+                "type": "reasoning"
+              },
+              {
+                "input": {
+                  "item": "laptop",
+                  "store": "StoreA"
+                },
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "fc_1"
+                  }
+                },
+                "toolCallId": "call_storeA",
+                "toolName": "get_store_price",
+                "type": "tool-call"
+              },
+              {
+                "input": {
+                  "item": "laptop",
+                  "store": "StoreB"
+                },
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "fc_2"
+                  }
+                },
+                "toolCallId": "call_storeB",
+                "toolName": "get_store_price",
+                "type": "tool-call"
+              }
+            ],
+            "role": "assistant"
+          },
+          {
+            "content": [
+              {
+                "output": {
+                  "type": "text",
+                  "value": "{\"store\":\"StoreA\",\"item\":\"laptop\",\"price\":999}"
+                },
+                "toolCallId": "call_storeA",
+                "toolName": "get_store_price",
+                "type": "tool-result"
+              },
+              {
+                "output": {
+                  "type": "text",
+                  "value": "{\"store\":\"StoreB\",\"item\":\"laptop\",\"price\":1099}"
+                },
+                "toolCallId": "call_storeB",
+                "toolName": "get_store_price",
+                "type": "tool-result"
+              }
+            ],
+            "role": "tool"
+          },
+          {
+            "content": [
+              {
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_2"
+                  }
+                },
+                "text": "",
+                "type": "reasoning"
+              },
+              {
+                "input": {
+                  "discountCode": "SAVE20",
+                  "total": 999
+                },
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "fc_3"
+                  }
+                },
+                "toolCallId": "call_discount",
+                "toolName": "apply_discount",
+                "type": "tool-call"
+              }
+            ],
+            "role": "assistant"
+          },
+          {
+            "content": [
+              {
+                "output": {
+                  "type": "text",
+                  "value": "{\"finalTotal\":799.2}"
+                },
+                "toolCallId": "call_discount",
+                "toolName": "apply_discount",
+                "type": "tool-result"
+              }
+            ],
+            "role": "tool"
+          },
+          {
+            "content": [
+              {
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_3"
+                  }
+                },
+                "text": "",
+                "type": "reasoning"
+              },
+              {
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_final"
+                  }
+                },
+                "text": "I checked both stores and applied SAVE20 to the cheaper one.",
+                "type": "text"
+              }
+            ],
+            "role": "assistant"
+          }
+        ],
+        "modelId": "gpt-5-mini-2025-08-07",
+        "timestamp": "2025-12-05T00:52:28.000Z"
+      },
+      "steps": [
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_1"
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "input": {
+                "item": "laptop",
+                "store": "StoreA"
+              },
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "fc_1"
+                }
+              },
+              "toolCallId": "call_storeA",
+              "toolName": "get_store_price",
+              "type": "tool-call"
+            },
+            {
+              "input": {
+                "item": "laptop",
+                "store": "StoreB"
+              },
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "fc_2"
+                }
+              },
+              "toolCallId": "call_storeB",
+              "toolName": "get_store_price",
+              "type": "tool-call"
+            },
+            {
+              "dynamic": false,
+              "input": {
+                "item": "laptop",
+                "store": "StoreA"
+              },
+              "output": "{\"store\":\"StoreA\",\"item\":\"laptop\",\"price\":999}",
+              "toolCallId": "call_storeA",
+              "toolName": "get_store_price",
+              "type": "tool-result"
+            },
+            {
+              "dynamic": false,
+              "input": {
+                "item": "laptop",
+                "store": "StoreB"
+              },
+              "output": "{\"store\":\"StoreB\",\"item\":\"laptop\",\"price\":1099}",
+              "toolCallId": "call_storeB",
+              "toolName": "get_store_price",
+              "type": "tool-result"
+            }
+          ],
+          "finishReason": "tool-calls"
+        },
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_2"
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "input": {
+                "discountCode": "SAVE20",
+                "total": 999
+              },
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "fc_3"
+                }
+              },
+              "toolCallId": "call_discount",
+              "toolName": "apply_discount",
+              "type": "tool-call"
+            },
+            {
+              "dynamic": false,
+              "input": {
+                "discountCode": "SAVE20",
+                "total": 999
+              },
+              "output": "{\"finalTotal\":799.2}",
+              "toolCallId": "call_discount",
+              "toolName": "apply_discount",
+              "type": "tool-result"
+            }
+          ],
+          "finishReason": "tool-calls"
+        },
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_3"
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "msg_final"
+                }
+              },
+              "text": "I checked both stores and applied SAVE20 to the cheaper one.",
+              "type": "text"
+            }
+          ],
+          "finishReason": "stop"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,68 @@
+[
+  {
+    "input": {
+      "headers": {
+        "user-agent": "ai/5.0.82"
+      },
+      "prompt": [
+        {
+          "content": [
+            {
+              "text": "What is the capital of France?",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        }
+      ]
+    },
+    "output": {
+      "content": [
+        {
+          "providerMetadata": {
+            "openai": {
+              "itemId": "rs_abc123",
+              "reasoningEncryptedContent": null
+            }
+          },
+          "text": "",
+          "type": "reasoning"
+        },
+        {
+          "providerMetadata": {
+            "openai": {
+              "itemId": "msg_def456"
+            }
+          },
+          "text": "The capital of France is Paris.",
+          "type": "text"
+        }
+      ],
+      "finishReason": "stop",
+      "providerMetadata": {
+        "openai": {
+          "responseId": "resp_xyz789",
+          "serviceTier": "default"
+        }
+      },
+      "request": {
+        "body": "<omitted>"
+      },
+      "response": {
+        "body": "<omitted>",
+        "headers": "<omitted>",
+        "id": "resp_xyz789",
+        "modelId": "gpt-5-mini-2025-08-07",
+        "timestamp": "2025-12-09T20:24:36Z"
+      },
+      "usage": {
+        "cachedInputTokens": 0,
+        "inputTokens": 13,
+        "outputTokens": 77,
+        "reasoningTokens": 64,
+        "totalTokens": 90
+      },
+      "warnings": []
+    }
+  }
+]

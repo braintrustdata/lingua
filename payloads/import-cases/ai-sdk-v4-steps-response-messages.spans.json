@@ -1,0 +1,67 @@
+[
+  {
+    "input": {
+      "model": {
+        "config": {
+          "compatibility": "strict",
+          "provider": "openai.chat"
+        },
+        "modelId": "gpt-5-mini",
+        "settings": {},
+        "specificationVersion": "v1"
+      },
+      "prompt": "What is the capital of France?"
+    },
+    "output": {
+      "finishReason": "stop",
+      "response": {
+        "body": "<omitted>",
+        "headers": "<omitted>",
+        "id": "chatcmpl-CWRNtMzsFrOmhGe248mvx8Sukm1en",
+        "messages": [
+          {
+            "content": [
+              {
+                "text": "The capital of France is Paris.",
+                "type": "text"
+              }
+            ],
+            "id": "msg-Zux5RWKZjvcfai7X7ItNrxzs",
+            "role": "assistant"
+          }
+        ],
+        "modelId": "gpt-5-mini-2025-08-07",
+        "timestamp": "2025-10-30T18:09:57Z"
+      },
+      "steps": [
+        {
+          "finishReason": "stop",
+          "response": {
+            "body": "<omitted>",
+            "headers": "<omitted>",
+            "id": "chatcmpl-CWRNtMzsFrOmhGe248mvx8Sukm1en",
+            "messages": [
+              {
+                "content": [
+                  {
+                    "text": "The capital of France is Paris.",
+                    "type": "text"
+                  }
+                ],
+                "id": "msg-Zux5RWKZjvcfai7X7ItNrxzs",
+                "role": "assistant"
+              }
+            ],
+            "modelId": "gpt-5-mini-2025-08-07",
+            "timestamp": "2025-10-30T18:09:57Z"
+          },
+          "stepType": "initial",
+          "text": "The capital of France is Paris.",
+          "toolCalls": [],
+          "toolResults": []
+        }
+      ],
+      "text": "The capital of France is Paris."
+    }
+  }
+]

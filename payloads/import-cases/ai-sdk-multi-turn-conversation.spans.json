@@ -1,0 +1,38 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "content": "Hi, my name is Alice.",
+          "role": "user"
+        },
+        {
+          "content": "Hello Alice! Nice to meet you.",
+          "role": "assistant"
+        },
+        {
+          "content": "What did I just tell you my name was?",
+          "role": "user"
+        }
+      ],
+      "model": {
+        "modelId": "gpt-5-mini"
+      }
+    },
+    "output": {
+      "finishReason": "stop",
+      "text": "You said your name was Alice.",
+      "steps": [
+        {
+          "content": [
+            {
+              "type": "text",
+              "text": "You said your name was Alice."
+            }
+          ],
+          "finishReason": "stop"
+        }
+      ]
+    }
+  }
+]

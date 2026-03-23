@@ -1,0 +1,12 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "Generate a product description for a wireless bluetooth headphone.",
+    "PulseWave Pro Wireless Bluetooth Headphones",
+    "129.99"
+  ]
+}

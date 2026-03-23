@@ -1,0 +1,46 @@
+[
+  {
+    "input": {
+      "model": {
+        "config": {
+          "compatibility": "strict",
+          "provider": "openai.chat"
+        },
+        "modelId": "gpt-4o-mini",
+        "settings": {},
+        "specificationVersion": "v1"
+      },
+      "prompt": "What is the capital of France?"
+    },
+    "output": {
+      "experimental_providerMetadata": {
+        "openai": {
+          "reasoningTokens": 0
+        }
+      },
+      "finishReason": "stop",
+      "responseMessages": [
+        {
+          "content": [
+            {
+              "text": "The capital of France is Paris.",
+              "type": "text"
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "text": "The capital of France is Paris.",
+      "toolCalls": [],
+      "toolResults": [],
+      "usage": {
+        "completionTokens": 7,
+        "promptTokens": 14,
+        "totalTokens": 21
+      },
+      "response": {
+        "headers": "<omitted>"
+      }
+    }
+  }
+]

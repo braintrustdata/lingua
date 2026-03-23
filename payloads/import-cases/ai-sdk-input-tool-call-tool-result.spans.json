@@ -1,0 +1,84 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "san francisco",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        },
+        {
+          "content": [
+            {
+              "input": {
+                "city": "San Francisco"
+              },
+              "toolCallId": "call_L4wEm2JTUcTOxY6bQL8gh0bs",
+              "toolName": "getWeatherInformation",
+              "type": "tool-call"
+            }
+          ],
+          "role": "assistant"
+        },
+        {
+          "content": [
+            {
+              "output": {
+                "type": "json",
+                "value": {
+                  "temperature": 31,
+                  "weather": "snowy"
+                }
+              },
+              "toolCallId": "call_L4wEm2JTUcTOxY6bQL8gh0bs",
+              "toolName": "getWeatherInformation",
+              "type": "tool-result"
+            }
+          ],
+          "role": "tool"
+        }
+      ],
+      "model": {
+        "config": {
+          "fileIdPrefixes": [
+            "file-"
+          ],
+          "provider": "openai.responses"
+        },
+        "modelId": "gpt-4o",
+        "specificationVersion": "v3"
+      },
+      "system": "You are a helpful assistant that answers questions about the weather."
+    },
+    "output": {
+      "content": [
+        {
+          "input": {
+            "city": "San Francisco",
+            "temperature": 31,
+            "weather": "snowy"
+          },
+          "toolCallId": "call_L5lIDyA1Vvtkx898dcUrbkoH",
+          "toolName": "showWeatherInformation",
+          "type": "tool-call"
+        }
+      ],
+      "text": "",
+      "finishReason": "tool-calls",
+      "usage": {
+        "inputTokens": 187,
+        "outputTokens": 70,
+        "totalTokens": 257
+      },
+      "response": {
+        "id": "resp_456",
+        "modelId": "gpt-4o-2024-08-06",
+        "timestamp": "2025-11-06T21:34:35Z"
+      }
+    }
+  }
+]
