@@ -21,6 +21,7 @@ pub use vertex::{VertexConfig, VertexProvider};
 
 use async_trait::async_trait;
 use bytes::Bytes;
+use lingua::serde_json::{self, Value};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -119,6 +120,25 @@ impl FromIterator<(String, String)> for ClientHeaders {
     }
 }
 
+pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
+    let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
+        return payload;
+    };
+    let Some(object) = value.as_object_mut() else {
+        return payload;
+    };
+
+    let changed = object.remove("stream").is_some() | object.remove("stream_options").is_some();
+    if !changed {
+        return payload;
+    }
+
+    match serde_json::to_vec(&value) {
+        Ok(serialized) => Bytes::from(serialized),
+        Err(_) => payload,
+    }
+}
+
 /// Provider trait for LLM API backends.
 ///
 /// Implementations should be `Send + Sync` to allow concurrent access.
@@ -175,6 +195,21 @@ pub trait Provider: Send + Sync {
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream>;
 
+    async fn complete_stream_via_complete(
+        &self,
+        payload: Bytes,
+        auth: &AuthConfig,
+        spec: &ModelSpec,
+        format: ProviderFormat,
+        client_headers: &ClientHeaders,
+    ) -> Result<RawResponseStream> {
+        let payload = disable_streaming_payload(payload);
+        let response = self
+            .complete(payload, auth, spec, format, client_headers)
+            .await?;
+        Ok(crate::streaming::single_bytes_stream(response))
+    }
+
     /// Check if the provider is reachable.
     async fn health_check(&self, auth: &AuthConfig) -> Result<()>;
 
@@ -190,5 +225,36 @@ pub trait Provider: Send + Sync {
 impl dyn Provider {
     pub fn arc(self: Arc<Self>) -> Arc<dyn Provider> {
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn disable_streaming_payload_removes_stream_fields() {
+        let payload = Bytes::from_static(
+            br#"{"model":"gpt-5-mini","stream":true,"stream_options":{"include_usage":true},"messages":[]}"#,
+        );
+
+        let sanitized = disable_streaming_payload(payload);
+        let value: Value = serde_json::from_slice(&sanitized).unwrap();
+
+        assert_eq!(value.get("stream"), None);
+        assert_eq!(value.get("stream_options"), None);
+        assert_eq!(
+            value.get("model").and_then(Value::as_str),
+            Some("gpt-5-mini")
+        );
+    }
+
+    #[test]
+    fn disable_streaming_payload_leaves_non_json_unchanged() {
+        let payload = Bytes::from_static(b"not-json");
+
+        let sanitized = disable_streaming_payload(payload.clone());
+
+        assert_eq!(sanitized, payload);
     }
 }
