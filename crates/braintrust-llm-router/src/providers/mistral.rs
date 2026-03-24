@@ -3,7 +3,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use bytes::Bytes;
 use reqwest::header::HeaderMap;
-use reqwest::{StatusCode, Url};
+use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
@@ -73,14 +73,6 @@ impl MistralProvider {
     }
 }
 
-fn extract_retry_after(status: StatusCode) -> Option<Duration> {
-    if status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error() {
-        Some(Duration::from_secs(2))
-    } else {
-        None
-    }
-}
-
 #[async_trait]
 impl crate::providers::Provider for MistralProvider {
     fn id(&self) -> &'static str {
@@ -128,7 +120,7 @@ impl crate::providers::Provider for MistralProvider {
             return Err(Error::Provider {
                 provider: "mistral".to_string(),
                 source: anyhow::anyhow!("HTTP {status}: {text}"),
-                retry_after: extract_retry_after(status),
+                retry_after: None,
                 http: Some(UpstreamHttpError::new(
                     status.as_u16(),
                     headers,
@@ -183,7 +175,7 @@ impl crate::providers::Provider for MistralProvider {
             return Err(Error::Provider {
                 provider: "mistral".to_string(),
                 source: anyhow::anyhow!("HTTP {status}: {text}"),
-                retry_after: extract_retry_after(status),
+                retry_after: None,
                 http: Some(UpstreamHttpError::new(
                     status.as_u16(),
                     headers,

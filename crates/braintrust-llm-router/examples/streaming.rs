@@ -60,7 +60,7 @@ async fn main() -> Result<()> {
     });
 
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let mut stream: ResponseStream = router
+    let routed_stream = router
         .complete_stream(
             body,
             model,
@@ -68,6 +68,8 @@ async fn main() -> Result<()> {
             &ClientHeaders::default(),
         )
         .await?;
+    println!("Provider alias: {}", routed_stream.provider_alias);
+    let mut stream: ResponseStream = routed_stream.output;
 
     // Process the stream
     let mut full_response = String::new();
@@ -139,7 +141,7 @@ async fn main() -> Result<()> {
             "stream": true
         });
         let body = Bytes::from(serde_json::to_vec(&payload)?);
-        let stream = router
+        let routed_stream = router
             .complete_stream(
                 body,
                 model,
@@ -147,7 +149,7 @@ async fn main() -> Result<()> {
                 &ClientHeaders::default(),
             )
             .await?;
-        streams.push((model.to_string(), stream));
+        streams.push((model.to_string(), routed_stream.output));
     }
 
     // Collect responses

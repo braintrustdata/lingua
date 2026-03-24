@@ -143,7 +143,8 @@ async fn main() -> Result<()> {
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
-        .await?;
+        .await?
+        .output;
     let response: Value = serde_json::from_slice(&bytes)?;
 
     if let Some(text) = extract_assistant_text(&response) {

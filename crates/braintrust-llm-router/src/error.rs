@@ -98,10 +98,15 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn is_retryable(&self) -> bool {
+    pub fn is_fallbackable(&self) -> bool {
         matches!(self, Error::Http(err) if err.is_timeout() || err.is_connect() || err.is_request() || err.status().map(|c| c.is_server_error()).unwrap_or(false))
+            || matches!(self, Error::Provider { http: Some(http), .. } if matches!(http.status, 404 | 429 | 500..=599))
             || matches!(self, Error::Provider { retry_after, .. } if retry_after.is_some())
             || matches!(self, Error::Timeout)
+    }
+
+    pub fn is_retryable(&self) -> bool {
+        self.is_fallbackable()
     }
 
     pub fn retry_after(&self) -> Option<Duration> {
