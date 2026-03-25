@@ -3,7 +3,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{StatusCode, Url};
+use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
@@ -150,7 +150,7 @@ impl crate::providers::Provider for AnthropicProvider {
             return Err(Error::Provider {
                 provider: "anthropic".to_string(),
                 source: anyhow::anyhow!("HTTP {status}: {text}"),
-                retry_after: extract_retry_after(status, &text),
+                retry_after: None,
                 http: Some(UpstreamHttpError::new(
                     status.as_u16(),
                     headers,
@@ -204,7 +204,7 @@ impl crate::providers::Provider for AnthropicProvider {
             return Err(Error::Provider {
                 provider: "anthropic".to_string(),
                 source: anyhow::anyhow!("HTTP {status}: {text}"),
-                retry_after: extract_retry_after(status, &text),
+                retry_after: None,
                 http: Some(UpstreamHttpError::new(
                     status.as_u16(),
                     headers,
@@ -237,13 +237,5 @@ impl crate::providers::Provider for AnthropicProvider {
                 http: None,
             })
         }
-    }
-}
-
-fn extract_retry_after(status: StatusCode, _body: &str) -> Option<Duration> {
-    if status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error() {
-        Some(Duration::from_secs(2))
-    } else {
-        None
     }
 }
