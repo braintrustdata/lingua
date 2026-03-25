@@ -285,16 +285,6 @@ impl Router {
             .filter_map(|r| match r {
                 Ok(s) => Some(s),
                 Err(e) => {
-                    #[cfg(feature = "tracing")]
-                    tracing::warn!(
-                        model = %model,
-                        output_format = ?output_format,
-                        all_aliases = ?aliases,
-                        spec = ?spec,
-                        catalog_format = ?catalog_format,
-                        error = %e,
-                        "error resolving provider, falling back to next alias",
-                    );
                     if first_error.is_none() {
                         first_error = Some(e);
                     }
@@ -302,6 +292,20 @@ impl Router {
                 }
             })
             .collect();
+        #[cfg(feature = "tracing")]
+        if let Some(error) = first_error.as_ref() {
+            if successes.is_empty() {
+                tracing::warn!(
+                    model = %model,
+                    output_format = ?output_format,
+                    all_aliases = ?aliases,
+                    spec = ?spec,
+                    catalog_format = ?catalog_format,
+                    error = %error,
+                    "failed to resolve any provider aliases",
+                );
+            }
+        }
         if successes.is_empty() {
             if let Some(fallback_alias) = self.formats.get(&catalog_format).cloned() {
                 match self.resolve_provider(
