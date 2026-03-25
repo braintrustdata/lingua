@@ -11,7 +11,7 @@ use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
+use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
 #[derive(Debug, Clone)]
@@ -126,10 +126,9 @@ impl crate::providers::Provider for DatabricksProvider {
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self
-                .complete(payload, auth, spec, format, client_headers)
-                .await?;
-            return Ok(single_bytes_stream(response));
+            return self
+                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
+                .await;
         }
 
         let url = self.serving_url(&spec.model)?;

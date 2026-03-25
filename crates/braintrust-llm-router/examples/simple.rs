@@ -68,8 +68,7 @@ async fn main() -> Result<()> {
             ProviderFormat::ChatCompletions,
             &ClientHeaders::default(),
         )
-        .await?
-        .output;
+        .await?;
     let response: Value = serde_json::from_slice(&bytes)?;
 
     println!("📝 Response:\n");

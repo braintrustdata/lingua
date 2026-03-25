@@ -1,0 +1,105 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "image",
+              "image": {
+                "content_type": "image/png",
+                "filename": "image.png",
+                "key": "46656076-e2a8-4987-91c7-b0ea5b314b4b",
+                "type": "braintrust_attachment"
+              }
+            },
+            {
+              "type": "text",
+              "text": "What color is this image?"
+            }
+          ]
+        }
+      ],
+      "model": {
+        "config": {
+          "fileIdPrefixes": [
+            "file-"
+          ],
+          "provider": "openai.responses"
+        },
+        "modelId": "gpt-5-mini",
+        "specificationVersion": "v2"
+      }
+    },
+    "output": {
+      "finishReason": "stop",
+      "response": {
+        "body": "<omitted>",
+        "headers": "<omitted>",
+        "id": "resp_123",
+        "messages": [
+          {
+            "content": [
+              {
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_123",
+                    "reasoningEncryptedContent": null
+                  }
+                },
+                "text": "",
+                "type": "reasoning"
+              },
+              {
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_456"
+                  }
+                },
+                "text": "Predominantly blue with gray highlights from the storm clouds.",
+                "type": "text"
+              }
+            ],
+            "role": "assistant"
+          }
+        ],
+        "modelId": "gpt-5-mini-2025-08-07",
+        "timestamp": "2025-10-28T19:48:40Z"
+      },
+      "steps": [
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_123",
+                  "reasoningEncryptedContent": null
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "msg_456"
+                }
+              },
+              "text": "Predominantly blue with gray highlights from the storm clouds.",
+              "type": "text"
+            }
+          ],
+          "finishReason": "stop",
+          "request": {
+            "body": "<omitted>"
+          },
+          "response": {
+            "body": "<omitted>"
+          }
+        }
+      ],
+      "text": "Predominantly blue with gray highlights from the storm clouds."
+    }
+  }
+]

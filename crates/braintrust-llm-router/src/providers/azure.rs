@@ -13,7 +13,7 @@ use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::anthropic::{ANTHROPIC_VERSION, DEFAULT_ANTHROPIC_VERSION_VALUE};
 use crate::providers::{ClientHeaders, Provider};
-use crate::streaming::{single_bytes_stream, sse_stream, RawResponseStream};
+use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
 #[derive(Debug, Clone)]
@@ -283,10 +283,9 @@ impl crate::providers::Provider for AzureProvider {
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self
-                .complete(payload, auth, spec, format, client_headers)
-                .await?;
-            return Ok(single_bytes_stream(response));
+            return self
+                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
+                .await;
         }
 
         // Router should have already added stream options to payload
@@ -360,6 +359,7 @@ fn normalize_deployment(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::disable_streaming_payload;
     use crate::serde_json::{self, json};
     use std::collections::HashMap;
 
@@ -538,5 +538,29 @@ mod tests {
             .unwrap();
 
         assert_eq!(result, payload);
+    }
+
+    #[test]
+    fn responses_payload_strips_stream_fields_before_prepare() {
+        let provider = make_provider(HashMap::new());
+        let payload = Bytes::from(
+            serde_json::to_vec(&json!({
+                "model": "placeholder",
+                "input": "hi",
+                "stream": true,
+                "stream_options": {"include_usage": true}
+            }))
+            .unwrap(),
+        );
+
+        let payload = disable_streaming_payload(payload);
+        let payload = provider
+            .prepare_payload(payload, "gpt-4o", ProviderFormat::Responses)
+            .unwrap();
+        let json: crate::serde_json::Value = serde_json::from_slice(&payload).unwrap();
+
+        assert_eq!(json.get("model").and_then(|v| v.as_str()), Some("gpt-4o"));
+        assert_eq!(json.get("stream"), None);
+        assert_eq!(json.get("stream_options"), None);
     }
 }

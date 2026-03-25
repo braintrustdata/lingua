@@ -1,0 +1,16 @@
+{
+  "expectedMessageCount": 5,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "assistant",
+    "tool",
+    "assistant"
+  ],
+  "mustContainText": [
+    "san francisco",
+    "getWeatherInformation",
+    "snowy",
+    "showWeatherInformation"
+  ]
+}

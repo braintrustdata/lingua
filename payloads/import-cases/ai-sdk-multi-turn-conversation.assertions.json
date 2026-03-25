@@ -1,0 +1,13 @@
+{
+  "expectedMessageCount": 4,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant",
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "Alice",
+    "You said your name was Alice."
+  ]
+}

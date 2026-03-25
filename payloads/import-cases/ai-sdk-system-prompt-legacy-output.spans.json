@@ -1,0 +1,26 @@
+[
+  {
+    "input": {
+      "system": "You are a helpful assistant.",
+      "prompt": "Hello!"
+    },
+    "output": {
+      "content": [
+        {
+          "type": "text",
+          "text": "I'm doing well, thank you!"
+        }
+      ],
+      "text": "I'm doing well, thank you!",
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 10,
+        "outputTokens": 8,
+        "totalTokens": 18
+      },
+      "response": {
+        "body": "<omitted>"
+      }
+    }
+  }
+]

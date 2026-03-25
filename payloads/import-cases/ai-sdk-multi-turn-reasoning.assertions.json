@@ -1,0 +1,15 @@
+{
+  "expectedMessageCount": 4,
+  "expectedRolesInOrder": [
+    "user",
+    "assistant",
+    "user",
+    "assistant"
+  ],
+  "mustContainText": [
+    "product of two consecutive integers",
+    "Using the pattern you discovered",
+    "The 10th term is 110.",
+    "Calculating the sequence values"
+  ]
+}

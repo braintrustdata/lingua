@@ -1,0 +1,115 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "content": [
+            {
+              "data": {
+                "content_type": "application/pdf",
+                "filename": "test-document.pdf",
+                "key": "2b53b3a9-8cb3-47d2-b313-88acb77e7295",
+                "type": "braintrust_attachment"
+              },
+              "filename": "test-document.pdf",
+              "mediaType": "application/pdf",
+              "type": "file"
+            },
+            {
+              "text": "What is in this document?",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "model": {
+        "config": {
+          "fileIdPrefixes": [
+            "file-"
+          ],
+          "provider": "openai.responses"
+        },
+        "modelId": "gpt-5-mini",
+        "specificationVersion": "v2",
+        "supportedUrls": {
+          "application/pdf": [
+            {}
+          ],
+          "image/*": [
+            {}
+          ]
+        }
+      }
+    },
+    "output": {
+      "finishReason": "stop",
+      "response": {
+        "body": "<omitted>",
+        "headers": "<omitted>",
+        "id": "resp_05eae0865040ea46006901482afa988194bb6664959f571fe4",
+        "messages": [
+          {
+            "content": [
+              {
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "rs_05eae0865040ea46006901482bb81c8194adc4b7d43d264e2f",
+                    "reasoningEncryptedContent": null
+                  }
+                },
+                "text": "",
+                "type": "reasoning"
+              },
+              {
+                "providerOptions": {
+                  "openai": {
+                    "itemId": "msg_05eae0865040ea46006901482eccdc8194baee4fe5bd57feb3"
+                  }
+                },
+                "text": "The document is very short and contains two sentences.",
+                "type": "text"
+              }
+            ],
+            "role": "assistant"
+          }
+        ],
+        "modelId": "gpt-5-mini-2025-08-07",
+        "timestamp": "2025-10-28T22:48:11Z"
+      },
+      "steps": [
+        {
+          "content": [
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "rs_05eae0865040ea46006901482bb81c8194adc4b7d43d264e2f",
+                  "reasoningEncryptedContent": null
+                }
+              },
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "providerMetadata": {
+                "openai": {
+                  "itemId": "msg_05eae0865040ea46006901482eccdc8194baee4fe5bd57feb3"
+                }
+              },
+              "text": "The document is very short and contains two sentences.",
+              "type": "text"
+            }
+          ],
+          "finishReason": "stop",
+          "request": {
+            "body": "<omitted>"
+          },
+          "response": {
+            "body": "<omitted>"
+          }
+        }
+      ],
+      "text": "The document is very short and contains two sentences."
+    }
+  }
+]

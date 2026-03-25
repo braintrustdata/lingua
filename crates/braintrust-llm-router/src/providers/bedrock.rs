@@ -19,7 +19,7 @@ use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{bedrock_event_stream, single_bytes_stream, RawResponseStream};
+use crate::streaming::{bedrock_event_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
 #[derive(Debug, Clone)]
@@ -292,10 +292,9 @@ impl crate::providers::Provider for BedrockProvider {
         client_headers: &ClientHeaders,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
-            let response = self
-                .complete(payload, auth, spec, format, client_headers)
-                .await?;
-            return Ok(single_bytes_stream(response));
+            return self
+                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
+                .await;
         }
 
         let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);

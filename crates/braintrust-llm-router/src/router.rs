@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::future::Future;
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::time::sleep;
 
 #[cfg(feature = "tracing")]
 use tracing::Instrument;
@@ -12,7 +12,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::{load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec};
 use crate::error::{Error, Result};
 use crate::providers::{ClientHeaders, Provider};
-use crate::retry::RetryPolicy;
+use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_stream, ResponseStream};
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
@@ -21,7 +21,6 @@ use lingua::{TransformError, TransformResult};
 // Re-export for convenience in dependent crates
 pub use lingua::{extract_request_hints, RequestHints};
 use reqwest::Url;
-use thiserror::Error;
 
 use crate::providers::{
     is_openai_compatible, AnthropicProvider, AzureProvider, BedrockProvider, DatabricksProvider,
@@ -105,38 +104,8 @@ type ResolvedRoute<'a> = (
     &'a AuthConfig,
     Arc<ModelSpec>,
     ProviderFormat,
+    RetryStrategy,
 );
-
-#[derive(Debug, Clone)]
-pub struct RoutedResponse<T> {
-    pub output: T,
-    pub provider_alias: String,
-    pub attempted_aliases: Vec<String>,
-}
-
-#[derive(Debug, Error)]
-#[error("{source}")]
-pub struct RoutedError {
-    source: Error,
-    attempted_aliases: Vec<String>,
-}
-
-impl RoutedError {
-    pub fn new(source: Error, attempted_aliases: Vec<String>) -> Self {
-        Self {
-            source,
-            attempted_aliases,
-        }
-    }
-
-    pub fn attempted_aliases(&self) -> &[String] {
-        &self.attempted_aliases
-    }
-
-    pub fn into_parts(self) -> (Error, Vec<String>) {
-        (self.source, self.attempted_aliases)
-    }
-}
 
 pub struct Router {
     catalog: Arc<ModelCatalog>,
@@ -144,8 +113,6 @@ pub struct Router {
     providers: HashMap<String, Arc<dyn Provider>>, // alias -> provider
     auth_configs: HashMap<String, AuthConfig>,     // alias -> auth
     formats: HashMap<ProviderFormat, String>,      // format -> default alias
-    #[allow(dead_code)]
-    // TODO: Add a configurable retry policy for users to configure via headers.
     retry_policy: RetryPolicy,
 }
 
@@ -183,27 +150,40 @@ impl Router {
         model: &str,
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> std::result::Result<RoutedResponse<Bytes>, RoutedError> {
-        self.execute_with_route_fallback(
-            body,
-            model,
-            output_format,
-            client_headers,
-            move |provider, alias, auth, spec, format, payload, client_headers| async move {
-                let response_bytes = self
-                    .execute_provider_attempt(provider, &alias, |provider| async move {
-                        provider
-                            .complete(payload, &auth, &spec, format, &client_headers)
-                            .await
-                    })
-                    .await?;
-                match lingua::transform_response(response_bytes, output_format)? {
-                    TransformResult::PassThrough(bytes) => Ok(bytes),
-                    TransformResult::Transformed { bytes, .. } => Ok(bytes),
-                }
-            },
-        )
-        .await
+    ) -> Result<Bytes> {
+        let routes = self.resolve_providers(model, output_format)?;
+        // Choose the first provider
+        let route = routes
+            .first()
+            .ok_or_else(|| Error::NoProvider(output_format))?;
+        let (_, provider, auth, spec, format, strategy) = route;
+        let payload = match lingua::transform_request(body.clone(), *format, Some(&spec.model)) {
+            Ok(TransformResult::PassThrough(bytes)) => bytes,
+            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
+            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
+            Err(e) => return Err(e.into()),
+        };
+
+        let response_bytes = self
+            .execute_with_retry(
+                provider.clone(),
+                auth,
+                spec.clone(),
+                *format,
+                payload,
+                strategy.clone(),
+                client_headers,
+            )
+            .await?;
+
+        let result = lingua::transform_response(response_bytes.clone(), output_format)?;
+
+        let response = match result {
+            TransformResult::PassThrough(bytes) => bytes,
+            TransformResult::Transformed { bytes, .. } => bytes,
+        };
+
+        Ok(response)
     }
 
     /// Execute a streaming completion request with the given body bytes.
@@ -231,23 +211,25 @@ impl Router {
         model: &str,
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> std::result::Result<RoutedResponse<ResponseStream>, RoutedError> {
-        self.execute_with_route_fallback(
-            body,
-            model,
-            output_format,
-            client_headers,
-            move |provider, alias, auth, spec, format, payload, client_headers| async move {
-                self.execute_provider_attempt(provider, &alias, |provider| async move {
-                    provider
-                        .complete_stream(payload, &auth, &spec, format, &client_headers)
-                        .await
-                })
-                .await
-                .map(|raw_stream| transform_stream(raw_stream, output_format))
-            },
-        )
-        .await
+    ) -> Result<ResponseStream> {
+        let routes = self.resolve_providers(model, output_format)?;
+        let route = routes
+            .first()
+            .ok_or_else(|| Error::NoProvider(output_format))?;
+        let (_, provider, auth, spec, format, _) = route;
+        let payload = match lingua::transform_request(body.clone(), *format, Some(&spec.model)) {
+            Ok(TransformResult::PassThrough(bytes)) => bytes,
+            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
+            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
+            Err(e) => return Err(e.into()),
+        };
+
+        let raw_stream = provider
+            .clone()
+            .complete_stream(payload, auth, spec.as_ref(), *format, client_headers)
+            .await?;
+
+        Ok(transform_stream(raw_stream, output_format))
     }
 
     /// Get the aliases of the providers that can handle the given model and output format.
@@ -401,171 +383,72 @@ impl Router {
             .auth_configs
             .get(&alias)
             .ok_or_else(|| Error::NoAuth(alias.clone()))?;
-        Ok((alias, provider, auth, spec, format))
-    }
-
-    fn prepare_payload(
-        &self,
-        body: Bytes,
-        format: ProviderFormat,
-        spec: &ModelSpec,
-    ) -> Result<Bytes> {
-        match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => Ok(bytes),
-            Ok(TransformResult::Transformed { bytes, .. }) => Ok(bytes),
-            Err(TransformError::UnsupportedTargetFormat(_)) => Ok(body),
-            Err(e) => Err(e.into()),
-        }
-    }
-
-    async fn execute_with_route_fallback<T, F, Fut>(
-        &self,
-        body: Bytes,
-        model: &str,
-        output_format: ProviderFormat,
-        client_headers: &ClientHeaders,
-        mut operation: F,
-    ) -> std::result::Result<RoutedResponse<T>, RoutedError>
-    where
-        F: FnMut(
-            Arc<dyn Provider>,
-            String,
-            AuthConfig,
-            Arc<ModelSpec>,
-            ProviderFormat,
-            Bytes,
-            ClientHeaders,
-        ) -> Fut,
-        Fut: Future<Output = Result<T>>,
-    {
-        let routes = self
-            .resolve_providers(model, output_format)
-            .map_err(|err| RoutedError::new(err, vec![]))?;
-        let mut attempted_aliases = Vec::new();
-        let route_count = routes.len();
-        let mut routes_iter = routes.into_iter().peekable();
-        let mut index = 0;
-
-        while let Some((alias, provider, auth, spec, format)) = routes_iter.next() {
-            let payload = self
-                .prepare_payload(body.clone(), format, &spec)
-                .map_err(|err| RoutedError::new(err, attempted_aliases.clone()))?;
-            attempted_aliases.push(alias.clone());
-
-            match operation(
-                provider.clone(),
-                alias.clone(),
-                auth.clone(),
-                spec.clone(),
-                format,
-                payload,
-                client_headers.clone(),
-            )
-            .await
-            {
-                Ok(output) => {
-                    return Ok(RoutedResponse {
-                        output,
-                        provider_alias: alias,
-                        attempted_aliases,
-                    });
-                }
-                Err(err) => {
-                    let fallbackable = err.is_fallbackable();
-                    self.log_route_error(
-                        provider.as_ref(),
-                        &alias,
-                        index,
-                        route_count,
-                        &err,
-                        fallbackable,
-                    );
-                    if !fallbackable || routes_iter.peek().is_none() {
-                        return Err(RoutedError::new(err, attempted_aliases));
-                    }
-                    #[cfg(feature = "tracing")]
-                    if let Some(next_route) = routes_iter.peek() {
-                        tracing::info!(
-                            bt.from_alias = %alias,
-                            bt.to_alias = %next_route.0,
-                            bt.attempt_index = index + 1,
-                            bt.attempt_count = route_count,
-                            "falling back to next provider alias"
-                        );
-                    }
-                }
-            }
-            index += 1;
-        }
-
-        Err(RoutedError::new(
-            Error::NoProvider(output_format),
-            attempted_aliases,
-        ))
+        let strategy = self.retry_policy.strategy();
+        Ok((alias, provider, auth, spec, format, strategy))
     }
 
     #[allow(clippy::too_many_arguments)]
-    async fn execute_provider_attempt<T, F, Fut>(
+    async fn execute_with_retry(
         &self,
         provider: Arc<dyn Provider>,
-        alias: &str,
-        operation: F,
-    ) -> Result<T>
-    where
-        F: FnOnce(Arc<dyn Provider>) -> Fut,
-        Fut: Future<Output = Result<T>>,
-    {
-        #[cfg(not(feature = "tracing"))]
-        let _ = alias;
-
+        auth: &AuthConfig,
+        spec: Arc<ModelSpec>,
+        format: ProviderFormat,
+        payload: Bytes,
+        mut strategy: RetryStrategy,
+        client_headers: &ClientHeaders,
+    ) -> Result<Bytes> {
         #[cfg(feature = "tracing")]
-        let result = {
-            let span = tracing::info_span!(
-                "bt.router.provider.attempt",
-                llm.provider = %provider.id(),
-                bt.provider_alias = %alias,
-                http.url = tracing::field::Empty,
-                http.status_code = tracing::field::Empty,
-            );
-            async { operation(provider).await }.instrument(span).await
-        };
+        let mut attempt = 0u32;
 
-        #[cfg(not(feature = "tracing"))]
-        let result = operation(provider).await;
+        loop {
+            #[cfg(feature = "tracing")]
+            {
+                attempt += 1;
+            }
 
-        result
-    }
+            #[cfg(feature = "tracing")]
+            let result = {
+                let span = tracing::info_span!(
+                    "bt.router.provider.attempt",
+                    llm.provider = %provider.id(),
+                    attempt = attempt,
+                    http.url = tracing::field::Empty,
+                    http.status_code = tracing::field::Empty,
+                );
+                async {
+                    provider
+                        .complete(payload.clone(), auth, &spec, format, client_headers)
+                        .await
+                }
+                .instrument(span)
+                .await
+            };
 
-    fn log_route_error(
-        &self,
-        provider: &dyn Provider,
-        alias: &str,
-        attempt_index: usize,
-        attempt_count: usize,
-        err: &Error,
-        fallbackable: bool,
-    ) {
-        #[cfg(not(feature = "tracing"))]
-        let _ = (
-            provider,
-            alias,
-            attempt_index,
-            attempt_count,
-            err,
-            fallbackable,
-        );
+            #[cfg(not(feature = "tracing"))]
+            let result = provider
+                .complete(payload.clone(), auth, &spec, format, client_headers)
+                .await;
 
-        #[cfg(feature = "tracing")]
-        {
-            tracing::info!(
-                llm.provider = %provider.id(),
-                bt.provider_alias = %alias,
-                bt.attempt_index = attempt_index + 1,
-                bt.attempt_count = attempt_count,
-                bt.fallbackable = fallbackable,
-                error = %err,
-                "provider attempt failed"
-            );
+            match result {
+                Ok(response) => return Ok(response),
+                Err(err) => {
+                    if let Some(delay) = strategy.next_delay(&err) {
+                        #[cfg(feature = "tracing")]
+                        tracing::info!(
+                            llm.provider = %provider.id(),
+                            attempt = attempt,
+                            delay_ms = delay.as_millis() as u64,
+                            error = %err,
+                            "retrying after delay"
+                        );
+                        sleep(delay).await;
+                        continue;
+                    } else {
+                        return Err(err);
+                    }
+                }
+            }
         }
     }
 }
@@ -915,7 +798,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format) = routes[0];
+        let (_, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::Responses);
     }
 
@@ -942,7 +825,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format) = routes[0];
+        let (_, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::Responses);
     }
 
@@ -969,7 +852,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format) = routes[0];
+        let (_, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
     }
 
@@ -996,7 +879,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format) = routes[0];
+        let (_, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
     }
 
@@ -1023,7 +906,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (alias, provider, _, _, format) = &routes[0];
+        let (alias, provider, _, _, format, _) = &routes[0];
         assert_eq!(alias, "azure");
         assert_eq!(provider.id(), "azure");
         assert_eq!(*format, ProviderFormat::Responses);

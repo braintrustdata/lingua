@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use async_trait::async_trait;
 use braintrust_llm_router::{
@@ -141,8 +142,7 @@ async fn router_routes_to_stub_provider() {
             &ClientHeaders::default(),
         )
         .await
-        .expect("complete")
-        .output;
+        .expect("complete");
     // Parse bytes to Value using braintrust_llm_router's serde_json
     let response: Value =
         braintrust_llm_router::serde_json::from_slice(&bytes).expect("valid json");
@@ -207,8 +207,7 @@ async fn router_requires_auth_for_provider() {
             &ClientHeaders::default(),
         )
         .await
-        .expect("complete succeeds when auth is configured")
-        .output;
+        .expect("complete succeeds when auth is configured");
     let response: Value =
         braintrust_llm_router::serde_json::from_slice(&bytes).expect("valid json");
     assert_eq!(
@@ -261,7 +260,6 @@ async fn router_reports_missing_provider() {
         )
         .await
         .expect_err("missing provider");
-    let (err, _attempted_aliases) = err.into_parts();
     assert!(matches!(
         err,
         Error::NoProvider(ProviderFormat::ChatCompletions)
@@ -290,7 +288,7 @@ async fn router_propagates_validation_errors() {
         "model": "",
         "messages": []
     }));
-    let err = router
+    let err: braintrust_llm_router::Result<Bytes> = router
         .complete(
             body,
             "",
@@ -299,7 +297,6 @@ async fn router_propagates_validation_errors() {
         )
         .await;
     let err = err.expect_err("validation");
-    let (err, _attempted_aliases) = err.into_parts();
     // Empty model is treated as unknown model, not invalid request
     assert!(matches!(err, Error::UnknownModel(_)));
 }
@@ -348,12 +345,12 @@ impl Provider for FailingProvider {
 }
 
 #[tokio::test]
-async fn router_falls_back_to_second_provider_and_reports_aliases() {
+async fn router_retries_and_propagates_terminal_error() {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
-        "fallback-model".into(),
+        "retry-model".into(),
         ModelSpec {
-            model: "fallback-model".into(),
+            model: "retry-model".into(),
             format: ProviderFormat::ChatCompletions,
             flavor: ModelFlavor::Chat,
             display_name: None,
@@ -367,14 +364,22 @@ async fn router_falls_back_to_second_provider_and_reports_aliases() {
             max_output_tokens: None,
             supports_streaming: true,
             extra: Default::default(),
-            available_providers: vec!["failing".into(), "stub".into()],
+            available_providers: Default::default(),
         },
     );
     let catalog = Arc::new(catalog);
 
     let attempts = Arc::new(AtomicUsize::new(0));
+    let retry_policy = RetryPolicy {
+        max_attempts: 2,
+        initial_delay: Duration::from_millis(0),
+        max_delay: Duration::from_millis(0),
+        exponential_base: 2.0,
+        jitter: false,
+    };
 
     let router = RouterBuilder::new()
+        .with_retry_policy(retry_policy)
         .with_catalog(Arc::clone(&catalog))
         .add_provider(
             "failing",
@@ -386,28 +391,18 @@ async fn router_falls_back_to_second_provider_and_reports_aliases() {
                 header: None,
                 prefix: None,
             },
-            vec![],
-        )
-        .add_provider(
-            "stub",
-            StubProvider,
-            AuthConfig::ApiKey {
-                key: "test".into(),
-                header: None,
-                prefix: None,
-            },
-            vec![],
+            vec![ProviderFormat::ChatCompletions],
         )
         .build()
         .expect("router builds");
 
-    let model = "fallback-model";
+    let model = "retry-model";
     let body = to_body(json!({
         "model": model,
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let routed_response = router
+    let err: braintrust_llm_router::Result<Bytes> = router
         .complete(
             body,
             model,
@@ -415,12 +410,7 @@ async fn router_falls_back_to_second_provider_and_reports_aliases() {
             &ClientHeaders::default(),
         )
         .await;
-    let routed_response = routed_response.expect("fallback succeeds");
-    let response: Value =
-        braintrust_llm_router::serde_json::from_slice(&routed_response.output).expect("valid json");
-
-    assert_eq!(attempts.load(Ordering::SeqCst), 1);
-    assert_eq!(routed_response.provider_alias, "stub");
-    assert_eq!(routed_response.attempted_aliases, vec!["failing", "stub"]);
-    assert_eq!(response.get("model").and_then(Value::as_str), Some(model));
+    let err = err.expect_err("terminal error");
+    assert!(matches!(err, Error::Timeout));
+    assert_eq!(attempts.load(Ordering::SeqCst), 3);
 }

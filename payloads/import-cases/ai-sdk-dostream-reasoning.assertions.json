@@ -5,7 +5,8 @@
     "assistant"
   ],
   "mustContainText": [
-    "What is the capital of France?",
-    "The capital of France is Paris."
+    "What is 2+2?",
+    "The answer is 4.",
+    "2 plus 2 equals 4"
   ]
 }

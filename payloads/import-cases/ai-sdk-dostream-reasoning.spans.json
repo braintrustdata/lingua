@@ -1,0 +1,30 @@
+[
+  {
+    "input": {
+      "includeRawChunks": false,
+      "prompt": [
+        {
+          "content": [
+            {
+              "text": "What is 2+2?",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        }
+      ]
+    },
+    "output": {
+      "finishReason": "stop",
+      "reasoning": "Let me think about this simple math problem. 2 plus 2 equals 4.",
+      "text": "The answer is 4.",
+      "toolCalls": [],
+      "usage": {
+        "inputTokens": 10,
+        "outputTokens": 50,
+        "reasoningTokens": 30,
+        "totalTokens": 60
+      }
+    }
+  }
+]
