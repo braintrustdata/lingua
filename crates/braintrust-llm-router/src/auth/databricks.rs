@@ -3,9 +3,11 @@ use std::time::{Duration, Instant};
 use anyhow::{anyhow, Context, Result};
 use base64::Engine as _;
 use dashmap::DashMap;
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+#[cfg(feature = "tracing")]
+use tracing::Instrument;
 
 const TOKEN_BUFFER: Duration = Duration::from_secs(60);
 
@@ -54,24 +56,47 @@ impl DatabricksTokenManager {
         credentials: &DatabricksCredentials,
         api_base: &str,
     ) -> Result<(String, String)> {
-        let key = credentials.cache_key(api_base);
-        if let Some(entry) = self.cache.get(&key) {
-            if entry.expires_at > Instant::now() + TOKEN_BUFFER {
-                return Ok((entry.value.clone(), entry.token_type.clone()));
+        let token_url = format!("{}/oidc/v1/token", api_base.trim_end_matches('/'));
+        let token_host = token_host(&token_url);
+        let token_future = async {
+            let key = credentials.cache_key(api_base);
+            if let Some(entry) = self.cache.get(&key) {
+                if entry.expires_at > Instant::now() + TOKEN_BUFFER {
+                    #[cfg(feature = "tracing")]
+                    tracing::Span::current().record("cache.hit", true);
+                    return Ok((entry.value.clone(), entry.token_type.clone()));
+                }
             }
+
+            #[cfg(feature = "tracing")]
+            tracing::Span::current().record("cache.hit", false);
+            let token = request_token(client, credentials, &token_url, token_host.clone()).await?;
+            self.cache.insert(
+                key,
+                CachedToken {
+                    value: token.value.clone(),
+                    expires_at: token.expires_at,
+                    token_type: token.token_type.clone(),
+                },
+            );
+
+            Ok((token.value, token.token_type))
+        };
+        #[cfg(feature = "tracing")]
+        {
+            return token_future
+                .instrument(tracing::info_span!(
+                    "bt.router.auth.token",
+                    provider = "databricks",
+                    auth.host = token_host.as_deref().unwrap_or(""),
+                    cache.hit = tracing::field::Empty,
+                ))
+                .await;
         }
-
-        let token = request_token(client, credentials, api_base).await?;
-        self.cache.insert(
-            key,
-            CachedToken {
-                value: token.value.clone(),
-                expires_at: token.expires_at,
-                token_type: token.token_type.clone(),
-            },
-        );
-
-        Ok((token.value, token.token_type))
+        #[cfg(not(feature = "tracing"))]
+        {
+            token_future.await
+        }
     }
 }
 
@@ -93,10 +118,9 @@ struct DatabricksTokenResponse {
 async fn request_token(
     client: &Client,
     credentials: &DatabricksCredentials,
-    api_base: &str,
+    token_url: &str,
+    _token_host: Option<String>,
 ) -> Result<TokenResponse> {
-    let token_url = format!("{}/oidc/v1/token", api_base.trim_end_matches('/'));
-
     let auth_header = format!(
         "Basic {}",
         base64::engine::general_purpose::STANDARD.encode(format!(
@@ -105,6 +129,23 @@ async fn request_token(
         ))
     );
 
+    #[cfg(feature = "tracing")]
+    let response = async {
+        client
+            .post(token_url)
+            .header("Authorization", auth_header.clone())
+            .form(&[("grant_type", "client_credentials"), ("scope", "all-apis")])
+            .send()
+            .await
+    }
+    .instrument(tracing::info_span!(
+        "bt.router.auth.token.request",
+        provider = "databricks",
+        auth.host = _token_host.as_deref().unwrap_or(""),
+    ))
+    .await
+    .context("failed to send Databricks OAuth token request")?;
+    #[cfg(not(feature = "tracing"))]
     let response = client
         .post(token_url)
         .header("Authorization", auth_header)
@@ -135,6 +176,12 @@ async fn request_token(
             .unwrap_or_else(|| status.to_string());
         Err(anyhow!("Databricks OAuth error: {message}"))
     }
+}
+
+fn token_host(token_url: &str) -> Option<String> {
+    Url::parse(token_url)
+        .ok()
+        .and_then(|url| url.host_str().map(str::to_owned))
 }
 
 #[cfg(test)]

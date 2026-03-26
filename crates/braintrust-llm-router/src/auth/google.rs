@@ -3,9 +3,11 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use anyhow::{anyhow, Context, Result};
 use dashmap::DashMap;
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+#[cfg(feature = "tracing")]
+use tracing::Instrument;
 
 const DEFAULT_TOKEN_URI: &str = "https://oauth2.googleapis.com/token";
 const TOKEN_BUFFER: Duration = Duration::from_secs(60);
@@ -82,22 +84,44 @@ impl GoogleTokenManager {
         client: &Client,
         config: &GoogleServiceAccountConfig,
     ) -> Result<String> {
-        let key = config.cache_key();
-        if let Some(entry) = self.cache.get(&key) {
-            if entry.expires_at > Instant::now() + TOKEN_BUFFER {
-                return Ok(entry.value.clone());
+        let token_host = token_host(&config.key.token_uri);
+        let token_future = async {
+            let key = config.cache_key();
+            if let Some(entry) = self.cache.get(&key) {
+                if entry.expires_at > Instant::now() + TOKEN_BUFFER {
+                    #[cfg(feature = "tracing")]
+                    tracing::Span::current().record("cache.hit", true);
+                    return Ok(entry.value.clone());
+                }
             }
-        }
 
-        let token = request_token(client, config).await?;
-        self.cache.insert(
-            key,
-            CachedToken {
-                value: token.value.clone(),
-                expires_at: token.expires_at,
-            },
-        );
-        Ok(token.value)
+            #[cfg(feature = "tracing")]
+            tracing::Span::current().record("cache.hit", false);
+            let token = request_token(client, config, token_host.clone()).await?;
+            self.cache.insert(
+                key,
+                CachedToken {
+                    value: token.value.clone(),
+                    expires_at: token.expires_at,
+                },
+            );
+            Ok(token.value)
+        };
+        #[cfg(feature = "tracing")]
+        {
+            return token_future
+                .instrument(tracing::info_span!(
+                    "bt.router.auth.token",
+                    provider = "google",
+                    auth.host = token_host.as_deref().unwrap_or(""),
+                    cache.hit = tracing::field::Empty,
+                ))
+                .await;
+        }
+        #[cfg(not(feature = "tracing"))]
+        {
+            token_future.await
+        }
     }
 }
 
@@ -127,6 +151,7 @@ struct GoogleTokenResponse {
 async fn request_token(
     client: &Client,
     config: &GoogleServiceAccountConfig,
+    _token_host: Option<String>,
 ) -> Result<TokenResponse> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -150,6 +175,25 @@ async fn request_token(
     let assertion = encode(&header, &claims, &encoding_key)
         .context("failed to encode Google service account JWT")?;
 
+    #[cfg(feature = "tracing")]
+    let response = async {
+        client
+            .post(&config.key.token_uri)
+            .form(&[
+                ("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
+                ("assertion", assertion.as_str()),
+            ])
+            .send()
+            .await
+    }
+    .instrument(tracing::info_span!(
+        "bt.router.auth.token.request",
+        provider = "google",
+        auth.host = _token_host.as_deref().unwrap_or(""),
+    ))
+    .await
+    .context("failed to send Google OAuth token request")?;
+    #[cfg(not(feature = "tracing"))]
     let response = client
         .post(&config.key.token_uri)
         .form(&[
@@ -179,4 +223,10 @@ async fn request_token(
             .unwrap_or_else(|| status.to_string());
         Err(anyhow!("Google OAuth error: {message}"))
     }
+}
+
+fn token_host(token_url: &str) -> Option<String> {
+    Url::parse(token_url)
+        .ok()
+        .and_then(|url| url.host_str().map(str::to_owned))
 }
