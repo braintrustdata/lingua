@@ -2,9 +2,11 @@ use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Context, Result};
 use dashmap::DashMap;
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+#[cfg(feature = "tracing")]
+use tracing::Instrument;
 
 const TOKEN_ENDPOINT: &str = "https://login.microsoftonline.com";
 const TOKEN_BUFFER: Duration = Duration::from_secs(60);
@@ -70,23 +72,46 @@ impl AzureEntraTokenManager {
         client: &Client,
         credentials: &AzureEntraCredentials,
     ) -> Result<String> {
-        let key = credentials.cache_key();
-        if let Some(entry) = self.cache.get(&key) {
-            if entry.expires_at > Instant::now() + TOKEN_BUFFER {
-                return Ok(entry.value.clone());
+        let token_url = credentials.token_url();
+        let token_host = token_host(&token_url);
+        let token_future = async {
+            let key = credentials.cache_key();
+            if let Some(entry) = self.cache.get(&key) {
+                if entry.expires_at > Instant::now() + TOKEN_BUFFER {
+                    #[cfg(feature = "tracing")]
+                    tracing::Span::current().record("cache.hit", true);
+                    return Ok(entry.value.clone());
+                }
             }
+
+            #[cfg(feature = "tracing")]
+            tracing::Span::current().record("cache.hit", false);
+            let token = request_token(client, credentials, &token_url, token_host.clone()).await?;
+            self.cache.insert(
+                key,
+                CachedToken {
+                    value: token.value.clone(),
+                    expires_at: token.expires_at,
+                },
+            );
+
+            Ok(token.value)
+        };
+        #[cfg(feature = "tracing")]
+        {
+            return token_future
+                .instrument(tracing::info_span!(
+                    "bt.router.auth.token",
+                    provider = "azure",
+                    auth.host = token_host.as_deref().unwrap_or(""),
+                    cache.hit = tracing::field::Empty,
+                ))
+                .await;
         }
-
-        let token = request_token(client, credentials).await?;
-        self.cache.insert(
-            key,
-            CachedToken {
-                value: token.value.clone(),
-                expires_at: token.expires_at,
-            },
-        );
-
-        Ok(token.value)
+        #[cfg(not(feature = "tracing"))]
+        {
+            token_future.await
+        }
     }
 }
 
@@ -106,9 +131,32 @@ struct AzureTokenResponse {
 async fn request_token(
     client: &Client,
     credentials: &AzureEntraCredentials,
+    token_url: &str,
+    _token_host: Option<String>,
 ) -> Result<TokenResponse> {
+    #[cfg(feature = "tracing")]
+    let response = async {
+        client
+            .post(token_url)
+            .form(&[
+                ("client_id", credentials.client_id.as_str()),
+                ("client_secret", credentials.client_secret.as_str()),
+                ("scope", credentials.scope.as_str()),
+                ("grant_type", "client_credentials"),
+            ])
+            .send()
+            .await
+    }
+    .instrument(tracing::info_span!(
+        "bt.router.auth.token.request",
+        provider = "azure",
+        auth.host = _token_host.as_deref().unwrap_or(""),
+    ))
+    .await
+    .context("failed to send Azure Entra token request")?;
+    #[cfg(not(feature = "tracing"))]
     let response = client
-        .post(credentials.token_url())
+        .post(token_url)
         .form(&[
             ("client_id", credentials.client_id.as_str()),
             ("client_secret", credentials.client_secret.as_str()),
@@ -140,10 +188,20 @@ async fn request_token(
     }
 }
 
+fn token_host(token_url: &str) -> Option<String> {
+    Url::parse(token_url)
+        .ok()
+        .and_then(|url| url.host_str().map(str::to_owned))
+}
+
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+    use std::time::Duration;
+
     use super::*;
     use serde_json::json;
+    use tokio::sync::Barrier;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -184,5 +242,103 @@ mod tests {
         assert_eq!(second, "test-token");
 
         assert_eq!(server.received_requests().await.unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn refreshes_stale_token() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/token"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "access_token": "stale-token",
+                "expires_in": 1,
+            })))
+            .up_to_n_times(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path("/token"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "access_token": "fresh-token",
+                "expires_in": 3600,
+            })))
+            .up_to_n_times(1)
+            .mount(&server)
+            .await;
+
+        let credentials = AzureEntraCredentials {
+            client_id: "client".into(),
+            tenant_id: "tenant".into(),
+            scope: "scope/.default".into(),
+            client_secret: "secret".into(),
+            token_url: Some(format!("{}/token", server.uri())),
+        };
+
+        let manager = AzureEntraTokenManager::new();
+        let client = Client::builder().build().unwrap();
+
+        let first = manager
+            .get_token(&client, &credentials)
+            .await
+            .expect("stale token fetched");
+        assert_eq!(first, "stale-token");
+
+        let second = manager
+            .get_token(&client, &credentials)
+            .await
+            .expect("fresh token fetched");
+        assert_eq!(second, "fresh-token");
+
+        assert_eq!(server.received_requests().await.unwrap().len(), 2);
+    }
+
+    #[tokio::test]
+    async fn concurrent_token_fetches_for_same_credentials_are_not_coalesced() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/token"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_delay(Duration::from_millis(50))
+                    .set_body_json(json!({
+                        "access_token": "test-token",
+                        "expires_in": 3600,
+                    })),
+            )
+            .mount(&server)
+            .await;
+
+        let credentials = Arc::new(AzureEntraCredentials {
+            client_id: "client".into(),
+            tenant_id: "tenant".into(),
+            scope: "scope/.default".into(),
+            client_secret: "secret".into(),
+            token_url: Some(format!("{}/token", server.uri())),
+        });
+
+        let manager = Arc::new(AzureEntraTokenManager::new());
+        let client = Arc::new(Client::builder().build().unwrap());
+        let barrier = Arc::new(Barrier::new(9));
+
+        let mut tasks = Vec::new();
+        for _ in 0..8 {
+            let barrier = barrier.clone();
+            let manager = manager.clone();
+            let client = client.clone();
+            let credentials = credentials.clone();
+            tasks.push(tokio::spawn(async move {
+                barrier.wait().await;
+                manager.get_token(&client, &credentials).await
+            }));
+        }
+
+        barrier.wait().await;
+
+        for task in tasks {
+            let token = task.await.expect("task join").expect("token fetched");
+            assert_eq!(token, "test-token");
+        }
+
+        assert!(server.received_requests().await.unwrap().len() > 1);
     }
 }
