@@ -186,8 +186,12 @@ fn token_host(token_url: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+    use std::time::Duration;
+
     use super::*;
     use serde_json::json;
+    use tokio::sync::Barrier;
     use wiremock::matchers::{header, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -234,5 +238,116 @@ mod tests {
         assert_eq!(cached_type, "Bearer");
 
         assert_eq!(server.received_requests().await.unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn refreshes_stale_token() {
+        let server = MockServer::start().await;
+        let expected_auth = format!(
+            "Basic {}",
+            base64::engine::general_purpose::STANDARD.encode("client:secret")
+        );
+        Mock::given(method("POST"))
+            .and(path("/oidc/v1/token"))
+            .and(header("Authorization", expected_auth.as_str()))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "access_token": "stale-token",
+                "token_type": "Bearer",
+                "expires_in": 1,
+            })))
+            .up_to_n_times(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path("/oidc/v1/token"))
+            .and(header("Authorization", expected_auth.as_str()))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "access_token": "fresh-token",
+                "token_type": "Bearer",
+                "expires_in": 3600,
+            })))
+            .up_to_n_times(1)
+            .mount(&server)
+            .await;
+
+        let credentials = DatabricksCredentials {
+            client_id: "client".into(),
+            client_secret: "secret".into(),
+        };
+
+        let manager = DatabricksTokenManager::new();
+        let client = Client::builder().build().unwrap();
+        let api_base = server.uri();
+
+        let (first_token, first_type) = manager
+            .get_token(&client, &credentials, &api_base)
+            .await
+            .expect("stale token fetched");
+        assert_eq!(first_token, "stale-token");
+        assert_eq!(first_type, "Bearer");
+
+        let (second_token, second_type) = manager
+            .get_token(&client, &credentials, &api_base)
+            .await
+            .expect("fresh token fetched");
+        assert_eq!(second_token, "fresh-token");
+        assert_eq!(second_type, "Bearer");
+
+        assert_eq!(server.received_requests().await.unwrap().len(), 2);
+    }
+
+    #[tokio::test]
+    async fn concurrent_token_fetches_for_same_credentials_are_not_coalesced() {
+        let server = MockServer::start().await;
+        let expected_auth = format!(
+            "Basic {}",
+            base64::engine::general_purpose::STANDARD.encode("client:secret")
+        );
+        Mock::given(method("POST"))
+            .and(path("/oidc/v1/token"))
+            .and(header("Authorization", expected_auth.as_str()))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_delay(Duration::from_millis(50))
+                    .set_body_json(json!({
+                        "access_token": "db-token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    })),
+            )
+            .mount(&server)
+            .await;
+
+        let credentials = Arc::new(DatabricksCredentials {
+            client_id: "client".into(),
+            client_secret: "secret".into(),
+        });
+        let manager = Arc::new(DatabricksTokenManager::new());
+        let client = Arc::new(Client::builder().build().unwrap());
+        let api_base = Arc::new(server.uri());
+        let barrier = Arc::new(Barrier::new(9));
+
+        let mut tasks = Vec::new();
+        for _ in 0..8 {
+            let barrier = barrier.clone();
+            let manager = manager.clone();
+            let client = client.clone();
+            let credentials = credentials.clone();
+            let api_base = api_base.clone();
+            tasks.push(tokio::spawn(async move {
+                barrier.wait().await;
+                manager.get_token(&client, &credentials, &api_base).await
+            }));
+        }
+
+        barrier.wait().await;
+
+        for task in tasks {
+            let (token, token_type) = task.await.expect("task join").expect("token fetched");
+            assert_eq!(token, "db-token");
+            assert_eq!(token_type, "Bearer");
+        }
+
+        assert!(server.received_requests().await.unwrap().len() > 1);
     }
 }

@@ -8,6 +8,9 @@ use reqwest_middleware::ClientWithMiddleware;
 
 use crate::error::{Error, Result};
 
+// Shared reqwest clients are cached by these settings. Keep this key
+// low-cardinality and effectively process-wide; request-scoped values do not
+// belong here because they fragment client reuse and connection pooling.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ClientSettings {
     pub connect_timeout: Duration,
