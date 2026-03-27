@@ -10,7 +10,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::{read_provider_body, send_provider_request, ClientHeaders};
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 
@@ -98,13 +98,15 @@ impl crate::providers::Provider for MistralProvider {
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
-        let response = self
-            .client
-            .post(url.clone())
-            .headers(headers)
-            .body(payload)
-            .send()
-            .await?;
+        let response = send_provider_request(
+            self.id(),
+            self.client
+                .post(url.clone())
+                .headers(headers)
+                .body(payload)
+                .send(),
+        )
+        .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -129,7 +131,7 @@ impl crate::providers::Provider for MistralProvider {
             });
         }
 
-        Ok(response.bytes().await?)
+        read_provider_body(self.id(), response).await
     }
 
     async fn complete_stream(

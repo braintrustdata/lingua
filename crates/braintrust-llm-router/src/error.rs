@@ -98,6 +98,20 @@ pub enum Error {
 }
 
 impl Error {
+    // Transport failures happen before we have a usable upstream HTTP response to
+    // preserve, so normalize them as provider errors with `http: None`.
+    pub fn provider_transport_error<E>(provider: &str, err: E) -> Self
+    where
+        E: Into<anyhow::Error>,
+    {
+        Self::Provider {
+            provider: provider.to_string(),
+            source: err.into(),
+            retry_after: None,
+            http: None,
+        }
+    }
+
     pub fn is_retryable(&self) -> bool {
         matches!(self, Error::Http(err) if err.is_timeout() || err.is_connect() || err.is_request() || err.status().map(|c| c.is_server_error()).unwrap_or(false))
             || matches!(self, Error::Provider { retry_after, .. } if retry_after.is_some())

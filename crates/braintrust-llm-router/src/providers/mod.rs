@@ -24,11 +24,12 @@ use bytes::Bytes;
 use lingua::serde_json::{self, Value};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE};
 use std::collections::HashMap;
+use std::future::Future;
 use std::sync::Arc;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::streaming::RawResponseStream;
 use lingua::ProviderFormat;
 
@@ -137,6 +138,28 @@ pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
         Ok(serialized) => Bytes::from(serialized),
         Err(_) => payload,
     }
+}
+
+pub(crate) async fn send_provider_request<F>(
+    provider: &str,
+    request: F,
+) -> Result<reqwest::Response>
+where
+    F: Future<Output = std::result::Result<reqwest::Response, reqwest_middleware::Error>>,
+{
+    request
+        .await
+        .map_err(|err| Error::provider_transport_error(provider, err))
+}
+
+pub(crate) async fn read_provider_body(
+    provider: &str,
+    response: reqwest::Response,
+) -> Result<Bytes> {
+    response
+        .bytes()
+        .await
+        .map_err(|err| Error::provider_transport_error(provider, err))
 }
 
 /// Provider trait for LLM API backends.
