@@ -16,7 +16,7 @@ use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_stream, ResponseStream};
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
-use lingua::{TransformError, TransformResult};
+use lingua::TransformResult;
 
 // Re-export for convenience in dependent crates
 pub use lingua::{extract_request_hints, RequestHints};
@@ -157,12 +157,9 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, strategy) = route;
-        let payload = match lingua::transform_request(body.clone(), *format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => bytes,
-            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(e.into()),
-        };
+        let payload = provider
+            .prepare_request(body, spec.as_ref(), *format)
+            .await?;
 
         let response_bytes = self
             .execute_with_retry(
@@ -217,12 +214,9 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, _) = route;
-        let payload = match lingua::transform_request(body.clone(), *format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => bytes,
-            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(e.into()),
-        };
+        let payload = provider
+            .prepare_request(body, spec.as_ref(), *format)
+            .await?;
 
         let raw_stream = provider
             .clone()

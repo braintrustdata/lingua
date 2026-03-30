@@ -166,24 +166,50 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                 }
                                 generated::InputContentBlockType::Image => {
                                     if let Some(source) = block.source {
-                                        // Convert Anthropic image source to universal format
                                         match source {
                                             generated::Source::SourceSource(purple_source) => {
-                                                if let Some(data) = purple_source.data {
-                                                    let media_type = purple_source.media_type.map(|mt| match mt {
-                                                        generated::FluffyMediaType::ImageJpeg => "image/jpeg".to_string(),
-                                                        generated::FluffyMediaType::ImagePng => "image/png".to_string(),
-                                                        generated::FluffyMediaType::ImageGif => "image/gif".to_string(),
-                                                        generated::FluffyMediaType::ImageWebp => "image/webp".to_string(),
-                                                        generated::FluffyMediaType::ApplicationPdf => "application/pdf".to_string(),
-                                                        generated::FluffyMediaType::TextPlain => "text/plain".to_string(),
-                                                    });
-                                                    content_parts.push(UserContentPart::Image {
-                                                        image: serde_json::Value::String(data),
-                                                        media_type,
-                                                        provider_options: None,
-                                                    });
-                                                }
+                                                let media_type = purple_source.media_type.map(|mt| match mt {
+                                                    generated::FluffyMediaType::ImageJpeg => "image/jpeg".to_string(),
+                                                    generated::FluffyMediaType::ImagePng => "image/png".to_string(),
+                                                    generated::FluffyMediaType::ImageGif => "image/gif".to_string(),
+                                                    generated::FluffyMediaType::ImageWebp => "image/webp".to_string(),
+                                                    generated::FluffyMediaType::ApplicationPdf => "application/pdf".to_string(),
+                                                    generated::FluffyMediaType::TextPlain => "text/plain".to_string(),
+                                                });
+                                                let source_type = purple_source.source_type.clone();
+                                                let image = match source_type {
+                                                    generated::FluffyType::Base64 => {
+                                                        purple_source.data.ok_or_else(|| {
+                                                            ConvertError::MissingRequiredField {
+                                                                field: "source.data".to_string(),
+                                                            }
+                                                        })?
+                                                    }
+                                                    generated::FluffyType::Url => {
+                                                        purple_source.url.ok_or_else(|| {
+                                                            ConvertError::MissingRequiredField {
+                                                                field: "source.url".to_string(),
+                                                            }
+                                                        })?
+                                                    }
+                                                    generated::FluffyType::Content
+                                                    | generated::FluffyType::Text => {
+                                                        return Err(
+                                                            ConvertError::UnsupportedInputType {
+                                                                type_info: format!(
+                                                                    "unsupported anthropic image source type: {:?}",
+                                                                    source_type
+                                                                ),
+                                                            },
+                                                        );
+                                                    }
+                                                };
+
+                                                content_parts.push(UserContentPart::Image {
+                                                    image: serde_json::Value::String(image),
+                                                    media_type,
+                                                    provider_options: None,
+                                                });
                                             }
                                             _ => {
                                                 // Skip other source types for now
@@ -1542,6 +1568,57 @@ mod tests {
             }
         } else {
             panic!("Expected InputContentBlockArray");
+        }
+    }
+
+    #[test]
+    fn test_anthropic_image_url_to_universal() {
+        let input_msg = generated::InputMessage {
+            role: generated::MessageRole::User,
+            content: generated::MessageContent::InputContentBlockArray(vec![
+                generated::InputContentBlock {
+                    cache_control: None,
+                    citations: None,
+                    text: None,
+                    input_content_block_type: generated::InputContentBlockType::Image,
+                    source: Some(generated::Source::SourceSource(generated::SourceSource {
+                        data: None,
+                        media_type: None,
+                        source_type: generated::FluffyType::Url,
+                        url: Some("https://example.com/image.jpg".to_string()),
+                        content: None,
+                    })),
+                    context: None,
+                    title: None,
+                    content: None,
+                    signature: None,
+                    thinking: None,
+                    data: None,
+                    id: None,
+                    input: None,
+                    name: None,
+                    is_error: None,
+                    tool_use_id: None,
+                },
+            ]),
+        };
+
+        let message =
+            <Message as TryFromLLM<generated::InputMessage>>::try_from(input_msg).unwrap();
+
+        match message {
+            Message::User {
+                content: UserContent::Array(parts),
+            } => {
+                assert!(matches!(
+                    &parts[0],
+                    UserContentPart::Image {
+                        image: serde_json::Value::String(url),
+                        ..
+                    } if url == "https://example.com/image.jpg"
+                ));
+            }
+            other => panic!("expected user image message, got {other:?}"),
         }
     }
 }

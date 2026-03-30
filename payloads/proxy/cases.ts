@@ -912,4 +912,68 @@ export const proxyCases: ProxyTestCaseCollection = {
     },
     expect: { status: 200 },
   },
+
+  proxyAnthropicRemoteImageUrlHistory: {
+    format: "chat-completions",
+    request: {
+      model: "claude-sonnet-4-5-20250929",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "What is in this image?" },
+            {
+              type: "image_url",
+              image_url: {
+                url: "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+              },
+            },
+          ],
+        },
+        {
+          role: "assistant",
+          content: "It looks like a kitten.",
+        },
+        {
+          role: "user",
+          content: "Describe it again briefly.",
+        },
+      ],
+      max_tokens: 100,
+    },
+    expect: {
+      status: 200,
+      fields: {
+        "choices[0].message.role": "assistant",
+        object: "chat.completion",
+      },
+    },
+  },
+
+  proxyAnthropicRemoteImageUrlResponses: {
+    format: "responses",
+    request: {
+      model: "claude-sonnet-4-5-20250929",
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: "What is in this image?" },
+            {
+              type: "input_image",
+              detail: "auto",
+              image_url:
+                "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            },
+          ],
+        },
+      ],
+    },
+    expect: {
+      status: 200,
+      fields: {
+        output_text: { exists: true },
+      },
+    },
+  },
 };
