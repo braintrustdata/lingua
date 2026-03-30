@@ -1,18 +1,17 @@
 use std::time::Duration;
 
-use async_trait::async_trait;
-use bytes::Bytes;
-use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
-
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{read_provider_body, send_provider_request, ClientHeaders};
+use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
+use async_trait::async_trait;
+use bytes::Bytes;
 use lingua::ProviderFormat;
+use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::Url;
+use reqwest_middleware::ClientWithMiddleware;
 
 pub const ANTHROPIC_VERSION: &str = "anthropic-version";
 pub const DEFAULT_ANTHROPIC_VERSION_VALUE: &str = "2023-06-01";
@@ -128,15 +127,13 @@ impl crate::providers::Provider for AnthropicProvider {
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
-        let response = send_provider_request(
-            self.id(),
-            self.client
-                .post(url.clone())
-                .headers(headers)
-                .body(payload)
-                .send(),
-        )
-        .await?;
+        let response = self
+            .client
+            .post(url.clone())
+            .headers(headers)
+            .body(payload)
+            .send()
+            .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -161,7 +158,7 @@ impl crate::providers::Provider for AnthropicProvider {
             });
         }
 
-        read_provider_body(self.id(), response).await
+        Ok(response.bytes().await?)
     }
 
     async fn complete_stream(

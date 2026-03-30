@@ -5,16 +5,16 @@ use bytes::Bytes;
 use lingua::serde_json::Value as MetadataValue;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::anthropic::{ANTHROPIC_VERSION, DEFAULT_ANTHROPIC_VERSION_VALUE};
-use crate::providers::{read_provider_body, ClientHeaders, Provider};
+use crate::providers::{ClientHeaders, Provider};
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
+use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]
 pub struct AzureConfig {
@@ -271,7 +271,7 @@ impl crate::providers::Provider for AzureProvider {
             });
         }
 
-        read_provider_body(self.id(), response).await
+        Ok(response.bytes().await?)
     }
 
     async fn complete_stream(

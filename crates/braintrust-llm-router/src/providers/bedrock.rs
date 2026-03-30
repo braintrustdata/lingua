@@ -12,15 +12,15 @@ use http::Request as HttpRequest;
 use lingua::serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{read_provider_body, ClientHeaders};
+use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, RawResponseStream};
 use lingua::ProviderFormat;
+use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]
 pub struct BedrockConfig {
@@ -230,13 +230,7 @@ impl BedrockProvider {
             .headers(headers)
             .body(payload)
             .send()
-            .await
-            .map_err(|err| {
-                Error::provider_transport_error(
-                    <BedrockProvider as crate::providers::Provider>::id(self),
-                    err,
-                )
-            })?;
+            .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -286,7 +280,7 @@ impl crate::providers::Provider for BedrockProvider {
             self.converse_url(&spec.model, false)?
         };
         let response = self.send_signed(url, payload, auth, client_headers).await?;
-        read_provider_body(self.id(), response).await
+        Ok(response.bytes().await?)
     }
 
     async fn complete_stream(

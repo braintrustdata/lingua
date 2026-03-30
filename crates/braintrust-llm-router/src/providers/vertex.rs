@@ -6,15 +6,15 @@ use lingua::serde_json::Value;
 use rand::Rng;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{read_provider_body, ClientHeaders};
+use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
+use reqwest_middleware::ClientWithMiddleware;
 
 const DEFAULT_LOCATION: &str = "us-central1";
 const ANTHROPIC_DEFAULT_LOCATION: &str = "us-east5";
@@ -279,7 +279,7 @@ impl crate::providers::Provider for VertexProvider {
             });
         }
 
-        read_provider_body(self.id(), response).await
+        Ok(response.bytes().await?)
     }
 
     async fn complete_stream(

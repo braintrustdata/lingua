@@ -98,22 +98,12 @@ pub enum Error {
 }
 
 impl Error {
-    // Transport failures happen before we have a usable upstream HTTP response to
-    // preserve, so normalize them as provider errors with `http: None`.
-    pub fn provider_transport_error<E>(provider: &str, err: E) -> Self
-    where
-        E: Into<anyhow::Error>,
-    {
-        Self::Provider {
-            provider: provider.to_string(),
-            source: err.into(),
-            retry_after: None,
-            http: None,
-        }
-    }
-
     pub fn is_retryable(&self) -> bool {
-        matches!(self, Error::Http(err) if err.is_timeout() || err.is_connect() || err.is_request() || err.status().map(|c| c.is_server_error()).unwrap_or(false))
+        // Router-level retries are reserved for errors that originate outside the
+        // provider HTTP wrapper's connection-retry path, such as raw reqwest
+        // errors, middleware errors, explicit Retry-After responses, or timeouts.
+        matches!(self, Error::Http(err) if is_reqwest_retryable(err))
+            || matches!(self, Error::Middleware(err) if is_middleware_retryable(err))
             || matches!(self, Error::Provider { retry_after, .. } if retry_after.is_some())
             || matches!(self, Error::Timeout)
     }
@@ -150,6 +140,29 @@ impl Error {
     pub fn is_upstream_error(&self) -> bool {
         matches!(self, Error::Provider { http: Some(_), .. })
     }
+}
+
+fn is_reqwest_retryable(err: &reqwest::Error) -> bool {
+    err.is_timeout()
+        || err.is_connect()
+        || err.is_request()
+        || err.status().map(|c| c.is_server_error()).unwrap_or(false)
+}
+
+fn is_middleware_retryable(err: &reqwest_middleware::Error) -> bool {
+    err.is_timeout()
+        || err.is_request()
+        || {
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                err.is_connect()
+            }
+            #[cfg(target_arch = "wasm32")]
+            {
+                false
+            }
+        }
+        || err.status().map(|c| c.is_server_error()).unwrap_or(false)
 }
 
 #[cfg(test)]

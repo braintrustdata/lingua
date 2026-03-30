@@ -5,15 +5,15 @@ use bytes::Bytes;
 use lingua::serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{read_provider_body, send_provider_request, ClientHeaders};
+use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
+use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]
 pub struct OpenAIConfig {
@@ -195,15 +195,13 @@ impl crate::providers::Provider for OpenAIProvider {
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
-        let response = send_provider_request(
-            self.id(),
-            self.client
-                .post(url.clone())
-                .headers(headers)
-                .body(payload)
-                .send(),
-        )
-        .await?;
+        let response = self
+            .client
+            .post(url.clone())
+            .headers(headers)
+            .body(payload)
+            .send()
+            .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -228,7 +226,7 @@ impl crate::providers::Provider for OpenAIProvider {
             });
         }
 
-        read_provider_body(self.id(), response).await
+        Ok(response.bytes().await?)
     }
 
     async fn complete_stream(
@@ -254,15 +252,13 @@ impl crate::providers::Provider for OpenAIProvider {
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
-        let response = send_provider_request(
-            self.id(),
-            self.client
-                .post(url.clone())
-                .headers(headers)
-                .body(payload)
-                .send(),
-        )
-        .await?;
+        let response = self
+            .client
+            .post(url.clone())
+            .headers(headers)
+            .body(payload)
+            .send()
+            .await?;
 
         #[cfg(feature = "tracing")]
         {
