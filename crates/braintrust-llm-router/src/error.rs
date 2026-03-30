@@ -60,6 +60,13 @@ pub enum Error {
     #[error("no authentication configured for provider '{0}'")]
     NoAuth(String),
 
+    #[error("provider '{provider}' unavailable")]
+    UpstreamUnavailable {
+        provider: String,
+        #[source]
+        source: anyhow::Error,
+    },
+
     #[error("provider '{provider}' error: {source}")]
     Provider {
         provider: String,
@@ -229,6 +236,11 @@ mod tests {
 
         // Not client errors
         assert!(!Error::Timeout.is_client_error());
+        assert!(!Error::UpstreamUnavailable {
+            provider: "openai".into(),
+            source: anyhow::anyhow!("connection reset"),
+        }
+        .is_client_error());
         assert!(
             !Error::Lingua(lingua::TransformError::SerializationFailed("test".into()))
                 .is_client_error()

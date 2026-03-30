@@ -14,6 +14,9 @@ use reqwest_retry::{
 
 use crate::error::{Error, Result};
 
+// The default number of retries for transient transport failures.
+const DEFAULT_MAX_RETRIES: u32 = 2;
+
 // Shared reqwest clients are cached by these settings. Keep this key
 // low-cardinality and effectively process-wide; request-scoped values do not
 // belong here because they fragment client reuse and connection pooling.
@@ -117,7 +120,7 @@ fn build_middleware_client_inner(settings: &ClientSettings) -> Result<ClientWith
 }
 
 fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
-    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(DEFAULT_MAX_RETRIES);
     let retry_middleware = RetryTransientMiddleware::new_with_policy_and_strategy(
         retry_policy,
         ConnectionRetryStrategy,
