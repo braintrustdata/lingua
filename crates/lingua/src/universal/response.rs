@@ -259,24 +259,30 @@ impl UniversalResponse {
     }
 
     pub fn id_for(&self, format: ProviderFormat) -> String {
-        self.id
-            .as_deref()
-            .filter(|_| self.id_format == Some(format))
-            .map(String::from)
-            .unwrap_or_else(|| {
-                let prefix = match format {
-                    ProviderFormat::Anthropic
-                    | ProviderFormat::BedrockAnthropic
-                    | ProviderFormat::VertexAnthropic => "msg_",
-                    ProviderFormat::ChatCompletions
-                    | ProviderFormat::Mistral
-                    | ProviderFormat::Unknown => "chatcmpl-",
-                    ProviderFormat::Responses => "resp_",
-                    ProviderFormat::Google => "resp_",
-                    ProviderFormat::Converse => "msg_",
-                };
-                format!("{}{}", prefix, PLACEHOLDER_ID)
-            })
+        let prefix = match format {
+            ProviderFormat::Anthropic => "msg_",
+            ProviderFormat::BedrockAnthropic => "msg_bdrk_",
+            ProviderFormat::VertexAnthropic => "msg_vrtx_",
+            ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
+                "chatcmpl-"
+            }
+            ProviderFormat::Responses => "resp_",
+            ProviderFormat::Google => "resp_",
+            ProviderFormat::Converse => "msg_",
+        };
+        if let Some(id) = self.id.as_deref() {
+            if self.id_format == Some(format) {
+                return id.to_string();
+            }
+            let unique_part = ["msg_bdrk_", "msg_vrtx_", "resp_", "chatcmpl-", "msg_"]
+                .iter()
+                .find_map(|p| id.strip_prefix(p))
+                .unwrap_or(id);
+            if !unique_part.is_empty() && unique_part != PLACEHOLDER_ID {
+                return format!("{}{}", prefix, unique_part);
+            }
+        }
+        format!("{}{}", prefix, PLACEHOLDER_ID)
     }
 }
 
