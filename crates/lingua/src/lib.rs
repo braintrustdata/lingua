@@ -51,7 +51,7 @@ pub use providers::bedrock_anthropic::{is_bedrock_anthropic_model, is_bedrock_an
 
 // Re-export vertex model utilities for router integration
 #[cfg(feature = "google")]
-pub use providers::google::is_vertex_model;
+pub use providers::google::{is_vertex_google_model, is_vertex_model};
 
 // Re-export vertex-anthropic model utilities for router integration
 #[cfg(feature = "anthropic")]
