@@ -47,7 +47,7 @@ So: most common - digits 0 and 1 (about 20.21% each); rarest - digits 6–9 (abo
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_D8WwNOBX3OKWYX8U00UuE09bjaCEU",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -92,7 +92,7 @@ exports[`anthropic → chat-completions > multimodalRequest > response 1`] = `
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_D8WwJGn3cD8awZvtT5DIX43pZdj91",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
@@ -132,7 +132,7 @@ Answer: 66 2/3 mph.",
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_D8Ww7xQ50eq2Js3P6aJ5bA9RCsucg",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -166,7 +166,7 @@ exports[`anthropic → chat-completions > reasoningRequestTruncated > response 1
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_D8WwEXbGME8woQ2rReuPCDxRjmHkJ",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
@@ -200,7 +200,7 @@ exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_D8WxDDQyIDbSgoSKDJTtTaCxv1tts",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -234,7 +234,7 @@ exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_D8Ww5HsFKrIRw7BCuPTadlfOhw97w",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -277,7 +277,7 @@ exports[`anthropic → chat-completions > systemMessageArrayContent > response 1
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_D8WxKK6CbhVrFzmz27GtpfxAANyUQ",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
@@ -337,7 +337,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_D8WwFTHGcASl8ky2IM7XxBfEHPVw7",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -399,7 +399,7 @@ Rarest digits: 6, 7, 8, and 9, each 264 times, which is 264/5760 = 11/240 ≈ 4.
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_0117622307afc2e600698e2e82286c8195b4ee45eda84807b9",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -442,7 +442,7 @@ exports[`anthropic → responses > multimodalRequest > response 1`] = `
       "type": "thinking",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_06fb099fde9d608000698e2e7f142881a09a7271709983d5ff",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
@@ -491,7 +491,7 @@ Answer: 66 2/3 mph (about 66.7 mph).",
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_0f02a89827e304bb00698e2e73e17c819692eb4063ae564397",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -525,7 +525,7 @@ exports[`anthropic → responses > reasoningRequestTruncated > response 1`] = `
       "type": "thinking",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_00be14d6bfe6ea9500698e2e7952a08194bb92eda8bc3dddd3",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
@@ -571,7 +571,7 @@ If you tell me the time and location, I can describe what the sky would look lik
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_0e13a5d8d895821f00698e2ed95eac8191844495ab66e3050e",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -609,7 +609,7 @@ exports[`anthropic → responses > simpleRequest > response 1`] = `
       "type": "text",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_04b27043e9220b8d00698e2e714b0481908726538dc478990b",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -652,7 +652,7 @@ exports[`anthropic → responses > systemMessageArrayContent > response 1`] = `
       "type": "thinking",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_0ff4188070da971600698e2eddad4c8195bbddb496ef2255d5",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
@@ -714,7 +714,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_transformed",
+  "id": "msg_09f3770f700bd9f000698e2e7a9f64819cafd8da8883acc7f2",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -837,7 +837,7 @@ Now I'll total up for each digit across all 1440 minutes in a day (24 × 60):
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01LLjjNUZvEoJ7gpunK9xMro",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -878,7 +878,7 @@ exports[`chat-completions → anthropic > frequencyPenaltyParam > response 1`] =
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01Qb99T8wTPutjieY9Ae7P9a",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -920,7 +920,7 @@ exports[`chat-completions → anthropic > instructionsParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01Pjn9KJc8uJEk79xUvXXPBB",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -961,7 +961,7 @@ exports[`chat-completions → anthropic > logitBiasParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-013Et2GhihcizzWik1fWX6mD",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1002,7 +1002,7 @@ exports[`chat-completions → anthropic > logprobsParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-014AVy4CMxWdHEL3fVSRADSq",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1043,7 +1043,7 @@ exports[`chat-completions → anthropic > maxCompletionTokensParam > response 1`
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-018ZSRJ6N5zdceWHu2uJYXNy",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1084,7 +1084,7 @@ exports[`chat-completions → anthropic > metadataParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-014KPND1o5AJBiZhrYq1t4ii",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1137,7 +1137,7 @@ exports[`chat-completions → anthropic > multimodalRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01KH8Lrt295m6tjYnqLAvjSE",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1178,7 +1178,7 @@ exports[`chat-completions → anthropic > nMultipleCompletionsParam > response 1
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01Ee4Je8MV4HqqWEEZWWRMTh",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1251,7 +1251,7 @@ exports[`chat-completions → anthropic > parallelToolCallsDisabledParam > respo
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-017LrpGbMD6R9La6EVMZKL5G",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -1366,7 +1366,7 @@ The function now throws appropriate errors instead of returning unexpected value
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-011mY1hmtU3eF1Zsu8YMpodH",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1407,7 +1407,7 @@ exports[`chat-completions → anthropic > presencePenaltyParam > response 1`] = 
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01EYv5mzhD4zD7yNJWfVZtcd",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1448,7 +1448,7 @@ exports[`chat-completions → anthropic > promptCacheKeyParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01Mqx6YVkxrPK4mmmyR1vCkA",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1495,7 +1495,7 @@ exports[`chat-completions → anthropic > reasoningEffortLowParam > response 1`]
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01Po1kVQN7cKMVfyFqGCHmnU",
   "model": "claude-opus-4-6",
   "object": "chat.completion",
   "usage": {
@@ -1558,7 +1558,7 @@ Note: This is different from simply averaging the two speeds (60 + 80)/2 = 70 mp
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01NQ9eQ5fyvgfC9PjcFHwiLG",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1607,7 +1607,7 @@ Segment 2: 80 mph for 1 hour
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-014YKYg1bSEtH599VMxZeFsX",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1654,7 +1654,7 @@ exports[`chat-completions → anthropic > reasoningSummaryParam > response 1`] =
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01X5MNeDTFPPZaQ8imNiW26G",
   "model": "claude-opus-4-6",
   "object": "chat.completion",
   "usage": {
@@ -1697,7 +1697,7 @@ Of course, the sky can appear different colors depending on conditions - it migh
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01LPvBDAuFGxxAxvaAEuR3m6",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1738,7 +1738,7 @@ exports[`chat-completions → anthropic > safetyIdentifierParam > response 1`] =
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01HHBdiCDMUqRmMNQSnYjFd4",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1781,7 +1781,7 @@ exports[`chat-completions → anthropic > seedParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01PtQBbMCbwkeU1BgJs2Y9XS",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1823,7 +1823,7 @@ exports[`chat-completions → anthropic > serviceTierParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01WwLt9WwNea18BZhUKcS2r3",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1870,7 +1870,7 @@ exports[`chat-completions → anthropic > simpleRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01SZEDyY3xx3vRwhu6NuQ37d",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1915,7 +1915,7 @@ exports[`chat-completions → anthropic > stopSequencesParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01BgKYAWRWVeSGfwDpuhJB7i",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -1956,7 +1956,7 @@ exports[`chat-completions → anthropic > storeDisabledParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-018dxGcMTWqJ59RRoqeL2hjE",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -2027,7 +2027,7 @@ Let me know what specific aspects of the recent errors you'd like to explore fur
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-014JmxEhBbQ7MwgjtqbjRd3t",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -2069,7 +2069,7 @@ exports[`chat-completions → anthropic > temperatureParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01U3EJr69iVQgws41UtX33tr",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -2119,7 +2119,7 @@ exports[`chat-completions → anthropic > textFormatJsonObjectParam > response 1
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01HsvDHsmB5HM6huqARAVhcu",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -2181,7 +2181,7 @@ exports[`chat-completions → anthropic > textFormatJsonSchemaParam > response 1
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01Y8aR6kSByjC9kb1uwG8wYA",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -2243,7 +2243,7 @@ exports[`chat-completions → anthropic > textFormatJsonSchemaWithDescriptionPar
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01LnvqYE282aquDyCJpdcWvN",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -2284,7 +2284,7 @@ exports[`chat-completions → anthropic > textFormatTextParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01Ua217Q9nmvXX33Wc8Se6Eh",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -2356,7 +2356,7 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-01DGYFTTL43Dk497PDoSA3dT",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -2429,7 +2429,7 @@ exports[`chat-completions → anthropic > toolChoiceRequiredParam > response 1`]
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-0174FQ9HbqDsmatxUqpempAc",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -2502,7 +2502,7 @@ exports[`chat-completions → anthropic > toolChoiceRequiredWithReasoningParam >
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-017f5RTMoGsZcmM494YpPd8W",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -2544,7 +2544,7 @@ exports[`chat-completions → anthropic > topPParam > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-transformed",
+  "id": "chatcmpl-011fFxkkz1DRMcUR3KrCKpkj",
   "model": "claude-sonnet-4-20250514",
   "object": "chat.completion",
   "usage": {
@@ -4694,7 +4694,7 @@ exports[`responses → anthropic > complexReasoningRequest > request 1`] = `
 exports[`responses → anthropic > complexReasoningRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_transformed",
+  "id": "resp_014QoF6e2oMve3Cjc8biiSHJ",
   "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
@@ -4898,7 +4898,7 @@ exports[`responses → anthropic > multimodalRequest > request 1`] = `
 exports[`responses → anthropic > multimodalRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_transformed",
+  "id": "resp_018WvGfj9vWGt5pfo4ReoNqU",
   "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
@@ -4956,7 +4956,7 @@ exports[`responses → anthropic > reasoningRequest > request 1`] = `
 exports[`responses → anthropic > reasoningRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_transformed",
+  "id": "resp_01TE1QaoQB2urna7Rc6GQmwh",
   "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
@@ -5113,7 +5113,7 @@ exports[`responses → anthropic > reasoningWithOutput > request 1`] = `
 exports[`responses → anthropic > reasoningWithOutput > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_transformed",
+  "id": "resp_01Bp3V7Ff2WPfdUgK2Nyu6pD",
   "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
@@ -5202,7 +5202,7 @@ exports[`responses → anthropic > simpleRequest > request 1`] = `
 exports[`responses → anthropic > simpleRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_transformed",
+  "id": "resp_0122ATGSrwyRYNBXF5VTcCNv",
   "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
@@ -5268,7 +5268,7 @@ exports[`responses → anthropic > systemMessageArrayContent > request 1`] = `
 exports[`responses → anthropic > systemMessageArrayContent > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_transformed",
+  "id": "resp_01YLRhqCxnWjCQXxQeRJUu22",
   "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
@@ -5400,7 +5400,7 @@ exports[`responses → anthropic > toolCallRequest > request 1`] = `
 exports[`responses → anthropic > toolCallRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_transformed",
+  "id": "resp_01YRPev6YfjgwbbgLDhQQiM9",
   "incomplete_details": null,
   "model": "claude-sonnet-4-20250514",
   "object": "response",
