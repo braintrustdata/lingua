@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { BEDROCK_ANTHROPIC_MODEL } from "../cases/models";
 import { ProxyTestCaseCollection } from "./types";
 
 const TEXT_BASE64 = "SGVsbG8gd29ybGQhCg==";
@@ -913,10 +914,10 @@ export const proxyCases: ProxyTestCaseCollection = {
     expect: { status: 200 },
   },
 
-  proxyAnthropicRemoteImageUrlHistory: {
+  proxyBedrockAnthropicRemoteImageUrlHistory: {
     format: "chat-completions",
     request: {
-      model: "claude-sonnet-4-5-20250929",
+      model: BEDROCK_ANTHROPIC_MODEL,
       messages: [
         {
           role: "user",
@@ -950,10 +951,10 @@ export const proxyCases: ProxyTestCaseCollection = {
     },
   },
 
-  proxyAnthropicRemoteImageUrlResponses: {
+  proxyBedrockAnthropicRemoteImageUrlResponses: {
     format: "responses",
     request: {
-      model: "claude-sonnet-4-5-20250929",
+      model: BEDROCK_ANTHROPIC_MODEL,
       input: [
         {
           role: "user",
