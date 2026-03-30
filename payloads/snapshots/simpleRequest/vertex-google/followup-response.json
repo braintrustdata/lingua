@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "That's a great question, but it's a bit like asking \"What should I eat next?\" without telling me what you like or what you have available! To give you good advice, I need a little more information.\n\nTell me:\n\n**1. What are you interested in?**\n*   Are you looking for something to do **right now**?\n*   Are you planning something for the **future**?\n*   Are you interested in **learning** something new?\n*   Are you looking for **entertainment**?\n*   Are you trying to **solve a problem**?\n*   Are you looking for **personal growth** or **self-improvement**?\n*   Are you thinking about **travel**?\n*   Are you looking for **creative inspiration**?\n\n**2. What's your current situation?**\n*   Are you at home, at work, or somewhere else?\n*   What resources do you have available (e.g., computer, phone, books, materials)?\n*   How much time do you have?\n*   Who are you with (if anyone)?\n\n**3. What have you been doing recently?**\n*   This can help me suggest something different or a continuation of something you've enjoyed.\n\n**Once I have a better understanding of what you're looking for, I can give you some much more specific and helpful suggestions!**\n\nFor example, if you just asked \"What is the capital of France?\", I could suggest:\n\n*   **Learning more about Paris:** Its history, landmarks, culture, etc.\n*   **Planning a trip to Paris:** Researching flights, accommodation, and things to do.\n*   **Trying French cuisine:** Looking up recipes or finding a French restaurant.\n*   **Learning some French phrases:** To prepare for a potential trip or just for fun.\n\nSo, tell me, **what's on your mind?**"
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.25043986250714556
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 21,
+    "candidatesTokenCount": 410,
+    "totalTokenCount": 431,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 21
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 410
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:29:35.860496Z",
+  "responseId": "35bKadDCNOTZ29sP5fjDsAY"
+}

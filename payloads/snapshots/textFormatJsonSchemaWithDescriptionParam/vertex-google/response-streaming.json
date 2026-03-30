@@ -1,0 +1,78 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:52:11.799252Z",
+    "responseId": "K5zKaZTkMNXn88APtcbT2A0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "\n  \"name\":"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:52:11.799252Z",
+    "responseId": "K5zKaZTkMNXn88APtcbT2A0"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " \"John\",\n  \"age\": 25\n}"
+            }
+          ]
+        },
+        "finishReason": "STOP"
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 27,
+      "trafficType": "ON_DEMAND_PRIORITY",
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 19
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:52:11.799252Z",
+    "responseId": "K5zKaZTkMNXn88APtcbT2A0"
+  }
+]

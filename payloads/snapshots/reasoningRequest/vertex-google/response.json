@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Here's how to solve this problem step-by-step:\n\n**1. Understand the Concept of Average Speed**\n\nAverage speed is not simply the average of the individual speeds. It's calculated as:\n\nAverage Speed = Total Distance / Total Time\n\n**2. Calculate the Distance for Each Leg of the Journey**\n\nWe need to find out how far the train traveled at each speed. The formula for distance is:\n\nDistance = Speed × Time\n\n*   **Leg 1:**\n    *   Speed = 60 mph\n    *   Time = 2 hours\n    *   Distance 1 = 60 mph × 2 hours = 120 miles\n\n*   **Leg 2:**\n    *   Speed = 80 mph\n    *   Time = 1 hour\n    *   Distance 2 = 80 mph × 1 hour = 80 miles\n\n**3. Calculate the Total Distance**\n\nAdd the distances from each leg of the journey.\n\n*   Total Distance = Distance 1 + Distance 2\n*   Total Distance = 120 miles + 80 miles = 200 miles\n\n**4. Calculate the Total Time**\n\nAdd the time spent on each leg of the journey.\n\n*   Total Time = Time 1 + Time 2\n*   Total Time = 2 hours + 1 hour = 3 hours\n\n**5. Calculate the Average Speed**\n\nNow, use the formula for average speed with the total distance and total time.\n\n*   Average Speed = Total Distance / Total Time\n*   Average Speed = 200 miles / 3 hours\n*   Average Speed = 66.67 mph (approximately)\n\n**Answer:** The average speed of the train is approximately **66.67 mph**."
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.060274347082361
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 36,
+    "candidatesTokenCount": 385,
+    "totalTokenCount": 421,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 36
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 385
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:29:35.148755Z",
+  "responseId": "35bKaZOKCb6yheMPoIWq0Qs"
+}

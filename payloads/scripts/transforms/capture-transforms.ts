@@ -1,10 +1,16 @@
 #!/usr/bin/env tsx
 
-import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { dirname } from "path";
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from "fs";
+import { dirname, resolve, isAbsolute } from "path";
+import { createSign } from "crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
-import { allTestCases, getCaseForProvider, GOOGLE_MODEL } from "../../cases";
+import {
+  allTestCases,
+  getCaseForProvider,
+  GOOGLE_MODEL,
+  VERTEX_GOOGLE_MODEL,
+} from "../../cases";
 import {
   TRANSFORM_PAIRS,
   STREAMING_PAIRS,
@@ -20,6 +26,124 @@ import {
 } from "./helpers";
 
 const GOOGLE_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
+
+interface ServiceAccountKey {
+  client_email: string;
+  private_key: string;
+  token_uri: string;
+}
+
+function loadServiceAccountKey(): ServiceAccountKey {
+  const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (!credPath) {
+    throw new Error(
+      "GOOGLE_APPLICATION_CREDENTIALS environment variable is required"
+    );
+  }
+  const resolvedPath = isAbsolute(credPath)
+    ? credPath
+    : resolve(process.cwd(), credPath);
+  const raw = readFileSync(resolvedPath, "utf-8");
+  return JSON.parse(raw);
+}
+
+function createSignedJwt(key: ServiceAccountKey): string {
+  const now = Math.floor(Date.now() / 1000);
+  const header = Buffer.from(
+    JSON.stringify({ alg: "RS256", typ: "JWT" })
+  ).toString("base64url");
+  const payload = Buffer.from(
+    JSON.stringify({
+      iss: key.client_email,
+      sub: key.client_email,
+      aud: key.token_uri,
+      iat: now,
+      exp: now + 3600,
+      scope: "https://www.googleapis.com/auth/cloud-platform",
+    })
+  ).toString("base64url");
+  const signInput = `${header}.${payload}`;
+  const signer = createSign("RSA-SHA256");
+  signer.update(signInput);
+  const signature = signer.sign(key.private_key, "base64url");
+  return `${signInput}.${signature}`;
+}
+
+let _cachedVertexToken: { token: string; expiresAt: number } | null = null;
+
+async function getVertexAccessToken(): Promise<string> {
+  if (
+    _cachedVertexToken &&
+    Date.now() < _cachedVertexToken.expiresAt - 60_000
+  ) {
+    return _cachedVertexToken.token;
+  }
+  const key = loadServiceAccountKey();
+  const jwt = createSignedJwt(key);
+  const response = await fetch(key.token_uri, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Failed to get access token: ${response.status} ${text}`);
+  }
+  const json: unknown = await response.json();
+  if (
+    typeof json !== "object" ||
+    json === null ||
+    !("access_token" in json) ||
+    !("expires_in" in json)
+  ) {
+    throw new Error("Invalid access token response");
+  }
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- keys confirmed present via `in` checks above
+  const { access_token, expires_in } = json as Record<string, unknown>;
+  if (typeof access_token !== "string" || typeof expires_in !== "number") {
+    throw new Error("Invalid access token response");
+  }
+  _cachedVertexToken = {
+    token: access_token,
+    expiresAt: Date.now() + expires_in * 1000,
+  };
+  return _cachedVertexToken.token;
+}
+
+async function callVertexGoogleProvider(
+  request: Record<string, unknown>
+): Promise<unknown> {
+  const project = process.env.VERTEX_PROJECT;
+  if (!project) {
+    throw new Error("VERTEX_PROJECT environment variable is required");
+  }
+  const location = process.env.VERTEX_LOCATION ?? "us-central1";
+  const rawModel = request.model ?? VERTEX_GOOGLE_MODEL;
+  const model = typeof rawModel === "string" ? rawModel : String(rawModel);
+  const { model: _model, ...body } = request;
+
+  const token = await getVertexAccessToken();
+  const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/${model}:generateContent`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Vertex Google API error (${response.status}): ${text}`);
+  }
+
+  return response.json();
+}
 
 let _anthropic: Anthropic | undefined;
 let _openai: OpenAI | undefined;
@@ -85,6 +209,8 @@ async function callProvider(
       );
     case "google":
       return callGoogleProvider(request);
+    case "vertex-google":
+      return callVertexGoogleProvider(request);
   }
 }
 /* eslint-enable @typescript-eslint/consistent-type-assertions */

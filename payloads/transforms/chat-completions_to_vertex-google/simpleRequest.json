@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Okay, so I'm presented with a query. My primary objective, as I see it, is to immediately isolate the fundamental question being posed. In this instance, it's quite straightforward: \"What is the capital of France?\"\n\nOnce I've clearly identified this core inquiry, my next step is to access my internal knowledge base. I need to retrieve the relevant piece of information that directly answers this question. Fortunately, this is a well-established and readily available datum: Paris is indeed the capital of France.\n\nWith the factual answer in hand, my task then shifts to constructing a response. This response needs to be unambiguous and directly address the user's prompt. Therefore, a clear and direct statement of the fact is the most efficient and effective approach.\n\nFinally, before presenting the answer, I perform a quick internal review. I ask myself: Is the information I'm about to provide accurate? In this case, unequivocally yes. And is the answer concise and to the point, avoiding any unnecessary verbosity? Again, yes. This ensures I've met the user's need with precision and efficiency.",
+            "thought": true
+          },
+          {
+            "text": "The capital of France is **Paris**."
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -2.2697744369506836
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 7,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 86,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 71
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:32:35.600403Z",
+  "responseId": "k5fKadPSJMP_29sPi8C2yAk"
+}

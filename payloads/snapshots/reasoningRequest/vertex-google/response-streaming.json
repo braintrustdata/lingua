@@ -1,0 +1,238 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Here"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "'s how to solve"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " this problem step-by-step:\n\n**Understanding Average Speed**\n\nAverage"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " speed isn't simply the average of the two speeds. It's the"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " *total distance traveled divided by the total time taken*.\n\n**Step 1: Calculate the distance traveled in the first part of the journey.**\n\n*   "
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "**Formula:** Distance = Speed × Time\n*   **Speed:** 60 mph\n*   **Time:** 2 hours\n*   **Distance"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " 1:** 60 mph × 2 hours = 120 miles\n\n**Step 2: Calculate the distance traveled in the second part of the journey.**\n\n*   **Formula:** Distance = Speed × Time\n*"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "   **Speed:** 80 mph\n*   **Time:** 1 hour\n*   **Distance 2:** 80 mph × 1 hour = 80 miles\n\n**Step 3: Calculate the total distance"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " traveled.**\n\n*   **Total Distance:** Distance 1 + Distance 2\n*   **Total Distance:** 120 miles + 80 miles = 200 miles\n\n**Step 4: Calculate the total time taken for the journey.**\n\n*   **Total Time:** Time 1 + Time 2\n"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "*   **Total Time:** 2 hours + 1 hour = 3 hours\n\n**Step 5: Calculate the average speed.**\n\n*   **Formula:** Average Speed = Total Distance / Total Time\n*   **Total Distance:** 200 miles\n*   **Total Time:** 3 hours\n"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "*   **Average Speed:** 200 miles / 3 hours = 66.67 mph (approximately)\n\n**Answer:** The average speed of the train is approximately **66.67 mph**."
+            }
+          ]
+        },
+        "finishReason": "STOP"
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 36,
+      "candidatesTokenCount": 378,
+      "totalTokenCount": 414,
+      "trafficType": "ON_DEMAND_PRIORITY",
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 36
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 378
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.156775Z",
+    "responseId": "35bKaefICfaAheMPg4_z6Ac"
+  }
+]

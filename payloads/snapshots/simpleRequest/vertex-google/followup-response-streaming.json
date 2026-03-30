@@ -1,0 +1,318 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "That"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "'s a great"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " question, and the answer depends entirely on what you want to do! To give you the best"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " advice, I need a little more information.\n\nTell me:\n\n*   **What were"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " you doing before you asked this question?** (Were you just browsing? Reading something specific? Working on a task?)\n*   **What are your current interests or goals?"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "** (Are you looking for entertainment, information, to learn something new, to be productive, to relax?)\n*   **What kind of things do you usually"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " enjoy?** (Are you into history, science, art, cooking, gaming, sports, music, writing, travel, etc.?)\n*   **Do you have any specific constraints?** (Like limited time, budget, or"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " resources?)\n\n**In the meantime, here are some general ideas to get you thinking, categorized by what you might be looking for:**\n\n**If you're looking for entertainment/distraction:**\n\n*   **Ask me a fun"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " question!** Like \"Tell me a joke,\" \"Give me a weird fact,\" or \"Invent a new animal.\"\n*   **Play a game.** We can try a trivia game, a word association game, or I can even tell you a story.\n*   **Explore a new topic.** Ask me about something"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " you're curious about, even if it's something random.\n*   **Get a creative prompt.** I can suggest a writing prompt, a drawing idea, or a story scenario.\n*   **Listen to music or a podcast.** I can suggest some based on your preferences.\n\n**If you're looking"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " to learn something new:**\n\n*   **Ask me to explain a complex concept.** Like quantum physics, artificial intelligence, or how the internet works.\n*   **Learn about a historical event or person.**\n*   **Discover a new skill.** I can provide information or steps on how to do things like knitting, basic"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " coding, or cooking a simple recipe.\n*   **Explore a different culture.** Ask me about traditions, food, or geography of a country.\n\n**If you're looking to be productive/get things done:**\n\n*   **Ask me to help you plan something.** A trip, a meal, a project"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": ".\n*   **Get help with writing.** I can help you brainstorm, outline, or even draft text for emails, essays, or creative pieces.\n*   **Solve a problem.** Describe a problem you're facing, and I'll try to offer solutions.\n*   **Organize your thoughts"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": ".** You can tell me what's on your mind, and I can help you structure it.\n\n**If you're feeling creative:**\n\n*   **Write a story together.** You start, and I continue, or vice-versa.\n*   **Brainstorm ideas for a project.** A business, a hobby, an"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " event.\n*   **Create a poem or song lyrics.**\n\n**Once you give me a little more direction, I can give you a much more tailored and helpful suggestion!**"
+            }
+          ]
+        },
+        "finishReason": "STOP"
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 21,
+      "candidatesTokenCount": 640,
+      "totalTokenCount": 661,
+      "trafficType": "ON_DEMAND_PRIORITY",
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 21
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 640
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.880059Z",
+    "responseId": "35bKabvbNff-29sPhZmkwQM"
+  }
+]

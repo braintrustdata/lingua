@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Ah, so the core of this inquiry, as I perceive it, is a straightforward request for the summation of two numerical entities. My immediate mental process is to identify this as a fundamental arithmetic operation, specifically addition. With that recognized, I then execute the calculation: two plus two. The result, unequivocally, is four. Therefore, my conclusion is to present this numerical outcome with the utmost clarity and conciseness.",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.8170896938868931
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 7,
+    "candidatesTokenCount": 7,
+    "totalTokenCount": 86,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "thoughtsTokenCount": 72
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:52:14.312438Z",
+  "responseId": "LpzKafaIE9WrheMPh_zuqQ0"
+}

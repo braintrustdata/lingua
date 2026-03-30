@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "My immediate thought process, upon encountering the user's request, was to pinpoint the essential task at hand. It was quite straightforward: to ascertain the outcome of the arithmetic expression \"2 + 2.\"\n\nHaving identified this core objective, the next logical step was to execute the calculation itself. This is a fundamental operation, and the result is immediately apparent: 2 plus 2 unequivocally equals 4.\n\nFinally, the last stage involved synthesizing this outcome into a clear and direct response, ensuring the answer is presented without ambiguity.",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4."
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -1.5069457292556763
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 7,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 73,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 58
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:52:13.175828Z",
+  "responseId": "LZzKadTdCr6yheMPoIWq0Qs"
+}

@@ -14,6 +14,7 @@ import {
   ANTHROPIC_OPUS_MODEL,
   GOOGLE_GEMINI_3_MODEL,
   GOOGLE_IMAGE_MODEL,
+  VERTEX_GOOGLE_MODEL,
 } from "./models";
 
 // OpenAI Responses API and Chat Completions API parameter test cases
@@ -108,6 +109,15 @@ export const paramsCases: TestCaseCollection = {
         responseMimeType: "application/json",
       },
     },
+    "vertex-google": {
+      model: VERTEX_GOOGLE_MODEL,
+      contents: [
+        { role: "user", parts: [{ text: 'Return {"status": "ok"} as JSON.' }] },
+      ],
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    },
     bedrock: null,
   },
 
@@ -177,6 +187,21 @@ export const paramsCases: TestCaseCollection = {
       },
     },
     google: {
+      contents: [{ role: "user", parts: [{ text: "Extract: John is 25." }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            age: { type: "number" },
+          },
+          required: ["name", "age"],
+        },
+      },
+    },
+    "vertex-google": {
+      model: VERTEX_GOOGLE_MODEL,
       contents: [{ role: "user", parts: [{ text: "Extract: John is 25." }] }],
       generationConfig: {
         responseMimeType: "application/json",
@@ -261,6 +286,21 @@ export const paramsCases: TestCaseCollection = {
       },
     },
     google: {
+      contents: [{ role: "user", parts: [{ text: "Extract: John is 25." }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            age: { type: "number" },
+          },
+          required: ["name", "age"],
+        },
+      },
+    },
+    "vertex-google": {
+      model: VERTEX_GOOGLE_MODEL,
       contents: [{ role: "user", parts: [{ text: "Extract: John is 25." }] }],
       generationConfig: {
         responseMimeType: "application/json",

@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The sky is **blue** on a clear day.\n\nHowever, its color can change depending on several factors:\n\n*   **Time of day:** During sunrise and sunset, the sky can appear red, orange, pink, and purple due to the way sunlight scatters through the atmosphere.\n*   **Weather conditions:** Clouds can make the sky appear white, gray, or even dark and stormy.\n*   **Atmospheric particles:** Smoke, dust, or pollution can tint the sky with different hues.\n\nBut in its most common and iconic appearance, it's blue!"
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.2678120877562451
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 6,
+    "candidatesTokenCount": 119,
+    "totalTokenCount": 125,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 6
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 119
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:32:55.627525Z",
+  "responseId": "p5fKacWmJv3-29sPnaKJqQY"
+}

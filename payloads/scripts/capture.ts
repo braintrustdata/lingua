@@ -14,6 +14,7 @@ import { googleExecutor } from "./providers/google";
 import { bedrockExecutor } from "./providers/bedrock";
 import { bedrockAnthropicExecutor } from "./providers/bedrock-anthropic";
 import { vertexAnthropicExecutor } from "./providers/vertex-anthropic";
+import { vertexGoogleExecutor } from "./providers/vertex-google";
 import { type ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
@@ -25,6 +26,7 @@ const allProviders = [
   bedrockExecutor,
   bedrockAnthropicExecutor,
   vertexAnthropicExecutor,
+  vertexGoogleExecutor,
 ] as const;
 
 interface CaptureOptions {

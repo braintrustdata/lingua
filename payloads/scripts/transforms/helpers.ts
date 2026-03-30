@@ -18,13 +18,15 @@ import {
   GOOGLE_MODEL,
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
+  VERTEX_GOOGLE_MODEL,
 } from "../../cases/models";
 
 export type SourceFormat =
   | "chat-completions"
   | "responses"
   | "anthropic"
-  | "google";
+  | "google"
+  | "vertex-google";
 export type WasmFormat = "OpenAI" | "Responses" | "Anthropic" | "Google";
 
 export interface TransformPair {
@@ -65,6 +67,12 @@ export const TRANSFORM_PAIRS: TransformPair[] = [
     wasmSource: "OpenAI",
     wasmTarget: "Google",
   },
+  {
+    source: "chat-completions",
+    target: "vertex-google",
+    wasmSource: "OpenAI",
+    wasmTarget: "Google",
+  },
 ];
 
 // Validation functions by format
@@ -73,6 +81,7 @@ const REQUEST_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   responses: validate_responses_request,
   anthropic: validate_anthropic_request,
   google: validate_google_request,
+  "vertex-google": validate_google_request,
 };
 
 const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
@@ -80,6 +89,7 @@ const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   responses: validate_responses_response,
   anthropic: validate_anthropic_response,
   google: validate_google_response,
+  "vertex-google": validate_google_response,
 };
 
 interface TransformResultData {
@@ -183,6 +193,7 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   "chat-completions": OPENAI_CHAT_COMPLETIONS_MODEL,
   responses: OPENAI_RESPONSES_MODEL,
   google: GOOGLE_MODEL,
+  "vertex-google": VERTEX_GOOGLE_MODEL,
 };
 
 export function getTransformableCases(
@@ -194,7 +205,9 @@ export function getTransformableCases(
     if (
       caseName.endsWith("Param") &&
       (pair.source !== "chat-completions" ||
-        (pair.target !== "anthropic" && pair.target !== "google"))
+        (pair.target !== "anthropic" &&
+          pair.target !== "google" &&
+          pair.target !== "vertex-google"))
     )
       return false;
     if (filter && !caseName.includes(filter)) return false;

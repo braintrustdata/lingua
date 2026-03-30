@@ -4674,6 +4674,2103 @@ exports[`chat-completions → google > topPParam > response 1`] = `
 }
 `;
 
+exports[`chat-completions → vertex-google > complexReasoningRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 20000,
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > complexReasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Let's break this down to figure out the most common and rarest digits and their percentages.
+
+**1. Total Number of Digits**
+
+*   **Hours:** There are 24 hours in a day (00 to 23).
+*   **Minutes:** There are 60 minutes in an hour (00 to 59).
+*   **Total Time Combinations:** 24 hours * 60 minutes = 1440 unique time combinations.
+
+Now, let's consider how many digits are displayed for each time:
+
+*   Each time is displayed as HH:MM, which is 5 characters.
+*   However, the colon is not a digit. We have 4 digits for each time: 2 for hours and 2 for minutes.
+
+Therefore, the total number of digits displayed across all times is:
+1440 time combinations * 4 digits/time = **5760 digits**.
+
+**2. Counting the Occurrences of Each Digit (0-9)**
+
+We need to systematically count how many times each digit appears in all the possible hour and minute combinations.
+
+*   **Hours (00 to 23):**
+    *   **Tens digit of hours:**
+        *   '0' appears 10 times (00-09)
+        *   '1' appears 10 times (10-19)
+        *   '2' appears 4 times (20-23)
+    *   **Units digit of hours:**
+        *   '0' appears 3 times (00, 10, 20)
+        *   '1' appears 3 times (01, 11, 21)
+        *   '2' appears 3 times (02, 12, 22)
+        *   '3' appears 3 times (03, 13, 23)
+        *   '4' appears 2 times (04, 14)
+        *   '5' appears 2 times (05, 15)
+        *   '6' appears 2 times (06, 16)
+        *   '7' appears 2 times (07, 17)
+        *   '8' appears 2 times (08, 18)
+        *   '9' appears 2 times (09, 19)
+
+    Let's sum these up for hours:
+    *   **0:** (10 + 3) = 13
+    *   **1:** (10 + 3) = 13
+    *   **2:** (4 + 3) = 7
+    *   **3:** (0 + 3) = 3
+    *   **4:** (0 + 2) = 2
+    *   **5:** (0 + 2) = 2
+    *   **6:** (0 + 2) = 2
+    *   **7:** (0 + 2) = 2
+    *   **8:** (0 + 2) = 2
+    *   **9:** (0 + 2) = 2
+
+*   **Minutes (00 to 59):** This is easier because the pattern repeats for every 10-minute interval.
+    *   **Tens digit of minutes:**
+        *   '0' appears 10 times (00-09)
+        *   '1' appears 10 times (10-19)
+        *   '2' appears 10 times (20-29)
+        *   '3' appears 10 times (30-39)
+        *   '4' appears 10 times (40-49)
+        *   '5' appears 10 times (50-59)
+    *   **Units digit of minutes:** In every block of 10 minutes, each digit from 0 to 9 appears once. Since there are 6 such blocks (0-9, 10-19, ..., 50-59), each unit digit appears 6 times.
+        *   '0' appears 6 times
+        *   '1' appears 6 times
+        *   '2' appears 6 times
+        *   '3' appears 6 times
+        *   '4' appears 6 times
+        *   '5' appears 6 times
+        *   '6' appears 6 times
+        *   '7' appears 6 times
+        *   '8' appears 6 times
+        *   '9' appears 6 times
+
+    Let's sum these up for minutes:
+    *   **0:** (10 * 6) + 6 = 60 + 6 = 66
+    *   **1:** (10 * 6) + 6 = 60 + 6 = 66
+    *   **2:** (10 * 6) + 6 = 60 + 6 = 66
+    *   **3:** (10 * 6) + 6 = 60 + 6 = 66
+    *   **4:** (10 * 6) + 6 = 60 + 6 = 66
+    *   **5:** (10 * 6) + 6 = 60 + 6 = 66
+    *   **6:** (0 * 6) + 6 = 0 + 6 = 6
+    *   **7:** (0 * 6) + 6 = 0 + 6 = 6
+    *   **8:** (0 * 6) + 6 = 0 + 6 = 6
+    *   **9:** (0 * 6) + 6 = 0 + 6 = 6
+
+*   **Total Count for Each Digit (Hours + Minutes):**
+    *   **0:** 13 (hours) + 66 (minutes) = **79**
+    *   **1:** 13 (hours) + 66 (minutes) = **79**
+    *   **2:** 7 (hours) + 66 (minutes) = **73**
+    *   **3:** 3 (hours) + 66 (minutes) = **69**
+    *   **4:** 2 (hours) + 66 (minutes) = **68**
+    *   **5:** 2 (hours) + 66 (minutes) = **68**
+    *   **6:** 2 (hours) + 6 (minutes) = **8**
+    *   **7:** 2 (hours) + 6 (minutes) = **8**
+    *   **8:** 2 (hours) + 6 (minutes) = **8**
+    *   **9:** 2 (hours) + 6 (minutes) = **8**
+
+**Let's double check our count of minutes digits:**
+Total minutes digits displayed: 1440 times * 2 digits/minute = 2880 minute digits.
+Sum of our minute digit counts: 6 * 66 (for 0-5) + 4 * 6 (for 6-9) = 396 + 24 = 420. This is incorrect.
+
+Let's re-evaluate the minute digits.
+For each of the 60 minutes (00-59):
+*   The tens digit cycles through 0 (10 times), 1 (10 times), 2 (10 times), 3 (10 times), 4 (10 times), 5 (10 times).
+*   The units digit cycles through 0-9 six times.
+
+So, for the minutes portion (MM):
+*   **Digit 0:** Tens digit appears 10 times (00-09). Units digit appears 6 times (00, 10, 20, 30, 40, 50). Total for minutes: 10 + 6 = 16.
+*   **Digit 1:** Tens digit appears 10 times (10-19). Units digit appears 6 times (01, 11, 21, 31, 41, 51). Total for minutes: 10 + 6 = 16.
+*   **Digit 2:** Tens digit appears 10 times (20-29). Units digit appears 6 times (02, 12, 22, 32, 42, 52). Total for minutes: 10 + 6 = 16.
+*   **Digit 3:** Tens digit appears 10 times (30-39). Units digit appears 6 times (03, 13, 23, 33, 43, 53). Total for minutes: 10 + 6 = 16.
+*   **Digit 4:** Tens digit appears 10 times (40-49). Units digit appears 6 times (04, 14, 24, 34, 44, 54). Total for minutes: 10 + 6 = 16.
+*   **Digit 5:** Tens digit appears 10 times (50-59). Units digit appears 6 times (05, 15, 25, 35, 45, 55). Total for minutes: 10 + 6 = 16.
+*   **Digit 6:** Tens digit appears 0 times in the 00-59 range. Units digit appears 6 times (06, 16, 26, 36, 46, 56). Total for minutes: 0 + 6 = 6.
+*   **Digit 7:** Tens digit appears 0 times. Units digit appears 6 times (07, 17, 27, 37, 47, 57). Total for minutes: 0 + 6 = 6.
+*   **Digit 8:** Tens digit appears 0 times. Units digit appears 6 times (08, 18, 28, 38, 48, 58). Total for minutes: 0 + 6 = 6.
+*   **Digit 9:** Tens digit appears 0 times. Units digit appears 6 times (09, 19, 29, 39, 49, 59). Total for minutes: 0 + 6 = 6.
+
+Let's verify the total minute digits: 6 * 16 (for 0-5) + 4 * 6 (for 6-9) = 96 + 24 = 120.
+This is still not right. The issue is that there are 60 minutes, and each minute has 2 digits. Total minute digits = 60 * 2 = 120.
+The previous calculation method was counting the occurrences across all 1440 times.
+
+Let's re-do the minute counts across all 1440 times:
+For each hour (00 to 23), the minutes run from 00 to 59.
+So, the distribution of digits in the minutes part is the same for every hour.
+
+Total occurrences of a digit in the minutes across all 24 hours:
+*   **Digit 0:** Tens digit appears 10 times per hour (00-09). Units digit appears 6 times per hour. Total per hour = 16. Across 24 hours: 16 * 24 = **384**
+*   **Digit 1:** Tens digit appears 10 times per hour (10-19). Units digit appears 6 times per hour. Total per hour = 16. Across 24 hours: 16 * 24 = **384**
+*   **Digit 2:** Tens digit appears 10 times per hour (20-29). Units digit appears 6 times per hour. Total per hour = 16. Across 24 hours: 16 * 24 = **384**
+*   **Digit 3:** Tens digit appears 10 times per hour (30-39). Units digit appears 6 times per hour. Total per hour = 16. Across 24 hours: 16 * 24 = **384**
+*   **Digit 4:** Tens digit appears 10 times per hour (40-49). Units digit appears 6 times per hour. Total per hour = 16. Across 24 hours: 16 * 24 = **384**
+*   **Digit 5:** Tens digit appears 10 times per hour (50-59). Units digit appears 6 times per hour. Total per hour = 16. Across 24 hours: 16 * 24 = **384**
+*   **Digit 6:** Tens digit appears 0 times per hour. Units digit appears 6 times per hour. Total per hour = 6. Across 24 hours: 6 * 24 = **144**
+*   **Digit 7:** Tens digit appears 0 times per hour. Units digit appears 6 times per hour. Total per hour = 6. Across 24 hours: 6 * 24 = **144**
+*   **Digit 8:** Tens digit appears 0 times per hour. Units digit appears 6 times per hour. Total per hour = 6. Across 24 hours: 6 * 24 = **144**
+*   **Digit 9:** Tens digit appears 0 times per hour. Units digit appears 6 times per hour. Total per hour = 6. Across 24 hours: 6 * 24 = **144**
+
+Let's sum these minute digits: 6 * 384 + 4 * 144 = 2304 + 576 = 2880. This matches the total number of minute digits.
+
+Now, let's combine hour and minute digit counts:
+*   **Digit 0:** 13 (hours) + 384 (minutes) = **397**
+*   **Digit 1:** 13 (hours) + 384 (minutes) = **397**
+*   **Digit 2:** 7 (hours) + 384 (minutes) = **391**
+*   **Digit 3:** 3 (hours) + 384 (minutes) = **387**
+*   **Digit 4:** 2 (hours) + 384 (minutes) = **386**
+*   **Digit 5:** 2 (hours) + 384 (minutes) = **386**
+*   **Digit 6:** 2 (hours) + 144 (minutes) = **146**
+*   **Digit 7:** 2 (hours) + 144 (minutes) = **146**
+*   **Digit 8:** 2 (hours) + 144 (minutes) = **146**
+*   **Digit 9:** 2 (hours) + 144 (minutes) = **146**
+
+Let's sum these total digit counts: 2 * 397 + 391 + 387 + 2 * 386 + 4 * 146 = 794 + 391 + 387 + 772 + 584 = 2928.
+This is still not 5760. The issue is in how we are summing. We need to count the total occurrences of each digit.
+
+Let's restart the counting from scratch, systematically.
+
+**Total number of digits: 5760**
+
+We can analyze the digits based on their position:
+*   **Hour Tens Digit (H1):** Ranges from 0 to 2.
+    *   0 appears 10 times (00-09)
+    *   1 appears 10 times (10-19)
+    *   2 appears 4 times (20-23)
+    *   Total times H1 is displayed: 10 + 10 + 4 = 24 times *per minute*. This is not how we should count.
+
+Let's count the occurrences across all 1440 times:
+
+**Hour Digits:**
+*   **Tens Digit of Hour:**
+    *   '0': Appears in 00:00 through 09:59. That's 10 hours. So, 10 * 60 minutes = 600 times.
+    *   '1': Appears in 10:00 through 19:59. That's 10 hours. So, 10 * 60 minutes = 600 times.
+    *   '2': Appears in 20:00 through 23:59. That's 4 hours. So, 4 * 60 minutes = 240 times.
+*   **Units Digit of Hour:**
+    *   '0': Appears in 00, 10, 20. For each of these hour patterns (e.g., 00), it appears for 60 minutes. So, 3 * 60 = 180 times.
+    *   '1': Appears in 01, 11, 21. So, 3 * 60 = 180 times.
+    *   '2': Appears in 02, 12, 22. So, 3 * 60 = 180 times.
+    *   '3': Appears in 03, 13, 23. So, 3 * 60 = 180 times.
+    *   '4': Appears in 04, 14. So, 2 * 60 = 120 times.
+    *   '5': Appears in 05, 15. So, 2 * 60 = 120 times.
+    *   '6': Appears in 06, 16. So, 2 * 60 = 120 times.
+    *   '7': Appears in 07, 17. So, 2 * 60 = 120 times.
+    *   '8': Appears in 08, 18. So, 2 * 60 = 120 times.
+    *   '9': Appears in 09, 19. So, 2 * 60 = 120 times.
+
+**Total Hour Digit Counts:**
+*   '0': 600 + 180 = **780**
+*   '1': 600 + 180 = **780**
+*   '2': 240 + 180 = **420**
+*   '3': 0 + 180 = **180**
+*   '4': 0 + 120 = **120**
+*   '5': 0 + 120 = **120**
+*   '6': 0 + 120 = **120**
+*   '7': 0 + 120 = **120**
+*   '8': 0 + 120 = **120**
+*   '9': 0 + 120 = **120**
+
+Sum of hour digits: 2*780 + 420 + 180 + 6*120 = 1560 + 420 + 180 + 720 = 2880. This is correct for the hour digits (24 hours * 60 minutes * 2 digits/hour = 2880 digits).
+
+**Minute Digits:**
+For every hour, the minutes run from 00 to 59. This means the distribution of digits in the minutes is the same for each of the 24 hours.
+*   **Tens Digit of Minute:**
+    *   '0': Appears in 00-09. That's 10 minutes. For each hour, this occurs 10 times. Over 24 hours: 10 * 24 = 240 times.
+    *   '1': Appears in 10-19. That's 10 minutes. Over 24 hours: 10 * 24 = 240 times.
+    *   '2': Appears in 20-29. That's 10 minutes. Over 24 hours: 10 * 24 = 240 times.
+    *   '3': Appears in 30-39. That's 10 minutes. Over 24 hours: 10 * 24 = 240 times.
+    *   '4': Appears in 40-49. That's 10 minutes. Over 24 hours: 10 * 24 = 240 times.
+    *   '5': Appears in 50-59. That's 10 minutes. Over 24 hours: 10 * 24 = 240 times.
+*   **Units Digit of Minute:**
+    *   '0': Appears in 00, 10, 20, 30, 40, 50. That's 6 times for every hour. Over 24 hours: 6 * 24 = 144 times.
+    *   '1': Appears in 01, 11, 21, 31, 41, 51. So, 6 * 24 = 144 times.
+    *   '2': Appears in 02, 12, 22, 32, 42, 52. So, 6 * 24 = 144 times.
+    *   '3': Appears in 03, 13, 23, 33, 43, 53. So, 6 * 24 = 144 times.
+    *   '4': Appears in 04, 14, 24, 34, 44, 54. So, 6 * 24 = 144 times.
+    *   '5': Appears in 05, 15, 25, 35, 45, 55. So, 6 * 24 = 144 times.
+    *   '6': Appears in 06, 16, 26, 36, 46, 56. So, 6 * 24 = 144 times.
+    *   '7': Appears in 07, 17, 27, 37, 47, 57. So, 6 * 24 = 144 times.
+    *   '8': Appears in 08, 18, 28, 38, 48, 58. So, 6 * 24 = 144 times.
+    *   '9': Appears in 09, 19, 29, 39, 49, 59. So, 6 * 24 = 144 times.
+
+**Total Minute Digit Counts:**
+*   '0': 240 (tens) + 144 (units) = **384**
+*   '1': 240 (tens) + 144 (units) = **384**
+*   '2': 240 (tens) + 144 (units) = **384**
+*   '3': 240 (tens) + 144 (units) = **384**
+*   '4': 240 (tens) + 144 (units) = **384**
+*   '5': 240 (tens) + 144 (units) = **384**
+*   '6': 0 (tens) + 144 (units) = **144**
+*   '7': 0 (tens) + 144 (units) = **144**
+*   '8': 0 (tens) + 144 (units) = **144**
+*   '9': 0 (tens) + 144 (units) = **144**
+
+Sum of minute digits: 6 * 384 + 4 * 144 = 2304 + 576 = 2880. This is correct for the minute digits.
+
+**Grand Total for Each Digit (Hour + Minute):**
+*   **0:** 780 (hours) + 384 (minutes) = **1164**
+*   **1:** 780 (hours) + 384 (minutes) = **1164**
+*   **2:** 420 (hours) + 384 (minutes) = **804**
+*   **3:** 180 (hours) + 384 (minutes) = **564**
+*   **4:** 120 (hours) + 384 (minutes) = **504**
+*   **5:** 120 (hours) + 384 (minutes) = **504**
+*   **6:** 120 (hours) + 144 (minutes) = **264**
+*   **7:** 120 (hours) + 144 (minutes) = **264**
+*   **8:** 120 (hours) + 144 (minutes) = **264**
+*   **9:** 120 (hours) + 144 (minutes) = **264**
+
+Let's check the sum of all digits: 2 * 1164 + 804 + 564 + 2 * 504 + 4 * 264 = 2328 + 804 + 564 + 1008 + 1056 = 5760. This matches the total number of digits.
+
+**Results:**
+
+*   **Most Common Digit(s):** The digits **0** and **1** are the most common.
+    *   Count: **1164** each
+    *   Percentage: (1164 / 5760) * 100% = **20.21%**
+
+*   **Rarest Digit(s):** The digits **6**, **7**, **8**, and **9** are the rarest.
+    *   Count: **264** each
+    *   Percentage: (264 / 5760) * 100% = **4.58%**
+
+**Summary:**
+
+*   **Most Common Digits:** **0 and 1** (1164 occurrences each, 20.21% each)
+*   **Rarest Digits:** **6, 7, 8, and 9** (264 occurrences each, 4.58% each)",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 6344,
+    "prompt_tokens": 74,
+    "total_tokens": 6418,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > frequencyPenaltyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > frequencyPenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > instructionsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Hi",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "Always say ok.",
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > instructionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1,
+    "prompt_tokens": 5,
+    "total_tokens": 6,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > logitBiasParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hello.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > logitBiasParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 9,
+    "prompt_tokens": 3,
+    "total_tokens": 12,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > logprobsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2 + 2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > logprobsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 7,
+    "prompt_tokens": 8,
+    "total_tokens": 15,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > maxCompletionTokensParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 500,
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > maxCompletionTokensParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > metadataParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > metadataParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > multimodalRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What do you see in this image?",
+        },
+        {
+          "fileData": {
+            "fileUri": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 300,
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > nMultipleCompletionsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say a word.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > nMultipleCompletionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 4,
+    "total_tokens": 6,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather in NYC and LA?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → vertex-google > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"NYC"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+          {
+            "function": {
+              "arguments": "{"location":"LA"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 10,
+    "prompt_tokens": 11,
+    "total_tokens": 21,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > predictionParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Update this function to add error handling:
+
+function divide(a, b) {
+  return a / b;
+}",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > predictionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "\`\`\`javascript
+/**
+ * Divides two numbers and handles potential errors.
+ *
+ * @param {number} a The dividend.
+ * @param {number} b The divisor.
+ * @returns {number | string} The result of the division, or an error message string if an error occurs.
+ */
+function divide(a, b) {
+  // 1. Check if inputs are valid numbers
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    return "Error: Both inputs must be numbers.";
+  }
+
+  // 2. Check for division by zero
+  if (b === 0) {
+    return "Error: Division by zero is not allowed.";
+  }
+
+  // 3. Perform the division
+  return a / b;
+}
+
+// --- Examples of usage ---
+
+console.log(divide(10, 2));      // Output: 5
+console.log(divide(15, 3));      // Output: 5
+console.log(divide(7, 0));       // Output: Error: Division by zero is not allowed.
+console.log(divide(10, 'abc'));  // Output: Error: Both inputs must be numbers.
+console.log(divide('xyz', 5));   // Output: Error: Both inputs must be numbers.
+console.log(divide(10, undefined)); // Output: Error: Both inputs must be numbers.
+console.log(divide(null, 5));    // Output: Error: Both inputs must be numbers.
+console.log(divide(20, 4));      // Output: 5
+\`\`\`
+
+**Explanation of Error Handling:**
+
+1.  **Type Checking:**
+    *   \`if (typeof a !== 'number' || typeof b !== 'number')\`: This checks if either \`a\` or \`b\` is not of the \`number\` data type. If they are not, it returns a specific error message. This prevents issues like trying to divide a string by a number or vice-versa, which would result in \`NaN\` or other unexpected behavior.
+
+2.  **Division by Zero:**
+    *   \`if (b === 0)\`: This is the most crucial error to handle in division. Dividing by zero is mathematically undefined and would result in \`Infinity\` or \`-Infinity\` in JavaScript, which might not be the desired outcome. This check ensures that we explicitly catch this case and return a clear error message.
+
+3.  **Returning Error Messages:**
+    *   Instead of throwing actual JavaScript \`Error\` objects (which is also a valid approach for more complex applications), this updated function returns descriptive **string messages** when an error occurs. This makes it easy to check the return value and display the appropriate message to the user.
+
+**Alternative (Throwing Errors):**
+
+For more robust error handling in larger applications, you might prefer to \`throw\` actual \`Error\` objects. This allows for more structured error management using \`try...catch\` blocks.
+
+\`\`\`javascript
+function divideWithErrorThrow(a, b) {
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new Error("Both inputs must be numbers.");
+  }
+
+  if (b === 0) {
+    throw new Error("Division by zero is not allowed.");
+  }
+
+  return a / b;
+}
+
+// Example of using try...catch
+try {
+  console.log(divideWithErrorThrow(10, 2)); // Output: 5
+  console.log(divideWithErrorThrow(7, 0));  // This line will throw an error
+} catch (error) {
+  console.error(error.message); // Output: Division by zero is not allowed.
+}
+
+try {
+  console.log(divideWithErrorThrow(10, 'abc')); // This line will throw an error
+} catch (error) {
+  console.error(error.message); // Output: Both inputs must be numbers.
+}
+\`\`\`
+
+The choice between returning error strings or throwing errors depends on the context and how you intend to handle errors in your application. For a simple function, returning strings is often sufficient and easier to read.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 912,
+    "prompt_tokens": 26,
+    "total_tokens": 938,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > presencePenaltyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > presencePenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > promptCacheKeyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > promptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningEffortLowParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningEffortLowParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "reasoning": "Ah, so the core of this inquiry, as I perceive it, is a straightforward request for the summation of two numerical entities. My immediate mental process is to identify this as a fundamental arithmetic operation, specifically addition. With that recognized, I then execute the calculation: two plus two. The result, unequivocally, is four. Therefore, my conclusion is to present this numerical outcome with the utmost clarity and conciseness.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 79,
+    "completion_tokens_details": {
+      "reasoning_tokens": 72,
+    },
+    "prompt_tokens": 7,
+    "total_tokens": 86,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Here's how to solve this problem step-by-step:
+
+**1. Understand the Goal:**
+We need to find the *average speed* of the train. Average speed is calculated as:
+
+Average Speed = Total Distance / Total Time
+
+**2. Calculate the Distance for the First Part of the Journey:**
+* **Formula:** Distance = Speed × Time
+* **Speed:** 60 mph
+* **Time:** 2 hours
+* **Calculation:** 60 mph × 2 hours = 120 miles
+
+**3. Calculate the Distance for the Second Part of the Journey:**
+* **Formula:** Distance = Speed × Time
+* **Speed:** 80 mph
+* **Time:** 1 hour
+* **Calculation:** 80 mph × 1 hour = 80 miles
+
+**4. Calculate the Total Distance Traveled:**
+* **Add the distances from both parts of the journey:**
+* **Calculation:** 120 miles + 80 miles = 200 miles
+
+**5. Calculate the Total Time of the Journey:**
+* **Add the times from both parts of the journey:**
+* **Calculation:** 2 hours + 1 hour = 3 hours
+
+**6. Calculate the Average Speed:**
+* **Use the average speed formula:** Average Speed = Total Distance / Total Time
+* **Total Distance:** 200 miles
+* **Total Time:** 3 hours
+* **Calculation:** 200 miles / 3 hours = 66.67 mph (approximately)
+
+**Answer:** The average speed of the train is approximately **66.67 mph**.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 349,
+    "prompt_tokens": 36,
+    "total_tokens": 385,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningRequestTruncated > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 100,
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Here's how to solve this problem step-by-step:
+
+**1. Calculate the distance traveled in the first part of the journey:**
+
+* **Formula:** Distance = Speed × Time
+* **Speed:** 60 mph
+* **Time:** 2 hours
+* **Calculation:** Distance1 = 60 mph × 2 hours = 120 miles
+
+**2. Calculate the distance traveled in the second part of the journey:**
+
+* **Formula:**",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 100,
+    "prompt_tokens": 36,
+    "total_tokens": 136,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningSummaryParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 2048,
+    },
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningSummaryParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4.",
+        "reasoning": "My immediate thought process, upon encountering the user's request, was to pinpoint the essential task at hand. It was quite straightforward: to ascertain the outcome of the arithmetic expression "2 + 2."
+
+Having identified this core objective, the next logical step was to execute the calculation itself. This is a fundamental operation, and the result is immediately apparent: 2 plus 2 unequivocally equals 4.
+
+Finally, the last stage involved synthesizing this outcome into a clear and direct response, ensuring the answer is presented without ambiguity.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 66,
+    "completion_tokens_details": {
+      "reasoning_tokens": 58,
+    },
+    "prompt_tokens": 7,
+    "total_tokens": 73,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningWithOutput > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What color is the sky?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > reasoningWithOutput > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The sky is **blue** on a clear day.
+
+However, its color can change depending on several factors:
+
+*   **Time of day:** During sunrise and sunset, the sky can appear red, orange, pink, and purple due to the way sunlight scatters through the atmosphere.
+*   **Weather conditions:** Clouds can make the sky appear white, gray, or even dark and stormy.
+*   **Atmospheric particles:** Smoke, dust, or pollution can tint the sky with different hues.
+
+But in its most common and iconic appearance, it's blue!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 119,
+    "prompt_tokens": 6,
+    "total_tokens": 125,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > safetyIdentifierParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > safetyIdentifierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > seedParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Pick a number.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > seedParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'll pick **7**.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 7,
+    "prompt_tokens": 4,
+    "total_tokens": 11,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > serviceTierParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > serviceTierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > simpleRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is the capital of France?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > simpleRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The capital of France is **Paris**.",
+        "reasoning": "Okay, so I'm presented with a query. My primary objective, as I see it, is to immediately isolate the fundamental question being posed. In this instance, it's quite straightforward: "What is the capital of France?"
+
+Once I've clearly identified this core inquiry, my next step is to access my internal knowledge base. I need to retrieve the relevant piece of information that directly answers this question. Fortunately, this is a well-established and readily available datum: Paris is indeed the capital of France.
+
+With the factual answer in hand, my task then shifts to constructing a response. This response needs to be unambiguous and directly address the user's prompt. Therefore, a clear and direct statement of the fact is the most efficient and effective approach.
+
+Finally, before presenting the answer, I perform a quick internal review. I ask myself: Is the information I'm about to provide accurate? In this case, unequivocally yes. And is the answer concise and to the point, avoiding any unnecessary verbosity? Again, yes. This ensures I've met the user's need with precision and efficiency.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 79,
+    "completion_tokens_details": {
+      "reasoning_tokens": 71,
+    },
+    "prompt_tokens": 7,
+    "total_tokens": 86,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > stopSequencesParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Count from 1 to 20.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "stopSequences": [
+      "10",
+      "ten",
+    ],
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > stopSequencesParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Here's the count from 1 to 20:
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 32,
+    "prompt_tokens": 9,
+    "total_tokens": 41,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > storeDisabledParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > storeDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > systemMessageArrayContent > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What errors occurred recently?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 300,
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > systemMessageArrayContent > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I can't provide specific error details without knowing what constitutes "recently." Please specify a time frame (e.g., "in the last hour," "yesterday," "this morning") for me to query the project logs.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 47,
+    "prompt_tokens": 28,
+    "total_tokens": 75,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > temperatureParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "temperature": 0.7,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > temperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 3,
+    "total_tokens": 5,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > textFormatJsonObjectParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return {"status": "ok"} as JSON.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > textFormatJsonObjectParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"status": "ok"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 6,
+    "prompt_tokens": 10,
+    "total_tokens": 16,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > textFormatJsonSchemaParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Extract: John is 25.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "title": "person_info",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > textFormatJsonSchemaParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{
+  "name": "John",
+  "age": 25
+}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 19,
+    "prompt_tokens": 8,
+    "total_tokens": 27,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Extract: John is 25.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "description": "Extract person information from text",
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "title": "person_info",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{
+  "name": "John",
+  "age": 25
+}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 19,
+    "prompt_tokens": 8,
+    "total_tokens": 27,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > textFormatTextParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hello.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseMimeType": "text/plain",
+    "responseSchema": null,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > textFormatTextParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 9,
+    "prompt_tokens": 3,
+    "total_tokens": 12,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > toolCallRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What's the weather like in San Francisco?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → vertex-google > toolCallRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"San Francisco, CA"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 8,
+    "prompt_tokens": 20,
+    "total_tokens": 28,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > toolChoiceRequiredParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "allowedFunctionNames": [
+        "get_weather",
+      ],
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → vertex-google > toolChoiceRequiredParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 5,
+    "prompt_tokens": 7,
+    "total_tokens": 12,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 2048,
+    },
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "allowedFunctionNames": [
+        "get_weather",
+      ],
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → vertex-google > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "Ah, I see the user's request. They're looking for weather information, specifically for Tokyo. My internal knowledge base immediately points me to the \`get_weather\` tool – that's precisely what it's designed for. Now, I just need to provide it with the necessary details. The \`get_weather\` tool has a clear \`location\` parameter, and in this case, the location is unequivocally "Tokyo." So, the logical next step is to construct the tool call as \`get_weather(location="Tokyo")\`. This should effectively retrieve the weather data the user is asking for.",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 63,
+    "completion_tokens_details": {
+      "reasoning_tokens": 58,
+    },
+    "prompt_tokens": 7,
+    "total_tokens": 70,
+  },
+}
+`;
+
+exports[`chat-completions → vertex-google > topPParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "topP": 0.9,
+  },
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+}
+`;
+
+exports[`chat-completions → vertex-google > topPParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash-lite",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 3,
+    "prompt_tokens": 3,
+    "total_tokens": 6,
+  },
+}
+`;
+
 exports[`responses → anthropic > complexReasoningRequest > request 1`] = `
 {
   "max_tokens": 20000,

@@ -1,0 +1,48 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Ah, I see the user's request. They're looking for weather information, specifically for Tokyo. My internal knowledge base immediately points me to the `get_weather` tool – that's precisely what it's designed for. Now, I just need to provide it with the necessary details. The `get_weather` tool has a clear `location` parameter, and in this case, the location is unequivocally \"Tokyo.\" So, the logical next step is to construct the tool call as `get_weather(location=\"Tokyo\")`. This should effectively retrieve the weather data the user is asking for.",
+            "thought": true
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "Tokyo"
+              }
+            },
+            "thoughtSignature": "CowCAY89a1+8JoG3SS9WbPICZeypCySEKZQ5KQA0MqGKtrAGLr6i1swQz4PkeIhWM5edM9VsRpUroSVtcPFctI+msSPeVdzhF5egmaIhdyVtyQZ/Wf3lef+DmkdiXGDY6R0bPMozgbqeg4sx/gAj4TKzN/lAW9XVt6xVFfHRKrL978osWdgWqLKrPsV7q+6dwoLof/JRROr0K/Pt3qOfFYIzupoHNcbWoPXR6iCX8MTfQpf5h1osi2N/J5UM4AAN1byIjG/FtCsEjXKnEBgK2bFs/A2L6p+z410/4r0Use0R0TnTMIMzgAEss5tgT/x+ZtA9rVsyXbrlNjX/N/+nZd28mL6vJWAhr+bOZHULew=="
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.9516056060791016
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 7,
+    "candidatesTokenCount": 5,
+    "totalTokenCount": 70,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 5
+      }
+    ],
+    "thoughtsTokenCount": 58
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:52:17.798281Z",
+  "responseId": "MZzKacncMMizheMP0I-c6QE"
+}
