@@ -124,6 +124,16 @@ async fn fetch_remote_image_as_base64(url: &str) -> Result<MediaBlock> {
 
 type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
 
+// Preserve the legacy proxy behavior that fetched remote image URLs before
+// Bedrock request translation, since Converse and Bedrock Anthropic expect
+// inline media rather than raw remote URLs.
+fn should_inline_remote_image_urls(format: ProviderFormat) -> bool {
+    matches!(
+        format,
+        ProviderFormat::BedrockAnthropic | ProviderFormat::Converse
+    )
+}
+
 async fn inline_remote_image_urls_with_fetch<F>(
     request: &mut lingua::UniversalRequest,
     mut fetch: F,
@@ -171,7 +181,7 @@ where
     Ok(changed)
 }
 
-async fn prepare_bedrock_request_with_fetch<F>(
+async fn prepare_request_with_remote_image_inlining<F>(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
@@ -221,13 +231,12 @@ where
 }
 
 async fn prepare_provider_request(
-    provider: &dyn Provider,
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
 ) -> Result<Bytes> {
-    if provider.id() == "bedrock" {
-        return prepare_bedrock_request_with_fetch(body, spec, format, |url| {
+    if should_inline_remote_image_urls(format) {
+        return prepare_request_with_remote_image_inlining(body, spec, format, |url| {
             Box::pin(fetch_remote_image_as_base64(url))
         })
         .await;
@@ -291,8 +300,7 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, strategy) = route;
-        let payload =
-            prepare_provider_request(provider.as_ref(), body, spec.as_ref(), *format).await?;
+        let payload = prepare_provider_request(body, spec.as_ref(), *format).await?;
 
         let response_bytes = self
             .execute_with_retry(
@@ -347,8 +355,7 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, _) = route;
-        let payload =
-            prepare_provider_request(provider.as_ref(), body, spec.as_ref(), *format).await?;
+        let payload = prepare_provider_request(body, spec.as_ref(), *format).await?;
 
         let raw_stream = provider
             .clone()
@@ -850,8 +857,22 @@ mod tests {
         }
     }
 
+    #[test]
+    fn should_inline_remote_image_urls_matches_legacy_proxy_formats() {
+        assert!(should_inline_remote_image_urls(
+            ProviderFormat::BedrockAnthropic
+        ));
+        assert!(should_inline_remote_image_urls(ProviderFormat::Converse));
+        assert!(!should_inline_remote_image_urls(ProviderFormat::Anthropic));
+        assert!(!should_inline_remote_image_urls(
+            ProviderFormat::ChatCompletions
+        ));
+        assert!(!should_inline_remote_image_urls(ProviderFormat::Responses));
+        assert!(!should_inline_remote_image_urls(ProviderFormat::Google));
+    }
+
     #[tokio::test]
-    async fn prepare_bedrock_request_inlines_remote_chat_image_for_converse() {
+    async fn prepare_request_inlines_remote_chat_image_for_converse() {
         let body = Bytes::from(
             lingua::serde_json::to_vec(&lingua::serde_json::json!({
                 "model": "claude-sonnet-4-5-20250929",
@@ -866,7 +887,7 @@ mod tests {
             .unwrap(),
         );
 
-        let prepared = prepare_bedrock_request_with_fetch(
+        let prepared = prepare_request_with_remote_image_inlining(
             body,
             &bedrock_spec(
                 "anthropic.claude-3-haiku-20240307-v1:0",
@@ -900,7 +921,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn prepare_bedrock_request_inlines_remote_responses_image_for_bedrock_anthropic() {
+    async fn prepare_request_inlines_remote_responses_image_for_bedrock_anthropic() {
         let body = Bytes::from(
             lingua::serde_json::to_vec(&lingua::serde_json::json!({
                 "model": "claude-sonnet-4-5-20250929",
@@ -919,7 +940,7 @@ mod tests {
             .unwrap(),
         );
 
-        let prepared = prepare_bedrock_request_with_fetch(
+        let prepared = prepare_request_with_remote_image_inlining(
             body,
             &bedrock_spec(
                 "anthropic.claude-3-haiku-20240307-v1:0",
