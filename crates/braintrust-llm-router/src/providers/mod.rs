@@ -22,7 +22,6 @@ pub use vertex::{VertexConfig, VertexProvider};
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::serde_json::{self, Value};
-use lingua::{TransformError, TransformResult};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -140,19 +139,6 @@ pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
     }
 }
 
-pub(crate) fn default_prepare_request(
-    body: Bytes,
-    spec: &ModelSpec,
-    format: ProviderFormat,
-) -> Result<Bytes> {
-    match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-        Ok(TransformResult::PassThrough(bytes)) => Ok(bytes),
-        Ok(TransformResult::Transformed { bytes, .. }) => Ok(bytes),
-        Err(TransformError::UnsupportedTargetFormat(_)) => Ok(body),
-        Err(err) => Err(err.into()),
-    }
-}
-
 /// Provider trait for LLM API backends.
 ///
 /// Implementations should be `Send + Sync` to allow concurrent access.
@@ -168,20 +154,6 @@ pub trait Provider: Send + Sync {
 
     /// All formats this provider can handle.
     fn provider_formats(&self) -> Vec<ProviderFormat>;
-
-    /// Prepare a raw request body for this provider and target format.
-    ///
-    /// The default behavior delegates to Lingua's request transformation.
-    /// Providers can override this to apply provider-specific preprocessing
-    /// before serialization to the upstream format.
-    async fn prepare_request(
-        &self,
-        body: Bytes,
-        spec: &ModelSpec,
-        format: ProviderFormat,
-    ) -> Result<Bytes> {
-        default_prepare_request(body, spec, format)
-    }
 
     /// Execute a completion request.
     ///
