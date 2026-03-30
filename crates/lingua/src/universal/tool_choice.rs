@@ -315,7 +315,6 @@ mod tests {
         let config = ToolChoiceConfig {
             mode: Some(ToolChoiceMode::Tool),
             tool_name: Some("get_weather".into()),
-            ..Default::default()
         };
         let value = config
             .to_provider(ProviderFormat::ChatCompletions, None)
