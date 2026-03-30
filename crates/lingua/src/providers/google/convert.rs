@@ -726,11 +726,7 @@ impl From<&ToolConfig> for ToolChoiceConfig {
             (mode, _) => (mode, None),
         };
 
-        ToolChoiceConfig {
-            mode,
-            tool_name,
-            disable_parallel: None,
-        }
+        ToolChoiceConfig { mode, tool_name }
     }
 }
 
@@ -1261,7 +1257,6 @@ mod tests {
         let choice = ToolChoiceConfig {
             mode: Some(ToolChoiceMode::Auto),
             tool_name: None,
-            disable_parallel: None,
         };
 
         let config = ToolConfig::try_from(&choice).unwrap();
@@ -1274,7 +1269,6 @@ mod tests {
         let choice = ToolChoiceConfig {
             mode: Some(ToolChoiceMode::Required),
             tool_name: None,
-            disable_parallel: None,
         };
 
         let config = ToolConfig::try_from(&choice).unwrap();
@@ -1287,7 +1281,6 @@ mod tests {
         let choice = ToolChoiceConfig {
             mode: Some(ToolChoiceMode::Tool),
             tool_name: Some("get_weather".to_string()),
-            disable_parallel: None,
         };
 
         let config = ToolConfig::try_from(&choice).unwrap();

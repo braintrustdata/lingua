@@ -139,16 +139,6 @@ impl ProviderAdapter for OpenAIAdapter {
             extras: Default::default(),
         };
 
-        // Sync parallel_tool_calls with tool_choice.disable_parallel for roundtrip fidelity
-        // OpenAI uses parallel_tool_calls at params level, Anthropic uses tool_choice.disable_parallel
-        if params.parallel_tool_calls == Some(false) {
-            if let Some(ref mut tc) = params.tool_choice {
-                if tc.disable_parallel.is_none() {
-                    tc.disable_parallel = Some(true);
-                }
-            }
-        }
-
         // Collect provider-specific extras for round-trip preservation
         // This includes both unknown fields (from serde flatten) and known OpenAI fields
         // that aren't part of UniversalParams

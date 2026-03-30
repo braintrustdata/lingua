@@ -144,7 +144,6 @@
         { "pattern": "params.top_logprobs", "reason": "Google doesn't support top_logprobs" },
         { "pattern": "params.tools[*].strict", "reason": "Google doesn't support strict mode for tools" },
         { "pattern": "messages[*].content[*].output", "reason": "Google wraps string tool result output in an object ({\"output\": ...})" },
-        { "pattern": "params.tool_choice.disable_parallel", "reason": "Google doesn't support disable_parallel in tool_choice" },
         { "pattern": "params.temperature", "reason": "Google uses f32 for temperature, causing precision loss (0.7 → 0.699999988079071)" },
         { "pattern": "params.top_p", "reason": "Google uses f32 for top_p, causing precision loss (0.9 → 0.8999999761581421)" },
         { "pattern": "messages[*].content[*].media_type", "reason": "Google requires mime_type for images; null defaults to image/jpeg" },

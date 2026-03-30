@@ -19,10 +19,4 @@ mode: ToolChoiceMode | null,
 /**
  * Specific tool name (when mode = Tool)
  */
-tool_name: string | null, 
-/**
- * Whether to disable parallel tool calls.
- * Maps to Anthropic's `disable_parallel_tool_use` field.
- * For OpenAI, this is handled via the separate `parallel_tool_calls` param.
- */
-disable_parallel: boolean | null, };
+tool_name: string | null, };
