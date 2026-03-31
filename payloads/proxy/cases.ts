@@ -926,14 +926,14 @@ export const proxyCases: ProxyTestCaseCollection = {
             {
               type: "image_url",
               image_url: {
-                url: "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+                url: "https://mystickermania.com/cdn/stickers/games/mario-banana-peel-512x512.png",
               },
             },
           ],
         },
         {
           role: "assistant",
-          content: "It looks like a kitten.",
+          content: "It looks like a banana peel.",
         },
         {
           role: "user",
@@ -964,7 +964,7 @@ export const proxyCases: ProxyTestCaseCollection = {
               type: "input_image",
               detail: "auto",
               image_url:
-                "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+                "https://mystickermania.com/cdn/stickers/games/mario-banana-peel-512x512.png",
             },
           ],
         },
