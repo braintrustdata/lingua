@@ -160,27 +160,16 @@ impl TryFromLLM<Message> for BedrockMessage {
             Message::User { content } => {
                 let blocks = match content {
                     UserContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
-                    UserContent::Array(parts) => {
-                        let mut blocks = Vec::new();
-
-                        for part in parts {
-                            match part {
-                                UserContentPart::Text(t) => {
-                                    blocks.push(BedrockContentBlock::Text { text: t.text });
-                                }
-                                UserContentPart::Image {
-                                    image, media_type, ..
-                                } => {
-                                    let Value::String(data) = image else {
-                                        continue;
-                                    };
-
-                                    if data.starts_with("http://") || data.starts_with("https://") {
-                                        return Err(ConvertError::UnsupportedInputType {
-                                            type_info: "Bedrock requires remote image URLs to be inlined before conversion".to_string(),
-                                        });
-                                    }
-
+                    UserContent::Array(parts) => parts
+                        .into_iter()
+                        .filter_map(|p| match p {
+                            UserContentPart::Text(t) => {
+                                Some(BedrockContentBlock::Text { text: t.text })
+                            }
+                            UserContentPart::Image {
+                                image, media_type, ..
+                            } => {
+                                if let Value::String(data) = image {
                                     let format = media_type
                                         .as_deref()
                                         .and_then(|mt| mt.strip_prefix("image/"))
@@ -191,19 +180,19 @@ impl TryFromLLM<Message> for BedrockMessage {
                                             _ => BedrockImageFormat::Jpeg,
                                         })
                                         .unwrap_or(BedrockImageFormat::Jpeg);
-                                    blocks.push(BedrockContentBlock::Image {
+                                    Some(BedrockContentBlock::Image {
                                         image: BedrockImageBlock {
                                             format,
                                             source: BedrockImageSource { bytes: data },
                                         },
-                                    });
+                                    })
+                                } else {
+                                    None
                                 }
-                                _ => {}
                             }
-                        }
-
-                        blocks
-                    }
+                            _ => None,
+                        })
+                        .collect(),
                 };
                 (BedrockConversationRole::User, blocks)
             }
@@ -697,31 +686,6 @@ mod tests {
         }]);
 
         assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_message_to_bedrock_remote_image_url_errors() {
-        let message = Message::User {
-            content: UserContent::Array(vec![
-                UserContentPart::Text(TextContentPart {
-                    text: "Describe this image.".to_string(),
-                    encrypted_content: None,
-                    provider_options: None,
-                }),
-                UserContentPart::Image {
-                    image: Value::String("https://example.com/photo.jpg".to_string()),
-                    media_type: Some("image/jpeg".to_string()),
-                    provider_options: None,
-                },
-            ]),
-        };
-
-        let err = <BedrockMessage as TryFromLLM<Message>>::try_from(message).unwrap_err();
-        assert!(matches!(
-            err,
-            ConvertError::UnsupportedInputType { ref type_info }
-            if type_info.contains("remote image URLs")
-        ));
     }
 
     #[test]
