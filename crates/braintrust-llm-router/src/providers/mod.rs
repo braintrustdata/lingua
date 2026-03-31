@@ -30,7 +30,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::error::Result;
 use crate::streaming::RawResponseStream;
-use lingua::ProviderFormat;
+use lingua::{ProviderFormat, RequestPreparationContext, TransformError, UniversalRequest};
 
 /// Header prefixes blocked from forwarding to upstream LLM providers.
 pub const BLOCKED_HEADER_PREFIXES: &[&str] = &["x-amzn", "x-bt", "sec-", "cf-"];
@@ -144,9 +144,10 @@ pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
 /// Implementations should be `Send + Sync` to allow concurrent access.
 /// Providers are stored as `Arc<dyn Provider>` in the Router.
 ///
-/// Providers are pure HTTP clients - they receive pre-transformed payloads
-/// as bytes, forward them to the upstream API, and return raw bytes responses.
-/// All format transformations happen in the Router layer via lingua.
+/// Providers receive payloads prepared by the Router via lingua and forward them
+/// upstream as raw bytes. Providers may optionally prepare the normalized
+/// universal request before target serialization when a provider needs async
+/// request preparation.
 #[async_trait]
 pub trait Provider: Send + Sync {
     /// Provider identifier (e.g., "openai", "anthropic").
@@ -154,6 +155,20 @@ pub trait Provider: Send + Sync {
 
     /// All formats this provider can handle.
     fn provider_formats(&self) -> Vec<ProviderFormat>;
+
+    /// Prepare a normalized universal request before target serialization.
+    ///
+    /// This hook runs after lingua has normalized the source request and injected
+    /// any missing model hint, but before target defaults and target serialization.
+    /// Implementations should be idempotent and must not depend on provider wire
+    /// format details that only exist after serialization.
+    async fn prepare_universal_request(
+        &self,
+        _request: &mut UniversalRequest,
+        _ctx: RequestPreparationContext,
+    ) -> std::result::Result<(), TransformError> {
+        Ok(())
+    }
 
     /// Execute a completion request.
     ///
@@ -225,6 +240,17 @@ pub trait Provider: Send + Sync {
 impl dyn Provider {
     pub fn arc(self: Arc<Self>) -> Arc<dyn Provider> {
         self
+    }
+}
+
+#[async_trait]
+impl<'a> lingua::UniversalRequestPreparer for dyn Provider + 'a {
+    async fn prepare_universal_request(
+        &self,
+        request: &mut UniversalRequest,
+        ctx: RequestPreparationContext,
+    ) -> std::result::Result<(), TransformError> {
+        Provider::prepare_universal_request(self, request, ctx).await
     }
 }
 

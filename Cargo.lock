@@ -2045,6 +2045,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "assert-json-diff",
+ "async-trait",
  "aws-sdk-bedrockruntime",
  "base64 0.22.1",
  "big_serde_json",

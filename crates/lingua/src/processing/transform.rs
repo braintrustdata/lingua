@@ -11,6 +11,7 @@ All public functions take `Bytes` input and return `Bytes` output for zero-copy
 passthrough in async contexts.
 */
 
+use async_trait::async_trait;
 use bytes::Bytes;
 
 use crate::capabilities::ProviderFormat;
@@ -19,7 +20,7 @@ use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter}
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
 use crate::serde_json::Value;
-use crate::universal::{UniversalResponse, UniversalStreamChunk};
+use crate::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
 use thiserror::Error;
 
 /// Static empty JSON object bytes for terminal/keep-alive events.
@@ -142,6 +143,41 @@ impl TransformResult {
     }
 }
 
+/// Context passed to async universal-request preparers during request transformation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RequestPreparationContext {
+    pub source_format: ProviderFormat,
+    pub target_format: ProviderFormat,
+}
+
+/// Async universal-request preparer used during request transformation.
+///
+/// Implementations run after Lingua has normalized the source payload into a
+/// `UniversalRequest` and injected the model hint if needed, but before target
+/// defaults and target serialization. Preparers should be idempotent so rerunning
+/// them does not change an already-prepared request.
+#[async_trait]
+pub trait UniversalRequestPreparer: Send + Sync {
+    async fn prepare_universal_request(
+        &self,
+        _request: &mut UniversalRequest,
+        _ctx: RequestPreparationContext,
+    ) -> Result<(), TransformError> {
+        Ok(())
+    }
+}
+
+struct RequestTransformPlan {
+    source_format: ProviderFormat,
+    target_adapter: &'static dyn ProviderAdapter,
+    universal: UniversalRequest,
+}
+
+enum PreparedRequestTransform {
+    PassThrough(Bytes),
+    Transform(RequestTransformPlan),
+}
+
 // ============================================================================
 // Model extraction
 // ============================================================================
@@ -220,41 +256,41 @@ pub fn transform_request(
     target_format: ProviderFormat,
     model: Option<&str>,
 ) -> Result<TransformResult, TransformError> {
-    let payload: Value = crate::serde_json::from_slice(&input)
-        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
-
-    let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
-
-    if source_adapter.format() == target_format
-        && !needs_forced_translation(&payload, model, target_format)
-    {
-        return Ok(TransformResult::PassThrough(input));
+    match prepare_request_transform(input, target_format, model)? {
+        PreparedRequestTransform::PassThrough(bytes) => Ok(TransformResult::PassThrough(bytes)),
+        PreparedRequestTransform::Transform(plan) => finalize_request_transform(plan),
     }
+}
 
-    let source_format = source_adapter.format();
-    let target_adapter = adapter_for_format(target_format)
-        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
-
-    let mut universal = source_adapter.request_to_universal(payload)?;
-
-    // Inject model from parameter if not present
-    if model.is_some() && universal.model.is_none() {
-        universal.model = model.map(String::from);
+/// Transform a request payload to the target format with an async preparation step.
+///
+/// This follows the same passthrough and universal-conversion rules as `transform_request`,
+/// but exposes a hook on the normalized universal request before target defaults
+/// and target serialization for provider-specific async request preparation.
+pub async fn transform_request_with_universal_preparation<P>(
+    input: Bytes,
+    target_format: ProviderFormat,
+    model: Option<&str>,
+    preparer: &P,
+) -> Result<TransformResult, TransformError>
+where
+    P: UniversalRequestPreparer + ?Sized,
+{
+    match prepare_request_transform(input, target_format, model)? {
+        PreparedRequestTransform::PassThrough(bytes) => Ok(TransformResult::PassThrough(bytes)),
+        PreparedRequestTransform::Transform(mut plan) => {
+            preparer
+                .prepare_universal_request(
+                    &mut plan.universal,
+                    RequestPreparationContext {
+                        source_format: plan.source_format,
+                        target_format,
+                    },
+                )
+                .await?;
+            finalize_request_transform(plan)
+        }
     }
-
-    // Apply target provider defaults (e.g., Anthropic's required max_tokens)
-    target_adapter.apply_defaults(&mut universal);
-
-    // Convert to target format (validation happens in adapter)
-    let transformed = target_adapter.request_from_universal(&universal)?;
-
-    let bytes = crate::serde_json::to_vec(&transformed)
-        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-
-    Ok(TransformResult::Transformed {
-        bytes: Bytes::from(bytes),
-        source_format,
-    })
 }
 
 // ============================================================================
@@ -518,6 +554,59 @@ fn needs_forced_translation(payload: &Value, model: Option<&str>, target: Provid
     false
 }
 
+fn prepare_request_transform(
+    input: Bytes,
+    target_format: ProviderFormat,
+    model: Option<&str>,
+) -> Result<PreparedRequestTransform, TransformError> {
+    let payload: Value = crate::serde_json::from_slice(&input)
+        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
+
+    let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
+
+    if source_adapter.format() == target_format
+        && !needs_forced_translation(&payload, model, target_format)
+    {
+        return Ok(PreparedRequestTransform::PassThrough(input));
+    }
+
+    let target_adapter = adapter_for_format(target_format)
+        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+
+    let mut universal = source_adapter.request_to_universal(payload)?;
+
+    if model.is_some() && universal.model.is_none() {
+        universal.model = model.map(String::from);
+    }
+
+    Ok(PreparedRequestTransform::Transform(RequestTransformPlan {
+        source_format: source_adapter.format(),
+        target_adapter,
+        universal,
+    }))
+}
+
+fn finalize_request_transform(
+    plan: RequestTransformPlan,
+) -> Result<TransformResult, TransformError> {
+    let RequestTransformPlan {
+        source_format,
+        target_adapter,
+        mut universal,
+    } = plan;
+
+    target_adapter.apply_defaults(&mut universal);
+
+    let transformed = target_adapter.request_from_universal(&universal)?;
+    let bytes = crate::serde_json::to_vec(&transformed)
+        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+
+    Ok(TransformResult::Transformed {
+        bytes: Bytes::from(bytes),
+        source_format,
+    })
+}
+
 /// Sanitize a payload for a target format by parsing and re-serializing.
 ///
 /// This strips unknown fields that strict providers (like Anthropic) would reject.
@@ -547,9 +636,44 @@ pub fn sanitize_payload(input: Bytes, format: ProviderFormat) -> Result<Bytes, T
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use crate::universal::message::{Message, UserContent};
+    use async_trait::async_trait;
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
+    }
+
+    struct PanicPreparer;
+
+    #[async_trait]
+    impl UniversalRequestPreparer for PanicPreparer {
+        async fn prepare_universal_request(
+            &self,
+            _request: &mut UniversalRequest,
+            _ctx: RequestPreparationContext,
+        ) -> Result<(), TransformError> {
+            panic!("preparation should not run for passthrough requests");
+        }
+    }
+
+    struct UpdatingPreparer;
+
+    #[async_trait]
+    impl UniversalRequestPreparer for UpdatingPreparer {
+        async fn prepare_universal_request(
+            &self,
+            request: &mut UniversalRequest,
+            ctx: RequestPreparationContext,
+        ) -> Result<(), TransformError> {
+            assert_eq!(ctx.source_format, ProviderFormat::ChatCompletions);
+            assert_eq!(ctx.target_format, ProviderFormat::Anthropic);
+
+            let Message::User { content } = &mut request.messages[0] else {
+                panic!("expected first message to be a user message");
+            };
+            *content = UserContent::String("Updated".to_string());
+            Ok(())
+        }
     }
 
     #[test]
@@ -652,6 +776,50 @@ mod tests {
             result.unwrap_err(),
             TransformError::DeserializationFailed(_)
         ));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_with_universal_preparation_passthrough_skips_preparation() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+        let input_ptr = input.as_ptr();
+
+        let result = tokio_test::block_on(transform_request_with_universal_preparation(
+            input,
+            ProviderFormat::ChatCompletions,
+            None,
+            &PanicPreparer,
+        ))
+        .unwrap();
+
+        assert!(result.is_passthrough());
+        assert_eq!(result.into_bytes().as_ptr(), input_ptr);
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_with_universal_preparation_applies_preparation() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = tokio_test::block_on(transform_request_with_universal_preparation(
+            input,
+            ProviderFormat::Anthropic,
+            None,
+            &UpdatingPreparer,
+        ))
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        let output = String::from_utf8(result.into_bytes().to_vec()).unwrap();
+        assert!(output.contains("Updated"));
     }
 
     #[test]
