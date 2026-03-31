@@ -11,13 +11,11 @@ use aws_sigv4::sign::v4;
 use aws_smithy_runtime_api::client::identity::Identity;
 use bytes::Bytes;
 use http::Request as HttpRequest;
-use lingua::providers::bedrock::is_remote_image_url;
 use lingua::serde_json::Value;
 use lingua::universal::message::{Message, UserContent, UserContentPart};
 use lingua::util::media::MediaBlock;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
@@ -30,6 +28,10 @@ use lingua::{ProviderFormat, TransformError};
 const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
 
 type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
+
+fn is_remote_image_url(value: &str) -> bool {
+    value.starts_with("http://") || value.starts_with("https://")
+}
 
 async fn fetch_remote_image_as_base64(url: &str) -> Result<MediaBlock> {
     lingua::util::media::convert_media_to_base64(url, None, Some(BEDROCK_REMOTE_MEDIA_MAX_BYTES))
@@ -111,8 +113,10 @@ where
             *media_type = Some(media_block.media_type);
         }
     }
+
     Ok(())
 }
+use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]
 pub struct BedrockConfig {
