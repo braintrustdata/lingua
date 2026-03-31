@@ -132,7 +132,7 @@ fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
 }
 
 fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retryable> {
-    match default_on_request_failure(err) {
+    let retryable = match default_on_request_failure(err) {
         Some(Retryable::Transient) => Some(Retryable::Transient),
         default_retryability => match err {
             reqwest_middleware::Error::Reqwest(err) if chain_has_connection_io_error(err) => {
@@ -145,7 +145,14 @@ fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retrya
             }
             _ => default_retryability,
         },
+    };
+
+    #[cfg(feature = "tracing")]
+    if matches!(retryable, Some(Retryable::Transient)) {
+        tracing::warn!(error = %err, "retrying middleware request after transient error");
     }
+
+    retryable
 }
 
 fn chain_has_connection_io_error(err: &(dyn StdError + 'static)) -> bool {
