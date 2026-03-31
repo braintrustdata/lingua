@@ -9381,6 +9381,3753 @@ exports[`chat-completions → google > topPParam > response 1`] = `
 }
 `;
 
+exports[`google → anthropic > complexReasoningRequest > request 1`] = `
+{
+  "max_tokens": 20000,
+  "messages": [
+    {
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > complexReasoningRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I need to count how many times each digit (0-9) appears across all times from 00:00 to 23:59.
+
+Let me break this down by position:
+
+**Hours (00 to 23):**
+- First digit of hours: 0 (00-09), 1 (10-19), 2 (20-23)
+- Second digit of hours: 0-9 in various patterns
+
+**Minutes (00 to 59):**
+- First digit of minutes: 0-5 (repeating pattern)
+- Second digit of minutes: 0-9 (repeating pattern)
+
+Let me count systematically:
+
+**Total number of times displayed:** 24 hours × 60 minutes = 1,440 times
+**Total digits shown:** 1,440 times × 4 digits = 5,760 digits
+
+Now, counting each digit:
+
+**Hours - First position (H1):**
+- 0: appears in 00-09 = 10 hours × 60 min = 600 times
+- 1: appears in 10-19 = 10 hours × 60 min = 600 times
+- 2: appears in 20-23 = 4 hours × 60 min = 240 times
+
+**Hours - Second position (H2):**
+- 0: 00, 10, 20 = 3 hours × 60 min = 180 times
+- 1: 01, 11, 21 = 3 hours × 60 min = 180 times
+- 2: 02, 12, 22 = 3 hours × 60 min = 180 times
+- 3: 03, 13, 23 = 3 hours × 60 min = 180 times
+- 4: 04, 14 = 2 hours × 60 min = 120 times
+- 5: 05, 15 = 2 hours × 60 min = 120 times
+- 6: 06, 16 = 2 hours × 60 min = 120 times
+- 7: 07, 17 = 2 hours × 60 min = 120 times
+- 8: 08, 18 = 2 hours × 60 min = 120 times
+- 9: 09, 19 = 2 hours × 60 min = 120 times
+
+**Minutes - First position (M1):**
+- 0: 00-09 appears 24 hours × 10 min = 240 times
+- 1: 10-19 appears 24 hours × 10 min = 240 times
+- 2: 20-29 appears 24 hours × 10 min = 240 times
+- 3: 30-39 appears 24 hours × 10 min = 240 times
+- 4: 40-49 appears 24 hours × 10 min = 240 times
+- 5: 50-59 appears 24 hours × 10 min = 240 times
+
+**Minutes - Second position (M2):**
+Each digit 0-9 appears 6 times per hour (once in each group of 10 minutes)
+- Each digit: 24 hours × 6 = 144 times
+
+**Total count for each digit:**
+- 0: 600 + 180 + 240 + 144 = 1,164
+- 1: 600 + 180 + 240 + 144 = 1,164
+- 2: 240 + 180 + 240 + 144 = 804
+- 3: 0 + 180 + 240 + 144 = 564
+- 4: 0 + 120 + 240 + 144 = 504
+- 5: 0 + 120 + 240 + 144 = 504
+- 6: 0 + 120 + 0 + 144 = 264
+- 7: 0 + 120 + 0 + 144 = 264
+- 8: 0 + 120 + 0 + 144 = 264
+- 9: 0 + 120 + 0 + 144 = 264
+
+**Results:**
+- **Most common: 0 and 1** (tied at 1,164 occurrences each)
+  - Percentage: 1,164/5,760 = **20.21%** each
+
+- **Rarest: 6, 7, 8, and 9** (tied at 264 occurrences each)
+  - Percentage: 264/5,760 = **4.58%** each",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 1144,
+    "promptTokenCount": 80,
+    "totalTokenCount": 1224,
+  },
+}
+`;
+
+exports[`google → anthropic > imageConfigParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Generate a tiny red dot.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > imageConfigParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "<span style="display: inline-block; width: 8px; height: 8px; background-color: red; border-radius: 50%;"></span>",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 41,
+    "promptTokenCount": 13,
+    "totalTokenCount": 54,
+  },
+}
+`;
+
+exports[`google → anthropic > instructionsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > instructionsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hello! How can I help you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 12,
+    "promptTokenCount": 8,
+    "totalTokenCount": 20,
+  },
+}
+`;
+
+exports[`google → anthropic > maxCompletionTokensParam > request 1`] = `
+{
+  "max_tokens": 500,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > maxCompletionTokensParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 4,
+    "promptTokenCount": 10,
+    "totalTokenCount": 14,
+  },
+}
+`;
+
+exports[`google → anthropic > mediaResolutionParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Describe this image briefly.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > mediaResolutionParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "This image shows a weathered wooden boardwalk or pier extending into the distance, creating a strong perspective view. The wooden planks appear old and worn, with visible grain and weathering. The walkway is flanked by wooden railings on both sides and leads toward a misty, hazy horizon where the sky meets what appears to be water or open landscape. The overall mood is atmospheric and contemplative, with muted, grayish tones creating a somewhat melancholic or peaceful ambiance. The composition draws the eye down the length of the boardwalk toward the vanishing point.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 126,
+    "promptTokenCount": 13,
+    "totalTokenCount": 139,
+  },
+}
+`;
+
+exports[`google → anthropic > multimodalRequest > request 1`] = `
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "text",
+        },
+        {
+          "source": {
+            "data": "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==",
+            "media_type": "image/jpeg",
+            "type": "base64",
+          },
+          "type": "image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > multimodalRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "# Image Description
+
+This appears to be a **topographical or contour map** showing elevation changes across a terrain. Here are the key features I can observe:
+
+## Visual Elements:
+- **Contour lines**: Dark lines running across the image that represent lines of equal elevation
+- **Color gradient**: The image uses a color scale from blue/purple (lower elevations) through green and yellow to red/orange (higher elevations)
+- **Terrain pattern**: The contours suggest a sloping landscape with varying elevation changes
+- **Directional flow**: The contour lines appear to run generally from one side to the other, indicating a consistent slope or gradient
+
+## What this represents:
+This type of visualization is commonly used in:
+- Geographic information systems (GIS)
+- Surveying and land management
+- Hiking and outdoor recreation maps
+- Engineering and construction planning
+- Environmental studies
+
+The spacing between contour lines indicates the steepness of the terrain - closer lines mean steeper slopes, while wider spacing indicates more gradual changes in elevation.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 228,
+    "promptTokenCount": 19,
+    "totalTokenCount": 247,
+  },
+}
+`;
+
+exports[`google → anthropic > reasoningEffortLowParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-6",
+  "thinking": {
+    "budget_tokens": 5000,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > reasoningRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > reasoningRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "# Finding Average Speed
+
+I need to find the average speed for the entire trip.
+
+## Step 1: Calculate distance for each segment
+
+**First segment:**
+- Speed = 60 mph
+- Time = 2 hours
+- Distance = 60 × 2 = 120 miles
+
+**Second segment:**
+- Speed = 80 mph
+- Time = 1 hour
+- Distance = 80 × 1 = 80 miles
+
+## Step 2: Calculate total distance and total time
+
+**Total distance** = 120 + 80 = 200 miles
+
+**Total time** = 2 + 1 = 3 hours
+
+## Step 3: Calculate average speed
+
+Average speed = Total distance ÷ Total time
+
+Average speed = 200 ÷ 3 = **66.67 mph** (or 66⅔ mph)
+
+---
+
+**Answer: The average speed is approximately 66.67 mph**",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 224,
+    "promptTokenCount": 45,
+    "totalTokenCount": 269,
+  },
+}
+`;
+
+exports[`google → anthropic > reasoningRequestTruncated > request 1`] = `
+{
+  "max_tokens": 100,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > reasoningRequestTruncated > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "# Finding Average Speed
+
+I need to find the average speed for the entire trip.
+
+## Step 1: Calculate distance for each segment
+
+**First segment:**
+- Speed = 60 mph
+- Time = 2 hours
+- Distance = 60 × 2 = **120 miles**
+
+**Second segment:**
+- Speed = 80 mph
+- Time = 1 hour
+- Distance = 80 × 1 = **",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 100,
+    "promptTokenCount": 45,
+    "totalTokenCount": 145,
+  },
+}
+`;
+
+exports[`google → anthropic > reasoningSummaryParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-6",
+  "thinking": {
+    "budget_tokens": 10000,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > reasoningWithOutput > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What color is the sky?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > reasoningWithOutput > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The sky is typically blue during the day.
+
+This happens because molecules in Earth's atmosphere scatter sunlight, and blue light is scattered more than other colors due to its shorter wavelength (a phenomenon called Rayleigh scattering).
+
+The sky can also appear other colors:
+- **Red, orange, or pink** at sunrise and sunset
+- **Gray or white** on cloudy days
+- **Dark blue to black** at night
+- **Yellow or orange** during certain weather conditions or pollution",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 109,
+    "promptTokenCount": 13,
+    "totalTokenCount": 122,
+  },
+}
+`;
+
+exports[`google → anthropic > seedParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Pick a number.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > seedParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "7",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 11,
+    "totalTokenCount": 16,
+  },
+}
+`;
+
+exports[`google → anthropic > simpleRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is the capital of France?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > simpleRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The capital of France is Paris.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 10,
+    "promptTokenCount": 14,
+    "totalTokenCount": 24,
+  },
+}
+`;
+
+exports[`google → anthropic > stopSequencesParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Count from 1 to 20.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "stop_sequences": [
+    "10",
+    "ten",
+  ],
+}
+`;
+
+exports[`google → anthropic > stopSequencesParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, ",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 29,
+    "promptTokenCount": 16,
+    "totalTokenCount": 45,
+  },
+}
+`;
+
+exports[`google → anthropic > systemMessageArrayContent > request 1`] = `
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": "What errors occurred recently?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > systemMessageArrayContent > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I don't have access to any error logs or system information about recent errors. I'm Claude, an AI assistant, and I don't have:
+
+1. Access to your computer's error logs
+2. Information about errors in systems you're using
+3. Context about what system or application you're asking about
+4. Memory of previous conversations or events
+
+To help you, I'd need more information such as:
+- What system/application are you asking about?
+- What were you doing when the error occurred?
+- What error message did you see?
+- When did this happen?
+
+If you can provide those details, I'd be happy to help troubleshoot!",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 145,
+    "promptTokenCount": 12,
+    "totalTokenCount": 157,
+  },
+}
+`;
+
+exports[`google → anthropic > temperatureParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "temperature": 0.7,
+}
+`;
+
+exports[`google → anthropic > temperatureParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi! 👋 How can I help you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 16,
+    "promptTokenCount": 10,
+    "totalTokenCount": 26,
+  },
+}
+`;
+
+exports[`google → anthropic > textFormatJsonObjectParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return {"status": "ok"} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → anthropic > textFormatJsonObjectParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 5,
+    "promptTokenCount": 119,
+    "totalTokenCount": 124,
+  },
+}
+`;
+
+exports[`google → anthropic > textFormatJsonSchemaParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → anthropic > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Solve this complex problem.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 3072,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > thinkingLevelParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The user is asking me to "solve this complex problem" but they haven't actually provided a specific problem to solve. I should ask them to clarify what problem they'd like me to help with.",
+            "thought": true,
+            "thoughtSignature": "EoMDCmQIDBgCKkAFBH86zfwlmGTEB2d75J8esLgtIlKb3cOZVU/RNNHs+XpFO5KN3r+iY9s3b3B3OPr/doS1ARzCIdqDtk4KF7rhMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgwO16DMa3SmAkP6UXkaDEF1xhX9MMSpoEwNVSIw6W/7gYo4zy1sdKtEZgsdTabkcYeWdjI1Ctsbi68HMFqjkgjw2k9ge6ZE9px6hzOpKswB95eDGeeWR+Lza9Zrr/3U85uSLQYJnaFqvcc5YYhW5UzlOpUyVOVF3f8DxZAj5T8+oC3slD7OT4BgldnG6rJ70KL/SBVZQ6vUZWOd9Vx2P/MJarw+6yOokAUA5t4EZ8YnVv9Oejj+B/y6HxbrecbekDwATcHGGqhj0tJVIKqE0noBL3DLAheswYW81z3RfAyDN8AnFQKhqrISqpvwcG9tBn6r/+AZqch4mOjGdTKTaxr8ifBzTHIG47O1bxrsNTJCx7JiUoeYvYeISGv9GAE=",
+          },
+          {
+            "text": "I'd be happy to help you solve a complex problem! However, I don't see a specific problem in your message. Could you please provide:
+
+1. **The problem statement** - What exactly needs to be solved?
+2. **Context** - What subject area (math, physics, programming, logic, etc.)?
+3. **Any constraints or requirements** - Specific methods to use, limitations, etc.
+
+Once you share the problem, I'll work through it step-by-step with you!",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 160,
+    "promptTokenCount": 42,
+    "totalTokenCount": 202,
+  },
+}
+`;
+
+exports[`google → anthropic > toolCallRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "items": null,
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceAnyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "any",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceAutoParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceNoneParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "none",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceRequiredParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > toolModeValidatedParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather in Tokyo?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > topKParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "top_k": 40,
+}
+`;
+
+exports[`google → anthropic > topKParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi! 👋 How can I help you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 16,
+    "promptTokenCount": 10,
+    "totalTokenCount": 26,
+  },
+}
+`;
+
+exports[`google → anthropic > topPParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "top_p": 0.9,
+}
+`;
+
+exports[`google → anthropic > topPParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi! 👋 How can I help you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 16,
+    "promptTokenCount": 10,
+    "totalTokenCount": 26,
+  },
+}
+`;
+
+exports[`google → chat-completions > complexReasoningRequest > request 1`] = `
+{
+  "max_completion_tokens": 20000,
+  "messages": [
+    {
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > complexReasoningRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Interpretation: count the digits that appear in the four-digit clock display HH:MM (leading zeros), for every minute from 00:00 to 23:59 (1440 times). We count only digits, not the colon. So there are 1440 × 4 = 5760 digits in total.
+
+Count by position:
+- H1 (tens of hour): digits 0 and 1 appear, 2 appears, others none.
+  - H1 = 0: 600 times; H1 = 1: 600 times; H1 = 2: 240 times; others: 0.
+- H2 (ones of hour): distribution over the 24 hours:
+  - digits 0,1,2,3 each appear in 3 hours; digits 4–9 appear in 2 hours.
+  - times across all hours: 0–3: 180 each; 4–9: 120 each.
+- M1 (tens of minute): digits 0–5 each appear 240 times; digits 6–9 never appear.
+- M2 (ones of minute): each digit 0–9 appears 144 times.
+
+Add per digit (0–9):
+- 0: 600 (H1) + 180 (H2) + 240 (M1) + 144 (M2) = 1164
+- 1: 600 + 180 + 240 + 144 = 1164
+- 2: 240 + 180 + 240 + 144 = 804
+- 3: 0 + 180 + 240 + 144 = 564
+- 4: 0 + 120 + 240 + 144 = 504
+- 5: 0 + 120 + 240 + 144 = 504
+- 6: 0 + 120 + 0 + 144 = 264
+- 7: 0 + 120 + 0 + 144 = 264
+- 8: 0 + 120 + 0 + 144 = 264
+- 9: 0 + 120 + 0 + 144 = 264
+
+Totals check: sums to 5760 digits.
+
+Most common digits: 0 and 1, each 1164 occurrences, which is 1164/5760 ≈ 20.21%.
+
+Rarest digits: 6, 7, 8, 9, each 264 occurrences, which is 264/5760 ≈ 4.58%.
+
+Summary:
+- Most common: digits 0 and 1 ≈ 20.21% each.
+- Rarest: digits 6, 7, 8, 9 ≈ 4.58% each.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 593,
+    "promptTokenCount": 74,
+    "thoughtsTokenCount": 4096,
+    "totalTokenCount": 4763,
+  },
+}
+`;
+
+exports[`google → chat-completions > imageConfigParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Generate a tiny red dot.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > imageConfigParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here’s a tiny red dot as an inline SVG (renders as a 2x2 pixel dot).
+
+<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2" viewBox="0 0 2 2">
+  <circle cx="1" cy="1" r="1" fill="red" />
+</svg>
+
+If you’d like a PNG or a different size, let me know the dimensions and format and I’ll provide that.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 111,
+    "promptTokenCount": 12,
+    "thoughtsTokenCount": 2112,
+    "totalTokenCount": 2235,
+  },
+}
+`;
+
+exports[`google → chat-completions > instructionsParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > instructionsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! Nice to meet you. What would you like help with today? I can answer questions, help with writing or code, brainstorm ideas, translate, plan something, explain concepts, and more. If you have a topic in mind, tell me and we’ll dive in.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 66,
+    "promptTokenCount": 7,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 329,
+  },
+}
+`;
+
+exports[`google → chat-completions > maxCompletionTokensParam > request 1`] = `
+{
+  "max_completion_tokens": 500,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > maxCompletionTokensParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "ok.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 276,
+  },
+}
+`;
+
+exports[`google → chat-completions > mediaResolutionParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Describe this image briefly.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > mediaResolutionParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I don’t see an image yet. Please upload the image or share a link, and I’ll give you a brief description.
+
+If you can’t upload, you can describe what’s in the image and tell me how you want it described (neutral/objective, one-sentence caption, mood/atmosphere, alt-text, etc.).",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 79,
+    "promptTokenCount": 11,
+    "thoughtsTokenCount": 512,
+    "totalTokenCount": 602,
+  },
+}
+`;
+
+exports[`google → chat-completions > multimodalRequest > request 1`] = `
+{
+  "max_completion_tokens": 300,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "text",
+        },
+        {
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==",
+          },
+          "type": "image_url",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > multimodalRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 17,
+    "thoughtsTokenCount": 300,
+    "totalTokenCount": 317,
+  },
+}
+`;
+
+exports[`google → chat-completions > reasoningEffortLowParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`google → chat-completions > reasoningEffortLowParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "2+2 = 4.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 16,
+    "promptTokenCount": 13,
+    "thoughtsTokenCount": 512,
+    "totalTokenCount": 541,
+  },
+}
+`;
+
+exports[`google → chat-completions > reasoningRequest > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > reasoningRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Step 1: Find the distance for each segment
+- 60 mph for 2 hours: distance = 60 × 2 = 120 miles
+- 80 mph for 1 hour: distance = 80 × 1 = 80 miles
+
+Step 2: Total distance
+- 120 + 80 = 200 miles
+
+Step 3: Total time
+- 2 + 1 = 3 hours
+
+Step 4: Average speed
+- total distance / total time = 200 miles / 3 hours = 200/3 mph ≈ 66.7 mph
+
+Answer: 200/3 mph (about 66.7 mph)",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 148,
+    "promptTokenCount": 38,
+    "thoughtsTokenCount": 384,
+    "totalTokenCount": 570,
+  },
+}
+`;
+
+exports[`google → chat-completions > reasoningRequestTruncated > request 1`] = `
+{
+  "max_completion_tokens": 100,
+  "messages": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > reasoningRequestTruncated > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 38,
+    "thoughtsTokenCount": 100,
+    "totalTokenCount": 138,
+  },
+}
+`;
+
+exports[`google → chat-completions > reasoningSummaryParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`google → chat-completions > reasoningSummaryParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "4",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 10,
+    "promptTokenCount": 13,
+    "thoughtsTokenCount": 448,
+    "totalTokenCount": 471,
+  },
+}
+`;
+
+exports[`google → chat-completions > reasoningWithOutput > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "What color is the sky?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > reasoningWithOutput > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The color changes with time and conditions.
+
+- Daytime (clear sky): usually blue because the atmosphere scatters blue light from the sun more than other colors.
+- Sunrise/sunset: often red, orange, or pink due to the longer path sunlight travels through the air.
+- Cloudy/overcast: gray or white.
+- Night: dark blue or black with stars.
+- Sometimes polluted or smoky air can make the sky look yellowish or brown.
+
+If you tell me where and when you’re looking, I can be more specific.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 118,
+    "promptTokenCount": 12,
+    "thoughtsTokenCount": 512,
+    "totalTokenCount": 642,
+  },
+}
+`;
+
+exports[`google → chat-completions > seedParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Pick a number.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+}
+`;
+
+exports[`google → chat-completions > seedParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Sure! How about the number 7?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-4o-mini-2024-07-18",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 9,
+    "promptTokenCount": 11,
+    "totalTokenCount": 20,
+  },
+}
+`;
+
+exports[`google → chat-completions > simpleRequest > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "What is the capital of France?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > simpleRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Paris.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 11,
+    "promptTokenCount": 13,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 152,
+  },
+}
+`;
+
+exports[`google → chat-completions > stopSequencesParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Count from 1 to 20.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+  "stop": [
+    "10",
+    "ten",
+  ],
+}
+`;
+
+exports[`google → chat-completions > stopSequencesParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Sure! Here you go:
+
+1, 2, 3, 4, 5, 6, 7, 8, 9, ",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-4o-mini-2024-07-18",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 34,
+    "promptTokenCount": 15,
+    "totalTokenCount": 49,
+  },
+}
+`;
+
+exports[`google → chat-completions > systemMessageArrayContent > request 1`] = `
+{
+  "max_completion_tokens": 300,
+  "messages": [
+    {
+      "content": "What errors occurred recently?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > systemMessageArrayContent > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 11,
+    "thoughtsTokenCount": 300,
+    "totalTokenCount": 311,
+  },
+}
+`;
+
+exports[`google → chat-completions > temperatureParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+}
+`;
+
+exports[`google → chat-completions > temperatureParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi! How can I assist you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-4o-mini-2024-07-18",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 9,
+    "promptTokenCount": 10,
+    "totalTokenCount": 19,
+  },
+}
+`;
+
+exports[`google → chat-completions > textFormatJsonObjectParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Return {"status": "ok"} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "type": "json_object",
+  },
+}
+`;
+
+exports[`google → chat-completions > textFormatJsonObjectParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"status": "ok"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 15,
+    "promptTokenCount": 16,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 159,
+  },
+}
+`;
+
+exports[`google → chat-completions > textFormatJsonSchemaParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`google → chat-completions > textFormatJsonSchemaParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"age":25,"name":"John"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 21,
+    "promptTokenCount": 45,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 322,
+  },
+}
+`;
+
+exports[`google → chat-completions > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`google → chat-completions > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"name":"John","age":25}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 21,
+    "promptTokenCount": 45,
+    "thoughtsTokenCount": 1024,
+    "totalTokenCount": 1090,
+  },
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Solve this complex problem.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`google → chat-completions > thinkingLevelParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I’m happy to help, but I’m missing the problem statement. Please provide the full problem text (or a link) including:
+
+- Input format and constraints
+- Output format
+- Sample input/output (even just one or two examples)
+- Any special notes or edge cases
+
+If you can’t share the exact statement, you can describe:
+- What you’re given (e.g., numbers, graph, grid, strings)
+- What you need to compute or optimize
+- The constraints (e.g., n up to 2e5, time limit)
+- The language you want the solution in (Python, C++, etc.)
+
+Once I have that, I’ll deliver:
+- A clear approach and reasoning
+- An algorithm with proof of correctness or justification
+- Complexity analysis (time and memory)
+- Clean, tested code (in your preferred language)
+- Explanation of edge cases and sample tests
+
+If you want, you can paste a snippet or the exact input/output example you’re aiming to handle, and I’ll tailor the solution right away.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 222,
+    "promptTokenCount": 11,
+    "thoughtsTokenCount": 1984,
+    "totalTokenCount": 2217,
+  },
+}
+`;
+
+exports[`google → chat-completions > toolCallRequest > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "function": {
+        "description": "Get the current weather for a location",
+        "name": "get_weather",
+        "parameters": {
+          "items": null,
+          "properties": {
+            "location": {
+              "description": "The city and state, e.g. San Francisco, CA",
+              "items": null,
+              "type": "STRING",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "OBJECT",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceAnyParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "required",
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "items": null,
+          "properties": {
+            "location": {
+              "items": null,
+              "type": "STRING",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "OBJECT",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceAutoParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "items": null,
+          "properties": {
+            "location": {
+              "items": null,
+              "type": "STRING",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "OBJECT",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceNoneParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "none",
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "items": null,
+          "properties": {
+            "location": {
+              "items": null,
+              "type": "STRING",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "OBJECT",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceRequiredParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": {
+    "function": {
+      "name": "get_weather",
+    },
+    "type": "function",
+  },
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "items": null,
+          "properties": {
+            "location": {
+              "items": null,
+              "type": "STRING",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "OBJECT",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > toolModeValidatedParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Weather in Tokyo?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "items": null,
+          "properties": {
+            "location": {
+              "items": null,
+              "type": "STRING",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "OBJECT",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > topKParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > topKParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! How can I help today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 18,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 219,
+  },
+}
+`;
+
+exports[`google → chat-completions > topPParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+  "top_p": 0.9,
+}
+`;
+
+exports[`google → chat-completions > topPParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi! How can I assist you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-4o-mini-2024-07-18",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 9,
+    "promptTokenCount": 10,
+    "totalTokenCount": 19,
+  },
+}
+`;
+
+exports[`google → responses > complexReasoningRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 20000,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > complexReasoningRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Total digits shown over a full day (00:00 to 23:59) are 24 hours × 60 minutes × 4 digits = 5,760 digits.
+
+Count by position:
+- H1 (tens of hour): 0 occurs in 10 hours × 60 minutes = 600; 1 occurs in the same 600; 2 occurs in 4 hours × 60 = 240.
+- H2 (units of hour): for digits 0–9, counts are: 0,1,2,3 → 180 each; 4–9 → 120 each (because hours with h%10 = d occur 3 times for d=0–3 and 2 times for d=4–9, each hour has 60 minutes).
+- M1 (tens of minute): digits 0–5 each occur 24 hours × 10 minutes = 240; digits 6–9 never occur.
+- M2 (units of minute): each digit 0–9 occurs 24 hours × 6 minutes = 144.
+
+Total frequency for each digit (sum over all four positions):
+- 0: 600 + 180 + 240 + 144 = 1,164
+- 1: 600 + 180 + 240 + 144 = 1,164
+- 2: 240 + 180 + 240 + 144 = 804
+- 3: 0 + 180 + 240 + 144 = 564
+- 4: 0 + 120 + 240 + 144 = 504
+- 5: 0 + 120 + 240 + 144 = 504
+- 6: 0 + 120 + 0 + 144 = 264
+- 7: 0 + 120 + 0 + 144 = 264
+- 8: 0 + 120 + 0 + 144 = 264
+- 9: 0 + 120 + 0 + 144 = 264
+
+Most common digits: 0 and 1, each 1,164 occurrences ≈ 1,164/5,760 ≈ 20.208% of all digits.
+
+Rarest digits: 6, 7, 8, 9, each 264 occurrences ≈ 264/5,760 ≈ 4.583%.
+
+So:
+- Most common: 0 and 1 (about 20.21% each)
+- Rarest: 6, 7, 8, 9 (about 4.58% each)",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 609,
+    "promptTokenCount": 74,
+    "thoughtsTokenCount": 3392,
+    "totalTokenCount": 4075,
+  },
+}
+`;
+
+exports[`google → responses > imageConfigParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Generate a tiny red dot.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > imageConfigParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here are a couple of simple ways to render a tiny red dot.
+
+- HTML/CSS (2x2 pixel dot)
+  <span style="display:inline-block;width:2px;height:2px;background:#ff0000;border-radius:50%"></span>
+
+- Inline SVG (2x2 pixel dot)
+  <svg width="2" height="2" viewBox="0 0 2 2" xmlns="http://www.w3.org/2000/svg"><circle cx="1" cy="1" r="1" fill="#ff0000" /></svg>
+
+If you had a different size or format in mind (PNG, data URL, etc.), tell me and I’ll tailor it.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 182,
+    "promptTokenCount": 12,
+    "thoughtsTokenCount": 4096,
+    "totalTokenCount": 4290,
+  },
+}
+`;
+
+exports[`google → responses > instructionsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > instructionsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! How can I help today? I can answer questions, explain concepts, draft or edit text, brainstorm ideas, help with code, translate, summarize, plan things, or analyze images. Tell me what you’d like to do or what you’re curious about.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 93,
+    "promptTokenCount": 7,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 292,
+  },
+}
+`;
+
+exports[`google → responses > maxCompletionTokensParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 500,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > maxCompletionTokensParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Ok.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 69,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 270,
+  },
+}
+`;
+
+exports[`google → responses > mediaResolutionParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Describe this image briefly.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > mediaResolutionParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can’t see an image attached. Please upload the image or share a link, and I’ll give a brief description (1–2 sentences) focusing on the main subject, setting, and mood.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 52,
+    "promptTokenCount": 11,
+    "thoughtsTokenCount": 576,
+    "totalTokenCount": 639,
+  },
+}
+`;
+
+exports[`google → responses > multimodalRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "input_text",
+        },
+        {
+          "image_url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==",
+          "type": "input_image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 300,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > multimodalRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 16,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 272,
+  },
+}
+`;
+
+exports[`google → responses > reasoningEffortLowParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`google → responses > reasoningEffortLowParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "4 (in base-10 arithmetic).",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 20,
+    "promptTokenCount": 13,
+    "thoughtsTokenCount": 384,
+    "totalTokenCount": 417,
+  },
+}
+`;
+
+exports[`google → responses > reasoningRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > reasoningRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Step-by-step:
+
+- Leg 1: distance = speed × time = 60 mph × 2 h = 120 miles
+- Leg 2: distance = 80 mph × 1 h = 80 miles
+- Total distance = 120 + 80 = 200 miles
+- Total time = 2 + 1 = 3 hours
+- Average speed = total distance / total time = 200 miles / 3 hours = 200/3 mph ≈ 66.7 mph
+
+Answer: 200/3 mph (about 66.67 mph)",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 183,
+    "promptTokenCount": 38,
+    "thoughtsTokenCount": 320,
+    "totalTokenCount": 541,
+  },
+}
+`;
+
+exports[`google → responses > reasoningRequestTruncated > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 100,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > reasoningRequestTruncated > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 38,
+    "thoughtsTokenCount": 64,
+    "totalTokenCount": 102,
+  },
+}
+`;
+
+exports[`google → responses > reasoningSummaryParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`google → responses > reasoningSummaryParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "4",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 32,
+    "promptTokenCount": 13,
+    "thoughtsTokenCount": 320,
+    "totalTokenCount": 365,
+  },
+}
+`;
+
+exports[`google → responses > reasoningWithOutput > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What color is the sky?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > reasoningWithOutput > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "On a clear day, the sky usually looks blue. This is because sunlight is scattered by the Earth's atmosphere, and blue light scatters more than other colors.
+
+The color can change:
+- Sunrise/sunset: red/orange/pink due to longer path through the atmosphere.
+- Overcast: gray.
+- Night: dark/black.
+- Sometimes it can look greenish or yellowish in certain conditions (dust, pollution, storms).",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 129,
+    "promptTokenCount": 12,
+    "thoughtsTokenCount": 320,
+    "totalTokenCount": 461,
+  },
+}
+`;
+
+exports[`google → responses > seedParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Pick a number.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > seedParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "7",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 66,
+    "promptTokenCount": 10,
+    "thoughtsTokenCount": 640,
+    "totalTokenCount": 716,
+  },
+}
+`;
+
+exports[`google → responses > simpleRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is the capital of France?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > simpleRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Paris.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 59,
+    "promptTokenCount": 13,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 264,
+  },
+}
+`;
+
+exports[`google → responses > stopSequencesParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Count from 1 to 20.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > stopSequencesParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 95,
+    "promptTokenCount": 14,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 365,
+  },
+}
+`;
+
+exports[`google → responses > systemMessageArrayContent > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What errors occurred recently?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 300,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > systemMessageArrayContent > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 11,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 267,
+  },
+}
+`;
+
+exports[`google → responses > temperatureParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > temperatureParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! 👋 How can I help today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 46,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 183,
+  },
+}
+`;
+
+exports[`google → responses > textFormatJsonObjectParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return {"status": "ok"} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "type": "json_object",
+    },
+  },
+}
+`;
+
+exports[`google → responses > textFormatJsonObjectParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"status": "ok"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 64,
+    "promptTokenCount": 16,
+    "thoughtsTokenCount": 64,
+    "totalTokenCount": 144,
+  },
+}
+`;
+
+exports[`google → responses > textFormatJsonSchemaParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Solve this complex problem.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`google → responses > thinkingLevelParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I’m ready to help, but I don’t see the problem statement yet. Please share one of the following:
+
+- The full problem statement (text), or
+- A clear image/screenshot of the problem, or
+- A concise description (what is given, what needs to be computed, input/output format, constraints, and a few sample tests)
+
+If it’s a programming contest problem, also tell me:
+- Your preferred language (Python, C++, Java, etc.)
+- Any constraints (time/memory) I should aim for
+
+What I’ll deliver once you share it:
+- A high-level approach and proof of correctness
+- An algorithm with complexity analysis
+- Clean, well-commented code in your chosen language
+- A few test cases (including edge cases) and explanation
+
+If you can’t share the problem statement, you can still describe it (in your own words), and I’ll propose a structured plan and a concrete solution.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 218,
+    "promptTokenCount": 11,
+    "thoughtsTokenCount": 2240,
+    "totalTokenCount": 2469,
+  },
+}
+`;
+
+exports[`google → responses > toolCallRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "items": null,
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > toolChoiceAnyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "required",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > toolChoiceAutoParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > toolChoiceNoneParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "none",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > toolChoiceRequiredParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "function",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > toolModeValidatedParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Weather in Tokyo?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "items": null,
+        "properties": {
+          "location": {
+            "items": null,
+            "type": "STRING",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "OBJECT",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > topKParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > topKParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! How can I help you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 18,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 155,
+  },
+}
+`;
+
+exports[`google → responses > topPParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "top_p": 0.9,
+}
+`;
+
 exports[`responses → anthropic > complexReasoningRequest > request 1`] = `
 {
   "max_tokens": 20000,

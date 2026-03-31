@@ -30,5 +30,36 @@
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
     "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
     "streamParam": "Streaming response cannot be deserialized as a responses API response"
+  },
+  "google_to_anthropic": {
+    "toolCallRequest": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "reasoningSummaryParam": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
+    "reasoningEffortLowParam": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
+    "textFormatJsonSchemaParam": "Anthropic rejected: output schema 'additionalProperties' must be explicitly set to false",
+    "textFormatJsonSchemaWithDescriptionParam": "Anthropic rejected: output schema 'additionalProperties' must be explicitly set to false",
+    "toolChoiceRequiredParam": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "toolChoiceAutoParam": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "toolChoiceAnyParam": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "toolChoiceNoneParam": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "toolModeValidatedParam": "Anthropic rejected: tool input_schema type must be 'object', not null"
+  },
+  "google_to_chat-completions": {
+    "toolCallRequest": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceRequiredParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceAutoParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceAnyParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceNoneParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolModeValidatedParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null"
+  },
+  "google_to_responses": {
+    "toolCallRequest": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "textFormatJsonSchemaParam": "OpenAI rejected: response_format schema must include 'additionalProperties: false'",
+    "textFormatJsonSchemaWithDescriptionParam": "OpenAI rejected: response_format schema must include 'additionalProperties: false'",
+    "toolChoiceRequiredParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
+    "toolChoiceAutoParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceAnyParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceNoneParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolModeValidatedParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null"
   }
 }

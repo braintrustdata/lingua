@@ -1,0 +1,4 @@
+{
+  "error": "400 Invalid schema for function 'get_weather': None is not of type 'object', 'boolean'.",
+  "name": "Error"
+}

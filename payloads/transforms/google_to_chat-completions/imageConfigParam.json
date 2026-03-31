@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DPXA3bJRXn3A0MaSBgaZBMjNEoDEB",
+  "object": "chat.completion",
+  "created": 1774978043,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here’s a tiny red dot as an inline SVG (renders as a 2x2 pixel dot).\n\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\" viewBox=\"0 0 2 2\">\n  <circle cx=\"1\" cy=\"1\" r=\"1\" fill=\"red\" />\n</svg>\n\nIf you’d like a PNG or a different size, let me know the dimensions and format and I’ll provide that.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 2223,
+    "total_tokens": 2235,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 2112,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
