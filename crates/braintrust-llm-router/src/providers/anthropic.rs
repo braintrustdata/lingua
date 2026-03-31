@@ -1,18 +1,17 @@
 use std::time::Duration;
 
-use async_trait::async_trait;
-use bytes::Bytes;
-use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
-
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
+use async_trait::async_trait;
+use bytes::Bytes;
 use lingua::ProviderFormat;
+use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::Url;
+use reqwest_middleware::ClientWithMiddleware;
 
 pub const ANTHROPIC_VERSION: &str = "anthropic-version";
 pub const DEFAULT_ANTHROPIC_VERSION_VALUE: &str = "2023-06-01";

@@ -6,7 +6,6 @@ use lingua::serde_json::Value;
 use rand::Rng;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
@@ -15,6 +14,7 @@ use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
+use reqwest_middleware::ClientWithMiddleware;
 
 const DEFAULT_LOCATION: &str = "us-central1";
 const ANTHROPIC_DEFAULT_LOCATION: &str = "us-east5";

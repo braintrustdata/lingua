@@ -1,3 +1,5 @@
+use std::error::Error as StdError;
+use std::io::ErrorKind;
 use std::time::Duration;
 
 use dashmap::DashMap;
@@ -5,8 +7,15 @@ use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use reqwest::{Client, ClientBuilder};
 use reqwest_middleware::ClientWithMiddleware;
+use reqwest_retry::{
+    default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
+    RetryableStrategy,
+};
 
 use crate::error::{Error, Result};
+
+// The default number of retries for transient transport failures.
+const DEFAULT_MAX_RETRIES: u32 = 2;
 
 // Shared reqwest clients are cached by these settings. Keep this key
 // low-cardinality and effectively process-wide; request-scoped values do not
@@ -94,13 +103,13 @@ fn build_middleware_client_inner(settings: &ClientSettings) -> Result<ClientWith
     )
     .in_scope(|| {
         let client = build_client(settings)?;
-        Ok::<ClientWithMiddleware, Error>(reqwest_middleware::ClientBuilder::new(client).build())
+        Ok::<ClientWithMiddleware, Error>(build_retrying_middleware_client(client))
     })?;
 
     #[cfg(not(feature = "tracing"))]
     let client = {
         let client = build_client(settings)?;
-        reqwest_middleware::ClientBuilder::new(client).build()
+        build_retrying_middleware_client(client)
     };
 
     if let Some(existing) = SHARED_CLIENTS.get(settings) {
@@ -108,6 +117,78 @@ fn build_middleware_client_inner(settings: &ClientSettings) -> Result<ClientWith
     }
     SHARED_CLIENTS.insert(settings.clone(), client.clone());
     Ok(client)
+}
+
+fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
+    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(DEFAULT_MAX_RETRIES);
+    let retry_middleware = RetryTransientMiddleware::new_with_policy_and_strategy(
+        retry_policy,
+        ConnectionRetryStrategy,
+    );
+
+    reqwest_middleware::ClientBuilder::new(client)
+        .with(retry_middleware)
+        .build()
+}
+
+fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retryable> {
+    let retryable = match default_on_request_failure(err) {
+        Some(Retryable::Transient) => Some(Retryable::Transient),
+        default_retryability => match err {
+            reqwest_middleware::Error::Reqwest(err) if chain_has_connection_io_error(err) => {
+                Some(Retryable::Transient)
+            }
+            reqwest_middleware::Error::Middleware(err)
+                if chain_has_connection_io_error(err.as_ref()) =>
+            {
+                Some(Retryable::Transient)
+            }
+            _ => default_retryability,
+        },
+    };
+
+    #[cfg(feature = "tracing")]
+    if matches!(retryable, Some(Retryable::Transient)) {
+        tracing::warn!(error = %err, "retrying middleware request after transient error");
+    }
+
+    retryable
+}
+
+fn chain_has_connection_io_error(err: &(dyn StdError + 'static)) -> bool {
+    // Reqwest does not always classify mid-flight resets as `is_connect()`, so
+    // inspect the source chain for concrete socket teardown errors as well.
+    let mut current: Option<&(dyn StdError + 'static)> = Some(err);
+    while let Some(source) = current {
+        if let Some(io_err) = source.downcast_ref::<std::io::Error>() {
+            if matches!(
+                io_err.kind(),
+                ErrorKind::ConnectionReset
+                    | ErrorKind::ConnectionAborted
+                    | ErrorKind::BrokenPipe
+                    | ErrorKind::NotConnected
+            ) {
+                return true;
+            }
+        }
+        current = source.source();
+    }
+    false
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ConnectionRetryStrategy;
+
+impl RetryableStrategy for ConnectionRetryStrategy {
+    fn handle(
+        &self,
+        result: &std::result::Result<reqwest::Response, reqwest_middleware::Error>,
+    ) -> Option<Retryable> {
+        match result {
+            Ok(_) => None,
+            Err(err) => retryable_transport_failure(err).or(Some(Retryable::Fatal)),
+        }
+    }
 }
 
 static OVERRIDE_CLIENT: Lazy<RwLock<Option<ClientWithMiddleware>>> =

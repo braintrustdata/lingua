@@ -344,8 +344,98 @@ impl Provider for FailingProvider {
     }
 }
 
-#[tokio::test]
-async fn router_retries_and_propagates_terminal_error() {
+#[derive(Clone)]
+struct HttpFailingProvider;
+
+#[async_trait]
+impl Provider for HttpFailingProvider {
+    fn id(&self) -> &'static str {
+        "http-failing"
+    }
+
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::ChatCompletions]
+    }
+
+    async fn complete(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<Bytes> {
+        let err = reqwest::Client::new()
+            .get("http://127.0.0.1:1")
+            .send()
+            .await
+            .expect_err("connection failure");
+        Err(err.into())
+    }
+
+    async fn complete_stream(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
+        Ok(Box::pin(tokio_stream::empty()))
+    }
+
+    async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+struct MiddlewareFailingProvider;
+
+#[async_trait]
+impl Provider for MiddlewareFailingProvider {
+    fn id(&self) -> &'static str {
+        "middleware-failing"
+    }
+
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::ChatCompletions]
+    }
+
+    async fn complete(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<Bytes> {
+        let client = reqwest_middleware::ClientBuilder::new(reqwest::Client::new()).build();
+        let err = client
+            .get("http://127.0.0.1:1")
+            .send()
+            .await
+            .expect_err("connection failure");
+        Err(err.into())
+    }
+
+    async fn complete_stream(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
+        Ok(Box::pin(tokio_stream::empty()))
+    }
+
+    async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
+        Ok(())
+    }
+}
+
+fn retry_model_catalog() -> Arc<ModelCatalog> {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
         "retry-model".into(),
@@ -367,8 +457,11 @@ async fn router_retries_and_propagates_terminal_error() {
             available_providers: Default::default(),
         },
     );
-    let catalog = Arc::new(catalog);
+    Arc::new(catalog)
+}
 
+#[tokio::test]
+async fn router_retries_and_propagates_terminal_error() {
     let attempts = Arc::new(AtomicUsize::new(0));
     let retry_policy = RetryPolicy {
         max_attempts: 2,
@@ -380,7 +473,7 @@ async fn router_retries_and_propagates_terminal_error() {
 
     let router = RouterBuilder::new()
         .with_retry_policy(retry_policy)
-        .with_catalog(Arc::clone(&catalog))
+        .with_catalog(retry_model_catalog())
         .add_provider(
             "failing",
             FailingProvider {
@@ -413,4 +506,102 @@ async fn router_retries_and_propagates_terminal_error() {
     let err = err.expect_err("terminal error");
     assert!(matches!(err, Error::Timeout));
     assert_eq!(attempts.load(Ordering::SeqCst), 3);
+}
+
+#[tokio::test]
+async fn router_maps_terminal_http_errors_to_upstream_unavailable() {
+    let retry_policy = RetryPolicy {
+        max_attempts: 0,
+        initial_delay: Duration::from_millis(0),
+        max_delay: Duration::from_millis(0),
+        exponential_base: 2.0,
+        jitter: false,
+    };
+
+    let router = RouterBuilder::new()
+        .with_retry_policy(retry_policy)
+        .with_catalog(retry_model_catalog())
+        .add_provider(
+            "http-failing",
+            HttpFailingProvider,
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: None,
+                prefix: None,
+            },
+            vec![ProviderFormat::ChatCompletions],
+        )
+        .build()
+        .expect("router builds");
+
+    let body = to_body(json!({
+        "model": "retry-model",
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+
+    let err = router
+        .complete(
+            body,
+            "retry-model",
+            ProviderFormat::ChatCompletions,
+            &ClientHeaders::default(),
+        )
+        .await
+        .expect_err("terminal error");
+
+    match err {
+        Error::UpstreamUnavailable { provider, .. } => {
+            assert_eq!(provider, "http-failing");
+        }
+        other => panic!("expected UpstreamUnavailable, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn router_maps_terminal_middleware_errors_to_upstream_unavailable() {
+    let retry_policy = RetryPolicy {
+        max_attempts: 0,
+        initial_delay: Duration::from_millis(0),
+        max_delay: Duration::from_millis(0),
+        exponential_base: 2.0,
+        jitter: false,
+    };
+
+    let router = RouterBuilder::new()
+        .with_retry_policy(retry_policy)
+        .with_catalog(retry_model_catalog())
+        .add_provider(
+            "middleware-failing",
+            MiddlewareFailingProvider,
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: None,
+                prefix: None,
+            },
+            vec![ProviderFormat::ChatCompletions],
+        )
+        .build()
+        .expect("router builds");
+
+    let body = to_body(json!({
+        "model": "retry-model",
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+
+    let err = router
+        .complete(
+            body,
+            "retry-model",
+            ProviderFormat::ChatCompletions,
+            &ClientHeaders::default(),
+        )
+        .await
+        .expect_err("terminal error");
+
+    match err {
+        Error::UpstreamUnavailable { provider, .. } => {
+            assert_eq!(provider, "middleware-failing");
+        }
+        other => panic!("expected UpstreamUnavailable, got {other:?}"),
+    }
 }

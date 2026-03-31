@@ -12,7 +12,6 @@ use http::Request as HttpRequest;
 use lingua::serde_json::Value;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
@@ -21,6 +20,7 @@ use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, RawResponseStream};
 use lingua::ProviderFormat;
+use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]
 pub struct BedrockConfig {
