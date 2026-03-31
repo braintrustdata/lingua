@@ -1007,6 +1007,43 @@ mod tests {
         assert_eq!(value.pointer("/messages/0/content/1/source/url"), None);
     }
 
+    #[tokio::test]
+    async fn prepare_request_returns_invalid_request_when_remote_image_fetch_fails() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "model": "claude-sonnet-4-5-20250929",
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "What is this?"},
+                        {"type": "image_url", "image_url": {"url": "https://example.com/image.jpg"}}
+                    ]
+                }]
+            }))
+            .unwrap(),
+        );
+
+        let err = prepare_request_with_remote_image_inlining(
+            body,
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            |url| {
+                Box::pin(async move {
+                    Err(Error::InvalidRequest(format!(
+                        "failed to fetch image URL {url}: network error"
+                    )))
+                })
+            },
+        )
+        .await
+        .expect_err("fetch failure should surface as InvalidRequest");
+
+        assert!(matches!(err, Error::InvalidRequest(ref msg) if msg.contains("failed to fetch image URL")));
+    }
+
     #[test]
     fn vertex_model_routes_to_vertex_provider() {
         let vertex_model = "publishers/google/models/gemini-2.5-flash-preview-04-17";
