@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DPVSo4YeK4792uQkf25XXVn5hWVIp",
+  "object": "chat.completion",
+  "created": 1774971518,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hi! How can I help today? I can answer questions, explain concepts, draft or edit text, help with coding, plan a trip, summarize articles, translate, brainstorm ideas, and more. What would you like to do?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 14,
+    "completion_tokens": 312,
+    "total_tokens": 326,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

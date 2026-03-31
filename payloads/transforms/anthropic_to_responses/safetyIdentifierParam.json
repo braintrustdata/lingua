@@ -1,0 +1,79 @@
+{
+  "id": "resp_054aa70856b954a40069cbea8dbf5c8195b2a08fd9abe45803",
+  "object": "response",
+  "created_at": 1774971533,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774971536,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_054aa70856b954a40069cbea8dfa088195bd2a5c4e2c9a95f6",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_054aa70856b954a40069cbea8fedbc81958d6336dc60fe1bc3",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Ok."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 9,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 232,
+    "output_tokens_details": {
+      "reasoning_tokens": 192
+    },
+    "total_tokens": 241
+  },
+  "user": null,
+  "metadata": {
+    "user_id": "hashed-user-id-abc123"
+  },
+  "output_text": "Ok."
+}
