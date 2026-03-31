@@ -1,0 +1,77 @@
+{
+  "id": "resp_06972aa4e499c0730069cbea958ca481a195d12a9c01d2e1f2",
+  "object": "response",
+  "created_at": 1774971541,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774971546,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_06972aa4e499c0730069cbea960a8881a19da8d5b319bfde7e",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_06972aa4e499c0730069cbea99ae8481a18f1ab2e6c2fbf1e8",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The image shows a nearly black background with a single bright neon‑green vertical streak near the left edge. The streak has a soft glow around it and ends in a small bright dot at the top. Overall, a minimal, abstract neon glow line."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 10,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 554,
+    "output_tokens_details": {
+      "reasoning_tokens": 448
+    },
+    "total_tokens": 564
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "The image shows a nearly black background with a single bright neon‑green vertical streak near the left edge. The streak has a soft glow around it and ends in a small bright dot at the top. Overall, a minimal, abstract neon glow line."
+}

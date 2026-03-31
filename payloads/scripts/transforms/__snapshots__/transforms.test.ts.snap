@@ -1,5 +1,91 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Be helpful.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > cacheControl1hParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi there! How can I help today? I can answer questions, help with writing or editing, brainstorm ideas, explain concepts, or assist with code. If you’re not sure, tell me your goal and I’ll suggest something.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSonDHUFyqkBUAHfVZZu7VBv3wt",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 14,
+    "output_tokens": 248,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > cacheControl5mParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Be helpful.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > cacheControl5mParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I help today? I can answer questions, explain concepts, draft or edit text, help with coding, plan a trip, summarize articles, translate, brainstorm ideas, and more. What would you like to do?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSo4YeK4792uQkf25XXVn5hWVIp",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 14,
+    "output_tokens": 312,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > complexReasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -60,6 +146,139 @@ So: most common - digits 0 and 1 (about 20.21% each); rarest - digits 6–9 (abo
 }
 `;
 
+exports[`anthropic → chat-completions > imageContentParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": [
+        {
+          "image_url": {
+            "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+          },
+          "type": "image_url",
+        },
+        {
+          "text": "Describe.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > imageContentParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "A bright lime-green circular badge on a white background. The circle has a subtle gradient with a lighter center and slightly darker edge, giving a glossy, 3D feel. There’s a tiny highlight near the top-left and no other elements or text. Overall minimal and clean.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSrJGAd0053nMmVMjPDD5JbBDDv",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 11,
+    "output_tokens": 705,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > instructionsParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say OK",
+      "role": "system",
+    },
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > instructionsParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "OK",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSgekiZBNHXwV8YKmyRk1ZUOxj3",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 138,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > maxCompletionTokensParam > request 1`] = `
+{
+  "max_completion_tokens": 500,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > maxCompletionTokensParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Ok.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSlQpyvs25fw3xSM7e31P4cOaVt",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 139,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > metadataParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "metadata": {
+    "user_id": "user-12345",
+  },
+  "model": "gpt-5-nano",
+}
+`;
+
 exports[`anthropic → chat-completions > multimodalRequest > request 1`] = `
 {
   "max_completion_tokens": 300,
@@ -101,6 +320,313 @@ exports[`anthropic → chat-completions > multimodalRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 99,
     "output_tokens": 300,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > outputConfigEffortWithJsonSchemaParam > request 1`] = `
+{
+  "max_completion_tokens": 16000,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "medium",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > outputConfigEffortWithJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "{"name":"John","age":25}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSvWDXJtiT44hpCUkfsQIgEwjH4",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 45,
+    "output_tokens": 533,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > outputConfigJsonSchemaParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > outputConfigJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "{"name":"John","age":25}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVStSDW7GJlWptHDnOn0NRbquX6U",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 45,
+    "output_tokens": 661,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > outputFormatJsonSchemaParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > outputFormatJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "{"age":25,"name":"John"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSt1QnOo6vIZ1SewBG5ceWxzPMu",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 45,
+    "output_tokens": 213,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "NYC and LA weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "parallel_tool_calls": false,
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "content": [
+    {
+      "id": "call_xmYLSNHiotRKEEJlptj9BQ8n",
+      "input": {
+        "location": "New York City",
+      },
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_DPVSgGCIy63sCabJjHtWd9PwBMlSp",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 126,
+    "output_tokens": 89,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > promptCacheKeyParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Be helpful.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > promptCacheKeyParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "ok",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSiwqS73gbELbjrlBGAJOhzPaqR",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 16,
+    "output_tokens": 138,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningEffortLowParam > request 1`] = `
+{
+  "max_completion_tokens": 16000,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "low",
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningEffortLowParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSem1L7jmcLwMP9HtxHedyryg8l",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 10,
   },
 }
 `;
@@ -179,6 +705,41 @@ exports[`anthropic → chat-completions > reasoningRequestTruncated > response 1
 }
 `;
 
+exports[`anthropic → chat-completions > reasoningSummaryParam > request 1`] = `
+{
+  "max_completion_tokens": 16000,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "medium",
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningSummaryParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4. In base-10, 2 + 2 equals 4.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSe8J6PWXsQfoEq2RbnXx3tWBDD",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 153,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > reasoningWithOutput > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -213,6 +774,36 @@ exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
 }
 `;
 
+exports[`anthropic → chat-completions > safetyIdentifierParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "metadata": {
+    "user_id": "hashed-user-id-abc123",
+  },
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > serviceTierParam > request 1`] = `
+{
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "service_tier": "auto",
+}
+`;
+
 exports[`anthropic → chat-completions > simpleRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -244,6 +835,60 @@ exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
     "input_tokens": 13,
     "output_tokens": 203,
   },
+}
+`;
+
+exports[`anthropic → chat-completions > stopSequencesParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Count to 20.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+  "stop": [
+    "10",
+    "ten",
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > stopSequencesParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Sure! Here you go:
+
+1, 2, 3, 4, 5, 6, 7, 8, 9, ",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSkSgeGtcQob6PxrRG3vPe4XcmV",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 12,
+    "output_tokens": 34,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > streamParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "stream": true,
 }
 `;
 
@@ -286,6 +931,187 @@ exports[`anthropic → chat-completions > systemMessageArrayContent > response 1
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 300,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > temperatureParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+  "temperature": 0.7,
+}
+`;
+
+exports[`anthropic → chat-completions > temperatureParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I assist you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSjvUczLF2Bj764myEOQ8qajc4I",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 10,
+    "output_tokens": 9,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > textFormatJsonSchemaParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > textFormatJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "{"age": 25, "name": "John"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSehVmSS4aAZNEZnbDg26cOerRK",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 45,
+    "output_tokens": 792,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "{"name":"John","age":25}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSeLbjqby7sJI7uMWXLYEDGq822",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 45,
+    "output_tokens": 917,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > thinkingDisabledParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > thinkingDisabledParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSsZJYzYCe5mZEAT6GeHPT0NbIb",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 10,
+    "output_tokens": 266,
   },
 }
 `;
@@ -346,6 +1172,416 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 148,
     "output_tokens": 218,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > toolChoiceAnyParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "required",
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > toolChoiceAnyParam > response 1`] = `
+{
+  "content": [
+    {
+      "id": "call_0ap4hF7p5rp0H0ZGKXQWVVDB",
+      "input": {
+        "location": "current location",
+      },
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_DPVSoMRa2wXIeMcZEiycmUKn05AV2",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 123,
+    "output_tokens": 472,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > toolChoiceAutoParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > toolChoiceAutoParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Sure—what location would you like the weather for? Please provide a city/place (e.g., "Paris, FR" or "New York, NY") or coordinates. If you want, I can also give you hourly or 7-day forecasts—just say which one you need.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSm2isXNPpLmpLEjCClod8oo0gc",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 123,
+    "output_tokens": 451,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > toolChoiceNoneParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "none",
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > toolChoiceNoneParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "I don’t have live weather data available here. If you share:
+
+- Location (city/region and country)
+- Whether you want current conditions or a forecast (and for how many hours/days)
+- Preferred units (Celsius or Fahrenheit)
+
+I’ll tailor the answer. If you’d rather check right away, you can search for “weather [location]” on a weather site or app.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSoShZm2U29nIRsijGTZjHdJxFd",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 123,
+    "output_tokens": 538,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > toolChoiceRequiredParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": {
+    "function": {
+      "name": "get_weather",
+    },
+    "type": "function",
+  },
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > toolChoiceRequiredParam > response 1`] = `
+{
+  "content": [
+    {
+      "id": "call_ZO3ShJhTseHSUdt6M3PmPOma",
+      "input": {
+        "location": "Tokyo",
+      },
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_DPVSfQYNmk0Awd0buFY6cNfYOjyya",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 123,
+    "output_tokens": 279,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > topKParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > topKParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi there! How can I help you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSmVZz4yJRzt27sr8P0yrkpooSB",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 147,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > topPParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+  "top_p": 0.9,
+}
+`;
+
+exports[`anthropic → chat-completions > topPParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I assist you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPVSkAGWRMEoSU6O9q9DUBJtONdLx",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 10,
+    "output_tokens": 9,
+  },
+}
+`;
+
+exports[`anthropic → responses > cacheControl1hParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Be helpful.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > cacheControl1hParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Hi! How can I help today? I can:
+- Explain concepts or answer questions
+- Help write or edit emails, essays, or posts
+- Brainstorm ideas or plan a project
+- Solve math problems or debug code
+- Translate or summarize text
+- Plan trips, events, or study schedules
+
+Tell me what you’re aiming for, and any details you have, and I’ll get started.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_030e6e86f7b183f40069cbea92a7608196a86f979cfa8a9bc0",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 14,
+    "output_tokens": 485,
+  },
+}
+`;
+
+exports[`anthropic → responses > cacheControl5mParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Be helpful.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > cacheControl5mParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Hi there! How can I help today? I can answer questions, explain concepts, write or edit text, brainstorm ideas, help with coding, plan something, translate, or just chat about any topic. What would you like to do?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0645f656c205491a0069cbea92656c8194996286bab4b5f4f9",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 14,
+    "output_tokens": 381,
   },
 }
 `;
@@ -412,6 +1648,174 @@ Rarest digits: 6, 7, 8, and 9, each 264 times, which is 264/5760 = 11/240 ≈ 4.
 }
 `;
 
+exports[`anthropic → responses > imageContentParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+          "type": "input_image",
+        },
+        {
+          "text": "Describe.",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > imageContentParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "The image shows a nearly black background with a single bright neon‑green vertical streak near the left edge. The streak has a soft glow around it and ends in a small bright dot at the top. Overall, a minimal, abstract neon glow line.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_06972aa4e499c0730069cbea958ca481a195d12a9c01d2e1f2",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 10,
+    "output_tokens": 554,
+  },
+}
+`;
+
+exports[`anthropic → responses > instructionsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say OK",
+      "role": "system",
+    },
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > instructionsParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "OK",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0f2af2cfba74a9ca0069cbea8b37c881a196158ba7f49d9688",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 218,
+  },
+}
+`;
+
+exports[`anthropic → responses > maxCompletionTokensParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 500,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > maxCompletionTokensParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "ok",
+      "type": "text",
+    },
+  ],
+  "id": "msg_012b510488d0b05a0069cbea8ebda88196b209906deb63a0e4",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 300,
+  },
+}
+`;
+
+exports[`anthropic → responses > metadataParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "metadata": {
+    "user_id": "user-12345",
+  },
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > metadataParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Ok.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0eb7fc99b559dee60069cbea8db24c81919233cc6ce5a52a7c",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 174,
+  },
+}
+`;
+
 exports[`anthropic → responses > multimodalRequest > request 1`] = `
 {
   "input": [
@@ -451,6 +1855,339 @@ exports[`anthropic → responses > multimodalRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 98,
     "output_tokens": 256,
+  },
+}
+`;
+
+exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 16000,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+  },
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "{"age":25,"name":"John"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_09e2258da03d0b450069cbea986428819e80127fc4624159fe",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 343,
+  },
+}
+`;
+
+exports[`anthropic → responses > outputConfigJsonSchemaParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`anthropic → responses > outputConfigJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "{"age":25,"name":"John"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_035bf45df2b5a71a0069cbea978ad481a0be2c300a4dede910",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 318,
+  },
+}
+`;
+
+exports[`anthropic → responses > outputFormatJsonSchemaParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`anthropic → responses > outputFormatJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "{"age":25,"name":"John"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_04e8d6b45e5b93620069cbea973e30819587d56f654b6d75b0",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 364,
+  },
+}
+`;
+
+exports[`anthropic → responses > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "NYC and LA weather",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "parallel_tool_calls": false,
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "id": "call_C0ezTB6WpyGVBMHxAd83R0m8",
+      "input": {
+        "location": "New York City",
+      },
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_0170cd29970c53ad0069cbea8a7dc481949f9f265fec37346f",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 122,
+    "output_tokens": 159,
+  },
+}
+`;
+
+exports[`anthropic → responses > promptCacheKeyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Be helpful.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > promptCacheKeyParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "ok",
+      "type": "text",
+    },
+  ],
+  "id": "msg_03508a06949208c00069cbea8c71a081a3a19600af3349a1c8",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 16,
+    "output_tokens": 227,
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningEffortLowParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 16000,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "low",
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningEffortLowParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0825ccfc65752f450069cbea86909081949dc096bf3df798a0",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 34,
   },
 }
 `;
@@ -538,6 +2275,47 @@ exports[`anthropic → responses > reasoningRequestTruncated > response 1`] = `
 }
 `;
 
+exports[`anthropic → responses > reasoningSummaryParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 16000,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningSummaryParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0c639545d410c0cf0069cbea8684a48195bf53745519084f90",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 264,
+  },
+}
+`;
+
 exports[`anthropic → responses > reasoningWithOutput > request 1`] = `
 {
   "input": [
@@ -584,6 +2362,86 @@ If you tell me the time and location, I can describe what the sky would look lik
 }
 `;
 
+exports[`anthropic → responses > safetyIdentifierParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "metadata": {
+    "user_id": "hashed-user-id-abc123",
+  },
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > safetyIdentifierParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Ok.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_054aa70856b954a40069cbea8dbf5c8195b2a08fd9abe45803",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 232,
+  },
+}
+`;
+
+exports[`anthropic → responses > serviceTierParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "service_tier": "auto",
+}
+`;
+
+exports[`anthropic → responses > serviceTierParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "ok",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0edb74a4d4093d970069cbea8bb8c481a282d2048292ba25af",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 174,
+  },
+}
+`;
+
 exports[`anthropic → responses > simpleRequest > request 1`] = `
 {
   "input": [
@@ -619,6 +2477,77 @@ exports[`anthropic → responses > simpleRequest > response 1`] = `
     "input_tokens": 13,
     "output_tokens": 155,
   },
+}
+`;
+
+exports[`anthropic → responses > stopSequencesParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Count to 20.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > stopSequencesParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0ed05cb712c80e640069cbea8f30dc8191bed7e88d30149e25",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 11,
+    "output_tokens": 338,
+  },
+}
+`;
+
+exports[`anthropic → responses > streamParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "stream": true,
 }
 `;
 
@@ -661,6 +2590,178 @@ exports[`anthropic → responses > systemMessageArrayContent > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 256,
+  },
+}
+`;
+
+exports[`anthropic → responses > temperatureParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "temperature": 0.7,
+}
+`;
+
+exports[`anthropic → responses > textFormatJsonSchemaParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`anthropic → responses > textFormatJsonSchemaParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "{"age":25,"name":"John"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_09b7344f44d6b8d00069cbea869a808193b0532f3d23f835f3",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 282,
+  },
+}
+`;
+
+exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "{"age":25,"name":"John"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0418b82d7720efc60069cbea89eba481908a00e7657ab4236d",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 389,
+  },
+}
+`;
+
+exports[`anthropic → responses > thinkingDisabledParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "2+2?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > thinkingDisabledParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0ba6ad474598bc6b0069cbea96600c81918ac9ba639d04da57",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 10,
+    "output_tokens": 163,
   },
 }
 `;
@@ -724,6 +2825,302 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
     "input_tokens": 66,
     "output_tokens": 169,
   },
+}
+`;
+
+exports[`anthropic → responses > toolChoiceAnyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "tool_choice": "required",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > toolChoiceAnyParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "id": "call_Akajsb8RKY9BcUfUCbVsWDQJ",
+      "input": {
+        "location": "New York",
+      },
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_0d90b897bca2c3830069cbea9081d8819da27abe7b20b9b8b0",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 612,
+  },
+}
+`;
+
+exports[`anthropic → responses > toolChoiceAutoParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > toolChoiceAutoParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Sure—what location would you like the weather for? And do you want current conditions or a forecast (e.g., next 24 hours or 5 days)?
+
+Examples: 
+- "Current weather in Paris, France"
+- "Forecast for New York, USA"
+- "Weather next 3 days in Tokyo, Japan"",
+      "type": "text",
+    },
+  ],
+  "id": "msg_028f7115def335b80069cbea8fffe081a2801632432d53816b",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 537,
+  },
+}
+`;
+
+exports[`anthropic → responses > toolChoiceNoneParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "tool_choice": "none",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > toolChoiceNoneParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "I don’t have live weather data right now. If you share your location (city and country) and the timeframe (today, tonight, this week), I can give you the typical conditions for this time of year or help you interpret a forecast you find. For immediate current conditions, please check a weather app or website and I can help explain what it means.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0b61b4cba5666b6f0069cbea91ffd881a1aba70848ee9e853f",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 664,
+  },
+}
+`;
+
+exports[`anthropic → responses > toolChoiceRequiredParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "function",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > toolChoiceRequiredParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "id": "call_ABjue4y6wcLLNbTJ2PcfJxJ7",
+      "input": {
+        "location": "Tokyo",
+      },
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_08e91981155ac1230069cbea89c95081978c38365f35865fe2",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 265,
+  },
+}
+`;
+
+exports[`anthropic → responses > topKParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > topKParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Hi there! 👋 How can I help today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_025e829183baa3520069cbea8f8b28819da0bfa2141aa885de",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 222,
+  },
+}
+`;
+
+exports[`anthropic → responses > topPParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "top_p": 0.9,
 }
 `;
 
@@ -4870,6 +7267,115 @@ The digits 0 and 1 dominate because they appear frequently in both hours (00-19)
 }
 `;
 
+exports[`responses → anthropic > instructionsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "system": "Reply with OK",
+}
+`;
+
+exports[`responses → anthropic > instructionsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01Tb6WBRWbWCoBp8GcEiLL1Y",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 11,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 23,
+  },
+}
+`;
+
+exports[`responses → anthropic > metadataParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > metadataParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01X54h1Yq72BT3i5NVdyaK1q",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 20,
+  },
+}
+`;
+
 exports[`responses → anthropic > multimodalRequest > request 1`] = `
 {
   "max_tokens": 300,
@@ -4932,6 +7438,214 @@ exports[`responses → anthropic > multimodalRequest > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 409,
+  },
+}
+`;
+
+exports[`responses → anthropic > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "NYC and LA weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "disable_parallel_tool_use": true,
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01Ckf95HdUtDPzBd3u6u3FeG",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'll get the weather information for both New York City and Los Angeles for you.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+    {
+      "arguments": "{"location":"NYC"}",
+      "call_id": "toolu_01RCDcuMxHSSjrmfqvVVkx5u",
+      "id": "msg_transformed_item_1",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "I'll get the weather information for both New York City and Los Angeles for you.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 356,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 62,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 418,
+  },
+}
+`;
+
+exports[`responses → anthropic > promptCacheKeyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > promptCacheKeyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01X5K1bUMfKSZSkTrRPP2i5Y",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 20,
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningEffortLowParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-6",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningEffortLowParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01737cCnCvcJt7ysTHR2CUcE",
+  "incomplete_details": null,
+  "model": "claude-opus-4-6",
+  "object": "response",
+  "output": [
+    {
+      "encrypted_content": "ErwBClkIDBgCKkDo5w3BcOFDM2J7MsIKxgUfuba9NpwDavusotnNesPeZa7anZZRQjr0ND/Y4T9kgQgbRz4ipY8/DiooFD5PtwvCMg9jbGF1ZGUtb3B1cy00LTY4ABIM/acFFe7/mbxs0jbQGgymmS+XlX0vi/pfu0MiMCSHyIbU8NTmu+vX/Dgg0o2hZPk+j77UmMp3LLolUpb5iDpPAXQJMllGdHIw14pwrCoR3kduU/bmFLY/6nBUVuPnWnUYAQ==",
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "4",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = **4**",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = **4**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 43,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 22,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 65,
   },
 }
 `;
@@ -5093,6 +7807,75 @@ exports[`responses → anthropic > reasoningRequestTruncated > request 1`] = `
 }
 `;
 
+exports[`responses → anthropic > reasoningSummaryParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "2+2",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-6",
+  "thinking": {
+    "budget_tokens": 2048,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningSummaryParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01YPJpEQRVdM6youvyH1SD19",
+  "incomplete_details": null,
+  "model": "claude-opus-4-6",
+  "object": "response",
+  "output": [
+    {
+      "encrypted_content": "ErwBClkIDBgCKkDo5w3BcOFDM2J7MsIKxgUfuba9NpwDavusotnNesPeZa7anZZRQjr0ND/Y4T9kgQgbRz4ipY8/DiooFD5PtwvCMg9jbGF1ZGUtb3B1cy00LTY4ABIMjCmqbsblk8XIy01MGgxD/avCHQaSFBD2re4iMGz7sG3dW45C8GoBk13qhupHekE1ZJK4/Dl11190gANqcj4DW5XYAfk+bLZm0Vg+3SoRh4rwPNqJEDjElkM60gHn75EYAQ==",
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "4",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "**4**",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "**4**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 40,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 15,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 55,
+  },
+}
+`;
+
 exports[`responses → anthropic > reasoningWithOutput > request 1`] = `
 {
   "max_tokens": 4096,
@@ -5182,6 +7965,115 @@ However, the sky can appear different colors depending on conditions:
 }
 `;
 
+exports[`responses → anthropic > safetyIdentifierParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > safetyIdentifierParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01HcfFr8DmkYdkqztHNUnXS2",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 20,
+  },
+}
+`;
+
+exports[`responses → anthropic > serviceTierParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "service_tier": "auto",
+}
+`;
+
+exports[`responses → anthropic > serviceTierParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01Aco8Vcsc4FBbj7xByfBhHf",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 20,
+  },
+}
+`;
+
 exports[`responses → anthropic > simpleRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -5247,6 +8139,60 @@ exports[`responses → anthropic > simpleRequest > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 93,
+  },
+}
+`;
+
+exports[`responses → anthropic > storeDisabledParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > storeDisabledParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01662yMYkXX9UKayzLUUWtzn",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 20,
   },
 }
 `;
@@ -5362,6 +8308,273 @@ Would you like me to modify the query for a different time range, or can you sha
 }
 `;
 
+exports[`responses → anthropic > textFormatJsonObjectParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return JSON with a=1",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > textFormatJsonObjectParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01JQpW2a8AWPrn2s89N7Kzeo",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 114,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 4,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 118,
+  },
+}
+`;
+
+exports[`responses → anthropic > textFormatJsonSchemaParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Name: John, Age: 25",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > textFormatJsonSchemaParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01NoXs1Y2yAhGx7PSZKaX7jL",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"age":25,"name":"John"}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"age":25,"name":"John"}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 178,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 190,
+  },
+}
+`;
+
+exports[`responses → anthropic > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Name: John, Age: 25",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_013drT981Roe9MS3Squc6k1K",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"age":25,"name":"John"}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"age":25,"name":"John"}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 178,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 190,
+  },
+}
+`;
+
+exports[`responses → anthropic > textFormatTextParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hello.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > textFormatTextParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01XsbeRQcAezea9xXxmfpHYv",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 10,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 22,
+  },
+}
+`;
+
 exports[`responses → anthropic > toolCallRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -5442,6 +8655,132 @@ exports[`responses → anthropic > toolCallRequest > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 471,
+  },
+}
+`;
+
+exports[`responses → anthropic > toolChoiceRequiredParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > toolChoiceRequiredParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01XN6XFVULmNQVRRLPXPqpRL",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "arguments": "{"location":"Tokyo"}",
+      "call_id": "toolu_01M9ryTCjP5VMmRxeH1QpzbM",
+      "id": "msg_transformed_item_0",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 659,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 33,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 692,
+  },
+}
+`;
+
+exports[`responses → anthropic > truncationAutoParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > truncationAutoParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_019SbqGUta1Woa6fH289pMW5",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 20,
   },
 }
 `;

@@ -1,0 +1,77 @@
+{
+  "id": "resp_0645f656c205491a0069cbea92656c8194996286bab4b5f4f9",
+  "object": "response",
+  "created_at": 1774971538,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774971542,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0645f656c205491a0069cbea9299308194911ca531bc57c32a",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0645f656c205491a0069cbea95a6088194a696384eff04eaff",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hi there! How can I help today? I can answer questions, explain concepts, write or edit text, brainstorm ideas, help with coding, plan something, translate, or just chat about any topic. What would you like to do?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 14,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 381,
+    "output_tokens_details": {
+      "reasoning_tokens": 320
+    },
+    "total_tokens": 395
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Hi there! How can I help today? I can answer questions, explain concepts, write or edit text, brainstorm ideas, help with coding, plan something, translate, or just chat about any topic. What would you like to do?"
+}
