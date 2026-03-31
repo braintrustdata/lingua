@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "You're right to ask! We've just finished calculating the *total distance* and *total time*.\n\n**The next step is to use these two values to calculate the average speed.**\n\nRemember our formula for average speed:\n\n**Average Speed = Total Distance / Total Time**"
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.28805037676277806
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 142,
+    "candidatesTokenCount": 59,
+    "totalTokenCount": 201,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 142
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 59
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:29:36.007967Z",
+  "responseId": "4JbKaZ8-mu3b2w_gx-_JCQ"
+}

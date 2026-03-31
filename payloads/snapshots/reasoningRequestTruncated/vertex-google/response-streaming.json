@@ -1,0 +1,138 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Here"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.157775Z",
+    "responseId": "35bKac_QCf3-29sPnaKJqQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "'s how to solve"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.157775Z",
+    "responseId": "35bKac_QCf3-29sPnaKJqQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " this problem step-by-step:\n\n**1. Calculate the distance traveled in the first"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.157775Z",
+    "responseId": "35bKac_QCf3-29sPnaKJqQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " part of the journey.**\n\n* **Formula:** Distance = Speed × Time\n* **Given:**"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.157775Z",
+    "responseId": "35bKac_QCf3-29sPnaKJqQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " Speed = 60 mph, Time = 2 hours\n* **Calculation:** Distance1 = 60 mph × 2 hours = 120 miles"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.157775Z",
+    "responseId": "35bKac_QCf3-29sPnaKJqQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "\n\n**2. Calculate the distance traveled in the second part of the journey.**\n\n* **Formula:**"
+            }
+          ]
+        },
+        "finishReason": "MAX_TOKENS"
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 36,
+      "candidatesTokenCount": 100,
+      "totalTokenCount": 136,
+      "trafficType": "ON_DEMAND_PRIORITY",
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 36
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 100
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.157775Z",
+    "responseId": "35bKac_QCf3-29sPnaKJqQY"
+  }
+]

@@ -14,3 +14,5 @@ export const BEDROCK_ANTHROPIC_MODEL =
   "us.anthropic.claude-haiku-4-5-20251001-v1:0";
 export const VERTEX_ANTHROPIC_MODEL =
   "publishers/anthropic/models/claude-haiku-4-5";
+export const VERTEX_GOOGLE_MODEL =
+  "publishers/google/models/gemini-2.5-flash-lite";

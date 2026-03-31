@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Ok."
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.046509161591529846
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 3,
+    "candidatesTokenCount": 2,
+    "totalTokenCount": 5,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:52:20.015845Z",
+  "responseId": "NJzKaeV7yLOF4w_Qj5zpAQ"
+}

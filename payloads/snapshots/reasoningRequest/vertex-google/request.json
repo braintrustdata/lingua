@@ -1,0 +1,13 @@
+{
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+        }
+      ]
+    }
+  ]
+}

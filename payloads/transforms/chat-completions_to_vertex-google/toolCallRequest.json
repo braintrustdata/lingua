@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "San Francisco, CA"
+              }
+            }
+          }
+        ]
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.021860778331756592
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 20,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 28,
+    "trafficType": "ON_DEMAND_PRIORITY",
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 20
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "createTime": "2026-03-30T15:32:39.344114Z",
+  "responseId": "l5fKabKAFb6yheMPoIWq0Qs"
+}

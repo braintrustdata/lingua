@@ -1,0 +1,32 @@
+{
+  "model": "publishers/google/models/gemini-2.5-flash-lite",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Return {\"status\": \"ok\"} as JSON."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"status\": \"ok\"}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "responseMimeType": "application/json"
+  }
+}

@@ -7,6 +7,7 @@ import {
   BEDROCK_MODEL,
   BEDROCK_ANTHROPIC_MODEL,
   VERTEX_ANTHROPIC_MODEL,
+  VERTEX_GOOGLE_MODEL,
 } from "./models";
 
 // Simple test cases - basic functionality testing
@@ -83,6 +84,16 @@ export const simpleCases: TestCaseCollection = {
         {
           role: "user",
           content: "What is the capital of France?",
+        },
+      ],
+    },
+
+    "vertex-google": {
+      model: VERTEX_GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What is the capital of France?" }],
         },
       ],
     },
@@ -170,6 +181,20 @@ export const simpleCases: TestCaseCollection = {
           role: "user",
           content:
             "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+    },
+
+    "vertex-google": {
+      model: VERTEX_GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+            },
+          ],
         },
       ],
     },
@@ -267,6 +292,23 @@ export const simpleCases: TestCaseCollection = {
             "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
         },
       ],
+    },
+
+    "vertex-google": {
+      model: VERTEX_GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        maxOutputTokens: 100,
+      },
     },
   },
 
@@ -466,6 +508,36 @@ export const simpleCases: TestCaseCollection = {
             },
             required: ["location"],
           },
+        },
+      ],
+    },
+
+    "vertex-google": {
+      model: VERTEX_GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "What's the weather like in San Francisco?" }],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get the current weather for a location",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  location: {
+                    type: Type.STRING,
+                    description: "The city and state, e.g. San Francisco, CA",
+                  },
+                },
+                required: ["location"],
+              },
+            },
+          ],
         },
       ],
     },

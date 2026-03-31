@@ -1,0 +1,78 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "The"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.153877Z",
+    "responseId": "35bKaZWyCamzheMPiLOJ0Qo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " capital of France"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.153877Z",
+    "responseId": "35bKaZWyCamzheMPiLOJ0Qo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " is **Paris**."
+            }
+          ]
+        },
+        "finishReason": "STOP"
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 8,
+      "totalTokenCount": 15,
+      "trafficType": "ON_DEMAND_PRIORITY",
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.153877Z",
+    "responseId": "35bKaZWyCamzheMPiLOJ0Qo"
+  }
+]

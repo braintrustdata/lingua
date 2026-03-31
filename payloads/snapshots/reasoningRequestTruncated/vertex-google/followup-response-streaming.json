@@ -1,0 +1,118 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "You"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.961762Z",
+    "responseId": "35bKaeLZOuTZ29sP5fjDsAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "'re right to ask! We've just finished breaking down the journey into its"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.961762Z",
+    "responseId": "35bKaeLZOuTZ29sP5fjDsAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " two parts.\n\n**What you should do next is to calculate the distance traveled in each part of the"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.961762Z",
+    "responseId": "35bKaeLZOuTZ29sP5fjDsAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": " journey.**\n\nRemember the relationship between distance, speed, and time:\n\n**Distance = Speed × Time**\n\nSo, for each part of the train's trip"
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "trafficType": "ON_DEMAND_PRIORITY"
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.961762Z",
+    "responseId": "35bKaeLZOuTZ29sP5fjDsAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": ", you'll use this formula."
+            }
+          ]
+        },
+        "finishReason": "STOP"
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 142,
+      "candidatesTokenCount": 81,
+      "totalTokenCount": 223,
+      "trafficType": "ON_DEMAND_PRIORITY",
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 142
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 81
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash-lite",
+    "createTime": "2026-03-30T15:29:35.961762Z",
+    "responseId": "35bKaeLZOuTZ29sP5fjDsAY"
+  }
+]
