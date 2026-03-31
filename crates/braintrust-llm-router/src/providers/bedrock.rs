@@ -1,3 +1,5 @@
+use std::future::Future;
+use std::pin::Pin;
 use std::time::{Duration, SystemTime};
 
 use async_trait::async_trait;
@@ -9,9 +11,13 @@ use aws_sigv4::sign::v4;
 use aws_smithy_runtime_api::client::identity::Identity;
 use bytes::Bytes;
 use http::Request as HttpRequest;
+use lingua::processing::{adapter_for_format, adapters};
 use lingua::serde_json::Value;
+use lingua::universal::message::{Message, UserContent, UserContentPart};
+use lingua::util::media::MediaBlock;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Url;
+use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
@@ -19,8 +25,142 @@ use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, RawResponseStream};
-use lingua::ProviderFormat;
-use reqwest_middleware::ClientWithMiddleware;
+use lingua::{ProviderFormat, TransformError};
+
+const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
+
+type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
+
+fn is_remote_image_url(value: &str) -> bool {
+    value.starts_with("http://") || value.starts_with("https://")
+}
+
+async fn fetch_remote_image_as_base64(url: &str) -> Result<MediaBlock> {
+    lingua::util::media::convert_media_to_base64(url, None, Some(BEDROCK_REMOTE_MEDIA_MAX_BYTES))
+        .await
+        .map_err(|e| Error::InvalidRequest(format!("failed to fetch image URL {url}: {e}")))
+}
+
+pub(crate) fn requires_bedrock_request_preparation(format: ProviderFormat) -> bool {
+    matches!(
+        format,
+        ProviderFormat::BedrockAnthropic | ProviderFormat::Converse
+    )
+}
+
+/// Prepare a Bedrock-targeted request by inlining client-provided remote image URLs.
+///
+/// The router still owns the Bedrock-specific fork, but the Bedrock module owns
+/// the request preparation details so the async fetch-and-inline behavior stays
+/// next to the Bedrock transport code.
+pub(crate) async fn prepare_bedrock_request(
+    body: Bytes,
+    spec: &ModelSpec,
+    format: ProviderFormat,
+) -> Result<Bytes> {
+    prepare_bedrock_request_with_fetch(body, spec, format, |url| {
+        Box::pin(fetch_remote_image_as_base64(url))
+    })
+    .await
+}
+
+async fn prepare_bedrock_request_with_fetch<F>(
+    body: Bytes,
+    spec: &ModelSpec,
+    format: ProviderFormat,
+    fetch: F,
+) -> Result<Bytes>
+where
+    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+{
+    if !requires_bedrock_request_preparation(format) {
+        return Ok(body);
+    }
+
+    let payload: lingua::serde_json::Value = match lingua::serde_json::from_slice(&body) {
+        Ok(payload) => payload,
+        Err(err) => {
+            return Err(TransformError::DeserializationFailed(err.to_string()).into());
+        }
+    };
+
+    let source_adapter = match adapters()
+        .iter()
+        .map(|adapter| adapter.as_ref())
+        .find(|adapter| adapter.detect_request(&payload))
+    {
+        Some(adapter) => adapter,
+        None => return Err(TransformError::UnableToDetectFormat.into()),
+    };
+
+    if source_adapter.format() == format {
+        return Ok(body);
+    }
+
+    let mut request = match source_adapter.request_to_universal(payload) {
+        Ok(request) => request,
+        Err(err) => return Err(err.into()),
+    };
+
+    inline_remote_image_urls_with_fetch(&mut request, fetch).await?;
+
+    if request.model.is_none() {
+        request.model = Some(spec.model.clone());
+    }
+
+    let target_adapter =
+        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
+    target_adapter.apply_defaults(&mut request);
+    let prepared = target_adapter.request_from_universal(&request)?;
+
+    lingua::serde_json::to_vec(&prepared)
+        .map(Bytes::from)
+        .map_err(Error::LinguaJson)
+}
+
+async fn inline_remote_image_urls_with_fetch<F>(
+    request: &mut lingua::UniversalRequest,
+    mut fetch: F,
+) -> Result<()>
+where
+    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+{
+    for message in &mut request.messages {
+        let content = match message {
+            Message::System { content }
+            | Message::Developer { content }
+            | Message::User { content } => content,
+            Message::Assistant { .. } | Message::Tool { .. } => continue,
+        };
+
+        let UserContent::Array(parts) = content else {
+            continue;
+        };
+
+        for part in parts {
+            let UserContentPart::Image {
+                image, media_type, ..
+            } = part
+            else {
+                continue;
+            };
+
+            let Some(url) = image.as_str() else {
+                continue;
+            };
+
+            if !is_remote_image_url(url) {
+                continue;
+            }
+
+            let media_block = fetch(url).await?;
+            *image = lingua::serde_json::Value::String(media_block.data);
+            *media_type = Some(media_block.media_type);
+        }
+    }
+
+    Ok(())
+}
 
 #[derive(Debug, Clone)]
 pub struct BedrockConfig {
@@ -342,6 +482,9 @@ impl crate::providers::Provider for BedrockProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::catalog::{ModelFlavor, ModelSpec};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
 
     fn provider() -> BedrockProvider {
         let config = BedrockConfig {
@@ -350,6 +493,26 @@ mod tests {
             timeout: None,
         };
         BedrockProvider::new(config).unwrap()
+    }
+
+    fn bedrock_spec(model: &str, format: ProviderFormat) -> ModelSpec {
+        ModelSpec {
+            model: model.to_string(),
+            format,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        }
     }
 
     #[test]
@@ -397,5 +560,210 @@ mod tests {
             }
             other => panic!("expected Error::Auth, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn requires_bedrock_request_preparation_matches_legacy_proxy_formats() {
+        assert!(requires_bedrock_request_preparation(
+            ProviderFormat::BedrockAnthropic
+        ));
+        assert!(requires_bedrock_request_preparation(
+            ProviderFormat::Converse
+        ));
+        assert!(!requires_bedrock_request_preparation(
+            ProviderFormat::Anthropic
+        ));
+        assert!(!requires_bedrock_request_preparation(
+            ProviderFormat::ChatCompletions
+        ));
+        assert!(!requires_bedrock_request_preparation(
+            ProviderFormat::Responses
+        ));
+        assert!(!requires_bedrock_request_preparation(
+            ProviderFormat::Google
+        ));
+    }
+
+    #[tokio::test]
+    async fn prepare_request_passes_through_same_format_converse_without_fetch() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+                "messages": [{
+                    "role": "user",
+                    "content": [{"text": "Hello"}]
+                }]
+            }))
+            .unwrap(),
+        );
+
+        let prepared = prepare_bedrock_request_with_fetch(
+            body.clone(),
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            |_url| {
+                Box::pin(async {
+                    panic!("fetch should not be called for same-format converse requests");
+                })
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(prepared, body);
+    }
+
+    #[tokio::test]
+    async fn prepare_request_inlines_remote_chat_image_for_converse() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "model": "claude-sonnet-4-5-20250929",
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "What is this?"},
+                        {"type": "image_url", "image_url": {"url": "https://example.com/image.jpg"}}
+                    ]
+                }]
+            }))
+            .unwrap(),
+        );
+
+        let prepared = prepare_bedrock_request_with_fetch(
+            body,
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            |_url| {
+                Box::pin(async {
+                    Ok(MediaBlock {
+                        media_type: "image/jpeg".to_string(),
+                        data: "abcd".to_string(),
+                    })
+                })
+            },
+        )
+        .await
+        .unwrap();
+        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+
+        let bytes = value
+            .pointer("/messages/0/content/1/image/source/bytes")
+            .and_then(|v| v.as_str())
+            .unwrap();
+        assert!(!bytes.is_empty());
+        assert_eq!(
+            value
+                .pointer("/messages/0/content/1/image/format")
+                .and_then(|v| v.as_str()),
+            Some("jpeg")
+        );
+    }
+
+    #[tokio::test]
+    async fn prepare_request_inlines_remote_responses_image_for_bedrock_anthropic() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "model": "claude-sonnet-4-5-20250929",
+                "input": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": "What is this?"},
+                        {
+                            "type": "input_image",
+                            "image_url": "https://example.com/image.jpg",
+                            "detail": "auto"
+                        }
+                    ]
+                }]
+            }))
+            .unwrap(),
+        );
+
+        let prepared = prepare_bedrock_request_with_fetch(
+            body,
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::BedrockAnthropic,
+            ),
+            ProviderFormat::BedrockAnthropic,
+            |_url| {
+                Box::pin(async {
+                    Ok(MediaBlock {
+                        media_type: "image/jpeg".to_string(),
+                        data: "abcd".to_string(),
+                    })
+                })
+            },
+        )
+        .await
+        .unwrap();
+        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+
+        assert_eq!(
+            value.get("anthropic_version").and_then(|v| v.as_str()),
+            Some("bedrock-2023-05-31")
+        );
+        assert_eq!(
+            value
+                .pointer("/messages/0/content/1/source/type")
+                .and_then(|v| v.as_str()),
+            Some("base64")
+        );
+        assert!(value
+            .pointer("/messages/0/content/1/source/data")
+            .and_then(|v| v.as_str())
+            .is_some_and(|v| !v.is_empty()));
+        assert_eq!(value.pointer("/messages/0/content/1/source/url"), None);
+    }
+
+    #[tokio::test]
+    async fn prepare_request_returns_invalid_request_when_remote_image_fetch_fails() {
+        let fetch_calls = Arc::new(AtomicUsize::new(0));
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "model": "claude-sonnet-4-5-20250929",
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "What is this?"},
+                        {"type": "image_url", "image_url": {"url": "https://example.com/image.jpg"}}
+                    ]
+                }]
+            }))
+            .unwrap(),
+        );
+
+        let err = prepare_bedrock_request_with_fetch(
+            body,
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            {
+                let fetch_calls = Arc::clone(&fetch_calls);
+                move |url| {
+                    fetch_calls.fetch_add(1, Ordering::SeqCst);
+                    Box::pin(async move {
+                        Err(Error::InvalidRequest(format!(
+                            "failed to fetch image URL {url}: network error"
+                        )))
+                    })
+                }
+            },
+        )
+        .await
+        .expect_err("fetch failure should surface as InvalidRequest");
+
+        assert_eq!(fetch_calls.load(Ordering::SeqCst), 1);
+        assert!(
+            matches!(err, Error::InvalidRequest(ref msg) if msg.contains("failed to fetch image URL"))
+        );
     }
 }

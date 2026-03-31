@@ -11,7 +11,9 @@ use bytes::Bytes;
 use crate::auth::AuthConfig;
 use crate::catalog::{load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec};
 use crate::error::{Error, Result};
-use crate::providers::{ClientHeaders, Provider};
+use crate::providers::{
+    prepare_bedrock_request, requires_bedrock_request_preparation, ClientHeaders, Provider,
+};
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_stream, ResponseStream};
 use lingua::serde_json::Value;
@@ -107,6 +109,23 @@ type ResolvedRoute<'a> = (
     RetryStrategy,
 );
 
+async fn prepare_provider_request(
+    body: Bytes,
+    spec: &ModelSpec,
+    format: ProviderFormat,
+) -> Result<Bytes> {
+    if requires_bedrock_request_preparation(format) {
+        return prepare_bedrock_request(body, spec, format).await;
+    }
+
+    match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
+        Ok(TransformResult::PassThrough(bytes)) => Ok(bytes),
+        Ok(TransformResult::Transformed { bytes, .. }) => Ok(bytes),
+        Err(TransformError::UnsupportedTargetFormat(_)) => Ok(body),
+        Err(err) => Err(err.into()),
+    }
+}
+
 pub struct Router {
     catalog: Arc<ModelCatalog>,
     resolver: ModelResolver,
@@ -157,12 +176,7 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, strategy) = route;
-        let payload = match lingua::transform_request(body.clone(), *format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => bytes,
-            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(e.into()),
-        };
+        let payload = prepare_provider_request(body, spec.as_ref(), *format).await?;
 
         let response_bytes = self
             .execute_with_retry(
@@ -217,12 +231,7 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, _) = route;
-        let payload = match lingua::transform_request(body.clone(), *format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => bytes,
-            Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-            Err(TransformError::UnsupportedTargetFormat(_)) => body.clone(),
-            Err(e) => return Err(e.into()),
-        };
+        let payload = prepare_provider_request(body, spec.as_ref(), *format).await?;
 
         let raw_stream = provider
             .clone()

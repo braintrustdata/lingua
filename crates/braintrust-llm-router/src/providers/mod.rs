@@ -9,6 +9,7 @@ mod vertex;
 
 pub use anthropic::{AnthropicConfig, AnthropicProvider};
 pub use azure::{AzureConfig, AzureProvider};
+pub(crate) use bedrock::{prepare_bedrock_request, requires_bedrock_request_preparation};
 pub use bedrock::{BedrockConfig, BedrockProvider};
 pub use databricks::{DatabricksConfig, DatabricksProvider};
 pub use google::{GoogleConfig, GoogleProvider};

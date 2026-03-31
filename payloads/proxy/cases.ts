@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { BEDROCK_ANTHROPIC_MODEL } from "../cases/models";
 import { ProxyTestCaseCollection } from "./types";
 
 const TEXT_BASE64 = "SGVsbG8gd29ybGQhCg==";
@@ -911,5 +912,69 @@ export const proxyCases: ProxyTestCaseCollection = {
       max_tokens: 1000,
     },
     expect: { status: 200 },
+  },
+
+  proxyBedrockAnthropicRemoteImageUrlHistory: {
+    format: "chat-completions",
+    request: {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "What is in this image?" },
+            {
+              type: "image_url",
+              image_url: {
+                url: "https://mystickermania.com/cdn/stickers/games/mario-banana-peel-512x512.png",
+              },
+            },
+          ],
+        },
+        {
+          role: "assistant",
+          content: "It looks like a banana peel.",
+        },
+        {
+          role: "user",
+          content: "Describe it again briefly.",
+        },
+      ],
+      max_tokens: 100,
+    },
+    expect: {
+      status: 200,
+      fields: {
+        "choices[0].message.role": "assistant",
+        object: "chat.completion",
+      },
+    },
+  },
+
+  proxyBedrockAnthropicRemoteImageUrlResponses: {
+    format: "responses",
+    request: {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: "What is in this image?" },
+            {
+              type: "input_image",
+              detail: "auto",
+              image_url:
+                "https://mystickermania.com/cdn/stickers/games/mario-banana-peel-512x512.png",
+            },
+          ],
+        },
+      ],
+    },
+    expect: {
+      status: 200,
+      fields: {
+        output_text: { exists: true },
+      },
+    },
   },
 };
