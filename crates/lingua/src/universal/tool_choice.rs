@@ -22,7 +22,6 @@ use crate::universal::request::ToolChoiceConfig;
 let config: ToolChoiceConfig = (ProviderFormat::Anthropic, &raw_json).try_into()?;
 
 // TO: Convert universal config to provider-specific value
-// parallel_tool_calls: Some(false) disables parallel calls; None uses config.disable_parallel
 let output = config.to_provider(ProviderFormat::Anthropic, Some(false))?;
 ```
 */
@@ -77,15 +76,7 @@ impl ToolChoiceConfig {
         match provider {
             ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)),
             ProviderFormat::Responses => Ok(to_openai_responses(self)),
-            ProviderFormat::Anthropic => {
-                let mut config = self.clone();
-                if parallel_tool_calls == Some(false) {
-                    config.disable_parallel = Some(true);
-                }
-                Ok(ToolChoice::try_from(&config)
-                    .ok()
-                    .and_then(|tc| serde_json::to_value(&tc).ok()))
-            }
+            ProviderFormat::Anthropic => Ok(to_anthropic(self, parallel_tool_calls)),
             _ => Ok(None),
         }
     }
@@ -109,7 +100,6 @@ fn from_openai_chat(value: &Value) -> Result<ToolChoiceConfig, TransformError> {
             Ok(ToolChoiceConfig {
                 mode: Some(mode),
                 tool_name: None,
-                disable_parallel: None,
             })
         }
         Value::Object(obj) => {
@@ -134,7 +124,6 @@ fn from_openai_chat(value: &Value) -> Result<ToolChoiceConfig, TransformError> {
             Ok(ToolChoiceConfig {
                 mode: Some(ToolChoiceMode::Tool),
                 tool_name,
-                disable_parallel: None,
             })
         }
         _ => Ok(ToolChoiceConfig::default()),
@@ -155,7 +144,6 @@ fn from_openai_responses(value: &Value) -> Result<ToolChoiceConfig, TransformErr
             Ok(ToolChoiceConfig {
                 mode: Some(mode),
                 tool_name: None,
-                disable_parallel: None,
             })
         }
         Value::Object(obj) => {
@@ -173,11 +161,7 @@ fn from_openai_responses(value: &Value) -> Result<ToolChoiceConfig, TransformErr
                 }
             };
 
-            Ok(ToolChoiceConfig {
-                mode,
-                tool_name,
-                disable_parallel: None,
-            })
+            Ok(ToolChoiceConfig { mode, tool_name })
         }
         _ => Ok(ToolChoiceConfig::default()),
     }
@@ -233,6 +217,37 @@ fn to_openai_responses(config: &ToolChoiceConfig) -> Option<Value> {
     }
 }
 
+/// Convert ToolChoiceConfig plus canonical parallel setting to Anthropic `tool_choice`.
+///
+/// Anthropic expresses disabled parallel tool use inside `tool_choice`, so the
+/// universal `parallel_tool_calls` flag needs to synthesize an `auto` mode when
+/// no explicit tool choice was otherwise requested.
+fn to_anthropic(config: &ToolChoiceConfig, parallel_tool_calls: Option<bool>) -> Option<Value> {
+    let disable_parallel_tool_use = matches!(parallel_tool_calls, Some(false));
+    let mode = match config.mode {
+        Some(mode) => mode,
+        None if disable_parallel_tool_use => ToolChoiceMode::Auto,
+        None => return None,
+    };
+
+    let tool_choice = ToolChoice {
+        tool_choice_type: match mode {
+            ToolChoiceMode::Auto => crate::providers::anthropic::generated::ToolChoiceType::Auto,
+            ToolChoiceMode::None => crate::providers::anthropic::generated::ToolChoiceType::None,
+            ToolChoiceMode::Required => crate::providers::anthropic::generated::ToolChoiceType::Any,
+            ToolChoiceMode::Tool => crate::providers::anthropic::generated::ToolChoiceType::Tool,
+        },
+        name: if mode == ToolChoiceMode::Tool {
+            Some(config.tool_name.clone()?)
+        } else {
+            None
+        },
+        disable_parallel_tool_use: disable_parallel_tool_use.then_some(true),
+    };
+
+    serde_json::to_value(&tool_choice).ok()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -280,7 +295,6 @@ mod tests {
         });
         let config: ToolChoiceConfig = (ProviderFormat::Anthropic, &value).try_into().unwrap();
         assert_eq!(config.mode, Some(ToolChoiceMode::Auto));
-        assert_eq!(config.disable_parallel, Some(true));
     }
 
     #[test]
@@ -301,7 +315,6 @@ mod tests {
         let config = ToolChoiceConfig {
             mode: Some(ToolChoiceMode::Tool),
             tool_name: Some("get_weather".into()),
-            ..Default::default()
         };
         let value = config
             .to_provider(ProviderFormat::ChatCompletions, None)
@@ -342,6 +355,20 @@ mod tests {
             .unwrap();
         assert_eq!(value.get("type").unwrap(), "auto");
         assert_eq!(value.get("disable_parallel_tool_use").unwrap(), true);
+    }
+
+    #[test]
+    fn test_to_anthropic_synthesizes_auto_when_parallel_disabled_without_tool_choice() {
+        let value = ToolChoiceConfig::default()
+            .to_provider(ProviderFormat::Anthropic, Some(false))
+            .unwrap()
+            .unwrap();
+        let tool_choice: ToolChoice = serde_json::from_value(value).unwrap();
+        assert_eq!(
+            tool_choice.tool_choice_type,
+            crate::providers::anthropic::generated::ToolChoiceType::Auto
+        );
+        assert_eq!(tool_choice.disable_parallel_tool_use, Some(true));
     }
 
     #[test]

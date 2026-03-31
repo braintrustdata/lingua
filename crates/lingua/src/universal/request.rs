@@ -451,11 +451,6 @@ pub struct ToolChoiceConfig {
 
     /// Specific tool name (when mode = Tool)
     pub tool_name: Option<String>,
-
-    /// Whether to disable parallel tool calls.
-    /// Maps to Anthropic's `disable_parallel_tool_use` field.
-    /// For OpenAI, this is handled via the separate `parallel_tool_calls` param.
-    pub disable_parallel: Option<bool>,
 }
 
 /// Tool selection mode (portable across providers).
@@ -705,5 +700,25 @@ mod tests {
     fn test_parse_stop_sequences_boolean() {
         let value = json!(true);
         assert_eq!(parse_stop_sequences(&value), None);
+    }
+
+    #[test]
+    fn test_tool_choice_for_anthropic_synthesizes_auto_for_disabled_parallel() {
+        let params = UniversalParams {
+            parallel_tool_calls: Some(false),
+            ..Default::default()
+        };
+
+        let tool_choice = params
+            .tool_choice_for(crate::capabilities::ProviderFormat::Anthropic)
+            .expect("Anthropic tool_choice should be synthesized");
+        let tool_choice: crate::providers::anthropic::generated::ToolChoice =
+            crate::serde_json::from_value(tool_choice).unwrap();
+
+        assert_eq!(
+            tool_choice.tool_choice_type,
+            crate::providers::anthropic::generated::ToolChoiceType::Auto
+        );
+        assert_eq!(tool_choice.disable_parallel_tool_use, Some(true));
     }
 }

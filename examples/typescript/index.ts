@@ -144,7 +144,6 @@ function exampleTypedRequest() {
     tool_choice: {
       mode: "auto",
       tool_name: null,
-      disable_parallel: null,
     },
     parallel_tool_calls: null,
     response_format: {

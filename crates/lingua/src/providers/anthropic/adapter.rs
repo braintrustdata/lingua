@@ -1302,7 +1302,6 @@ mod tests {
                 tool_choice: Some(ToolChoiceConfig {
                     mode: Some(ToolChoiceMode::Tool),
                     tool_name: Some("get_weather".to_string()),
-                    disable_parallel: None,
                 }),
                 ..Default::default()
             },
@@ -1340,7 +1339,6 @@ mod tests {
                 tool_choice: Some(ToolChoiceConfig {
                     mode: Some(ToolChoiceMode::Auto),
                     tool_name: None,
-                    disable_parallel: None,
                 }),
                 ..Default::default()
             },
@@ -1377,7 +1375,6 @@ mod tests {
                 tool_choice: Some(ToolChoiceConfig {
                     mode: Some(ToolChoiceMode::Tool),
                     tool_name: Some("get_weather".to_string()),
-                    disable_parallel: None,
                 }),
                 ..Default::default()
             },
