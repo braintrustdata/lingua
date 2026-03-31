@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, AI news is incredibly dynamic! Here's a rundown of some of the major themes and recent highlights as of mid-2024:\n\n1.  **Advanced Mult"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 3,
+    "candidatesTokenCount": 38,
+    "totalTokenCount": 1023,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      }
+    ],
+    "thoughtsTokenCount": 982
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "C-3LadbxL8CA_PUPreSumQE"
+}

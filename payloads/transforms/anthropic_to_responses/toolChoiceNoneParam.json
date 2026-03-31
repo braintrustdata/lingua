@@ -1,0 +1,96 @@
+{
+  "id": "resp_0b61b4cba5666b6f0069cbea91ffd881a1aba70848ee9e853f",
+  "object": "response",
+  "created_at": 1774971538,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774971544,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0b61b4cba5666b6f0069cbea923cb481a1bb84bfef301a5856",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0b61b4cba5666b6f0069cbea97a0a881a1a65a79691c1452dc",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t have live weather data right now. If you share your location (city and country) and the timeframe (today, tonight, this week), I can give you the typical conditions for this time of year or help you interpret a forecast you find. For immediate current conditions, please check a weather app or website and I can help explain what it means."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "none",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 664,
+    "output_tokens_details": {
+      "reasoning_tokens": 576
+    },
+    "total_tokens": 705
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I don’t have live weather data right now. If you share your location (city and country) and the timeframe (today, tonight, this week), I can give you the typical conditions for this time of year or help you interpret a forecast you find. For immediate current conditions, please check a weather app or website and I can help explain what it means."
+}

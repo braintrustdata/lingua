@@ -1,0 +1,4 @@
+{
+  "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tools.0.custom.input_schema.type: Input should be 'object'\"},\"request_id\":\"req_011CZbYtTgKtt6QupvmqeaUZ\"}",
+  "name": "Error"
+}

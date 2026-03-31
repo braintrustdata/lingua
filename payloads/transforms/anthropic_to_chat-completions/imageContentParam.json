@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DPVSrJGAd0053nMmVMjPDD5JbBDDv",
+  "object": "chat.completion",
+  "created": 1774971521,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "A bright lime-green circular badge on a white background. The circle has a subtle gradient with a lighter center and slightly darker edge, giving a glossy, 3D feel. There’s a tiny highlight near the top-left and no other elements or text. Overall minimal and clean.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 11,
+    "completion_tokens": 705,
+    "total_tokens": 716,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 640,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

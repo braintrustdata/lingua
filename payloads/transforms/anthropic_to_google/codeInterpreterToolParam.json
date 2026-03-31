@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Great! I can certainly help you with that.\n\nPlease provide the Python code you'd like me to run. You can:\n\n1.  **Paste your code directly:**\n    ```python\n    # Example:\n    def greet(name):\n        return f\"Hello, {name}!\"\n\n    print(greet(\"World\"))\n    ```\n2.  **Ask for an interactive session:** \"Let's do some interactive Python!\"\n3.  **Describe a task:** \"Can you write Python code to calculate the factorial of a number?\"\n\nOnce you give me the code, I'll execute it and show you the output."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 3,
+    "candidatesTokenCount": 137,
+    "totalTokenCount": 979,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      }
+    ],
+    "thoughtsTokenCount": 839
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Bu3Laf6aBbSv_uMPqOORyQk"
+}

@@ -1,0 +1,96 @@
+{
+  "id": "resp_028f7115def335b80069cbea8fffe081a2801632432d53816b",
+  "object": "response",
+  "created_at": 1774971536,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774971541,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_028f7115def335b80069cbea90378c81a2acc8a042e4669a7c",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_028f7115def335b80069cbea9479bc81a2b8d24a00a1198909",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure—what location would you like the weather for? And do you want current conditions or a forecast (e.g., next 24 hours or 5 days)?\n\nExamples: \n- \"Current weather in Paris, France\"\n- \"Forecast for New York, USA\"\n- \"Weather next 3 days in Tokyo, Japan\""
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 537,
+    "output_tokens_details": {
+      "reasoning_tokens": 448
+    },
+    "total_tokens": 578
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Sure—what location would you like the weather for? And do you want current conditions or a forecast (e.g., next 24 hours or 5 days)?\n\nExamples: \n- \"Current weather in Paris, France\"\n- \"Forecast for New York, USA\"\n- \"Weather next 3 days in Tokyo, Japan\""
+}

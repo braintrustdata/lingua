@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here's my attempt at summarizing the thought process, tailored for an expert audience:\n\n**Direct Response Strategy**\n\nOkay, here's the deal: a straightforward arithmetic question has been posed. Given the user's expertise level, I'm going to assume they want the most efficient solution: the numerical answer. No need to overcomplicate things with explanations of the underlying mathematical principles (unless they explicitly ask for that). Just deliver the answer clearly and concisely. My analysis of the situation suggests that a complex, verbose response is unwarranted; a direct approach aligns with the prompt.\n",
+            "thought": true
+          },
+          {
+            "text": "2+2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 7,
+    "totalTokenCount": 32,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 17
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "BO3LabG8HPnO_uMPv4u76A8"
+}

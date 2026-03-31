@@ -1,0 +1,4 @@
+{
+  "error": "400 Invalid schema for response_format 'response': In context=(), 'additionalProperties' is required to be supplied and to be false.",
+  "name": "Error"
+}

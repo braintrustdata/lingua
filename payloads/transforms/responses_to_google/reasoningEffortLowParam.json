@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, here's my thought process on this seemingly straightforward task:\n\n**Deconstructing a Simple Sum**\n\nAlright, a simple arithmetic question. They've given me \"2 + 2.\" The user, being an expert, likely already knows the answer. My task isn't to *calculate* in a vacuum; it's to *respond* with the result of that very basic addition. It's a test of my fundamental understanding of the instructions and the ability to process them. So, let me just add those numbers, 2 + 2...and the answer is 4. Now, I just need to state that result.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 41,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 25
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "HO3LaZmfOKXf_uMPrbTomAg"
+}

@@ -1,6 +1,66 @@
 {
   "responses_to_anthropic": {
-    "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)"
+    "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
+    "webSearchToolParam": "Tool 'web_search_preview' of type 'web_search_preview' is not supported by anthropic",
+    "codeInterpreterToolParam": "Tool 'code_interpreter' of type 'code_interpreter' is not supported by anthropic"
+  },
+  "anthropic_to_chat-completions": {
+    "webSearchToolParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by openai",
+    "codeInterpreterToolParam": "Tool 'bash' of type 'bash_20250124' is not supported by openai",
+    "textEditorToolParam": "Tool 'str_replace_editor' of type 'text_editor_20250124' is not supported by openai",
+    "textEditorToolV2Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250429' is not supported by openai",
+    "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by openai",
+    "webSearchToolAdvancedParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by openai",
+    "webSearchUserLocationParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by openai",
+    "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI chat completions",
+    "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
+    "metadataParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
+    "safetyIdentifierParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
+    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response"
+  },
+  "anthropic_to_responses": {
+    "webSearchToolParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by responses",
+    "codeInterpreterToolParam": "Tool 'bash' of type 'bash_20250124' is not supported by responses",
+    "textEditorToolParam": "Tool 'str_replace_editor' of type 'text_editor_20250124' is not supported by responses",
+    "textEditorToolV2Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250429' is not supported by responses",
+    "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by responses",
+    "webSearchToolAdvancedParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by responses",
+    "webSearchUserLocationParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by responses",
+    "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI responses",
+    "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
+    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
+    "streamParam": "Streaming response cannot be deserialized as a responses API response"
+  },
+  "google_to_anthropic": {
+    "toolCallRequest": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "reasoningSummaryParam": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
+    "reasoningEffortLowParam": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
+    "textFormatJsonSchemaParam": "Anthropic rejected: output schema 'additionalProperties' must be explicitly set to false",
+    "textFormatJsonSchemaWithDescriptionParam": "Anthropic rejected: output schema 'additionalProperties' must be explicitly set to false",
+    "toolChoiceRequiredParam": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "toolChoiceAutoParam": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "toolChoiceAnyParam": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "toolChoiceNoneParam": "Anthropic rejected: tool input_schema type must be 'object', not null",
+    "toolModeValidatedParam": "Anthropic rejected: tool input_schema type must be 'object', not null"
+  },
+  "google_to_chat-completions": {
+    "toolCallRequest": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceRequiredParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceAutoParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceAnyParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceNoneParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolModeValidatedParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null"
+  },
+  "google_to_responses": {
+    "toolCallRequest": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "textFormatJsonSchemaParam": "OpenAI rejected: response_format schema must include 'additionalProperties: false'",
+    "textFormatJsonSchemaWithDescriptionParam": "OpenAI rejected: response_format schema must include 'additionalProperties: false'",
+    "toolChoiceRequiredParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
+    "toolChoiceAutoParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceAnyParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolChoiceNoneParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "toolModeValidatedParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null"
   },
   "chat-completions_to_bedrock": {
     "simpleRequest": "BedrockOutputContentBlock enum missing reasoningContent variant; Claude 3.7 Sonnet returns thinking blocks even for simple requests",

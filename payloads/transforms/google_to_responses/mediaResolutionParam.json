@@ -1,0 +1,77 @@
+{
+  "id": "resp_06b96cc977c5ac980069cc041ac0ec8197bbdf2b3558bfe98b",
+  "object": "response",
+  "created_at": 1774978074,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774978080,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_06b96cc977c5ac980069cc041af9dc8197ac7f18cdc5e08f28",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_06b96cc977c5ac980069cc042019d08197ac837a5a15ea9ab3",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I can’t see an image attached. Please upload the image or share a link, and I’ll give a brief description (1–2 sentences) focusing on the main subject, setting, and mood."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 11,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 628,
+    "output_tokens_details": {
+      "reasoning_tokens": 576
+    },
+    "total_tokens": 639
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I can’t see an image attached. Please upload the image or share a link, and I’ll give a brief description (1–2 sentences) focusing on the main subject, setting, and mood."
+}

@@ -1,0 +1,45 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "NYC"
+              }
+            },
+            "thoughtSignature": "CsMCAb4+9vvzioTg+JhGonMBupSJcil8frZ7XOCgJlTJ7h6yM2XxxHSM8hDdEbz0igNIK836iSWdTIvfpeJtWgBGBxtG4pPWRJ0yFkLYqhW1Ne16duO61znJzmddlXLvcYNBmc9+56vcuk8UbErJ27IZLcxCsmzIayBnYpGVXtlTeSHeVYt233YKvAwX13+Iq1YSOL3H+gQgaFUoc5WXYn/6xOzwXmmh+TyBappOsDd11/vYKVsJpF6Qez4XQ6lGngqenctDg3YYW33woX0TsVFBTTmTsnS40oIERfvhzLAJ2ZD2SPcJPp+hDbEy4zkub04tgXLkbPjiwfCzLL40BandeIi7QjHWoX8OdhJASGyA+CKpBzcf7PzwOasVXFMj0iGoFMP9NSuPu5lzMqdx/oC2J43i/fhfiwGT0/QDRHtpDI9irmQ="
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "LA"
+              }
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 39,
+    "candidatesTokenCount": 30,
+    "totalTokenCount": 136,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 39
+      }
+    ],
+    "thoughtsTokenCount": 67
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Bu3LaYuYJYaU_uMPuLWn2AU"
+}

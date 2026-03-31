@@ -26,6 +26,18 @@ import {
 } from "./helpers";
 
 const GOOGLE_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
+const CONCURRENCY = 5;
+
+async function runConcurrently(tasks: (() => Promise<void>)[]): Promise<void> {
+  let i = 0;
+  async function worker() {
+    while (i < tasks.length) {
+      const idx = i++;
+      await tasks[idx]();
+    }
+  }
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+}
 
 let _anthropic: Anthropic | undefined;
 let _openai: OpenAI | undefined;
@@ -130,6 +142,8 @@ export async function captureTransforms(
     skipped = 0,
     failed = 0;
 
+  const nonStreamingTasks: (() => Promise<void>)[] = [];
+
   for (const p of TRANSFORM_PAIRS) {
     if (
       requestedPair &&
@@ -143,12 +157,14 @@ export async function captureTransforms(
       const responsePath = getResponsePath(p.source, p.target, caseName);
       mkdirSync(dirname(responsePath), { recursive: true });
 
-      const input = getCaseForProvider(allTestCases, caseName, p.source);
-
-      // Capture non-streaming response
       if (existsSync(responsePath) && !force) {
         skipped++;
-      } else {
+        continue;
+      }
+
+      const input = getCaseForProvider(allTestCases, caseName, p.source);
+
+      nonStreamingTasks.push(async () => {
         try {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
           const request = transformAndValidateRequest(
@@ -199,11 +215,15 @@ export async function captureTransforms(
           console.error(`❌ ${p.source} → ${p.target} / ${caseName}: ${e}`);
           failed++;
         }
-      }
+      });
     }
   }
 
+  await runConcurrently(nonStreamingTasks);
+
   // Capture streaming responses (chat-completions → anthropic, simple cases only)
+  const streamingTasks: (() => Promise<void>)[] = [];
+
   for (const streamingPair of STREAMING_PAIRS) {
     if (
       requestedPair &&
@@ -237,54 +257,60 @@ export async function captureTransforms(
         streamingPair.source
       );
 
-      try {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
-        const streamRequest = transformAndValidateRequest(
-          input,
-          streamingPair.wasmTarget,
-          streamingPair.target
-        ) as Record<string, unknown>;
+      streamingTasks.push(async () => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
+          const streamRequest = transformAndValidateRequest(
+            input,
+            streamingPair.wasmTarget,
+            streamingPair.target
+          ) as Record<string, unknown>;
 
-        const targetCase = getCaseForProvider(
-          allTestCases,
-          caseName,
-          streamingPair.target
-        );
-        streamRequest.model =
-          targetCase && typeof targetCase === "object" && "model" in targetCase
-            ? targetCase.model
-            : TARGET_MODELS[streamingPair.target];
+          const targetCase = getCaseForProvider(
+            allTestCases,
+            caseName,
+            streamingPair.target
+          );
+          streamRequest.model =
+            targetCase &&
+            typeof targetCase === "object" &&
+            "model" in targetCase
+              ? targetCase.model
+              : TARGET_MODELS[streamingPair.target];
 
-        /* eslint-disable @typescript-eslint/consistent-type-assertions -- SDK requires specific param type */
-        const streamResponse = await getAnthropic().messages.create(
-          {
-            ...(streamRequest as unknown as Anthropic.MessageCreateParams),
-            stream: true,
-          },
-          {
-            headers: { "anthropic-beta": "structured-outputs-2025-11-13" },
+          /* eslint-disable @typescript-eslint/consistent-type-assertions -- SDK requires specific param type */
+          const streamResponse = await getAnthropic().messages.create(
+            {
+              ...(streamRequest as unknown as Anthropic.MessageCreateParams),
+              stream: true,
+            },
+            {
+              headers: { "anthropic-beta": "structured-outputs-2025-11-13" },
+            }
+          );
+          /* eslint-enable @typescript-eslint/consistent-type-assertions */
+
+          const chunks: unknown[] = [];
+          for await (const chunk of streamResponse) {
+            chunks.push(chunk);
           }
-        );
-        /* eslint-enable @typescript-eslint/consistent-type-assertions */
 
-        const chunks: unknown[] = [];
-        for await (const chunk of streamResponse) {
-          chunks.push(chunk);
+          writeFileSync(streamingPath, JSON.stringify(chunks, null, 2));
+          console.log(
+            `✅ ${streamingPair.source} → ${streamingPair.target} / ${caseName} (streaming)`
+          );
+          captured++;
+        } catch (e) {
+          console.error(
+            `❌ ${streamingPair.source} → ${streamingPair.target} / ${caseName} (streaming): ${e}`
+          );
+          failed++;
         }
-
-        writeFileSync(streamingPath, JSON.stringify(chunks, null, 2));
-        console.log(
-          `✅ ${streamingPair.source} → ${streamingPair.target} / ${caseName} (streaming)`
-        );
-        captured++;
-      } catch (e) {
-        console.error(
-          `❌ ${streamingPair.source} → ${streamingPair.target} / ${caseName} (streaming): ${e}`
-        );
-        failed++;
-      }
+      });
     }
   }
+
+  await runConcurrently(streamingTasks);
 
   if (skipped > 0 && captured === 0 && failed === 0) {
     console.log(

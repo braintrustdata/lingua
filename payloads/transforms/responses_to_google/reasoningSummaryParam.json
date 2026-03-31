@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here's my thought process, summarized as you requested:\n\n**Responding to a Basic Arithmetic Inquiry**\n\nOkay, here we go. The user is presenting what looks like a straightforward arithmetic problem. Nothing fancy, just a basic addition calculation. My primary function here is to provide the correct answer. I need to make sure I don't overthink this or introduce any unnecessary complexity. The goal is accuracy and efficiency. Simple. Let's do this.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 4,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 32,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 4
+      }
+    ],
+    "thoughtsTokenCount": 20
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "G-3LadX2GJGm_uMPr5i8iAY"
+}

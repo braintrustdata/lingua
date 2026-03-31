@@ -1,0 +1,26 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01RKPAQNv8jEyrcFM4Kbk8si",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I don't have access to any error logs or system information about recent errors. I'm Claude, an AI assistant, and I don't have:\n\n1. Access to your computer's error logs\n2. Information about errors in systems you're using\n3. Context about what system or application you're asking about\n4. Memory of previous conversations or events\n\nTo help you, I'd need more information such as:\n- What system/application are you asking about?\n- What were you doing when the error occurred?\n- What error message did you see?\n- When did this happen?\n\nIf you can provide those details, I'd be happy to help troubleshoot!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 145,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}
