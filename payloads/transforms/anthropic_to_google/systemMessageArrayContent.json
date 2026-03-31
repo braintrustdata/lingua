@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "To find errors that occurred recently, I'll query the `project_logs` data source. I'll look for log entries with a `level` of 'error' (or similar critical levels) within the last 24 hours.\n\n```sql\nSELECT\n  timestamp,\n  level,\n  message,\n  resource_id,\n  trace_"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 29,
+    "candidatesTokenCount": 77,
+    "totalTokenCount": 325,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 29
+      }
+    ],
+    "thoughtsTokenCount": 219
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Au3LaYO5Fv-o_uMP8YT02Q4"
+}

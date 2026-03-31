@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**Answering a Basic Query**\n\nOkay, here's what I'm thinking. First, I need to understand the fundamental question. The user's inquiry is straightforward: they want to know the capital of France. Easy enough. Now, I simply need to retrieve that piece of common knowledge. Paris. Yes, the capital of France is Paris. There we go, that's the response. Simple and direct.\n",
+            "thought": true
+          },
+          {
+            "text": "The capital of France is **Paris**."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 68,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 52
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "F-3LadKWB7-p_uMP6aOwwQU"
+}

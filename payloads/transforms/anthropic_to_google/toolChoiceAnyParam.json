@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "London"
+              }
+            },
+            "thoughtSignature": "Ct0BAb4+9vvpPIBkhqELCI4XN0MPKW07Le8caXKwpLWNVh30N44BiVCF4dTfXfPUuQLZo3U7ZgO/71X+2vdLfUUEuoBpqEwFtk02rxrRtFwU+VuGx6c6OLGupg+YqWye+s0GnkJotLFFJfogr83pWAYgUZ47dzspBj5KN+Zi7qkwIFea7xeOhNSwjABRTyftTwZ1yoPaoK0XMa1hsZw3FeNmmq4u4CZFdVUisWEsrzkvadcQ1jUk7q3//CyPQWWH8Mcd92FMMJhEC0wg7nWbiONQKREemTBAju3dyZx+pI0="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 94,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 42
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Ee3LafC6G-PP_uMP95Og2Q8"
+}
