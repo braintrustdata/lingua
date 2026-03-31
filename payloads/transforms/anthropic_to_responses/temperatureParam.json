@@ -1,0 +1,4 @@
+{
+  "error": "400 Unsupported parameter: 'temperature' is not supported with this model.",
+  "name": "Error"
+}

@@ -1,0 +1,77 @@
+{
+  "id": "resp_063f88ce788cdabc0069cc04085088819289ead9b246da5b78",
+  "object": "response",
+  "created_at": 1774978056,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774978061,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_063f88ce788cdabc0069cc040888888192ba6594b11c74c24f",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_063f88ce788cdabc0069cc040c98408192a366bfb30b35e22c",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "On a clear day, the sky usually looks blue. This is because sunlight is scattered by the Earth's atmosphere, and blue light scatters more than other colors.\n\nThe color can change:\n- Sunrise/sunset: red/orange/pink due to longer path through the atmosphere.\n- Overcast: gray.\n- Night: dark/black.\n- Sometimes it can look greenish or yellowish in certain conditions (dust, pollution, storms)."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 12,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 449,
+    "output_tokens_details": {
+      "reasoning_tokens": 320
+    },
+    "total_tokens": 461
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "On a clear day, the sky usually looks blue. This is because sunlight is scattered by the Earth's atmosphere, and blue light scatters more than other colors.\n\nThe color can change:\n- Sunrise/sunset: red/orange/pink due to longer path through the atmosphere.\n- Overcast: gray.\n- Night: dark/black.\n- Sometimes it can look greenish or yellowish in certain conditions (dust, pollution, storms)."
+}

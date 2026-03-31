@@ -1,0 +1,4 @@
+{
+  "error": "400 The 'metadata' parameter is only allowed when 'store' is enabled.",
+  "name": "Error"
+}

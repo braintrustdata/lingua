@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "OpenAI has had an incredibly newsworthy few weeks, marked by major product announcements, significant leadership changes, and public controversies.\n\nHere's a rundown of the latest key developments:\n\n1"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 4,
+    "candidatesTokenCount": 40,
+    "totalTokenCount": 1024,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 4
+      }
+    ],
+    "thoughtsTokenCount": 980
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Be3LaeSwLbuY_uMP9uaQqQ0"
+}

@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The image is a solid, uniform block of **bright, light green** color.\n\nIt's a vibrant and lively shade, often described as **lime green**, **spring green**, or a cheerful **pastel green** with a yellow undertone. There are no objects, patterns, textures, or variations in hue or saturation visible within the image; it is completely monochromatic."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 261,
+    "candidatesTokenCount": 76,
+    "totalTokenCount": 967,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "thoughtsTokenCount": 630
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "E-3LaZ-QEf-o_uMP8YT02Q4"
+}

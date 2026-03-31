@@ -1,0 +1,26 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01WYYqnJx4BB8AGgzo8KRCQv",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "The sky is typically blue during the day.\n\nThis happens because molecules in Earth's atmosphere scatter sunlight, and blue light is scattered more than other colors due to its shorter wavelength (a phenomenon called Rayleigh scattering).\n\nThe sky can also appear other colors:\n- **Red, orange, or pink** at sunrise and sunset\n- **Gray or white** on cloudy days\n- **Dark blue to black** at night\n- **Yellow or orange** during certain weather conditions or pollution"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 13,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 109,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}
