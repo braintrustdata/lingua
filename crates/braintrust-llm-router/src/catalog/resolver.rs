@@ -41,6 +41,11 @@ impl ModelResolver {
             && lingua::is_vertex_anthropic_model(model)
         {
             ProviderFormat::VertexAnthropic
+        } else if lingua::is_vertex_google_model(model) {
+            // Force Google format regardless of what the spec says.
+            // Custom models may declare format:openai but Vertex's Generative AI
+            // API requires the Google generateContent wire format.
+            ProviderFormat::Google
         } else {
             spec.format
         };
@@ -205,6 +210,18 @@ mod tests {
 
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::VertexAnthropic);
+        assert_eq!(aliases, vec!["vertex".to_string()]);
+    }
+
+    #[test]
+    fn resolve_vertex_google_model_with_openai_format_forces_google() {
+        let model = "publishers/google/models/gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec(model, ProviderFormat::ChatCompletions));
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::Google);
         assert_eq!(aliases, vec!["vertex".to_string()]);
     }
 

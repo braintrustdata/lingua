@@ -39,3 +39,38 @@ pub type SafetySettings = Vec<SafetySetting>;
 pub fn is_vertex_model(model: &str) -> bool {
     model.starts_with("publishers/")
 }
+
+/// Returns true if the model is a Google model hosted on Vertex AI.
+///
+/// These models have IDs starting with `publishers/google/`
+/// (e.g. `publishers/google/models/gemini-2.5-flash`).
+pub fn is_vertex_google_model(model: &str) -> bool {
+    model.starts_with("publishers/google/")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_vertex_google_model_matches_publishers_google_prefix() {
+        assert!(is_vertex_google_model(
+            "publishers/google/models/gemini-2.5-flash"
+        ));
+        assert!(is_vertex_google_model(
+            "publishers/google/models/gemini-pro"
+        ));
+        assert!(is_vertex_google_model("publishers/google/something-else"));
+    }
+
+    #[test]
+    fn is_vertex_google_model_rejects_other_publishers() {
+        assert!(!is_vertex_google_model(
+            "publishers/anthropic/models/claude-haiku-4-5"
+        ));
+        assert!(!is_vertex_google_model("publishers/meta/models/llama3"));
+        assert!(!is_vertex_google_model("gemini-2.5-flash"));
+        assert!(!is_vertex_google_model("publishers/"));
+        assert!(!is_vertex_google_model(""));
+    }
+}
