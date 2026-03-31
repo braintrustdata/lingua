@@ -462,7 +462,17 @@ impl Router {
                         sleep(delay).await;
                         continue;
                     } else {
-                        return Err(err);
+                        return Err(match err {
+                            Error::Http(source) => Error::UpstreamUnavailable {
+                                provider: provider.id().to_string(),
+                                source: source.into(),
+                            },
+                            Error::Middleware(source) => Error::UpstreamUnavailable {
+                                provider: provider.id().to_string(),
+                                source: source.into(),
+                            },
+                            other => other,
+                        });
                     }
                 }
             }

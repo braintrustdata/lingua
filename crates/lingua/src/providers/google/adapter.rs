@@ -759,7 +759,6 @@ mod tests {
                 tool_choice: Some(ToolChoiceConfig {
                     mode: Some(ToolChoiceMode::Required),
                     tool_name: None,
-                    disable_parallel: None,
                 }),
                 ..Default::default()
             },

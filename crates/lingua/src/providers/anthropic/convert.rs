@@ -1226,7 +1226,6 @@ impl From<&ToolChoice> for ToolChoiceConfig {
         ToolChoiceConfig {
             mode,
             tool_name: tc.name.clone(),
-            disable_parallel: tc.disable_parallel_tool_use,
         }
     }
 }
@@ -1235,12 +1234,7 @@ impl TryFrom<&ToolChoiceConfig> for ToolChoice {
     type Error = ();
 
     fn try_from(config: &ToolChoiceConfig) -> Result<Self, Self::Error> {
-        let needs_disable_parallel = config.disable_parallel == Some(true);
-        let mode = match config.mode {
-            Some(m) => m,
-            None if needs_disable_parallel => ToolChoiceMode::Auto,
-            None => return Err(()),
-        };
+        let mode = config.mode.ok_or(())?;
         Ok(ToolChoice {
             tool_choice_type: match mode {
                 ToolChoiceMode::Auto => ToolChoiceType::Auto,
@@ -1253,11 +1247,7 @@ impl TryFrom<&ToolChoiceConfig> for ToolChoice {
             } else {
                 None
             },
-            disable_parallel_tool_use: if needs_disable_parallel {
-                Some(true)
-            } else {
-                None
-            },
+            disable_parallel_tool_use: None,
         })
     }
 }

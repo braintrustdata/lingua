@@ -16,7 +16,6 @@ use lingua::universal::message::{Message, UserContent, UserContentPart};
 use lingua::util::media::MediaBlock;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
@@ -117,6 +116,7 @@ where
 
     Ok(())
 }
+use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]
 pub struct BedrockConfig {

@@ -39,7 +39,6 @@ class ToolChoiceConfig(TypedDict, total=False):
     """Tool selection strategy configuration."""
     mode: Optional[ToolChoiceMode]
     tool_name: Optional[str]
-    disable_parallel: Optional[bool]
 
 
 class JsonSchemaConfig(TypedDict, total=False):

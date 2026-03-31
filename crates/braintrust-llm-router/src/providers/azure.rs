@@ -5,7 +5,6 @@ use bytes::Bytes;
 use lingua::serde_json::Value as MetadataValue;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Url;
-use reqwest_middleware::ClientWithMiddleware;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
@@ -15,6 +14,7 @@ use crate::providers::anthropic::{ANTHROPIC_VERSION, DEFAULT_ANTHROPIC_VERSION_V
 use crate::providers::{ClientHeaders, Provider};
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
+use reqwest_middleware::ClientWithMiddleware;
 
 #[derive(Debug, Clone)]
 pub struct AzureConfig {
