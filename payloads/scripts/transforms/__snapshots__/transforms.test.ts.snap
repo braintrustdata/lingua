@@ -105,6 +105,67 @@ exports[`anthropic → chat-completions > multimodalRequest > response 1`] = `
 }
 `;
 
+exports[`anthropic → chat-completions > parallelToolCallsRequest > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "What's the weather in San Francisco and New York?",
+      "role": "user",
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{"location":"San Francisco, CA"}",
+            "name": "get_weather",
+          },
+          "id": "toolu_sf",
+          "type": "function",
+        },
+        {
+          "function": {
+            "arguments": "{"location":"New York, NY"}",
+            "name": "get_weather",
+          },
+          "id": "toolu_nyc",
+          "type": "function",
+        },
+      ],
+    },
+    {
+      "content": "65°F and sunny.",
+      "role": "tool",
+      "tool_call_id": "toolu_sf",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "function": {
+        "description": "Get the current weather for a location",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "description": "The city and state, e.g. San Francisco, CA",
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
 exports[`anthropic → chat-completions > reasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -451,6 +512,91 @@ exports[`anthropic → responses > multimodalRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 98,
     "output_tokens": 256,
+  },
+}
+`;
+
+exports[`anthropic → responses > parallelToolCallsRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What's the weather in San Francisco and New York?",
+      "role": "user",
+    },
+    {
+      "arguments": "{"location":"San Francisco, CA"}",
+      "call_id": "toolu_sf",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "arguments": "{"location":"New York, NY"}",
+      "call_id": "toolu_nyc",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "toolu_sf",
+      "output": "65°F and sunny.",
+      "type": "function_call_output",
+    },
+    {
+      "call_id": "toolu_nyc",
+      "output": "45°F and cloudy.",
+      "type": "function_call_output",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > parallelToolCallsRequest > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "- San Francisco, CA: 45°F and cloudy
+- New York, NY: 65°F and sunny
+
+Want a 7-day forecast or hourly details for either city?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_03fdbaab3a3d20130069cc2911f00c81a1824d523b8b412a37",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 136,
+    "output_tokens": 750,
   },
 }
 `;
@@ -1261,6 +1407,109 @@ exports[`chat-completions → anthropic > parallelToolCallsDisabledParam > respo
       "cached_tokens": 0,
     },
     "total_tokens": 402,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > parallelToolCallsRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What's the weather in San Francisco and New York?",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "call_sf",
+          "input": {
+            "location": "San Francisco, CA",
+          },
+          "name": "get_weather",
+          "type": "tool_use",
+        },
+        {
+          "id": "call_nyc",
+          "input": {
+            "location": "New York, NY",
+          },
+          "name": "get_weather",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "65°F and sunny.",
+          "tool_use_id": "call_sf",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "content": "45°F and cloudy.",
+          "tool_use_id": "call_nyc",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > parallelToolCallsRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The current weather is:
+
+- **San Francisco, CA**: 65°F and sunny
+- **New York, NY**: 45°F and cloudy",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01MDqB6KBXsDSfpibhzDMYYU",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 37,
+    "prompt_tokens": 757,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 794,
   },
 }
 `;
@@ -3131,6 +3380,92 @@ exports[`chat-completions → google > parallelToolCallsDisabledParam > response
 }
 `;
 
+exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What's the weather in San Francisco and New York?",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "location": "San Francisco, CA",
+            },
+            "id": "call_sf",
+            "name": "get_weather",
+          },
+        },
+        {
+          "functionCall": {
+            "args": {
+              "location": "New York, NY",
+            },
+            "id": "call_nyc",
+            "name": "get_weather",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "id": "call_sf",
+            "name": "",
+            "response": {
+              "output": "65°F and sunny.",
+            },
+          },
+        },
+        {
+          "functionResponse": {
+            "id": "call_nyc",
+            "name": "",
+            "response": {
+              "output": "45°F and cloudy.",
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
 exports[`chat-completions → google > predictionParam > request 1`] = `
 {
   "contents": [
@@ -4932,6 +5267,131 @@ exports[`responses → anthropic > multimodalRequest > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 409,
+  },
+}
+`;
+
+exports[`responses → anthropic > parallelToolCallsRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What's the weather in San Francisco and New York?",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "call_sf",
+          "input": {
+            "location": "San Francisco, CA",
+          },
+          "name": "get_weather",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "id": "call_nyc",
+          "input": {
+            "location": "New York, NY",
+          },
+          "name": "get_weather",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "65°F and sunny.",
+          "tool_use_id": "call_sf",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "content": "45°F and cloudy.",
+          "tool_use_id": "call_nyc",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": false,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > parallelToolCallsRequest > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01NiJR1LmktwTyh3v6idQFoK",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "The current weather is:
+
+- **San Francisco, CA**: 65°F and sunny
+- **New York, NY**: 45°F and cloudy",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "The current weather is:
+
+- **San Francisco, CA**: 65°F and sunny
+- **New York, NY**: 45°F and cloudy",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 757,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 37,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 794,
   },
 }
 `;

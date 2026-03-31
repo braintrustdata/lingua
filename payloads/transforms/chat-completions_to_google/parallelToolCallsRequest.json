@@ -1,0 +1,4 @@
+{
+  "error": "Google API error (400): {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"* GenerateContentRequest.contents[2].parts[0].function_response.name: Name cannot be empty.\\n* GenerateContentRequest.contents[2].parts[1].function_response.name: Name cannot be empty.\\n\",\n    \"status\": \"INVALID_ARGUMENT\"\n  }\n}\n",
+  "name": "Error"
+}

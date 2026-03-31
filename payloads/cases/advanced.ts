@@ -458,6 +458,360 @@ export const advancedCases: TestCaseCollection = {
     },
   },
 
+  parallelToolCallsRequest: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather in San Francisco and New York?",
+        },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_sf",
+              type: "function",
+              function: {
+                name: "get_weather",
+                arguments: '{"location":"San Francisco, CA"}',
+              },
+            },
+            {
+              id: "call_nyc",
+              type: "function",
+              function: {
+                name: "get_weather",
+                arguments: '{"location":"New York, NY"}',
+              },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_sf",
+          content: "65°F and sunny.",
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_nyc",
+          content: "45°F and cloudy.",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get the current weather for a location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA",
+                },
+              },
+              required: ["location"],
+            },
+          },
+        },
+      ],
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather in San Francisco and New York?",
+        },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "toolu_sf",
+              name: "get_weather",
+              input: { location: "San Francisco, CA" },
+            },
+            {
+              type: "tool_use",
+              id: "toolu_nyc",
+              name: "get_weather",
+              input: { location: "New York, NY" },
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_sf",
+              content: "65°F and sunny.",
+            },
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_nyc",
+              content: "45°F and cloudy.",
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: { type: "auto" },
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "What's the weather in San Francisco and New York?",
+        },
+        {
+          type: "function_call",
+          call_id: "call_sf",
+          name: "get_weather",
+          arguments: '{"location":"San Francisco, CA"}',
+        },
+        {
+          type: "function_call",
+          call_id: "call_nyc",
+          name: "get_weather",
+          arguments: '{"location":"New York, NY"}',
+        },
+        {
+          type: "function_call_output",
+          call_id: "call_sf",
+          output: "65°F and sunny.",
+        },
+        {
+          type: "function_call_output",
+          call_id: "call_nyc",
+          output: "45°F and cloudy.",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          parameters: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+          strict: false,
+        },
+      ],
+    },
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "What's the weather in San Francisco and New York?" },
+          ],
+        },
+        {
+          role: "model",
+          parts: [
+            {
+              functionCall: {
+                name: "get_weather",
+                args: { location: "San Francisco, CA" },
+              },
+            },
+            {
+              functionCall: {
+                name: "get_weather",
+                args: { location: "New York, NY" },
+              },
+            },
+          ],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              functionResponse: {
+                name: "get_weather",
+                response: { result: "65°F and sunny." },
+              },
+            },
+            {
+              functionResponse: {
+                name: "get_weather",
+                response: { result: "45°F and cloudy." },
+              },
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get the current weather for a location",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  location: {
+                    type: Type.STRING,
+                    description: "The city and state, e.g. San Francisco, CA",
+                  },
+                },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+    },
+    bedrock: null,
+    "bedrock-anthropic": {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather in San Francisco and New York?",
+        },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "toolu_sf",
+              name: "get_weather",
+              input: { location: "San Francisco, CA" },
+            },
+            {
+              type: "tool_use",
+              id: "toolu_nyc",
+              name: "get_weather",
+              input: { location: "New York, NY" },
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_sf",
+              content: "65°F and sunny.",
+            },
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_nyc",
+              content: "45°F and cloudy.",
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: { type: "auto" },
+    },
+    "vertex-anthropic": {
+      model: VERTEX_ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather in San Francisco and New York?",
+        },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "toolu_sf",
+              name: "get_weather",
+              input: { location: "San Francisco, CA" },
+            },
+            {
+              type: "tool_use",
+              id: "toolu_nyc",
+              name: "get_weather",
+              input: { location: "New York, NY" },
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_sf",
+              content: "65°F and sunny.",
+            },
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_nyc",
+              content: "45°F and cloudy.",
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          input_schema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+        },
+      ],
+      tool_choice: { type: "auto" },
+    },
+  },
+
   systemMessageArrayContent: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

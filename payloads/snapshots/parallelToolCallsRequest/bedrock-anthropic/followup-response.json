@@ -1,0 +1,24 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "id": "msg_bdrk_017za5m5xKHzcfYe9LDtHP4d",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That depends on what you'd like to do! Here are some suggestions based on the weather:\n\n**If you're in San Francisco:**\n- Enjoy outdoor activities like hiking, visiting parks, or going to the beach\n- Take a walk or have a picnic in the nice sunny weather\n- Explore the city on foot\n\n**If you're in New York:**\n- Visit indoor attractions like museums, galleries, or theaters\n- Go shopping or explore neighborhoods\n- Visit restaurants or cafes\n- The cooler weather is great for walking around the city with a jacket\n\n**General suggestions:**\n- Tell me if you need weather information for other locations\n- Ask me about activities or attractions in either city\n- Let me know if you're planning a trip and need help with information\n\nWhat would you like to do? Are you in one of these cities, planning a trip, or just curious about the weather?"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 827,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 193
+  }
+}

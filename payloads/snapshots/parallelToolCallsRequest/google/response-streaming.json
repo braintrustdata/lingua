@@ -1,0 +1,87 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "The weather in San"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "candidatesTokenCount": 4,
+      "totalTokenCount": 144,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "9yjMaZqMKv6tjrEPk-WY6Qw"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " Francisco, CA is 65°F and sunny. In New York, NY"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "candidatesTokenCount": 21,
+      "totalTokenCount": 161,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "9yjMaZqMKv6tjrEPk-WY6Qw"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", it's 45°F and cloudy."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 140,
+      "candidatesTokenCount": 33,
+      "totalTokenCount": 173,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 140
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "9yjMaZqMKv6tjrEPk-WY6Qw"
+  }
+]

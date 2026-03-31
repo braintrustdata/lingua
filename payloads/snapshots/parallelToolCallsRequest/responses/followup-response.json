@@ -1,0 +1,96 @@
+{
+  "id": "resp_01373b32927ba0b40069cc28fd563881a2909d4f055a6441c5",
+  "object": "response",
+  "created_at": 1774987517,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774987527,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_01373b32927ba0b40069cc28fdbdbc81a299317ab44cdb93c3",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_01373b32927ba0b40069cc2905790481a28e08a5fa5514a955",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here are a few easy options to choose from, based on the current weather.\n\nIf you’re in San Francisco (65°F, sunny)\n- Take a scenic stroll or bike along the Embarcadero to Fisherman’s Wharf and Ghirardelli Square; grab a bite along the water.\n- Visit Golden Gate Park (Conservatory of Flowers, de Young Museum) or ride up to Twin Peaks for city views.\n- Ride a cable car and explore the Mission District for coffee and food.\n- If you want a classic view, walk the Lands End Trail or snap sunset photos at a viewpoint overlooking the Golden Gate Bridge.\n\nIf you’re in New York (45°F, cloudy)\n- Indoor options: The Met, MoMA, or the American Museum of Natural History.\n- Catch a Broadway show or a concert at Lincoln Center; or explore Chelsea Market and the High Line if you don’t mind the chill.\n- Iconic indoor spots: Grand Central, the Whitney, or the Top of the Rock/Empire State Building for city views.\n- Cozy outdoors: a brisk Central Park stroll with a warm drink, or a quick walk along the High Line if you layer up.\n\nWant me to tailor this to your exact city, time window, and interests? Tell me your location, how much time you have, and what you enjoy."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 176,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1286,
+    "output_tokens_details": {
+      "reasoning_tokens": 960
+    },
+    "total_tokens": 1462
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here are a few easy options to choose from, based on the current weather.\n\nIf you’re in San Francisco (65°F, sunny)\n- Take a scenic stroll or bike along the Embarcadero to Fisherman’s Wharf and Ghirardelli Square; grab a bite along the water.\n- Visit Golden Gate Park (Conservatory of Flowers, de Young Museum) or ride up to Twin Peaks for city views.\n- Ride a cable car and explore the Mission District for coffee and food.\n- If you want a classic view, walk the Lands End Trail or snap sunset photos at a viewpoint overlooking the Golden Gate Bridge.\n\nIf you’re in New York (45°F, cloudy)\n- Indoor options: The Met, MoMA, or the American Museum of Natural History.\n- Catch a Broadway show or a concert at Lincoln Center; or explore Chelsea Market and the High Line if you don’t mind the chill.\n- Iconic indoor spots: Grand Central, the Whitney, or the Top of the Rock/Empire State Building for city views.\n- Cozy outdoors: a brisk Central Park stroll with a warm drink, or a quick walk along the High Line if you layer up.\n\nWant me to tailor this to your exact city, time window, and interests? Tell me your location, how much time you have, and what you enjoy."
+}
