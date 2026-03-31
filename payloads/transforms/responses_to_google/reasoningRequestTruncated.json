@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, here's my breakdown of this problem.\n\n**Deconstructing the Average Speed Calculation**\n\nAlright, so the task at hand is crystal clear: I need to calculate the *average speed* of this train. My first instinct is to immediately jump to the fundamental formula, which I know by heart: Average Speed is equal to the Total Distance traveled, divided by the Total Time taken.\n\nNow, I'm thinking I need to break this down. The train's journey looks like it has a few different legs. This means I'll have to consider each stage separately before I can get to the final average. It's the only way to get accurate results here.\n",
+            "thought": true
+          },
+          {
+            "text": "Let's break"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 4,
+    "totalTokenCount": 133,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 92
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "F-3LadXdM_m__uMP8cm1qAk"
+}

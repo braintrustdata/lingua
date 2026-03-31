@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**JSON Extraction Thought Process**\n\nOkay, here's the deal. I've been given a text string: \"John is 25.\" and my task is to pull out specific data points and structure them as a JSON object. I'm operating under the constraint of a defined JSON schema, which is pretty standard practice for data exchange.\n\nThe schema requires two properties: \"name\" (a string) and \"age\" (a number). Let me parse this. I can immediately see the mapping: \"John\" clearly represents the \"name,\" and \"25\" is the \"age.\" No ambiguity there.\n\nTherefore, building the JSON object is straightforward. The \"name\" field will be assigned the value \"John\" as a string. The \"age\" field needs to be assigned the numerical value 25.\n\nThe resulting JSON structure, based on my understanding of the schema and the text input, needs to look like this:\n\n```json\n{\n  \"name\": \"John\",\n  \"age\": 25\n}\n```\n\nThat's it. It's a simple, direct mapping with no need for complex transformations or conditional logic in this case. Just extracting the relevant information and putting it into the right fields with the right data types. Pretty routine, actually.\n",
+            "thought": true
+          },
+          {
+            "text": "{\"age\":25,\"name\":\"John\"}"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 9,
+    "candidatesTokenCount": 10,
+    "totalTokenCount": 139,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 9
+      }
+    ],
+    "thoughtsTokenCount": 120
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Fu3LaeLBCKrj_uMP5O2PyAY"
+}

@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "\"Local food\" refers to food that is produced, processed, and consumed within a specific geographic area. The exact definition of \"local\" can vary – some might consider it within a 50-mile radius, others within"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 3,
+    "candidatesTokenCount": 46,
+    "totalTokenCount": 1023,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      }
+    ],
+    "thoughtsTokenCount": 974
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "EO3LaZLhCf-o_uMP3oT02Q4"
+}

@@ -65,6 +65,18 @@ export const TRANSFORM_PAIRS: TransformPair[] = [
     wasmSource: "OpenAI",
     wasmTarget: "Google",
   },
+  {
+    source: "anthropic",
+    target: "google",
+    wasmSource: "Anthropic",
+    wasmTarget: "Google",
+  },
+  {
+    source: "responses",
+    target: "google",
+    wasmSource: "Responses",
+    wasmTarget: "Google",
+  },
 ];
 
 // Validation functions by format

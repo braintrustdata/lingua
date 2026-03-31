@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The sky is most commonly **blue** during the day.\n\nThis is due to a phenomenon called **Rayleigh scattering**, where shorter wavelengths of light (blue and violet) are scattered more efficiently by the molecules in Earth's atmosphere than longer wavelengths (red and yellow). Since our eyes are more sensitive to blue than violet, we perceive the sky as blue.\n\nHowever, the sky can also appear in many other colors depending on the time of day, weather conditions, and atmospheric composition:\n\n*   **Red, orange, pink, and purple** during sunrise and sunset, when sunlight passes through more of the atmosphere, scattering away the blue light and leaving the longer wavelengths.\n*   **Grey or dark grey** when it's overcast, cloudy, or during a storm.\n*   **White** when there are thin, high clouds or haze.\n*   **Black** at night, when that part of the Earth is facing away from the sun and we're seeing the darkness of space, dotted with stars."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 7,
+    "candidatesTokenCount": 210,
+    "totalTokenCount": 504,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "thoughtsTokenCount": 287
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Au3LaarYFp-T_uMP2cGbmAk"
+}

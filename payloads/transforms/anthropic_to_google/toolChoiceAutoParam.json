@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Please tell me the location for which you want the weather.",
+            "thoughtSignature": "CtICAb4+9vv5aFIReqctlgScrnwEBQI2G700RDNwsIO+c3BiXAZcNdZyRkpmxECxNkcwgyz582/b6yq/ikPy0aKt28N3IYLsSmMSdpP0v4RXwxMEqSld/t3DFsp/H8lyzvdjTLQuXtQamX6ZfG2GRg34e7ZTgq1wF4tfKchLeW3Ut/6kIWNT6sg0a/2wNdOO1DSQT5KzvNcpcfG4bZUK+ZM8xL1yd/G9b5aRmkcwl37wF8gvL/ETxUCW+SnuCvF0I36nqC7EXkHoW30+QELfoyspBv5dtlJCoEND2lbczq1MXcWJfGPKI3V9FU1AWFoeEmQjkCGgnKT1+Cq0gI3wXqh+8brnb8qA/Bd9hG8EpsvodQ7nnR0DYFKnn3HwOyWGVQcaVRacL+C3iZ38ZBKFxUF52g+sT1m0XwBXwXd6/kw/+QPEePbH8dNF9aEnm2WATN2eqdk="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 12,
+    "totalTokenCount": 123,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 74
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "EO3LadrNH6Hh_uMPw7OSsAg"
+}

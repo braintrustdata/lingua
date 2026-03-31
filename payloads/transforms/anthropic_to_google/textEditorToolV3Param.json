@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, I can help you edit a file, but I need some more information!\n\nPlease tell me:\n\n1.  **The content of the file:** Copy and paste the text or code here.\n2.  **What specific changes you want to make:** Be as detailed as possible. For example:\n    *   \"Change every instance of 'old_word' to 'new_word'.\"\n    *   \"Add a new paragraph after the second paragraph that says '...'\"\n    *   \"Fix any grammatical errors.\"\n    *   \"Refactor this Python function to be more efficient.\"\n    *   \"Add a header to this Markdown file.\"\n    *   \"Make this paragraph more concise.\"\n\nThe more information you give me, the better I can assist you!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 4,
+    "candidatesTokenCount": 166,
+    "totalTokenCount": 848,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 4
+      }
+    ],
+    "thoughtsTokenCount": 678
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "C-3Lab6tIpnh_uMPjOrSSQ"
+}

@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, here's my thought process on this seemingly simple request:\n\n**Analyzing the Query: A Familiar Calculation**\n\nAlright, I've been presented with what looks like a straightforward arithmetic problem. The user wants me to perform the addition of 2 + 2. It's a fundamental operation, really the bedrock of math. My task, as I understand it, is to process the calculation and then provide the answer in a clear and concise manner. There's no complexity here; it's pure number crunching. I don't need to consider any external factors or contextual nuances. Just a direct computation and a simple output.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 41,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 25
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "BO3LafTJAovO_uMPvuf0iQ0"
+}

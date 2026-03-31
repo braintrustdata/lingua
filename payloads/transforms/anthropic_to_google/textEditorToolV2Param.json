@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, I can definitely help you edit a file!\n\nTo do so, I need a bit more information. Please tell me:\n\n1.  **What is the current content of the file?** (Please paste it here.)\n2.  **What kind of edits do you want to make?**\n    *   Are you adding new text? If so, where and what?\n    *   Are you deleting existing text? If so, what exactly?\n    *   Are you replacing specific words or phrases?\n    *   Are you fixing grammar or spelling errors?\n    *   Are you refactoring code (e.g., in Python, JavaScript, HTML, etc.)?\n    *   Are you formatting it (e.g., making it more readable, indenting, etc.)?\n    *   Are you summarizing or expanding on content?\n    *   What is the **goal** of the edit?\n\nThe more specific you are, the better I can assist you!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 4,
+    "candidatesTokenCount": 209,
+    "totalTokenCount": 926,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 4
+      }
+    ],
+    "thoughtsTokenCount": 713
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "C-3Laaj0HdSM_PUP_oD9sAY"
+}

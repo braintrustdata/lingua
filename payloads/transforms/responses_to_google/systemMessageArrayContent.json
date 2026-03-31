@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Let me check the `project_logs` for recent errors.\n\n```sql\nSELECT\n    timestamp,\n    message,\n    source,\n    details\nFROM\n    project_logs.abc-123\nWHERE\n    log_level = 'ERROR'\nORDER BY\n    timestamp DESC\nLIMIT 10;\n```\n\nThis query will retrieve the timestamp, message, source, and any additional details for the 10 most recent error logs from `project_logs.abc-123`."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 29,
+    "candidatesTokenCount": 109,
+    "totalTokenCount": 179,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 29
+      }
+    ],
+    "thoughtsTokenCount": 41
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Gu3LaZqLA7Sv_uMPqOORyQk"
+}
