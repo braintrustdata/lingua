@@ -137,12 +137,10 @@ fn should_inline_remote_image_urls(format: ProviderFormat) -> bool {
 async fn inline_remote_image_urls_with_fetch<F>(
     request: &mut lingua::UniversalRequest,
     mut fetch: F,
-) -> Result<bool>
+) -> Result<()>
 where
     F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
 {
-    let mut changed = false;
-
     for message in &mut request.messages {
         let content = match message {
             Message::System { content }
@@ -174,11 +172,10 @@ where
             let media_block = fetch(url).await?;
             *image = lingua::serde_json::Value::String(media_block.data);
             *media_type = Some(media_block.media_type);
-            changed = true;
         }
     }
 
-    Ok(changed)
+    Ok(())
 }
 
 async fn prepare_request_with_remote_image_inlining<F>(
@@ -206,15 +203,16 @@ where
         None => return Err(TransformError::UnableToDetectFormat.into()),
     };
 
+    if source_adapter.format() == format {
+        return Ok(body);
+    }
+
     let mut request = match source_adapter.request_to_universal(payload) {
         Ok(request) => request,
         Err(err) => return Err(err.into()),
     };
 
-    let changed = inline_remote_image_urls_with_fetch(&mut request, fetch).await?;
-    if !changed && source_adapter.format() == format {
-        return Ok(body);
-    }
+    inline_remote_image_urls_with_fetch(&mut request, fetch).await?;
 
     if request.model.is_none() {
         request.model = Some(spec.model.clone());
@@ -869,6 +867,38 @@ mod tests {
         ));
         assert!(!should_inline_remote_image_urls(ProviderFormat::Responses));
         assert!(!should_inline_remote_image_urls(ProviderFormat::Google));
+    }
+
+    #[tokio::test]
+    async fn prepare_request_passes_through_same_format_converse_without_fetch() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+                "messages": [{
+                    "role": "user",
+                    "content": [{"text": "Hello"}]
+                }]
+            }))
+            .unwrap(),
+        );
+
+        let prepared = prepare_request_with_remote_image_inlining(
+            body.clone(),
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            |_url| {
+                Box::pin(async {
+                    panic!("fetch should not be called for same-format converse requests");
+                })
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(prepared, body);
     }
 
     #[tokio::test]
