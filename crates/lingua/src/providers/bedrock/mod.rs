@@ -12,6 +12,10 @@ pub mod params;
 pub mod request;
 pub mod response;
 
+pub fn is_remote_image_url(value: &str) -> bool {
+    value.starts_with("http://") || value.starts_with("https://")
+}
+
 // Re-export adapter
 pub use adapter::BedrockAdapter;
 

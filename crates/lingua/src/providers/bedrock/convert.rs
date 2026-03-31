@@ -9,6 +9,7 @@ use crate::error::ConvertError;
 use crate::import_parse::{
     try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
+use crate::providers::bedrock::is_remote_image_url;
 use crate::providers::bedrock::request::{
     BedrockContentBlock, BedrockConversationRole, BedrockImageBlock, BedrockImageFormat,
     BedrockImageSource, BedrockMessage, BedrockToolResultBlock, BedrockToolResultContent,
@@ -23,10 +24,6 @@ use crate::universal::message::{
     AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
-
-fn is_remote_image_url(value: &str) -> bool {
-    value.starts_with("http://") || value.starts_with("https://")
-}
 
 // ============================================================================
 // Bedrock Message -> Universal Message
