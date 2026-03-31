@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "# Recent Errors in Project Logs (abc-123)\n\nI'd be happy to help you analyze recent errors, but I need a bit more information to give you the most useful analysis:\n\n1. **Time range**: What does \"recently\" mean for you? \n   - Last 24 hours?\n   - Last 7 days?\n   - Last week?\n\n2. **Error type**: Are you interested in:\n   - All errors?\n   - Specific error categories (e.g., database, API, authentication)?\n   - Errors above a certain severity level?\n\n3. **Level of detail**: Would you like:\n   - A summary count of errors?\n   - Top errors by frequency?\n   - Full error logs with stack traces?\n   - Errors grouped by component/service?\n\nOnce you provide these details, I can query the project_logs (abc-123) database and give you a comprehensive error analysis."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 35,
+    "outputTokens": 209,
+    "totalTokens": 244,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 2406
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "4d94fb79-c465-4532-bb65-9953e795f56a",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
