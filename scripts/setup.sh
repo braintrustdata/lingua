@@ -64,7 +64,7 @@ if [ -f "payloads/package.json" ]; then
     fi
 
     echo "📦 Installing TypeScript dependencies..."
-    pnpm install
+    pnpm install --frozen-lockfile
 
     cd ..
 fi

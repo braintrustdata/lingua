@@ -148,7 +148,7 @@ This package provides scripts to systematically capture real API requests and re
 ## Installation
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 ## Environment Variables

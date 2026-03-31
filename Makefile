@@ -33,7 +33,7 @@ lingua-wasm: ## Build WASM package
 
 typescript: generate-types lingua-wasm ## Build TypeScript bindings (WASM)
 	@echo "Building TypeScript bindings..."
-	cd bindings/typescript && pnpm install && pnpm run build
+	cd bindings/typescript && pnpm install --frozen-lockfile && pnpm run build
 
 python: ## Build Python bindings (PyO3)
 	@echo "Building Python bindings..."
