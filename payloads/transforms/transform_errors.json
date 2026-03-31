@@ -3,18 +3,18 @@
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)"
   },
   "chat-completions_to_bedrock": {
-    "simpleRequest": "Deserialization failed: missing field `output` at line 3 column 1",
-    "multimodalRequest": "Deserialization failed: missing field `output` at line 4 column 1"
+    "simpleRequest": "BedrockOutputContentBlock enum missing reasoningContent variant; Claude 3.7 Sonnet returns thinking blocks even for simple requests",
+    "multimodalRequest": "Bedrock ValidationException: Could not process image; likely a URL-based or unsupported image encoding"
   },
   "responses_to_bedrock": {
-    "simpleRequest": "Deserialization failed: missing field `output` at line 3 column 1",
-    "reasoningRequest": "Deserialization failed: missing field `output` at line 3 column 1",
-    "reasoningRequestTruncated": "Deserialization failed: missing field `output` at line 4 column 1",
-    "multimodalRequest": "Deserialization failed: missing field `output` at line 4 column 1",
-    "complexReasoningRequest": "Deserialization failed: missing field `output` at line 3 column 1",
-    "reasoningWithOutput": "Deserialization failed: missing field `output` at line 3 column 1"
+    "simpleRequest": "BedrockOutputContentBlock enum missing reasoningContent variant; Claude 3.7 Sonnet returns thinking blocks even for simple requests",
+    "reasoningRequest": "BedrockOutputContentBlock enum missing reasoningContent variant; Bedrock extended thinking response cannot be deserialized",
+    "reasoningRequestTruncated": "Bedrock ValidationException: max_tokens (100) must be greater than thinking.budget_tokens (minimum 1024)",
+    "multimodalRequest": "Bedrock ValidationException: Could not process image; likely a URL-based or unsupported image encoding",
+    "complexReasoningRequest": "BedrockOutputContentBlock enum missing reasoningContent variant; Bedrock extended thinking response cannot be deserialized",
+    "reasoningWithOutput": "BedrockOutputContentBlock enum missing reasoningContent variant; Bedrock extended thinking response cannot be deserialized"
   },
   "anthropic_to_bedrock": {
-    "multimodalRequest": "Deserialization failed: missing field `output` at line 4 column 1"
+    "multimodalRequest": "Bedrock ValidationException: Could not process image; likely a URL-based or unsupported image encoding"
   }
 }
