@@ -116,8 +116,10 @@ fn is_remote_image_url(value: &str) -> bool {
     value.starts_with("http://") || value.starts_with("https://")
 }
 
+const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
+
 async fn fetch_remote_image_as_base64(url: &str) -> Result<MediaBlock> {
-    lingua::util::media::convert_media_to_base64(url, None, None)
+    lingua::util::media::convert_media_to_base64(url, None, Some(BEDROCK_REMOTE_MEDIA_MAX_BYTES))
         .await
         .map_err(|e| Error::InvalidRequest(format!("failed to fetch image URL {url}: {e}")))
 }
@@ -734,6 +736,7 @@ mod tests {
     use crate::streaming::RawResponseStream;
     use async_trait::async_trait;
     use reqwest::header::HeaderMap;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     struct FakeProvider {
         name: &'static str,
@@ -1009,6 +1012,7 @@ mod tests {
 
     #[tokio::test]
     async fn prepare_request_returns_invalid_request_when_remote_image_fetch_fails() {
+        let fetch_calls = Arc::new(AtomicUsize::new(0));
         let body = Bytes::from(
             lingua::serde_json::to_vec(&lingua::serde_json::json!({
                 "model": "claude-sonnet-4-5-20250929",
@@ -1030,18 +1034,25 @@ mod tests {
                 ProviderFormat::Converse,
             ),
             ProviderFormat::Converse,
-            |url| {
-                Box::pin(async move {
-                    Err(Error::InvalidRequest(format!(
-                        "failed to fetch image URL {url}: network error"
-                    )))
-                })
+            {
+                let fetch_calls = Arc::clone(&fetch_calls);
+                move |url| {
+                    fetch_calls.fetch_add(1, Ordering::SeqCst);
+                    Box::pin(async move {
+                        Err(Error::InvalidRequest(format!(
+                            "failed to fetch image URL {url}: network error"
+                        )))
+                    })
+                }
             },
         )
         .await
         .expect_err("fetch failure should surface as InvalidRequest");
 
-        assert!(matches!(err, Error::InvalidRequest(ref msg) if msg.contains("failed to fetch image URL")));
+        assert_eq!(fetch_calls.load(Ordering::SeqCst), 1);
+        assert!(
+            matches!(err, Error::InvalidRequest(ref msg) if msg.contains("failed to fetch image URL"))
+        );
     }
 
     #[test]
