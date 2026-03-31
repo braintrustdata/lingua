@@ -1,5 +1,20 @@
 {
   "responses_to_anthropic": {
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)"
+  },
+  "chat-completions_to_bedrock": {
+    "simpleRequest": "Deserialization failed: missing field `output` at line 3 column 1",
+    "multimodalRequest": "Deserialization failed: missing field `output` at line 4 column 1"
+  },
+  "responses_to_bedrock": {
+    "simpleRequest": "Deserialization failed: missing field `output` at line 3 column 1",
+    "reasoningRequest": "Deserialization failed: missing field `output` at line 3 column 1",
+    "reasoningRequestTruncated": "Deserialization failed: missing field `output` at line 4 column 1",
+    "multimodalRequest": "Deserialization failed: missing field `output` at line 4 column 1",
+    "complexReasoningRequest": "Deserialization failed: missing field `output` at line 3 column 1",
+    "reasoningWithOutput": "Deserialization failed: missing field `output` at line 3 column 1"
+  },
+  "anthropic_to_bedrock": {
+    "multimodalRequest": "Deserialization failed: missing field `output` at line 4 column 1"
   }
 }

@@ -5,6 +5,8 @@ import {
   transform_response,
   validate_anthropic_request,
   validate_anthropic_response,
+  validate_bedrock_request,
+  validate_bedrock_response,
   validate_chat_completions_request,
   validate_chat_completions_response,
   validate_google_request,
@@ -15,6 +17,7 @@ import {
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 import {
   ANTHROPIC_MODEL,
+  BEDROCK_MODEL,
   GOOGLE_MODEL,
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
@@ -24,8 +27,14 @@ export type SourceFormat =
   | "chat-completions"
   | "responses"
   | "anthropic"
-  | "google";
-export type WasmFormat = "OpenAI" | "Responses" | "Anthropic" | "Google";
+  | "google"
+  | "bedrock";
+export type WasmFormat =
+  | "OpenAI"
+  | "Responses"
+  | "Anthropic"
+  | "Google"
+  | "bedrock";
 
 export interface TransformPair {
   source: SourceFormat;
@@ -65,6 +74,24 @@ export const TRANSFORM_PAIRS: TransformPair[] = [
     wasmSource: "OpenAI",
     wasmTarget: "Google",
   },
+  {
+    source: "chat-completions",
+    target: "bedrock",
+    wasmSource: "OpenAI",
+    wasmTarget: "bedrock",
+  },
+  {
+    source: "responses",
+    target: "bedrock",
+    wasmSource: "Responses",
+    wasmTarget: "bedrock",
+  },
+  {
+    source: "anthropic",
+    target: "bedrock",
+    wasmSource: "Anthropic",
+    wasmTarget: "bedrock",
+  },
 ];
 
 // Validation functions by format
@@ -73,6 +100,7 @@ const REQUEST_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   responses: validate_responses_request,
   anthropic: validate_anthropic_request,
   google: validate_google_request,
+  bedrock: validate_bedrock_request,
 };
 
 const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
@@ -80,6 +108,7 @@ const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   responses: validate_responses_response,
   anthropic: validate_anthropic_response,
   google: validate_google_response,
+  bedrock: validate_bedrock_response,
 };
 
 interface TransformResultData {
@@ -99,7 +128,11 @@ export function transformAndValidateRequest(
   wasmTarget: WasmFormat,
   targetFormat: SourceFormat
 ): unknown {
-  const result = transform_request(JSON.stringify(input), wasmTarget);
+  const result = transform_request(
+    JSON.stringify(input),
+    wasmTarget,
+    TARGET_MODELS[targetFormat]
+  );
   if (!isTransformResultData(result)) {
     throw new Error("Invalid transform result");
   }
@@ -130,6 +163,7 @@ const WASM_TO_SOURCE: Record<WasmFormat, SourceFormat> = {
   Responses: "responses",
   Anthropic: "anthropic",
   Google: "google",
+  bedrock: "bedrock",
 };
 
 // Transform and validate response
@@ -183,6 +217,7 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   "chat-completions": OPENAI_CHAT_COMPLETIONS_MODEL,
   responses: OPENAI_RESPONSES_MODEL,
   google: GOOGLE_MODEL,
+  bedrock: BEDROCK_MODEL,
 };
 
 export function getTransformableCases(

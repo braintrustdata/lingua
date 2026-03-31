@@ -1,0 +1,4 @@
+{
+  "error": "ValidationException: The model returned the following errors: `max_tokens` must be greater than `thinking.budget_tokens`. Please consult our documentation at https://docs.claude.com/en/docs/build-with-claude/extended-thinking#max-tokens-and-context-window-size",
+  "name": "Error"
+}

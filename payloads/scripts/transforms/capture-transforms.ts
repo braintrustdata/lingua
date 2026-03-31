@@ -4,7 +4,13 @@ import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { dirname } from "path";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
-import { allTestCases, getCaseForProvider, GOOGLE_MODEL } from "../../cases";
+import {
+  allTestCases,
+  getCaseForProvider,
+  GOOGLE_MODEL,
+  type BedrockConverseRequest,
+} from "../../cases";
+import { executeBedrock } from "../providers/bedrock";
 import {
   TRANSFORM_PAIRS,
   STREAMING_PAIRS,
@@ -23,6 +29,16 @@ const GOOGLE_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 let _anthropic: Anthropic | undefined;
 let _openai: OpenAI | undefined;
+
+function isBedrockConverseRequest(
+  value: unknown
+): value is BedrockConverseRequest {
+  if (typeof value !== "object" || value === null) return false;
+  if (!("modelId" in value)) return false;
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- type guard needs safe property access on unknown object
+  const modelId = (value as { modelId?: unknown }).modelId;
+  return typeof modelId === "string" && modelId.length > 0;
+}
 
 function getAnthropic(): Anthropic {
   if (!_anthropic) _anthropic = new Anthropic();
@@ -85,6 +101,20 @@ async function callProvider(
       );
     case "google":
       return callGoogleProvider(request);
+    case "bedrock": {
+      if (!isBedrockConverseRequest(request)) {
+        throw new Error(
+          "Bedrock capture failed: request is missing required field 'modelId'"
+        );
+      }
+      const result = await executeBedrock("transform-capture", request, {
+        stream: false,
+      });
+      if (result.response) {
+        return result.response;
+      }
+      throw new Error(result.error ?? "Bedrock capture failed");
+    }
   }
 }
 /* eslint-enable @typescript-eslint/consistent-type-assertions */
@@ -132,12 +162,23 @@ export async function captureTransforms(
             caseName,
             p.target
           );
-          request.model =
-            targetCase &&
-            typeof targetCase === "object" &&
-            "model" in targetCase
-              ? targetCase.model
-              : TARGET_MODELS[p.target];
+          if (p.target === "bedrock") {
+            request.modelId =
+              targetCase &&
+              typeof targetCase === "object" &&
+              targetCase !== null &&
+              "modelId" in targetCase
+                ? targetCase.modelId
+                : TARGET_MODELS[p.target];
+          } else {
+            request.model =
+              targetCase &&
+              typeof targetCase === "object" &&
+              targetCase !== null &&
+              "model" in targetCase
+                ? targetCase.model
+                : TARGET_MODELS[p.target];
+          }
 
           const response = await callProvider(p.target, request);
 

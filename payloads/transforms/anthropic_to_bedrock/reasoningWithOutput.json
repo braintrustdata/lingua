@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The sky typically appears **blue** during the day, caused by sunlight scattering off molecules in the atmosphere (a phenomenon called Rayleigh scattering).\n\nHowever, the sky can appear different colors depending on conditions:\n- **Orange, red, or pink** at sunrise and sunset\n- **Gray or white** on cloudy days\n- **Dark blue or black** at night\n- **Reddish** during dust storms or air pollution"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 13,
+    "outputTokens": 100,
+    "totalTokens": 113,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1810
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "6df2e674-e545-458f-95b4-1bb00f10c6be",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

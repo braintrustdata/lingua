@@ -1,0 +1,3 @@
+{
+  "error": "Deserialization failed: data did not match any variant of untagged enum BedrockOutputContentBlock at line 14 column 8"
+}
