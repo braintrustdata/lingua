@@ -175,7 +175,7 @@ struct RequestTransformPlan {
 
 enum PreparedRequestTransform {
     PassThrough(Bytes),
-    Transform(RequestTransformPlan),
+    Transform(Box<RequestTransformPlan>),
 }
 
 // ============================================================================
@@ -258,7 +258,7 @@ pub fn transform_request(
 ) -> Result<TransformResult, TransformError> {
     match prepare_request_transform(input, target_format, model)? {
         PreparedRequestTransform::PassThrough(bytes) => Ok(TransformResult::PassThrough(bytes)),
-        PreparedRequestTransform::Transform(plan) => finalize_request_transform(plan),
+        PreparedRequestTransform::Transform(plan) => finalize_request_transform(*plan),
     }
 }
 
@@ -288,7 +288,7 @@ where
                     },
                 )
                 .await?;
-            finalize_request_transform(plan)
+            finalize_request_transform(*plan)
         }
     }
 }
@@ -575,15 +575,18 @@ fn prepare_request_transform(
 
     let mut universal = source_adapter.request_to_universal(payload)?;
 
+    // Inject model from parameter if not present
     if model.is_some() && universal.model.is_none() {
         universal.model = model.map(String::from);
     }
 
-    Ok(PreparedRequestTransform::Transform(RequestTransformPlan {
-        source_format: source_adapter.format(),
-        target_adapter,
-        universal,
-    }))
+    Ok(PreparedRequestTransform::Transform(Box::new(
+        RequestTransformPlan {
+            source_format: source_adapter.format(),
+            target_adapter,
+            universal,
+        },
+    )))
 }
 
 fn finalize_request_transform(
@@ -597,6 +600,7 @@ fn finalize_request_transform(
 
     target_adapter.apply_defaults(&mut universal);
 
+    // Apply target provider defaults (e.g., Anthropic's required max_tokens)
     let transformed = target_adapter.request_from_universal(&universal)?;
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;

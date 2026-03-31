@@ -169,32 +169,32 @@ impl TryFromLLM<Message> for BedrockMessage {
                                     blocks.push(BedrockContentBlock::Text { text: t.text });
                                 }
                                 UserContentPart::Image {
-                                    image, media_type, ..
+                                    image: Value::String(data),
+                                    media_type,
+                                    ..
                                 } => {
-                                    if let Value::String(data) = image {
-                                        if is_remote_image_url(&data) {
-                                            return Err(ConvertError::ContentConversionFailed {
-                                                reason: "remote image URLs are not supported for Bedrock Converse".to_string(),
-                                            });
-                                        }
-
-                                        let format = media_type
-                                            .as_deref()
-                                            .and_then(|mt| mt.strip_prefix("image/"))
-                                            .map(|f| match f {
-                                                "png" => BedrockImageFormat::Png,
-                                                "gif" => BedrockImageFormat::Gif,
-                                                "webp" => BedrockImageFormat::Webp,
-                                                _ => BedrockImageFormat::Jpeg,
-                                            })
-                                            .unwrap_or(BedrockImageFormat::Jpeg);
-                                        blocks.push(BedrockContentBlock::Image {
-                                            image: BedrockImageBlock {
-                                                format,
-                                                source: BedrockImageSource { bytes: data },
-                                            },
+                                    if is_remote_image_url(&data) {
+                                        return Err(ConvertError::ContentConversionFailed {
+                                            reason: "remote image URLs are not supported for Bedrock Converse".to_string(),
                                         });
                                     }
+
+                                    let format = media_type
+                                        .as_deref()
+                                        .and_then(|mt| mt.strip_prefix("image/"))
+                                        .map(|f| match f {
+                                            "png" => BedrockImageFormat::Png,
+                                            "gif" => BedrockImageFormat::Gif,
+                                            "webp" => BedrockImageFormat::Webp,
+                                            _ => BedrockImageFormat::Jpeg,
+                                        })
+                                        .unwrap_or(BedrockImageFormat::Jpeg);
+                                    blocks.push(BedrockContentBlock::Image {
+                                        image: BedrockImageBlock {
+                                            format,
+                                            source: BedrockImageSource { bytes: data },
+                                        },
+                                    });
                                 }
                                 _ => {}
                             }
