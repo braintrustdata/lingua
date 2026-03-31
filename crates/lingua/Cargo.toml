@@ -32,7 +32,6 @@ serde_with.workspace = true
 ts-rs.workspace = true
 anyhow.workspace = true
 thiserror.workspace = true
-async-trait.workspace = true
 assert-json-diff.workspace = true
 url.workspace = true
 urlencoding.workspace = true

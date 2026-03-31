@@ -24,10 +24,6 @@ use crate::universal::message::{
     ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 
-fn is_remote_image_url(value: &str) -> bool {
-    value.starts_with("http://") || value.starts_with("https://")
-}
-
 // ============================================================================
 // Bedrock Message -> Universal Message
 // ============================================================================
@@ -164,47 +160,39 @@ impl TryFromLLM<Message> for BedrockMessage {
             Message::User { content } => {
                 let blocks = match content {
                     UserContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
-                    UserContent::Array(parts) => parts.into_iter().try_fold(
-                        Vec::new(),
-                        |mut blocks, part| -> Result<Vec<BedrockContentBlock>, ConvertError> {
-                            match part {
-                                UserContentPart::Text(t) => {
-                                    blocks.push(BedrockContentBlock::Text { text: t.text });
-                                }
-                                UserContentPart::Image {
-                                    image, media_type, ..
-                                } => {
-                                    if let Value::String(data) = image {
-                                        if is_remote_image_url(&data) {
-                                            return Err(ConvertError::ContentConversionFailed {
-                                                reason: "remote image URLs are not supported for Bedrock Converse".to_string(),
-                                            });
-                                        }
-
-                                        let format = media_type
-                                            .as_deref()
-                                            .and_then(|mt| mt.strip_prefix("image/"))
-                                            .map(|f| match f {
-                                                "png" => BedrockImageFormat::Png,
-                                                "gif" => BedrockImageFormat::Gif,
-                                                "webp" => BedrockImageFormat::Webp,
-                                                _ => BedrockImageFormat::Jpeg,
-                                            })
-                                            .unwrap_or(BedrockImageFormat::Jpeg);
-                                        blocks.push(BedrockContentBlock::Image {
-                                            image: BedrockImageBlock {
-                                                format,
-                                                source: BedrockImageSource { bytes: data },
-                                            },
-                                        });
-                                    }
-                                }
-                                _ => {}
+                    UserContent::Array(parts) => parts
+                        .into_iter()
+                        .filter_map(|p| match p {
+                            UserContentPart::Text(t) => {
+                                Some(BedrockContentBlock::Text { text: t.text })
                             }
-
-                            Ok(blocks)
-                        },
-                    )?,
+                            UserContentPart::Image {
+                                image, media_type, ..
+                            } => {
+                                if let Value::String(data) = image {
+                                    let format = media_type
+                                        .as_deref()
+                                        .and_then(|mt| mt.strip_prefix("image/"))
+                                        .map(|f| match f {
+                                            "png" => BedrockImageFormat::Png,
+                                            "gif" => BedrockImageFormat::Gif,
+                                            "webp" => BedrockImageFormat::Webp,
+                                            _ => BedrockImageFormat::Jpeg,
+                                        })
+                                        .unwrap_or(BedrockImageFormat::Jpeg);
+                                    Some(BedrockContentBlock::Image {
+                                        image: BedrockImageBlock {
+                                            format,
+                                            source: BedrockImageSource { bytes: data },
+                                        },
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        })
+                        .collect(),
                 };
                 (BedrockConversationRole::User, blocks)
             }
@@ -698,24 +686,6 @@ mod tests {
         }]);
 
         assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_universal_to_bedrock_rejects_remote_image_urls() {
-        let messages = vec![Message::User {
-            content: UserContent::Array(vec![UserContentPart::Image {
-                image: Value::String("https://example.com/image.jpg".to_string()),
-                media_type: Some("image/jpeg".to_string()),
-                provider_options: None,
-            }]),
-        }];
-
-        let err = universal_to_bedrock(&messages).unwrap_err();
-        assert!(matches!(
-            err,
-            ConvertError::ContentConversionFailed { reason }
-                if reason.contains("remote image URLs are not supported for Bedrock Converse")
-        ));
     }
 
     #[test]

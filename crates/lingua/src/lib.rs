@@ -35,9 +35,7 @@ pub use capabilities::ProviderFormat;
 // Re-export key processing functions (bytes-based API)
 pub use processing::{
     extract_model, parse_stream_event, response_to_universal, sanitize_payload, transform_request,
-    transform_request_with_universal_preparation, transform_response, transform_stream_chunk,
-    ParsedStreamEvent, RequestPreparationContext, TransformError, TransformResult,
-    UniversalRequestPreparer,
+    transform_response, transform_stream_chunk, ParsedStreamEvent, TransformError, TransformResult,
 };
 
 // Re-export universal types
