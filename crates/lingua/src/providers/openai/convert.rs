@@ -3030,48 +3030,72 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                 })
             }
             Message::Tool { content } => {
-                // Extract the tool result content
-                let tool_result = content
-                    .iter()
-                    .map(|part| {
-                        let ToolContentPart::ToolResult(result) = part;
-                        result
-                    })
-                    .next()
-                    .ok_or_else(|| ConvertError::MissingRequiredField {
+                let part = content.into_iter().next().ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
                         field: "tool_result".to_string(),
-                    })?;
-
-                // Convert output to string for OpenAI
-                let content_string = match &tool_result.output {
-                    serde_json::Value::String(s) => s.clone(),
-                    other => serde_json::to_string(other).map_err(|e| {
-                        ConvertError::JsonSerializationFailed {
-                            field: "tool_result_content".to_string(),
-                            error: e.to_string(),
-                        }
-                    })?,
-                };
-
-                Ok(ChatCompletionRequestMessageExt {
-                    base: openai::ChatCompletionRequestMessage {
-                        role: openai::ChatCompletionRequestMessageRole::Tool,
-                        content: Some(openai::ChatCompletionRequestMessageContent::String(
-                            content_string,
-                        )),
-                        name: None,
-                        tool_calls: None,
-                        tool_call_id: Some(tool_result.tool_call_id.clone()),
-                        audio: None,
-                        function_call: None,
-                        refusal: None,
-                    },
-                    reasoning: None,
-                    reasoning_signature: None,
-                })
+                    }
+                })?;
+                let ToolContentPart::ToolResult(result) = part;
+                tool_result_to_chat_completion_message(result)
             }
         }
     }
+}
+
+/// Convert `Vec<Message>` to `Vec<ChatCompletionRequestMessageExt>`, expanding
+/// any `Message::Tool` with multiple results into one message per result.
+///
+/// Anthropic (and others) group parallel tool results into a single
+/// `Message::Tool { content: [result1, result2] }`, but OpenAI Chat Completions
+/// requires a separate `role: "tool"` message for each result.
+pub(crate) fn messages_to_chat_completion_messages(
+    messages: Vec<Message>,
+) -> Result<Vec<ChatCompletionRequestMessageExt>, ConvertError> {
+    let mut result = Vec::new();
+    for msg in messages {
+        match msg {
+            Message::Tool { content } => {
+                for part in content {
+                    let ToolContentPart::ToolResult(tool_result) = part;
+                    result.push(tool_result_to_chat_completion_message(tool_result)?);
+                }
+            }
+            other => result
+                .push(<ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(other)?),
+        }
+    }
+    Ok(result)
+}
+
+/// Convert a single tool result into a chat completions tool-role message.
+pub(crate) fn tool_result_to_chat_completion_message(
+    result: ToolResultContentPart,
+) -> Result<ChatCompletionRequestMessageExt, ConvertError> {
+    let content_string = match &result.output {
+        serde_json::Value::String(s) => s.clone(),
+        other => {
+            serde_json::to_string(other).map_err(|e| ConvertError::JsonSerializationFailed {
+                field: "tool_result_content".to_string(),
+                error: e.to_string(),
+            })?
+        }
+    };
+    Ok(ChatCompletionRequestMessageExt {
+        base: openai::ChatCompletionRequestMessage {
+            role: openai::ChatCompletionRequestMessageRole::Tool,
+            content: Some(openai::ChatCompletionRequestMessageContent::String(
+                content_string,
+            )),
+            name: None,
+            tool_calls: None,
+            tool_call_id: Some(result.tool_call_id),
+            audio: None,
+            function_call: None,
+            refusal: None,
+        },
+        reasoning: None,
+        reasoning_signature: None,
+    })
 }
 
 /// Convert UserContent to ChatCompletionRequestMessageContent

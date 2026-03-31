@@ -590,12 +590,14 @@ export const advancedCases: TestCaseCollection = {
           call_id: "call_sf",
           name: "get_weather",
           arguments: '{"location":"San Francisco, CA"}',
+          status: "completed",
         },
         {
           type: "function_call",
           call_id: "call_nyc",
           name: "get_weather",
           arguments: '{"location":"New York, NY"}',
+          status: "completed",
         },
         {
           type: "function_call_output",

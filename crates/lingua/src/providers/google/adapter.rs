@@ -22,6 +22,7 @@ use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
 use crate::universal::request::ToolChoiceConfig;
 use crate::universal::tools::UniversalTool;
+use crate::universal::ToolContentPart;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, TokenBudget,
     UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
@@ -180,6 +181,10 @@ impl ProviderAdapter for GoogleAdapter {
 
         // Flatten consecutive messages of the same role (Google doesn't allow them)
         flatten_consecutive_messages(&mut messages);
+
+        // Fill in tool names from preceding tool_calls — Google requires functionResponse.name
+        // but some formats (e.g. OpenAI chat-completions role:tool) don't carry the function name
+        fill_tool_names_from_context(&mut messages);
 
         // Convert messages to Google contents
         let google_contents: Vec<GoogleContent> =
@@ -660,6 +665,46 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         Ok(Value::Object(map))
+    }
+}
+
+/// Build a tool_call_id → tool_name map from assistant messages and use it to
+/// fill in empty tool names on Tool messages. Google requires `functionResponse.name`
+/// but formats like OpenAI chat-completions don't include the name on tool result
+/// messages — only the preceding assistant message has it.
+fn fill_tool_names_from_context(messages: &mut [Message]) {
+    let mut id_to_name: std::collections::HashMap<String, String> = Default::default();
+    for msg in messages.iter() {
+        if let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = msg
+        {
+            for part in parts {
+                if let AssistantContentPart::ToolCall {
+                    tool_call_id,
+                    tool_name,
+                    ..
+                } = part
+                {
+                    if !tool_name.is_empty() {
+                        id_to_name.insert(tool_call_id.clone(), tool_name.clone());
+                    }
+                }
+            }
+        }
+    }
+    for msg in messages.iter_mut() {
+        if let Message::Tool { content } = msg {
+            for part in content.iter_mut() {
+                let ToolContentPart::ToolResult(result) = part;
+                if result.tool_name.is_empty() {
+                    if let Some(name) = id_to_name.get(&result.tool_call_id) {
+                        result.tool_name = name.clone();
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -1,4 +1,29 @@
 {
-  "error": "Google API error (400): {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"* GenerateContentRequest.contents[2].parts[0].function_response.name: Name cannot be empty.\\n* GenerateContentRequest.contents[2].parts[1].function_response.name: Name cannot be empty.\\n\",\n    \"status\": \"INVALID_ARGUMENT\"\n  }\n}\n",
-  "name": "Error"
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 140,
+    "candidatesTokenCount": 32,
+    "totalTokenCount": 172,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 140
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "xzDMadeFEMuc_uMPvNOSuAY"
 }

@@ -139,6 +139,11 @@ exports[`anthropic → chat-completions > parallelToolCallsRequest > request 1`]
       "role": "tool",
       "tool_call_id": "toolu_sf",
     },
+    {
+      "content": "45°F and cloudy.",
+      "role": "tool",
+      "tool_call_id": "toolu_nyc",
+    },
   ],
   "model": "gpt-5-nano",
   "tool_choice": "auto",
@@ -163,6 +168,32 @@ exports[`anthropic → chat-completions > parallelToolCallsRequest > request 1`]
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`anthropic → chat-completions > parallelToolCallsRequest > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Here’s the current weather:
+
+- San Francisco, CA: 65°F and sunny
+- New York, NY: 45°F and cloudy
+
+Want hourly details, a 7-day outlook, or a Celsius conversion?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DPa8xc2za44wlqKU0Zxmovcyf41bS",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 229,
+    "output_tokens": 310,
+  },
 }
 `;
 
@@ -3419,7 +3450,7 @@ exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = 
         {
           "functionResponse": {
             "id": "call_sf",
-            "name": "",
+            "name": "get_weather",
             "response": {
               "output": "65°F and sunny.",
             },
@@ -3428,7 +3459,7 @@ exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = 
         {
           "functionResponse": {
             "id": "call_nyc",
-            "name": "",
+            "name": "get_weather",
             "response": {
               "output": "45°F and cloudy.",
             },
@@ -3463,6 +3494,31 @@ exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = 
       ],
     },
   ],
+}
+`;
+
+exports[`chat-completions → google > parallelToolCallsRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 32,
+    "prompt_tokens": 140,
+    "total_tokens": 172,
+  },
 }
 `;
 
