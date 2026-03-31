@@ -1,0 +1,77 @@
+{
+  "id": "resp_0175c857f892b16e0069cc0414111881a2af75c17a08a2dfe4",
+  "object": "response",
+  "created_at": 1774978068,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774978071,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0175c857f892b16e0069cc04144e0881a2af0791a2e6afc387",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0175c857f892b16e0069cc0416976c81a29cd2636348bcab73",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hi there! How can I help today? I can answer questions, explain concepts, draft or edit text, brainstorm ideas, help with code, translate, summarize, plan things, or analyze images. Tell me what you’d like to do or what you’re curious about."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 7,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 285,
+    "output_tokens_details": {
+      "reasoning_tokens": 192
+    },
+    "total_tokens": 292
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Hi there! How can I help today? I can answer questions, explain concepts, draft or edit text, brainstorm ideas, help with code, translate, summarize, plan things, or analyze images. Tell me what you’d like to do or what you’re curious about."
+}

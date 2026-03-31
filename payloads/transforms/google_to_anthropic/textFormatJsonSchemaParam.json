@@ -1,0 +1,4 @@
+{
+  "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For 'object' type, 'additionalProperties' must be explicitly set to false\"},\"request_id\":\"req_011CZbYtE1oEGVnvQgR9Hn1F\"}",
+  "name": "Error"
+}

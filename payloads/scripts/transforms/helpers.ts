@@ -77,6 +77,24 @@ export const TRANSFORM_PAIRS: TransformPair[] = [
     wasmSource: "Responses",
     wasmTarget: "Google",
   },
+  {
+    source: "google",
+    target: "anthropic",
+    wasmSource: "Google",
+    wasmTarget: "Anthropic",
+  },
+  {
+    source: "google",
+    target: "chat-completions",
+    wasmSource: "Google",
+    wasmTarget: "OpenAI",
+  },
+  {
+    source: "google",
+    target: "responses",
+    wasmSource: "Google",
+    wasmTarget: "Responses",
+  },
 ];
 
 // Validation functions by format
@@ -111,7 +129,11 @@ export function transformAndValidateRequest(
   wasmTarget: WasmFormat,
   targetFormat: SourceFormat
 ): unknown {
-  const result = transform_request(JSON.stringify(input), wasmTarget);
+  const result = transform_request(
+    JSON.stringify(input),
+    wasmTarget,
+    TARGET_MODELS[targetFormat]
+  );
   if (!isTransformResultData(result)) {
     throw new Error("Invalid transform result");
   }

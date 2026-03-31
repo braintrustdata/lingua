@@ -1,0 +1,77 @@
+{
+  "id": "resp_021c88bda61686fe0069cc0418836c81968dc23698351c15a6",
+  "object": "response",
+  "created_at": 1774978072,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1774978074,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_021c88bda61686fe0069cc0418dda48196aae22c3ca5e68120",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_021c88bda61686fe0069cc041a21f88196898564689138c88e",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hi there! How can I help you today?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 9,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 146,
+    "output_tokens_details": {
+      "reasoning_tokens": 128
+    },
+    "total_tokens": 155
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Hi there! How can I help you today?"
+}

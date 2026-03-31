@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DPXA2BYiKIXtCsGMfmak9nI4bA6YS",
+  "object": "chat.completion",
+  "created": 1774978042,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I’m happy to help, but I’m missing the problem statement. Please provide the full problem text (or a link) including:\n\n- Input format and constraints\n- Output format\n- Sample input/output (even just one or two examples)\n- Any special notes or edge cases\n\nIf you can’t share the exact statement, you can describe:\n- What you’re given (e.g., numbers, graph, grid, strings)\n- What you need to compute or optimize\n- The constraints (e.g., n up to 2e5, time limit)\n- The language you want the solution in (Python, C++, etc.)\n\nOnce I have that, I’ll deliver:\n- A clear approach and reasoning\n- An algorithm with proof of correctness or justification\n- Complexity analysis (time and memory)\n- Clean, tested code (in your preferred language)\n- Explanation of edge cases and sample tests\n\nIf you want, you can paste a snippet or the exact input/output example you’re aiming to handle, and I’ll tailor the solution right away.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 11,
+    "completion_tokens": 2206,
+    "total_tokens": 2217,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1984,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
