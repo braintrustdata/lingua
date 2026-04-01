@@ -81,7 +81,7 @@ if [ -f "bindings/python/pyproject.toml" ]; then
 
     echo "📦 Installing Python dependencies..."
     cd bindings/python
-    uv sync --extra dev
+    uv sync --python 3.11 --extra dev
     cd ../..
 fi
 
