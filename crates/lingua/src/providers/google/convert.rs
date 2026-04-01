@@ -121,7 +121,17 @@ impl TryFromLLM<GoogleContent> for Message {
             .ok_or(ConvertError::MissingRequiredField {
                 field: "role".to_string(),
             })?;
-        let parts = content.parts.unwrap_or_default();
+        // Only allow missing parts for "model" role — Gemini may omit parts when
+        // maxOutputTokens is exhausted (MAX_TOKENS finish reason). For other roles,
+        // missing parts means this isn't a Google-format message (e.g. Anthropic
+        // messages have "content" not "parts").
+        let parts: Vec<GooglePart> = if role == "model" {
+            content.parts.unwrap_or_default()
+        } else {
+            content.parts.ok_or(ConvertError::MissingRequiredField {
+                field: "parts".to_string(),
+            })?
+        };
 
         match role {
             "model" => {
