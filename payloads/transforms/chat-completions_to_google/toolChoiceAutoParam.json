@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "What location are you interested in?",
+            "thoughtSignature": "CtwBAb4+9vtFoyFEGlCd7SjURmPS6avsd0pRknJHlBQgsuS+8yRFb2Y4dEupNisYnaSW6Atfema7KbaPZ4MkFC87do30aMX8yagp9cD3JuStMKmMNuWsfU5Jh6q82BymsRQ0G3pYN5hQLd/y996KyZj78bK9MDA2qB1wYt0FT7s9gB+wH2uMAzrEPWYQdG/u1IBTWm3lAUaZBL5t1PI+bkKH/HveAonl2Jz6z0YKjVuvpmqc7P99/cKdypxd16TvCNkc+8bbfOYhkYmG3xFB+ZdVW69hhq1UJRvRLFj/4w=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 7,
+    "totalTokenCount": 87,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 43
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "ZH7NafM0r6_7xg_LrtaoAQ"
+}

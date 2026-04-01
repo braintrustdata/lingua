@@ -1,0 +1,96 @@
+{
+  "id": "resp_07943ca8bad835990069cd7da704d88197ade8e2942cd04b98",
+  "object": "response",
+  "created_at": 1775074727,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775074737,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_07943ca8bad835990069cd7da79f20819788679ec1d4ecf339",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_07943ca8bad835990069cd7db17a5c81979af49b373d0272f3",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I can’t fetch live weather data in this chat, but I can help you plan or interpret it. What would you like to do next?\n\nOptions:\n- Tell me your city and the forecast type you want (current conditions, hourly, or 7-day) and any date/time you're planning for. I’ll help you interpret or plan around it.\n- If you need live data now, check your phone’s weather app or search “weather [city]” in your browser and tell me what you see—I can help you understand the numbers and decide what to wear or bring.\n- If you’re planning something specific (outdoor event, travel, commute), share the details and I’ll suggest what to expect and how to prepare."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "none",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 190,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1251,
+    "output_tokens_details": {
+      "reasoning_tokens": 1088
+    },
+    "total_tokens": 1441
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I can’t fetch live weather data in this chat, but I can help you plan or interpret it. What would you like to do next?\n\nOptions:\n- Tell me your city and the forecast type you want (current conditions, hourly, or 7-day) and any date/time you're planning for. I’ll help you interpret or plan around it.\n- If you need live data now, check your phone’s weather app or search “weather [city]” in your browser and tell me what you see—I can help you understand the numbers and decide what to wear or bring.\n- If you’re planning something specific (outdoor event, travel, commute), share the details and I’ll suggest what to expect and how to prepare."
+}

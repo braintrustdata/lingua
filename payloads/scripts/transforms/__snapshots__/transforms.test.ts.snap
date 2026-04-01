@@ -7574,6 +7574,204 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
 }
 `;
 
+exports[`chat-completions → anthropic > toolChoiceAnyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "any",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > toolChoiceAnyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"<UNKNOWN>"}",
+              "name": "get_weather",
+            },
+            "id": "toolu_01XqcAKw5ehagutJGyRGe8WP",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01VjJ6ymC9VSF1w5g3vx7sLr",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 39,
+    "prompt_tokens": 654,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 693,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > toolChoiceAutoParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > toolChoiceAutoParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'd be happy to help you with the weather! However, I need to know which location you'd like to check the weather for. Could you please provide a city name or location?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01ViUiUzPg9PVAUnxA3gN9Ao",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 41,
+    "prompt_tokens": 562,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 603,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > toolChoiceNoneParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "none",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > toolChoiceNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'd be happy to help you with the weather! However, I need to know which location you'd like to check the weather for. Could you please provide a city name or location?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-017pRTNusCusGfBxKHBpRvxW",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 41,
+    "prompt_tokens": 562,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 603,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > toolChoiceRequiredParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -9787,6 +9985,238 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
     },
     "prompt_tokens": 62,
     "total_tokens": 164,
+  },
+}
+`;
+
+exports[`chat-completions → google > toolChoiceAnyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolChoiceAnyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"London"}",
+              "name": "get_weather",
+            },
+            "id": "call_0",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 56,
+    "completion_tokens_details": {
+      "reasoning_tokens": 41,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 93,
+  },
+}
+`;
+
+exports[`chat-completions → google > toolChoiceAutoParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolChoiceAutoParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "What location are you interested in?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 50,
+    "completion_tokens_details": {
+      "reasoning_tokens": 43,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 87,
+  },
+}
+`;
+
+exports[`chat-completions → google > toolChoiceNoneParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "NONE",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > toolChoiceNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "To give you the most accurate weather, I need to know your **location**!
+
+Could you tell me your city, zip code, or even a general region?
+
+Once I have that, I can tell you the current conditions and a short forecast.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 479,
+    "completion_tokens_details": {
+      "reasoning_tokens": 427,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 516,
   },
 }
 `;
@@ -15856,6 +16286,229 @@ exports[`responses → anthropic > toolCallRequest > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > toolChoiceAnyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "any",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > toolChoiceAnyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01Jt3PfieCcxxm5FNJCsfMUZ",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "arguments": "{"location":"<UNKNOWN>"}",
+      "call_id": "toolu_011NMrNCyQaxWq5XeT8E3unL",
+      "id": "msg_transformed_item_0",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 654,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 39,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 693,
+  },
+}
+`;
+
+exports[`responses → anthropic > toolChoiceAutoParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > toolChoiceAutoParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01MaaoTd6nST4wAT6ntbsXE8",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'd be happy to help you check the weather! However, I need to know which location you're interested in. Could you please tell me the city or location you'd like to know the weather for?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'd be happy to help you check the weather! However, I need to know which location you're interested in. Could you please tell me the city or location you'd like to know the weather for?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 562,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 45,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 607,
+  },
+}
+`;
+
+exports[`responses → anthropic > toolChoiceNoneParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Weather?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "none",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > toolChoiceNoneParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01UNNFgBeK99HtgXRcajeZic",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'd be happy to help you with the weather! However, I need to know which location you'd like to check the weather for. Could you please specify a city or location?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'd be happy to help you with the weather! However, I need to know which location you'd like to check the weather for. Could you please specify a city or location?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 562,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 40,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 602,
+  },
+}
+`;
+
 exports[`responses → anthropic > toolChoiceRequiredParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -15903,6 +16556,78 @@ exports[`responses → anthropic > toolChoiceRequiredParam > response 1`] = `
     {
       "arguments": "{"location":"Tokyo"}",
       "call_id": "toolu_01M9ryTCjP5VMmRxeH1QpzbM",
+      "id": "msg_transformed_item_0",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 659,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 33,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 692,
+  },
+}
+`;
+
+exports[`responses → anthropic > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01YMi6mPHM1p6ftqF3xcSsWq",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "arguments": "{"location":"Tokyo"}",
+      "call_id": "toolu_011Ebt76U8uTwZWGmZxrVyU7",
       "id": "msg_transformed_item_0",
       "name": "get_weather",
       "status": "completed",
@@ -18358,6 +19083,273 @@ exports[`responses → google > toolCallRequest > response 1`] = `
 }
 `;
 
+exports[`responses → google > toolChoiceAnyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`responses → google > toolChoiceAnyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "arguments": "{"location":"London"}",
+      "call_id": "call_0",
+      "id": "msg_transformed_item_0",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 37,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 57,
+    "output_tokens_details": {
+      "reasoning_tokens": 42,
+    },
+    "total_tokens": 94,
+  },
+}
+`;
+
+exports[`responses → google > toolChoiceAutoParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`responses → google > toolChoiceAutoParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I can get the weather for you, but I need to know your location. Could you please tell me where you are?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I can get the weather for you, but I need to know your location. Could you please tell me where you are?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 37,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 131,
+    "output_tokens_details": {
+      "reasoning_tokens": 106,
+    },
+    "total_tokens": 168,
+  },
+}
+`;
+
+exports[`responses → google > toolChoiceNoneParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Weather?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "NONE",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`responses → google > toolChoiceNoneParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "To give you the most accurate weather information, I need to know your **location**.
+
+Please tell me the **city and state (or country)**, and I can tell you about:
+
+*   **Current conditions** (temperature, "feels like," sky)
+*   **Today's forecast** (high/low, precipitation chance)
+*   **Extended forecast** (next few days)
+*   **Specific details** (wind, humidity, UV index, etc.)",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "To give you the most accurate weather information, I need to know your **location**.
+
+Please tell me the **city and state (or country)**, and I can tell you about:
+
+*   **Current conditions** (temperature, "feels like," sky)
+*   **Today's forecast** (high/low, precipitation chance)
+*   **Extended forecast** (next few days)
+*   **Specific details** (wind, humidity, UV index, etc.)",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 37,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 462,
+    "output_tokens_details": {
+      "reasoning_tokens": 362,
+    },
+    "total_tokens": 499,
+  },
+}
+`;
+
 exports[`responses → google > toolChoiceRequiredParam > request 1`] = `
 {
   "contents": [
@@ -18418,6 +19410,110 @@ exports[`responses → google > toolChoiceRequiredParam > response 1`] = `
       "arguments": "{"location":"Tokyo"}",
       "call_id": "call_0",
       "id": "msg_transformed_item_0",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 37,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 62,
+    "output_tokens_details": {
+      "reasoning_tokens": 47,
+    },
+    "total_tokens": 99,
+  },
+}
+`;
+
+exports[`responses → google > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 2048,
+    },
+  },
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "allowedFunctionNames": [
+        "get_weather",
+      ],
+      "mode": "ANY",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`responses → google > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**Weather Inquiry in Tokyo**
+
+Okay, so the user wants to know the weather in Tokyo. That's straightforward enough. I see the \`get_weather\` tool is available – excellent! And it looks like it accepts a \`location\` argument. So, what I need to do is quite clear: I need to call the \`get_weather\` tool, and feed it "Tokyo" as the value for the \`location\` parameter. That should provide the user with the weather information they are looking for. Simple and efficient, just how I like it.
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "arguments": "{"location":"Tokyo"}",
+      "call_id": "call_0",
+      "id": "msg_transformed_item_1",
       "name": "get_weather",
       "status": "completed",
       "type": "function_call",

@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can get the weather for you, but I need to know your location. Could you please tell me where you are?",
+            "thoughtSignature": "Cs8DAb4+9vuN4jVYhljTM39kunN5S1jc38AR2+XiqBYsqcoIY31FGZkDJGBcFvw6QNePuzL8wnaH+WOzzG0gnXZ7ZbbynKmHmRpohw/OrABODuC/Abv/jzD3BIW1sfMXz/t0YjH4/S9J178zw4AlcjEOCZdOTPJ1RW2wZvnSlA/o5OFNTmc3RdMKwXE7L1wkMZbhYtnV9a+HpHUB/iNsjL111VdaRI8GXdplBGJGmekDtxTtn8ep2WzHv9V196i6fwN0j6Vwn11TnG75FrGxvZUjPOiDWnHo65xtGN6Ja8Oj/56FrSNhSKF3PaQi4yioYwg3LOQISOJZcJE46Se/97brbAHsM3EkjMWoArMApm80mbG7LGeJtBXIeJxbtt0XrG6zeEr6uuS1JRGKzZsxX7SWCtgTipF/Adqpw57s9JU5dd9iAzMWERJCLn0mjhcfXN1+r8E/O919HtRr0IJwSEsjp/EyHHSvPNAm+WAtfgCi+TqhcLxkdp0wlVEwa7XiThfbT2Xr9wcRCHVHfkHhH+JKXWn8GWYIC4oyfTnVvK7vyMkLV7cQx0ps21O+OpxDTA73A8VIdvIE48uit/cXj7A03cf4Kpjsdp9cDZ/Ma91yqA=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 25,
+    "totalTokenCount": 168,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 106
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Zn7NacGVBdGTjrEPg8y88QI"
+}

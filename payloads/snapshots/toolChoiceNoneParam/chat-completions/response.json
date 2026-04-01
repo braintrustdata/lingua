@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DPwJHgQAGeWyHBEQtGPtsFTKzrnjT",
+  "object": "chat.completion",
+  "created": 1775074715,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I don’t have live weather data available here. If you tell me the location (city, country) and whether you want current conditions, hourly, or a 7-day forecast, I can help interpret or summarize it.\n\nIf you’d prefer, I can also:\n- describe the typical climate for that area by season\n- help you interpret a forecast you already have (temperatures, precipitation chances, wind, alerts)\n- guide you on how to check the latest conditions on your device and what to look for when planning your day\n\nWhat location and forecast type would you like?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 123,
+    "completion_tokens": 959,
+    "total_tokens": 1082,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

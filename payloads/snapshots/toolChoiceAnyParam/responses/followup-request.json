@@ -1,0 +1,48 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Weather?"
+    },
+    {
+      "id": "rs_016067ec4fa8f6580069cd7d9bcebc81a195861640b68deb17",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_016067ec4fa8f6580069cd7da0c22481a19f867b2bac4c6156",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"current location\"}",
+      "call_id": "call_hPzlsAOF7pJmgbSEP7OREDq6",
+      "name": "get_weather"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_hPzlsAOF7pJmgbSEP7OREDq6",
+      "output": "71 degrees"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get weather",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "tool_choice": "required"
+}

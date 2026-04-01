@@ -1,0 +1,108 @@
+{
+  "id": "resp_03f60d4c71fef1ba0069cd7da2e18c81a39c6637766bd4109c",
+  "object": "response",
+  "created_at": 1775074722,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775074731,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_03f60d4c71fef1ba0069cd7da39edc81a3a4ccc7f9c8fead6e",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "rs_03f60d4c71fef1ba0069cd7dab715881a39ec03e684124cebf",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "rs_03f60d4c71fef1ba0069cd7dab80bc81a3aa7c75b5dfdfcbc5",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "rs_03f60d4c71fef1ba0069cd7dab8b6881a39be5bcfac51fcdc8",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_03f60d4c71fef1ba0069cd7daba73081a386d6b7b431cec8b7",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"Tokyo\"}",
+      "call_id": "call_HcYOvGcRD3n1jdPsJvZZ2Lpr",
+      "name": "get_weather"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": {
+    "type": "function",
+    "name": "get_weather"
+  },
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 592,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1024,
+    "output_tokens_details": {
+      "reasoning_tokens": 960
+    },
+    "total_tokens": 1616
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}

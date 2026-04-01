@@ -458,7 +458,28 @@ export const paramsCases: TestCaseCollection = {
       ],
       tool_choice: { type: "function", function: { name: "get_weather" } },
     },
-    responses: null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Tokyo weather" }],
+      reasoning: { effort: "medium" },
+      tools: [
+        {
+          type: "function",
+          name: "get_weather",
+          description: "Get weather",
+          strict: true,
+          parameters: {
+            type: "object",
+            properties: {
+              location: { type: "string" },
+            },
+            required: ["location"],
+            additionalProperties: false,
+          },
+        },
+      ],
+      tool_choice: { type: "function", name: "get_weather" },
+    },
     anthropic: null,
     google: null,
     bedrock: null,
@@ -1004,8 +1025,48 @@ export const paramsCases: TestCaseCollection = {
   },
 
   toolChoiceAutoParam: {
-    "chat-completions": null,
-    responses: null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather",
+            strict: true,
+            parameters: {
+              type: "object",
+              properties: { location: { type: "string" } },
+              required: ["location"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: "auto",
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          type: "function",
+          name: "get_weather",
+          description: "Get weather",
+          strict: true,
+          parameters: {
+            type: "object",
+            properties: {
+              location: { type: "string" },
+            },
+            required: ["location"],
+            additionalProperties: false,
+          },
+        },
+      ],
+      tool_choice: "auto",
+    },
     anthropic: {
       model: ANTHROPIC_MODEL,
       max_tokens: 1024,
@@ -1050,8 +1111,48 @@ export const paramsCases: TestCaseCollection = {
   },
 
   toolChoiceAnyParam: {
-    "chat-completions": null,
-    responses: null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather",
+            strict: true,
+            parameters: {
+              type: "object",
+              properties: { location: { type: "string" } },
+              required: ["location"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: "required",
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          type: "function",
+          name: "get_weather",
+          description: "Get weather",
+          strict: true,
+          parameters: {
+            type: "object",
+            properties: {
+              location: { type: "string" },
+            },
+            required: ["location"],
+            additionalProperties: false,
+          },
+        },
+      ],
+      tool_choice: "required",
+    },
     anthropic: {
       model: ANTHROPIC_MODEL,
       max_tokens: 1024,
@@ -1096,8 +1197,48 @@ export const paramsCases: TestCaseCollection = {
   },
 
   toolChoiceNoneParam: {
-    "chat-completions": null,
-    responses: null,
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather",
+            strict: true,
+            parameters: {
+              type: "object",
+              properties: { location: { type: "string" } },
+              required: ["location"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: "none",
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Weather?" }],
+      tools: [
+        {
+          type: "function",
+          name: "get_weather",
+          description: "Get weather",
+          strict: true,
+          parameters: {
+            type: "object",
+            properties: {
+              location: { type: "string" },
+            },
+            required: ["location"],
+            additionalProperties: false,
+          },
+        },
+      ],
+      tool_choice: "none",
+    },
     anthropic: {
       model: ANTHROPIC_MODEL,
       max_tokens: 1024,

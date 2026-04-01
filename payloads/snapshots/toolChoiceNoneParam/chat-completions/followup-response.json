@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DPwJSypB3mreSnGwz4VRi7FQkJK0d",
+  "object": "chat.completion",
+  "created": 1775074726,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here are practical next steps. Pick the option that fits what you want:\n\n- If you want current conditions, hourly, or a 7-day forecast for a specific place:\n  - Tell me your city/country and which forecast you want (current, hourly, or 7-day). I’ll help interpret and plan around it.\n\n- If you already have a forecast and just want it explained:\n  - Paste the forecast details (temperatures, precipitation chances, wind, alerts) and I’ll summarize what it means for your plans.\n\n- If you don’t have a location handy, but want guidance:\n  - I can share typical climate patterns by season for a region you specify (e.g., “coastal California,” “London,” etc.).\n\n- If you’d rather check yourself, I can guide you:\n  - On your phone: open your weather app or search for “weather [location]” and note current temp, rain chances, wind, and any alerts.\n  - On a computer: search for “weather [location]” and review current conditions, hourly trend, and the 7-day outlook.\n  - Use those details to decide what to wear, whether to bring an umbrella, and if outdoor plans should be adjusted.\n\nWhat location and forecast type would you like to start with?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 256,
+    "completion_tokens": 1168,
+    "total_tokens": 1424,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 896,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

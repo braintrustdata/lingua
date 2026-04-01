@@ -1,0 +1,906 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0dc1d1b0676eed9e0069cd7d9b1df4819f9327a91edad36bc6",
+      "object": "response",
+      "created_at": 1775074715,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0dc1d1b0676eed9e0069cd7d9b1df4819f9327a91edad36bc6",
+      "object": "response",
+      "created_at": 1775074715,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_0dc1d1b0676eed9e0069cd7d9bb050819fba65e7a12d05d208",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_0dc1d1b0676eed9e0069cd7d9bb050819fba65e7a12d05d208",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Sure",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "1xAwTMYWTk0p",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "—",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "JTw3iMprvrvNFFn",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "which",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "ycilZDQyJFj",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " location",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "Dx7CQQ2",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " would",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "VCKWhZnRRI",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "V0AusdViclgA",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " like",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "t33L2AObmPs",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "XiMgi3ykXsDs",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " weather",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "FkrVWLlT",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " for",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "FGszLb26kybs",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "?",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "iupszep9W8HXdF4",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Please",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "4zVxAc7Tl",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " provide",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "DAMOxqvZ",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":\n",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "88wAuuftW5R20d",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "A2keThZUhKUgCU8",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " City",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "hFrD3JAQl3j",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "/",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "fnUAKL2OD8yjnjj",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "region",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "rFp2NBNqBp",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " (",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "rtTMaQdD1ufSRX",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "and",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "wyRQRue1v8Pie",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " country",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "qV81IPdx",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " if",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "etq33BXHzwRaR",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " helpful",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "lqJOyobL",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ")\n",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "69EEVk8iKn0Xth",
+    "output_index": 1,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "9DQPldLETIbyfzP",
+    "output_index": 1,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Do",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "oOsfIe2gcj24N",
+    "output_index": 1,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "35E3coLAgzHb",
+    "output_index": 1,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " want",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "kf6nDzmJKK5",
+    "output_index": 1,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " current",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "Ct2exHoD",
+    "output_index": 1,
+    "sequence_number": 34
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " conditions",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "lC9ni",
+    "output_index": 1,
+    "sequence_number": 35
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "tsVal5hN5cTqv",
+    "output_index": 1,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " a",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "vJUBnLJiK4ueZ5",
+    "output_index": 1,
+    "sequence_number": 37
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " forecast",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "7rZM5s3",
+    "output_index": 1,
+    "sequence_number": 38
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "?\n",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "kduvwtgRBqinuK",
+    "output_index": 1,
+    "sequence_number": 39
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "HbK78uKX3qCVgHZ",
+    "output_index": 1,
+    "sequence_number": 40
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Preferred",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "NE0oJc",
+    "output_index": 1,
+    "sequence_number": 41
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " units",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "6wpIC1igFs",
+    "output_index": 1,
+    "sequence_number": 42
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " (",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "MeMDibvXMK0ZY6",
+    "output_index": 1,
+    "sequence_number": 43
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "C",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "dnBA3joGeTBqLI5",
+    "output_index": 1,
+    "sequence_number": 44
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "elsius",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "iW7SPXagLI",
+    "output_index": 1,
+    "sequence_number": 45
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "6biPCXhPGxrDC",
+    "output_index": 1,
+    "sequence_number": 46
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Fahrenheit",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "1VL5u",
+    "output_index": 1,
+    "sequence_number": 47
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ")\n\n",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "vjY7zAd2dmxDI",
+    "output_index": 1,
+    "sequence_number": 48
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "If",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "xiY1BMIfFFNd3A",
+    "output_index": 1,
+    "sequence_number": 49
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "Kzi54SUfy3Jg",
+    "output_index": 1,
+    "sequence_number": 50
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’d",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "RTg3VR4eQIKMjg",
+    "output_index": 1,
+    "sequence_number": 51
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " like",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "Rhxc1lvBcDN",
+    "output_index": 1,
+    "sequence_number": 52
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "TJvGTR6dvqTgXf2",
+    "output_index": 1,
+    "sequence_number": 53
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "sYJYfzhNvQVy",
+    "output_index": 1,
+    "sequence_number": 54
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " can",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "PRDXn2qaAb8d",
+    "output_index": 1,
+    "sequence_number": 55
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " also",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "l4p9PdpHAsV",
+    "output_index": 1,
+    "sequence_number": 56
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " tell",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "jDrMXbu2vbU",
+    "output_index": 1,
+    "sequence_number": 57
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " me",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "WZbcyhCUml55I",
+    "output_index": 1,
+    "sequence_number": 58
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " to",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "MYnPiu8sv0Agb",
+    "output_index": 1,
+    "sequence_number": 59
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " use",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "nOKo7uQFsyrz",
+    "output_index": 1,
+    "sequence_number": 60
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " your",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "ikMkCETQeWa",
+    "output_index": 1,
+    "sequence_number": 61
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " current",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "Tsf8FAZj",
+    "output_index": 1,
+    "sequence_number": 62
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " location",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "yvq6IrX",
+    "output_index": 1,
+    "sequence_number": 63
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "obfuscation": "rmwXydGJlhnydkc",
+    "output_index": 1,
+    "sequence_number": 64
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 65,
+    "text": "Sure—which location would you like the weather for? Please provide:\n- City/region (and country if helpful)\n- Do you want current conditions or a forecast?\n- Preferred units (Celsius or Fahrenheit)\n\nIf you’d like, you can also tell me to use your current location."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Sure—which location would you like the weather for? Please provide:\n- City/region (and country if helpful)\n- Do you want current conditions or a forecast?\n- Preferred units (Celsius or Fahrenheit)\n\nIf you’d like, you can also tell me to use your current location."
+    },
+    "sequence_number": 66
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure—which location would you like the weather for? Please provide:\n- City/region (and country if helpful)\n- Do you want current conditions or a forecast?\n- Preferred units (Celsius or Fahrenheit)\n\nIf you’d like, you can also tell me to use your current location."
+        }
+      ],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 67
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0dc1d1b0676eed9e0069cd7d9b1df4819f9327a91edad36bc6",
+      "object": "response",
+      "created_at": 1775074715,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1775074719,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [
+        {
+          "id": "rs_0dc1d1b0676eed9e0069cd7d9bb050819fba65e7a12d05d208",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "msg_0dc1d1b0676eed9e0069cd7d9f6cbc819f962e22522770d399",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Sure—which location would you like the weather for? Please provide:\n- City/region (and country if helpful)\n- Do you want current conditions or a forecast?\n- Preferred units (Celsius or Fahrenheit)\n\nIf you’d like, you can also tell me to use your current location."
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 41,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 613,
+        "output_tokens_details": {
+          "reasoning_tokens": 512
+        },
+        "total_tokens": 654
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 68
+  }
+]

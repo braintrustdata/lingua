@@ -1,0 +1,41 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**Weather Inquiry in Tokyo**\n\nOkay, so the user wants to know the weather in Tokyo. That's straightforward enough. I see the `get_weather` tool is available – excellent! And it looks like it accepts a `location` argument. So, what I need to do is quite clear: I need to call the `get_weather` tool, and feed it \"Tokyo\" as the value for the `location` parameter. That should provide the user with the weather information they are looking for. Simple and efficient, just how I like it.\n",
+            "thought": true
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "Tokyo"
+              }
+            },
+            "thoughtSignature": "Ct0BAb4+9vvG1dF20MSbBj3JDOrc/+gW3Xfpwf4FsT7UdY+9zyv0ylxcjj6t/1P9t0egV57I+3uVtgTJv5cY30Tt4WiMxKGOgNofITjGLhITf0DnUJZY9xzN1BTYEgQFUtnTtzpwj5fIxr9vkCcpooFE8WKOMJcS05T3SyMi1hWNLV0ILEHLSaaqspZTDJmPL7CR1i8KNU66rX+1jjloRf8zZgsSlLTbXwHdqxa/dAwTr95n+WWg+1LtrQwsr0dOJIk/88iJ0WnZVdxQoMU5EhhAJDVWk+EAmkpApC9gHjU="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 99,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 47
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "ZX7NacHYIJarsOIP--6qmAw"
+}

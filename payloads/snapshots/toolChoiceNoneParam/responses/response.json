@@ -1,0 +1,96 @@
+{
+  "id": "resp_07943ca8bad835990069cd7d9b37fc81978283652bb2e1aa20",
+  "object": "response",
+  "created_at": 1775074715,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775074726,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_07943ca8bad835990069cd7d9c16b08197b98cc77d75a9d915",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_07943ca8bad835990069cd7da589208197bbb7ed887ce12353",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t have live weather data right now. If you tell me your location and what you need, I can help you with it. A few quick questions:\n\n- What city and country are you in?\n- Do you want current conditions, an hourly forecast, or a 7-day forecast?\n- Is there a specific date/time you’re planning for?\n\nIf you’d rather check yourself in the meantime, you can:\n- On your phone: open your weather app and search your city (enable location for automatic updates).\n- On the web: go to a weather site and enter your city (or just search “weather [city]” in your browser)."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "none",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1207,
+    "output_tokens_details": {
+      "reasoning_tokens": 1024
+    },
+    "total_tokens": 1248
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I don’t have live weather data right now. If you tell me your location and what you need, I can help you with it. A few quick questions:\n\n- What city and country are you in?\n- Do you want current conditions, an hourly forecast, or a 7-day forecast?\n- Is there a specific date/time you’re planning for?\n\nIf you’d rather check yourself in the meantime, you can:\n- On your phone: open your weather app and search your city (enable location for automatic updates).\n- On the web: go to a weather site and enter your city (or just search “weather [city]” in your browser)."
+}
