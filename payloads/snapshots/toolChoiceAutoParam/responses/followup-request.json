@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Weather?"
+    },
+    {
+      "id": "rs_02238c1301d0c3420069cd7d9baa508191a1f56bd0bad56400",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_02238c1301d0c3420069cd7d9f0d1c8191800a730fb7ec25a2",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure—which location should I check the weather for? Please provide:\n\n- City and country (e.g., New York, US or London, UK)\n- Or a ZIP/postal code (e.g., 10001)\n- Or coordinates (latitude, longitude)\n\nIf you want me to use your current location, say “use my location.” Also tell me if you want the current conditions or a forecast."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get weather",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "tool_choice": "auto"
+}

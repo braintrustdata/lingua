@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "To give you the most accurate weather, I need to know your **location**!\n\nCould you tell me your city, zip code, or even a general region?\n\nOnce I have that, I can tell you the current conditions and a short forecast."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 52,
+    "totalTokenCount": 516,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 427
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "ZX7Nad6IA_DzjrEP0KPYqQI"
+}

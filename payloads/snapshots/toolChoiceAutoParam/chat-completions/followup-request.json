@@ -1,0 +1,42 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Weather?"
+    },
+    {
+      "role": "assistant",
+      "content": "Sure—I can get that. Which location are you interested in? And would you like:\n\n- current conditions\n- hourly forecast\n- 7-day forecast\n\nAlso, do you prefer Celsius or Fahrenheit for the temperatures?",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get weather",
+        "strict": true,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "location"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto"
+}

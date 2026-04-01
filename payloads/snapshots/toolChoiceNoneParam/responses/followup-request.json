@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Weather?"
+    },
+    {
+      "id": "rs_07943ca8bad835990069cd7d9c16b08197b98cc77d75a9d915",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_07943ca8bad835990069cd7da589208197bbb7ed887ce12353",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t have live weather data right now. If you tell me your location and what you need, I can help you with it. A few quick questions:\n\n- What city and country are you in?\n- Do you want current conditions, an hourly forecast, or a 7-day forecast?\n- Is there a specific date/time you’re planning for?\n\nIf you’d rather check yourself in the meantime, you can:\n- On your phone: open your weather app and search your city (enable location for automatic updates).\n- On the web: go to a weather site and enter your city (or just search “weather [city]” in your browser)."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get weather",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "tool_choice": "none"
+}

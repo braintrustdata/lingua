@@ -1,0 +1,90 @@
+{
+  "id": "resp_016067ec4fa8f6580069cd7d9b3a2881a1b95dc6128e9e9cff",
+  "object": "response",
+  "created_at": 1775074715,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775074720,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_016067ec4fa8f6580069cd7d9bcebc81a195861640b68deb17",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_016067ec4fa8f6580069cd7da0c22481a19f867b2bac4c6156",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"current location\"}",
+      "call_id": "call_hPzlsAOF7pJmgbSEP7OREDq6",
+      "name": "get_weather"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "required",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 627,
+    "output_tokens_details": {
+      "reasoning_tokens": 576
+    },
+    "total_tokens": 668
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}

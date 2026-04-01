@@ -1,0 +1,96 @@
+{
+  "id": "resp_02238c1301d0c3420069cd7da01f2481918e68a526fca8fdc9",
+  "object": "response",
+  "created_at": 1775074720,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775074729,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_02238c1301d0c3420069cd7da0ae2081918ca75462119a34fe",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_02238c1301d0c3420069cd7da7e3b08191a935904deb198c18",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here’s how to proceed:\n\n- Location: tell me a city and country, a ZIP/postal code, or coordinates. Or say “use my location” to grab your current position.\n- Type: specify “current conditions” or a “forecast.” If forecast, indicate how many days (e.g., 3-day, 7-day) and any limits.\n- Units (optional): Celsius or Fahrenheit.\n\nExamples:\n- New York, US, current\n- London, UK, 3-day forecast, C\n- use my location, current\n- Tokyo, JP, 5-day forecast\n\nTell me your choice and I’ll fetch the weather."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 139,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 899,
+    "output_tokens_details": {
+      "reasoning_tokens": 704
+    },
+    "total_tokens": 1038
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here’s how to proceed:\n\n- Location: tell me a city and country, a ZIP/postal code, or coordinates. Or say “use my location” to grab your current position.\n- Type: specify “current conditions” or a “forecast.” If forecast, indicate how many days (e.g., 3-day, 7-day) and any limits.\n- Units (optional): Celsius or Fahrenheit.\n\nExamples:\n- New York, US, current\n- London, UK, 3-day forecast, C\n- use my location, current\n- Tokyo, JP, 5-day forecast\n\nTell me your choice and I’ll fetch the weather."
+}
