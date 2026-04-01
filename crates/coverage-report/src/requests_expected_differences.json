@@ -149,7 +149,8 @@
         { "pattern": "messages[*].content[*].media_type", "reason": "Google requires mime_type for images; null defaults to image/jpeg" },
         { "pattern": "messages[*].content[*].provider_options", "reason": "Google doesn't support provider_options on content parts" },
         { "pattern": "messages.length", "reason": "Google moves system messages to systemInstruction and merges consecutive same-role messages" },
-        { "pattern": "messages[*].content[*].tool_name", "reason": "Google requires functionResponse.name; tool names are populated from preceding tool calls when not present in source format (ChatCompletions and Anthropic tool results don't carry tool names)" }
+        { "pattern": "messages[*].content[*].tool_name", "reason": "Google requires functionResponse.name; tool names are populated from preceding tool calls when not present in source format (ChatCompletions and Anthropic tool results don't carry tool names)" },
+        { "pattern": "messages[*].content[*].tool_call_id", "reason": "Google doesn't preserve tool call IDs; synthetic positional IDs are generated on re-parse" }
       ],
       "errors": [
         { "pattern": "is not supported by Google", "reason": "Provider-specific built-in tool has no Google equivalent" }

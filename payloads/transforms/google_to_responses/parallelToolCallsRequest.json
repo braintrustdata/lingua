@@ -1,13 +1,13 @@
 {
-  "id": "resp_0eee38712a6f303d0069ccab53fb4881a3816905c94124b1d9",
+  "id": "resp_0fbe3992586a62f50069cca61d975c81a2bad7d1bca841977d",
   "object": "response",
-  "created_at": 1775020883,
+  "created_at": 1775019549,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1775020887,
+  "completed_at": 1775019553,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -17,12 +17,12 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_0eee38712a6f303d0069ccab5473bc81a3a4fce33a1a42ef08",
+      "id": "rs_0fbe3992586a62f50069cca61e12b881a2af30784568f073d7",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "msg_0eee38712a6f303d0069ccab578bc481a390a7e37799de9cbc",
+      "id": "msg_0fbe3992586a62f50069cca6212d4c81a2bdf7f862c8965ad9",
       "type": "message",
       "status": "completed",
       "content": [
@@ -30,7 +30,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "- San Francisco, CA: 65°F and sunny\n- New York, NY: 45°F and cloudy\n\nWant an hourly forecast or any packing/tips for these conditions?"
+          "text": "Here’s the current weather:\n\n- San Francisco, CA: 45°F and cloudy\n- New York, NY: 65°F and sunny\n\nWant a 7-day forecast or a weather alert for either city?"
         }
       ],
       "role": "assistant"
@@ -62,35 +62,36 @@
       "description": "Get the current weather for a location",
       "name": "get_weather",
       "parameters": {
-        "type": "object",
         "properties": {
           "location": {
-            "type": "string",
-            "description": "The city and state, e.g. San Francisco, CA"
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string"
           }
         },
         "required": [
           "location"
-        ]
+        ],
+        "type": "object",
+        "additionalProperties": false
       },
-      "strict": false
+      "strict": true
     }
   ],
   "top_logprobs": 0,
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 136,
+    "input_tokens": 144,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 674,
+    "output_tokens": 580,
     "output_tokens_details": {
-      "reasoning_tokens": 576
+      "reasoning_tokens": 512
     },
-    "total_tokens": 810
+    "total_tokens": 724
   },
   "user": null,
   "metadata": {},
-  "output_text": "- San Francisco, CA: 65°F and sunny\n- New York, NY: 45°F and cloudy\n\nWant an hourly forecast or any packing/tips for these conditions?"
+  "output_text": "Here’s the current weather:\n\n- San Francisco, CA: 45°F and cloudy\n- New York, NY: 65°F and sunny\n\nWant a 7-day forecast or a weather alert for either city?"
 }

@@ -32,6 +32,9 @@ use crate::universal::response::{FinishReason, UniversalUsage};
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::util::media::parse_base64_data_url;
 
+/// Prefix for synthetic tool call IDs generated when Google omits them.
+const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
+
 // ============================================================================
 // Google Content -> Universal Message
 // ============================================================================
@@ -155,8 +158,18 @@ impl TryFromLLM<GoogleContent> for Message {
                                     reason: format!("Failed to serialize function call args: {e}"),
                                 }
                             })?;
+                            // Google omits `id` on functionCall parts; generate a
+                            // positional synthetic ID so other providers get a non-empty
+                            // call_id to correlate calls with results.
+                            let call_index = assistant_parts
+                                .iter()
+                                .filter(|p| matches!(p, AssistantContentPart::ToolCall { .. }))
+                                .count();
+                            let tool_call_id = fc.id.clone().unwrap_or_else(|| {
+                                format!("{SYNTHETIC_CALL_ID_PREFIX}{call_index}")
+                            });
                             assistant_parts.push(AssistantContentPart::ToolCall {
-                                tool_call_id: fc.id.clone().unwrap_or_default(),
+                                tool_call_id,
                                 tool_name: tool_name.clone(),
                                 arguments: ToolCallArguments::from(args_string),
                                 encrypted_content,
@@ -219,8 +232,13 @@ impl TryFromLLM<GoogleContent> for Message {
                                 Some(map) => Value::Object(map.clone()),
                                 None => Value::Null,
                             };
+                            // Mirror the synthetic ID logic used for functionCall parts.
+                            let response_index = tool_parts.len();
+                            let tool_call_id = fr.id.clone().unwrap_or_else(|| {
+                                format!("{SYNTHETIC_CALL_ID_PREFIX}{response_index}")
+                            });
                             tool_parts.push(ToolContentPart::ToolResult(ToolResultContentPart {
-                                tool_call_id: fr.id.clone().unwrap_or_default(),
+                                tool_call_id,
                                 tool_name: tool_name.clone(),
                                 output,
                                 provider_options: None,
@@ -365,7 +383,10 @@ impl TryFromLLM<Message> for GoogleContent {
 
                                     converted.push(GooglePart {
                                         function_call: Some(GoogleFunctionCall {
-                                            id: Some(tool_call_id).filter(|s| !s.is_empty()),
+                                            id: Some(tool_call_id).filter(|s| {
+                                                !s.is_empty()
+                                                    && !s.starts_with(SYNTHETIC_CALL_ID_PREFIX)
+                                            }),
                                             name: Some(tool_name),
                                             args,
                                         }),
@@ -416,7 +437,9 @@ impl TryFromLLM<Message> for GoogleContent {
 
                         Ok(GooglePart {
                             function_response: Some(GoogleFunctionResponse {
-                                id: Some(result.tool_call_id).filter(|s| !s.is_empty()),
+                                id: Some(result.tool_call_id).filter(|s| {
+                                    !s.is_empty() && !s.starts_with(SYNTHETIC_CALL_ID_PREFIX)
+                                }),
                                 name: Some(result.tool_name),
                                 response,
                                 ..Default::default()
@@ -526,6 +549,7 @@ impl From<&FunctionDeclaration> for UniversalTool {
                 .as_ref()
                 .as_ref()
                 .and_then(|schema| serde_json::to_value(schema).ok())
+                .map(normalize_google_schema_types)
         });
 
         UniversalTool::function(
@@ -535,6 +559,33 @@ impl From<&FunctionDeclaration> for UniversalTool {
             None,
         )
     }
+}
+
+/// Recursively lowercase `"type"` values in a JSON schema.
+///
+/// Google serializes its `Type` enum as SCREAMING_SNAKE_CASE (`"OBJECT"`, `"STRING"`, …),
+/// but the universal/JSON-Schema convention (and what Anthropic expects) is lowercase.
+/// `parameters_json_schema` (when present) is already in standard form; this function
+/// is only needed for schemas serialized from the typed `Schema` struct.
+fn normalize_google_schema_types(mut value: Value) -> Value {
+    match &mut value {
+        Value::Object(map) => {
+            if let Some(Value::String(t)) = map.get_mut("type") {
+                *t = t.to_lowercase();
+            }
+            map.retain(|_, v| !v.is_null());
+            for v in map.values_mut() {
+                *v = normalize_google_schema_types(std::mem::take(v));
+            }
+        }
+        Value::Array(arr) => {
+            for v in arr.iter_mut() {
+                *v = normalize_google_schema_types(std::mem::take(v));
+            }
+        }
+        _ => {}
+    }
+    value
 }
 
 impl TryFrom<&UniversalTool> for FunctionDeclaration {
@@ -996,7 +1047,7 @@ mod tests {
                             ..
                         } => {
                             assert_eq!(tool_name, "get_weather");
-                            assert_eq!(tool_call_id, "");
+                            assert_eq!(tool_call_id, "call_0");
                         }
                         _ => panic!("Expected tool call part"),
                     }
