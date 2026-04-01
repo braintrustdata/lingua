@@ -9,6 +9,13 @@
       ]
     },
     {
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].tool_call_id", "reason": "Google doesn't preserve tool call IDs; synthetic positional IDs are generated on re-parse" }
+      ]
+    },
+    {
       "source": "Responses",
       "target": "Google",
       "fields": [
