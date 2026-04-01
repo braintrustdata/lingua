@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.63.0",
-    "@braintrust/lingua": "file:../../bindings/typescript",
+    "@braintrust/lingua": "workspace:*",
     "openai": "^5.22.0"
   },
   "devDependencies": {
