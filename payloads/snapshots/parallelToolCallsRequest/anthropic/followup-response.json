@@ -1,0 +1,26 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01YUgNaSStaSgUYxt6Nazmqt",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'd be happy to help you decide what to do next! To give you the best suggestions, could you tell me a bit more about:\n\n1. **Where are you located?** (San Francisco, New York, or somewhere else?)\n2. **What kind of activities interest you?** (outdoor activities, indoor entertainment, dining, sightseeing, work/productivity, etc.)\n3. **What's your current situation?** (Do you have free time now? Planning for later today? Looking for weekend ideas?)\n\nWith this information, I can provide more tailored recommendations based on the weather and your preferences!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 803,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 134,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

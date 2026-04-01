@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'm sorry, I can't answer that. I need more information about what you're trying to do or what your interests are.",
+            "thoughtSignature": "Cr4CAb4+9vviV0a7bX4VWVgmW8UxjubOQDiJebj5pO4jrfSDE3X+SSFICCZf7FmkWR4UlhurtehfhAyhoq7htTggasg49Ojx921OgEs4fRRKrgIuUKyOOvSSvJB/WR8u70hNZpHZgcMQlo28GPiDyiSSm1X0UP3dGk2rKcKSq51iONkvnWSpy3Tqf6AB/DX9/b3B6OpztTpjPLzaUs57vzJpIYt6wItyrShhgiVGeGM2xo7yEJ/2eNBxrocNAmuTeUUBjHn++H35gnNNjIbyN80ZB4RcdzROs3sc7cP3J8mcORQGXg4mQGFc3U15DXfLF6yo7aQgp45RRHJ3ADoAnS1PowQpvebvmBwiaWIq/bLMFEiZI4Z6LPBQ9EUYh5oUGbaQcFPpXRp+gExHG75MHOJzi7PJx8o5lIwBIbohJgTB"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 180,
+    "candidatesTokenCount": 30,
+    "totalTokenCount": 264,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 180
+      }
+    ],
+    "thoughtsTokenCount": 54
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "-CjMacO9HaCrsOIPkNjksQs"
+}

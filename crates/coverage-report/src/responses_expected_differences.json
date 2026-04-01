@@ -9,6 +9,13 @@
       ]
     },
     {
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].tool_call_id", "reason": "Google doesn't preserve tool call IDs; synthetic positional IDs are generated on re-parse" }
+      ]
+    },
+    {
       "source": "Responses",
       "target": "Google",
       "fields": [
@@ -275,6 +282,15 @@
       "target": "Responses",
       "fields": [
         { "pattern": "messages.length", "reason": "Google reasoning content expands to separate output items in Responses format" }
+      ]
+    },
+    {
+      "testCase": "simpleRequestTruncated",
+      "source": "Google",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content", "reason": "Empty assistant content (no parts) from truncated Gemini response gains a placeholder empty text part when roundtripped through other providers" },
+        { "pattern": "messages.length", "reason": "Empty assistant content from truncated Gemini response may change message count when roundtripped through providers that split/merge messages" }
       ]
     }
   ]

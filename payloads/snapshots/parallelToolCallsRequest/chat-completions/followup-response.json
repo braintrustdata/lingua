@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DPZcqpEZHfR5SAmQTQQ9vLr5oQlzr",
+  "object": "chat.completion",
+  "created": 1774987516,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here are a few good next steps. Pick one (or tell me your goal) and I’ll fetch it:\n\n- Get the hourly forecast for the next 24 hours for both cities\n- Get a 7-day outlook for both cities\n- See current conditions plus humidity, wind, and precipitation chances\n- Set weather alerts for rain or temperature changes\n- Quick packing tips based on the forecast (e.g., SF: light jacket and sunglasses; NYC: warm layers and a waterproof coat)\n- If you’re traveling or planning activities, I can tailor recommendations to the forecast\n\nWould you like me to pull the hourly forecast for San Francisco and New York?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 285,
+    "completion_tokens": 974,
+    "total_tokens": 1259,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

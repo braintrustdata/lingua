@@ -148,7 +148,9 @@
         { "pattern": "params.top_p", "reason": "Google uses f32 for top_p, causing precision loss (0.9 → 0.8999999761581421)" },
         { "pattern": "messages[*].content[*].media_type", "reason": "Google requires mime_type for images; null defaults to image/jpeg" },
         { "pattern": "messages[*].content[*].provider_options", "reason": "Google doesn't support provider_options on content parts" },
-        { "pattern": "messages.length", "reason": "Google moves system messages to systemInstruction and merges consecutive same-role messages" }
+        { "pattern": "messages.length", "reason": "Google moves system messages to systemInstruction and merges consecutive same-role messages" },
+        { "pattern": "messages[*].content[*].tool_name", "reason": "Google requires functionResponse.name; tool names are populated from preceding tool calls when not present in source format (ChatCompletions and Anthropic tool results don't carry tool names)" },
+        { "pattern": "messages[*].content[*].tool_call_id", "reason": "Google doesn't preserve tool call IDs; synthetic positional IDs are generated on re-parse" }
       ],
       "errors": [
         { "pattern": "is not supported by Google", "reason": "Provider-specific built-in tool has no Google equivalent" }
@@ -421,6 +423,31 @@
       "target": "Vertex Anthropic",
       "fields": [
         { "pattern": "params.reasoning", "reason": "Anthropic rejects enabled thinking when tool_choice forces a specific tool; thinking is intentionally dropped" }
+      ]
+    },
+    {
+      "testCase": "parallelToolCallsRequest",
+      "source": "*",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Parallel tool results grouped in one Tool message expand to separate role:tool messages in ChatCompletions" }
+      ]
+    },
+    {
+      "testCase": "parallelToolCallsRequest",
+      "source": "*",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Parallel tool results grouped in one Tool message expand to separate function_call_output items in Responses API" }
+      ]
+    },
+    {
+      "testCase": "simpleRequestTruncated",
+      "source": "Google",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content", "reason": "Empty assistant content (no parts) from truncated Gemini response gains a placeholder empty text part when roundtripped through other providers" },
+        { "pattern": "messages.length", "reason": "Empty assistant content from truncated Gemini response may change message count when roundtripped through providers that split/merge messages" }
       ]
     }
   ]

@@ -10,7 +10,7 @@
                 "location": "Tokyo"
               }
             },
-            "thoughtSignature": "Ct0BAb4+9vtRZlUwK+KMvOLq+3YvDr1zL7vGQtuviEA2LahBOJdvrYmIHCvXzDa815x9DCfkKA2QBfKQUeE2WGyr6wE3ezY3Auq0JaSmahL+tQrceLvwh+6l2P1GrxJzPUEpew5FXoy4XQ/Mr8g7fm83AgCkBz7wvK0nNcj7XwFN8XaRNzMnbGi8WfXGfzJefp6DHMbQSDqGtlh+bjnlfGtscfAQ4Us9JO7R9XnDmdZZO4g4QyA6vsQuB0JzMv/TFptJUgy/gejcpkKsRSQKKpOU2wBn7/XwmjfHzrshBhk="
+            "thoughtSignature": "CucBAb4+9vs+L8b5DWxZLf3YrtyE8jaiRvH3+WfoYiFe+3UsTHFrh6yby+drplwgFn9zcIL7y6DA1G/RT7Xdo489paNL+GTgzaqw0vV0Xj0wdOOsrVkgGfJLhdGpxtFTsaCC3XD+Py7LoBV2qQ14IZmtfdXvHvyQISbziF3U9el7zQj7ksoPMudDWHE7tA6aCsU63lJbAoEtvdIyImcxvT9ikCONlFXlNKi1fhKgmqlaiSthawjVpRH3yNNQRWsfILjR09Z4F6noiN5v4m25/GoVOxwGfo5QaqtF1vXeVHD1fa5NMyLlTsHy"
           }
         ],
         "role": "model"
@@ -23,15 +23,15 @@
   "usageMetadata": {
     "promptTokenCount": 37,
     "candidatesTokenCount": 15,
-    "totalTokenCount": 99,
+    "totalTokenCount": 98,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 37
       }
     ],
-    "thoughtsTokenCount": 47
+    "thoughtsTokenCount": 46
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "wnmWaZOTHK-ojMcP-NChsAU"
+  "responseId": "BabMaYn6Mq-v-8YPy67WqAE"
 }

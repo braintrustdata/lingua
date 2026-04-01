@@ -1,0 +1,57 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I need more information to give you a good recommendation. What kind of activities are you interested in? Where are you located? Do you have any preferences or constraints?",
+              "thoughtSignature": "Cl0Bvj72+5xa7luvfqcrwT8quOaseVGxSHFiJhdxFEkGJc1MHxzbzA7ZXNGdwJ7lxw7JGzk/ZKQL/Nl5Ilo0ltF/HphuG2p0+eZc/1CjLgHBqHua3Q20dQSc0zB4CsgKnAIBvj72+71aYUJ1PSWgtLNc4YVbDQtFvzXa0Dw2O9lXx9WUlnQhDNuJ7Q/XHvKc/Eaue5kN15r5fYH7X1SZJ/g8B8iKZP/6omQxv3JnoH9NFSdvwgEZPX56iLvfnrBj1jpae6nCe+EObCIx3g5ftPWzmM7gk8L/kWNIGySrgiTqF++IklamHjr+ykM8JAn8S0GQ08gEVkWnx1eiiGPJZLBoJnYr+uSUpMCX41a6z1oVk+2lJevvaWhCj//nR+Ppa2kYQluV8h79X/DeQpAaQVF4S/bv2ESAYOiCDF6eFqmqca00VqbiCz3Z5rCsv0fG6maF42sy2Lukcc1UCU9D5cnS8E34WGg7oAudgNuI+QfhfqbYnnj3wiB5aBKS0Ap0Ab4+9vuOUqLz3DUblZJYhBdtQnnPJcnaiA/u9lwNkJbXBxMFmivu1R9Jj5tLjN+SEJDpHoJw9FZp0jYh7ZOi7N4YzGgAYOukW9E31VvDFkqle6GNY9ziUc1e3PaJTiCV9MH8LdLBrwENoItPf6jcb7I7PyQ="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 180,
+      "candidatesTokenCount": 33,
+      "totalTokenCount": 293,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 180
+        }
+      ],
+      "thoughtsTokenCount": 80
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "-CjMaeqtHYvK-8YP1JyquQY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 180,
+      "candidatesTokenCount": 33,
+      "totalTokenCount": 293,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 180
+        }
+      ],
+      "thoughtsTokenCount": 80
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "-CjMaeqtHYvK-8YP1JyquQY"
+  }
+]

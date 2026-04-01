@@ -1,0 +1,26 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01KAoaVdFci5HSxpqanwoDDd",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "The current weather is:\n\n- **San Francisco, CA**: 65°F and sunny\n- **New York, NY**: 45°F and cloudy"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 757,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 37,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

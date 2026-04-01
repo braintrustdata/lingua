@@ -1,0 +1,96 @@
+{
+  "id": "resp_0eee38712a6f303d0069ccab58fc8081a3944567417268082e",
+  "object": "response",
+  "created_at": 1775020889,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775020895,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0eee38712a6f303d0069ccab5977ac81a3925c33ddb7b6368d",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0eee38712a6f303d0069ccab5e26bc81a3a33ef2dac47b8094",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here are some practical next steps based on the current conditions:\n\n- Plan clothing today\n  - San Francisco (65°F, sunny): light layers, sunglasses, sunscreen. Evenings can be cooler—bring a light jacket.\n  - New York (45°F, cloudy): dress in layers with a warm coat, scarf, and possibly gloves. It’ll feel cool and damp.\n\n- Check more details\n  - Hourly forecast for today in both cities\n  - 7-day outlook (rain chances, highs/lows)\n  - Precipitation and wind alerts\n\n- Activity ideas\n  - San Francisco: outdoor strolls in sunny weather, then a café stop if it gets chilly.\n  - New York: indoor options if clouds/damp persist (museums, coffee shops), or a warm stroll with a coat.\n\nWould you like me to pull the hourly forecast for today in both cities, or fetch the 7-day outlook and any rain/wind alerts?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 189,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1250,
+    "output_tokens_details": {
+      "reasoning_tokens": 1024
+    },
+    "total_tokens": 1439
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here are some practical next steps based on the current conditions:\n\n- Plan clothing today\n  - San Francisco (65°F, sunny): light layers, sunglasses, sunscreen. Evenings can be cooler—bring a light jacket.\n  - New York (45°F, cloudy): dress in layers with a warm coat, scarf, and possibly gloves. It’ll feel cool and damp.\n\n- Check more details\n  - Hourly forecast for today in both cities\n  - 7-day outlook (rain chances, highs/lows)\n  - Precipitation and wind alerts\n\n- Activity ideas\n  - San Francisco: outdoor strolls in sunny weather, then a café stop if it gets chilly.\n  - New York: indoor options if clouds/damp persist (museums, coffee shops), or a warm stroll with a coat.\n\nWould you like me to pull the hourly forecast for today in both cities, or fetch the 7-day outlook and any rain/wind alerts?"
+}
