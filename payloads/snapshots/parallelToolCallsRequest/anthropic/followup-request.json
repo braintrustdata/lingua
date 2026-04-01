@@ -1,0 +1,80 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What's the weather in San Francisco and New York?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_sf",
+          "name": "get_weather",
+          "input": {
+            "location": "San Francisco, CA"
+          }
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_nyc",
+          "name": "get_weather",
+          "input": {
+            "location": "New York, NY"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_sf",
+          "content": "65°F and sunny."
+        },
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_nyc",
+          "content": "45°F and cloudy."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "The current weather is:\n\n- **San Francisco, CA**: 65°F and sunny\n- **New York, NY**: 45°F and cloudy"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "auto"
+  }
+}

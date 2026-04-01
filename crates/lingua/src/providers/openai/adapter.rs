@@ -15,7 +15,8 @@ use crate::processing::adapters::{
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::{apply_model_transforms, model_needs_transforms};
 use crate::providers::openai::convert::{
-    ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
+    messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
+    ChatCompletionResponseMessageExt,
 };
 use crate::providers::openai::params::{OpenAIChatExtrasView, OpenAIChatParams};
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
@@ -211,10 +212,7 @@ impl ProviderAdapter for OpenAIAdapter {
         if let Some(raw_messages) = openai_extras_view.messages.as_ref() {
             obj.insert("messages".into(), raw_messages.clone());
         } else {
-            let openai_messages: Vec<ChatCompletionRequestMessageExt> =
-                <Vec<ChatCompletionRequestMessageExt> as TryFromLLM<Vec<Message>>>::try_from(
-                    req.messages.clone(),
-                )
+            let openai_messages = messages_to_chat_completion_messages(req.messages.clone())
                 .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
             obj.insert(
                 "messages".into(),

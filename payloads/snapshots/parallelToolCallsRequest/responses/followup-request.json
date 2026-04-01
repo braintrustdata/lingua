@@ -1,0 +1,76 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "What's the weather in San Francisco and New York?"
+    },
+    {
+      "type": "function_call",
+      "call_id": "call_sf",
+      "name": "get_weather",
+      "arguments": "{\"location\":\"San Francisco, CA\"}",
+      "status": "completed"
+    },
+    {
+      "type": "function_call",
+      "call_id": "call_nyc",
+      "name": "get_weather",
+      "arguments": "{\"location\":\"New York, NY\"}",
+      "status": "completed"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_sf",
+      "output": "65°F and sunny."
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_nyc",
+      "output": "45°F and cloudy."
+    },
+    {
+      "id": "rs_0eee38712a6f303d0069ccab5473bc81a3a4fce33a1a42ef08",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0eee38712a6f303d0069ccab578bc481a390a7e37799de9cbc",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "- San Francisco, CA: 65°F and sunny\n- New York, NY: 45°F and cloudy\n\nWant an hourly forecast or any packing/tips for these conditions?"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get the current weather for a location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false
+    }
+  ]
+}

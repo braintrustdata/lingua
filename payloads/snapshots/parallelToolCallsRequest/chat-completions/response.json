@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DPZcmFNmZaMZ8YXWFU3NcqOvASY9c",
+  "object": "chat.completion",
+  "created": 1774987512,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "- San Francisco, CA: 65°F and sunny.\n- New York, NY: 45°F and cloudy.\n\nWant a short-term forecast or details like humidity, wind, or precipitation chances?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 229,
+    "completion_tokens": 241,
+    "total_tokens": 470,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 192,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

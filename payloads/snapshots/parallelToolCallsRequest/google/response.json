@@ -1,0 +1,29 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 140,
+    "candidatesTokenCount": 32,
+    "totalTokenCount": 172,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 140
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "9yjMadCzKpap-8YPgM3q4QE"
+}

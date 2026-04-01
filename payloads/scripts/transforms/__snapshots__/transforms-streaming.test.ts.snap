@@ -5279,6 +5279,183 @@ The background",
 ]
 `;
 
+exports[`streaming: chat-completions → anthropic > parallelToolCallsRequest > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_017Mz48zyAZe8gbsFHEkhZaY",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 757,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 758,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "The",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " weather in **",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "San Francisco** is 65°F",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " and sunny, while",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": " **New York** is 45°",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "F and cloudy.",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "stop",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 32,
+        "prompt_tokens": 757,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 789,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
 exports[`streaming: chat-completions → anthropic > reasoningRequest > streaming 1`] = `
 [
   {

@@ -10,7 +10,7 @@
                 "location": "NYC"
               }
             },
-            "thoughtSignature": "CpwCAb4+9vsdPRHCDVO9MqdveI4XFL3XCGnxBSFE56v1NwlHM2h4KIEnIhftelRne19LjuKxCXv8E75VIC1nM2PnSpKczsY76IGH49FGNG9xjRFJG4tYLMDALC640elR6a3DnAjfFSFYjx3m7hdezt3YNKs8ceER9rkSOYjhIikWP7iSjuCa8xmIIWWv57bSpEhaba29XUW6wnS/zXtM/3IExmikQP1JydHc5juVbrhj4y9Ke8cloy5AO2TjxnbjK9Awte4bra6cRw6FGn7757Y8Q/WusEoe9HWm8qRT5VNNOU4oaj8/sAaCoraoBy+W6VlyflSVv2V8wg1wMS6ffAQWdTCMQWtPX7EQcJzyo0+flN4e5EbYSKWEZH2jZ0Y="
+            "thoughtSignature": "Co8CAb4+9vuKsYgWhnMjs3MbgnVXTDivlb+I0Mq5dZa4cw31+l8QIDEA0T+9RdlYIkZJZ+JwzNTd1AJ0SpnM+YBA5+/7hH2Qh9ldN3qLeCdlDezmdvyD/iPyva0P3OkqaqClC/QSXvRS/fD8CyPEO1FBdMUwAhFCB6odVn7zxT3inzvz8g6MOcqY52VsIXnYv+p00CE4MPd6Mv64O8rOKoG5act05z7dRKpJxfG+O/xqA72gBVs5SonFl+eC6M6MeIRsdkTuPZOpkWMb7cc2EZcdcERIQ96z6U2W6JS3gVwTtmGwyE1PDEBczpKnbdNgkXRM9jccm6Y4dq3u0YNzf+b54qt7gVLlPCb7gA27U+uBYA=="
           },
           {
             "functionCall": {
@@ -31,15 +31,15 @@
   "usageMetadata": {
     "promptTokenCount": 39,
     "candidatesTokenCount": 30,
-    "totalTokenCount": 128,
+    "totalTokenCount": 124,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 39
       }
     ],
-    "thoughtsTokenCount": 59
+    "thoughtsTokenCount": 55
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "Ie3LacTnHtSM_PUP_oD9sAY"
+  "responseId": "FabMaYG8G_LajrEPqtTMiAU"
 }

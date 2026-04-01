@@ -4,34 +4,28 @@
       "content": {
         "parts": [
           {
-            "functionCall": {
-              "name": "get_weather",
-              "args": {
-                "location": "San Francisco, CA"
-              }
-            },
-            "thoughtSignature": "CrwDAb4+9vtget04bgK+Z0e/3MzKyVnTizt5/K6kuwV6DoSExDiwDzpspiGjz7lhc8hNQrUNtdN18IW0Be3vPe2PamT8PQ7mBXDE1CJA5tVVYlw3seRoUQXP2pkNzVbbl6v2Z4+b0hjifrk+qY+veGDZc18iNtSOpzUb0LT3XHiZRyTFhc8PGZ9Rio3EUnKcMp/j9xNzl2WoqHTN6c91QZfFgVRzZdK+wWkqOvms7o6s/dBVnF/ntTUmF0E21dxlXeo2T6/KBaOtjBF8zBLlbebklVCyfMVtYwQVvX/qpKIdB3PaiwR74NOJaJznDbkWUp7AVBf9o8ONakV6n7OoMAC6sLH5fIsXSeShr9dMZ1WgOF5GJgQavWQLPE3sa6Ci3BTBoVopUvNE+BA6NkGyMwO2eLIy6FDPo/XR5pAHrnMA2EfNATtNnC7NwXLE8p1o8h7LxmAR12RleH6H4XNx8YtvlVOFMcNCKb+hn0J0TaJgNtss0naWdnokzR1YMjNGGALeNEKt4sWMkq68rAReykPwgTTt4zfIQoOz58ut0IzAqs1kD7Si+UjwaTC9Op5Z2E9eM5F4I0OyUL1QGYhR"
+            "text": "I need to know the state. Can you tell me what state San Francisco is in?",
+            "thoughtSignature": "CqgDAb4+9vsq530e+k4c1A7FkQjD6y1k8aEcZtMQZnEmNdBrGrCodvgdKNcqgkw84ckVWjLs7w0k3Gca/JQCRij1GsMhR0bVqQsna/Wly+X+5KFEMW92qaTcYgMeAdjzL7YP5fiA5olbBP4GWFqYL2CTFjecquXDLdls7u2T8og+afkkus8j3hFO4a7RZTcD84DSFfUwlwanAEpZzAiLD53YO6tWbToruSRABndnQ/HZ6Z6t66jSk38UdX4AFdaIjlcBeJfTFQgLrl3oBWfdMPj7L6ymQGfPdqLPwQ1WCS3sNn6saKbx8ELIOiRPe1sjV2+UFd3kGtTZZ+QOrv2azYxyoVF0sg70RulHyoNocneDgKtrd3MPR3EVE1e4AJ6DBMc8DCHHbMX9My3uN9EKBKrhopRIKEo5zT4VwUJwSlOr+/T7Ach572B38h95hrNVQSbTqnSMIW2eqjTtTDw3e+kkdDhJXs+t6NHEZE/lwRkKTo5CghSx5zFO6MxG/B5KIqVzgASMq5Tfq/hYb6epG1leL3EPHXcqUO8Z71T97taAucGCtEi9R2vJrg=="
           }
         ],
         "role": "model"
       },
       "finishReason": "STOP",
-      "index": 0,
-      "finishMessage": "Model generated function call(s)."
+      "index": 0
     }
   ],
   "usageMetadata": {
     "promptTokenCount": 62,
     "candidatesTokenCount": 18,
-    "totalTokenCount": 176,
+    "totalTokenCount": 164,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 62
       }
     ],
-    "thoughtsTokenCount": 96
+    "thoughtsTokenCount": 84
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "koGWaYWiL-LCjMcPxszQ0Qc"
+  "responseId": "A6bMafvFBaHwjrEPs-qv6AE"
 }
