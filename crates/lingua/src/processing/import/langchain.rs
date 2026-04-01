@@ -408,16 +408,10 @@ fn parse_assistant_content(
                             provider_options: None,
                         }));
                     }
-                    LangChainContentPartCompat::ToolUse { id, name, input } => {
-                        parts.push(AssistantContentPart::ToolCall {
-                            tool_call_id: id,
-                            tool_name: name,
-                            arguments: parse_tool_call_arguments(Some(input)),
-                            encrypted_content: None,
-                            provider_options: None,
-                            provider_executed: None,
-                        });
-                    }
+                    // When tool_calls is non-empty, ToolUse blocks in content[] are the
+                    // same tool calls in provider format (Anthropic/Bedrock). Skip them
+                    // here — they are already captured by the tool_calls loop below.
+                    LangChainContentPartCompat::ToolUse { .. } => {}
                     _ => {}
                 }
             }
@@ -540,4 +534,96 @@ pub(crate) fn try_parse_langchain_for_import(data: &Value) -> Option<Vec<Message
         return Some(messages);
     }
     try_parse_output_shape(data)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::universal::{AssistantContent, AssistantContentPart, Message, ToolCallArguments};
+
+    /// LangGraph (Anthropic/Bedrock) populates both `content[{type:"tool_use",...}]` and
+    /// `tool_calls[{id,name,args,...}]` on the same AIMessage. The importer must emit
+    /// exactly one ToolCall part — not two.
+    #[test]
+    fn test_no_duplicate_tool_calls_when_both_content_and_tool_calls_present() {
+        let input = crate::serde_json::json!([{
+            "type": "AIMessage",
+            "content": [{"type": "tool_use", "id": "tooluse_abc", "name": "get_weather", "input": {"city": "Paris", "days": 5}}],
+            "tool_calls": [{"id": "tooluse_abc", "name": "get_weather", "args": {"city": "Paris", "days": 5}}]
+        }]);
+
+        let messages = try_parse_langchain_for_import(&input).expect("should parse successfully");
+        assert_eq!(messages.len(), 1);
+
+        let Message::Assistant { content, .. } = &messages[0] else {
+            panic!("expected assistant message, got {:?}", messages[0]);
+        };
+
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected array content, got {:?}", content);
+        };
+
+        let tool_call_parts: Vec<_> = parts
+            .iter()
+            .filter(|p| matches!(p, AssistantContentPart::ToolCall { .. }))
+            .collect();
+
+        assert_eq!(
+            tool_call_parts.len(),
+            1,
+            "expected exactly one ToolCall part, got {}: {:?}",
+            tool_call_parts.len(),
+            tool_call_parts
+        );
+
+        let AssistantContentPart::ToolCall { tool_call_id, tool_name, arguments, .. } =
+            tool_call_parts[0]
+        else {
+            unreachable!()
+        };
+
+        assert_eq!(tool_call_id, "tooluse_abc");
+        assert_eq!(tool_name, "get_weather");
+        assert!(
+            matches!(arguments, ToolCallArguments::Valid(_)),
+            "expected Valid arguments"
+        );
+    }
+
+    /// When tool_calls is non-empty but content also has a text preamble, the text
+    /// part should still be included alongside the single tool call.
+    #[test]
+    fn test_text_preamble_preserved_with_tool_calls() {
+        let input = crate::serde_json::json!([{
+            "type": "AIMessage",
+            "content": [
+                {"type": "text", "text": "Let me check the weather for you."},
+                {"type": "tool_use", "id": "tooluse_xyz", "name": "get_weather", "input": {"city": "London"}}
+            ],
+            "tool_calls": [{"id": "tooluse_xyz", "name": "get_weather", "args": {"city": "London"}}]
+        }]);
+
+        let messages = try_parse_langchain_for_import(&input).expect("should parse successfully");
+        assert_eq!(messages.len(), 1);
+
+        let Message::Assistant { content, .. } = &messages[0] else {
+            panic!("expected assistant message");
+        };
+
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected array content");
+        };
+
+        let text_parts: Vec<_> = parts
+            .iter()
+            .filter(|p| matches!(p, AssistantContentPart::Text(_)))
+            .collect();
+        let tool_call_parts: Vec<_> = parts
+            .iter()
+            .filter(|p| matches!(p, AssistantContentPart::ToolCall { .. }))
+            .collect();
+
+        assert_eq!(text_parts.len(), 1, "expected one text part");
+        assert_eq!(tool_call_parts.len(), 1, "expected one tool call part");
+    }
 }
