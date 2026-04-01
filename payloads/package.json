@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Scripts to capture OpenAI and Anthropic API payloads with TypeScript type safety",
   "scripts": {
+    "preinstall": "node -e \"const userAgent = process.env.npm_config_user_agent || ''; if (process.env.INIT_CWD === process.cwd() && !userAgent.includes('pnpm/')) { console.error('Use pnpm in this repo.'); process.exit(1); }\"",
     "typecheck": "tsc --noEmit",
     "capture": "tsx scripts/capture.ts",
     "validate": "tsx scripts/validate.ts",
@@ -16,6 +17,16 @@
     "test:watch": "vitest",
     "test:transforms": "vitest run scripts/transforms",
     "test:transforms:watch": "vitest scripts/transforms"
+  },
+  "engines": {
+    "pnpm": ">=10.27.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=10.27.0",
+      "onFail": "error"
+    }
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
