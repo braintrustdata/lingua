@@ -8196,6 +8196,98 @@ exports[`streaming: chat-completions → anthropic > simpleRequest > streaming 1
 ]
 `;
 
+exports[`streaming: chat-completions → anthropic > simpleRequestTruncated > streaming 1`] = `
+[
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "id": "msg_019jRYmhVcfMrQYN3eA6idKL",
+      "model": "claude-sonnet-4-5-20250929",
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 17,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {
+            "content": "#",
+            "role": "assistant",
+          },
+          "finish_reason": null,
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [],
+      "object": "chat.completion.chunk",
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {
+      "choices": [
+        {
+          "delta": {},
+          "finish_reason": "length",
+          "index": 0,
+        },
+      ],
+      "object": "chat.completion.chunk",
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 17,
+      },
+    },
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+  {
+    "data": {},
+    "sourceFormat": "anthropic",
+    "transformed": true,
+  },
+]
+`;
+
 exports[`streaming: chat-completions → anthropic > systemMessageArrayContent > streaming 1`] = `
 [
   {

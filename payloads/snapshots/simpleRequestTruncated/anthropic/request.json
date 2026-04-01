@@ -1,0 +1,10 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "max_tokens": 1,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Write a very long essay about the ocean."
+    }
+  ]
+}
