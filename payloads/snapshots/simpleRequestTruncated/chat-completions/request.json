@@ -1,0 +1,10 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Write a very long essay about the ocean."
+    }
+  ],
+  "max_completion_tokens": 1
+}

@@ -440,6 +440,15 @@
       "fields": [
         { "pattern": "messages.length", "reason": "Parallel tool results grouped in one Tool message expand to separate function_call_output items in Responses API" }
       ]
+    },
+    {
+      "testCase": "simpleRequestTruncated",
+      "source": "Google",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content", "reason": "Empty assistant content (no parts) from truncated Gemini response gains a placeholder empty text part when roundtripped through other providers" },
+        { "pattern": "messages.length", "reason": "Empty assistant content from truncated Gemini response may change message count when roundtripped through providers that split/merge messages" }
+      ]
     }
   ]
 }

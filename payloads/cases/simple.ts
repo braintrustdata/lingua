@@ -270,6 +270,53 @@ export const simpleCases: TestCaseCollection = {
     },
   },
 
+  simpleRequestTruncated: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Write a very long essay about the ocean.",
+        },
+      ],
+      max_completion_tokens: 1,
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      max_output_tokens: 1,
+      input: [
+        {
+          role: "user",
+          content: "Write a very long essay about the ocean.",
+        },
+      ],
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1,
+      messages: [
+        {
+          role: "user",
+          content: "Write a very long essay about the ocean.",
+        },
+      ],
+    },
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Write a very long essay about the ocean." }],
+        },
+      ],
+      generationConfig: {
+        maxOutputTokens: 1,
+      },
+    },
+    bedrock: null,
+    "bedrock-anthropic": null,
+    "vertex-anthropic": null,
+  },
+
   toolCallRequest: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

@@ -16,7 +16,8 @@
     "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
     "metadataParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
     "safetyIdentifierParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
-    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response"
+    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response",
+    "simpleRequestTruncated": "Deserialization failed: missing field `choices`"
   },
   "anthropic_to_responses": {
     "webSearchToolParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by responses",
@@ -29,7 +30,8 @@
     "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI responses",
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
     "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
-    "streamParam": "Streaming response cannot be deserialized as a responses API response"
+    "streamParam": "Streaming response cannot be deserialized as a responses API response",
+    "simpleRequestTruncated": "OpenAI rejected: Invalid 'max_output_tokens': integer below minimum value. Expected a value >= 16, but got 1 instead."
   },
   "google_to_anthropic": {
     "toolCallRequest": "Anthropic rejected: tool input_schema type must be 'object', not null",
@@ -49,7 +51,8 @@
     "toolChoiceAutoParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
     "toolChoiceAnyParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
     "toolChoiceNoneParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
-    "toolModeValidatedParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null"
+    "toolModeValidatedParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "simpleRequestTruncated": "Deserialization failed: missing field `choices`"
   },
   "google_to_responses": {
     "toolCallRequest": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
@@ -60,6 +63,7 @@
     "toolChoiceAutoParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
     "toolChoiceAnyParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
     "toolChoiceNoneParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
-    "toolModeValidatedParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null"
+    "toolModeValidatedParam": "OpenAI rejected: tool parameter schema must be 'object' or 'boolean', not null",
+    "simpleRequestTruncated": "OpenAI rejected: Invalid 'max_output_tokens': integer below minimum value. Expected a value >= 16, but got 1 instead."
   }
 }

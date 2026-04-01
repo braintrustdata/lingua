@@ -121,9 +121,7 @@ impl TryFromLLM<GoogleContent> for Message {
             .ok_or(ConvertError::MissingRequiredField {
                 field: "role".to_string(),
             })?;
-        let parts = content.parts.ok_or(ConvertError::MissingRequiredField {
-            field: "parts".to_string(),
-        })?;
+        let parts = content.parts.unwrap_or_default();
 
         match role {
             "model" => {
@@ -454,7 +452,7 @@ impl TryFromLLM<Message> for GoogleContent {
 
         Ok(GoogleContent {
             role: Some(role),
-            parts: Some(parts),
+            parts: if parts.is_empty() { None } else { Some(parts) },
         })
     }
 }

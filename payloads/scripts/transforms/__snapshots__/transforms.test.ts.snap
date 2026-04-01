@@ -930,6 +930,19 @@ exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
 }
 `;
 
+exports[`anthropic → chat-completions > simpleRequestTruncated > request 1`] = `
+{
+  "max_completion_tokens": 1,
+  "messages": [
+    {
+      "content": "Write a very long essay about the ocean.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
 exports[`anthropic → chat-completions > stopSequencesParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -2932,6 +2945,41 @@ exports[`anthropic → google > simpleRequest > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "output_tokens": 40,
+  },
+}
+`;
+
+exports[`anthropic → google > simpleRequestTruncated > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Write a very long essay about the ocean.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`anthropic → google > simpleRequestTruncated > response 1`] = `
+{
+  "content": [],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 0,
   },
 }
 `;
@@ -5082,6 +5130,19 @@ exports[`anthropic → responses > simpleRequest > response 1`] = `
 }
 `;
 
+exports[`anthropic → responses > simpleRequestTruncated > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Write a very long essay about the ocean.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1,
+  "model": "gpt-5-nano",
+}
+`;
+
 exports[`anthropic → responses > stopSequencesParam > request 1`] = `
 {
   "input": [
@@ -6982,6 +7043,47 @@ exports[`chat-completions → anthropic > simpleRequest > response 1`] = `
       "cached_tokens": 0,
     },
     "total_tokens": 89,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > simpleRequestTruncated > request 1`] = `
+{
+  "max_tokens": 1,
+  "messages": [
+    {
+      "content": "Write a very long essay about the ocean.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > simpleRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "#",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01RPssM6iLPaEsv3XtZE3Uuu",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1,
+    "prompt_tokens": 16,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 17,
   },
 }
 `;
@@ -9123,6 +9225,50 @@ Alright, a straightforward question: "What is the capital of France?" Okay, let'
 }
 `;
 
+exports[`chat-completions → google > simpleRequestTruncated > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Write a very long essay about the ocean.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > simpleRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 10,
+    "total_tokens": 10,
+  },
+}
+`;
+
 exports[`chat-completions → google > stopSequencesParam > request 1`] = `
 {
   "contents": [
@@ -10582,6 +10728,45 @@ exports[`google → anthropic > simpleRequest > response 1`] = `
 }
 `;
 
+exports[`google → anthropic > simpleRequestTruncated > request 1`] = `
+{
+  "max_tokens": 1,
+  "messages": [
+    {
+      "content": "Write a very long essay about the ocean.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > simpleRequestTruncated > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "#",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 1,
+    "promptTokenCount": 16,
+    "totalTokenCount": 17,
+  },
+}
+`;
+
 exports[`google → anthropic > stopSequencesParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -11836,6 +12021,19 @@ exports[`google → chat-completions > simpleRequest > response 1`] = `
     "thoughtsTokenCount": 128,
     "totalTokenCount": 152,
   },
+}
+`;
+
+exports[`google → chat-completions > simpleRequestTruncated > request 1`] = `
+{
+  "max_completion_tokens": 1,
+  "messages": [
+    {
+      "content": "Write a very long essay about the ocean.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
 }
 `;
 
@@ -13282,6 +13480,19 @@ exports[`google → responses > simpleRequest > response 1`] = `
     "thoughtsTokenCount": 192,
     "totalTokenCount": 264,
   },
+}
+`;
+
+exports[`google → responses > simpleRequestTruncated > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Write a very long essay about the ocean.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1,
+  "model": "gpt-5-nano",
 }
 `;
 
@@ -15071,6 +15282,60 @@ exports[`responses → anthropic > simpleRequest > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 93,
+  },
+}
+`;
+
+exports[`responses → anthropic > simpleRequestTruncated > request 1`] = `
+{
+  "max_tokens": 1,
+  "messages": [
+    {
+      "content": "Write a very long essay about the ocean.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > simpleRequestTruncated > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01REYmqzNs2TtvsJhjED1FZD",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "#",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "#",
+  "parallel_tool_calls": false,
+  "status": "incomplete",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 16,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 1,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 17,
   },
 }
 `;
@@ -17519,6 +17784,53 @@ Okay, here's what I'm thinking. First, I need to understand the fundamental ques
       "reasoning_tokens": 52,
     },
     "total_tokens": 68,
+  },
+}
+`;
+
+exports[`responses → google > simpleRequestTruncated > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Write a very long essay about the ocean.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > simpleRequestTruncated > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "incomplete",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 10,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 0,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 10,
   },
 }
 `;
