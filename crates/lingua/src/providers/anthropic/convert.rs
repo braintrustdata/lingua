@@ -1282,14 +1282,9 @@ impl TryFrom<&ResponseFormatConfig> for JsonOutputFormat {
     fn try_from(config: &ResponseFormatConfig) -> Result<Self, Self::Error> {
         match config.format_type.ok_or(())? {
             ResponseFormatType::Text => Err(()),
-            ResponseFormatType::JsonObject => Ok(JsonOutputFormat {
-                schema: serde_json::from_value(json!({
-                    "type": "object",
-                    "additionalProperties": false
-                }))
-                .expect("static JSON object is always a valid Map"),
-                json_output_format_type: JsonOutputFormatType::JsonSchema,
-            }),
+            // Anthropic json_object compatibility is handled in adapter.rs via synthetic json tool shim.
+            // Do not emit output_config.format for json_object here.
+            ResponseFormatType::JsonObject => Err(()),
             ResponseFormatType::JsonSchema => {
                 let js = config.json_schema.as_ref().ok_or(())?;
                 match &js.schema {
@@ -1414,6 +1409,19 @@ impl TryFromLLM<Vec<Tool>> for Vec<UniversalTool> {
 mod tests {
     use super::*;
     use crate::universal::convert::TryFromLLM;
+
+    #[test]
+    fn test_json_object_response_format_is_not_converted_to_anthropic_format() {
+        let config = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonObject),
+            json_schema: None,
+        };
+
+        assert!(
+            JsonOutputFormat::try_from(&config).is_err(),
+            "json_object should not map to Anthropic output_config.format; adapter shim handles it"
+        );
+    }
 
     #[test]
     fn test_file_to_anthropic_document_with_provider_options() {
