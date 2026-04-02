@@ -7297,15 +7297,19 @@ exports[`chat-completions → anthropic > textFormatJsonObjectParam > request 1`
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
-  "output_config": {
-    "format": {
-      "schema": {
-        "additionalProperties": false,
+  "tool_choice": {
+    "name": "json",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Output the result in JSON format",
+      "input_schema": {
         "type": "object",
       },
-      "type": "json_schema",
+      "name": "json",
     },
-  },
+  ],
 }
 `;
 
@@ -7313,26 +7317,26 @@ exports[`chat-completions → anthropic > textFormatJsonObjectParam > response 1
 {
   "choices": [
     {
-      "finish_reason": "stop",
+      "finish_reason": "tool_calls",
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "{}",
+        "content": "{"object":{"status":"ok"}}",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01HsvDHsmB5HM6huqARAVhcu",
+  "id": "chatcmpl-01RkujcwB67h4NPJMVn5Zktf",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 4,
-    "prompt_tokens": 119,
+    "completion_tokens": 38,
+    "prompt_tokens": 642,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 123,
+    "total_tokens": 680,
   },
 }
 `;
@@ -10912,15 +10916,19 @@ exports[`google → anthropic > textFormatJsonObjectParam > request 1`] = `
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
-  "output_config": {
-    "format": {
-      "schema": {
-        "additionalProperties": false,
+  "tool_choice": {
+    "name": "json",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Output the result in JSON format",
+      "input_schema": {
         "type": "object",
       },
-      "type": "json_schema",
+      "name": "json",
     },
-  },
+  ],
 }
 `;
 
@@ -10931,7 +10939,7 @@ exports[`google → anthropic > textFormatJsonObjectParam > response 1`] = `
       "content": {
         "parts": [
           {
-            "text": "{}",
+            "text": "{"parameter":{"status":"ok"}}",
           },
         ],
         "role": "model",
@@ -10943,9 +10951,9 @@ exports[`google → anthropic > textFormatJsonObjectParam > response 1`] = `
   "modelVersion": "claude-sonnet-4-5-20250929",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 5,
-    "promptTokenCount": 119,
-    "totalTokenCount": 124,
+    "candidatesTokenCount": 38,
+    "promptTokenCount": 642,
+    "totalTokenCount": 680,
   },
 }
 `;
@@ -15515,22 +15523,26 @@ exports[`responses → anthropic > textFormatJsonObjectParam > request 1`] = `
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
-  "output_config": {
-    "format": {
-      "schema": {
-        "additionalProperties": false,
+  "tool_choice": {
+    "name": "json",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Output the result in JSON format",
+      "input_schema": {
         "type": "object",
       },
-      "type": "json_schema",
+      "name": "json",
     },
-  },
+  ],
 }
 `;
 
 exports[`responses → anthropic > textFormatJsonObjectParam > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01JQpW2a8AWPrn2s89N7Kzeo",
+  "id": "resp_01YbmqM6Jb8QcM3BzFYPkGR8",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
@@ -15539,7 +15551,7 @@ exports[`responses → anthropic > textFormatJsonObjectParam > response 1`] = `
       "content": [
         {
           "annotations": [],
-          "text": "{}",
+          "text": "{"parameter":{"a":1}}",
           "type": "output_text",
         },
       ],
@@ -15549,21 +15561,21 @@ exports[`responses → anthropic > textFormatJsonObjectParam > response 1`] = `
       "type": "message",
     },
   ],
-  "output_text": "{}",
+  "output_text": "{"parameter":{"a":1}}",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 114,
+    "input_tokens": 637,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 4,
+    "output_tokens": 37,
     "output_tokens_details": {
       "reasoning_tokens": 0,
     },
-    "total_tokens": 118,
+    "total_tokens": 674,
   },
 }
 `;

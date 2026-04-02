@@ -40,6 +40,8 @@ use serde::Deserialize;
 
 /// Default max_tokens for Anthropic requests (matches legacy proxy behavior).
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
+const JSON_OBJECT_SHIM_TOOL_NAME: &str = "json";
+const JSON_OBJECT_SHIM_TOOL_DESCRIPTION: &str = "Output the result in JSON format";
 
 #[derive(Debug, Default, Deserialize)]
 struct AnthropicMetadataView {
@@ -74,6 +76,48 @@ fn is_enabled_thinking(value: &Value) -> bool {
     parsed
         .ok()
         .is_some_and(|thinking| thinking.thinking_type == ThinkingType::Enabled)
+}
+
+fn is_json_object_response_format(config: Option<&ResponseFormatConfig>) -> bool {
+    config
+        .and_then(|rf| rf.format_type)
+        .is_some_and(|t| t == crate::universal::request::ResponseFormatType::JsonObject)
+}
+
+fn maybe_unwrap_json_shim_tool_call(messages: &mut [Message]) {
+    for message in messages {
+        let Message::Assistant { content, .. } = message else {
+            continue;
+        };
+        let should_unwrap = matches!(
+            content,
+            crate::universal::message::AssistantContent::Array(parts)
+                if !parts.is_empty()
+                    && parts.iter().all(|part| {
+                        matches!(
+                            part,
+                            crate::universal::message::AssistantContentPart::ToolCall { tool_name, .. }
+                                if tool_name == JSON_OBJECT_SHIM_TOOL_NAME
+                        )
+                    })
+        );
+        if !should_unwrap {
+            continue;
+        }
+        let crate::universal::message::AssistantContent::Array(parts) = content else {
+            continue;
+        };
+        let json_text = parts
+            .iter()
+            .find_map(|part| match part {
+                crate::universal::message::AssistantContentPart::ToolCall { arguments, .. } => {
+                    Some(arguments.to_string())
+                }
+                _ => None,
+            })
+            .unwrap_or_else(|| "{}".to_string());
+        *content = crate::universal::message::AssistantContent::String(json_text);
+    }
 }
 /// Adapter for Anthropic Messages API.
 pub struct AnthropicAdapter;
@@ -311,9 +355,23 @@ impl ProviderAdapter for AnthropicAdapter {
             }
         }
 
+        let use_json_object_shim =
+            is_json_object_response_format(req.params.response_format.as_ref())
+                && anthropic_extras_view.tools.is_none()
+                && anthropic_extras_view.tool_choice.is_none();
+
         // Convert tools to Anthropic format
         if let Some(raw_tools) = anthropic_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
+        } else if use_json_object_shim {
+            obj.insert(
+                "tools".into(),
+                serde_json::json!([{
+                    "name": JSON_OBJECT_SHIM_TOOL_NAME,
+                    "description": JSON_OBJECT_SHIM_TOOL_DESCRIPTION,
+                    "input_schema": { "type": "object" }
+                }]),
+            );
         } else if let Some(tools) = &req.params.tools {
             if !tools.is_empty() {
                 let anthropic_tools: Vec<Tool> = tools
@@ -332,6 +390,11 @@ impl ProviderAdapter for AnthropicAdapter {
         let tool_choice_value =
             if let Some(raw_tool_choice) = anthropic_extras_view.tool_choice.as_ref() {
                 Some(raw_tool_choice.clone())
+            } else if use_json_object_shim {
+                Some(serde_json::json!({
+                    "type": "tool",
+                    "name": JSON_OBJECT_SHIM_TOOL_NAME
+                }))
             } else {
                 req.params.tool_choice_for(ProviderFormat::Anthropic)
             };
@@ -357,11 +420,14 @@ impl ProviderAdapter for AnthropicAdapter {
         } else {
             None
         };
-        let format = req
-            .params
-            .response_format
-            .as_ref()
-            .and_then(|rf| rf.try_into().ok());
+        let format = if use_json_object_shim {
+            None
+        } else {
+            req.params
+                .response_format
+                .as_ref()
+                .and_then(|rf| rf.try_into().ok())
+        };
 
         let raw_output_config = anthropic_extras_view.output_config.as_ref();
         let raw_thinking = anthropic_extras_view.thinking.as_ref();
@@ -466,8 +532,10 @@ impl ProviderAdapter for AnthropicAdapter {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        let messages = <Vec<Message> as TryFromLLM<Vec<ContentBlock>>>::try_from(content_blocks)
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let mut messages =
+            <Vec<Message> as TryFromLLM<Vec<ContentBlock>>>::try_from(content_blocks)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        maybe_unwrap_json_shim_tool_call(&mut messages);
 
         let finish_reason = match payload.get("stop_reason").and_then(Value::as_str) {
             Some(s) => Some(s.parse().map_err(|_| ConvertError::InvalidEnumValue {
@@ -1136,6 +1204,48 @@ fn parse_content_block_start_event(payload: &Value) -> ContentBlockStartEventVie
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use serde::Deserialize;
+
+    #[derive(Debug, Deserialize)]
+    struct ShimInputSchemaView {
+        #[serde(rename = "type")]
+        schema_type: String,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct ShimToolView {
+        name: String,
+        description: Option<String>,
+        input_schema: ShimInputSchemaView,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct ShimToolChoiceView {
+        #[serde(rename = "type")]
+        choice_type: String,
+        name: Option<String>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct ShimOutputConfigView {
+        #[serde(default)]
+        format: Option<Value>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct ShimAnthropicRequestView {
+        #[serde(default)]
+        tools: Option<Vec<ShimToolView>>,
+        #[serde(default)]
+        tool_choice: Option<ShimToolChoiceView>,
+        #[serde(default)]
+        output_config: Option<ShimOutputConfigView>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct JsonColorView {
+        color: String,
+    }
 
     #[test]
     fn test_anthropic_detect_request() {
@@ -1504,6 +1614,88 @@ mod tests {
         assert!(format.get("json_schema").is_none());
         // Legacy output_format should NOT be present
         assert!(anthropic_request.get("output_format").is_none());
+    }
+
+    #[test]
+    fn test_anthropic_json_object_uses_tool_shim() {
+        use crate::providers::openai::adapter::OpenAIAdapter;
+
+        let openai_adapter = OpenAIAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+
+        let openai_payload = json!({
+            "model": "gpt-4o",
+            "messages": [{"role": "user", "content": "Return JSON"}],
+            "response_format": { "type": "json_object" }
+        });
+
+        let mut universal = openai_adapter.request_to_universal(openai_payload).unwrap();
+        universal.model = Some("claude-sonnet-4-5-20250929".to_string());
+        anthropic_adapter.apply_defaults(&mut universal);
+
+        let anthropic_request = anthropic_adapter
+            .request_from_universal(&universal)
+            .unwrap();
+        let request_view: ShimAnthropicRequestView = serde_json::from_value(anthropic_request)
+            .expect("shim request should deserialize into typed view");
+        let tools = request_view.tools.expect("tools should be present");
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, JSON_OBJECT_SHIM_TOOL_NAME);
+        assert_eq!(
+            tools[0].description.as_deref(),
+            Some(JSON_OBJECT_SHIM_TOOL_DESCRIPTION)
+        );
+        assert_eq!(tools[0].input_schema.schema_type, "object");
+
+        let tool_choice = request_view
+            .tool_choice
+            .expect("tool_choice should be present");
+        assert_eq!(tool_choice.choice_type, "tool");
+        assert_eq!(
+            tool_choice.name.as_deref(),
+            Some(JSON_OBJECT_SHIM_TOOL_NAME)
+        );
+
+        assert!(
+            request_view
+                .output_config
+                .as_ref()
+                .and_then(|oc| oc.format.as_ref())
+                .is_none(),
+            "output_config.format should be omitted for json_object shim"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_response_tool_shim_unwraps_to_assistant_content() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-5-20250929",
+            "stop_reason": "tool_use",
+            "content": [{
+                "type": "tool_use",
+                "id": "toolu_123",
+                "name": JSON_OBJECT_SHIM_TOOL_NAME,
+                "input": { "color": "blue" }
+            }]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+        assert_eq!(universal.messages.len(), 1);
+        match &universal.messages[0] {
+            Message::Assistant { content, .. } => match content {
+                crate::universal::message::AssistantContent::String(text) => {
+                    let parsed: JsonColorView = serde_json::from_str(text)
+                        .expect("shim output should be valid serialized JSON object");
+                    assert_eq!(parsed.color, "blue");
+                }
+                _ => panic!("expected assistant string content after shim unwrap"),
+            },
+            _ => panic!("expected assistant message"),
+        }
     }
 
     #[test]

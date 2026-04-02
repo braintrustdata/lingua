@@ -1,25 +1,35 @@
 {
   "model": "claude-sonnet-4-5-20250929",
-  "id": "msg_01QfFhygxpH88dnm9d9L4zxY",
+  "id": "msg_012Xx5wmB7LdVr9RPCXMxWro",
   "type": "message",
   "role": "assistant",
   "content": [
     {
-      "type": "text",
-      "text": "{}"
+      "type": "tool_use",
+      "id": "toolu_01YLm7ifUY9TG9Y3qUVySdJP",
+      "name": "json",
+      "input": {
+        "parameter": {
+          "status": "ok"
+        }
+      },
+      "caller": {
+        "type": "direct"
+      }
     }
   ],
-  "stop_reason": "end_turn",
+  "stop_reason": "tool_use",
   "stop_sequence": null,
+  "stop_details": null,
   "usage": {
-    "input_tokens": 119,
+    "input_tokens": 642,
     "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
     "cache_creation": {
       "ephemeral_5m_input_tokens": 0,
       "ephemeral_1h_input_tokens": 0
     },
-    "output_tokens": 5,
+    "output_tokens": 38,
     "service_tier": "standard",
     "inference_geo": "not_available"
   }

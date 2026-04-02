@@ -442,6 +442,30 @@
       ]
     },
     {
+      "testCase": "textFormatJsonObjectParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.tools", "reason": "Anthropic json_object compatibility uses a synthetic json tool shim" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonObjectParam",
+      "source": "*",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.tools", "reason": "Anthropic json_object compatibility uses a synthetic json tool shim" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonObjectParam",
+      "source": "*",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "params.tools", "reason": "Anthropic json_object compatibility uses a synthetic json tool shim" }
+      ]
+    },
+    {
       "testCase": "simpleRequestTruncated",
       "source": "Google",
       "target": "*",
