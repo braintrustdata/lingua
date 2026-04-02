@@ -3,9 +3,18 @@
   "version": "0.1.0",
   "description": "WASM bindings for Lingua",
   "scripts": {
+    "preinstall": "node -e \"const userAgent = process.env.npm_config_user_agent || ''; if (process.env.INIT_CWD === process.cwd() && !userAgent.includes('pnpm/')) { console.error('Use pnpm in this repo.'); process.exit(1); }\"",
     "build": "pnpm run build:nodejs && pnpm run build:web",
     "build:nodejs": "cd ../../crates/lingua && wasm-pack build --target nodejs --release --out-dir ../../bindings/lingua-wasm/nodejs --no-pack",
     "build:web": "cd ../../crates/lingua && wasm-pack build --target web --release --out-dir ../../bindings/lingua-wasm/web --no-pack"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=10.27.0",
+      "onFail": "error"
+    }
   },
   "files": [
     "nodejs",
@@ -35,6 +44,8 @@
     "./nodejs/lingua.js",
     "./web/lingua.js"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "pnpm": ">=10.27.0"
+  }
 }
-
