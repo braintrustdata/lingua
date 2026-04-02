@@ -37,7 +37,7 @@ typescript: generate-types lingua-wasm ## Build TypeScript bindings (WASM)
 
 python: ## Build Python bindings (PyO3)
 	@echo "Building Python bindings..."
-	cd bindings/python && uv sync --all-extras --group dev
+	cd bindings/python && uv sync --python 3.11 --all-extras --group dev
 
 test: test-rust test-typescript test-python test-payloads ## Run all tests
 
