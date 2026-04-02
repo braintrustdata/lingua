@@ -37,17 +37,17 @@ if [ -f "payloads/package.json" ]; then
 
     # Run ESLint
     echo "🔍 Running ESLint..."
-    if ! npm run lint; then
-        echo "❌ ESLint found issues. Run 'npm run lint:fix' to fix automatically or fix manually."
+    if ! pnpm run lint; then
+        echo "❌ ESLint found issues. Run 'pnpm run lint:fix' to fix automatically or fix manually."
         exit 1
     fi
 
     # Run Prettier check
     echo "🎨 Checking code formatting..."
-    if ! npm run format:check; then
+    if ! pnpm run format:check; then
         echo "❌ Code formatting issues found."
         echo "💡 Running Prettier to fix formatting..."
-        npm run format
+        pnpm run format
         cd ..
         echo "❌ Files were formatted by Prettier."
         echo "💡 Please re-add the formatted files and commit again:"
@@ -57,7 +57,7 @@ if [ -f "payloads/package.json" ]; then
 
     # Run TypeScript type checking
     echo "🔍 Running TypeScript type check..."
-    if ! npm run typecheck; then
+    if ! pnpm run typecheck; then
         echo "❌ TypeScript type errors found. Please fix before committing."
         exit 1
     fi

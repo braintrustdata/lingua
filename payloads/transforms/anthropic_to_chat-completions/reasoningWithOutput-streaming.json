@@ -1,0 +1,1514 @@
+[
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "role": "assistant",
+          "content": "",
+          "refusal": null
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "Ne"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "Usually"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "0UQn9T9XGlJ1e"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " blue"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "4Uym4Kf3hHgfk3z"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " during"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "xMMswA4UF4YIJ"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " a"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "um"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " clear"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "pnQoRxmFk4uNyN"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " daytime"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "xyBpCocsPnn6"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " because"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "bfip887wyRNk"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " sunlight"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "b3WjzKcE49t"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " scat"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "6QUQRsA3Zayewxw"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "ters"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " in"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "T"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " the"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " atmosphere"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "AQwrJhVzv"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " ("
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "Ry"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "short"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "q1lE2cM2vkbCZUF"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "er"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "E9"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " blue"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "CpFDd3hB0KPrqla"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " wavelengths"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "if7U5OkF"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " scatter"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "K30ACOp1RYV2"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " more"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "YS61dSY2PD9OE3F"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": ")."
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "s2"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " It"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "d"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " can"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " appear"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "BvMjBJVmVk0SE"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": ":\n\n"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "2iERyhX5pIYYRDt"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "-"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "kBh"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " Gray"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "sjWZKPMozWgO2w1"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " when"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "i8sMDK1hzCREiiW"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " it"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "H"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "’s"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "ud"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " cloudy"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "JwyjjB3UNpGDW"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "\n"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "Fl"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "-"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "lhA"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " Red"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "/or"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "I"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "ange"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "/p"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "LE"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "ink"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "V"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " at"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "3"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " sunrise"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "VrKXsZiVsI8m"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " or"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "X"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " sunset"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "b3EihIrinW8pV"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "\n"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "SS"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "-"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "pCl"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " Dark"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "GL12ikRHvk7Kyd2"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " blue"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "A2ZLk6Al2e81sB4"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " or"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "h"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " black"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "PyEAO7hZlCPbxo"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " at"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "1"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " night"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "fqf1Pg6VwUWb2o"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "\n"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "6s"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "-"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "suU"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " Sometimes"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "3dDDhtQPMC"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " yellow"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "m4muRqu3IjZWn"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": ","
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "eZq"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " brown"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "zW9Usl7cS2PCsE"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": ","
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "1R9"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " or"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "G"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " green"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "VM98ae80T9xFOv"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "ish"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "w"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " in"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "g"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " storms"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "kylcWWlWAA98E"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " or"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "l"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " polluted"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "ITkgAgTGrq1"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " air"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "\n\n"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "If"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "Qu"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " you"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " have"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "3I8vYi04i6cGkIL"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " a"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "xF"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " specific"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "Br3y1kxLeNg"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " time"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "MZuIZ1EvM7Z8hNg"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " or"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "9"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " place"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "1YgsCB2dkWSSZk"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " in"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "8"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " mind"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "5WOEIK5SD7clEVI"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": ","
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "qbE"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " I"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "qP"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " can"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": ""
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " tailor"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "UKAQKdLYJGi8C"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " it"
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "O"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "."
+        },
+        "finish_reason": null
+      }
+    ],
+    "obfuscation": "bcQ"
+  },
+  {
+    "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+    "object": "chat.completion.chunk",
+    "created": 1775164840,
+    "model": "gpt-5-nano-2025-08-07",
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+      }
+    ],
+    "obfuscation": "ffLaD7EOzROriT"
+  }
+]

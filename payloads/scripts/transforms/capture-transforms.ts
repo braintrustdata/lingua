@@ -36,6 +36,10 @@ async function runConcurrently(tasks: (() => Promise<void>)[]): Promise<void> {
 let _anthropic: Anthropic | undefined;
 let _openai: OpenAI | undefined;
 
+type CallProviderOptions = {
+  stream?: boolean;
+};
+
 function getAnthropic(): Anthropic {
   if (!_anthropic) _anthropic = new Anthropic();
   return _anthropic;
@@ -79,27 +83,80 @@ async function callGoogleProvider(
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- SDK methods require specific param types, validation done by transformAndValidateRequest */
 async function callProvider(
   format: SourceFormat,
-  request: Record<string, unknown>
+  request: Record<string, unknown>,
+  options?: CallProviderOptions
 ): Promise<unknown> {
+  const stream = options?.stream === true;
   switch (format) {
     case "anthropic":
+      if (stream) {
+        return getAnthropic().messages.create(
+          {
+            ...(request as unknown as Anthropic.MessageCreateParams),
+            stream: true,
+          },
+          { headers: { "anthropic-beta": "structured-outputs-2025-11-13" } }
+        );
+      }
       return getAnthropic().messages.create(
         request as unknown as Anthropic.MessageCreateParams,
         { headers: { "anthropic-beta": "structured-outputs-2025-11-13" } }
       );
     case "chat-completions":
+      if (stream) {
+        return getOpenAI().chat.completions.create({
+          ...(request as unknown as OpenAI.ChatCompletionCreateParams),
+          stream: true,
+        } as OpenAI.ChatCompletionCreateParams);
+      }
       return getOpenAI().chat.completions.create(
         request as unknown as OpenAI.ChatCompletionCreateParams
       );
     case "responses":
+      if (stream) {
+        return getOpenAI().responses.create({
+          ...(request as unknown as OpenAI.Responses.ResponseCreateParams),
+          stream: true,
+        });
+      }
       return getOpenAI().responses.create(
         request as unknown as OpenAI.Responses.ResponseCreateParams
       );
     case "google":
+      if (stream) {
+        throw new Error(
+          "Streaming capture is not implemented for google target in capture-transforms.ts"
+        );
+      }
       return callGoogleProvider(request);
   }
 }
 /* eslint-enable @typescript-eslint/consistent-type-assertions */
+
+function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Symbol.asyncIterator in value &&
+    typeof value[Symbol.asyncIterator] === "function"
+  );
+}
+
+async function collectStreamChunks(
+  streamResponse: unknown
+): Promise<unknown[]> {
+  if (!isAsyncIterable(streamResponse)) {
+    throw new Error(
+      "Expected streaming provider response to be async iterable"
+    );
+  }
+
+  const chunks: unknown[] = [];
+  for await (const chunk of streamResponse) {
+    chunks.push(chunk);
+  }
+  return chunks;
+}
 
 export async function captureTransforms(
   filter?: string,
@@ -237,22 +294,12 @@ export async function captureTransforms(
               ? targetCase.model
               : TARGET_MODELS[streamingPair.target];
 
-          /* eslint-disable @typescript-eslint/consistent-type-assertions -- SDK requires specific param type */
-          const streamResponse = await getAnthropic().messages.create(
-            {
-              ...(streamRequest as unknown as Anthropic.MessageCreateParams),
-              stream: true,
-            },
-            {
-              headers: { "anthropic-beta": "structured-outputs-2025-11-13" },
-            }
+          const streamResponse = await callProvider(
+            streamingPair.target,
+            streamRequest,
+            { stream: true }
           );
-          /* eslint-enable @typescript-eslint/consistent-type-assertions */
-
-          const chunks: unknown[] = [];
-          for await (const chunk of streamResponse) {
-            chunks.push(chunk);
-          }
+          const chunks = await collectStreamChunks(streamResponse);
 
           writeFileSync(streamingPath, JSON.stringify(chunks, null, 2));
           console.log(
