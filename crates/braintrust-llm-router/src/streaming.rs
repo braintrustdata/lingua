@@ -9,7 +9,6 @@ use reqwest::Response;
 
 use crate::error::{Error, Result};
 use lingua::ProviderFormat;
-use lingua::TransformResult;
 
 /// A single chunk in a streaming response, carrying the JSON data and
 /// an optional SSE event type (e.g. `"message_start"` for Anthropic).
@@ -57,76 +56,104 @@ pub fn sse_stream(response: Response) -> RawResponseStream {
 /// It takes raw bytes from any provider and transforms them using lingua.
 /// The stream yields pre-serialized bytes.
 pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -> ResponseStream {
-    use futures::StreamExt;
-    Box::pin(raw.flat_map(move |result| {
-        let output_format = output_format;
-        let chunks: Vec<Result<StreamChunk>> = match result {
-            Ok(chunk) => {
-                let StreamChunk { data, event_type } = chunk;
-                if data.is_empty() || data.iter().all(|b| b.is_ascii_whitespace()) {
-                    return futures::stream::iter(vec![]);
-                }
-
-                match lingua::transform_stream_chunk(data.clone(), output_format) {
-                    Ok(TransformResult::PassThrough(pass_bytes)) => {
-                        vec![Ok(StreamChunk {
-                            data: pass_bytes,
-                            event_type,
-                        })]
-                    }
-                    Ok(TransformResult::Transformed {
-                        bytes: out_bytes, ..
-                    }) => {
-                        if out_bytes.as_ref() == b"{}" {
-                            vec![]
-                        } else {
-                            // Check if the result is a JSON array (multi-event)
-                            expand_stream_bytes(out_bytes, event_type.clone())
-                        }
-                    }
-                    Err(lingua::TransformError::UnableToDetectFormat) => {
-                        vec![Ok(StreamChunk { data, event_type })]
-                    }
-                    Err(e) => vec![Err(Error::Lingua(e))],
-                }
-            }
-            Err(e) => vec![Err(e)],
-        };
-        futures::stream::iter(chunks)
-    }))
+    Box::pin(SessionTransformStream {
+        raw,
+        session: lingua::StreamTransformSession::new(output_format),
+        pending: Vec::new(),
+        done: false,
+    })
 }
 
-/// If `bytes` is a JSON array, expand into one StreamChunk per element.
-/// Otherwise return as a single chunk.
-fn expand_stream_bytes(bytes: Bytes, event_type: Option<String>) -> Vec<Result<StreamChunk>> {
-    // Quick check: does it look like a JSON array?
-    if bytes.first() == Some(&b'[') {
-        if let Ok(arr) = lingua::serde_json::from_slice::<Vec<lingua::serde_json::Value>>(&bytes) {
-            return arr
-                .into_iter()
-                .filter_map(|v| {
-                    let serialized = lingua::serde_json::to_vec(&v).ok()?;
-                    if serialized == b"{}" {
-                        return None;
+struct SessionTransformStream {
+    raw: RawResponseStream,
+    session: lingua::StreamTransformSession,
+    pending: Vec<Result<StreamChunk>>,
+    done: bool,
+}
+
+impl Stream for SessionTransformStream {
+    type Item = Result<StreamChunk>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+
+        if !this.pending.is_empty() {
+            return Poll::Ready(Some(this.pending.remove(0)));
+        }
+
+        if this.done {
+            return Poll::Ready(None);
+        }
+
+        loop {
+            match Pin::new(&mut this.raw).poll_next(cx) {
+                Poll::Ready(Some(Ok(chunk))) => {
+                    let data = chunk.data.clone();
+                    if data.is_empty() || data.iter().all(|b| b.is_ascii_whitespace()) {
+                        continue;
                     }
-                    // Extract event type from the "type" field if present (for Anthropic SSE)
-                    let chunk_event_type = v
-                        .get("type")
-                        .and_then(|t| t.as_str())
-                        .map(|s| s.to_string())
-                        .or_else(|| event_type.clone());
-                    Some(Ok(StreamChunk {
-                        data: Bytes::from(serialized),
-                        event_type: chunk_event_type,
-                    }))
-                })
-                .collect();
+
+                    match this.session.push(data) {
+                        Ok(chunks) => {
+                            this.pending.extend(chunks.into_iter().map(|chunk| {
+                                Ok(StreamChunk {
+                                    data: chunk.data,
+                                    event_type: chunk.event_type,
+                                })
+                            }));
+                            if !this.pending.is_empty() {
+                                return Poll::Ready(Some(this.pending.remove(0)));
+                            }
+                            continue;
+                        }
+                        Err(lingua::TransformError::UnableToDetectFormat) => {
+                            return Poll::Ready(Some(Ok(chunk)));
+                        }
+                        Err(e) => {
+                            this.pending
+                                .extend(this.session.finish().into_iter().map(|chunk| {
+                                    Ok(StreamChunk {
+                                        data: chunk.data,
+                                        event_type: chunk.event_type,
+                                    })
+                                }));
+                            this.pending.push(Err(Error::Lingua(e)));
+                            return Poll::Ready(Some(this.pending.remove(0)));
+                        }
+                    }
+                }
+                Poll::Ready(Some(Err(e))) => {
+                    this.pending
+                        .extend(this.session.finish().into_iter().map(|chunk| {
+                            Ok(StreamChunk {
+                                data: chunk.data,
+                                event_type: chunk.event_type,
+                            })
+                        }));
+                    this.pending.push(Err(e));
+                    if !this.pending.is_empty() {
+                        return Poll::Ready(Some(this.pending.remove(0)));
+                    }
+                    return Poll::Ready(None);
+                }
+                Poll::Ready(None) => {
+                    this.done = true;
+                    this.pending
+                        .extend(this.session.finish().into_iter().map(|chunk| {
+                            Ok(StreamChunk {
+                                data: chunk.data,
+                                event_type: chunk.event_type,
+                            })
+                        }));
+                    if !this.pending.is_empty() {
+                        return Poll::Ready(Some(this.pending.remove(0)));
+                    }
+                    return Poll::Ready(None);
+                }
+                Poll::Pending => return Poll::Pending,
+            }
         }
     }
-    vec![Ok(StreamChunk {
-        data: bytes,
-        event_type,
-    })]
 }
 
 /// Create a single-bytes stream from a raw response.

@@ -11,5 +11,6 @@ pub use dedup::deduplicate_messages;
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
 pub use transform::{
     extract_model, parse_stream_event, response_to_universal, sanitize_payload, transform_request,
-    transform_response, transform_stream_chunk, ParsedStreamEvent, TransformError, TransformResult,
+    transform_response, transform_stream_chunk, ParsedStreamEvent, StreamOutputChunk,
+    StreamTransformSession, TransformError, TransformResult,
 };

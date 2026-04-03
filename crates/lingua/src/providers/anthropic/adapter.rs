@@ -915,12 +915,9 @@ impl ProviderAdapter for AnthropicAdapter {
         }
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Vec<Value>, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         if chunk.is_keep_alive() {
-            return Ok(vec![serde_json::json!({"type": "ping"})]);
+            return Ok(serde_json::json!({"type": "ping"}));
         }
 
         let has_finish = chunk
@@ -932,28 +929,23 @@ impl ProviderAdapter for AnthropicAdapter {
         let has_tool_calls = chunk
             .choices
             .first()
-            .and_then(|c| c.delta.as_ref())
-            .and_then(|d| d.get("tool_calls"))
-            .and_then(Value::as_array)
-            .is_some_and(|arr| !arr.is_empty());
+            .and_then(|c| c.delta_view())
+            .is_some_and(|d| !d.tool_calls.is_empty());
 
         // Detect initial metadata (model/id/usage present, no content yet).
         // Exclude chunks with tool_calls — those are handled separately.
+        // Exclude chunks with empty choices (e.g. usage-only final chunks from OpenAI).
         let has_metadata = chunk.model.is_some() || chunk.id.is_some() || chunk.usage.is_some();
         let is_initial_metadata = has_metadata
             && !has_finish
             && !has_tool_calls
+            && !chunk.choices.is_empty()
             && chunk
                 .choices
                 .first()
-                .and_then(|c| c.delta.as_ref())
-                .is_none_or(|d| {
-                    d.get("content")
-                        .and_then(Value::as_str)
-                        .is_none_or(|s| s.is_empty())
-                });
+                .and_then(|c| c.delta_view())
+                .is_none_or(|d| d.content.as_deref().is_none_or(str::is_empty));
 
-        // Helper: build a message_start event
         let build_message_start = |chunk: &UniversalStreamChunk| -> Value {
             let id = chunk
                 .id
@@ -970,8 +962,8 @@ impl ProviderAdapter for AnthropicAdapter {
                 "stop_sequence": null
             });
 
-            // Always include usage — the SDK stores message as snapshot
-            // and later does snapshot.usage.output_tokens on message_delta.
+            // Always include usage — the SDK stores message_start.message as the
+            // snapshot and later does snapshot.usage.output_tokens on message_delta.
             if let Some(obj) = message.as_object_mut() {
                 let usage_value = match &chunk.usage {
                     Some(usage) => usage.to_provider_value(ProviderFormat::Anthropic),
@@ -1003,37 +995,13 @@ impl ProviderAdapter for AnthropicAdapter {
                             .filter_map(|r| r.content.as_deref())
                             .collect::<String>();
                         if !thinking.is_empty() {
-                            return Ok(vec![
-                                message_start,
-                                serde_json::json!({
-                                    "type": "content_block_start",
-                                    "index": choice.index,
-                                    "content_block": { "type": "thinking", "thinking": "" }
-                                }),
-                                serde_json::json!({
-                                    "type": "content_block_delta",
-                                    "index": choice.index,
-                                    "delta": {
-                                        "type": "thinking_delta",
-                                        "thinking": thinking
-                                    }
-                                }),
-                            ]);
+                            return Ok(message_start);
                         }
                     }
                 }
             }
 
-            // Always emit content_block_start for text after message_start
-            // so the SDK initializes the content array before deltas arrive
-            return Ok(vec![
-                message_start,
-                serde_json::json!({
-                    "type": "content_block_start",
-                    "index": 0,
-                    "content_block": { "type": "text", "text": "" }
-                }),
-            ]);
+            return Ok(message_start);
         }
 
         if has_finish {
@@ -1062,7 +1030,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 obj_map.insert("usage".into(), usage_value);
             }
 
-            return Ok(vec![obj, serde_json::json!({"type": "message_stop"})]);
+            return Ok(obj);
         }
 
         // Content deltas
@@ -1076,28 +1044,28 @@ impl ProviderAdapter for AnthropicAdapter {
                         .filter_map(|r| r.content.as_deref())
                         .collect::<String>();
                     if !thinking.is_empty() {
-                        return Ok(vec![serde_json::json!({
+                        return Ok(serde_json::json!({
                             "type": "content_block_delta",
                             "index": choice.index,
                             "delta": {
                                 "type": "thinking_delta",
                                 "thinking": thinking
                             }
-                        })]);
+                        }));
                     }
                 }
 
                 // Signature delta
                 if let Some(signature) = delta_view.reasoning_signature {
                     if !signature.is_empty() {
-                        return Ok(vec![serde_json::json!({
+                        return Ok(serde_json::json!({
                             "type": "content_block_delta",
                             "index": choice.index,
                             "delta": {
                                 "type": "signature_delta",
                                 "signature": signature
                             }
-                        })]);
+                        }));
                     }
                 }
             }
@@ -1126,33 +1094,29 @@ impl ProviderAdapter for AnthropicAdapter {
                                 "input": input
                             }
                         });
-                        // If this chunk also has metadata, prepend message_start
-                        if has_metadata {
-                            return Ok(vec![build_message_start(chunk), content_block_start]);
-                        }
-                        return Ok(vec![content_block_start]);
+                        return Ok(content_block_start);
                     }
 
-                    return Ok(vec![serde_json::json!({
+                    return Ok(serde_json::json!({
                         "type": "content_block_delta",
                         "index": tool_index,
                         "delta": {
                             "type": "input_json_delta",
                             "partial_json": arguments
                         }
-                    })]);
+                    }));
                 }
 
                 // Text content delta
                 if let Some(content) = delta_view.content.as_deref() {
-                    return Ok(vec![serde_json::json!({
+                    return Ok(serde_json::json!({
                         "type": "content_block_delta",
                         "index": choice.index,
                         "delta": {
                             "type": "text_delta",
                             "text": content
                         }
-                    })]);
+                    }));
                 }
 
                 // Role-only delta → emit content_block_start (first chunk typically has role)
@@ -1163,24 +1127,41 @@ impl ProviderAdapter for AnthropicAdapter {
                     && content_is_missing_or_null
                     && !has_tool_calls_in_view
                 {
-                    return Ok(vec![serde_json::json!({
+                    return Ok(serde_json::json!({
                         "type": "content_block_start",
                         "index": choice.index,
                         "content_block": { "type": "text", "text": "" }
-                    })]);
+                    }));
                 }
             }
         }
 
-        // Fallback
-        Ok(vec![serde_json::json!({
+        // Usage-only chunk (e.g. OpenAI's final chunk with empty choices and usage).
+        // Emit a message_delta with the usage data. The gateway's streaming layer
+        // merges this with the preceding message_delta (which has stop_reason) so
+        // the Anthropic SDK sees a single message_delta with both fields.
+        if chunk.choices.is_empty() {
+            if let Some(ref usage) = chunk.usage {
+                let mut obj = serde_json::json!({
+                    "type": "message_delta",
+                    "delta": {}
+                });
+                if let Some(obj_map) = obj.as_object_mut() {
+                    obj_map.insert("usage".into(), usage.to_provider_value(self.format()));
+                }
+                return Ok(obj);
+            }
+            return Ok(serde_json::json!({}));
+        }
+
+        Ok(serde_json::json!({
             "type": "content_block_delta",
             "index": 0,
             "delta": {
                 "type": "text_delta",
                 "text": ""
             }
-        })])
+        }))
     }
 }
 

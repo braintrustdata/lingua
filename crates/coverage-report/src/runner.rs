@@ -442,7 +442,6 @@ fn test_single_stream_event(
                 }
             };
 
-            // Convert back to universal for comparison
             match target_adapter.stream_to_universal(transformed) {
                 Ok(u) => u,
                 Err(e) => {

@@ -1,10 +1,10 @@
 import { describe, test, expect } from "vitest";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
-import { transform_stream_chunk } from "@braintrust/lingua-wasm";
 import {
   STREAMING_PAIRS,
   TRANSFORMS_DIR,
+  buildSse,
   getStreamingTransformableCases,
   getStreamingResponsePath,
 } from "./helpers";
@@ -38,10 +38,8 @@ for (const pair of STREAMING_PAIRS) {
 
         try {
           const rawChunks = JSON.parse(readFileSync(streamingPath, "utf-8"));
-          const transformed = rawChunks.map((chunk: unknown) =>
-            transform_stream_chunk(JSON.stringify(chunk), pair.wasmSource)
-          );
-          expect(transformed).toMatchSnapshot("streaming");
+          const sse = buildSse(rawChunks, pair.wasmSource);
+          expect(sse).toMatchSnapshot("streaming");
         } catch (e) {
           const errorReason = transformErrors[pairKey]?.[caseName];
           if (errorReason) {
