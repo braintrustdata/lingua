@@ -1,41 +1,50 @@
 import { describe, test, expect } from "vitest";
-import { existsSync } from "fs";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { allTestCases, getCaseForProvider } from "../../cases";
 import {
   TRANSFORM_PAIRS,
   TARGET_MODELS,
-  loadAndValidateResponse,
-  transformResponseData,
   getTransformableCases,
   getResponsePath,
-  isErrorCapture,
-  mockJsonFetch,
+  getFixtureSkipReason,
+  registerSkippedFixtureTest,
+  useTransformTestServer,
 } from "./helpers";
 
 const TIMEOUT = 30000;
+const getServer = useTransformTestServer();
 
+// Test the responses → anthropic path: the captured response is from Anthropic,
+// and Lingua transforms it back to responses format. The AI SDK consumes that
+// transformed output, so it must pass the AI SDK's Zod validation.
 const RESPONSES_TO_ANTHROPIC_PAIRS = TRANSFORM_PAIRS.filter(
   (p) => p.source === "responses" && p.target === "anthropic"
 );
 
 for (const pair of RESPONSES_TO_ANTHROPIC_PAIRS) {
-  describe(`AI SDK validation: ${pair.target} response → ${pair.source} format`, () => {
+  const pairLabel = `${pair.target} response → ${pair.source} format`;
+  describe(`AI SDK validation: ${pairLabel}`, () => {
     for (const caseName of getTransformableCases(pair)) {
       const responsePath = getResponsePath(pair.source, pair.target, caseName);
+      const skipReason = getFixtureSkipReason(responsePath);
 
-      test.skipIf(!existsSync(responsePath) || isErrorCapture(responsePath))(
+      if (skipReason) {
+        registerSkippedFixtureTest(pairLabel, caseName, skipReason);
+        continue;
+      }
+
+      test(
         caseName,
         async () => {
-          const anthropicResponse = loadAndValidateResponse(
+          // 1. Serve the captured Anthropic response through the transform test
+          //    server so the SDK receives Lingua's wasm-transformed output.
+          getServer().useJsonFixture({
+            path: "/v1/responses",
+            targetFormat: pair.target,
+            wasmSource: pair.wasmSource,
             responsePath,
-            pair.target
-          );
-          const responsesOutput = transformResponseData(
-            anthropicResponse,
-            pair.wasmSource
-          );
+          });
 
           const targetCase = getCaseForProvider(
             allTestCases,
@@ -51,9 +60,12 @@ for (const pair of RESPONSES_TO_ANTHROPIC_PAIRS) {
 
           const provider = createOpenAI({
             apiKey: "test-key",
-            fetch: mockJsonFetch(responsesOutput),
+            baseURL: getServer().openaiBaseUrl,
           });
 
+          // 2. Validate through the actual AI SDK. It parses the transformed
+          //    response with its Zod schema and throws if required fields such
+          //    as `id` or `annotations` are missing.
           await expect(
             generateText({
               model: provider.responses(model),

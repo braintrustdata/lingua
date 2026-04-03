@@ -12,6 +12,13 @@
     },
     {
       "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "usage", "reason": "Anthropic SDK requires usage on message_start/message_delta; default zeros injected when source lacks usage" }
+      ]
+    },
+    {
+      "source": "*",
       "target": "Google",
       "fields": [
         { "pattern": "choices[*].delta.role", "reason": "Google streaming emits role/content on final events that other providers don't" },

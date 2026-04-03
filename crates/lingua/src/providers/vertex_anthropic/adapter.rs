@@ -131,10 +131,7 @@ impl ProviderAdapter for VertexAnthropicAdapter {
         self.inner.stream_to_universal(payload)
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Vec<Value>, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         self.inner.stream_from_universal(chunk)
     }
 }

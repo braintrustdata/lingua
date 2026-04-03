@@ -501,17 +501,14 @@ impl ProviderAdapter for OpenAIAdapter {
         )))
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Vec<Value>, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         // Convert back to OpenAI streaming format
         if chunk.is_keep_alive() {
             // Return empty chunk for keep-alive
-            return Ok(vec![serde_json::json!({
+            return Ok(serde_json::json!({
                 "object": "chat.completion.chunk",
                 "choices": []
-            })]);
+            }));
         }
 
         let choices: Vec<Value> = chunk
@@ -556,7 +553,7 @@ impl ProviderAdapter for OpenAIAdapter {
             );
         }
 
-        Ok(vec![Value::Object(map)])
+        Ok(Value::Object(map))
     }
 }
 

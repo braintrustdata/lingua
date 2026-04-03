@@ -571,15 +571,12 @@ impl ProviderAdapter for GoogleAdapter {
         )))
     }
 
-    fn stream_from_universal(
-        &self,
-        chunk: &UniversalStreamChunk,
-    ) -> Result<Vec<Value>, TransformError> {
+    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         if chunk.is_keep_alive() {
             // Google doesn't have a keep-alive event, return empty candidates
-            return Ok(vec![serde_json::json!({
+            return Ok(serde_json::json!({
                 "candidates": []
-            })]);
+            }));
         }
 
         let candidates: Vec<Value> = chunk
@@ -667,7 +664,7 @@ impl ProviderAdapter for GoogleAdapter {
             map.insert("usageMetadata".into(), value);
         }
 
-        Ok(vec![Value::Object(map)])
+        Ok(Value::Object(map))
     }
 }
 

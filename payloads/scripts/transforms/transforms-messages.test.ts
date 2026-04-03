@@ -1,40 +1,58 @@
 import { describe, test, expect } from "vitest";
-import { existsSync, readFileSync } from "fs";
 import Anthropic from "@anthropic-ai/sdk";
 import {
   TRANSFORM_PAIRS,
   STREAMING_PAIRS,
-  loadAndValidateResponse,
-  transformResponseData,
   getTransformableCases,
   getStreamingTransformableCases,
   getResponsePath,
   getStreamingResponsePath,
-  isErrorCapture,
-  flattenStreamChunks,
-  buildAnthropicSse,
-  mockJsonFetch,
-  mockSseFetch,
+  getFixtureSkipReason,
+  registerSkippedFixtureTest,
+  useTransformTestServer,
 } from "./helpers";
 
 const TIMEOUT = 30000;
+const getServer = useTransformTestServer();
 
+// These tests exercise the source=anthropic path: captured provider responses
+// are transformed back into Anthropic's messages format, then parsed by the
+// Anthropic SDK to verify the transformed payload still satisfies its schema.
 for (const pair of TRANSFORM_PAIRS.filter((p) => p.source === "anthropic")) {
-  describe(`messages SDK: ${pair.target} → ${pair.source}`, () => {
+  const pairLabel = `${pair.target} → ${pair.source}`;
+  describe(`messages SDK: ${pairLabel}`, () => {
     for (const caseName of getTransformableCases(pair)) {
       const path = getResponsePath(pair.source, pair.target, caseName);
+      const skipReason = getFixtureSkipReason(path);
 
-      test.skipIf(!existsSync(path) || isErrorCapture(path))(
+      if (skipReason) {
+        registerSkippedFixtureTest(pairLabel, caseName, skipReason);
+        continue;
+      }
+
+      test(
         caseName,
         async () => {
-          const response = loadAndValidateResponse(path, pair.target);
-          const output = transformResponseData(response, pair.wasmSource);
+          // 1. Serve the transformed fixture from the Anthropic messages
+          //    endpoint so the SDK receives Lingua's wasm output.
+          getServer().useJsonFixture({
+            path: "/v1/messages",
+            targetFormat: pair.target,
+            wasmSource: pair.wasmSource,
+            responsePath: path,
+          });
 
           const client = new Anthropic({
             apiKey: "test-key",
-            fetch: mockJsonFetch(output),
+            baseURL: getServer().anthropicBaseUrl,
           });
           await expect(
+            // 2. This request only provides a valid SDK entrypoint invocation.
+            //    The transformed fixture selected by pair + caseName is the
+            //    actual subject under test.
+            // This request is only a valid SDK entrypoint invocation. The
+            // transformed response fixture selected by pair + caseName is what
+            // this test is actually asserting.
             client.messages.create({
               model: "test",
               max_tokens: 1024,
@@ -49,21 +67,40 @@ for (const pair of TRANSFORM_PAIRS.filter((p) => p.source === "anthropic")) {
 }
 
 for (const pair of STREAMING_PAIRS.filter((p) => p.source === "anthropic")) {
-  describe(`messages SDK streaming: ${pair.target} → ${pair.source}`, () => {
+  const pairLabel = `${pair.target} → ${pair.source}`;
+  describe(`messages SDK streaming: ${pairLabel}`, () => {
     for (const caseName of getStreamingTransformableCases(pair)) {
       const path = getStreamingResponsePath(pair.source, pair.target, caseName);
+      const skipReason = getFixtureSkipReason(path, { streaming: true });
 
-      test.skipIf(!existsSync(path))(
+      if (skipReason) {
+        registerSkippedFixtureTest(pairLabel, caseName, skipReason);
+        continue;
+      }
+
+      test(
         caseName,
         async () => {
-          const rawChunks = JSON.parse(readFileSync(path, "utf-8"));
-          const events = flattenStreamChunks(rawChunks, pair.wasmSource);
+          // 1. Serve the transformed streaming fixture from the Anthropic
+          //    messages endpoint so the SDK parses Lingua's stream output.
+          getServer().useStreamingFixture({
+            path: "/v1/messages",
+            targetFormat: pair.target,
+            wasmSource: pair.wasmSource,
+            responsePath: path,
+          });
 
           const client = new Anthropic({
             apiKey: "test-key",
-            fetch: mockSseFetch(buildAnthropicSse(events)),
+            baseURL: getServer().anthropicBaseUrl,
           });
+          // 2. This request only opens a valid SDK streaming entrypoint. The
+          //    transformed stream fixture selected by pair + caseName is the
+          //    actual subject under test.
           const stream = client.messages.stream({
+            // This request is only a valid SDK entrypoint invocation. The
+            // transformed streaming fixture selected by pair + caseName is what
+            // this test is actually asserting.
             model: "test",
             max_tokens: 1024,
             messages: [{ role: "user", content: "test" }],

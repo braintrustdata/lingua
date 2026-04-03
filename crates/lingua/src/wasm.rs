@@ -47,6 +47,64 @@ where
         .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
 }
 
+fn transform_result_to_js(
+    pass_through: bool,
+    bytes: bytes::Bytes,
+    source_format: Option<crate::capabilities::ProviderFormat>,
+) -> Result<JsValue, JsValue> {
+    let data_str = String::from_utf8_lossy(&bytes);
+    let data =
+        js_sys::JSON::parse(&data_str).map_err(|_| JsValue::from_str("Failed to parse JSON"))?;
+
+    let obj = js_sys::Object::new();
+    if pass_through {
+        js_sys::Reflect::set(&obj, &"passThrough".into(), &JsValue::TRUE)?;
+    } else {
+        js_sys::Reflect::set(&obj, &"transformed".into(), &JsValue::TRUE)?;
+        if let Some(sf) = source_format {
+            js_sys::Reflect::set(&obj, &"sourceFormat".into(), &sf.to_string().into())?;
+        }
+    }
+    js_sys::Reflect::set(&obj, &"data".into(), &data)?;
+    Ok(obj.into())
+}
+
+fn stream_output_chunks_to_js(
+    chunks: Vec<crate::processing::stream::StreamOutputChunk>,
+) -> Result<JsValue, JsValue> {
+    let out = js_sys::Array::new();
+    for chunk in chunks {
+        let data_str = String::from_utf8_lossy(&chunk.data);
+        let data = js_sys::JSON::parse(&data_str)
+            .map_err(|_| JsValue::from_str("Failed to parse stream JSON"))?;
+        let obj = js_sys::Object::new();
+        js_sys::Reflect::set(&obj, &"data".into(), &data)?;
+        if let Some(event_type) = chunk.event_type {
+            js_sys::Reflect::set(&obj, &"eventType".into(), &event_type.into())?;
+        }
+        out.push(&obj);
+    }
+    Ok(out.into())
+}
+
+fn string_vec_to_js(values: Vec<String>) -> JsValue {
+    let out = js_sys::Array::new();
+    for value in values {
+        out.push(&value.into());
+    }
+    out.into()
+}
+
+fn stream_output_chunk_from_js(
+    data: &str,
+    event_type: Option<String>,
+) -> crate::processing::stream::StreamOutputChunk {
+    crate::processing::stream::StreamOutputChunk {
+        data: bytes::Bytes::from(data.to_owned()),
+        event_type,
+    }
+}
+
 // ============================================================================
 // WASM exports - thin wrappers around generic functions that must be implemented for every
 // provider
@@ -374,21 +432,7 @@ pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, J
         } => (false, bytes, Some(source_format)),
     };
 
-    let data_str = String::from_utf8_lossy(&bytes);
-    let data =
-        js_sys::JSON::parse(&data_str).map_err(|_| JsValue::from_str("Failed to parse JSON"))?;
-
-    let obj = js_sys::Object::new();
-    if pass_through {
-        js_sys::Reflect::set(&obj, &"passThrough".into(), &JsValue::TRUE)?;
-    } else {
-        js_sys::Reflect::set(&obj, &"transformed".into(), &JsValue::TRUE)?;
-        if let Some(sf) = source_format {
-            js_sys::Reflect::set(&obj, &"sourceFormat".into(), &sf.to_string().into())?;
-        }
-    }
-    js_sys::Reflect::set(&obj, &"data".into(), &data)?;
-    Ok(obj.into())
+    transform_result_to_js(pass_through, bytes, source_format)
 }
 
 /// Transform a streaming chunk payload from one format to another.
@@ -420,21 +464,64 @@ pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValu
         } => (false, bytes, Some(source_format)),
     };
 
-    let data_str = String::from_utf8_lossy(&bytes);
-    let data =
-        js_sys::JSON::parse(&data_str).map_err(|_| JsValue::from_str("Failed to parse JSON"))?;
+    transform_result_to_js(pass_through, bytes, source_format)
+}
 
-    let obj = js_sys::Object::new();
-    if pass_through {
-        js_sys::Reflect::set(&obj, &"passThrough".into(), &JsValue::TRUE)?;
-    } else {
-        js_sys::Reflect::set(&obj, &"transformed".into(), &JsValue::TRUE)?;
-        if let Some(sf) = source_format {
-            js_sys::Reflect::set(&obj, &"sourceFormat".into(), &sf.to_string().into())?;
-        }
+#[wasm_bindgen]
+pub struct TransformStreamSession {
+    inner: crate::processing::stream::StreamTransformSession,
+}
+
+#[wasm_bindgen]
+impl TransformStreamSession {
+    #[wasm_bindgen(constructor)]
+    pub fn new(target_format: &str) -> Result<TransformStreamSession, JsValue> {
+        let target: crate::capabilities::ProviderFormat = target_format
+            .parse()
+            .map_err(|_| JsValue::from_str(&format!("Unknown target format: {}", target_format)))?;
+
+        Ok(Self {
+            inner: crate::processing::stream::StreamTransformSession::new(target),
+        })
     }
-    js_sys::Reflect::set(&obj, &"data".into(), &data)?;
-    Ok(obj.into())
+
+    pub fn push(&mut self, input: &str) -> Result<JsValue, JsValue> {
+        let chunks = self
+            .inner
+            .push(bytes::Bytes::from(input.to_owned()))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        stream_output_chunks_to_js(chunks)
+    }
+
+    pub fn finish(&mut self) -> Result<JsValue, JsValue> {
+        stream_output_chunks_to_js(self.inner.finish())
+    }
+
+    #[wasm_bindgen(js_name = pushSse)]
+    pub fn push_sse(&mut self, input: &str) -> Result<JsValue, JsValue> {
+        let chunks = self
+            .inner
+            .push_sse(bytes::Bytes::from(input.to_owned()))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let strings = chunks
+            .into_iter()
+            .map(|bytes| String::from_utf8(bytes.to_vec()))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(string_vec_to_js(strings))
+    }
+
+    #[wasm_bindgen(js_name = finishSse)]
+    pub fn finish_sse(&mut self) -> Result<JsValue, JsValue> {
+        let strings = self
+            .inner
+            .finish_sse()
+            .into_iter()
+            .map(|bytes| String::from_utf8(bytes.to_vec()))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(string_vec_to_js(strings))
+    }
 }
 
 /// Extract model name from request without full transformation.
@@ -445,4 +532,29 @@ pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValu
 pub fn extract_model(input: &str) -> Option<String> {
     use crate::processing::transform::extract_model as extract;
     extract(input.as_bytes())
+}
+
+#[wasm_bindgen]
+pub fn format_stream_chunk_as_sse(
+    data: &str,
+    event_type: Option<String>,
+    target_format: &str,
+) -> Result<String, JsValue> {
+    let target: crate::capabilities::ProviderFormat = target_format
+        .parse()
+        .map_err(|_| JsValue::from_str(&format!("Unknown target format: {}", target_format)))?;
+    let chunk = stream_output_chunk_from_js(data, event_type);
+    let bytes = crate::processing::stream::format_stream_chunk_as_sse(&chunk, target);
+    String::from_utf8(bytes.to_vec()).map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+#[wasm_bindgen]
+pub fn stream_done_marker(target_format: &str) -> Result<Option<String>, JsValue> {
+    let target: crate::capabilities::ProviderFormat = target_format
+        .parse()
+        .map_err(|_| JsValue::from_str(&format!("Unknown target format: {}", target_format)))?;
+    crate::processing::stream::sse_done_marker(target)
+        .map(|bytes| String::from_utf8(bytes.to_vec()))
+        .transpose()
+        .map_err(|e| JsValue::from_str(&e.to_string()))
 }

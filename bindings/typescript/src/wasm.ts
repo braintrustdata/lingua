@@ -41,8 +41,14 @@ export {
 
   // Stream chunk validation and transformation
   validateChatCompletionsStreamChunk,
+  createTransformStreamSession,
   transformStreamChunk,
 } from "./converters";
 
 // Re-export types
-export type { ValidationResult, TransformStreamChunkResult } from "./converters";
+export type {
+  StreamSessionChunk,
+  TransformStreamChunkResult,
+  TransformStreamSessionHandle,
+  ValidationResult,
+} from "./converters";
