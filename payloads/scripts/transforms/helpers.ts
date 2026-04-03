@@ -231,10 +231,20 @@ export function getTransformableCases(
   });
 }
 
-// Streaming: only chat-completions → anthropic for now
-export const STREAMING_PAIRS: TransformPair[] = TRANSFORM_PAIRS.filter(
-  (p) => p.source === "chat-completions" && p.target === "anthropic"
-);
+export const STREAMING_PAIRS: TransformPair[] = [
+  {
+    source: "chat-completions",
+    target: "anthropic",
+    wasmSource: "OpenAI",
+    wasmTarget: "Anthropic",
+  },
+  {
+    source: "anthropic",
+    target: "chat-completions",
+    wasmSource: "Anthropic",
+    wasmTarget: "OpenAI",
+  },
+];
 
 export function getStreamingTransformableCases(
   pair: TransformPair,
