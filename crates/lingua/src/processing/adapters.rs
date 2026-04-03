@@ -120,7 +120,10 @@ pub trait ProviderAdapter: Send + Sync {
     /// Convert a universal streaming chunk to provider-specific format.
     ///
     /// This builds a streaming chunk payload in the provider's format.
-    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Vec<Value>, TransformError> {
         let _ = chunk;
         Err(TransformError::StreamingNotImplemented(
             self.display_name().to_string(),

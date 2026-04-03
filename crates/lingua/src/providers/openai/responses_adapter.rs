@@ -755,13 +755,16 @@ impl ProviderAdapter for ResponsesAdapter {
         }
     }
 
-    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Vec<Value>, TransformError> {
         if chunk.is_keep_alive() {
             // Return a generic in_progress event
-            return Ok(serde_json::json!({
+            return Ok(vec![serde_json::json!({
                 "type": "response.in_progress",
                 "sequence_number": 0
-            }));
+            })]);
         }
 
         // Check for finish chunk
@@ -816,10 +819,10 @@ impl ProviderAdapter for ResponsesAdapter {
                 }
             }
 
-            return Ok(serde_json::json!({
+            return Ok(vec![serde_json::json!({
                 "type": "response.created",
                 "response": response
-            }));
+            })]);
         }
 
         if has_finish {
@@ -848,10 +851,10 @@ impl ProviderAdapter for ResponsesAdapter {
                 }
             }
 
-            return Ok(serde_json::json!({
+            return Ok(vec![serde_json::json!({
                 "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
                 "response": response
-            }));
+            })]);
         }
 
         // Check for content delta
@@ -871,7 +874,7 @@ impl ProviderAdapter for ResponsesAdapter {
                                 .and_then(Value::as_str)
                                 .unwrap_or("");
 
-                            return Ok(serde_json::json!({
+                            return Ok(vec![serde_json::json!({
                                 "type": "response.output_item.added",
                                 "output_index": output_index,
                                 "item": {
@@ -881,7 +884,7 @@ impl ProviderAdapter for ResponsesAdapter {
                                     "name": name,
                                     "arguments": ""
                                 }
-                            }));
+                            })]);
                         }
 
                         // Subsequent chunks have only function.arguments
@@ -890,22 +893,22 @@ impl ProviderAdapter for ResponsesAdapter {
                             .and_then(|f| f.get("arguments"))
                             .and_then(Value::as_str)
                         {
-                            return Ok(serde_json::json!({
+                            return Ok(vec![serde_json::json!({
                                 "type": "response.function_call_arguments.delta",
                                 "output_index": output_index,
                                 "delta": arguments
-                            }));
+                            })]);
                         }
                     }
                 }
 
                 if let Some(content) = delta.get("content").and_then(Value::as_str) {
-                    return Ok(serde_json::json!({
+                    return Ok(vec![serde_json::json!({
                         "type": "response.output_text.delta",
                         "output_index": choice.index,
                         "content_index": 0,
                         "delta": content
-                    }));
+                    })]);
                 }
 
                 // If content is null or missing and no tool_calls, return empty text delta
@@ -913,23 +916,23 @@ impl ProviderAdapter for ResponsesAdapter {
                     delta.get("content").is_none() || delta.get("content") == Some(&Value::Null);
 
                 if content_is_missing_or_null && !has_tool_calls {
-                    return Ok(serde_json::json!({
+                    return Ok(vec![serde_json::json!({
                         "type": "response.output_text.delta",
                         "output_index": choice.index,
                         "content_index": 0,
                         "delta": ""
-                    }));
+                    })]);
                 }
             }
         }
 
         // Fallback - return output_text.delta with empty content
-        Ok(serde_json::json!({
+        Ok(vec![serde_json::json!({
             "type": "response.output_text.delta",
             "output_index": 0,
             "content_index": 0,
             "delta": ""
-        }))
+        })])
     }
 }
 

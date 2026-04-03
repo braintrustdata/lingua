@@ -276,6 +276,12 @@ impl ProviderAdapter for OpenAIAdapter {
         insert_opt_bool(&mut obj, "logprobs", req.params.logprobs);
         insert_opt_i64(&mut obj, "top_logprobs", req.params.top_logprobs);
         insert_opt_bool(&mut obj, "stream", req.params.stream);
+        if req.params.stream == Some(true) {
+            obj.insert(
+                "stream_options".into(),
+                serde_json::json!({"include_usage": true}),
+            );
+        }
 
         // Add parallel_tool_calls from canonical params
         if let Some(parallel) = req.params.parallel_tool_calls {
@@ -495,14 +501,17 @@ impl ProviderAdapter for OpenAIAdapter {
         )))
     }
 
-    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Vec<Value>, TransformError> {
         // Convert back to OpenAI streaming format
         if chunk.is_keep_alive() {
             // Return empty chunk for keep-alive
-            return Ok(serde_json::json!({
+            return Ok(vec![serde_json::json!({
                 "object": "chat.completion.chunk",
                 "choices": []
-            }));
+            })]);
         }
 
         let choices: Vec<Value> = chunk
@@ -547,7 +556,7 @@ impl ProviderAdapter for OpenAIAdapter {
             );
         }
 
-        Ok(Value::Object(map))
+        Ok(vec![Value::Object(map)])
     }
 }
 

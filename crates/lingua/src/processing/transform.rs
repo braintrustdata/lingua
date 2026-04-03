@@ -363,9 +363,18 @@ pub fn transform_stream_chunk(
 
     let bytes = match stream_universal {
         Some(universal_chunk) => {
-            let transformed = target_adapter.stream_from_universal(&universal_chunk)?;
+            let events = target_adapter.stream_from_universal(&universal_chunk)?;
+            // Single event → serialize as object; multiple → serialize as array
+            let value = if events.len() == 1 {
+                events
+                    .into_iter()
+                    .next()
+                    .unwrap_or(Value::Object(Default::default()))
+            } else {
+                Value::Array(events)
+            };
             Bytes::from(
-                crate::serde_json::to_vec(&transformed)
+                crate::serde_json::to_vec(&value)
                     .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
             )
         }
@@ -456,9 +465,17 @@ pub fn parse_stream_event(
 
     let bytes = match &universal_opt {
         Some(universal) => {
-            let transformed = target_adapter.stream_from_universal(universal)?;
+            let events = target_adapter.stream_from_universal(universal)?;
+            let value = if events.len() == 1 {
+                events
+                    .into_iter()
+                    .next()
+                    .unwrap_or(Value::Object(Default::default()))
+            } else {
+                Value::Array(events)
+            };
             Bytes::from(
-                crate::serde_json::to_vec(&transformed)
+                crate::serde_json::to_vec(&value)
                     .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
             )
         }

@@ -471,15 +471,16 @@ impl ProviderAdapter for BedrockAdapter {
         Ok(Some(UniversalStreamChunk::keep_alive()))
     }
 
-    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Vec<Value>, TransformError> {
         if chunk.is_keep_alive() {
-            // Return empty contentBlockStop for keep-alive
-            return Ok(serde_json::json!({
+            return Ok(vec![serde_json::json!({
                 "contentBlockStop": {"contentBlockIndex": 0}
-            }));
+            })]);
         }
 
-        // Check for finish chunk
         let has_finish = chunk
             .choices
             .first()
@@ -496,56 +497,52 @@ impl ProviderAdapter for BedrockAdapter {
                 other => other,
             });
 
-            return Ok(serde_json::json!({
+            return Ok(vec![serde_json::json!({
                 "messageStop": {
                     "stopReason": stop_reason
                 }
-            }));
+            })]);
         }
 
-        // Check for usage-only chunk
         if let (true, Some(usage)) = (chunk.choices.is_empty(), &chunk.usage) {
-            return Ok(serde_json::json!({
+            return Ok(vec![serde_json::json!({
                 "metadata": {
                     "usage": usage.to_provider_value(self.format())
                 }
-            }));
+            })]);
         }
 
-        // Check for content delta
         if let Some(choice) = chunk.choices.first() {
             if let Some(delta) = &choice.delta {
                 if let Some(content) = delta.get("content").and_then(Value::as_str) {
-                    return Ok(serde_json::json!({
+                    return Ok(vec![serde_json::json!({
                         "contentBlockDelta": {
                             "contentBlockIndex": choice.index,
                             "delta": {
                                 "text": content
                             }
                         }
-                    }));
+                    })]);
                 }
 
-                // Role-only delta - messageStart
                 if delta.get("role").is_some() && delta.get("content").is_none() {
-                    return Ok(serde_json::json!({
+                    return Ok(vec![serde_json::json!({
                         "messageStart": {
                             "role": "assistant"
                         }
-                    }));
+                    })]);
                 }
             }
         }
 
-        // Fallback - return contentBlockDelta with empty text
-        Ok(serde_json::json!({
+        Ok(vec![serde_json::json!({
             "contentBlockDelta": {
                 "contentBlockIndex": 0,
                 "delta": {
                     "text": ""
                 }
             }
-        }))
+        })])
     }
 }
 

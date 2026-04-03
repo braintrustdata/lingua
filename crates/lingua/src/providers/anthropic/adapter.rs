@@ -915,20 +915,20 @@ impl ProviderAdapter for AnthropicAdapter {
         }
     }
 
-    fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
+    fn stream_from_universal(
+        &self,
+        chunk: &UniversalStreamChunk,
+    ) -> Result<Vec<Value>, TransformError> {
         if chunk.is_keep_alive() {
-            // Return a ping event for keep-alive
-            return Ok(serde_json::json!({"type": "ping"}));
+            return Ok(vec![serde_json::json!({"type": "ping"})]);
         }
 
-        // Check if this is a finish chunk
         let has_finish = chunk
             .choices
             .first()
             .and_then(|c| c.finish_reason.as_ref())
             .is_some();
 
-        // Check if delta has tool_calls
         let has_tool_calls = chunk
             .choices
             .first()
@@ -937,24 +937,24 @@ impl ProviderAdapter for AnthropicAdapter {
             .and_then(Value::as_array)
             .is_some_and(|arr| !arr.is_empty());
 
-        // Check if this is an initial metadata chunk (has model/id/usage but no content).
-        // Exclude chunks with tool_calls - those must be handled by the tool call path.
-        let is_initial_metadata =
-            (chunk.model.is_some() || chunk.id.is_some() || chunk.usage.is_some())
-                && !has_finish
-                && !has_tool_calls
-                && chunk
-                    .choices
-                    .first()
-                    .and_then(|c| c.delta.as_ref())
-                    .is_none_or(|d| {
-                        d.get("content")
-                            .and_then(Value::as_str)
-                            .is_none_or(|s| s.is_empty())
-                    });
+        // Detect initial metadata (model/id/usage present, no content yet).
+        // Exclude chunks with tool_calls — those are handled separately.
+        let has_metadata = chunk.model.is_some() || chunk.id.is_some() || chunk.usage.is_some();
+        let is_initial_metadata = has_metadata
+            && !has_finish
+            && !has_tool_calls
+            && chunk
+                .choices
+                .first()
+                .and_then(|c| c.delta.as_ref())
+                .is_none_or(|d| {
+                    d.get("content")
+                        .and_then(Value::as_str)
+                        .is_none_or(|s| s.is_empty())
+                });
 
-        if is_initial_metadata {
-            // Return message_start with model/id/usage
+        // Helper: build a message_start event
+        let build_message_start = |chunk: &UniversalStreamChunk| -> Value {
             let id = chunk
                 .id
                 .clone()
@@ -970,20 +970,73 @@ impl ProviderAdapter for AnthropicAdapter {
                 "stop_sequence": null
             });
 
-            if let Some(usage) = &chunk.usage {
-                if let Some(obj) = message.as_object_mut() {
-                    obj.insert("usage".into(), usage.to_provider_value(self.format()));
+            // Always include usage — the SDK stores message as snapshot
+            // and later does snapshot.usage.output_tokens on message_delta.
+            if let Some(obj) = message.as_object_mut() {
+                let usage_value = match &chunk.usage {
+                    Some(usage) => usage.to_provider_value(ProviderFormat::Anthropic),
+                    None => serde_json::json!({
+                        "input_tokens": 0,
+                        "output_tokens": 0
+                    }),
+                };
+                obj.insert("usage".into(), usage_value);
+            }
+
+            serde_json::json!({
+                "type": "message_start",
+                "message": message
+            })
+        };
+
+        if is_initial_metadata {
+            let message_start = build_message_start(chunk);
+
+            // Check if this chunk also carries reasoning content — emit
+            // content_block_start + content_block_delta for thinking alongside message_start
+            if let Some(choice) = chunk.choices.first() {
+                if let Some(delta_view) = choice.delta_view() {
+                    if !delta_view.reasoning.is_empty() {
+                        let thinking = delta_view
+                            .reasoning
+                            .iter()
+                            .filter_map(|r| r.content.as_deref())
+                            .collect::<String>();
+                        if !thinking.is_empty() {
+                            return Ok(vec![
+                                message_start,
+                                serde_json::json!({
+                                    "type": "content_block_start",
+                                    "index": choice.index,
+                                    "content_block": { "type": "thinking", "thinking": "" }
+                                }),
+                                serde_json::json!({
+                                    "type": "content_block_delta",
+                                    "index": choice.index,
+                                    "delta": {
+                                        "type": "thinking_delta",
+                                        "thinking": thinking
+                                    }
+                                }),
+                            ]);
+                        }
+                    }
                 }
             }
 
-            return Ok(serde_json::json!({
-                "type": "message_start",
-                "message": message
-            }));
+            // Always emit content_block_start for text after message_start
+            // so the SDK initializes the content array before deltas arrive
+            return Ok(vec![
+                message_start,
+                serde_json::json!({
+                    "type": "content_block_start",
+                    "index": 0,
+                    "content_block": { "type": "text", "text": "" }
+                }),
+            ]);
         }
 
         if has_finish {
-            // Generate message_delta with stop_reason
             let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
             let stop_reason = finish_reason.map(|r| match r.as_str() {
                 "stop" => "end_turn",
@@ -999,18 +1052,23 @@ impl ProviderAdapter for AnthropicAdapter {
                 }
             });
 
-            if let Some(usage) = &chunk.usage {
-                if let Some(obj_map) = obj.as_object_mut() {
-                    obj_map.insert("usage".into(), usage.to_provider_value(self.format()));
-                }
+            // Always include usage — the SDK requires it on message_delta.
+            // Use real usage when available, otherwise default to zero.
+            if let Some(obj_map) = obj.as_object_mut() {
+                let usage_value = match &chunk.usage {
+                    Some(usage) => usage.to_provider_value(self.format()),
+                    None => serde_json::json!({ "output_tokens": 0 }),
+                };
+                obj_map.insert("usage".into(), usage_value);
             }
 
-            return Ok(obj);
+            return Ok(vec![obj, serde_json::json!({"type": "message_stop"})]);
         }
 
-        // Check if this is a content delta
+        // Content deltas
         if let Some(choice) = chunk.choices.first() {
             if let Some(delta_view) = choice.delta_view() {
+                // Reasoning / thinking delta
                 if !delta_view.reasoning.is_empty() {
                     let thinking = delta_view
                         .reasoning
@@ -1018,32 +1076,34 @@ impl ProviderAdapter for AnthropicAdapter {
                         .filter_map(|r| r.content.as_deref())
                         .collect::<String>();
                     if !thinking.is_empty() {
-                        return Ok(serde_json::json!({
+                        return Ok(vec![serde_json::json!({
                             "type": "content_block_delta",
                             "index": choice.index,
                             "delta": {
                                 "type": "thinking_delta",
                                 "thinking": thinking
                             }
-                        }));
+                        })]);
                     }
                 }
 
+                // Signature delta
                 if let Some(signature) = delta_view.reasoning_signature {
                     if !signature.is_empty() {
-                        return Ok(serde_json::json!({
+                        return Ok(vec![serde_json::json!({
                             "type": "content_block_delta",
                             "index": choice.index,
                             "delta": {
                                 "type": "signature_delta",
                                 "signature": signature
                             }
-                        }));
+                        })]);
                     }
                 }
             }
 
             if let Some(delta_view) = choice.delta_view() {
+                // Tool calls
                 if let Some(tool_call) = delta_view.tool_calls.first() {
                     let tool_index = tool_call.index.unwrap_or(choice.index);
                     let function = tool_call.function.clone().unwrap_or_default();
@@ -1056,7 +1116,7 @@ impl ProviderAdapter for AnthropicAdapter {
                             .ok()
                             .filter(Value::is_object)
                             .unwrap_or_else(|| serde_json::json!({}));
-                        return Ok(serde_json::json!({
+                        let content_block_start = serde_json::json!({
                             "type": "content_block_start",
                             "index": tool_index,
                             "content_block": {
@@ -1065,55 +1125,62 @@ impl ProviderAdapter for AnthropicAdapter {
                                 "name": tool_name,
                                 "input": input
                             }
-                        }));
+                        });
+                        // If this chunk also has metadata, prepend message_start
+                        if has_metadata {
+                            return Ok(vec![build_message_start(chunk), content_block_start]);
+                        }
+                        return Ok(vec![content_block_start]);
                     }
 
-                    return Ok(serde_json::json!({
+                    return Ok(vec![serde_json::json!({
                         "type": "content_block_delta",
                         "index": tool_index,
                         "delta": {
                             "type": "input_json_delta",
                             "partial_json": arguments
                         }
-                    }));
+                    })]);
                 }
+
+                // Text content delta
                 if let Some(content) = delta_view.content.as_deref() {
-                    return Ok(serde_json::json!({
-                            "type": "content_block_delta",
-                            "index": choice.index,
+                    return Ok(vec![serde_json::json!({
+                        "type": "content_block_delta",
+                        "index": choice.index,
                         "delta": {
                             "type": "text_delta",
                             "text": content
                         }
-                    }));
+                    })]);
                 }
 
-                // Role-only delta or null content without tool_calls - return empty text_delta
+                // Role-only delta → emit content_block_start (first chunk typically has role)
                 let content_is_missing_or_null = delta_view.content.is_none();
-                let has_tool_calls = !delta_view.tool_calls.is_empty();
+                let has_tool_calls_in_view = !delta_view.tool_calls.is_empty();
 
-                if delta_view.role.is_some() && content_is_missing_or_null && !has_tool_calls {
-                    return Ok(serde_json::json!({
-                            "type": "content_block_delta",
-                            "index": choice.index,
-                        "delta": {
-                            "type": "text_delta",
-                            "text": ""
-                        }
-                    }));
+                if delta_view.role.is_some()
+                    && content_is_missing_or_null
+                    && !has_tool_calls_in_view
+                {
+                    return Ok(vec![serde_json::json!({
+                        "type": "content_block_start",
+                        "index": choice.index,
+                        "content_block": { "type": "text", "text": "" }
+                    })]);
                 }
             }
         }
 
-        // Fallback - return content_block_delta with empty text
-        Ok(serde_json::json!({
+        // Fallback
+        Ok(vec![serde_json::json!({
             "type": "content_block_delta",
             "index": 0,
             "delta": {
                 "type": "text_delta",
                 "text": ""
             }
-        }))
+        })])
     }
 }
 

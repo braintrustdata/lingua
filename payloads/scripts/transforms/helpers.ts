@@ -1,8 +1,9 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import {
   transform_request,
   transform_response,
+  transform_stream_chunk,
   validate_anthropic_request,
   validate_anthropic_response,
   validate_chat_completions_request,
@@ -254,3 +255,69 @@ export function getStreamingTransformableCases(
     (caseName) => !isParamCase(caseName)
   );
 }
+
+// ============================================================================
+// SDK test helpers
+// ============================================================================
+
+export function isErrorCapture(path: string): boolean {
+  if (!existsSync(path)) return false;
+  const raw = JSON.parse(readFileSync(path, "utf-8"));
+  return "error" in raw && !("id" in raw);
+}
+
+export function flattenStreamChunks(
+  rawChunks: unknown[],
+  wasmSource: WasmFormat
+): unknown[] {
+  return rawChunks.flatMap((chunk) => {
+    const result: { data?: unknown } = transform_stream_chunk(
+      JSON.stringify(chunk),
+      wasmSource
+    );
+    if (result.data == null) return [];
+    return Array.isArray(result.data) ? result.data : [result.data];
+  });
+}
+
+export function buildOpenAISse(events: unknown[]): string {
+  return (
+    events.map((e) => `data: ${JSON.stringify(e)}`).join("\n\n") +
+    "\n\ndata: [DONE]\n\n"
+  );
+}
+
+export function buildAnthropicSse(events: unknown[]): string {
+  return (
+    events
+      .map((e) => {
+        const type =
+          e !== null &&
+          typeof e === "object" &&
+          "type" in e &&
+          typeof e.type === "string"
+            ? e.type
+            : "unknown";
+        return `event: ${type}\ndata: ${JSON.stringify(e)}`;
+      })
+      .join("\n\n") + "\n\n"
+  );
+}
+
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- mock fetch for SDK testing */
+export function mockFetch(body: string, contentType: string): typeof fetch {
+  return (async () =>
+    new Response(body, {
+      status: 200,
+      headers: { "content-type": contentType },
+    })) as unknown as typeof fetch;
+}
+
+export function mockJsonFetch(body: unknown): typeof fetch {
+  return mockFetch(JSON.stringify(body), "application/json");
+}
+
+export function mockSseFetch(sseBody: string): typeof fetch {
+  return mockFetch(sseBody, "text/event-stream");
+}
+/* eslint-enable @typescript-eslint/consistent-type-assertions */

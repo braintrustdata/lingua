@@ -58,47 +58,75 @@ pub fn sse_stream(response: Response) -> RawResponseStream {
 /// The stream yields pre-serialized bytes.
 pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -> ResponseStream {
     use futures::StreamExt;
-    Box::pin(raw.filter_map(move |result| {
+    Box::pin(raw.flat_map(move |result| {
         let output_format = output_format;
-        async move {
-            match result {
-                Ok(chunk) => {
-                    let StreamChunk { data, event_type } = chunk;
-                    // Check for keep-alive marker (empty or whitespace-only bytes)
-                    if data.is_empty() || data.iter().all(|b| b.is_ascii_whitespace()) {
-                        return None;
-                    }
+        let chunks: Vec<Result<StreamChunk>> = match result {
+            Ok(chunk) => {
+                let StreamChunk { data, event_type } = chunk;
+                if data.is_empty() || data.iter().all(|b| b.is_ascii_whitespace()) {
+                    return futures::stream::iter(vec![]);
+                }
 
-                    // Transform with lingua (bytes-based)
-                    match lingua::transform_stream_chunk(data.clone(), output_format) {
-                        Ok(TransformResult::PassThrough(pass_bytes)) => Some(Ok(StreamChunk {
+                match lingua::transform_stream_chunk(data.clone(), output_format) {
+                    Ok(TransformResult::PassThrough(pass_bytes)) => {
+                        vec![Ok(StreamChunk {
                             data: pass_bytes,
                             event_type,
-                        })),
-                        Ok(TransformResult::Transformed {
-                            bytes: out_bytes, ..
-                        }) => {
-                            // Skip empty payloads (from terminal events like message_stop)
-                            if out_bytes.as_ref() == b"{}" {
-                                None
-                            } else {
-                                Some(Ok(StreamChunk {
-                                    data: out_bytes,
-                                    event_type,
-                                }))
-                            }
-                        }
-                        Err(lingua::TransformError::UnableToDetectFormat) => {
-                            // Pass through unrecognized formats
-                            Some(Ok(StreamChunk { data, event_type }))
-                        }
-                        Err(e) => Some(Err(Error::Lingua(e))),
+                        })]
                     }
+                    Ok(TransformResult::Transformed {
+                        bytes: out_bytes, ..
+                    }) => {
+                        if out_bytes.as_ref() == b"{}" {
+                            vec![]
+                        } else {
+                            // Check if the result is a JSON array (multi-event)
+                            expand_stream_bytes(out_bytes, event_type.clone())
+                        }
+                    }
+                    Err(lingua::TransformError::UnableToDetectFormat) => {
+                        vec![Ok(StreamChunk { data, event_type })]
+                    }
+                    Err(e) => vec![Err(Error::Lingua(e))],
                 }
-                Err(e) => Some(Err(e)),
             }
-        }
+            Err(e) => vec![Err(e)],
+        };
+        futures::stream::iter(chunks)
     }))
+}
+
+/// If `bytes` is a JSON array, expand into one StreamChunk per element.
+/// Otherwise return as a single chunk.
+fn expand_stream_bytes(bytes: Bytes, event_type: Option<String>) -> Vec<Result<StreamChunk>> {
+    // Quick check: does it look like a JSON array?
+    if bytes.first() == Some(&b'[') {
+        if let Ok(arr) = lingua::serde_json::from_slice::<Vec<lingua::serde_json::Value>>(&bytes) {
+            return arr
+                .into_iter()
+                .filter_map(|v| {
+                    let serialized = lingua::serde_json::to_vec(&v).ok()?;
+                    if serialized == b"{}" {
+                        return None;
+                    }
+                    // Extract event type from the "type" field if present (for Anthropic SSE)
+                    let chunk_event_type = v
+                        .get("type")
+                        .and_then(|t| t.as_str())
+                        .map(|s| s.to_string())
+                        .or_else(|| event_type.clone());
+                    Some(Ok(StreamChunk {
+                        data: Bytes::from(serialized),
+                        event_type: chunk_event_type,
+                    }))
+                })
+                .collect();
+        }
+    }
+    vec![Ok(StreamChunk {
+        data: bytes,
+        event_type,
+    })]
 }
 
 /// Create a single-bytes stream from a raw response.

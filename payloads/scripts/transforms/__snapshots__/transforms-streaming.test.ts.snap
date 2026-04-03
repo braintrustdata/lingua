@@ -3,18 +3,32 @@
 exports[`streaming: anthropic → chat-completions > complexReasoningRequest > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJkt7wWytDi8Nj25RE2kiFvAJAw7",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJkt7wWytDi8Nj25RE2kiFvAJAw7",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -7868,12 +7882,20 @@ exports[`streaming: anthropic → chat-completions > complexReasoningRequest > s
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "end_turn",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "end_turn",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -7883,28 +7905,50 @@ exports[`streaming: anthropic → chat-completions > complexReasoningRequest > s
 exports[`streaming: anthropic → chat-completions > multimodalRequest > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJks6CVOvWns8GNiynFRRn4ehgOp",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJks6CVOvWns8GNiynFRRn4ehgOp",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "max_tokens",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "max_tokens",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -7914,18 +7958,32 @@ exports[`streaming: anthropic → chat-completions > multimodalRequest > streami
 exports[`streaming: anthropic → chat-completions > parallelToolCallsRequest > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJkuG4BaCAMIm7LP1J2Z3sh5sXHT",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJkuG4BaCAMIm7LP1J2Z3sh5sXHT",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -8523,12 +8581,20 @@ exports[`streaming: anthropic → chat-completions > parallelToolCallsRequest > 
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "end_turn",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "end_turn",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -8538,18 +8604,32 @@ exports[`streaming: anthropic → chat-completions > parallelToolCallsRequest > 
 exports[`streaming: anthropic → chat-completions > reasoningRequest > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJkr9f78WFuXJLs57NUzFZLu05KY",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJkr9f78WFuXJLs57NUzFZLu05KY",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -10197,12 +10277,20 @@ exports[`streaming: anthropic → chat-completions > reasoningRequest > streamin
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "end_turn",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "end_turn",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -10212,28 +10300,50 @@ exports[`streaming: anthropic → chat-completions > reasoningRequest > streamin
 exports[`streaming: anthropic → chat-completions > reasoningRequestTruncated > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJkrNrNugghqC0hWDiKrEWQqNEAl",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJkrNrNugghqC0hWDiKrEWQqNEAl",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "max_tokens",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "max_tokens",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -10243,18 +10353,32 @@ exports[`streaming: anthropic → chat-completions > reasoningRequestTruncated >
 exports[`streaming: anthropic → chat-completions > reasoningWithOutput > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJkuyMc6KaVXNn6oIKfHqYFwwtQm",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -11250,12 +11374,20 @@ exports[`streaming: anthropic → chat-completions > reasoningWithOutput > strea
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "end_turn",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "end_turn",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -11265,18 +11397,32 @@ exports[`streaming: anthropic → chat-completions > reasoningWithOutput > strea
 exports[`streaming: anthropic → chat-completions > simpleRequest > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJksDoi8UjWxw2Iy8FlBDSMIUIjF",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJksDoi8UjWxw2Iy8FlBDSMIUIjF",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -11413,12 +11559,20 @@ exports[`streaming: anthropic → chat-completions > simpleRequest > streaming 1
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "end_turn",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "end_turn",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -11428,28 +11582,50 @@ exports[`streaming: anthropic → chat-completions > simpleRequest > streaming 1
 exports[`streaming: anthropic → chat-completions > simpleRequestTruncated > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJkrMIU2J4v7iRytwMG7LOig077e",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJkrMIU2J4v7iRytwMG7LOig077e",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "max_tokens",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "max_tokens",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -11459,28 +11635,50 @@ exports[`streaming: anthropic → chat-completions > simpleRequestTruncated > st
 exports[`streaming: anthropic → chat-completions > systemMessageArrayContent > streaming 1`] = `
 [
   {
-    "data": {
-      "message": {
-        "content": [],
-        "id": "chatcmpl-DQJkv4fvJmyemAFjFO7Exu2n0aL8u",
-        "model": "gpt-5-nano-2025-08-07",
-        "role": "assistant",
-        "stop_reason": null,
-        "stop_sequence": null,
-        "type": "message",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJkv4fvJmyemAFjFO7Exu2n0aL8u",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "type": "message_start",
-    },
+      {
+        "content_block": {
+          "text": "",
+          "type": "text",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "max_tokens",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "max_tokens",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -11490,16 +11688,34 @@ exports[`streaming: anthropic → chat-completions > systemMessageArrayContent >
 exports[`streaming: anthropic → chat-completions > toolCallRequest > streaming 1`] = `
 [
   {
-    "data": {
-      "content_block": {
-        "id": "call_GorRpSS4hdX9lDaegxdR909C",
-        "input": {},
-        "name": "get_weather",
-        "type": "tool_use",
+    "data": [
+      {
+        "message": {
+          "content": [],
+          "id": "chatcmpl-DQJkrhXHM5kZSPOL7seV4DykZQNtt",
+          "model": "gpt-5-nano-2025-08-07",
+          "role": "assistant",
+          "stop_reason": null,
+          "stop_sequence": null,
+          "type": "message",
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+          },
+        },
+        "type": "message_start",
       },
-      "index": 0,
-      "type": "content_block_start",
-    },
+      {
+        "content_block": {
+          "id": "call_GorRpSS4hdX9lDaegxdR909C",
+          "input": {},
+          "name": "get_weather",
+          "type": "tool_use",
+        },
+        "index": 0,
+        "type": "content_block_start",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
@@ -11600,12 +11816,20 @@ exports[`streaming: anthropic → chat-completions > toolCallRequest > streaming
     "transformed": true,
   },
   {
-    "data": {
-      "delta": {
-        "stop_reason": "tool_use",
+    "data": [
+      {
+        "delta": {
+          "stop_reason": "tool_use",
+        },
+        "type": "message_delta",
+        "usage": {
+          "output_tokens": 0,
+        },
       },
-      "type": "message_delta",
-    },
+      {
+        "type": "message_stop",
+      },
+    ],
     "sourceFormat": "openai",
     "transformed": true,
   },
