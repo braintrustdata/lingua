@@ -775,10 +775,8 @@ impl ProviderAdapter for ResponsesAdapter {
         let has_tool_calls = chunk
             .choices
             .first()
-            .and_then(|c| c.delta.as_ref())
-            .and_then(|d| d.get("tool_calls"))
-            .and_then(Value::as_array)
-            .is_some_and(|arr| !arr.is_empty());
+            .and_then(|c| c.delta_view())
+            .is_some_and(|d| !d.tool_calls.is_empty());
 
         // Check if this is an initial metadata chunk (has model/id/usage but no content)
         // Exclude chunks with tool_calls - those must be handled by the tool call path
@@ -789,12 +787,8 @@ impl ProviderAdapter for ResponsesAdapter {
                 && chunk
                     .choices
                     .first()
-                    .and_then(|c| c.delta.as_ref())
-                    .is_none_or(|d| {
-                        d.get("content")
-                            .and_then(Value::as_str)
-                            .is_none_or(|s| s.is_empty())
-                    });
+                    .and_then(|c| c.delta_view())
+                    .is_none_or(|d| d.content.as_deref().is_none_or(str::is_empty));
 
         if is_initial_metadata {
             // Return response.created with model/id/usage
@@ -856,50 +850,44 @@ impl ProviderAdapter for ResponsesAdapter {
 
         // Check for content delta
         if let Some(choice) = chunk.choices.first() {
-            if let Some(delta) = &choice.delta {
-                // Check for tool_calls in the delta
-                if let Some(tool_calls) = delta.get("tool_calls").and_then(Value::as_array) {
-                    if let Some(tc) = tool_calls.first() {
-                        let output_index =
-                            tc.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+            if let Some(delta) = choice.delta_view() {
+                if let Some(tool_call) = delta.tool_calls.first() {
+                    let output_index = tool_call.index.unwrap_or(0);
 
-                        // Initial tool call chunk has an id field
-                        if let Some(call_id) = tc.get("id").and_then(Value::as_str) {
-                            let name = tc
-                                .get("function")
-                                .and_then(|f| f.get("name"))
-                                .and_then(Value::as_str)
-                                .unwrap_or("");
+                    if let Some(call_id) = tool_call.id.as_deref() {
+                        let name = tool_call
+                            .function
+                            .as_ref()
+                            .and_then(|f| f.name.as_deref())
+                            .unwrap_or("");
 
-                            return Ok(serde_json::json!({
-                                "type": "response.output_item.added",
-                                "output_index": output_index,
-                                "item": {
-                                    "type": "function_call",
-                                    "status": "in_progress",
-                                    "call_id": call_id,
-                                    "name": name,
-                                    "arguments": ""
-                                }
-                            }));
-                        }
+                        return Ok(serde_json::json!({
+                            "type": "response.output_item.added",
+                            "output_index": output_index,
+                            "item": {
+                                "type": "function_call",
+                                "status": "in_progress",
+                                "call_id": call_id,
+                                "name": name,
+                                "arguments": ""
+                            }
+                        }));
+                    }
 
-                        // Subsequent chunks have only function.arguments
-                        if let Some(arguments) = tc
-                            .get("function")
-                            .and_then(|f| f.get("arguments"))
-                            .and_then(Value::as_str)
-                        {
-                            return Ok(serde_json::json!({
-                                "type": "response.function_call_arguments.delta",
-                                "output_index": output_index,
-                                "delta": arguments
-                            }));
-                        }
+                    if let Some(arguments) = tool_call
+                        .function
+                        .as_ref()
+                        .and_then(|f| f.arguments.as_deref())
+                    {
+                        return Ok(serde_json::json!({
+                            "type": "response.function_call_arguments.delta",
+                            "output_index": output_index,
+                            "delta": arguments
+                        }));
                     }
                 }
 
-                if let Some(content) = delta.get("content").and_then(Value::as_str) {
+                if let Some(content) = delta.content.as_deref() {
                     return Ok(serde_json::json!({
                         "type": "response.output_text.delta",
                         "output_index": choice.index,
@@ -909,8 +897,7 @@ impl ProviderAdapter for ResponsesAdapter {
                 }
 
                 // If content is null or missing and no tool_calls, return empty text delta
-                let content_is_missing_or_null =
-                    delta.get("content").is_none() || delta.get("content") == Some(&Value::Null);
+                let content_is_missing_or_null = delta.content.is_none();
 
                 if content_is_missing_or_null && !has_tool_calls {
                     return Ok(serde_json::json!({

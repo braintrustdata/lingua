@@ -1,6 +1,14 @@
-import { readFileSync } from "fs";
-import { join } from "path";
+import { existsSync, readFileSync } from "fs";
 import {
+  createServer,
+  type IncomingMessage,
+  type Server,
+  type ServerResponse,
+} from "http";
+import { join } from "path";
+import { afterAll, beforeAll, beforeEach, test } from "vitest";
+import {
+  TransformStreamSession,
   transform_request,
   transform_response,
   validate_anthropic_request,
@@ -33,6 +41,24 @@ export interface TransformPair {
   wasmSource: WasmFormat;
   wasmTarget: WasmFormat;
 }
+
+export interface FixtureHandlerConfig {
+  path: string;
+  targetFormat: SourceFormat;
+  wasmSource: WasmFormat;
+  responsePath: string;
+  requireStream?: boolean;
+}
+
+type FixtureSkipReason =
+  | "missing capture fixture"
+  | "missing streaming capture fixture"
+  | "error capture fixture";
+
+type FixtureHandler = (
+  req: IncomingMessage,
+  res: ServerResponse
+) => Promise<void>;
 
 export const TRANSFORM_PAIRS: TransformPair[] = [
   {
@@ -254,3 +280,290 @@ export function getStreamingTransformableCases(
     (caseName) => !isParamCase(caseName)
   );
 }
+
+// ============================================================================
+// SDK test helpers
+// ============================================================================
+
+export function isErrorCapture(path: string): boolean {
+  if (!existsSync(path)) return false;
+  const raw = JSON.parse(readFileSync(path, "utf-8"));
+  return "error" in raw && !("id" in raw);
+}
+
+export function flattenStreamChunks(
+  rawChunks: unknown[],
+  wasmSource: WasmFormat
+): { data: unknown; eventType?: string }[] {
+  const session = new TransformStreamSession(wasmSource);
+  const events = rawChunks.flatMap((chunk) =>
+    session.push(JSON.stringify(chunk))
+  );
+  return events.concat(session.finish());
+}
+
+export function buildSse(rawChunks: unknown[], wasmSource: WasmFormat): string {
+  const session = new TransformStreamSession(wasmSource);
+  const body = rawChunks.flatMap((chunk) =>
+    session.pushSse(JSON.stringify(chunk))
+  );
+  return body.concat(session.finishSse()).join("");
+}
+
+async function readJsonRequest(req: IncomingMessage): Promise<unknown> {
+  const chunks: Uint8Array[] = [];
+
+  for await (const chunk of req) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+
+  const body = Buffer.concat(chunks).toString("utf-8");
+  if (!body) {
+    throw new Error("Expected JSON request body");
+  }
+
+  return JSON.parse(body);
+}
+
+async function writeJsonFixtureResponse(
+  res: ServerResponse,
+  config: FixtureHandlerConfig
+): Promise<void> {
+  const response = loadAndValidateResponse(
+    config.responsePath,
+    config.targetFormat
+  );
+  const output = transformResponseData(response, config.wasmSource);
+
+  res.writeHead(200, { "content-type": "application/json" });
+  res.end(JSON.stringify(output));
+}
+
+async function writeStreamingFixtureResponse(
+  res: ServerResponse,
+  config: FixtureHandlerConfig
+): Promise<void> {
+  const rawChunks = JSON.parse(readFileSync(config.responsePath, "utf-8"));
+  const sseBody = buildSse(rawChunks, config.wasmSource);
+
+  res.writeHead(200, {
+    "content-type": "text/event-stream",
+    "cache-control": "no-cache",
+    connection: "keep-alive",
+  });
+  res.end(sseBody);
+}
+
+export class TransformTestServer {
+  private readonly server: Server;
+  private currentHandler: FixtureHandler | null = null;
+  private port: number | null = null;
+
+  constructor() {
+    this.server = createServer(async (req, res) => {
+      try {
+        if (!this.currentHandler) {
+          res.writeHead(500, { "content-type": "application/json" });
+          res.end(JSON.stringify({ error: "No test handler configured" }));
+          return;
+        }
+
+        await this.currentHandler(req, res);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown server error";
+        res.writeHead(500, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: message }));
+      }
+    });
+  }
+
+  get rootBaseUrl(): string {
+    if (this.port === null) {
+      throw new Error("Transform test server has not been started");
+    }
+    return `http://127.0.0.1:${this.port}`;
+  }
+
+  get openaiBaseUrl(): string {
+    return `${this.rootBaseUrl}/v1`;
+  }
+
+  get anthropicBaseUrl(): string {
+    return this.rootBaseUrl;
+  }
+
+  async start(): Promise<void> {
+    if (this.port !== null) {
+      return;
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      this.server.once("error", reject);
+      this.server.listen(0, "127.0.0.1", () => {
+        this.server.off("error", reject);
+        const address = this.server.address();
+        if (!address || typeof address === "string") {
+          reject(new Error("Failed to acquire test server port"));
+          return;
+        }
+        this.port = address.port;
+        resolve();
+      });
+    });
+  }
+
+  reset(): void {
+    this.currentHandler = null;
+  }
+
+  async close(): Promise<void> {
+    if (this.port === null) {
+      return;
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      this.server.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    });
+    this.port = null;
+    this.currentHandler = null;
+  }
+
+  useJsonFixture(config: FixtureHandlerConfig): void {
+    this.currentHandler = async (req, res) => {
+      if (req.method !== "POST") {
+        res.writeHead(405, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "Method not allowed" }));
+        return;
+      }
+
+      if (req.url !== config.path) {
+        res.writeHead(404, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: `Unexpected path: ${req.url}` }));
+        return;
+      }
+
+      const body = await readJsonRequest(req);
+      if (
+        typeof body !== "object" ||
+        body === null ||
+        Array.isArray(body) ||
+        ("stream" in body && body.stream === true)
+      ) {
+        throw new Error("Expected non-streaming JSON request payload");
+      }
+
+      await writeJsonFixtureResponse(res, config);
+    };
+  }
+
+  useStreamingFixture(config: FixtureHandlerConfig): void {
+    this.currentHandler = async (req, res) => {
+      if (req.method !== "POST") {
+        res.writeHead(405, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "Method not allowed" }));
+        return;
+      }
+
+      if (req.url !== config.path) {
+        res.writeHead(404, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: `Unexpected path: ${req.url}` }));
+        return;
+      }
+
+      const body = await readJsonRequest(req);
+      if (
+        typeof body !== "object" ||
+        body === null ||
+        Array.isArray(body) ||
+        !("stream" in body) ||
+        body.stream !== true
+      ) {
+        throw new Error("Expected streaming JSON request payload");
+      }
+
+      await writeStreamingFixtureResponse(res, config);
+    };
+  }
+}
+
+export async function createTransformTestServer(): Promise<TransformTestServer> {
+  const server = new TransformTestServer();
+  await server.start();
+  return server;
+}
+
+export function useTransformTestServer(): () => TransformTestServer {
+  let server: TransformTestServer | undefined;
+
+  beforeAll(async () => {
+    server = await createTransformTestServer();
+  });
+
+  beforeEach(() => {
+    server?.reset();
+  });
+
+  afterAll(async () => {
+    await server?.close();
+  });
+
+  return () => {
+    if (!server) {
+      throw new Error("Transform test server was not started");
+    }
+    return server;
+  };
+}
+
+export function getFixtureSkipReason(
+  path: string,
+  options: {
+    allowErrorCapture?: boolean;
+    streaming?: boolean;
+  } = {}
+): FixtureSkipReason | null {
+  if (!existsSync(path)) {
+    return options.streaming
+      ? "missing streaming capture fixture"
+      : "missing capture fixture";
+  }
+
+  if (!options.allowErrorCapture && isErrorCapture(path)) {
+    return "error capture fixture";
+  }
+
+  return null;
+}
+
+export function registerSkippedFixtureTest(
+  pairLabel: string,
+  caseName: string,
+  reason: FixtureSkipReason
+): void {
+  test.skip(`${pairLabel} / ${caseName}: ${reason}`, () => {});
+}
+
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- mock fetch for SDK testing */
+export function mockFetch(body: string, contentType: string): typeof fetch {
+  return (async () =>
+    new Response(body, {
+      status: 200,
+      headers: { "content-type": contentType },
+    })) as unknown as typeof fetch;
+}
+
+export function mockJsonFetch(body: unknown): typeof fetch {
+  return mockFetch(JSON.stringify(body), "application/json");
+}
+
+export function mockSseFetch(sseBody: string): typeof fetch {
+  return mockFetch(sseBody, "text/event-stream");
+}
+/* eslint-enable @typescript-eslint/consistent-type-assertions */

@@ -473,13 +473,11 @@ impl ProviderAdapter for BedrockAdapter {
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
         if chunk.is_keep_alive() {
-            // Return empty contentBlockStop for keep-alive
             return Ok(serde_json::json!({
                 "contentBlockStop": {"contentBlockIndex": 0}
             }));
         }
 
-        // Check for finish chunk
         let has_finish = chunk
             .choices
             .first()
@@ -503,7 +501,6 @@ impl ProviderAdapter for BedrockAdapter {
             }));
         }
 
-        // Check for usage-only chunk
         if let (true, Some(usage)) = (chunk.choices.is_empty(), &chunk.usage) {
             return Ok(serde_json::json!({
                 "metadata": {
@@ -512,7 +509,6 @@ impl ProviderAdapter for BedrockAdapter {
             }));
         }
 
-        // Check for content delta
         if let Some(choice) = chunk.choices.first() {
             if let Some(delta) = &choice.delta {
                 if let Some(content) = delta.get("content").and_then(Value::as_str) {
@@ -526,7 +522,6 @@ impl ProviderAdapter for BedrockAdapter {
                     }));
                 }
 
-                // Role-only delta - messageStart
                 if delta.get("role").is_some() && delta.get("content").is_none() {
                     return Ok(serde_json::json!({
                         "messageStart": {
@@ -537,7 +532,6 @@ impl ProviderAdapter for BedrockAdapter {
             }
         }
 
-        // Fallback - return contentBlockDelta with empty text
         Ok(serde_json::json!({
             "contentBlockDelta": {
                 "contentBlockIndex": 0,

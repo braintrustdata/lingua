@@ -9,7 +9,6 @@ use reqwest::Response;
 
 use crate::error::{Error, Result};
 use lingua::ProviderFormat;
-use lingua::TransformResult;
 
 /// A single chunk in a streaming response, carrying the JSON data and
 /// an optional SSE event type (e.g. `"message_start"` for Anthropic).
@@ -57,48 +56,104 @@ pub fn sse_stream(response: Response) -> RawResponseStream {
 /// It takes raw bytes from any provider and transforms them using lingua.
 /// The stream yields pre-serialized bytes.
 pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -> ResponseStream {
-    use futures::StreamExt;
-    Box::pin(raw.filter_map(move |result| {
-        let output_format = output_format;
-        async move {
-            match result {
-                Ok(chunk) => {
-                    let StreamChunk { data, event_type } = chunk;
-                    // Check for keep-alive marker (empty or whitespace-only bytes)
+    Box::pin(SessionTransformStream {
+        raw,
+        session: lingua::StreamTransformSession::new(output_format),
+        pending: Vec::new(),
+        done: false,
+    })
+}
+
+struct SessionTransformStream {
+    raw: RawResponseStream,
+    session: lingua::StreamTransformSession,
+    pending: Vec<Result<StreamChunk>>,
+    done: bool,
+}
+
+impl Stream for SessionTransformStream {
+    type Item = Result<StreamChunk>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+
+        if !this.pending.is_empty() {
+            return Poll::Ready(Some(this.pending.remove(0)));
+        }
+
+        if this.done {
+            return Poll::Ready(None);
+        }
+
+        loop {
+            match Pin::new(&mut this.raw).poll_next(cx) {
+                Poll::Ready(Some(Ok(chunk))) => {
+                    let data = chunk.data.clone();
                     if data.is_empty() || data.iter().all(|b| b.is_ascii_whitespace()) {
-                        return None;
+                        continue;
                     }
 
-                    // Transform with lingua (bytes-based)
-                    match lingua::transform_stream_chunk(data.clone(), output_format) {
-                        Ok(TransformResult::PassThrough(pass_bytes)) => Some(Ok(StreamChunk {
-                            data: pass_bytes,
-                            event_type,
-                        })),
-                        Ok(TransformResult::Transformed {
-                            bytes: out_bytes, ..
-                        }) => {
-                            // Skip empty payloads (from terminal events like message_stop)
-                            if out_bytes.as_ref() == b"{}" {
-                                None
-                            } else {
-                                Some(Ok(StreamChunk {
-                                    data: out_bytes,
-                                    event_type,
-                                }))
+                    match this.session.push(data) {
+                        Ok(chunks) => {
+                            this.pending.extend(chunks.into_iter().map(|chunk| {
+                                Ok(StreamChunk {
+                                    data: chunk.data,
+                                    event_type: chunk.event_type,
+                                })
+                            }));
+                            if !this.pending.is_empty() {
+                                return Poll::Ready(Some(this.pending.remove(0)));
                             }
+                            continue;
                         }
                         Err(lingua::TransformError::UnableToDetectFormat) => {
-                            // Pass through unrecognized formats
-                            Some(Ok(StreamChunk { data, event_type }))
+                            return Poll::Ready(Some(Ok(chunk)));
                         }
-                        Err(e) => Some(Err(Error::Lingua(e))),
+                        Err(e) => {
+                            this.pending
+                                .extend(this.session.finish().into_iter().map(|chunk| {
+                                    Ok(StreamChunk {
+                                        data: chunk.data,
+                                        event_type: chunk.event_type,
+                                    })
+                                }));
+                            this.pending.push(Err(Error::Lingua(e)));
+                            return Poll::Ready(Some(this.pending.remove(0)));
+                        }
                     }
                 }
-                Err(e) => Some(Err(e)),
+                Poll::Ready(Some(Err(e))) => {
+                    this.pending
+                        .extend(this.session.finish().into_iter().map(|chunk| {
+                            Ok(StreamChunk {
+                                data: chunk.data,
+                                event_type: chunk.event_type,
+                            })
+                        }));
+                    this.pending.push(Err(e));
+                    if !this.pending.is_empty() {
+                        return Poll::Ready(Some(this.pending.remove(0)));
+                    }
+                    return Poll::Ready(None);
+                }
+                Poll::Ready(None) => {
+                    this.done = true;
+                    this.pending
+                        .extend(this.session.finish().into_iter().map(|chunk| {
+                            Ok(StreamChunk {
+                                data: chunk.data,
+                                event_type: chunk.event_type,
+                            })
+                        }));
+                    if !this.pending.is_empty() {
+                        return Poll::Ready(Some(this.pending.remove(0)));
+                    }
+                    return Poll::Ready(None);
+                }
+                Poll::Pending => return Poll::Pending,
             }
         }
-    }))
+    }
 }
 
 /// Create a single-bytes stream from a raw response.

@@ -275,9 +275,13 @@ export async function captureTransforms(
 
       streamingTasks.push(async () => {
         try {
+          const streamInput =
+            input && typeof input === "object" && !Array.isArray(input)
+              ? { ...input, stream: true }
+              : input;
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
           const streamRequest = transformAndValidateRequest(
-            input,
+            streamInput,
             streamingPair.wasmTarget,
             streamingPair.target
           ) as Record<string, unknown>;

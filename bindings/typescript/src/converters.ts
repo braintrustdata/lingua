@@ -577,6 +577,25 @@ export type TransformStreamChunkResult =
   | { passThrough: true; data: unknown }
   | { transformed: true; data: unknown; sourceFormat: string };
 
+export interface StreamSessionChunk {
+  data: unknown;
+  eventType?: string;
+}
+
+export interface TransformStreamSessionHandle {
+  push(input: string): StreamSessionChunk[];
+  finish(): StreamSessionChunk[];
+  pushSse(input: string): string[];
+  finishSse(): string[];
+}
+
+interface WasmTransformStreamSession {
+  push(input: string): StreamSessionChunk[];
+  finish(): StreamSessionChunk[];
+  pushSse(input: string): string[];
+  finishSse(): string[];
+}
+
 /**
  * Transform a streaming chunk from one provider format to another.
  *
@@ -605,6 +624,45 @@ export function transformStreamChunk(
     );
   }
 }
+
+/**
+ * Create a stateful streaming transformation session.
+ *
+ * The session owns target-provider sequencing rules that require context
+ * across multiple chunks, such as Anthropic message_delta usage merging.
+ */
+export function createTransformStreamSession(
+  targetFormat: string
+): TransformStreamSessionHandle {
+  try {
+    const WasmSession = getWasm().TransformStreamSession as new (
+      targetFormat: string
+    ) => WasmTransformStreamSession;
+    const session = new WasmSession(targetFormat);
+    return {
+      push(input: string) {
+        return session.push(input);
+      },
+      finish() {
+        return session.finish();
+      },
+      pushSse(input: string) {
+        return session.pushSse(input);
+      },
+      finishSse() {
+        return session.finishSse();
+      },
+    };
+  } catch (error: unknown) {
+    throw new ConversionError(
+      `Failed to create stream transform session for ${targetFormat}`,
+      undefined,
+      undefined,
+      error
+    );
+  }
+}
+
 
 // ============================================================================
 // Type re-exports
