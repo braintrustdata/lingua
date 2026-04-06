@@ -6,7 +6,6 @@ import {
   type ServerResponse,
 } from "http";
 import { join } from "path";
-import { afterAll, beforeAll, beforeEach, test } from "vitest";
 import {
   TransformStreamSession,
   transform_request,
@@ -50,7 +49,7 @@ export interface FixtureHandlerConfig {
   requireStream?: boolean;
 }
 
-type FixtureSkipReason =
+export type FixtureSkipReason =
   | "missing capture fixture"
   | "missing streaming capture fixture"
   | "error capture fixture";
@@ -268,6 +267,12 @@ export const STREAMING_PAIRS: TransformPair[] = [
     source: "anthropic",
     target: "chat-completions",
     wasmSource: "Anthropic",
+    wasmTarget: "OpenAI",
+  },
+  {
+    source: "google",
+    target: "chat-completions",
+    wasmSource: "Google",
     wasmTarget: "OpenAI",
   },
 ];
@@ -499,29 +504,6 @@ export async function createTransformTestServer(): Promise<TransformTestServer> 
   return server;
 }
 
-export function useTransformTestServer(): () => TransformTestServer {
-  let server: TransformTestServer | undefined;
-
-  beforeAll(async () => {
-    server = await createTransformTestServer();
-  });
-
-  beforeEach(() => {
-    server?.reset();
-  });
-
-  afterAll(async () => {
-    await server?.close();
-  });
-
-  return () => {
-    if (!server) {
-      throw new Error("Transform test server was not started");
-    }
-    return server;
-  };
-}
-
 export function getFixtureSkipReason(
   path: string,
   options: {
@@ -546,8 +528,8 @@ export function registerSkippedFixtureTest(
   pairLabel: string,
   caseName: string,
   reason: FixtureSkipReason
-): void {
-  test.skip(`${pairLabel} / ${caseName}: ${reason}`, () => {});
+): string {
+  return `${pairLabel} / ${caseName}: ${reason}`;
 }
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- mock fetch for SDK testing */

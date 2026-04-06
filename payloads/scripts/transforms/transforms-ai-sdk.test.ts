@@ -8,9 +8,11 @@ import {
   getTransformableCases,
   getResponsePath,
   getFixtureSkipReason,
+} from "./helpers";
+import {
   registerSkippedFixtureTest,
   useTransformTestServer,
-} from "./helpers";
+} from "./vitest-helpers";
 
 const TIMEOUT = 30000;
 const getServer = useTransformTestServer();
