@@ -142,6 +142,14 @@ impl TransformResult {
     }
 }
 
+pub(crate) struct StreamTransformStep {
+    pub(crate) result: TransformResult,
+    pub(crate) source_format: ProviderFormat,
+    pub(crate) universal: Option<UniversalStreamChunk>,
+    pub(crate) event_type: Option<String>,
+    pub(crate) is_passthrough: bool,
+}
+
 // ============================================================================
 // Model extraction
 // ============================================================================
@@ -346,135 +354,64 @@ pub fn transform_stream_chunk(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<TransformResult, TransformError> {
+    Ok(transform_stream_chunk_step(input, target_format)?.result)
+}
+
+fn extract_event_type(value: &Value) -> Option<String> {
+    value
+        .get("type")
+        .and_then(Value::as_str)
+        .map(ToString::to_string)
+}
+
+pub(crate) fn serialize_stream_value(value: &Value) -> Result<Bytes, TransformError> {
+    Ok(Bytes::from(crate::serde_json::to_vec(value).map_err(
+        |e| TransformError::SerializationFailed(e.to_string()),
+    )?))
+}
+
+pub(crate) fn transform_stream_chunk_step(
+    input: Bytes,
+    target_format: ProviderFormat,
+) -> Result<StreamTransformStep, TransformError> {
     let chunk: Value = crate::serde_json::from_slice(&input)
         .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
+    let event_type = extract_event_type(&chunk);
 
     let source_adapter = detect_adapter(&chunk, DetectKind::Stream)?;
-
-    if source_adapter.format() == target_format {
-        return Ok(TransformResult::PassThrough(input));
-    }
-
     let source_format = source_adapter.format();
-    let target_adapter = adapter_for_format(target_format)
-        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
-
-    let stream_universal = source_adapter.stream_to_universal(chunk)?;
-
-    let bytes = match stream_universal {
-        Some(universal_chunk) => {
-            let transformed = target_adapter.stream_from_universal(&universal_chunk)?;
-            Bytes::from(
-                crate::serde_json::to_vec(&transformed)
-                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-            )
-        }
-        None => EMPTY_JSON.clone(), // Terminal event - cheap refcount bump
-    };
-
-    Ok(TransformResult::Transformed {
-        bytes,
-        source_format,
-    })
-}
-
-// ============================================================================
-// Stream event parsing (for router integration)
-// ============================================================================
-
-/// Result of parsing a streaming event.
-///
-/// Contains the transformed bytes, metadata about the event, and optionally
-/// the universal representation for further processing.
-#[derive(Debug, Clone)]
-pub struct ParsedStreamEvent {
-    /// The payload to forward (original if pass-through, transformed otherwise)
-    pub bytes: Bytes,
-    /// The detected source format
-    pub source_format: ProviderFormat,
-    /// The target format requested
-    pub target_format: ProviderFormat,
-    /// The universal representation of the stream chunk (if transformation occurred)
-    pub universal: Option<UniversalStreamChunk>,
-    /// Whether this is a keep-alive event (no content, just maintains connection)
-    pub is_keep_alive: bool,
-    /// Whether this event contains a finish_reason (indicates end of generation)
-    pub is_final: bool,
-}
-
-/// Parse a streaming event, transforming if needed and extracting metadata.
-///
-/// This is the main entry point for the router to process streaming events. It:
-/// 1. Detects the source format of the stream chunk
-/// 2. Transforms to target format if needed (pass-through if formats match)
-/// 3. Extracts metadata like keep_alive and finish_reason
-///
-/// # Arguments
-///
-/// * `input` - The streaming chunk as bytes
-/// * `source_format` - The expected source format (from the provider being called)
-/// * `target_format` - The target format to transform to
-///
-/// # Returns
-///
-/// A `ParsedStreamEvent` containing the bytes and metadata.
-pub fn parse_stream_event(
-    input: Bytes,
-    source_format: ProviderFormat,
-    target_format: ProviderFormat,
-) -> Result<ParsedStreamEvent, TransformError> {
-    let chunk: Value = crate::serde_json::from_slice(&input)
-        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
-
-    let source_adapter = adapter_for_format(source_format)
-        .ok_or(TransformError::UnsupportedSourceFormat(source_format))?;
-
-    let universal_opt = source_adapter.stream_to_universal(chunk)?;
-
-    let (is_keep_alive, is_final) = match &universal_opt {
-        Some(universal) => {
-            let is_keep_alive = universal.is_keep_alive();
-            let is_final = universal.choices.iter().any(|c| c.finish_reason.is_some());
-            (is_keep_alive, is_final)
-        }
-        None => (true, false), // None means terminal/keep-alive event
-    };
+    let universal = source_adapter.stream_to_universal(chunk)?;
 
     if source_format == target_format {
-        return Ok(ParsedStreamEvent {
-            bytes: input,
+        return Ok(StreamTransformStep {
+            result: TransformResult::PassThrough(input),
             source_format,
-            target_format,
-            universal: universal_opt,
-            is_keep_alive,
-            is_final,
+            universal,
+            event_type,
+            is_passthrough: true,
         });
     }
 
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
-
-    let bytes = match &universal_opt {
-        Some(universal) => {
-            let transformed = target_adapter.stream_from_universal(universal)?;
-            Bytes::from(
-                crate::serde_json::to_vec(&transformed)
-                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-            )
+    let bytes = match &universal {
+        Some(universal_chunk) => {
+            serialize_stream_value(&target_adapter.stream_from_universal(universal_chunk)?)?
         }
-        None => EMPTY_JSON.clone(), // Terminal event - cheap refcount bump
+        None => EMPTY_JSON.clone(),
     };
 
-    Ok(ParsedStreamEvent {
-        bytes,
+    Ok(StreamTransformStep {
+        result: TransformResult::Transformed {
+            bytes,
+            source_format,
+        },
         source_format,
-        target_format,
-        universal: universal_opt,
-        is_keep_alive,
-        is_final,
+        universal,
+        event_type: None,
+        is_passthrough: false,
     })
 }
-
 // ============================================================================
 // Internal helpers
 // ============================================================================
