@@ -21,7 +21,10 @@ static KEEP_ALIVE_BYTES: &[u8] = b"{\"_keep_alive\":true}";
 pub struct StreamOutputChunk {
     /// Serialized JSON payload for a single provider event.
     pub data: Bytes,
-    /// Optional provider event type used by SSE serializers such as Anthropic's.
+    /// Optional SSE `event:` label for this output chunk.
+    ///
+    /// For passthrough chunks this usually matches the source provider event name.
+    /// For transformed chunks it is the target-provider event name to emit.
     pub event_type: Option<String>,
 }
 
@@ -116,6 +119,10 @@ impl StreamTransformSession {
     }
 
     fn process_chunks(&mut self, chunks: Vec<StreamOutputChunk>) -> Vec<StreamOutputChunk> {
+        // Anthropic currently needs stateful post-processing after universal -> provider
+        // conversion: some inputs expand into multiple SSE events, and finish/usage data
+        // may arrive as adjacent chunks that must be merged before emission. The adapter
+        // boundary is still single-chunk and stateless, so that sequencing lives here.
         if self.target_format != ProviderFormat::Anthropic {
             return chunks;
         }
