@@ -244,6 +244,14 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   google: GOOGLE_MODEL,
 };
 
+export function getGenAiGenerateContentPath(model: string): string {
+  return `/v1beta/models/${model}:generateContent`;
+}
+
+export function getGenAiStreamGenerateContentPath(model: string): string {
+  return `/v1beta/models/${model}:streamGenerateContent?alt=sse`;
+}
+
 export function getTransformableCases(
   pair: TransformPair,
   filter?: string
@@ -398,6 +406,10 @@ export class TransformTestServer {
     return this.rootBaseUrl;
   }
 
+  get genaiBaseUrl(): string {
+    return this.rootBaseUrl;
+  }
+
   async start(): Promise<void> {
     if (this.port !== null) {
       return;
@@ -483,14 +495,17 @@ export class TransformTestServer {
       }
 
       const body = await readJsonRequest(req);
-      if (
-        typeof body !== "object" ||
-        body === null ||
-        Array.isArray(body) ||
-        !("stream" in body) ||
-        body.stream !== true
-      ) {
+      if (typeof body !== "object" || body === null || Array.isArray(body)) {
         throw new Error("Expected streaming JSON request payload");
+      }
+
+      if (
+        config.requireStream !== false &&
+        (!("stream" in body) || body.stream !== true)
+      ) {
+        throw new Error(
+          "Expected streaming JSON request payload with stream=true"
+        );
       }
 
       await writeStreamingFixtureResponse(res, config);
