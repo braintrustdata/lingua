@@ -1,0 +1,80 @@
+{
+  "model": "gemini-3-flash-preview",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Tokyo weather"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "**My Approach to the Weather Inquiry**\n\nOkay, so the user wants the weather, and they've specified \"Tokyo\" as the location. That's straightforward. My immediate thought is to leverage the `get_weather` tool. I need to be precise and efficient, so I'll feed \"Tokyo\" directly into that tool's location parameter. No need for any interpretation or additional context – \"Tokyo\" is clear. I'll execute the tool and get the weather data.\n\n\n",
+          "thought": true
+        },
+        {
+          "functionCall": {
+            "name": "get_weather",
+            "args": {
+              "location": "Tokyo"
+            },
+            "id": "s3qm24sq"
+          },
+          "thoughtSignature": "Eq0BCqoBAb4+9vv8ny4y0qdntfMCm70B9IP3HUHdQKHUiWew8igzgBuASilpGOOkKufX6LGCoyS2EMps5T1tplgJegYRPSi1fadQ5Xa9D7U/TcYEeq5d5WKFGArp7U0ruwVg4PWt8DD5ItbDwCtNzgOfXALGkJD9k2gXTcvcFuLU1NxjLSHjAGF5jXe+dIwLvYYzfN7IyUBo1cfxYKDOkxGK+859vb8ZOFBHy6cWBlo="
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_weather",
+            "response": {
+              "temperature": "71 degrees"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "get_weather",
+          "description": "Get weather",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "location": {
+                "type": "STRING"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY",
+      "allowedFunctionNames": [
+        "get_weather"
+      ]
+    }
+  },
+  "generationConfig": {
+    "thinkingConfig": {
+      "thinkingLevel": "MEDIUM",
+      "includeThoughts": true
+    }
+  }
+}

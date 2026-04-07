@@ -1,0 +1,177 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a great question, but \"what's next\" depends entirely on what you intend to *do* with the random number!\n\nTo help me give"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 26,
+      "candidatesTokenCount": 34,
+      "totalTokenCount": 386,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 26
+        }
+      ],
+      "thoughtsTokenCount": 326
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lhbVaebHM_fe_uMP-Ya2-AE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " you a useful suggestion, could you tell me:\n\n1.  **What was the purpose of generating the random number?** (e.g., for a game, a simulation, a test, just experimenting?)\n2.  **What is"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 26,
+      "candidatesTokenCount": 85,
+      "totalTokenCount": 437,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 26
+        }
+      ],
+      "thoughtsTokenCount": 326
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lhbVaebHM_fe_uMP-Ya2-AE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " your overall goal or project?**\n\nIn the meantime, here are some common things people do after generating a random number:\n\n*   **Use it in a simple game:** Like a \"guess the number\" game, a dice roll"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 26,
+      "candidatesTokenCount": 133,
+      "totalTokenCount": 485,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 26
+        }
+      ],
+      "thoughtsTokenCount": 326
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lhbVaebHM_fe_uMP-Ya2-AE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", or a lottery.\n*   **Make a decision:** Use it to randomly select an item from a list.\n*   **Perform a calculation:** Add, subtract, multiply, or divide it with other numbers.\n*   **"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 26,
+      "candidatesTokenCount": 182,
+      "totalTokenCount": 534,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 26
+        }
+      ],
+      "thoughtsTokenCount": 326
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lhbVaebHM_fe_uMP-Ya2-AE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Control program flow:** Use it in an `if` statement (e.g., if the number is even, do X; if odd, do Y).\n*   **Generate more random data:** Explore different types of random numbers (flo"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 26,
+      "candidatesTokenCount": 231,
+      "totalTokenCount": 583,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 26
+        }
+      ],
+      "thoughtsTokenCount": 326
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lhbVaebHM_fe_uMP-Ya2-AE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "ats, numbers within a specific range).\n*   **Store it:** Assign it to a variable for later use.\n\nLet me know what you had in mind!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 26,
+      "candidatesTokenCount": 265,
+      "totalTokenCount": 617,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 26
+        }
+      ],
+      "thoughtsTokenCount": 326
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lhbVaebHM_fe_uMP-Ya2-AE"
+  }
+]

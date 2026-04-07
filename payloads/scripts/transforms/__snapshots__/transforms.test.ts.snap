@@ -9902,7 +9902,7 @@ exports[`chat-completions → google > toolChoiceRequiredWithReasoningParam > re
       "thinkingBudget": 2048,
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "toolConfig": {
     "functionCallingConfig": {
       "allowedFunctionNames": [
@@ -10657,6 +10657,45 @@ The sky can also appear other colors:
 }
 `;
 
+exports[`google → anthropic > responseModalitiesAudioParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hello in a warm, concise voice.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > responseModalitiesAudioParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hello! It's great to connect with you. How can I help today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 19,
+    "promptTokenCount": 17,
+    "totalTokenCount": 36,
+  },
+}
+`;
+
 exports[`google → anthropic > seedParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -10770,6 +10809,45 @@ exports[`google → anthropic > simpleRequestTruncated > response 1`] = `
     "candidatesTokenCount": 1,
     "promptTokenCount": 16,
     "totalTokenCount": 17,
+  },
+}
+`;
+
+exports[`google → anthropic > speechConfigParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Generate audio speaking exactly this text: "Hello."",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > speechConfigParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hello! It's wonderful to connect with you. How can I help today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 19,
+    "promptTokenCount": 17,
+    "totalTokenCount": 36,
   },
 }
 `;
@@ -11242,6 +11320,72 @@ exports[`google → anthropic > toolChoiceRequiredParam > request 1`] = `
       "name": "get_weather",
     },
   ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "tool",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "id": "toolu_01Wf2KV5qAoaHfVFgLfLydTt",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 33,
+    "promptTokenCount": 652,
+    "totalTokenCount": 685,
+  },
 }
 `;
 
@@ -11958,6 +12102,45 @@ If you tell me where and when you’re looking, I can be more specific.",
 }
 `;
 
+exports[`google → chat-completions > responseModalitiesAudioParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say hello in a warm, concise voice.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > responseModalitiesAudioParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! So nice to meet you.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 18,
+    "promptTokenCount": 15,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 289,
+  },
+}
+`;
+
 exports[`google → chat-completions > seedParam > request 1`] = `
 {
   "messages": [
@@ -12045,6 +12228,45 @@ exports[`google → chat-completions > simpleRequestTruncated > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > speechConfigParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Generate audio speaking exactly this text: "Hello."",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > speechConfigParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hello! So glad you're here.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 16,
+    "promptTokenCount": 15,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 223,
+  },
 }
 `;
 
@@ -12559,6 +12781,77 @@ exports[`google → chat-completions > toolChoiceRequiredParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "medium",
+  "tool_choice": {
+    "function": {
+      "name": "get_weather",
+    },
+    "type": "function",
+  },
+  "tools": [
+    {
+      "function": {
+        "description": "Get weather",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 23,
+    "promptTokenCount": 123,
+    "thoughtsTokenCount": 384,
+    "totalTokenCount": 530,
+  },
 }
 `;
 
@@ -13390,6 +13683,58 @@ The color can change:
 }
 `;
 
+exports[`google → responses > responseModalitiesAudioParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hello in a warm, concise voice.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > responseModalitiesAudioParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hello! It’s wonderful to meet you.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 63,
+    "promptTokenCount": 15,
+    "thoughtsTokenCount": 320,
+    "totalTokenCount": 398,
+  },
+}
+`;
+
 exports[`google → responses > seedParam > request 1`] = `
 {
   "input": [
@@ -13504,6 +13849,58 @@ exports[`google → responses > simpleRequestTruncated > request 1`] = `
   ],
   "max_output_tokens": 1,
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > speechConfigParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Generate audio speaking exactly this text: "Hello."",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > speechConfigParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hello! It’s wonderful to meet you.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 48,
+    "promptTokenCount": 15,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 255,
+  },
 }
 `;
 
@@ -14001,6 +14398,88 @@ exports[`google → responses > toolChoiceRequiredParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → responses > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+  },
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "function",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 45,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 278,
+  },
 }
 `;
 

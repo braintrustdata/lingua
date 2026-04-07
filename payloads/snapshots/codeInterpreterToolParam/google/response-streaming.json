@@ -1,0 +1,175 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "executableCode": {
+                "language": "PYTHON",
+                "code": "import random\nrandom_number = random.random()\nprint(f\"Generated random number: {random_number}\")\n"
+              }
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 25,
+      "totalTokenCount": 99,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "thoughtsTokenCount": 65
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lRbVabeuDszQ_uMPh4PeyAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "codeExecutionResult": {
+                "outcome": "OUTCOME_OK",
+                "output": "Generated random number: 0.9495496980581858\n"
+              }
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 25,
+      "totalTokenCount": 99,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "thoughtsTokenCount": 65
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lRbVabeuDszQ_uMPh4PeyAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 26,
+      "totalTokenCount": 224,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "toolUsePromptTokenCount": 124,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 124
+        }
+      ],
+      "thoughtsTokenCount": 65
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lRbVabeuDszQ_uMPh4PeyAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " have executed Python code to generate a random number.\n\nThe generated random number is: `0"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 45,
+      "totalTokenCount": 243,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "toolUsePromptTokenCount": 124,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 124
+        }
+      ],
+      "thoughtsTokenCount": 65
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lRbVabeuDszQ_uMPh4PeyAg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ".9495496980581858`"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 63,
+      "totalTokenCount": 261,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "toolUsePromptTokenCount": 124,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 124
+        }
+      ],
+      "thoughtsTokenCount": 65
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "lRbVabeuDszQ_uMPh4PeyAg"
+  }
+]

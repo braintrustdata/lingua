@@ -1,0 +1,68 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_weather",
+                "args": {
+                  "location": "Tokyo"
+                },
+                "id": "7lp4swtu"
+              },
+              "thoughtSignature": "EpgBCpUBAb4+9vu9NbEkq9+W9IIl0//VBm1SMIH5axyDbog18WAj0BgUlAfnD5gAVxv+B92mLF/Ph4Hj5Ax6yYuvxQ9dJ4qTEbki9+gcP9n7fzcYwnnViVD+p1+Di3Nmb4ApcLvPLCpt+JmJBCwhIb8v17JuOr5LiVGwrH2xs7YhVWRuN5LvBG5PRZ7nupRSCq5l40ejDb/6rBo="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 176,
+      "candidatesTokenCount": 16,
+      "totalTokenCount": 211,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 176
+        }
+      ],
+      "thoughtsTokenCount": 19
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "mBbVaeK8KPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ""
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 207,
+      "candidatesTokenCount": 16,
+      "totalTokenCount": 242,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 207
+        }
+      ],
+      "thoughtsTokenCount": 19
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "mBbVaeK8KPjn_uMP-O6QyQc"
+  }
+]

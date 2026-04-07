@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Please tell me what you would like to do next! I can help you with a variety of tasks, such as:\n\n*   **Answering questions:** Ask me anything!\n*   **Summarizing content:** Provide me with a URL or text, and I'll summarize it for you.\n*   **Browsing the web:** Give me a URL, and I can retrieve information from it.\n*   **Generating creative text formats:** I can try to write poems, code, scripts, musical pieces, email, letters, etc.\n*   **Helping with writing:** I can assist with drafting emails, articles, or other written content.\n\nJust let me know what you have in mind!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "groundingMetadata": {}
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 272,
+    "candidatesTokenCount": 145,
+    "totalTokenCount": 452,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 272
+      }
+    ],
+    "thoughtsTokenCount": 35
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "mhbVabG6GZK0_uMP2OXMwAw"
+}

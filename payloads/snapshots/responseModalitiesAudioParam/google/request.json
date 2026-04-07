@@ -1,0 +1,18 @@
+{
+  "model": "gemini-2.5-flash-preview-tts",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say hello in a warm, concise voice."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "responseModalities": [
+      "AUDIO"
+    ]
+  }
+}

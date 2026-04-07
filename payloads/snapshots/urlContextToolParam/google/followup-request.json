@@ -1,0 +1,33 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Summarize https://ai.google.dev/gemini-api/docs/url-context and highlight the key constraints."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "The Gemini API's URL context tool allows models to access information from specified URLs to enhance responses. It employs a two-step retrieval process, first checking an internal index cache and then performing a live fetch if the URL is not cached. This tool is useful for tasks such as data extraction, document comparison, content synthesis, and code analysis. The tool can be combined with other tools, including Google Search, for more comprehensive workflows.\n\nKey constraints of the URL context tool include:\n*   **Function calling:** Combining URL context with function calling is currently unsupported.\n*   **Request limit:** A maximum of 20 URLs can be processed per request.\n*   **URL content size:** The content retrieved from a single URL has a maximum size of 34MB.\n*   **Public accessibility:** URLs must be publicly accessible and cannot be localhost addresses, private networks, or tunneling services.\n*   **API availability:** The URL Context tool is exclusively available in the Gemini API, not through Vertex AI.\n*   **Unsupported content types:** Paywalled content, YouTube videos, Google Workspace files, and general video and audio files are not supported."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "urlContext": {}
+    }
+  ]
+}

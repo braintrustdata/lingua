@@ -14,6 +14,7 @@ import {
   ANTHROPIC_OPUS_MODEL,
   GOOGLE_GEMINI_3_MODEL,
   GOOGLE_IMAGE_MODEL,
+  GOOGLE_TTS_MODEL,
 } from "./models";
 
 // OpenAI Responses API and Chat Completions API parameter test cases
@@ -340,7 +341,15 @@ export const paramsCases: TestCaseCollection = {
         },
       ],
     },
-    google: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Execute Python code to generate a random number" }],
+        },
+      ],
+      tools: [{ codeExecution: {} }],
+    },
     bedrock: null,
   },
 
@@ -460,7 +469,39 @@ export const paramsCases: TestCaseCollection = {
     },
     responses: null,
     anthropic: null,
-    google: null,
+    google: {
+      model: GOOGLE_GEMINI_3_MODEL,
+      contents: [{ role: "user", parts: [{ text: "Tokyo weather" }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  location: { type: Type.STRING },
+                },
+                required: ["location"],
+              },
+            },
+          ],
+        },
+      ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.ANY,
+          allowedFunctionNames: ["get_weather"],
+        },
+      },
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.MEDIUM,
+          includeThoughts: true,
+        },
+      },
+    },
     bedrock: null,
   },
 
@@ -1385,11 +1426,42 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  urlContextToolParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "Summarize https://ai.google.dev/gemini-api/docs/url-context and highlight the key constraints.",
+            },
+          ],
+        },
+      ],
+      tools: [{ urlContext: {} }],
+    },
+    bedrock: null,
+  },
+
   responseModalitiesAudioParam: {
     "chat-completions": null,
     responses: null,
     anthropic: null,
-    google: null,
+    google: {
+      model: GOOGLE_TTS_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Say hello in a warm, concise voice." }],
+        },
+      ],
+      generationConfig: {
+        responseModalities: [Modality.AUDIO],
+      },
+    },
     bedrock: null,
   },
 
@@ -1397,7 +1469,29 @@ export const paramsCases: TestCaseCollection = {
     "chat-completions": null,
     responses: null,
     anthropic: null,
-    google: null,
+    google: {
+      model: GOOGLE_TTS_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: 'Generate audio speaking exactly this text: "Hello."',
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: "Kore",
+            },
+          },
+        },
+      },
+    },
     bedrock: null,
   },
 

@@ -237,6 +237,22 @@
       ]
     },
     {
+      "testCase": "speechConfigParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Anthropic does not preserve Google's empty finish-reason-only response candidate as a message" }
+      ]
+    },
+    {
+      "testCase": "speechConfigParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "finish_reason", "reason": "ChatCompletions does not preserve Google's finishReason OTHER exactly" }
+      ]
+    },
+    {
       "testCase": "webSearchToolParam",
       "source": "Anthropic",
       "target": "Google",
@@ -261,6 +277,30 @@
       ]
     },
     {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Google code execution metadata is preserved in provider_options and has no Anthropic equivalent" }
+      ]
+    },
+    {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "ChatCompletions does not preserve Google code execution metadata as separate assistant content parts" }
+      ]
+    },
+    {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Responses does not preserve Google code execution metadata as a single assistant message" }
+      ]
+    },
+    {
       "testCase": "webSearchToolParam",
       "source": "Responses",
       "target": "Google",
@@ -282,6 +322,44 @@
       "target": "Responses",
       "fields": [
         { "pattern": "messages.length", "reason": "Google reasoning content expands to separate output items in Responses format" }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Responses expands Google required-tool reasoning into a different output-item shape" }
+      ]
+    },
+    {
+      "testCase": "responseModalitiesAudioParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "Google assistant audio content becomes text fallback in Anthropic" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google assistant audio content is not preserved in Anthropic" },
+        { "pattern": "messages[*].content[*].data", "reason": "Google assistant audio content is not preserved in Anthropic" },
+        { "pattern": "messages[*].content[*].text", "reason": "Google assistant audio content becomes text fallback in Anthropic" }
+      ]
+    },
+    {
+      "testCase": "responseModalitiesAudioParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "Google assistant audio content becomes text fallback in ChatCompletions" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google assistant audio content is not preserved in ChatCompletions" },
+        { "pattern": "messages[*].content[*].data", "reason": "Google assistant audio content is not preserved in ChatCompletions" },
+        { "pattern": "messages[*].content[*].text", "reason": "Google assistant audio content becomes text fallback in ChatCompletions" }
+      ]
+    },
+    {
+      "testCase": "responseModalitiesAudioParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Responses does not preserve Google assistant audio content as a single message" }
       ]
     },
     {

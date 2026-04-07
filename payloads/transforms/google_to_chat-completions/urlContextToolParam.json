@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DS1qMtNNevMcMhE9uz3GiKYALbow2",
+  "object": "chat.completion",
+  "created": 1775572642,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I can’t directly browse or fetch that page right now. If you paste the page text (or a screenshot or a pasted excerpt), I’ll summarize it and highlight the key constraints precisely. \n\nIf you’d prefer a quick alternative, here’s a generic, high-level overview of what “URL context” features in Gemini API docs usually cover, plus the kinds of constraints you should look for. Note: these are typical patterns and may not reflect the exact numbers on that page.\n\nWhat URL Context typically does\n- Lets you attach one or more external web URLs to a prompt so the model can reference or reason about up-to-date information from those pages.\n- The API fetches content from the provided URLs and incorporates it into the request’s context for the model’s output.\n- Useful for questions about current events, product docs, or any content that isn’t in the model’s training data.\n\nTypical constraints and things to check\n- Supported URL formats\n  - Which schemes are allowed (e.g., https; possibly http as well).\n  - Any domain or content-type restrictions.\n\n- Limits on usage per request\n  - Maximum number of URLs you can include.\n  - Maximum total size of retrieved content per request (and/or per URL).\n  - Maximum token budget or impact on the prompt length when including URL content.\n\n- Content handling details\n  - Which content types are supported (HTML, PDF, Markdown, plain text, etc.).\n  - How content is extracted (e.g., text extraction from HTML, handling of ads/navigation content, removal of boilerplate).\n  - Whether dynamic/js-rendered pages are supported or ignored.\n\n- Freshness and caching\n  - Whether content is fetched live or from cache.\n  - Any freshness/recency guarantees or TTL for URL-derived data.\n\n- Timeouts and reliability\n  - Per-URL fetch timeout.\n  - How failures are handled (skip URL, partial results, error propagation).\n\n- Privacy and data handling\n  - Whether the content of the URLs is sent to Google servers and how long it’s retained.\n  - Any PII handling, filtering, or user data protections.\n  - Options to disable URL context or opt-out.\n\n- Security and compliance\n  - Handling of malicious or restricted content.\n  - Compliance notes (e.g., data privacy, permissions).\n\n- Output behavior and limitations\n  - How the model should respond if URL content is missing or ambiguous.\n  - Whether citations or summaries from URLs are provided, and in what format.\n\n- Authentication and quotas (if applicable)\n  - Whether an API key or project ID is required for URL context.\n  - Per-project or per-org quotas related to URL context usage.\n\nHow I can help next\n- If you share the exact text from that page, I’ll produce a precise, sectioned summary and clearly mark the key constraints (limits, privacy, formats, etc.).\n- Or tell me which parts you care about (e.g., limits, privacy, supported formats) and I’ll extract those points from the page content you provide.\n\nHow would you like to proceed? Paste the page text, or share the specific constraints you want emphasized?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 27,
+    "completion_tokens": 2440,
+    "total_tokens": 2467,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1792,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

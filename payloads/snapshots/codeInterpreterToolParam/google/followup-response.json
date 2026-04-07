@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "To help you with what to do next, please tell me:\n\n1.  **What was the purpose of generating the random number?** (e.g., Is it for a game, a simulation, a test, a security feature?)\n2.  **What is your overall goal or project?**\n3.  **What kind of task are you trying to accomplish?**\n\nOnce I have more context, I can suggest relevant next steps."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 26,
+    "candidatesTokenCount": 94,
+    "totalTokenCount": 177,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 26
+      }
+    ],
+    "thoughtsTokenCount": 57
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lhbVaZWwM9ub_uMP_OPQ0Qk"
+}

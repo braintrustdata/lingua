@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here's a summary of my thought process:\n\n**Tokyo Temperature: Reporting Findings**\n\nOkay, the tool has spat back a temperature reading for Tokyo: 71 degrees. Straightforward. My immediate thought is, \"I need to relay this to the user.\" No need to overcomplicate things here, just deliver the factual output. It’s concise data, and I should present it as such to the expert. They can interpret it according to their specialized knowledge, whether it's context for a larger forecast, a comparison to historical data, or something else entirely.\n\n\n",
+            "thought": true
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "Tokyo"
+              },
+              "id": "okmqol8w"
+            },
+            "thoughtSignature": "EqABCp0BAb4+9vvMWcoJ52cXBYI3sSGsKQvij2eyfyEmLo3dxGxyP5xc3vSj605B+Bu4NYINO4ZAzZBtolxZJi7duMiRwlsHaO4qKp02MHYD+op4o8GT4632GkTRlSrQSQ66UJbO9x7ovQweyvNwZPDw7/vW3pFfEXHMSAkFucYWvaHHtj7QHmNas6U+WLE4f2gCsonTSVtkFKRL6974hdcMMA=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 207,
+    "candidatesTokenCount": 16,
+    "totalTokenCount": 245,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 207
+      }
+    ],
+    "thoughtsTokenCount": 22
+  },
+  "modelVersion": "gemini-3-flash-preview",
+  "responseId": "mhbVac3eCp6W_uMP-taTuAQ"
+}

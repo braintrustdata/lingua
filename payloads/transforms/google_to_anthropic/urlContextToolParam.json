@@ -1,0 +1,27 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01QehWbBtFu7wrpqm4ahYtMk",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "# Summary of Gemini API URL Context Feature\n\n## Overview\nThe Gemini API allows you to include URLs directly in prompts, enabling the model to fetch and process web content without requiring you to download it first.\n\n## Key Constraints\n\n### **Supported Content Types**\n- **Text-based formats only**: HTML, plain text, CSV, XML, JavaScript, Python\n- **Does NOT support**: Images, videos, audio, PDFs, or other binary formats\n\n### **URL Requirements**\n- Must be **publicly accessible** (no authentication required)\n- Must return content via standard HTTP/HTTPS\n- Requires `Content-Type` header to be set correctly\n- No redirects to login pages or paywalls\n\n### **Size & Rate Limits**\n- **Maximum content size**: Generally limited to what fits within the model's context window\n- **Token counting**: URL content counts toward your total token limit\n- Content is fetched at request time (not cached permanently)\n\n### **Technical Limitations**\n- **No JavaScript execution**: Only retrieves static HTML (won't render dynamic content)\n- **Single page only**: Doesn't crawl or follow links\n- **Latency consideration**: Adds time for fetching the URL content\n- May fail if the website is slow or temporarily unavailable\n\n### **API Availability**\n- Feature availability may vary by model version\n- Check specific model documentation for support\n\n## Use Cases\nBest for: documentation pages, articles, code repositories, data files, public web content that's text-based and static."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 34,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 339,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

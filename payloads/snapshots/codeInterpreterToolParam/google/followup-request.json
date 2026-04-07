@@ -1,0 +1,45 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Execute Python code to generate a random number"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "executableCode": {
+            "language": "PYTHON",
+            "code": "import random\n\nrandom_number = random.randint(1, 100) # Generates a random integer between 1 and 100\nprint(f'Generated random number: {random_number}')\n"
+          }
+        },
+        {
+          "codeExecutionResult": {
+            "outcome": "OUTCOME_OK",
+            "output": "Generated random number: 13\n"
+          }
+        },
+        {
+          "text": "The random number generated is 13."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "codeExecution": {}
+    }
+  ]
+}

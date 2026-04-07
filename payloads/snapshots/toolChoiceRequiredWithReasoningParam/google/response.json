@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Approach to the Weather Inquiry**\n\nOkay, so the user wants the weather, and they've specified \"Tokyo\" as the location. That's straightforward. My immediate thought is to leverage the `get_weather` tool. I need to be precise and efficient, so I'll feed \"Tokyo\" directly into that tool's location parameter. No need for any interpretation or additional context – \"Tokyo\" is clear. I'll execute the tool and get the weather data.\n\n\n",
+            "thought": true
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "Tokyo"
+              },
+              "id": "s3qm24sq"
+            },
+            "thoughtSignature": "Eq0BCqoBAb4+9vv8ny4y0qdntfMCm70B9IP3HUHdQKHUiWew8igzgBuASilpGOOkKufX6LGCoyS2EMps5T1tplgJegYRPSi1fadQ5Xa9D7U/TcYEeq5d5WKFGArp7U0ruwVg4PWt8DD5ItbDwCtNzgOfXALGkJD9k2gXTcvcFuLU1NxjLSHjAGF5jXe+dIwLvYYzfN7IyUBo1cfxYKDOkxGK+859vb8ZOFBHy6cWBlo="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 42,
+    "candidatesTokenCount": 16,
+    "totalTokenCount": 89,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 42
+      }
+    ],
+    "thoughtsTokenCount": 31
+  },
+  "modelVersion": "gemini-3-flash-preview",
+  "responseId": "lxbVaY7bI4Ph_uMPkrbImAI"
+}
