@@ -297,7 +297,7 @@ impl ProviderAdapter for OpenAIAdapter {
                 &mut obj,
                 "response_format",
                 req.params
-                    .response_format_for(ProviderFormat::ChatCompletions),
+                    .try_response_format_for(ProviderFormat::ChatCompletions)?,
             );
         }
         insert_opt_i64(&mut obj, "seed", req.params.seed);

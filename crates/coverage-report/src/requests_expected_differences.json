@@ -339,6 +339,38 @@
       ]
     },
     {
+      "testCase": "textFormatJsonSchemaParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonSchemaParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonSchemaWithDescriptionParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonSchemaWithDescriptionParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
       "testCase": "thinkingLevelParam",
       "source": "Google",
       "target": "ChatCompletions",

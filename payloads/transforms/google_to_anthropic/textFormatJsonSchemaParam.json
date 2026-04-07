@@ -1,4 +1,27 @@
 {
-  "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For 'object' type, 'additionalProperties' must be explicitly set to false\"},\"request_id\":\"req_011CZbYtE1oEGVnvQgR9Hn1F\"}",
-  "name": "Error"
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01PT87r5DDprkoyNfeDkR3q6",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"age\":25,\"name\":\"John\"}"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 177,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 12,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
 }

@@ -11362,6 +11362,7 @@ exports[`google → anthropic > textFormatJsonSchemaParam > request 1`] = `
   "output_config": {
     "format": {
       "schema": {
+        "additionalProperties": false,
         "properties": {
           "age": {
             "type": "number",
@@ -11382,6 +11383,32 @@ exports[`google → anthropic > textFormatJsonSchemaParam > request 1`] = `
 }
 `;
 
+exports[`google → anthropic > textFormatJsonSchemaParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"age":25,"name":"John"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 12,
+    "promptTokenCount": 177,
+    "totalTokenCount": 189,
+  },
+}
+`;
+
 exports[`google → anthropic > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -11395,6 +11422,7 @@ exports[`google → anthropic > textFormatJsonSchemaWithDescriptionParam > reque
   "output_config": {
     "format": {
       "schema": {
+        "additionalProperties": false,
         "properties": {
           "age": {
             "type": "number",
@@ -11411,6 +11439,32 @@ exports[`google → anthropic > textFormatJsonSchemaWithDescriptionParam > reque
       },
       "type": "json_schema",
     },
+  },
+}
+`;
+
+exports[`google → anthropic > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"age":25,"name":"John"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 12,
+    "promptTokenCount": 177,
+    "totalTokenCount": 189,
   },
 }
 `;
@@ -13197,6 +13251,7 @@ exports[`google → chat-completions > textFormatJsonSchemaParam > request 1`] =
     "json_schema": {
       "name": "response",
       "schema": {
+        "additionalProperties": false,
         "properties": {
           "age": {
             "type": "number",
@@ -13224,7 +13279,7 @@ exports[`google → chat-completions > textFormatJsonSchemaParam > response 1`] 
       "content": {
         "parts": [
           {
-            "text": "{"age":25,"name":"John"}",
+            "text": "{"name":"John","age":25}",
           },
         ],
         "role": "model",
@@ -13238,8 +13293,8 @@ exports[`google → chat-completions > textFormatJsonSchemaParam > response 1`] 
     "cachedContentTokenCount": 0,
     "candidatesTokenCount": 21,
     "promptTokenCount": 45,
-    "thoughtsTokenCount": 256,
-    "totalTokenCount": 322,
+    "thoughtsTokenCount": 640,
+    "totalTokenCount": 706,
   },
 }
 `;
@@ -13257,6 +13312,7 @@ exports[`google → chat-completions > textFormatJsonSchemaWithDescriptionParam 
     "json_schema": {
       "name": "response",
       "schema": {
+        "additionalProperties": false,
         "properties": {
           "age": {
             "type": "number",
@@ -13298,8 +13354,8 @@ exports[`google → chat-completions > textFormatJsonSchemaWithDescriptionParam 
     "cachedContentTokenCount": 0,
     "candidatesTokenCount": 21,
     "promptTokenCount": 45,
-    "thoughtsTokenCount": 1024,
-    "totalTokenCount": 1090,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 258,
   },
 }
 `;
@@ -15161,6 +15217,7 @@ exports[`google → responses > textFormatJsonSchemaParam > request 1`] = `
     "format": {
       "name": "response",
       "schema": {
+        "additionalProperties": false,
         "properties": {
           "age": {
             "type": "number",
@@ -15181,6 +15238,46 @@ exports[`google → responses > textFormatJsonSchemaParam > request 1`] = `
 }
 `;
 
+exports[`google → responses > textFormatJsonSchemaParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"age":25,"name":"John"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 42,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 768,
+    "totalTokenCount": 851,
+  },
+}
+`;
+
 exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
 {
   "input": [
@@ -15194,6 +15291,7 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > reque
     "format": {
       "name": "response",
       "schema": {
+        "additionalProperties": false,
         "properties": {
           "age": {
             "type": "number",
@@ -15210,6 +15308,46 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > reque
       },
       "type": "json_schema",
     },
+  },
+}
+`;
+
+exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"age":25,"name":"John"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 23,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 384,
+    "totalTokenCount": 448,
   },
 }
 `;

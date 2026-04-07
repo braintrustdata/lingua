@@ -299,7 +299,10 @@ impl ProviderAdapter for ResponsesAdapter {
         // Convert response_format to Responses API text format using helper method
         if let Some(raw_text) = responses_extras_view.text.as_ref() {
             obj.insert("text".into(), raw_text.clone());
-        } else if let Some(text_val) = req.params.response_format_for(ProviderFormat::Responses) {
+        } else if let Some(text_val) = req
+            .params
+            .try_response_format_for(ProviderFormat::Responses)?
+        {
             obj.insert("text".into(), text_val);
         }
 
