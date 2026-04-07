@@ -7,6 +7,8 @@ packages:
 ignoredBuiltDependencies:
   - "@swc/core"
   - esbuild
+  - protobufjs
+  - sqlite3
 
 strictDepBuilds: true
 blockExoticSubdeps: true
