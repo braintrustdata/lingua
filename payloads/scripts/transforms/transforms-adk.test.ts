@@ -3,8 +3,10 @@ import {
   Gemini,
   InMemoryRunner,
   LlmAgent,
+  LogLevel,
   StreamingMode,
   stringifyContent,
+  setLogLevel,
   type Event,
 } from "@google/adk";
 import { allTestCases, getCaseForProvider } from "../../cases";
@@ -29,6 +31,8 @@ const TIMEOUT = 30000;
 const TEST_USER_ID = "test-user";
 const TEST_PROMPT = "test";
 const getServer = useTransformTestServer();
+
+setLogLevel(LogLevel.WARN);
 
 class FixtureGemini extends Gemini {
   protected override getHttpOptions() {

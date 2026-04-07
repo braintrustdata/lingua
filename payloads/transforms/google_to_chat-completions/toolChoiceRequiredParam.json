@@ -1,4 +1,45 @@
 {
-  "error": "400 Invalid schema for function 'get_weather': None is not of type 'object', 'boolean'.",
-  "name": "Error"
+  "id": "chatcmpl-DS1aEmq9lu4QL1O1VM1uSkf0KoMhB",
+  "object": "chat.completion",
+  "created": 1775571642,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_swSSsoNreiqXu678oO3yFz7b",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\":\"Tokyo\"}"
+            }
+          }
+        ],
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 123,
+    "completion_tokens": 279,
+    "total_tokens": 402,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
 }

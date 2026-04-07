@@ -5306,25 +5306,25 @@ data: {"candidates":[{"content":{"parts":[{"text":""}],"role":"model"},"finishRe
 `;
 
 exports[`streaming: google → chat-completions > toolCallRequest > streaming 1`] = `
-"data: {"candidates":[{"content":{"parts":[{"functionCall":{"args":{},"id":"call_mebBVD7Kxbd8GM8FLsA6JVMr","name":"get_weather"}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+"data: {"candidates":[{"content":{"parts":[{"functionCall":{"args":{},"id":"call_oiWID3UY6yB13hEFk4QqkHCg","name":"get_weather"}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"functionCall":{"args":":"}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"functionCall":{"args":":"}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
-data: {"candidates":[{"content":{"parts":[{"text":""}],"role":"model"},"finishReason":"STOP","index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi6yCUa12E7lIFnb2S1AVCqv0jo2"}
+data: {"candidates":[{"content":{"parts":[{"text":""}],"role":"model"},"finishReason":"STOP","index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
 "
 `;

@@ -1,4 +1,96 @@
 {
-  "error": "400 Invalid schema for function 'get_weather': None is not of type 'object', 'boolean'.",
-  "name": "Error"
+  "id": "resp_03a3b1a0765dad490069d512e3d2e88190923d41fce09359b4",
+  "object": "response",
+  "created_at": 1775571683,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775571691,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_03a3b1a0765dad490069d512e4491481909426782ceb1b2aa3",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_03a3b1a0765dad490069d512ea5d088190bfca000929827228",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure—what location would you like the weather for? Please specify a city (and country if needed) or a ZIP/postal code.\n\nAlso let me know:\n- Current conditions only, hourly forecast, or 7-day forecast\n- Preferred units: Celsius or Fahrenheit\n\nIf you just want the current weather for your area, share your location and I’ll fetch it."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 622,
+    "output_tokens_details": {
+      "reasoning_tokens": 512
+    },
+    "total_tokens": 663
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Sure—what location would you like the weather for? Please specify a city (and country if needed) or a ZIP/postal code.\n\nAlso let me know:\n- Current conditions only, hourly forecast, or 7-day forecast\n- Preferred units: Celsius or Fahrenheit\n\nIf you just want the current weather for your area, share your location and I’ll fetch it."
 }

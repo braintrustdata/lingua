@@ -1,4 +1,35 @@
 {
-  "error": "400 Invalid schema for function 'get_weather': None is not of type 'object', 'boolean'.",
-  "name": "Error"
+  "id": "chatcmpl-DS1aXk86iVsyrGO8pW20S101zoNjT",
+  "object": "chat.completion",
+  "created": 1775571661,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I can help, but I don’t have live weather data right now. Please tell me:\n- Your location (city or ZIP code)\n- What you want (current conditions, hourly forecast for today, 7-day outlook, or weather alerts)\n\nIf you’d prefer, I can also describe typical weather for your area for this time of year once you provide the location. You can also check via your phone’s weather app or a web weather service.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 123,
+    "completion_tokens": 934,
+    "total_tokens": 1057,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
 }

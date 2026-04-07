@@ -48,29 +48,32 @@ fn normalize_anthropic_tool_schema(
     tool_name: &str,
     schema: Option<Value>,
 ) -> Result<Value, ConvertError> {
-    let mut schema = schema.unwrap_or_else(|| json!({}));
+    #[derive(serde::Deserialize)]
+    struct ToolSchemaRootTypeView {
+        #[serde(rename = "type")]
+        schema_type: Option<String>,
+    }
+
+    let mut schema = schema.unwrap_or_else(|| json!({ "type": "object" }));
     normalize_anthropic_tool_schema_value(&mut schema);
 
-    let Value::Object(map) = &schema else {
+    if !schema.is_object() {
         return Err(ConvertError::InvalidToolSchema {
             tool_name: tool_name.to_string(),
             reason: "tool schema must be a JSON object".to_string(),
         });
-    };
+    }
 
-    let Some(schema_type) = map.get("type") else {
-        return Err(ConvertError::InvalidToolSchema {
+    let schema_type = serde_json::from_value::<ToolSchemaRootTypeView>(schema.clone())
+        .map_err(|e| ConvertError::JsonSerializationFailed {
+            field: format!("tool schema '{}'", tool_name),
+            error: e.to_string(),
+        })?
+        .schema_type
+        .ok_or_else(|| ConvertError::InvalidToolSchema {
             tool_name: tool_name.to_string(),
             reason: "tool schema root type is required".to_string(),
-        });
-    };
-
-    let Some(schema_type) = schema_type.as_str() else {
-        return Err(ConvertError::InvalidToolSchema {
-            tool_name: tool_name.to_string(),
-            reason: "tool schema root type must be a string".to_string(),
-        });
-    };
+        })?;
 
     if schema_type != "object" {
         return Err(ConvertError::InvalidToolSchema {
@@ -1495,6 +1498,23 @@ mod tests {
     use super::*;
     use crate::serde_json::json;
     use crate::universal::convert::TryFromLLM;
+    use std::collections::HashMap;
+
+    #[derive(serde::Deserialize)]
+    struct ToolSchemaPropertyView {
+        #[serde(rename = "type")]
+        schema_type: Option<String>,
+        items: Option<Value>,
+    }
+
+    #[derive(serde::Deserialize)]
+    struct ToolSchemaView {
+        #[serde(rename = "type")]
+        schema_type: String,
+        #[serde(rename = "additionalProperties")]
+        additional_properties: Option<Value>,
+        properties: Option<HashMap<String, ToolSchemaPropertyView>>,
+    }
 
     #[test]
     fn test_json_object_response_format_is_not_converted_to_anthropic_format() {
@@ -1677,18 +1697,17 @@ mod tests {
         );
 
         let custom_tool = CustomTool::try_from(&tool).expect("tool should convert");
-        assert_eq!(custom_tool.input_schema["type"], "object");
-        assert_eq!(
-            custom_tool.input_schema["properties"]["location"]["type"],
-            "string"
-        );
-        assert!(custom_tool
-            .input_schema
-            .get("additionalProperties")
-            .is_none());
-        assert!(custom_tool.input_schema["properties"]["location"]
-            .get("items")
-            .is_none());
+        let schema: ToolSchemaView =
+            serde_json::from_value(custom_tool.input_schema).expect("schema should deserialize");
+        assert_eq!(schema.schema_type, "object");
+        assert!(schema.additional_properties.is_none());
+        let location = schema
+            .properties
+            .expect("properties should be present")
+            .remove("location")
+            .expect("location should be present");
+        assert_eq!(location.schema_type.as_deref(), Some("string"));
+        assert!(location.items.is_none());
     }
 
     #[test]
