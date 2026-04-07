@@ -1,0 +1,20 @@
+{
+  "candidates": [
+    {
+      "finishReason": "OTHER",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 11,
+    "totalTokenCount": 11,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 11
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash-preview-tts",
+  "responseId": "uifVaaDBINWj1MkPrpv00Qo"
+}

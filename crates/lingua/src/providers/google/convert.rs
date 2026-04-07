@@ -11,19 +11,19 @@ use crate::import_parse::{
     try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
 use crate::providers::google::generated::{
-    Blob as GoogleBlob, Candidate as GoogleCandidate, Content as GoogleContent,
-    FileData as GoogleFileData, FinishReason as GoogleFinishReason,
-    FunctionCall as GoogleFunctionCall, FunctionCallingConfig, FunctionCallingConfigMode,
-    FunctionDeclaration, FunctionResponse as GoogleFunctionResponse, GenerateContentRequest,
-    GenerateContentResponse, GenerationConfig, Part as GooglePart, Tool as GoogleTool, ToolConfig,
-    UsageMetadata,
+    Blob as GoogleBlob, Candidate as GoogleCandidate, CodeExecutionResult,
+    Content as GoogleContent, ExecutableCode, FileData as GoogleFileData,
+    FinishReason as GoogleFinishReason, FunctionCall as GoogleFunctionCall, FunctionCallingConfig,
+    FunctionCallingConfigMode, FunctionDeclaration, FunctionResponse as GoogleFunctionResponse,
+    GenerateContentRequest, GenerateContentResponse, GenerationConfig, Part as GooglePart,
+    Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::DEFAULT_MIME_TYPE;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
-    ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, ProviderOptions, TextContentPart,
+    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
@@ -34,6 +34,15 @@ use crate::util::media::parse_base64_data_url;
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
+
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+struct GoogleAssistantPartProviderOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    executable_code: Option<ExecutableCode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    code_execution_result: Option<CodeExecutionResult>,
+}
 
 // ============================================================================
 // Google Content -> Universal Message
@@ -56,6 +65,42 @@ fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
             Some(wrapped)
         }
     }
+}
+
+fn provider_options_from_google_assistant_part(
+    executable_code: Option<ExecutableCode>,
+    code_execution_result: Option<CodeExecutionResult>,
+) -> Result<Option<ProviderOptions>, ConvertError> {
+    let metadata = GoogleAssistantPartProviderOptions {
+        executable_code,
+        code_execution_result,
+    };
+
+    if metadata.executable_code.is_none() && metadata.code_execution_result.is_none() {
+        return Ok(None);
+    }
+
+    let options =
+        serde_json::to_value(metadata).map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "provider_options".to_string(),
+            error: e.to_string(),
+        })?;
+
+    match options {
+        Value::Object(map) => Ok(Some(ProviderOptions { options: map })),
+        _ => Ok(None),
+    }
+}
+
+fn google_assistant_part_provider_options(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<GoogleAssistantPartProviderOptions> {
+    provider_options.as_ref().and_then(|opts| {
+        serde_json::from_value::<GoogleAssistantPartProviderOptions>(Value::Object(
+            opts.options.clone(),
+        ))
+        .ok()
+    })
 }
 
 /// Denormalizes JSON Schema "type" fields from uppercase to lowercase.
@@ -154,6 +199,24 @@ impl TryFromLLM<GoogleContent> for Message {
                                 provider_options: None,
                             }));
                         }
+                    } else if let Some(executable_code) = &part.executable_code {
+                        assistant_parts.push(AssistantContentPart::Text(TextContentPart {
+                            text: String::new(),
+                            encrypted_content: None,
+                            provider_options: provider_options_from_google_assistant_part(
+                                Some(executable_code.clone()),
+                                None,
+                            )?,
+                        }));
+                    } else if let Some(code_execution_result) = &part.code_execution_result {
+                        assistant_parts.push(AssistantContentPart::Text(TextContentPart {
+                            text: String::new(),
+                            encrypted_content: None,
+                            provider_options: provider_options_from_google_assistant_part(
+                                None,
+                                Some(code_execution_result.clone()),
+                            )?,
+                        }));
                     } else if let Some(fc) = &part.function_call {
                         if let Some(tool_name) = &fc.name {
                             let args_value = match fc.args.as_ref() {
@@ -365,6 +428,28 @@ impl TryFromLLM<Message> for GoogleContent {
                         for p in parts {
                             match p {
                                 AssistantContentPart::Text(t) => {
+                                    if let Some(metadata) =
+                                        google_assistant_part_provider_options(&t.provider_options)
+                                    {
+                                        if let Some(executable_code) = metadata.executable_code {
+                                            converted.push(GooglePart {
+                                                executable_code: Some(executable_code),
+                                                ..Default::default()
+                                            });
+                                            continue;
+                                        }
+
+                                        if let Some(code_execution_result) =
+                                            metadata.code_execution_result
+                                        {
+                                            converted.push(GooglePart {
+                                                code_execution_result: Some(code_execution_result),
+                                                ..Default::default()
+                                            });
+                                            continue;
+                                        }
+                                    }
+
                                     converted.push(GooglePart {
                                         text: Some(t.text),
                                         thought_signature: t.encrypted_content,
@@ -684,6 +769,15 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                     Some(config),
                 ));
             }
+
+            if let Some(url_context) = &tool.url_context {
+                result.push(UniversalTool::builtin(
+                    "url_context",
+                    BuiltinToolProvider::Google,
+                    "url_context",
+                    Some(Value::Object(url_context.clone())),
+                ));
+            }
         }
 
         Ok(result)
@@ -730,6 +824,12 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                             google_tool.google_search_retrieval = config
                                 .as_ref()
                                 .and_then(|v| serde_json::from_value(v.clone()).ok());
+                        }
+                        "url_context" => {
+                            google_tool.url_context = config.as_ref().and_then(|v| match v {
+                                Value::Object(map) => Some(map.clone()),
+                                _ => None,
+                            });
                         }
                         _ => {
                             continue;
@@ -1251,6 +1351,59 @@ mod tests {
             <Vec<GoogleTool> as TryFromLLM<Vec<UniversalTool>>>::try_from(universal).unwrap();
         assert_eq!(back.len(), 1);
         assert!(back[0].google_search.is_some());
+    }
+
+    #[test]
+    fn test_url_context_builtin_roundtrip() {
+        let google_tools = vec![GoogleTool {
+            url_context: Some(Map::new()),
+            ..Default::default()
+        }];
+
+        let universal =
+            <Vec<UniversalTool> as TryFromLLM<Vec<GoogleTool>>>::try_from(google_tools).unwrap();
+        assert_eq!(universal.len(), 1);
+        assert_eq!(universal[0].name, "url_context");
+        assert!(!universal[0].is_function());
+
+        let back =
+            <Vec<GoogleTool> as TryFromLLM<Vec<UniversalTool>>>::try_from(universal).unwrap();
+        assert_eq!(back.len(), 1);
+        assert_eq!(back[0].url_context, Some(Map::new()));
+    }
+
+    #[test]
+    fn test_executable_code_parts_roundtrip() {
+        let google_content = vec![GoogleContent {
+            role: Some("model".to_string()),
+            parts: Some(vec![
+                GooglePart {
+                    executable_code: Some(ExecutableCode {
+                        code: Some("print(1)".to_string()),
+                        language: None,
+                    }),
+                    ..Default::default()
+                },
+                GooglePart {
+                    code_execution_result: Some(CodeExecutionResult {
+                        outcome: None,
+                        output: Some("1\n".to_string()),
+                    }),
+                    ..Default::default()
+                },
+                GooglePart {
+                    text: Some("done".to_string()),
+                    ..Default::default()
+                },
+            ]),
+        }];
+
+        let universal =
+            <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(google_content.clone())
+                .unwrap();
+        let back = <Vec<GoogleContent> as TryFromLLM<Vec<Message>>>::try_from(universal).unwrap();
+
+        assert_eq!(back, google_content);
     }
 
     #[test]

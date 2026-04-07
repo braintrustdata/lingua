@@ -1,0 +1,147 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The Gemini API's URL context tool allows models to access information from specified URLs to enhance responses. It employs a two-step retrieval process, first checking an internal index cache and then performing a live fetch if the URL is not cached. This tool is useful for tasks such as data extraction, document comparison, content synthesis, and code analysis. The tool can be combined with other tools, including Google Search, for more comprehensive workflows.\n\nKey constraints of the URL context tool include:\n*   **Function calling:** Combining URL context with function calling is currently unsupported.\n*   **Request limit:** A maximum of 20 URLs can be processed per request.\n*   **URL content size:** The content retrieved from a single URL has a maximum size of 34MB.\n*   **Public accessibility:** URLs must be publicly accessible and cannot be localhost addresses, private networks, or tunneling services.\n*   **API availability:** The URL Context tool is exclusively available in the Gemini API, not through Vertex AI.\n*   **Unsupported content types:** Paywalled content, YouTube videos, Google Workspace files, and general video and audio files are not supported."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "groundingMetadata": {
+        "groundingChunks": [
+          {
+            "web": {
+              "uri": "https://ai.google.dev/gemini-api/docs/url-context",
+              "title": "URL context | Gemini API | Google AI for Developers"
+            }
+          }
+        ],
+        "groundingSupports": [
+          {
+            "segment": {
+              "startIndex": 113,
+              "endIndex": 250,
+              "text": "It employs a two-step retrieval process, first checking an internal index cache and then performing a live fetch if the URL is not cached"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 252,
+              "endIndex": 364,
+              "text": "This tool is useful for tasks such as data extraction, document comparison, content synthesis, and code analysis"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 366,
+              "endIndex": 466,
+              "text": "The tool can be combined with other tools, including Google Search, for more comprehensive workflows"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 469,
+              "endIndex": 612,
+              "text": "Key constraints of the URL context tool include:\n*   **Function calling:** Combining URL context with function calling is currently unsupported"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 614,
+              "endIndex": 686,
+              "text": "*   **Request limit:** A maximum of 20 URLs can be processed per request"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 688,
+              "endIndex": 780,
+              "text": "*   **URL content size:** The content retrieved from a single URL has a maximum size of 34MB"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 782,
+              "endIndex": 919,
+              "text": "*   **Public accessibility:** URLs must be publicly accessible and cannot be localhost addresses, private networks, or tunneling services"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 921,
+              "endIndex": 1033,
+              "text": "*   **API availability:** The URL Context tool is exclusively available in the Gemini API, not through Vertex AI"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 1035,
+              "endIndex": 1180,
+              "text": "*   **Unsupported content types:** Paywalled content, YouTube videos, Google Workspace files, and general video and audio files are not supported"
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          }
+        ]
+      },
+      "urlContextMetadata": {
+        "urlMetadata": [
+          {
+            "retrievedUrl": "https://ai.google.dev/gemini-api/docs/url-context",
+            "urlRetrievalStatus": "URL_RETRIEVAL_STATUS_SUCCESS"
+          }
+        ]
+      }
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 27,
+    "candidatesTokenCount": 262,
+    "totalTokenCount": 3544,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 27
+      }
+    ],
+    "toolUsePromptTokenCount": 3185,
+    "toolUsePromptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3185
+      }
+    ],
+    "thoughtsTokenCount": 70
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "lRbVafmDDtLj_uMPp6nzsAE"
+}

@@ -437,24 +437,30 @@ impl ProviderAdapter for GoogleAdapter {
             .map(|r| r.to_provider_string(self.format()).to_string())
             .unwrap_or_else(|| "STOP".to_string());
 
-        let candidates: Vec<Value> = resp
-            .messages
-            .iter()
-            .enumerate()
-            .map(|(i, msg)| {
-                let content = <GoogleContent as TryFromLLM<Message>>::try_from(msg.clone())
-                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+        let candidates: Vec<Value> = if resp.messages.is_empty() && resp.finish_reason.is_some() {
+            vec![serde_json::json!({
+                "index": 0,
+                "finishReason": finish_reason
+            })]
+        } else {
+            resp.messages
+                .iter()
+                .enumerate()
+                .map(|(i, msg)| {
+                    let content = <GoogleContent as TryFromLLM<Message>>::try_from(msg.clone())
+                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
 
-                let content_value = serde_json::to_value(&content)
-                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                    let content_value = serde_json::to_value(&content)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
-                Ok(serde_json::json!({
-                    "index": i,
-                    "content": content_value,
-                    "finishReason": finish_reason
-                }))
-            })
-            .collect::<Result<Vec<_>, TransformError>>()?;
+                    Ok(serde_json::json!({
+                        "index": i,
+                        "content": content_value,
+                        "finishReason": finish_reason
+                    }))
+                })
+                .collect::<Result<Vec<_>, TransformError>>()?
+        };
 
         let mut map = serde_json::Map::new();
         map.insert("candidates".into(), Value::Array(candidates));

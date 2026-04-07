@@ -1,0 +1,93 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Please let me know if you"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 272,
+      "candidatesTokenCount": 6,
+      "totalTokenCount": 335,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 272
+        }
+      ],
+      "thoughtsTokenCount": 57
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "mhbVabGuGbLR_uMPw7LkyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " have any other questions or if there's anything else I can help you with! You could ask me to:\n\n*   Explain another topic.\n*   Summarize a different article or set of URLs.\n*   Help you find"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 272,
+      "candidatesTokenCount": 55,
+      "totalTokenCount": 384,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 272
+        }
+      ],
+      "thoughtsTokenCount": 57
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "mhbVabGuGbLR_uMPw7LkyQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " information."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 272,
+      "candidatesTokenCount": 57,
+      "totalTokenCount": 386,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 272
+        }
+      ],
+      "thoughtsTokenCount": 57
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "mhbVabGuGbLR_uMPw7LkyQI"
+  }
+]

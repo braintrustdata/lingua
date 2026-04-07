@@ -1,0 +1,25 @@
+{
+  "model": "gemini-2.5-flash-preview-tts",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Generate audio speaking exactly this text: \"Hello.\""
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "responseModalities": [
+      "AUDIO"
+    ],
+    "speechConfig": {
+      "voiceConfig": {
+        "prebuiltVoiceConfig": {
+          "voiceName": "Kore"
+        }
+      }
+    }
+  }
+}

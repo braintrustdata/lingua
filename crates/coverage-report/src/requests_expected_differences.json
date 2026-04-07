@@ -426,6 +426,74 @@
       ]
     },
     {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Google code_execution tool has no Anthropic equivalent"
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.reasoning", "reason": "Anthropic rejects enabled thinking when tool_choice forces a specific tool; thinking is intentionally dropped" }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Responses expands Google required-tool reasoning followups into a different message shape" }
+      ]
+    },
+    {
+      "testCase": "responseModalitiesAudioParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "Google assistant audio content becomes text fallback in Anthropic" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google assistant audio content is not preserved in Anthropic" },
+        { "pattern": "messages[*].content[*].data", "reason": "Google assistant audio content is not preserved in Anthropic" },
+        { "pattern": "messages[*].content[*].text", "reason": "Google assistant audio content becomes text fallback in Anthropic" }
+      ]
+    },
+    {
+      "testCase": "responseModalitiesAudioParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "Google assistant audio content becomes text fallback in ChatCompletions" },
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google assistant audio content is not preserved in ChatCompletions" },
+        { "pattern": "messages[*].content[*].data", "reason": "Google assistant audio content is not preserved in ChatCompletions" },
+        { "pattern": "messages[*].content[*].text", "reason": "Google assistant audio content becomes text fallback in ChatCompletions" }
+      ]
+    },
+    {
+      "testCase": "urlContextToolParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Google url_context builtin tool has no Anthropic equivalent"
+    },
+    {
+      "testCase": "urlContextToolParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.tools", "reason": "Google url_context builtin tool has no Responses equivalent" }
+      ]
+    },
+    {
+      "testCase": "urlContextToolParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.tools", "reason": "Google url_context builtin tool has no ChatCompletions equivalent" }
+      ]
+    },
+    {
       "testCase": "parallelToolCallsRequest",
       "source": "*",
       "target": "ChatCompletions",

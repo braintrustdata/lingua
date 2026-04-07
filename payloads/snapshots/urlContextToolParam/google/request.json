@@ -1,0 +1,17 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Summarize https://ai.google.dev/gemini-api/docs/url-context and highlight the key constraints."
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "urlContext": {}
+    }
+  ]
+}

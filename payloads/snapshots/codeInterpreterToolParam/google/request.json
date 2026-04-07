@@ -1,0 +1,17 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Execute Python code to generate a random number"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "codeExecution": {}
+    }
+  ]
+}
