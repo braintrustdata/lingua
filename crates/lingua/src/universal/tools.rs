@@ -1010,15 +1010,27 @@ mod tests {
             })),
         );
 
-        let value = tool.to_responses_value().unwrap();
-        assert_eq!(value["type"], "web_search");
-        assert_eq!(
-            value["filters"]["allowed_domains"],
-            json!(["wikipedia.org", "arxiv.org"])
-        );
-        assert_eq!(value["user_location"]["type"], "approximate");
-        assert_eq!(value["user_location"]["city"], "San Francisco");
-        assert!(value.get("max_uses").is_none());
+        let typed: OpenAIResponsesTool =
+            serde_json::from_value(tool.to_responses_value().unwrap()).unwrap();
+        match typed {
+            OpenAIResponsesTool::WebSearch(web_search) => {
+                assert_eq!(
+                    web_search.filters,
+                    Some(json!({ "allowed_domains": ["wikipedia.org", "arxiv.org"] }))
+                );
+                assert_eq!(
+                    web_search.user_location,
+                    Some(json!({
+                        "type": "approximate",
+                        "city": "San Francisco",
+                        "region": "California",
+                        "country": "US",
+                        "timezone": "America/Los_Angeles"
+                    }))
+                );
+            }
+            other => panic!("expected web_search tool, got {:?}", other),
+        }
     }
 
     #[test]
@@ -1060,9 +1072,14 @@ mod tests {
             })),
         );
 
-        let value = tool.to_responses_value().unwrap();
-        assert_eq!(value["type"], "web_search");
-        assert!(value.get("filters").is_none());
-        assert!(value.get("timeRangeFilter").is_none());
+        let typed: OpenAIResponsesTool =
+            serde_json::from_value(tool.to_responses_value().unwrap()).unwrap();
+        match typed {
+            OpenAIResponsesTool::WebSearch(web_search) => {
+                assert!(web_search.filters.is_none());
+                assert!(web_search.user_location.is_none());
+            }
+            other => panic!("expected web_search tool, got {:?}", other),
+        }
     }
 }

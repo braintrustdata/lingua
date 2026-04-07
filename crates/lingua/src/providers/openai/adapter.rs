@@ -1124,6 +1124,7 @@ mod tests {
 
     #[test]
     fn test_openai_drops_anthropic_web_search_for_chat() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
         use crate::universal::message::UserContent;
 
         let adapter = OpenAIAdapter;
@@ -1153,13 +1154,15 @@ mod tests {
             },
         };
 
-        let result = adapter.request_from_universal(&req).unwrap();
-        assert!(result.get("tools").is_none());
-        assert!(result.get("web_search_options").is_none());
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert!(typed.tools.is_none());
+        assert!(typed.web_search_options.is_none());
     }
 
     #[test]
     fn test_openai_drops_google_search_for_chat() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
         use crate::universal::message::UserContent;
 
         let adapter = OpenAIAdapter;
@@ -1184,9 +1187,10 @@ mod tests {
             },
         };
 
-        let result = adapter.request_from_universal(&req).unwrap();
-        assert!(result.get("tools").is_none());
-        assert!(result.get("web_search_options").is_none());
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert!(typed.tools.is_none());
+        assert!(typed.web_search_options.is_none());
     }
 
     #[test]

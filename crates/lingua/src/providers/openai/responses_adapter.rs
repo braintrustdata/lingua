@@ -1195,6 +1195,7 @@ mod tests {
 
     #[test]
     fn test_responses_maps_anthropic_web_search_to_web_search_tool() {
+        use crate::providers::openai::generated::{CreateResponseClass, Tool};
         use crate::universal::message::UserContent;
         use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
 
@@ -1227,20 +1228,35 @@ mod tests {
         };
 
         let adapter = ResponsesAdapter;
-        let value = adapter.request_from_universal(&req).unwrap();
-        let tools = value["tools"].as_array().unwrap();
-        assert_eq!(tools[0]["type"], "web_search");
-        assert_eq!(
-            tools[0]["filters"]["allowed_domains"],
-            crate::serde_json::json!(["wikipedia.org", "arxiv.org"])
-        );
-        assert_eq!(tools[0]["user_location"]["type"], "approximate");
-        assert_eq!(tools[0]["user_location"]["city"], "San Francisco");
-        assert!(tools[0].get("max_uses").is_none());
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        let tools = typed.tools.expect("responses tool array");
+        match &tools[0] {
+            Tool::WebSearch(web_search) => {
+                assert_eq!(
+                    web_search.filters,
+                    Some(crate::serde_json::json!({
+                        "allowed_domains": ["wikipedia.org", "arxiv.org"]
+                    }))
+                );
+                assert_eq!(
+                    web_search.user_location,
+                    Some(crate::serde_json::json!({
+                        "type": "approximate",
+                        "city": "San Francisco",
+                        "region": "California",
+                        "country": "US",
+                        "timezone": "America/Los_Angeles"
+                    }))
+                );
+            }
+            other => panic!("expected web_search tool, got {:?}", other),
+        }
     }
 
     #[test]
     fn test_responses_maps_google_search_to_web_search_tool() {
+        use crate::providers::openai::generated::{CreateResponseClass, Tool};
         use crate::universal::message::UserContent;
         use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
 
@@ -1266,10 +1282,15 @@ mod tests {
         };
 
         let adapter = ResponsesAdapter;
-        let value = adapter.request_from_universal(&req).unwrap();
-        let tools = value["tools"].as_array().unwrap();
-        assert_eq!(tools[0]["type"], "web_search");
-        assert!(tools[0].get("filters").is_none());
-        assert!(tools[0].get("timeRangeFilter").is_none());
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        let tools = typed.tools.expect("responses tool array");
+        match &tools[0] {
+            Tool::WebSearch(web_search) => {
+                assert!(web_search.filters.is_none());
+                assert!(web_search.user_location.is_none());
+            }
+            other => panic!("expected web_search tool, got {:?}", other),
+        }
     }
 }

@@ -1465,10 +1465,16 @@ mod tests {
         );
 
         let anthropic_tool = Tool::try_from(&tool).unwrap();
-        let value = serde_json::to_value(anthropic_tool).unwrap();
-        assert_eq!(value["type"], "web_search_20250305");
-        assert_eq!(value["name"], "web_search");
-        assert!(value.get("timeRangeFilter").is_none());
+        match anthropic_tool {
+            Tool::WebSearch20250305(web_search) => {
+                assert_eq!(web_search.name, "web_search");
+                assert!(web_search.allowed_domains.is_none());
+                assert!(web_search.blocked_domains.is_none());
+                assert!(web_search.max_uses.is_none());
+                assert!(web_search.user_location.is_none());
+            }
+            other => panic!("expected web_search_20250305 tool, got {:?}", other),
+        }
     }
 
     #[test]
