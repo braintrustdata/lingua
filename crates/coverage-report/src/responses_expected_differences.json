@@ -143,6 +143,14 @@
       ]
     },
     {
+      "testCase": "webSearchUserLocationParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic web search content blocks become 'web_search_call' output items in Responses API" }
+      ]
+    },
+    {
       "testCase": "webSearchToolParam",
       "source": "Anthropic",
       "target": "ChatCompletions",
@@ -152,6 +160,14 @@
     },
     {
       "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[0].content.length", "reason": "Anthropic web search content blocks don't map 1:1 to ChatCompletions structure" }
+      ]
+    },
+    {
+      "testCase": "webSearchUserLocationParam",
       "source": "Anthropic",
       "target": "ChatCompletions",
       "fields": [
@@ -168,6 +184,14 @@
     },
     {
       "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "finish_reason", "reason": "Anthropic web search tool responses have different finish_reason mapping" }
+      ]
+    },
+    {
+      "testCase": "webSearchUserLocationParam",
       "source": "Anthropic",
       "target": "Responses",
       "fields": [
@@ -192,6 +216,14 @@
     },
     {
       "testCase": "webSearchToolAdvancedParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Anthropic web search content blocks don't map 1:1 to Google structure" }
+      ]
+    },
+    {
+      "testCase": "webSearchUserLocationParam",
       "source": "Anthropic",
       "target": "Google",
       "fields": [

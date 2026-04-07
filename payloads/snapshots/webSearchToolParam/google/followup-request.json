@@ -1,0 +1,33 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Latest OpenAI news"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "OpenAI has been actively engaged in various initiatives and announcements across product development, research, partnerships, and policy recommendations.\n\n**Key Recent Developments:**\n\n*   **Societal Reorganization for Superintelligence** On April 6, 2026, OpenAI released a paper outlining its vision for societal reorganization in anticipation of superintelligence. The paper proposes policy recommendations such as taxes on automated labor, the establishment of a public wealth fund to provide citizens with a stake in AI-driven economic growth, and an expanded social safety net. Additionally, it suggests strengthening the electric grid for AI infrastructure and developing new safety and oversight systems to mitigate risks from advanced AI.\n*   **CFO's Concerns Regarding IPO Readiness** OpenAI's Chief Financial Officer, Sarah Friar, reportedly believes the company is not prepared for an Initial Public Offering (IPO) in 2026. Her concerns, reported on April 6, 2026, stem from the company's significant spending commitments and uncertainty about whether revenue growth will adequately support these commitments. It was also noted that Friar no longer reports directly to CEO Sam Altman since August 2025.\n*   **Allegations Against Sam Altman** A New Yorker article published around April 6, 2026, brought forth allegations against OpenAI CEO Sam Altman, describing him as a persistent liar.\n*   **\"Accelerating the Next Phase of AI\"** OpenAI made a company announcement on March 31, 2026, titled \"Accelerating the next phase of AI.\"\n*   **ChatGPT Enhancements for Education** On March 10, 2026, OpenAI introduced new ways to learn math and science within ChatGPT.\n*   **Codex Security Research Preview** Codex Security entered a research preview phase on March 6, 2026.\n*   **Strategic Partnerships** OpenAI announced an agreement with the Department of War on February 28, 2026, and a strategic partnership with Amazon on February 27, 2026.\n\n**Latest Research Highlights:**\n\n*   Research on \"Improving instruction hierarchy in frontier LLMs\" was published on March 10, 2026.\n*   A paper titled \"Reasoning models struggle to control their chains of thought, and that's good\" was released on March 5, 2026.\n*   Research on \"Extending single-minus amplitudes to gravitons\" was published on March 4, 2026.\n\nOpenAI also continues to highlight the application of its technologies in business, with companies like Gradient Labs, STADLER, and Rakuten utilizing their AI solutions."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "googleSearch": {}
+    }
+  ]
+}

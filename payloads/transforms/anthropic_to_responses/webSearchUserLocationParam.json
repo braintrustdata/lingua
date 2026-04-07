@@ -1,3 +1,77 @@
 {
-  "error": "Conversion from universal format failed: Tool 'web_search' of type 'web_search_20250305' is not supported by responses"
+  "id": "resp_0adcee8f97d7a9e80069d46f308c488190a1aa5533357b2bda",
+  "object": "response",
+  "created_at": 1775529776,
+  "status": "incomplete",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": null,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": {
+    "reason": "max_output_tokens"
+  },
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0adcee8f97d7a9e80069d46f3166208190ae72a6d01534e19d",
+      "type": "reasoning",
+      "summary": []
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "web_search",
+      "search_context_size": "medium",
+      "user_location": {
+        "type": "approximate",
+        "city": "San Francisco",
+        "country": "US",
+        "region": "California",
+        "timezone": "America/Los_Angeles"
+      }
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 4444,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1024,
+    "output_tokens_details": {
+      "reasoning_tokens": 1024
+    },
+    "total_tokens": 5468
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
 }

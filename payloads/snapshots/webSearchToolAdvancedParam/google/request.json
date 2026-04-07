@@ -1,0 +1,22 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "AI news"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "googleSearch": {
+        "timeRangeFilter": {
+          "startTime": "2025-01-01T00:00:00Z",
+          "endTime": "2025-01-03T00:00:00Z"
+        }
+      }
+    }
+  ]
+}

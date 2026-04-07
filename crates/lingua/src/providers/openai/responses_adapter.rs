@@ -1192,4 +1192,84 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_responses_maps_anthropic_web_search_to_web_search_tool() {
+        use crate::universal::message::UserContent;
+        use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("AI news".to_string()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![UniversalTool::builtin(
+                    "web_search",
+                    BuiltinToolProvider::Anthropic,
+                    "web_search_20250305",
+                    Some(crate::serde_json::json!({
+                        "type": "web_search_20250305",
+                        "name": "web_search",
+                        "allowed_domains": ["wikipedia.org", "arxiv.org"],
+                        "max_uses": 3,
+                        "user_location": {
+                            "type": "approximate",
+                            "city": "San Francisco",
+                            "region": "California",
+                            "country": "US",
+                            "timezone": "America/Los_Angeles"
+                        }
+                    })),
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let value = adapter.request_from_universal(&req).unwrap();
+        let tools = value["tools"].as_array().unwrap();
+        assert_eq!(tools[0]["type"], "web_search");
+        assert_eq!(
+            tools[0]["filters"]["allowed_domains"],
+            crate::serde_json::json!(["wikipedia.org", "arxiv.org"])
+        );
+        assert_eq!(tools[0]["user_location"]["type"], "approximate");
+        assert_eq!(tools[0]["user_location"]["city"], "San Francisco");
+        assert!(tools[0].get("max_uses").is_none());
+    }
+
+    #[test]
+    fn test_responses_maps_google_search_to_web_search_tool() {
+        use crate::universal::message::UserContent;
+        use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("AI news".to_string()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![UniversalTool::builtin(
+                    "google_search",
+                    BuiltinToolProvider::Google,
+                    "google_search",
+                    Some(crate::serde_json::json!({
+                        "timeRangeFilter": {
+                            "startTime": "2025-01-01T00:00:00Z",
+                            "endTime": "2025-01-02T00:00:00Z"
+                        }
+                    })),
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let value = adapter.request_from_universal(&req).unwrap();
+        let tools = value["tools"].as_array().unwrap();
+        assert_eq!(tools[0]["type"], "web_search");
+        assert!(tools[0].get("filters").is_none());
+        assert!(tools[0].get("timeRangeFilter").is_none());
+    }
 }

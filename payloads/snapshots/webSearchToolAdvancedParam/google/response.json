@@ -1,0 +1,347 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "AI is rapidly evolving, with recent news highlighting significant advancements in generative AI, the emergence of more sophisticated AI agents, and a growing emphasis on ethical deployment and regulation. Key trends observed in late 2024 and continuing into 2026 include the shift from large, general models to smaller, purpose-built AI, and increasing integration of AI into various industries and daily life.\n\n**Major AI Trends and Developments:**\n\n*   **Generative AI Maturation:** Generative AI has transitioned from a phase of rapid experimentation to becoming an essential business tool, with adoption rates in enterprises significantly increasing. It is being widely investigated for creating new data and content, outpacing older AI forms like prediction models. Businesses are embedding generative AI into core operations, especially in areas like marketing and sales.\n*   **Rise of Multimodal AI and AI Agents:** The development of multimodal AI, capable of processing diverse content from a single model (text, images, audio, video), is enhancing human-AI interactions. Concurrently, AI agents are moving from reactive to proactive problem-solving, with systems now able to plan tasks, coordinate with other agents, and execute workflows across platforms. Autonomous AI systems are increasingly reliant on robust data governance.\n*   **Shift Towards Smaller, Efficient Models:** There's a notable trend towards \"smallifying\" AI models, with companies like Meta and Nvidia releasing updates that are faster and significantly smaller, enabling sophisticated AI features on devices like smartphones. This shift from raw parameter scaling to efficiency-first AI development has implications for on-device AI and data center costs.\n*   **Increased Focus on AI Regulation and Ethics:** The landscape of AI regulation is fluid, with a growing resistance to regulation from some AI leaders, contrasting with earlier calls for frameworks to ensure safe development. Globally, countries are advancing their AI regulatory frameworks, with an increasing emphasis on ethical AI deployment, risk mitigation, and transparency. Clearer rules for mitigating AI harms and preventing the concentration of AI power are also emerging.\n*   **AI in Scientific Discovery and Industry Applications:** AI is accelerating scientific breakthroughs across various fields. Researchers are using AI to streamline protein drug design, develop physics-informed algorithms for climate modeling and fluid dynamics, and uncover atomic defects in materials. AI is also transforming industries like finance, healthcare (e.g., breast cancer detection, Alzheimer's research), and autonomous vehicle development.\n*   **Growing Ties with the Military-Industrial Complex:** A significant trend in 2024 was the increasing partnership between the AI sector and the military-industrial complex, driven by funding opportunities and the search for profitability and resources as AI models continue to scale.\n\n**Key Breakthroughs and Innovations:**\n\n*   Google has introduced TurboQuant, a memory compression breakthrough for large AI models, and released Gemma 4, its latest series of open models designed for advanced reasoning and agentic workflows. Google also continues to develop initiatives like Project Genie for interactive virtual worlds and improved Gemini audio models.\n*   MIT researchers have developed a generative AI model to reduce the costs of developing protein drugs and created an AI model that projects 100 years of climate patterns 25 times faster than current methods.\n*   NVIDIA has partnered with Alpamayo to accelerate AI autonomous vehicle development using high-fidelity digital twin technology.\n*   Advancements in agentic AI are being seen in autonomous agent governance and the potential for AI models to autonomously fix bugs and improve code, potentially surpassing human debugging efficiency.\n\nThe overall sentiment suggests that AI is no longer a technological novelty but an integral part of business operations and society, with continuous innovation expected in the years to come."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "groundingMetadata": {
+        "searchEntryPoint": {
+          "renderedContent": "<style>\n.container {\n  align-items: center;\n  border-radius: 8px;\n  display: flex;\n  font-family: Google Sans, Roboto, sans-serif;\n  font-size: 14px;\n  line-height: 20px;\n  padding: 8px 12px;\n}\n.chip {\n  display: inline-block;\n  border: solid 1px;\n  border-radius: 16px;\n  min-width: 14px;\n  padding: 5px 16px;\n  text-align: center;\n  user-select: none;\n  margin: 0 8px;\n  -webkit-tap-highlight-color: transparent;\n}\n.carousel {\n  overflow: auto;\n  scrollbar-width: none;\n  white-space: nowrap;\n  margin-right: -12px;\n}\n.headline {\n  display: flex;\n  margin-right: 4px;\n}\n.gradient-container {\n  position: relative;\n}\n.gradient {\n  position: absolute;\n  transform: translate(3px, -9px);\n  height: 36px;\n  width: 9px;\n}\n@media (prefers-color-scheme: light) {\n  .container {\n    background-color: #fafafa;\n    box-shadow: 0 0 0 1px #0000000f;\n  }\n  .headline-label {\n    color: #1f1f1f;\n  }\n  .chip {\n    background-color: #ffffff;\n    border-color: #d2d2d2;\n    color: #5e5e5e;\n    text-decoration: none;\n  }\n  .chip:hover {\n    background-color: #f2f2f2;\n  }\n  .chip:focus {\n    background-color: #f2f2f2;\n  }\n  .chip:active {\n    background-color: #d8d8d8;\n    border-color: #b6b6b6;\n  }\n  .logo-dark {\n    display: none;\n  }\n  .gradient {\n    background: linear-gradient(90deg, #fafafa 15%, #fafafa00 100%);\n  }\n}\n@media (prefers-color-scheme: dark) {\n  .container {\n    background-color: #1f1f1f;\n    box-shadow: 0 0 0 1px #ffffff26;\n  }\n  .headline-label {\n    color: #fff;\n  }\n  .chip {\n    background-color: #2c2c2c;\n    border-color: #3c4043;\n    color: #fff;\n    text-decoration: none;\n  }\n  .chip:hover {\n    background-color: #353536;\n  }\n  .chip:focus {\n    background-color: #353536;\n  }\n  .chip:active {\n    background-color: #464849;\n    border-color: #53575b;\n  }\n  .logo-light {\n    display: none;\n  }\n  .gradient {\n    background: linear-gradient(90deg, #1f1f1f 15%, #1f1f1f00 100%);\n  }\n}\n</style>\n<div class=\"container\">\n  <div class=\"headline\">\n    <svg class=\"logo-light\" width=\"18\" height=\"18\" viewBox=\"9 9 35 35\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M42.8622 27.0064C42.8622 25.7839 42.7525 24.6084 42.5487 23.4799H26.3109V30.1568H35.5897C35.1821 32.3041 33.9596 34.1222 32.1258 35.3448V39.6864H37.7213C40.9814 36.677 42.8622 32.2571 42.8622 27.0064V27.0064Z\" fill=\"#4285F4\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M26.3109 43.8555C30.9659 43.8555 34.8687 42.3195 37.7213 39.6863L32.1258 35.3447C30.5898 36.3792 28.6306 37.0061 26.3109 37.0061C21.8282 37.0061 18.0195 33.9811 16.6559 29.906H10.9194V34.3573C13.7563 39.9841 19.5712 43.8555 26.3109 43.8555V43.8555Z\" fill=\"#34A853\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16.6559 29.8904C16.3111 28.8559 16.1074 27.7588 16.1074 26.6146C16.1074 25.4704 16.3111 24.3733 16.6559 23.3388V18.8875H10.9194C9.74388 21.2072 9.06992 23.8247 9.06992 26.6146C9.06992 29.4045 9.74388 32.022 10.9194 34.3417L15.3864 30.8621L16.6559 29.8904V29.8904Z\" fill=\"#FBBC05\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M26.3109 16.2386C28.85 16.2386 31.107 17.1164 32.9095 18.8091L37.8466 13.8719C34.853 11.082 30.9659 9.3736 26.3109 9.3736C19.5712 9.3736 13.7563 13.245 10.9194 18.8875L16.6559 23.3388C18.0195 19.2636 21.8282 16.2386 26.3109 16.2386V16.2386Z\" fill=\"#EA4335\"/>\n    </svg>\n    <svg class=\"logo-dark\" width=\"18\" height=\"18\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\">\n      <circle cx=\"24\" cy=\"23\" fill=\"#FFF\" r=\"22\"/>\n      <path d=\"M33.76 34.26c2.75-2.56 4.49-6.37 4.49-11.26 0-.89-.08-1.84-.29-3H24.01v5.99h8.03c-.4 2.02-1.5 3.56-3.07 4.56v.75l3.91 2.97h.88z\" fill=\"#4285F4\"/>\n      <path d=\"M15.58 25.77A8.845 8.845 0 0 0 24 31.86c1.92 0 3.62-.46 4.97-1.31l4.79 3.71C31.14 36.7 27.65 38 24 38c-5.93 0-11.01-3.4-13.45-8.36l.17-1.01 4.06-2.85h.8z\" fill=\"#34A853\"/>\n      <path d=\"M15.59 20.21a8.864 8.864 0 0 0 0 5.58l-5.03 3.86c-.98-2-1.53-4.25-1.53-6.64 0-2.39.55-4.64 1.53-6.64l1-.22 3.81 2.98.22 1.08z\" fill=\"#FBBC05\"/>\n      <path d=\"M24 14.14c2.11 0 4.02.75 5.52 1.98l4.36-4.36C31.22 9.43 27.81 8 24 8c-5.93 0-11.01 3.4-13.45 8.36l5.03 3.85A8.86 8.86 0 0 1 24 14.14z\" fill=\"#EA4335\"/>\n    </svg>\n    <div class=\"gradient-container\"><div class=\"gradient\"></div></div>\n  </div>\n  <div class=\"carousel\">\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGtf9AWvdNXtSnOCr0efX-kk1Erp8KFhw6gH9PdvyWiz1T0poVbUfWMxhLfNZ6QNGwHvP6NwjSfTmOIh7SRLXqt8DaSQgZ5eqL91MuCkdrdj5S3H_UQnjYH_PDp4YYAyPeplOVXwWKnE9KAeG8oYYIIsD4dscn2tmeUVzt2ClGH-pkRUGcL3zrJZirqjaT1t5QlsbIOv_Nz_9X-\">recent AI breakthroughs</a>\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFf21U2YToBII96L1YWBtwwUa_zhO_NHU498mjlGOaiZ15fcVo5mGZ9S0GjnmKYDdz2V3iuZGetNEctsBlcKggizMoad8QUJ5kp9TviRTmSiFYr5-eE8lGsZMcg_Gtf2bML_XDORePO6az7G6n3TOi47aUlNXZSk3ojbnRdQC5TSZezRNjC2yq8qRw=\">AI news</a>\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGDAGTfj7zH3tmgD9Rqp9oXmYPEtdvz3zhpiuMTeUKhwSOsKTw8ve3c39cSPykjRFqPUr8I67WyDHdUZmlAJm0-fbuy5VhNCPZh1Q2yhYj6E18jHgNgQNbFvPgQKYrtMQ7p40ve4dVWfcSmTPKTC_nmta3D1c-zKiotilIa3OQ7IYlj7L_WTfEJRL7rWO0dx_GBUvVoQXvQuzY=\">latest AI developments</a>\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG37-G4zUqL_c3iqDjvPM3z28urd11Q0jMApwtE-5lCX7W8eSGya9RQGFGJuGPNhWOVxwRpVvEypRTvgQROwI3PtCPxkUsbkmd6oVZkhDnxS_-24847DA3F2Lffmy43ObFGzLP78DjJJ6AYxSmEn15oj7nJrM3qwaxzOPoyR7tn1dYWfJwG-DSoJfAAOFrBHtqm\">AI trends 2024</a>\n  </div>\n</div>\n"
+        },
+        "groundingChunks": [
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFtrr5KYhBZ_bDZ11wJNa-QY5Jxl63XaNpe53s-29dblTm3ozLML2HPB4KDoZJ76rZ0yT1emPSSjbkgakIP7YZdMv2gHD34tnS_k7GzTwt5NO9Mmzm-D0_cvI6dgzaHh3_XyZSi9CTGbYvyc9SMuA==",
+              "title": "neudesic.com"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEQ1NNTRxsUwFbTfL5oZm4BWsRyLIIe1H8q7hAiVmJGmuazlHWgyA2_0wpvs688Xhn6eV3eNW9yFiLHpQnrE4HKoXjOSmgvpYDwb3XQADViGe_CqsRJWqg29u4OTjrKugmKinnKX_b-p_Izh4JfcEaXpbP_y9zhuEev4CaYlEui4x8=",
+              "title": "weka.io"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFsnTs48hh8ipWpLW8qYPoCGyqz6aCpXEKfTlp-Af_mIvFbQO6dTa-psl3tOKGbKARzl8FxsENghs7jvXyuaFP00jrCp4ief20e_5e28IwatktqXPApw74wXknZ0n9_0hMu-rJFvQovPWjfwo5ArEXwVJDj0uq0",
+              "title": "raconteur.net"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGiTFpl8ulT9DglAxdGp_s6FQo-MUdKoAOMAdTsl3kNIgZ8Y51KTqHxNoZd-xkXdWQq4wF2tgyCdLXj_2k5lYBcQBQ2B4Pofbt8ax1FprBXYM405mybGikeDdEt1ztZCm7u4xOTuLE=",
+              "title": "youtube.com"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHCgeCGHYe2c1a0tZfRyDK11DnKbdvNyRGrIfxDrK01dGPGM6ZAGozyzZA4ydF-y2SpNQJvhLfVO2I-qRpjmMzU7B6PpxEdI1sIUv2LmI-Lmpyuq7BOWPZ6YoH9jOpOqUhyT4OETF0A2FZBtBGIspdVeJFTZJ_vFTckiRDW60mLgaRgAvnwfgzNxvM=",
+              "title": "trendmicro.com"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQF8pEfaVI_YKDQthBJheRCXvTrrj6lup_9tixwy1AkDKS_RmsfKOnfgnSblqi3LKP5umAbu_fBjaQq7RFb8Yg8V5dA4FJm9kgufQMSQJN3jneb-6gsw5rnbL7W1lCyIT6AmN_4wkhI7",
+              "title": "artificialintelligence-news.com"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGuCVRaQMnjEsHwIvIA20qdUfYG8ohVFZuLHqMkwT7u-KUiw2-bEjwqwFUQ8p0lAaiyWcYtRL4NHfqzE4r416HX8IhUddFLWukyHo8luoYeWdxN67XX96C8466Y3HbaFcw0_EgSwW6qmPKC5VxMNdmZIbhoa8tdc9NGTT2A",
+              "title": "ibm.com"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG_iehCi2tO4L4c54BdLnjHsy8LeyAub121KFukAE2VeavuLchBzTAQ5fo2uys7G_T2I6vUXGjPzqYA13UnPQvGgISCJlGVpR_aEUTbGwkrj38vgY9d5DKUJ9BRAIqnhEdmTnGzbo-yp-cjN7oBHHWCIg53",
+              "title": "crescendo.ai"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHtSsPYzPno1UrwkWTtbMqJqfCEdsQNvXwHa98DIG6_gVxnenN7NK3e82NrWgmMoKTxytc1ic8UneVPTaOpWRxELyWVrO_Sy17YpaCpr2sbW0t1MPPxwqmWAjLAXnQk8JJ5ke1kbOiD73ZZmj1gfcllu8qJQo7xZVN0U8aCi6dpjPUq",
+              "title": "ari.us"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEYsa8XtE5Qc8N66wDE3gCUQEN7i9O3gVBzCdMcMjgfdWPvcvwehYusb6g3s3xt87oVcdj3haP8m9Fxj1BDWprnHjmQLUjmJTOBGuVPkVrI5WIVyOqJPbvbD1UvXmhutAW8QqpdEEDj2UVZoHKju7Xct1VnCYeCvuL575W-3Zg=",
+              "title": "ucsd.edu"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFvGQNZtre8IUjKcYSc_k8A4XG6RF68QrVooTgxM32VlzhQK0eRJGxvv5sjnWm9KkBFbPhAGmZNqTsqmnp7HN4xsAwY7WYeUR2AAGOlfKF4BxAzkTj_L5T-d07f2Sj6-4Ek533MIEc16TkPdl74zQ==",
+              "title": "mit.edu"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHcd1lrGEkOOkXqujhfqOWsvjf49NQcelmDqFneEv2iYJue2TkXvZEI2zDidMZ8baIT-NWZQ7sTO9lqAACqZZrzy7IuzYpzju9-7d1XbGxkOKSIvUc84A==",
+              "title": "ai.google"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGqbVEK8veFVYwoXiGW1xABCi5whV-PBkmBtxhTvfkUX_y71U4MWGg-5phEb4bW_JfmMSQTsJ5ABByNuGjXYGMIcKHJ_2VyFEYgMzMQTpxE11Z5pEsAYHvyJPvAbEcmtRs5b--h_SgQAJ0ItgNwkY1_XzncgwN3rbqxbp34tizT5XE6ZDZHivpAUtpdTJXbGavSnX9B3i1-NU6OVmFYA-k19w==",
+              "title": "mit.edu"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGbetbB1B9PBAQDVz53x6gCDZVI2rsC7JpqVapnUe4EujsJRoZaheWVxhc_vsZO7fQ5ai4NOZFzHAqm3q1OM5UwxpyG5Vij-6YuPuTRevXmDnJspQGrlAwU",
+              "title": "deepmind.google"
+            }
+          },
+          {
+            "web": {
+              "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEa6JM_6O1XsHiTU5KXjy3gOTJd5diWuhoTKR4thBmHa3GCk83wVOuQtCw3k3LA9kzZiMrCSuF0v9a7J0VJNwmGziE384YcFA746OIjmbJ0KQ==",
+              "title": "smol.ai"
+            }
+          }
+        ],
+        "groundingSupports": [
+          {
+            "segment": {
+              "startIndex": 655,
+              "endIndex": 770,
+              "text": "It is being widely investigated for creating new data and content, outpacing older AI forms like prediction models."
+            },
+            "groundingChunkIndices": [
+              0,
+              1
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 771,
+              "endIndex": 877,
+              "text": "Businesses are embedding generative AI into core operations, especially in areas like marketing and sales."
+            },
+            "groundingChunkIndices": [
+              0
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 878,
+              "endIndex": 1080,
+              "text": "*   **Rise of Multimodal AI and AI Agents:** The development of multimodal AI, capable of processing diverse content from a single model (text, images, audio, video), is enhancing human-AI interactions."
+            },
+            "groundingChunkIndices": [
+              0,
+              2,
+              3
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 1081,
+              "endIndex": 1266,
+              "text": "Concurrently, AI agents are moving from reactive to proactive problem-solving, with systems now able to plan tasks, coordinate with other agents, and execute workflows across platforms."
+            },
+            "groundingChunkIndices": [
+              0,
+              4,
+              3
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 1267,
+              "endIndex": 1340,
+              "text": "Autonomous AI systems are increasingly reliant on robust data governance."
+            },
+            "groundingChunkIndices": [
+              5
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 1341,
+              "endIndex": 1607,
+              "text": "*   **Shift Towards Smaller, Efficient Models:** There's a notable trend towards \"smallifying\" AI models, with companies like Meta and Nvidia releasing updates that are faster and significantly smaller, enabling sophisticated AI features on devices like smartphones."
+            },
+            "groundingChunkIndices": [
+              4,
+              6
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 1608,
+              "endIndex": 1737,
+              "text": "This shift from raw parameter scaling to efficiency-first AI development has implications for on-device AI and data center costs."
+            },
+            "groundingChunkIndices": [
+              7
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 1738,
+              "endIndex": 1967,
+              "text": "*   **Increased Focus on AI Regulation and Ethics:** The landscape of AI regulation is fluid, with a growing resistance to regulation from some AI leaders, contrasting with earlier calls for frameworks to ensure safe development."
+            },
+            "groundingChunkIndices": [
+              8
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 1968,
+              "endIndex": 2122,
+              "text": "Globally, countries are advancing their AI regulatory frameworks, with an increasing emphasis on ethical AI deployment, risk mitigation, and transparency."
+            },
+            "groundingChunkIndices": [
+              2
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 2123,
+              "endIndex": 2224,
+              "text": "Clearer rules for mitigating AI harms and preventing the concentration of AI power are also emerging."
+            },
+            "groundingChunkIndices": [
+              4
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 2354,
+              "endIndex": 2531,
+              "text": "Researchers are using AI to streamline protein drug design, develop physics-informed algorithms for climate modeling and fluid dynamics, and uncover atomic defects in materials."
+            },
+            "groundingChunkIndices": [
+              7,
+              9,
+              10
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 2532,
+              "endIndex": 2682,
+              "text": "AI is also transforming industries like finance, healthcare (e.g., breast cancer detection, Alzheimer's research), and autonomous vehicle development."
+            },
+            "groundingChunkIndices": [
+              2,
+              7,
+              9,
+              11,
+              12
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 2683,
+              "endIndex": 2970,
+              "text": "*   **Growing Ties with the Military-Industrial Complex:** A significant trend in 2024 was the increasing partnership between the AI sector and the military-industrial complex, driven by funding opportunities and the search for profitability and resources as AI models continue to scale."
+            },
+            "groundingChunkIndices": [
+              8
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 3012,
+              "endIndex": 3214,
+              "text": "*   Google has introduced TurboQuant, a memory compression breakthrough for large AI models, and released Gemma 4, its latest series of open models designed for advanced reasoning and agentic workflows."
+            },
+            "groundingChunkIndices": [
+              7
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 3215,
+              "endIndex": 3343,
+              "text": "Google also continues to develop initiatives like Project Genie for interactive virtual worlds and improved Gemini audio models."
+            },
+            "groundingChunkIndices": [
+              13
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 3344,
+              "endIndex": 3554,
+              "text": "*   MIT researchers have developed a generative AI model to reduce the costs of developing protein drugs and created an AI model that projects 100 years of climate patterns 25 times faster than current methods."
+            },
+            "groundingChunkIndices": [
+              7,
+              9
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 3555,
+              "endIndex": 3686,
+              "text": "*   NVIDIA has partnered with Alpamayo to accelerate AI autonomous vehicle development using high-fidelity digital twin technology."
+            },
+            "groundingChunkIndices": [
+              7
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 3687,
+              "endIndex": 3889,
+              "text": "*   Advancements in agentic AI are being seen in autonomous agent governance and the potential for AI models to autonomously fix bugs and improve code, potentially surpassing human debugging efficiency."
+            },
+            "groundingChunkIndices": [
+              5,
+              14
+            ]
+          },
+          {
+            "segment": {
+              "startIndex": 3891,
+              "endIndex": 4081,
+              "text": "The overall sentiment suggests that AI is no longer a technological novelty but an integral part of business operations and society, with continuous innovation expected in the years to come."
+            },
+            "groundingChunkIndices": [
+              0,
+              4
+            ]
+          }
+        ],
+        "webSearchQueries": [
+          "AI news",
+          "latest AI developments",
+          "recent AI breakthroughs",
+          "AI trends 2024"
+        ]
+      }
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 3,
+    "candidatesTokenCount": 776,
+    "totalTokenCount": 1119,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3
+      }
+    ],
+    "toolUsePromptTokenCount": 120,
+    "toolUsePromptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 120
+      }
+    ],
+    "thoughtsTokenCount": 220
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "QxzUacS5FMTj_uMP_aOTwQo"
+}

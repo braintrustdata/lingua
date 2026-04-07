@@ -1,0 +1,181 @@
+{
+  "id": "resp_038fa7993f7842610069d46f78212c8196a7e9688fc3b52163",
+  "object": "response",
+  "created_at": 1775529848,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775529891,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_038fa7993f7842610069d46f788b6c8196b7d063963dd8f908",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_038fa7993f7842610069d46f7a13b48196bc559fed6e686bbc",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "search",
+        "queries": [
+          "OpenAI latest news 2026",
+          "OpenAI announces 2026 news Reuters",
+          "OpenAI news The Verge 2026",
+          "OpenAI official blog 2026"
+        ],
+        "query": "OpenAI latest news 2026"
+      }
+    },
+    {
+      "id": "rs_038fa7993f7842610069d46f7d80f48196815368c3ed5ebb79",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_038fa7993f7842610069d46f7e63808196a6eb84d97920c7cf",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "search",
+        "queries": [
+          "site:openai.com OpenAI blog GPT-4o retirement February 2026",
+          "OpenAI GPT-5 announcement March 2026 site:openai.com"
+        ],
+        "query": "site:openai.com OpenAI blog GPT-4o retirement February 2026"
+      }
+    },
+    {
+      "id": "rs_038fa7993f7842610069d46f7fa030819687bc778c4a31e9f6",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_038fa7993f7842610069d46f9931d88196ae6762b24bc90e24",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "search",
+        "queries": [
+          "OpenAI TBPN acquisition April 2026",
+          "OpenAI TBPN press release"
+        ],
+        "query": "OpenAI TBPN acquisition April 2026"
+      }
+    },
+    {
+      "id": "rs_038fa7993f7842610069d46f9c4ba081969f014751ad2580c7",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_038fa7993f7842610069d46fa1e4d48196bd0b7742fd749822",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [
+            {
+              "type": "url_citation",
+              "end_index": 544,
+              "start_index": 452,
+              "title": "Retiring GPT-4o, GPT-4.1, GPT-4.1 mini, and OpenAI o4-mini in ChatGPT | OpenAI",
+              "url": "https://openai.com/index/retiring-gpt-4o-and-older-models/?utm_source=openai"
+            },
+            {
+              "type": "url_citation",
+              "end_index": 811,
+              "start_index": 729,
+              "title": "ChatGPT — Release Notes | OpenAI Help Center",
+              "url": "https://help.openai.com/en/articles/6825453?utm_source=openai"
+            },
+            {
+              "type": "url_citation",
+              "end_index": 1001,
+              "start_index": 912,
+              "title": "Model Release Notes | OpenAI Help Center",
+              "url": "https://help.openai.com/en/articles/9624314-model-?utm_source=openai"
+            },
+            {
+              "type": "url_citation",
+              "end_index": 1414,
+              "start_index": 1262,
+              "title": "OpenAI Buys TBPN to Expand AI Conversation With Media Acquisition - Bloomberg",
+              "url": "https://www.bloomberg.com/news/articles/2026-04-02/openai-buys-tech-talk-show-tbpn-in-rare-move-into-media-business?utm_source=openai"
+            },
+            {
+              "type": "url_citation",
+              "end_index": 1722,
+              "start_index": 1627,
+              "title": "OpenAI opens the door to individual investors",
+              "url": "https://www.axios.com/2026/03/31/openai-ai-stock-investors-ipo?utm_source=openai"
+            }
+          ],
+          "logprobs": [],
+          "text": "Here are the latest OpenAI news highlights as of today, April 7, 2026. If you want deeper details on any item, I can pull up the full article or official post.\n\n- ChatGPT model retirements and transitions (February–March 2026)\n  - On February 13, 2026, OpenAI retired several ChatGPT models, including GPT-4o, GPT-4.1, GPT-4.1 mini, and OpenAI o4-mini. GPT-5 (Instant and Thinking) was also retired in ChatGPT. The API usage remains unchanged for now. ([openai.com](https://openai.com/index/retiring-gpt-4o-and-older-models/?utm_source=openai))\n  - On March 11, 2026, OpenAI retired GPT-5.1 Instant, Thinking, and Pro in ChatGPT. GPT-5.2 became the current ChatGPT option, with extended thinking features and other improvements. ([help.openai.com](https://help.openai.com/en/articles/6825453?utm_source=openai))\n  - Notes and context about these changes are documented in OpenAI’s release notes and help center. ([help.openai.com](https://help.openai.com/en/articles/9624314-model-?utm_source=openai))\n\n- OpenAI acquires TBPN (tech media property)\n  - OpenAI announced the acquisition of TBPN (a tech/business talk show) on April 2, 2026, signaling a strategic push into media and AI communications. Bloomberg, Axios, and OpenAI’s own post corroborate the deal. ([bloomberg.com](https://www.bloomberg.com/news/articles/2026-04-02/openai-buys-tech-talk-show-tbpn-in-rare-move-into-media-business?utm_source=openai))\n\n- OpenAI moves into broader investor/media avenues\n  - In early April 2026, there were reports that OpenAI’s shares might appear in certain ETFs (e.g., ARK Invest’s ETFs), signaling growing investor visibility. ([axios.com](https://www.axios.com/2026/03/31/openai-ai-stock-investors-ipo?utm_source=openai))\n\nIf you’d like, I can pull the exact blog posts or press releases for any of these items, or summarize other recent OpenAI topics (e.g., business updates, partnerships, or policy moves) with citations."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "web_search",
+      "search_context_size": "medium",
+      "user_location": {
+        "type": "approximate",
+        "city": null,
+        "country": "US",
+        "region": null,
+        "timezone": null
+      }
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 20844,
+    "input_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "output_tokens": 5772,
+    "output_tokens_details": {
+      "reasoning_tokens": 5184
+    },
+    "total_tokens": 26616
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here are the latest OpenAI news highlights as of today, April 7, 2026. If you want deeper details on any item, I can pull up the full article or official post.\n\n- ChatGPT model retirements and transitions (February–March 2026)\n  - On February 13, 2026, OpenAI retired several ChatGPT models, including GPT-4o, GPT-4.1, GPT-4.1 mini, and OpenAI o4-mini. GPT-5 (Instant and Thinking) was also retired in ChatGPT. The API usage remains unchanged for now. ([openai.com](https://openai.com/index/retiring-gpt-4o-and-older-models/?utm_source=openai))\n  - On March 11, 2026, OpenAI retired GPT-5.1 Instant, Thinking, and Pro in ChatGPT. GPT-5.2 became the current ChatGPT option, with extended thinking features and other improvements. ([help.openai.com](https://help.openai.com/en/articles/6825453?utm_source=openai))\n  - Notes and context about these changes are documented in OpenAI’s release notes and help center. ([help.openai.com](https://help.openai.com/en/articles/9624314-model-?utm_source=openai))\n\n- OpenAI acquires TBPN (tech media property)\n  - OpenAI announced the acquisition of TBPN (a tech/business talk show) on April 2, 2026, signaling a strategic push into media and AI communications. Bloomberg, Axios, and OpenAI’s own post corroborate the deal. ([bloomberg.com](https://www.bloomberg.com/news/articles/2026-04-02/openai-buys-tech-talk-show-tbpn-in-rare-move-into-media-business?utm_source=openai))\n\n- OpenAI moves into broader investor/media avenues\n  - In early April 2026, there were reports that OpenAI’s shares might appear in certain ETFs (e.g., ARK Invest’s ETFs), signaling growing investor visibility. ([axios.com](https://www.axios.com/2026/03/31/openai-ai-stock-investors-ipo?utm_source=openai))\n\nIf you’d like, I can pull the exact blog posts or press releases for any of these items, or summarize other recent OpenAI topics (e.g., business updates, partnerships, or policy moves) with citations."
+}

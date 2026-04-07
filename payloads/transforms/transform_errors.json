@@ -5,13 +5,11 @@
     "codeInterpreterToolParam": "Tool 'code_interpreter' of type 'code_interpreter' is not supported by anthropic"
   },
   "anthropic_to_chat-completions": {
-    "webSearchToolParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by openai",
     "codeInterpreterToolParam": "Tool 'bash' of type 'bash_20250124' is not supported by openai",
     "textEditorToolParam": "Tool 'str_replace_editor' of type 'text_editor_20250124' is not supported by openai",
     "textEditorToolV2Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250429' is not supported by openai",
     "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by openai",
-    "webSearchToolAdvancedParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by openai",
-    "webSearchUserLocationParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by openai",
+    "webSearchToolAdvancedParam": "Tool 'web_search' of type 'allowed_domains' is not supported by openai",
     "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI chat completions",
     "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
     "metadataParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
@@ -20,13 +18,10 @@
     "simpleRequestTruncated": "Deserialization failed: missing field `choices`"
   },
   "anthropic_to_responses": {
-    "webSearchToolParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by responses",
     "codeInterpreterToolParam": "Tool 'bash' of type 'bash_20250124' is not supported by responses",
     "textEditorToolParam": "Tool 'str_replace_editor' of type 'text_editor_20250124' is not supported by responses",
     "textEditorToolV2Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250429' is not supported by responses",
     "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by responses",
-    "webSearchToolAdvancedParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by responses",
-    "webSearchUserLocationParam": "Tool 'web_search' of type 'web_search_20250305' is not supported by responses",
     "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI responses",
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
     "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",

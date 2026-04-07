@@ -30,12 +30,18 @@ use ts_rs::TS;
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
-use crate::serde_json::{json, Map, Value};
+use crate::providers::anthropic::generated::{
+    UserLocation as AnthropicUserLocation, WebSearchTool20250305,
+};
+use crate::providers::google::generated::GoogleSearch;
+use crate::providers::openai::generated::{
+    ApproximateLocation, Tool as OpenAIResponsesTool, UserLocationType as OpenAIUserLocationType,
+    WebSearchTool,
+};
+use crate::serde_json::{self, json, Map, Value};
 
 #[cfg(test)]
 use crate::providers::anthropic::generated::Tool;
-#[cfg(test)]
-use crate::serde_json;
 
 // =============================================================================
 // Universal Tool Types
@@ -198,6 +204,113 @@ impl UniversalTool {
 // =============================================================================
 
 impl UniversalTool {
+    fn anthropic_web_search_config(&self) -> Result<Option<WebSearchTool20250305>, ConvertError> {
+        let UniversalToolType::Builtin {
+            provider,
+            builtin_type,
+            config,
+        } = &self.tool_type
+        else {
+            return Ok(None);
+        };
+
+        if !matches!(provider, BuiltinToolProvider::Anthropic)
+            || builtin_type != "web_search_20250305"
+        {
+            return Ok(None);
+        }
+
+        let config_val = config
+            .clone()
+            .ok_or_else(|| ConvertError::MissingRequiredField {
+                field: format!("config for Anthropic builtin tool '{}'", self.name),
+            })?;
+
+        serde_json::from_value(config_val).map(Some).map_err(|e| {
+            ConvertError::JsonSerializationFailed {
+                field: format!("Anthropic web search tool '{}'", self.name),
+                error: e.to_string(),
+            }
+        })
+    }
+
+    fn google_search_config(&self) -> Result<Option<GoogleSearch>, ConvertError> {
+        let UniversalToolType::Builtin {
+            provider,
+            builtin_type,
+            config,
+        } = &self.tool_type
+        else {
+            return Ok(None);
+        };
+
+        if !matches!(provider, BuiltinToolProvider::Google) || builtin_type != "google_search" {
+            return Ok(None);
+        }
+
+        let config_val = config
+            .clone()
+            .ok_or_else(|| ConvertError::MissingRequiredField {
+                field: format!("config for Google builtin tool '{}'", self.name),
+            })?;
+
+        serde_json::from_value(config_val).map(Some).map_err(|e| {
+            ConvertError::JsonSerializationFailed {
+                field: format!("Google search tool '{}'", self.name),
+                error: e.to_string(),
+            }
+        })
+    }
+
+    fn openai_responses_user_location_from_anthropic(
+        user_location: Option<serde_json::Value>,
+    ) -> Result<Option<serde_json::Value>, ConvertError> {
+        let Some(user_location) = user_location else {
+            return Ok(None);
+        };
+
+        let anthropic_location: AnthropicUserLocation = serde_json::from_value(user_location)
+            .map_err(|e| ConvertError::JsonSerializationFailed {
+                field: "Anthropic web search user_location".to_string(),
+                error: e.to_string(),
+            })?;
+
+        serde_json::to_value(ApproximateLocation {
+            city: anthropic_location.city,
+            country: anthropic_location.country,
+            region: anthropic_location.region,
+            timezone: anthropic_location.timezone,
+            approximate_location_type: Some(OpenAIUserLocationType::Approximate),
+        })
+        .map(Some)
+        .map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "OpenAI responses web search user_location".to_string(),
+            error: e.to_string(),
+        })
+    }
+
+    fn assert_chat_web_search_filters_supported(
+        &self,
+        allowed_domains: &Option<Vec<String>>,
+        blocked_domains: &Option<Vec<String>>,
+    ) -> Result<(), ConvertError> {
+        if allowed_domains.is_some() {
+            return Err(ConvertError::UnsupportedToolType {
+                tool_name: self.name.clone(),
+                tool_type: "allowed_domains".to_string(),
+                target_provider: ProviderFormat::ChatCompletions,
+            });
+        }
+        if blocked_domains.is_some() {
+            return Err(ConvertError::UnsupportedToolType {
+                tool_name: self.name.clone(),
+                tool_type: "blocked_domains".to_string(),
+                target_provider: ProviderFormat::ChatCompletions,
+            });
+        }
+        Ok(())
+    }
+
     /// Convert to OpenAI Chat Completions format (JSON Value).
     ///
     /// Returns an error if the tool is a builtin from a different provider.
@@ -242,14 +355,58 @@ impl UniversalTool {
                 }))
             }
             UniversalToolType::Builtin {
-                provider: _,
+                provider,
                 builtin_type,
-                config: _,
-            } => Err(ConvertError::UnsupportedToolType {
-                tool_name: self.name.clone(),
-                tool_type: builtin_type.clone(),
-                target_provider: ProviderFormat::ChatCompletions,
-            }),
+                config,
+            } => match provider {
+                BuiltinToolProvider::Responses
+                    if builtin_type == "web_search" || builtin_type == "web_search_preview" =>
+                {
+                    config
+                        .clone()
+                        .ok_or_else(|| ConvertError::MissingRequiredField {
+                            field: format!("config for OpenAI builtin chat tool '{}'", self.name),
+                        })
+                }
+                BuiltinToolProvider::Anthropic if builtin_type == "web_search_20250305" => {
+                    let anthropic_config =
+                        self.anthropic_web_search_config()?.ok_or_else(|| {
+                            ConvertError::UnsupportedToolType {
+                                tool_name: self.name.clone(),
+                                tool_type: builtin_type.clone(),
+                                target_provider: ProviderFormat::ChatCompletions,
+                            }
+                        })?;
+                    self.assert_chat_web_search_filters_supported(
+                        &anthropic_config.allowed_domains,
+                        &anthropic_config.blocked_domains,
+                    )?;
+                    Err(ConvertError::UnsupportedToolType {
+                        tool_name: self.name.clone(),
+                        tool_type: builtin_type.clone(),
+                        target_provider: ProviderFormat::ChatCompletions,
+                    })
+                }
+                BuiltinToolProvider::Google if builtin_type == "google_search" => {
+                    let _google_config = self.google_search_config()?.ok_or_else(|| {
+                        ConvertError::UnsupportedToolType {
+                            tool_name: self.name.clone(),
+                            tool_type: builtin_type.clone(),
+                            target_provider: ProviderFormat::ChatCompletions,
+                        }
+                    })?;
+                    Err(ConvertError::UnsupportedToolType {
+                        tool_name: self.name.clone(),
+                        tool_type: builtin_type.clone(),
+                        target_provider: ProviderFormat::ChatCompletions,
+                    })
+                }
+                _ => Err(ConvertError::UnsupportedToolType {
+                    tool_name: self.name.clone(),
+                    tool_type: builtin_type.clone(),
+                    target_provider: ProviderFormat::ChatCompletions,
+                }),
+            },
         }
     }
 
@@ -305,9 +462,71 @@ impl UniversalTool {
                             field: format!("config for Responses API builtin tool '{}'", self.name),
                         })
                 }
+                BuiltinToolProvider::Anthropic if builtin_type == "web_search_20250305" => {
+                    let anthropic_config =
+                        self.anthropic_web_search_config()?.ok_or_else(|| {
+                            ConvertError::UnsupportedToolType {
+                                tool_name: self.name.clone(),
+                                tool_type: builtin_type.clone(),
+                                target_provider: ProviderFormat::Responses,
+                            }
+                        })?;
+
+                    if anthropic_config.blocked_domains.is_some() {
+                        return Err(ConvertError::UnsupportedToolType {
+                            tool_name: self.name.clone(),
+                            tool_type: "blocked_domains".to_string(),
+                            target_provider: ProviderFormat::Responses,
+                        });
+                    }
+
+                    let filters = anthropic_config
+                        .allowed_domains
+                        .map(|allowed_domains| json!({ "allowed_domains": allowed_domains }));
+                    let user_location = Self::openai_responses_user_location_from_anthropic(
+                        anthropic_config.user_location,
+                    )?;
+
+                    let tool = OpenAIResponsesTool::WebSearch(WebSearchTool {
+                        filters,
+                        search_context_size: None,
+                        user_location,
+                    });
+
+                    serde_json::to_value(tool).map_err(|e| ConvertError::JsonSerializationFailed {
+                        field: format!(
+                            "OpenAI responses web search tool conversion for '{}'",
+                            self.name
+                        ),
+                        error: e.to_string(),
+                    })
+                }
+                BuiltinToolProvider::Google if builtin_type == "google_search" => {
+                    let _google_config = self.google_search_config()?.ok_or_else(|| {
+                        ConvertError::UnsupportedToolType {
+                            tool_name: self.name.clone(),
+                            tool_type: builtin_type.clone(),
+                            target_provider: ProviderFormat::Responses,
+                        }
+                    })?;
+
+                    let tool = OpenAIResponsesTool::WebSearch(WebSearchTool {
+                        filters: None,
+                        search_context_size: None,
+                        user_location: None,
+                    });
+
+                    serde_json::to_value(tool).map_err(|e| ConvertError::JsonSerializationFailed {
+                        field: format!(
+                            "OpenAI responses Google web search tool conversion for '{}'",
+                            self.name
+                        ),
+                        error: e.to_string(),
+                    })
+                }
                 BuiltinToolProvider::Anthropic
-                | BuiltinToolProvider::Google
-                | BuiltinToolProvider::Converse => Err(ConvertError::UnsupportedToolType {
+                | BuiltinToolProvider::Converse
+                | BuiltinToolProvider::Google => Err(ConvertError::UnsupportedToolType {
                     tool_name: self.name.clone(),
                     tool_type: builtin_type.clone(),
                     target_provider: ProviderFormat::Responses,
@@ -328,11 +547,25 @@ pub fn tools_to_openai_chat_value(tools: &[UniversalTool]) -> Result<Option<Valu
     if tools.is_empty() {
         return Ok(None);
     }
-    let converted: Vec<Value> = tools
-        .iter()
-        .map(|t| t.to_openai_chat_value())
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(Some(Value::Array(converted)))
+    let mut converted = Vec::new();
+
+    for tool in tools {
+        match tool.to_openai_chat_value() {
+            Ok(value) => converted.push(value),
+            Err(ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::ChatCompletions,
+                ..
+            }) if tool_type == "web_search_20250305" || tool_type == "google_search" => {}
+            Err(err) => return Err(err),
+        }
+    }
+
+    if converted.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(Value::Array(converted)))
+    }
 }
 
 /// Convert a slice of UniversalTools to Responses API format Value array.
@@ -676,5 +909,160 @@ mod tests {
 
         let result = tools_to_openai_chat_value(&tools);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_anthropic_web_search_to_openai_chat_is_unsupported_without_filters() {
+        let tool = UniversalTool::builtin(
+            "web_search",
+            BuiltinToolProvider::Anthropic,
+            "web_search_20250305",
+            Some(json!({
+                "type": "web_search_20250305",
+                "name": "web_search",
+                "user_location": {
+                    "type": "approximate",
+                    "city": "San Francisco",
+                    "region": "California",
+                    "country": "US",
+                    "timezone": "America/Los_Angeles"
+                }
+            })),
+        );
+
+        let error = tool.to_openai_chat_value().unwrap_err();
+        assert!(matches!(
+            error,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::ChatCompletions,
+                ..
+            } if tool_type == "web_search_20250305"
+        ));
+    }
+
+    #[test]
+    fn test_anthropic_web_search_to_openai_chat_errors_on_allowed_domains() {
+        let tool = UniversalTool::builtin(
+            "web_search",
+            BuiltinToolProvider::Anthropic,
+            "web_search_20250305",
+            Some(json!({
+                "type": "web_search_20250305",
+                "name": "web_search",
+                "allowed_domains": ["wikipedia.org"]
+            })),
+        );
+
+        let error = tool.to_openai_chat_value().unwrap_err();
+        assert!(matches!(
+            error,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::ChatCompletions,
+                ..
+            } if tool_type == "allowed_domains"
+        ));
+    }
+
+    #[test]
+    fn test_anthropic_web_search_to_responses_errors_on_blocked_domains() {
+        let tool = UniversalTool::builtin(
+            "web_search",
+            BuiltinToolProvider::Anthropic,
+            "web_search_20250305",
+            Some(json!({
+                "type": "web_search_20250305",
+                "name": "web_search",
+                "blocked_domains": ["example.com"]
+            })),
+        );
+
+        let error = tool.to_responses_value().unwrap_err();
+        assert!(matches!(
+            error,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::Responses,
+                ..
+            } if tool_type == "blocked_domains"
+        ));
+    }
+
+    #[test]
+    fn test_anthropic_web_search_to_responses_tool() {
+        let tool = UniversalTool::builtin(
+            "web_search",
+            BuiltinToolProvider::Anthropic,
+            "web_search_20250305",
+            Some(json!({
+                "type": "web_search_20250305",
+                "name": "web_search",
+                "allowed_domains": ["wikipedia.org", "arxiv.org"],
+                "max_uses": 3,
+                "user_location": {
+                    "type": "approximate",
+                    "city": "San Francisco",
+                    "region": "California",
+                    "country": "US",
+                    "timezone": "America/Los_Angeles"
+                }
+            })),
+        );
+
+        let value = tool.to_responses_value().unwrap();
+        assert_eq!(value["type"], "web_search");
+        assert_eq!(
+            value["filters"]["allowed_domains"],
+            json!(["wikipedia.org", "arxiv.org"])
+        );
+        assert_eq!(value["user_location"]["type"], "approximate");
+        assert_eq!(value["user_location"]["city"], "San Francisco");
+        assert!(value.get("max_uses").is_none());
+    }
+
+    #[test]
+    fn test_google_search_to_openai_chat_is_unsupported() {
+        let tool = UniversalTool::builtin(
+            "google_search",
+            BuiltinToolProvider::Google,
+            "google_search",
+            Some(json!({
+                "timeRangeFilter": {
+                    "startTime": "2025-01-01T00:00:00Z",
+                    "endTime": "2025-01-02T00:00:00Z"
+                }
+            })),
+        );
+
+        let error = tool.to_openai_chat_value().unwrap_err();
+        assert!(matches!(
+            error,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::ChatCompletions,
+                ..
+            } if tool_type == "google_search"
+        ));
+    }
+
+    #[test]
+    fn test_google_search_to_responses_tool_drops_time_range() {
+        let tool = UniversalTool::builtin(
+            "google_search",
+            BuiltinToolProvider::Google,
+            "google_search",
+            Some(json!({
+                "timeRangeFilter": {
+                    "startTime": "2025-01-01T00:00:00Z",
+                    "endTime": "2025-01-02T00:00:00Z"
+                }
+            })),
+        );
+
+        let value = tool.to_responses_value().unwrap();
+        assert_eq!(value["type"], "web_search");
+        assert!(value.get("filters").is_none());
+        assert!(value.get("timeRangeFilter").is_none());
     }
 }

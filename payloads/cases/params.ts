@@ -313,7 +313,10 @@ export const paramsCases: TestCaseCollection = {
         },
       ],
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "Latest OpenAI news" }] }],
+      tools: [{ googleSearch: {} }],
+    },
     bedrock: null,
   },
 
@@ -974,7 +977,19 @@ export const paramsCases: TestCaseCollection = {
         },
       ],
     },
-    google: null,
+    google: {
+      contents: [{ role: "user", parts: [{ text: "AI news" }] }],
+      tools: [
+        {
+          googleSearch: {
+            timeRangeFilter: {
+              startTime: "2025-01-01T00:00:00Z",
+              endTime: "2025-01-03T00:00:00Z",
+            },
+          },
+        },
+      ],
+    },
     bedrock: null,
   },
 
