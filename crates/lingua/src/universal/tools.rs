@@ -851,9 +851,23 @@ mod tests {
 
     #[test]
     fn test_batch_conversion_to_anthropic() {
+        let object_schema = Some(json!({
+            "type": "object",
+            "properties": {}
+        }));
         let tools = [
-            UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
-            UniversalTool::function("tool2", Some("desc2".to_string()), None, None),
+            UniversalTool::function(
+                "tool1",
+                Some("desc1".to_string()),
+                object_schema.clone(),
+                None,
+            ),
+            UniversalTool::function(
+                "tool2",
+                Some("desc2".to_string()),
+                object_schema,
+                None,
+            ),
         ];
 
         let anthropic_tools: Vec<Tool> = tools.iter().map(|t| Tool::try_from(t).unwrap()).collect();
@@ -867,8 +881,17 @@ mod tests {
 
     #[test]
     fn test_batch_conversion_to_anthropic_fails_on_wrong_provider() {
+        let object_schema = Some(json!({
+            "type": "object",
+            "properties": {}
+        }));
         let tools = [
-            UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
+            UniversalTool::function(
+                "tool1",
+                Some("desc1".to_string()),
+                object_schema,
+                None,
+            ),
             UniversalTool::builtin(
                 "code_interpreter",
                 BuiltinToolProvider::Responses,

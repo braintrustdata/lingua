@@ -192,9 +192,10 @@ export async function captureTransforms(
       const input = getCaseForProvider(allTestCases, caseName, p.source);
 
       nonStreamingTasks.push(async () => {
+        let request: Record<string, unknown> | undefined;
         try {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
-          const request = transformAndValidateRequest(
+          request = transformAndValidateRequest(
             input,
             p.wasmTarget,
             p.target
@@ -223,6 +224,7 @@ export async function captureTransforms(
         } catch (e) {
           const errorObj = e && typeof e === "object" ? e : {};
           const errorData = {
+            ...(request ? { request } : {}),
             error: e instanceof Error ? e.message : String(e),
             name: e instanceof Error ? e.name : undefined,
             ...("response" in errorObj ? { response: errorObj.response } : {}),

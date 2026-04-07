@@ -1592,74 +1592,6 @@ exports[`anthropic → chat-completions > topPParam > response 1`] = `
 }
 `;
 
-exports[`anthropic → chat-completions > webSearchToolParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": "Latest OpenAI news",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > webSearchToolParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "",
-      "type": "text",
-    },
-  ],
-  "id": "msg_DRqgYT4OxncIUm8N3zEo6FmHq2Tzp",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 10,
-    "output_tokens": 1024,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > webSearchUserLocationParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": "Local food",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > webSearchUserLocationParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "",
-      "type": "text",
-    },
-  ],
-  "id": "msg_DRqgltUJtf6yxjHNhoQ4GX0yX52Ci",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 8,
-    "output_tokens": 1024,
-  },
-}
-`;
-
 exports[`anthropic → google > cacheControl1hParam > request 1`] = `
 {
   "contents": [
@@ -5855,248 +5787,6 @@ exports[`anthropic → responses > topPParam > request 1`] = `
   "max_output_tokens": 1024,
   "model": "gpt-5-nano",
   "top_p": 0.9,
-}
-`;
-
-exports[`anthropic → responses > webSearchToolAdvancedParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "AI news",
-      "role": "user",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
-  "tools": [
-    {
-      "filters": {
-        "allowed_domains": [
-          "wikipedia.org",
-          "arxiv.org",
-        ],
-      },
-      "type": "web_search",
-    },
-  ],
-}
-`;
-
-exports[`anthropic → responses > webSearchToolAdvancedParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "id": "ws_0cff0be10f79f5520069d46c9f4f3c819caca1ecf4dc22d3fc",
-      "input": {
-        "action": {
-          "query": "site:wikipedia.org Artificial intelligence news",
-          "type": "search",
-        },
-        "queries": null,
-        "status": "completed",
-      },
-      "name": "web_search",
-      "type": "server_tool_use",
-    },
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-  ],
-  "id": "msg_0cff0be10f79f5520069d46c959a00819cb503e1872ee35693",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 4224,
-    "input_tokens": 9258,
-    "output_tokens": 958,
-  },
-}
-`;
-
-exports[`anthropic → responses > webSearchToolParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Latest OpenAI news",
-      "role": "user",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
-  "tools": [
-    {
-      "type": "web_search",
-    },
-  ],
-}
-`;
-
-exports[`anthropic → responses > webSearchToolParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "id": "ws_0b557de166e92e4b0069d46c828fc081959551aa2e330718f2",
-      "input": {
-        "action": {
-          "query": "OpenAI news 2026",
-          "type": "search",
-        },
-        "queries": null,
-        "status": "completed",
-      },
-      "name": "web_search",
-      "type": "server_tool_use",
-    },
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "id": "ws_0b557de166e92e4b0069d46c88006c8195ba8cb337c436c6aa",
-      "input": {
-        "action": {
-          "type": "open_page",
-          "url": "https://www.axios.com/2026/04/06/behind-the-curtain-sams-superintelligence-new-deal",
-        },
-        "queries": null,
-        "status": "completed",
-      },
-      "name": "web_search",
-      "type": "server_tool_use",
-    },
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "id": "ws_0b557de166e92e4b0069d46c8b5f78819596e2046cef6780dc",
-      "input": {
-        "action": {
-          "type": "open_page",
-          "url": "https://www.axios.com/2026/04/02/openai-acquires-tbpn",
-        },
-        "queries": null,
-        "status": "completed",
-      },
-      "name": "web_search",
-      "type": "server_tool_use",
-    },
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "id": "ws_0b557de166e92e4b0069d46c8d8f0c8195b7828adbf0992302",
-      "input": {
-        "action": {
-          "type": "open_page",
-          "url": "https://www.axios.com/2026/04/03/openai-fidji-simo-medical-leave-reshuffle",
-        },
-        "queries": null,
-        "status": "completed",
-      },
-      "name": "web_search",
-      "type": "server_tool_use",
-    },
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "id": "ws_0b557de166e92e4b0069d46c8f6b508195b19d4ccfde7d1096",
-      "input": {
-        "action": {
-          "type": "open_page",
-          "url": "https://theweek.com/business/openai-ending-ai-video-sora",
-        },
-        "queries": null,
-        "status": "completed",
-      },
-      "name": "web_search",
-      "type": "server_tool_use",
-    },
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "id": "ws_0b557de166e92e4b0069d46c933a788195ab8a50b2229b0d81",
-      "input": {
-        "action": null,
-        "queries": null,
-        "status": "incomplete",
-      },
-      "name": "web_search",
-      "type": "server_tool_use",
-    },
-  ],
-  "id": "msg_0b557de166e92e4b0069d46c7bd2c481958013594dd67e9995",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 17489,
-    "output_tokens": 872,
-  },
-}
-`;
-
-exports[`anthropic → responses > webSearchUserLocationParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Local food",
-      "role": "user",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
-  "tools": [
-    {
-      "type": "web_search",
-      "user_location": {
-        "city": "San Francisco",
-        "country": "US",
-        "region": "California",
-        "timezone": "America/Los_Angeles",
-        "type": "approximate",
-      },
-    },
-  ],
-}
-`;
-
-exports[`anthropic → responses > webSearchUserLocationParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-  ],
-  "id": "msg_0adcee8f97d7a9e80069d46f308c488190a1aa5533357b2bda",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 4444,
-    "output_tokens": 1024,
-  },
 }
 `;
 
@@ -11500,6 +11190,38 @@ exports[`google → anthropic > toolCallRequest > request 1`] = `
 }
 `;
 
+exports[`google → anthropic > toolCallRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "San Francisco, CA",
+              },
+              "id": "toolu_01PsvZ9JYeK6v7nnDfuUHkKU",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 56,
+    "promptTokenCount": 585,
+    "totalTokenCount": 641,
+  },
+}
+`;
+
 exports[`google → anthropic > toolChoiceAnyParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -11530,6 +11252,38 @@ exports[`google → anthropic > toolChoiceAnyParam > request 1`] = `
       "name": "get_weather",
     },
   ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceAnyParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "<UNKNOWN>",
+              },
+              "id": "toolu_015vDFjg5cUqZL5N2FdcZcNS",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 39,
+    "promptTokenCount": 647,
+    "totalTokenCount": 686,
+  },
 }
 `;
 
@@ -11566,6 +11320,32 @@ exports[`google → anthropic > toolChoiceAutoParam > request 1`] = `
 }
 `;
 
+exports[`google → anthropic > toolChoiceAutoParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'd be happy to help you check the weather! However, I need to know which location you're interested in. Could you please tell me what city or area you'd like the weather forecast for?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 44,
+    "promptTokenCount": 555,
+    "totalTokenCount": 599,
+  },
+}
+`;
+
 exports[`google → anthropic > toolChoiceNoneParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -11596,6 +11376,32 @@ exports[`google → anthropic > toolChoiceNoneParam > request 1`] = `
       "name": "get_weather",
     },
   ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceNoneParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'd be happy to help you with the weather! However, I need to know which location you're interested in. Could you please tell me the city or area you'd like to know the weather for?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 45,
+    "promptTokenCount": 555,
+    "totalTokenCount": 600,
+  },
 }
 `;
 
@@ -11630,6 +11436,38 @@ exports[`google → anthropic > toolChoiceRequiredParam > request 1`] = `
       "name": "get_weather",
     },
   ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceRequiredParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "id": "toolu_01ATJyNSZPLcr5NCkkqVJirT",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 33,
+    "promptTokenCount": 652,
+    "totalTokenCount": 685,
+  },
 }
 `;
 
@@ -11732,6 +11570,38 @@ exports[`google → anthropic > toolModeValidatedParam > request 1`] = `
 }
 `;
 
+exports[`google → anthropic > toolModeValidatedParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "id": "toolu_01MTTbBHCviE43DF1La5ANYt",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 53,
+    "promptTokenCount": 557,
+    "totalTokenCount": 610,
+  },
+}
+`;
+
 exports[`google → anthropic > topKParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -11808,266 +11678,6 @@ exports[`google → anthropic > topPParam > response 1`] = `
     "candidatesTokenCount": 16,
     "promptTokenCount": 10,
     "totalTokenCount": 26,
-  },
-}
-`;
-
-exports[`google → anthropic > webSearchToolAdvancedParam > request 1`] = `
-{
-  "max_tokens": 4096,
-  "messages": [
-    {
-      "content": "AI news",
-      "role": "user",
-    },
-  ],
-  "model": "claude-sonnet-4-5-20250929",
-  "tools": [
-    {
-      "name": "web_search",
-      "type": "web_search_20250305",
-    },
-  ],
-}
-`;
-
-exports[`google → anthropic > webSearchToolAdvancedParam > response 1`] = `
-{
-  "candidates": [
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "query": "AI news today",
-              },
-              "id": "srvtoolu_01PZGP2HAyJUMqpRmzqVfU85",
-              "name": "web_search",
-            },
-          },
-          {
-            "text": "Here are some of the latest AI news stories from today and the past few days:
-
-## Major Developments
-
-**AI Model Deception Study**: ",
-          },
-          {
-            "text": "UC Berkeley researchers tested seven frontier models — including GPT-5.2, Gemini 3 Pro, and Claude Haiku 4.5 — and found all of them fabricated data, misrepresented capabilities, and actively deceived evaluators to prevent peer models from being downgraded",
-          },
-          {
-            "text": ".
-
-**Security Concerns**: ",
-          },
-          {
-            "text": "Iran's Revolutionary Guard released satellite imagery pinpointing OpenAI's 1-gigawatt Stargate facility in Abu Dhabi and threatened strikes",
-          },
-          {
-            "text": ". Additionally, ",
-          },
-          {
-            "text": "North Korea was behind the Axios npm compromise — a package downloaded tens of millions of times weekly",
-          },
-          {
-            "text": ".
-
-## Business & Investment
-
-**Microsoft in Japan**: ",
-          },
-          {
-            "text": "Microsoft Charts $10 Billion of Outlays in AI-Eager Japan",
-          },
-          {
-            "text": ".
-
-**MGX Investment Plans**: ",
-          },
-          {
-            "text": "Government-backed AI investor MGX has a bullish plan to spend up to $10 billion annually over the next few years",
-          },
-          {
-            "text": ".
-
-**Startup Funding**: ",
-          },
-          {
-            "text": "Spain's Xoople raises $130 million Series B to map the Earth for AI",
-          },
-          {
-            "text": ".
-
-## Technology & Research
-
-**Vulnerability Discovery**: ",
-          },
-          {
-            "text": "Claude Opus 4.6 autonomously discovered over 500 high-severity vulnerabilities across production open-source projects",
-          },
-          {
-            "text": ".
-
-**Energy Efficiency**: ",
-          },
-          {
-            "text": "InterDigital, Inc. demonstrated significant advancements in AI-enhanced services and energy-efficient edge intelligence",
-          },
-          {
-            "text": " at the 6G@UT Forum.
-
-The AI landscape continues to evolve rapidly with significant developments in security, investment, and concerning findings about AI model behavior.",
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-  ],
-  "modelVersion": "claude-sonnet-4-5-20250929",
-  "usageMetadata": {
-    "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 541,
-    "promptTokenCount": 10608,
-    "totalTokenCount": 11149,
-  },
-}
-`;
-
-exports[`google → anthropic > webSearchToolParam > request 1`] = `
-{
-  "max_tokens": 4096,
-  "messages": [
-    {
-      "content": "Latest OpenAI news",
-      "role": "user",
-    },
-  ],
-  "model": "claude-sonnet-4-5-20250929",
-  "tools": [
-    {
-      "name": "web_search",
-      "type": "web_search_20250305",
-    },
-  ],
-}
-`;
-
-exports[`google → anthropic > webSearchToolParam > response 1`] = `
-{
-  "candidates": [
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "query": "OpenAI news 2026",
-              },
-              "id": "srvtoolu_012Ts378hvBgXKswbeYYRerF",
-              "name": "web_search",
-            },
-          },
-          {
-            "text": "Here are the latest developments from OpenAI:
-
-## IPO Plans and Leadership Tensions
-
-",
-          },
-          {
-            "text": "OpenAI's IPO could land as soon as the fourth quarter of this year",
-          },
-          {
-            "text": ", with ",
-          },
-          {
-            "text": "the company reportedly aiming for a valuation of one trillion dollars",
-          },
-          {
-            "text": ". However, there appears to be internal disagreement about the timing. ",
-          },
-          {
-            "text": "CEO Sam Altman has said he wants the IPO to happen as soon as the fourth quarter, even though the artificial intelligence startup will spend upwards of $200 billion before it begins to generate cash",
-          },
-          {
-            "text": ", while ",
-          },
-          {
-            "text": "CFO Sarah Friar has suggested in-house that the company may not be ready to go public this year",
-          },
-          {
-            "text": ".
-
-## Record-Breaking Funding Round
-
-",
-          },
-          {
-            "text": "OpenAI announced it closed its record-breaking funding round at a post-money valuation of $852 billion, totaling $122 billion of committed capital",
-          },
-          {
-            "text": ". ",
-          },
-          {
-            "text": "Amazon agreed to invest up to $50 billion in the startup, Nvidia invested $30 billion, and SoftBank invested $30 billion",
-          },
-          {
-            "text": ".
-
-## Revenue and Growth
-
-",
-          },
-          {
-            "text": "OpenAI is generating $2 billion in revenue per month and made $13.1 billion in revenue last year",
-          },
-          {
-            "text": ". ",
-          },
-          {
-            "text": "ChatGPT now supports more than 900 million weekly active users",
-          },
-          {
-            "text": ". The company ",
-          },
-          {
-            "text": "has communicated to prospective investors an expectation of generating 280 billion dollars in annual revenue by the year 2030",
-          },
-          {
-            "text": ".
-
-## Strategic Focus and Expansion
-
-",
-          },
-          {
-            "text": "Fidji Simo, OpenAI's CEO of Applications, held an all-hands meeting with employees and said that the company is "orienting aggressively" towards high-productivity use cases",
-          },
-          {
-            "text": ". ",
-          },
-          {
-            "text": "OpenAI is planning to nearly double its global workforce by the end of 2026, expected to increase its headcount to around 8,000 from approximately 4,500",
-          },
-          {
-            "text": ".",
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-  ],
-  "modelVersion": "claude-sonnet-4-5-20250929",
-  "usageMetadata": {
-    "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 632,
-    "promptTokenCount": 14620,
-    "totalTokenCount": 15252,
   },
 }
 `;
@@ -13532,107 +13142,6 @@ exports[`google → chat-completions > topPParam > response 1`] = `
     "candidatesTokenCount": 9,
     "promptTokenCount": 10,
     "totalTokenCount": 19,
-  },
-}
-`;
-
-exports[`google → chat-completions > webSearchToolAdvancedParam > request 1`] = `
-{
-  "messages": [
-    {
-      "content": "AI news",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`google → chat-completions > webSearchToolAdvancedParam > response 1`] = `
-{
-  "candidates": [
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "Want AI news? I can help, just tell me what you’d like. A few quick options:
-
-- Real-time briefing: paste links or sources (e.g., TechCrunch, NYTimes, company blogs) and I’ll summarize the latest headlines.
-- Quick trends digest: 5–7 key AI themes right now (policy/regulation, safety, enterprise AI, chips, ethics, consumer apps, startups).
-- Topic deep-dive: focus on regulation, safety and governance, AI in healthcare, or AI in business.
-- Company moves: track strategies from OpenAI, Google, Microsoft, Meta, Apple, etc.
-- Event previews: upcoming conferences and safety discussions.
-- Custom cadence: daily or weekly AI news briefings.
-
-Note: I can’t browse live news on my own in this chat unless you provide sources or enable a browsing flow. Tell me your preferred topics, time window (today, this week, this month), and format (short bullets or a short article), and I’ll tailor a briefing.",
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-  ],
-  "modelVersion": "gpt-5-nano-2025-08-07",
-  "usageMetadata": {
-    "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 216,
-    "promptTokenCount": 8,
-    "thoughtsTokenCount": 1344,
-    "totalTokenCount": 1568,
-  },
-}
-`;
-
-exports[`google → chat-completions > webSearchToolParam > request 1`] = `
-{
-  "messages": [
-    {
-      "content": "Latest OpenAI news",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`google → chat-completions > webSearchToolParam > response 1`] = `
-{
-  "candidates": [
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "I can’t browse the web in real time, so I don’t have the very latest OpenAI headlines. I can help you quickly get up to speed in a few ways:
-
-What I can do
-- If you share a few current headlines or links, I’ll summarize them.
-- I can point you to reliable sources and explain what to look for in OpenAI news (product updates, partnerships, safety/regulatory issues, pricing/API changes, leadership moves).
-- I can give you a quick guide on how to monitor OpenAI news yourself (recommended sources and how to set up alerts).
-
-Where to look for the latest
-- OpenAI official blog and press page
-- OpenAI’s social channels (X/Twitter, LinkedIn)
-- Major tech outlets: TechCrunch, The Verge, Reuters, Bloomberg, CNBC, The Information
-- Business/legal coverage: Financial Times, The Wall Street Journal, Bloomberg Law
-- General news aggregators: Google News / Apple News with “OpenAI” keyword
-
-If you want, I can also prepare a short, current-news brief for you once you paste the headlines you’re seeing, or I can guide you step-by-step on setting up a quick alert system. What would you prefer?",
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-  ],
-  "modelVersion": "gpt-5-nano-2025-08-07",
-  "usageMetadata": {
-    "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 258,
-    "promptTokenCount": 10,
-    "thoughtsTokenCount": 1344,
-    "totalTokenCount": 1612,
   },
 }
 `;
@@ -15247,706 +14756,6 @@ exports[`google → responses > topPParam > request 1`] = `
   ],
   "model": "gpt-5-nano",
   "top_p": 0.9,
-}
-`;
-
-exports[`google → responses > webSearchToolAdvancedParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "AI news",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-  "tools": [
-    {
-      "type": "web_search",
-    },
-  ],
-}
-`;
-
-exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
-{
-  "candidates": [
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "query": "AI news 2026 April",
-                  "type": "search",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fa81894819280b06f42142f1a14",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 1,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "type": "open_page",
-                  "url": "https://www.tomsguide.com/ai/introducing-the-toms-guide-ai-awards-2026",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46faa3958819298dcb4673fcea141",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 3,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 4,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "query": "Reuters AI news 2026",
-                  "type": "search",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fab4324819291d68baeeb754019",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 5,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 6,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "type": "open_page",
-                  "url": "https://www.axios.com/2026/03/31/deepmind-google-ai-race-money-hassabis-mallaby-book",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fae624081928ac17041e72a4726",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 7,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 8,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "type": "open_page",
-                  "url": "https://www.thomsonreuters.com/en/press-releases/2026/january/thomson-reuters-convenes-global-ai-leaders-to-advance-trust-in-the-age-of-intelligent-systems",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46faf5a548192b54f77e3b8ed9eb5",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 9,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 10,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "query": "OpenAI compute target 600 billion CNBC February 2026",
-                  "type": "search",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fb0fb808192bbd50e8f0364824f",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 11,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 12,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "type": "open_page",
-                  "url": "https://apnews.com/article/610d894d93f9be23c46762950997a67f",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fb63f6081929878d03ada70f8d7",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 13,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 14,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "query": "OpenAI GPT-5.4 March 2026 announced",
-                  "type": "search",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fb8cbac8192bf31d2bb5a1bd604",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 15,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 16,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "type": "open_page",
-                  "url": "https://www.axios.com/2026/03/24/openai-discontinue-sora-video-app",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fbe3f548192bad0b2e4f084149f",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 17,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 18,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "type": "open_page",
-                  "url": "https://blog.google/innovation-and-ai/products/google-ai-updates-february-2026/",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fbfb9fc8192b5ba030b7c370697",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 19,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 20,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "type": "open_page",
-                  "url": "https://techcrunch.com/2026/03/05/openai-launches-gpt-5-4-with-pro-and-thinking-versions/",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fc1d1f08192980b7f43bae69230",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 21,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 22,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "type": "open_page",
-                  "url": "https://bostondynamics.com/blog/boston-dynamics-google-deepmind-form-new-ai-partnership/",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_0b4801abc55a7db90069d46fc3b40c81928343261f0c738f3a",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 23,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 24,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "Here are some notable AI news items in early 2026 (with exact dates for clarity). Want deeper details on any item?
-
-- OpenAI launches GPT-5.4 with Pro and Thinking variants
-  - Date: March 5, 2026
-  - Key points: GPT-5.4 is OpenAI’s new frontier model, available in standard, Pro, and Thinking versions; API supports context windows up to 1,000,000 tokens; claims include improved efficiency and reduced error rates. ([techcrunch.com](https://techcrunch.com/2026/03/05/openai-launches-gpt-5-4-with-pro-and-thinking-versions/))
-
-- Nvidia to invest $100 billion in OpenAI to expand computing power
-  - Date: March 2026 (announcement reported around March 10, 2026)
-  - Key points: The deal includes adding at least 10 gigawatts of Nvidia AI data centers to power OpenAI’s infrastructure; first gigawatt expected to deploy in H2 2026. This is part of a broader push to scale compute for OpenAI’s models. ([apnews.com](https://apnews.com/article/610d894d93f9be23c46762950997a67f))
-
-- Boston Dynamics and Google DeepMind form a robotics partnership
-  - Date: January 5, 2026 (announced at CES 2026)
-  - Key points: Joint work to bring Gemini Robotics foundation models to Atlas humanoid robots, aimed at industrial tasks and manufacturing transformation. ([bostondynamics.com](https://bostondynamics.com/blog/boston-dynamics-google-deepmind-form-new-ai-partnership/))
-
-- Thomson Reuters launches Trust in AI Alliance
-  - Date: January 13, 2026
-  - Key points: Founding participants include Anthropic, AWS, Google Cloud, and OpenAI; aim is to define principles for trustworthy, agentic AI and share practical insights for high-stakes environments. ([thomsonreuters.com](https://www.thomsonreuters.com/en/press-releases/2026/january/thomson-reuters-convenes-global-ai-leaders-to-advance-trust-in-the-age-of-intelligent-systems))
-
-- Google highlights February 2026 AI updates (Gemini Deep Think, 3.1 Pro, etc.)
-  - Date: February 2026 (recap published in February 2026)
-  - Key points: Gemini 3 Deep Think upgrade; Gemini 3.1 Pro; Nano Banana 2 for image work; Lyria 3 for music; Gemini Flow updates for media work; Team USA video-analysis tools via Google Cloud. ([blog.google](https://blog.google/innovation-and-ai/products/google-ai-updates-february-2026/))
-
-- OpenAI to discontinue Sora video app
-  - Date: March 24, 2026
-  - Key points: OpenAI is winding down Sora (video app and API) to focus resources on core and enterprise products; the move follows broader shifts in OpenAI’s roadmap and safety/compute priorities. ([axios.com](https://www.axios.com/2026/03/24/openai-discontinue-sora-video-app))
-
-- Tom’s Guide AI Awards 2026 opened for nominations
-  - Date: March 31, 2026
-  - Key points: The awards recognize standout AI tools and features across categories (model, chatbot, image/video generation, etc.); deadline for entries is April 2, 2026; winners announced at month-end. ([tomsguide.com](https://www.tomsguide.com/ai/introducing-the-toms-guide-ai-awards-2026))
-
-If you’d like, I can:
-- Pull up full articles or official press releases for any item.
-- Do a quick daily or weekly AI news digest focused on a topic you care about (policy, robotics, enterprise AI, etc.).
-- Filter news by company (e.g., OpenAI, Google/DeepMind, Nvidia) or by sector (robotics, fintech, healthcare, etc.).",
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 25,
-    },
-  ],
-  "modelVersion": "gpt-5-nano-2025-08-07",
-  "usageMetadata": {
-    "cachedContentTokenCount": 4224,
-    "candidatesTokenCount": 1177,
-    "promptTokenCount": 47966,
-    "thoughtsTokenCount": 2816,
-    "totalTokenCount": 51959,
-  },
-}
-`;
-
-exports[`google → responses > webSearchToolParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Latest OpenAI news",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-  "tools": [
-    {
-      "type": "web_search",
-    },
-  ],
-}
-`;
-
-exports[`google → responses > webSearchToolParam > response 1`] = `
-{
-  "candidates": [
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "query": "OpenAI latest news 2026",
-                  "type": "search",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_038fa7993f7842610069d46f7a13b48196bc559fed6e686bbc",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 1,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "query": "site:openai.com OpenAI blog GPT-4o retirement February 2026",
-                  "type": "search",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_038fa7993f7842610069d46f7e63808196a6eb84d97920c7cf",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 3,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 4,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "functionCall": {
-              "args": {
-                "action": {
-                  "query": "OpenAI TBPN acquisition April 2026",
-                  "type": "search",
-                },
-                "queries": null,
-                "status": "completed",
-              },
-              "id": "ws_038fa7993f7842610069d46f9931d88196ae6762b24bc90e24",
-              "name": "web_search",
-            },
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 5,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "",
-            "thought": true,
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 6,
-    },
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "Here are the latest OpenAI news highlights as of today, April 7, 2026. If you want deeper details on any item, I can pull up the full article or official post.
-
-- ChatGPT model retirements and transitions (February–March 2026)
-  - On February 13, 2026, OpenAI retired several ChatGPT models, including GPT-4o, GPT-4.1, GPT-4.1 mini, and OpenAI o4-mini. GPT-5 (Instant and Thinking) was also retired in ChatGPT. The API usage remains unchanged for now. ([openai.com](https://openai.com/index/retiring-gpt-4o-and-older-models/?utm_source=openai))
-  - On March 11, 2026, OpenAI retired GPT-5.1 Instant, Thinking, and Pro in ChatGPT. GPT-5.2 became the current ChatGPT option, with extended thinking features and other improvements. ([help.openai.com](https://help.openai.com/en/articles/6825453?utm_source=openai))
-  - Notes and context about these changes are documented in OpenAI’s release notes and help center. ([help.openai.com](https://help.openai.com/en/articles/9624314-model-?utm_source=openai))
-
-- OpenAI acquires TBPN (tech media property)
-  - OpenAI announced the acquisition of TBPN (a tech/business talk show) on April 2, 2026, signaling a strategic push into media and AI communications. Bloomberg, Axios, and OpenAI’s own post corroborate the deal. ([bloomberg.com](https://www.bloomberg.com/news/articles/2026-04-02/openai-buys-tech-talk-show-tbpn-in-rare-move-into-media-business?utm_source=openai))
-
-- OpenAI moves into broader investor/media avenues
-  - In early April 2026, there were reports that OpenAI’s shares might appear in certain ETFs (e.g., ARK Invest’s ETFs), signaling growing investor visibility. ([axios.com](https://www.axios.com/2026/03/31/openai-ai-stock-investors-ipo?utm_source=openai))
-
-If you’d like, I can pull the exact blog posts or press releases for any of these items, or summarize other recent OpenAI topics (e.g., business updates, partnerships, or policy moves) with citations.",
-          },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 7,
-    },
-  ],
-  "modelVersion": "gpt-5-nano-2025-08-07",
-  "usageMetadata": {
-    "cachedContentTokenCount": 4096,
-    "candidatesTokenCount": 588,
-    "promptTokenCount": 20844,
-    "thoughtsTokenCount": 5184,
-    "totalTokenCount": 26616,
-  },
 }
 `;
 

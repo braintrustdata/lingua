@@ -24,6 +24,64 @@ use crate::universal::{
 };
 use crate::util::media::parse_base64_data_url;
 
+fn normalize_anthropic_tool_schema_value(value: &mut Value) {
+    match value {
+        Value::Object(map) => {
+            if let Some(Value::String(schema_type)) = map.get_mut("type") {
+                *schema_type = schema_type.to_lowercase();
+            }
+            map.retain(|_, nested| !nested.is_null());
+            for nested in map.values_mut() {
+                normalize_anthropic_tool_schema_value(nested);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                normalize_anthropic_tool_schema_value(item);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn normalize_anthropic_tool_schema(
+    tool_name: &str,
+    schema: Option<Value>,
+) -> Result<Value, ConvertError> {
+    let mut schema = schema.unwrap_or_else(|| json!({}));
+    normalize_anthropic_tool_schema_value(&mut schema);
+
+    let Value::Object(map) = &schema else {
+        return Err(ConvertError::InvalidToolSchema {
+            tool_name: tool_name.to_string(),
+            reason: "tool schema must be a JSON object".to_string(),
+        });
+    };
+
+    let Some(schema_type) = map.get("type") else {
+        return Err(ConvertError::InvalidToolSchema {
+            tool_name: tool_name.to_string(),
+            reason: "tool schema root type is required".to_string(),
+        });
+    };
+
+    let Some(schema_type) = schema_type.as_str() else {
+        return Err(ConvertError::InvalidToolSchema {
+            tool_name: tool_name.to_string(),
+            reason: "tool schema root type must be a string".to_string(),
+        });
+    };
+
+    if schema_type != "object" {
+        return Err(ConvertError::InvalidToolSchema {
+            tool_name: tool_name.to_string(),
+            reason: format!("tool schema root type must be 'object', got '{schema_type}'"),
+        });
+    }
+
+    Ok(schema)
+}
+
 /// Convert Anthropic's standalone `system` field into universal `UserContent`.
 ///
 /// This is message-shape conversion logic, so it lives in `convert.rs` rather
@@ -1308,7 +1366,7 @@ impl TryFrom<&UniversalTool> for CustomTool {
             UniversalToolType::Function => Ok(CustomTool {
                 name: tool.name.clone(),
                 description: tool.description.clone(),
-                input_schema: tool.parameters.clone().unwrap_or_else(|| json!({})),
+                input_schema: normalize_anthropic_tool_schema(&tool.name, tool.parameters.clone())?,
                 strict: tool.strict,
                 cache_control: None,
                 eager_input_streaming: None,
@@ -1435,6 +1493,7 @@ impl TryFromLLM<Vec<Tool>> for Vec<UniversalTool> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::serde_json::json;
     use crate::universal::convert::TryFromLLM;
 
     #[test]
@@ -1595,5 +1654,90 @@ mod tests {
         } else {
             panic!("Expected InputContentBlockArray");
         }
+    }
+
+    #[test]
+    fn test_custom_tool_normalizes_google_schema_types() {
+        let tool = UniversalTool::function(
+            "get_weather",
+            Some("Get weather".to_string()),
+            Some(json!({
+                "type": "OBJECT",
+                "properties": {
+                    "location": {
+                        "type": "STRING",
+                        "description": "The city",
+                        "items": null
+                    }
+                },
+                "required": ["location"],
+                "additionalProperties": null
+            })),
+            None,
+        );
+
+        let custom_tool = CustomTool::try_from(&tool).expect("tool should convert");
+        assert_eq!(custom_tool.input_schema["type"], "object");
+        assert_eq!(
+            custom_tool.input_schema["properties"]["location"]["type"],
+            "string"
+        );
+        assert!(custom_tool
+            .input_schema
+            .get("additionalProperties")
+            .is_none());
+        assert!(custom_tool.input_schema["properties"]["location"]
+            .get("items")
+            .is_none());
+    }
+
+    #[test]
+    fn test_custom_tool_rejects_missing_root_schema_type() {
+        let tool = UniversalTool::function(
+            "get_weather",
+            Some("Get weather".to_string()),
+            Some(json!({
+                "properties": {
+                    "location": { "type": "string" }
+                }
+            })),
+            None,
+        );
+
+        let err = CustomTool::try_from(&tool).expect_err("missing type should fail");
+        assert!(matches!(err, ConvertError::InvalidToolSchema { .. }));
+        assert!(err.to_string().contains("root type is required"));
+    }
+
+    #[test]
+    fn test_custom_tool_rejects_non_object_root_schema_type() {
+        let tool = UniversalTool::function(
+            "get_weather",
+            Some("Get weather".to_string()),
+            Some(json!({
+                "type": "string"
+            })),
+            None,
+        );
+
+        let err = CustomTool::try_from(&tool).expect_err("non-object type should fail");
+        assert!(matches!(err, ConvertError::InvalidToolSchema { .. }));
+        assert!(err.to_string().contains("must be 'object'"));
+    }
+
+    #[test]
+    fn test_custom_tool_rejects_null_root_schema_type() {
+        let tool = UniversalTool::function(
+            "get_weather",
+            Some("Get weather".to_string()),
+            Some(json!({
+                "type": null
+            })),
+            None,
+        );
+
+        let err = CustomTool::try_from(&tool).expect_err("null type should fail");
+        assert!(matches!(err, ConvertError::InvalidToolSchema { .. }));
+        assert!(err.to_string().contains("root type is required"));
     }
 }
