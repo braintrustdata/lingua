@@ -18,6 +18,7 @@ use crate::providers::openai::convert::{
     messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
     ChatCompletionResponseMessageExt,
 };
+use crate::providers::openai::generated::WebSearch;
 use crate::providers::openai::params::{OpenAIChatExtrasView, OpenAIChatParams};
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
 use crate::providers::openai::try_parse_openai;
@@ -26,7 +27,7 @@ use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
 use crate::universal::reasoning::effort_to_budget;
 use crate::universal::request::{ReasoningConfig, ReasoningEffort, TokenBudget};
-use crate::universal::tools::tools_to_openai_chat_value;
+use crate::universal::tools::{tools_to_openai_chat_value, BuiltinToolProvider, UniversalTool};
 use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
@@ -140,6 +141,29 @@ impl ProviderAdapter for OpenAIAdapter {
             extras: Default::default(),
         };
 
+        if let Some(web_search_options) = typed_params.web_search_options.as_ref() {
+            let web_search: WebSearch = serde_json::from_value(web_search_options.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+            let mut config = Map::new();
+            config.insert("type".into(), Value::String("web_search".to_string()));
+            if let Some(user_location) = web_search.user_location {
+                config.insert(
+                    "user_location".into(),
+                    serde_json::to_value(user_location)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
+            params
+                .tools
+                .get_or_insert_with(Vec::new)
+                .push(UniversalTool::builtin(
+                    "web_search",
+                    BuiltinToolProvider::Responses,
+                    "web_search",
+                    Some(Value::Object(config)),
+                ));
+        }
+
         // Collect provider-specific extras for round-trip preservation
         // This includes both unknown fields (from serde flatten) and known OpenAI fields
         // that aren't part of UniversalParams
@@ -160,6 +184,9 @@ impl ProviderAdapter for OpenAIAdapter {
         }
         if let Some(prediction) = typed_params.prediction {
             extras_map.insert("prediction".into(), prediction);
+        }
+        if let Some(web_search_options) = typed_params.web_search_options {
+            extras_map.insert("web_search_options".into(), web_search_options);
         }
         if let Some(safety_identifier) = typed_params.safety_identifier {
             extras_map.insert("safety_identifier".into(), Value::String(safety_identifier));
@@ -249,6 +276,9 @@ impl ProviderAdapter for OpenAIAdapter {
             if let Some(tools_value) = tools_to_openai_chat_value(tools)? {
                 obj.insert("tools".into(), tools_value);
             }
+        }
+        if let Some(raw_web_search_options) = openai_extras_view.web_search_options.as_ref() {
+            obj.insert("web_search_options".into(), raw_web_search_options.clone());
         }
         // Use helper methods to reduce boilerplate
         if let Some(raw_tool_choice) = openai_extras_view.tool_choice.as_ref() {
@@ -1090,5 +1120,107 @@ mod tests {
             0.7,
             "Temperature should be preserved for non-reasoning models"
         );
+    }
+
+    #[test]
+    fn test_openai_drops_anthropic_web_search_for_chat() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-4o".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Local food".to_string()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![UniversalTool::builtin(
+                    "web_search",
+                    BuiltinToolProvider::Anthropic,
+                    "web_search_20250305",
+                    Some(crate::serde_json::json!({
+                        "type": "web_search_20250305",
+                        "name": "web_search",
+                        "user_location": {
+                            "type": "approximate",
+                            "city": "San Francisco",
+                            "region": "California",
+                            "country": "US",
+                            "timezone": "America/Los_Angeles"
+                        }
+                    })),
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert!(typed.tools.is_none());
+        assert!(typed.web_search_options.is_none());
+    }
+
+    #[test]
+    fn test_openai_drops_google_search_for_chat() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-4o".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Latest OpenAI news".to_string()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![UniversalTool::builtin(
+                    "google_search",
+                    BuiltinToolProvider::Google,
+                    "google_search",
+                    Some(crate::serde_json::json!({
+                        "timeRangeFilter": {
+                            "startTime": "2025-01-01T00:00:00Z",
+                            "endTime": "2025-01-02T00:00:00Z"
+                        }
+                    })),
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert!(typed.tools.is_none());
+        assert!(typed.web_search_options.is_none());
+    }
+
+    #[test]
+    fn test_openai_chat_errors_on_anthropic_web_search_allowed_domains() {
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-4o".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Local food".to_string()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![UniversalTool::builtin(
+                    "web_search",
+                    BuiltinToolProvider::Anthropic,
+                    "web_search_20250305",
+                    Some(crate::serde_json::json!({
+                        "type": "web_search_20250305",
+                        "name": "web_search",
+                        "allowed_domains": ["wikipedia.org"]
+                    })),
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let error = adapter.request_from_universal(&req).unwrap_err();
+        assert!(error
+            .to_string()
+            .contains("Tool 'web_search' of type 'allowed_domains' is not supported by openai"));
     }
 }

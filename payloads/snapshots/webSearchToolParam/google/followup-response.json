@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That depends entirely on what you're looking to do! To give you the best suggestion, I need a little more information about what you're interested in.\n\nHowever, here are some general ideas, depending on your mood or goals:\n\n**If you're looking for something productive:**\n*   **Set a goal:** What's one thing you'd like to accomplish today or this week?\n*   **Learn something new:** Is there a skill you've wanted to develop, a topic you're curious about, or a book you've been meaning to read?\n*   **Organize something:** Tackle a cluttered space, your digital files, or your to-do list.\n\n**If you're looking for something relaxing:**\n*   **Take a break:** Go for a walk, listen to music, meditate, or stretch.\n*   **Engage in a hobby:** Do you have a creative outlet, a game you enjoy, or a craft you like to work on?\n*   **Connect with someone:** Reach out to a friend or family member.\n\n**If you want to continue our conversation:**\n*   **Ask another question:** About OpenAI, AI in general, current events, or anything else you're curious about.\n*   **Elaborate on your interests:** Tell me what kind of suggestions you're looking for!\n\nWhat sounds good to you?"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "groundingMetadata": {}
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 573,
+    "candidatesTokenCount": 294,
+    "totalTokenCount": 1005,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 573
+      }
+    ],
+    "thoughtsTokenCount": 138
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "NBjUaeKRIPG-_uMP3Or4uAE"
+}

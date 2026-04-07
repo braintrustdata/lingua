@@ -3,15 +3,6 @@ use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-#[serde(tag = "type")]
-enum OpenAIChatToolWire {
-    #[serde(rename = "function")]
-    Function { function: OpenAIChatFunctionWire },
-    #[serde(rename = "custom")]
-    Custom { custom: OpenAIChatCustomWire },
-}
-
-#[derive(Debug, Deserialize)]
 struct OpenAIChatFunctionWire {
     name: String,
     description: Option<String>,
@@ -52,20 +43,38 @@ fn parse_tool_array(tools: &Value) -> Vec<Value> {
 }
 
 fn parse_openai_chat_tool(value: &Value) -> Option<UniversalTool> {
-    let parsed: OpenAIChatToolWire = serde_json::from_value(value.clone()).ok()?;
+    let header: OpenAIResponsesToolHeader = serde_json::from_value(value.clone()).ok()?;
 
-    match parsed {
-        OpenAIChatToolWire::Function { function } => Some(UniversalTool::function(
-            function.name,
-            function.description,
-            function.parameters,
-            function.strict,
-        )),
-        OpenAIChatToolWire::Custom { custom } => Some(UniversalTool::custom(
-            custom.name,
-            custom.description,
-            custom.format,
-        )),
+    match header.tool_type.as_ref() {
+        "function" => {
+            #[derive(Debug, Deserialize)]
+            struct OpenAIChatFunctionEnvelope {
+                function: OpenAIChatFunctionWire,
+            }
+
+            let function: OpenAIChatFunctionEnvelope =
+                serde_json::from_value(value.clone()).ok()?;
+            Some(UniversalTool::function(
+                function.function.name,
+                function.function.description,
+                function.function.parameters,
+                function.function.strict,
+            ))
+        }
+        "custom" => {
+            #[derive(Debug, Deserialize)]
+            struct OpenAIChatCustomEnvelope {
+                custom: OpenAIChatCustomWire,
+            }
+
+            let custom: OpenAIChatCustomEnvelope = serde_json::from_value(value.clone()).ok()?;
+            Some(UniversalTool::custom(
+                custom.custom.name,
+                custom.custom.description,
+                custom.custom.format,
+            ))
+        }
+        _ => None,
     }
 }
 
@@ -92,6 +101,7 @@ fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
             ))
         }
         "code_interpreter"
+        | "web_search"
         | "web_search_preview"
         | "mcp"
         | "file_search"

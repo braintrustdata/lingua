@@ -1,3 +1,35 @@
 {
-  "error": "Conversion from universal format failed: Tool 'web_search' of type 'web_search_20250305' is not supported by openai"
+  "id": "chatcmpl-DRqgltUJtf6yxjHNhoQ4GX0yX52Ci",
+  "object": "chat.completion",
+  "created": 1775529763,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 8,
+    "completion_tokens": 1024,
+    "total_tokens": 1032,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1024,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
 }

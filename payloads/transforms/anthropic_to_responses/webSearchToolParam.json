@@ -1,3 +1,158 @@
 {
-  "error": "Conversion from universal format failed: Tool 'web_search' of type 'web_search_20250305' is not supported by responses"
+  "id": "resp_0b557de166e92e4b0069d46c7bd2c481958013594dd67e9995",
+  "object": "response",
+  "created_at": 1775529084,
+  "status": "incomplete",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": null,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": {
+    "reason": "max_output_tokens"
+  },
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0b557de166e92e4b0069d46c7cb9d48195b5e2db1cdf14da05",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_0b557de166e92e4b0069d46c828fc081959551aa2e330718f2",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "search",
+        "queries": [
+          "OpenAI news 2026",
+          "OpenAI latest news April 2026",
+          "OpenAI announces 2026 product release",
+          "OpenAI layoffs 2026"
+        ],
+        "query": "OpenAI news 2026"
+      }
+    },
+    {
+      "id": "rs_0b557de166e92e4b0069d46c878fbc8195a9a369df1d24851d",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_0b557de166e92e4b0069d46c88006c8195ba8cb337c436c6aa",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "open_page",
+        "url": "https://www.axios.com/2026/04/06/behind-the-curtain-sams-superintelligence-new-deal"
+      }
+    },
+    {
+      "id": "rs_0b557de166e92e4b0069d46c8966d08195a8be317880a0427c",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_0b557de166e92e4b0069d46c8b5f78819596e2046cef6780dc",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "open_page",
+        "url": "https://www.axios.com/2026/04/02/openai-acquires-tbpn"
+      }
+    },
+    {
+      "id": "rs_0b557de166e92e4b0069d46c8cc0d081958192f3700e4def4d",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_0b557de166e92e4b0069d46c8d8f0c8195b7828adbf0992302",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "open_page",
+        "url": "https://www.axios.com/2026/04/03/openai-fidji-simo-medical-leave-reshuffle"
+      }
+    },
+    {
+      "id": "rs_0b557de166e92e4b0069d46c8ebd7c819598de0fd064ae5543",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_0b557de166e92e4b0069d46c8f6b508195b19d4ccfde7d1096",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "open_page",
+        "url": "https://theweek.com/business/openai-ending-ai-video-sora"
+      }
+    },
+    {
+      "id": "rs_0b557de166e92e4b0069d46c90b0bc819584ccebb76b6c3578",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ws_0b557de166e92e4b0069d46c933a788195ab8a50b2229b0d81",
+      "type": "web_search_call",
+      "status": "incomplete"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "web_search",
+      "search_context_size": "medium",
+      "user_location": {
+        "type": "approximate",
+        "city": null,
+        "country": "US",
+        "region": null,
+        "timezone": null
+      }
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 17489,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 872,
+    "output_tokens_details": {
+      "reasoning_tokens": 640
+    },
+    "total_tokens": 18361
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
 }

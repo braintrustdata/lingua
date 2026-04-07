@@ -42,6 +42,7 @@ pub struct OpenAIChatParams {
     pub tools: Option<Value>,
     pub tool_choice: Option<Value>,
     pub parallel_tool_calls: Option<bool>,
+    pub web_search_options: Option<Value>,
 
     // === Response format ===
     pub response_format: Option<Value>,
@@ -145,6 +146,7 @@ pub struct OpenAIChatExtrasView {
     pub reasoning_effort: Option<Value>,
     pub max_tokens: Option<Value>,
     pub max_completion_tokens: Option<Value>,
+    pub web_search_options: Option<Value>,
 }
 
 /// Typed view over `UniversalParams.extras[Responses]` used during universal

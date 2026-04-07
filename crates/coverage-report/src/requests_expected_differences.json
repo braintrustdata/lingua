@@ -293,6 +293,13 @@
       "reason": "Anthropic web_search encrypted results cannot be transformed to OpenAI"
     },
     {
+      "testCase": "webSearchToolParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "Anthropic web search is dropped for ChatCompletions because there is no supported equivalent request field"
+    },
+    {
       "testCase": "documentContentParam",
       "source": "Anthropic",
       "target": "ChatCompletions",
@@ -363,6 +370,48 @@
     },
     {
       "testCase": "webSearchToolParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "Google web search is dropped for ChatCompletions because there is no reliable supported equivalent request field"
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "Google web search is dropped for ChatCompletions because there is no reliable supported equivalent request field"
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Google",
+      "target": "Responses",
+      "skip": true,
+      "reason": "Google googleSearch is intentionally canonicalized to the OpenAI Responses web_search tool shape"
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Google",
+      "target": "Responses",
+      "skip": true,
+      "reason": "Google googleSearch is intentionally canonicalized to the OpenAI Responses web_search tool shape"
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Google googleSearch is intentionally canonicalized to Anthropic web_search_20250305"
+    },
+    {
+      "testCase": "webSearchToolAdvancedParam",
+      "source": "Google",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Google googleSearch is intentionally canonicalized to Anthropic web_search_20250305"
+    },
+    {
+      "testCase": "webSearchToolParam",
       "source": "Anthropic",
       "target": "Google",
       "fields": [
@@ -400,6 +449,13 @@
       "fields": [
         { "pattern": "messages.length", "reason": "Google reasoning content expands to separate output items in Responses format" }
       ]
+    },
+    {
+      "testCase": "webSearchToolParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "OpenAI Responses web search does not roundtrip through ChatCompletions as the same request structure"
     },
     {
       "testCase": "toolChoiceRequiredWithReasoningParam",

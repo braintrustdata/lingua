@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DRqhsMI68yEV81l7PskR9gxQFblFP",
+  "object": "chat.completion",
+  "created": 1775529832,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Want AI news? I can help, just tell me what you’d like. A few quick options:\n\n- Real-time briefing: paste links or sources (e.g., TechCrunch, NYTimes, company blogs) and I’ll summarize the latest headlines.\n- Quick trends digest: 5–7 key AI themes right now (policy/regulation, safety, enterprise AI, chips, ethics, consumer apps, startups).\n- Topic deep-dive: focus on regulation, safety and governance, AI in healthcare, or AI in business.\n- Company moves: track strategies from OpenAI, Google, Microsoft, Meta, Apple, etc.\n- Event previews: upcoming conferences and safety discussions.\n- Custom cadence: daily or weekly AI news briefings.\n\nNote: I can’t browse live news on my own in this chat unless you provide sources or enable a browsing flow. Tell me your preferred topics, time window (today, this week, this month), and format (short bullets or a short article), and I’ll tailor a briefing.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 8,
+    "completion_tokens": 1560,
+    "total_tokens": 1568,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1344,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

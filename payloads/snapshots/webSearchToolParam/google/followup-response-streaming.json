@@ -1,0 +1,243 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a very open-ended question,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 573,
+      "candidatesTokenCount": 10,
+      "totalTokenCount": 687,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 573
+        }
+      ],
+      "thoughtsTokenCount": 104
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "NBjUaZTdH7W__uMP9u-NkA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " and what you \"should\" do next really depends on your current goals, interests, and what you're trying to achieve!\n\nTo give you the best possible advice, I need a little more information. Could you tell me:\n\n*   **"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 573,
+      "candidatesTokenCount": 61,
+      "totalTokenCount": 738,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 573
+        }
+      ],
+      "thoughtsTokenCount": 104
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "NBjUaZTdH7W__uMP9u-NkA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "What are you currently working on or thinking about?** (e.g., a project, a personal goal, a problem you're trying to solve)\n*   **What are your immediate priorities?** (e.g., learning"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 573,
+      "candidatesTokenCount": 110,
+      "totalTokenCount": 787,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 573
+        }
+      ],
+      "thoughtsTokenCount": 104
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "NBjUaZTdH7W__uMP9u-NkA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " something new, being productive, relaxing, exploring a topic)\n*   **What kind of suggestions are you looking for?** (e.g., something creative, something practical, something educational, something fun?)\n\nIn the meantime, here are"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 573,
+      "candidatesTokenCount": 160,
+      "totalTokenCount": 837,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 573
+        }
+      ],
+      "thoughtsTokenCount": 104
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "NBjUaZTdH7W__uMP9u-NkA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " some general ideas, depending on what you might be looking for:\n\n*   **Learn something new:** Explore a topic you're curious about, read an article, watch a documentary, or try a new skill.\n*   **"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 573,
+      "candidatesTokenCount": 208,
+      "totalTokenCount": 885,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 573
+        }
+      ],
+      "thoughtsTokenCount": 104
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "NBjUaZTdH7W__uMP9u-NkA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Be productive:** Tackle a task on your to-do list, organize your workspace, or plan for the week ahead.\n*   **Relax and recharge:** Take a break, listen to music, read a book, go for a walk,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 573,
+      "candidatesTokenCount": 257,
+      "totalTokenCount": 934,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 573
+        }
+      ],
+      "thoughtsTokenCount": 104
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "NBjUaZTdH7W__uMP9u-NkA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " or do something you enjoy.\n*   **Connect with others:** Reach out to a friend, family member, or colleague.\n*   **Reflect:** Take some time to think about your goals, progress, or anything that's on your"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 573,
+      "candidatesTokenCount": 308,
+      "totalTokenCount": 985,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 573
+        }
+      ],
+      "thoughtsTokenCount": 104
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "NBjUaZTdH7W__uMP9u-NkA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " mind.\n\nLet me know a bit more about what you're looking for, and I can give you more tailored suggestions!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 573,
+      "candidatesTokenCount": 334,
+      "totalTokenCount": 1011,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 573
+        }
+      ],
+      "thoughtsTokenCount": 104
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "NBjUaZTdH7W__uMP9u-NkA4"
+  }
+]

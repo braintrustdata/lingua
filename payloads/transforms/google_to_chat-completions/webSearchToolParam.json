@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DRqhd1envB5XrcgRLTEe9Xxi2Zntx",
+  "object": "chat.completion",
+  "created": 1775529817,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I can’t browse the web in real time, so I don’t have the very latest OpenAI headlines. I can help you quickly get up to speed in a few ways:\n\nWhat I can do\n- If you share a few current headlines or links, I’ll summarize them.\n- I can point you to reliable sources and explain what to look for in OpenAI news (product updates, partnerships, safety/regulatory issues, pricing/API changes, leadership moves).\n- I can give you a quick guide on how to monitor OpenAI news yourself (recommended sources and how to set up alerts).\n\nWhere to look for the latest\n- OpenAI official blog and press page\n- OpenAI’s social channels (X/Twitter, LinkedIn)\n- Major tech outlets: TechCrunch, The Verge, Reuters, Bloomberg, CNBC, The Information\n- Business/legal coverage: Financial Times, The Wall Street Journal, Bloomberg Law\n- General news aggregators: Google News / Apple News with “OpenAI” keyword\n\nIf you want, I can also prepare a short, current-news brief for you once you paste the headlines you’re seeing, or I can guide you step-by-step on setting up a quick alert system. What would you prefer?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 1602,
+    "total_tokens": 1612,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1344,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

@@ -10,6 +10,7 @@ use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
     CustomTool, JsonOutputFormat, JsonOutputFormatType, Tool, ToolChoice, ToolChoiceType,
 };
+use crate::providers::google::generated::GoogleSearch;
 use crate::serde_json;
 use crate::serde_json::{json, Value};
 use crate::universal::request::{
@@ -1373,6 +1374,32 @@ impl TryFrom<&UniversalTool> for Tool {
                 builtin_type,
                 config,
             } => {
+                if matches!(provider, BuiltinToolProvider::Google)
+                    && builtin_type == "google_search"
+                {
+                    let config_val =
+                        config
+                            .clone()
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: format!("config for Google builtin tool '{}'", tool.name),
+                            })?;
+                    let _google_search: GoogleSearch =
+                        serde_json::from_value(config_val).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: format!("Google search tool '{}'", tool.name),
+                                error: e.to_string(),
+                            }
+                        })?;
+                    return Ok(Tool::WebSearch20250305(generated::WebSearchTool20250305 {
+                        allowed_domains: None,
+                        blocked_domains: None,
+                        cache_control: None,
+                        max_uses: None,
+                        name: "web_search".to_string(),
+                        strict: None,
+                        user_location: None,
+                    }));
+                }
                 if !matches!(provider, BuiltinToolProvider::Anthropic) {
                     return Err(ConvertError::UnsupportedToolType {
                         tool_name: tool.name.clone(),
@@ -1421,6 +1448,33 @@ mod tests {
             JsonOutputFormat::try_from(&config).is_err(),
             "json_object should not map to Anthropic output_config.format; adapter shim handles it"
         );
+    }
+
+    #[test]
+    fn test_google_search_builtin_maps_to_anthropic_web_search() {
+        let tool = UniversalTool::builtin(
+            "google_search",
+            BuiltinToolProvider::Google,
+            "google_search",
+            Some(crate::serde_json::json!({
+                "timeRangeFilter": {
+                    "startTime": "2025-01-01T00:00:00Z",
+                    "endTime": "2025-01-02T00:00:00Z"
+                }
+            })),
+        );
+
+        let anthropic_tool = Tool::try_from(&tool).unwrap();
+        match anthropic_tool {
+            Tool::WebSearch20250305(web_search) => {
+                assert_eq!(web_search.name, "web_search");
+                assert!(web_search.allowed_domains.is_none());
+                assert!(web_search.blocked_domains.is_none());
+                assert!(web_search.max_uses.is_none());
+                assert!(web_search.user_location.is_none());
+            }
+            other => panic!("expected web_search_20250305 tool, got {:?}", other),
+        }
     }
 
     #[test]

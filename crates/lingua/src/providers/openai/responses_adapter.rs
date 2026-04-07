@@ -1192,4 +1192,105 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_responses_maps_anthropic_web_search_to_web_search_tool() {
+        use crate::providers::openai::generated::{CreateResponseClass, Tool};
+        use crate::universal::message::UserContent;
+        use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("AI news".to_string()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![UniversalTool::builtin(
+                    "web_search",
+                    BuiltinToolProvider::Anthropic,
+                    "web_search_20250305",
+                    Some(crate::serde_json::json!({
+                        "type": "web_search_20250305",
+                        "name": "web_search",
+                        "allowed_domains": ["wikipedia.org", "arxiv.org"],
+                        "max_uses": 3,
+                        "user_location": {
+                            "type": "approximate",
+                            "city": "San Francisco",
+                            "region": "California",
+                            "country": "US",
+                            "timezone": "America/Los_Angeles"
+                        }
+                    })),
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        let tools = typed.tools.expect("responses tool array");
+        match &tools[0] {
+            Tool::WebSearch(web_search) => {
+                assert_eq!(
+                    web_search.filters,
+                    Some(crate::serde_json::json!({
+                        "allowed_domains": ["wikipedia.org", "arxiv.org"]
+                    }))
+                );
+                assert_eq!(
+                    web_search.user_location,
+                    Some(crate::serde_json::json!({
+                        "type": "approximate",
+                        "city": "San Francisco",
+                        "region": "California",
+                        "country": "US",
+                        "timezone": "America/Los_Angeles"
+                    }))
+                );
+            }
+            other => panic!("expected web_search tool, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_responses_maps_google_search_to_web_search_tool() {
+        use crate::providers::openai::generated::{CreateResponseClass, Tool};
+        use crate::universal::message::UserContent;
+        use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("AI news".to_string()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![UniversalTool::builtin(
+                    "google_search",
+                    BuiltinToolProvider::Google,
+                    "google_search",
+                    Some(crate::serde_json::json!({
+                        "timeRangeFilter": {
+                            "startTime": "2025-01-01T00:00:00Z",
+                            "endTime": "2025-01-02T00:00:00Z"
+                        }
+                    })),
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        let tools = typed.tools.expect("responses tool array");
+        match &tools[0] {
+            Tool::WebSearch(web_search) => {
+                assert!(web_search.filters.is_none());
+                assert!(web_search.user_location.is_none());
+            }
+            other => panic!("expected web_search tool, got {:?}", other),
+        }
+    }
 }

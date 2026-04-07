@@ -1,0 +1,750 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Here's a summary"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 43,
+      "totalTokenCount": 785,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " of the latest news from OpenAI:\n\n**Recent Developments (March - April 2026):**\n\n*   **Policy Recommendations for the AI Era** OpenAI released a paper on April 6, 2026, outlining policy"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 93,
+      "totalTokenCount": 835,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " recommendations for the age of artificial intelligence. These proposals include establishing a public wealth fund to give citizens a stake in AI-driven economic growth, exploring new taxes on automated labor, expanding the social safety net, and incentivizing a 32-hour"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 144,
+      "totalTokenCount": 886,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " work week without pay reduction linked to AI-driven productivity gains. OpenAI also suggested strengthening the electric grid and building new safety and oversight systems for advanced AI.\n*   **IPO Concerns** OpenAI'"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 184,
+      "totalTokenCount": 926,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "s Chief Financial Officer, Sarah Friar, has reportedly expressed doubts about the company's readiness for an Initial Public Offering (IPO) in 2026. Concerns include the procedural and organizational work required, as well as the sustainability of the"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 234,
+      "totalTokenCount": 976,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " company's revenue growth against its significant spending commitments. Friar no longer reports directly to CEO Sam Altman, a change that occurred in August 2025.\n*   **Acquisition**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 275,
+      "totalTokenCount": 1017,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " OpenAI announced the acquisition of the live tech show TBPN in a reported nine-figure deal.\n*   **Accelerating the Next Phase of AI** On March 31, 2026, OpenAI"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 320,
+      "totalTokenCount": 1062,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " made an announcement about \"accelerating the next phase of AI.\"\n*   **ChatGPT Updates** In March 2026, OpenAI introduced new ways to learn math and science in ChatGPT. The company also updated its GPT models, retiring GPT-5.1 models, and introducing GPT-5.4 Thinking and a GPT-5.4 mini version. GPT-5.3 Instant also received updates.\n*   **Research Updates** Recent research in March 2026 focused on improving instruction hierarchy in frontier large language models (LLMs) and understanding how reasoning models struggle to control their chains of thought.\n*   **Partnerships** OpenAI announced a strategic partnership with Amazon on February 27, 2026, and an agreement with the Department of War on February 28, 2026.\n\n**Other Notable Information (2024-2025):**\n\n*   **Sora's Status** While Sora, OpenAI's text-to-video model, created significant buzz with its demo"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 539,
+      "totalTokenCount": 1281,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " clips in February 2024 and was reportedly launched publicly for ChatGPT Plus and Pro subscribers in December 2024, it was largely shut down as a consumer product by 2025. OpenAI redirected resources towards coding tools and ChatGPT"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 590,
+      "totalTokenCount": 1332,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " improvements, ending the Sora experiment in its original form.\n*   **GPT-4o Release** In May 2024, OpenAI unveiled GPT-4o, a multimodal AI model capable of processing text,"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 635,
+      "totalTokenCount": 1377,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " images, and audio, aiming to offer a more intuitive user experience.\n*   **API Introductions and Plugin Changes** April 2024 saw the introduction of new APIs for"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 673,
+      "totalTokenCount": 1415,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " GPT-3.5 Turbo and Whisper. The ChatGPT plugins beta was wound down in March 2024 due to the launch of the GPT Store and the shift towards custom GPTs.\n*   **Ilya Sutskever's Departure** OpenAI co-founder and Chief Scientist Ilya Sutskever departed the company in May 2024 to pursue a new venture focused on the safe development of superintelligent AI systems"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 761,
+      "totalTokenCount": 1503,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ".\n*   **Elon Musk's Lawsuit** In March 2024, Elon Musk filed a lawsuit against OpenAI, alleging the company had deviated from its original mission of being an open-source, non"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0,
+        "groundingMetadata": {}
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 806,
+      "totalTokenCount": 1548,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "-profit entity."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "groundingMetadata": {
+          "searchEntryPoint": {
+            "renderedContent": "<style>\n.container {\n  align-items: center;\n  border-radius: 8px;\n  display: flex;\n  font-family: Google Sans, Roboto, sans-serif;\n  font-size: 14px;\n  line-height: 20px;\n  padding: 8px 12px;\n}\n.chip {\n  display: inline-block;\n  border: solid 1px;\n  border-radius: 16px;\n  min-width: 14px;\n  padding: 5px 16px;\n  text-align: center;\n  user-select: none;\n  margin: 0 8px;\n  -webkit-tap-highlight-color: transparent;\n}\n.carousel {\n  overflow: auto;\n  scrollbar-width: none;\n  white-space: nowrap;\n  margin-right: -12px;\n}\n.headline {\n  display: flex;\n  margin-right: 4px;\n}\n.gradient-container {\n  position: relative;\n}\n.gradient {\n  position: absolute;\n  transform: translate(3px, -9px);\n  height: 36px;\n  width: 9px;\n}\n@media (prefers-color-scheme: light) {\n  .container {\n    background-color: #fafafa;\n    box-shadow: 0 0 0 1px #0000000f;\n  }\n  .headline-label {\n    color: #1f1f1f;\n  }\n  .chip {\n    background-color: #ffffff;\n    border-color: #d2d2d2;\n    color: #5e5e5e;\n    text-decoration: none;\n  }\n  .chip:hover {\n    background-color: #f2f2f2;\n  }\n  .chip:focus {\n    background-color: #f2f2f2;\n  }\n  .chip:active {\n    background-color: #d8d8d8;\n    border-color: #b6b6b6;\n  }\n  .logo-dark {\n    display: none;\n  }\n  .gradient {\n    background: linear-gradient(90deg, #fafafa 15%, #fafafa00 100%);\n  }\n}\n@media (prefers-color-scheme: dark) {\n  .container {\n    background-color: #1f1f1f;\n    box-shadow: 0 0 0 1px #ffffff26;\n  }\n  .headline-label {\n    color: #fff;\n  }\n  .chip {\n    background-color: #2c2c2c;\n    border-color: #3c4043;\n    color: #fff;\n    text-decoration: none;\n  }\n  .chip:hover {\n    background-color: #353536;\n  }\n  .chip:focus {\n    background-color: #353536;\n  }\n  .chip:active {\n    background-color: #464849;\n    border-color: #53575b;\n  }\n  .logo-light {\n    display: none;\n  }\n  .gradient {\n    background: linear-gradient(90deg, #1f1f1f 15%, #1f1f1f00 100%);\n  }\n}\n</style>\n<div class=\"container\">\n  <div class=\"headline\">\n    <svg class=\"logo-light\" width=\"18\" height=\"18\" viewBox=\"9 9 35 35\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M42.8622 27.0064C42.8622 25.7839 42.7525 24.6084 42.5487 23.4799H26.3109V30.1568H35.5897C35.1821 32.3041 33.9596 34.1222 32.1258 35.3448V39.6864H37.7213C40.9814 36.677 42.8622 32.2571 42.8622 27.0064V27.0064Z\" fill=\"#4285F4\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M26.3109 43.8555C30.9659 43.8555 34.8687 42.3195 37.7213 39.6863L32.1258 35.3447C30.5898 36.3792 28.6306 37.0061 26.3109 37.0061C21.8282 37.0061 18.0195 33.9811 16.6559 29.906H10.9194V34.3573C13.7563 39.9841 19.5712 43.8555 26.3109 43.8555V43.8555Z\" fill=\"#34A853\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16.6559 29.8904C16.3111 28.8559 16.1074 27.7588 16.1074 26.6146C16.1074 25.4704 16.3111 24.3733 16.6559 23.3388V18.8875H10.9194C9.74388 21.2072 9.06992 23.8247 9.06992 26.6146C9.06992 29.4045 9.74388 32.022 10.9194 34.3417L15.3864 30.8621L16.6559 29.8904V29.8904Z\" fill=\"#FBBC05\"/>\n      <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M26.3109 16.2386C28.85 16.2386 31.107 17.1164 32.9095 18.8091L37.8466 13.8719C34.853 11.082 30.9659 9.3736 26.3109 9.3736C19.5712 9.3736 13.7563 13.245 10.9194 18.8875L16.6559 23.3388C18.0195 19.2636 21.8282 16.2386 26.3109 16.2386V16.2386Z\" fill=\"#EA4335\"/>\n    </svg>\n    <svg class=\"logo-dark\" width=\"18\" height=\"18\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\">\n      <circle cx=\"24\" cy=\"23\" fill=\"#FFF\" r=\"22\"/>\n      <path d=\"M33.76 34.26c2.75-2.56 4.49-6.37 4.49-11.26 0-.89-.08-1.84-.29-3H24.01v5.99h8.03c-.4 2.02-1.5 3.56-3.07 4.56v.75l3.91 2.97h.88z\" fill=\"#4285F4\"/>\n      <path d=\"M15.58 25.77A8.845 8.845 0 0 0 24 31.86c1.92 0 3.62-.46 4.97-1.31l4.79 3.71C31.14 36.7 27.65 38 24 38c-5.93 0-11.01-3.4-13.45-8.36l.17-1.01 4.06-2.85h.8z\" fill=\"#34A853\"/>\n      <path d=\"M15.59 20.21a8.864 8.864 0 0 0 0 5.58l-5.03 3.86c-.98-2-1.53-4.25-1.53-6.64 0-2.39.55-4.64 1.53-6.64l1-.22 3.81 2.98.22 1.08z\" fill=\"#FBBC05\"/>\n      <path d=\"M24 14.14c2.11 0 4.02.75 5.52 1.98l4.36-4.36C31.22 9.43 27.81 8 24 8c-5.93 0-11.01 3.4-13.45 8.36l5.03 3.85A8.86 8.86 0 0 1 24 14.14z\" fill=\"#EA4335\"/>\n    </svg>\n    <div class=\"gradient-container\"><div class=\"gradient\"></div></div>\n  </div>\n  <div class=\"carousel\">\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHHE1iIozoNd_d-4s1ltem4ipbyPC91culUkgPvUW19Tax7EExetedKZTZsUixK2qNNpfj5Rdsea_sDhQQq3tpOVcuE89CmwHLlLvYnqB8talDLcng89iM9qOQ6U7YNVYgqiDLENTXS2GJ3kSuvb30Iigde5g0PtOkTPZHSiSUDhyEL0uYwOpWj0Ns2K2mHECWAwpSivonkuFUbV2Bc-5z0DaKiHlGL1omrW60=\">OpenAI announcements 2024 April May June</a>\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHtUO6y5Pv1Hla05ZWM2RW4eDG3p6-XRNHRjJqTBfQ_GSKMP9J7IRcgQhooXQzwkNPqShtR7e71tzfjYlo2JGBmAS2iBLcA8PHIIowAHmkl7K-E3dU6kIAsDL3r-gsDzsmxHiojjJiFW_BAt1pMoCSQdEVGwo-40MIKK1WkqmvK06tyieP-Dh2yLypg4B4x9dqjQFbV_g==\">latest OpenAI news</a>\n    <a class=\"chip\" href=\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFOfL5F0WX8ULYe_RkmoDoOmymhl4gyFtBGzxiPb-BpBk3umeZ8BNcvqxA8Nzb7w7uNg62qwcBcfPR80Zm4fB2nC9Ox3OGDk8JJ3SXrkkmjJRsrqvgu0FtZ_aZ6C_80Sb8KNXb3NoFo2v3WrRsiObNwHXZdcPKIaY53nlRqocQsFbQZ42ftXMHSkHQP530ONdw58DT15EPHZuRDT8CyNEYxU-Q=\">OpenAI announcements 2024 March</a>\n  </div>\n</div>\n"
+          },
+          "groundingChunks": [
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHnkVbAmSl-Bcq6tRQ9JDAo_4XvJ-jv2qTAsL8KX3QO0PpvnbT6-J2BEV7ovhCKAZnkXJlykurnXGIDJvmTZ9oN6_NPDheFAPfTdQQLHF9THiJmltlTyRLK8lshHCw-6Wc4M_1uwnVDpMvemPv2GqEsekkhHx0pX7p2dp5-GqIHrx7uYHWDVx4yC8wJrhs18wVjEXaW7Vbo3eg-KAp4PPx0WWUAkHl0NS901on-",
+                "title": "gizmodo.com"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHxklaSAw8ZCinD3E4gMxn5MQhhyHS6gU1bNWq8Y3D7tc1qo8OJSYG2rtGU5bh0LqtBNfRvaOuXUJA9rZ5-yZf3INCecmyHkY5FhV_CkbGWfXVE9jULZMQayyxT8iIkYscYqYufbAUYCzZQxSDgIW3ud9_dmjp_Aces55AWmIUDHNmO3bLdGhNZF4LTvgbIshCq3IAiaAfAynUlK7c=",
+                "title": "pcmag.com"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFglQgtRRYP5vlzUOsXgiKKo7Z-WOw4Wuv_bLkf4-wjTUtghcMnwLari8IT1KNO8u5rvGnwNIXyySNKiVjlkjdN1HvxtabRG2DBRijM2NINn2OCiumYdgCfNx1muSl57mryQmyMEMIl",
+                "title": "wheresyoured.at"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFUxNPDiSc_fTls7XgDsFxeqMyci95ZokD0B4eBSyxZScxGW3NIXfA0LJUro2hW5Bjuf1N2lTctN0G3eRYThfaT88uFdIHADPBWjp0jTsd8exl1l30ELSj5krEIHdbbSEK1aPVKRwt03OhN80A7omEVDdae4PV6SJa3JUJNokcABwOqhpI5FM0wmhnBqDtf_O5ndsTNVAsoO8SskaSB12UjPxDc8A==",
+                "title": "reddit.com"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHru3eYeThLWqHvQciOEzh4fF2c1O-z9LkUe3sb5emOF7UShiCJGP9AeXROUoCqFCxiQGYolHcNk1tI777n9z-mjM_6a0COnFREO_sWNAYBx-tsWMkXu36WjIrNoSecsgzwx2HegPrJ3ZJA95nN44Gz7nmQKINqNiD4",
+                "title": "newcomer.co"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH0JJNYVQgLhSSh0CmhrgWKA3YrhYnxYY8VaV2PN7bpRjsp1H0vDfpRqP_Kks2iyClPlnRB1swKIJK9AdLd25ZPUDg7WkeQNnXyKDuNgmI=",
+                "title": "openai.com"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFyZKw1j3tSbE9ctmRUSqDvBSMD7NYALRCeK5ife261G0qGzQxZRIHBLHyRZIZoHEhiX1FUhQVfmZNv2ihFZuIeNTeZgwnAUay5BlgC4bVjgWFmr_cms3-7wodoZqWA3r-asbFvHnILZTBdyu2Pfcey1UsNWCaul-cIcw==",
+                "title": "openai.com"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHuYHeZNZ9QIE61qm61_b6H3dygktnRmXljVfMUVFuZmFRopDGV3VAYokeFrH50_ozXWg0ONRlGWW6pdNQRCkCKuBGwSQ84bPyHHj48wjFJ2JvCXcXTt8pxrhml-QCdVyKHuDK6UUZgi6dK6-FL0U44EBT3avojH9JsDg3aytTz8OFKBjTOl_pel2bf",
+                "title": "mindstudio.ai"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH4SEiOC2jhf1X_pSGBecQxiWf3AjRACC4mcIFfz6DeaXpHn-vRDg-tQRqb8IMAQ6PCbSnpvUlrg21RcJuWEd1Tu_YGLJX0bfOjeYyx0HP75l7DKq3nqyWlxvGg1fG40jcOdjRLvpoQsUkKMw94LUo8YkJ5NzluGDFviBCXlM6Bv_ciksdvk9VlyrCxBtLWbTiXYSuddUMcls-d5kai",
+                "title": "analyticsvidhya.com"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH3AqZrEpbSNnWucnnH7wvEk1EwNhX67lg8VEHRDFCBDMHE_QtbOwgGDdQx3bgmuQtd88uyWsC_SEjLZUCbXGbkTIUek-MKxiymdjhUVIitkVli_mDIH5hgM-tyP1YQFL8CNPu8ws4CngZYWjsiQDmJ962PdIHSkw15hYyhMI2I66StbyyWQsY=",
+                "title": "jazzcomputing.com"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEvdU-sckQWwxXEJCx8g-ePT45fAkRHAu60SoEdGpp5l_Cu7ljHBxqHmb5x6QarmzBsWxiq9c9X-DLK1D4SP_CrDUyfEnmqt946XE5I8Gx4a0vT6ig8US0CwuEpY-Q4ogpcFrJeb26ZeyR6ZVaZpw13vUjRKNsHe7VSUQ2KlrkaTIKb4hQ7Bni_rWiB3-GbSuU=",
+                "title": "openai.com"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEaE_8fHKehyEcwhfnrgoX_aLokTEKg2mKUp0WcySnC5GdjblTG1fhfOahu-gadPtgBGVV6n-IF7hSmHTebby2Obxi5mNHYv05vvRN9DOaEZ6eIhVo4mh7pvJY9aEYS7NUHbPGIuIQdrM2Cc7EUpd_Ozp4BYDI8VvD05Mb6",
+                "title": "nd.edu"
+              }
+            }
+          ],
+          "groundingSupports": [
+            {
+              "segment": {
+                "startIndex": 544,
+                "endIndex": 660,
+                "text": "OpenAI also suggested strengthening the electric grid and building new safety and oversight systems for advanced AI."
+              },
+              "groundingChunkIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 1011,
+                "endIndex": 1101,
+                "text": "Friar no longer reports directly to CEO Sam Altman, a change that occurred in August 2025."
+              },
+              "groundingChunkIndices": [
+                2,
+                3
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 1102,
+                "endIndex": 1213,
+                "text": "*   **Acquisition** OpenAI announced the acquisition of the live tech show TBPN in a reported nine-figure deal."
+              },
+              "groundingChunkIndices": [
+                4
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 1214,
+                "endIndex": 1345,
+                "text": "*   **Accelerating the Next Phase of AI** On March 31, 2026, OpenAI made an announcement about \"accelerating the next phase of AI.\""
+              },
+              "groundingChunkIndices": [
+                5
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 1346,
+                "endIndex": 1449,
+                "text": "*   **ChatGPT Updates** In March 2026, OpenAI introduced new ways to learn math and science in ChatGPT."
+              },
+              "groundingChunkIndices": [
+                5
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 1577,
+                "endIndex": 1615,
+                "text": "GPT-5.3 Instant also received updates."
+              },
+              "groundingChunkIndices": [
+                6
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 1616,
+                "endIndex": 1838,
+                "text": "*   **Research Updates** Recent research in March 2026 focused on improving instruction hierarchy in frontier large language models (LLMs) and understanding how reasoning models struggle to control their chains of thought."
+              },
+              "groundingChunkIndices": [
+                5
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 1839,
+                "endIndex": 2000,
+                "text": "*   **Partnerships** OpenAI announced a strategic partnership with Amazon on February 27, 2026, and an agreement with the Department of War on February 28, 2026."
+              },
+              "groundingChunkIndices": [
+                5
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 2320,
+                "endIndex": 2443,
+                "text": "OpenAI redirected resources towards coding tools and ChatGPT improvements, ending the Sora experiment in its original form."
+              },
+              "groundingChunkIndices": [
+                7
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 2444,
+                "endIndex": 2622,
+                "text": "*   **GPT-4o Release** In May 2024, OpenAI unveiled GPT-4o, a multimodal AI model capable of processing text, images, and audio, aiming to offer a more intuitive user experience."
+              },
+              "groundingChunkIndices": [
+                8,
+                9,
+                10
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 2623,
+                "endIndex": 2742,
+                "text": "*   **API Introductions and Plugin Changes** April 2024 saw the introduction of new APIs for GPT-3.5 Turbo and Whisper."
+              },
+              "groundingChunkIndices": [
+                8
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 2743,
+                "endIndex": 2866,
+                "text": "The ChatGPT plugins beta was wound down in March 2024 due to the launch of the GPT Store and the shift towards custom GPTs."
+              },
+              "groundingChunkIndices": [
+                8
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 2867,
+                "endIndex": 3075,
+                "text": "*   **Ilya Sutskever's Departure** OpenAI co-founder and Chief Scientist Ilya Sutskever departed the company in May 2024 to pursue a new venture focused on the safe development of superintelligent AI systems."
+              },
+              "groundingChunkIndices": [
+                8
+              ]
+            },
+            {
+              "segment": {
+                "startIndex": 3076,
+                "endIndex": 3264,
+                "text": "*   **Elon Musk's Lawsuit** In March 2024, Elon Musk filed a lawsuit against OpenAI, alleging the company had deviated from its original mission of being an open-source, non-profit entity."
+              },
+              "groundingChunkIndices": [
+                11
+              ]
+            }
+          ],
+          "webSearchQueries": [
+            "latest OpenAI news",
+            "OpenAI announcements 2024 April May June",
+            "OpenAI announcements 2024 March"
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 4,
+      "candidatesTokenCount": 810,
+      "totalTokenCount": 1552,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 4
+        }
+      ],
+      "toolUsePromptTokenCount": 110,
+      "toolUsePromptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 110
+        }
+      ],
+      "thoughtsTokenCount": 628
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "KxjUaZHrNPjn_uMP-O6QyQc"
+  }
+]
