@@ -12,6 +12,7 @@ use crate::universal::{
     ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
+use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 
@@ -185,6 +186,180 @@ fn normalize_responses_items_for_import(data: &serde_json::Value) -> Option<serd
     } else {
         Some(normalized)
     }
+}
+
+enum OpenAIFilePayload {
+    FileData(String),
+    FileUrl(String),
+}
+
+struct UniversalFilePayload {
+    data: serde_json::Value,
+    media_type: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct OpenAIFileProviderOptionsView {
+    title: Option<String>,
+}
+
+fn openai_file_provider_options_view(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<OpenAIFileProviderOptionsView> {
+    provider_options.as_ref().and_then(|opts| {
+        serde_json::from_value::<OpenAIFileProviderOptionsView>(serde_json::Value::Object(
+            opts.options.clone(),
+        ))
+        .ok()
+    })
+}
+
+fn openai_filename_for_file(
+    filename: Option<String>,
+    media_type: &str,
+    provider_options: &Option<ProviderOptions>,
+) -> Option<String> {
+    if filename.is_some() {
+        return filename;
+    }
+
+    if let Some(title) =
+        openai_file_provider_options_view(provider_options).and_then(|opts| opts.title)
+    {
+        return Some(title);
+    }
+
+    Some(match media_type {
+        "text/plain" => "document.txt".to_string(),
+        "application/pdf" => "document.pdf".to_string(),
+        _ => "document".to_string(),
+    })
+}
+
+fn openai_media_type_from_filename(filename: Option<&str>) -> String {
+    match filename.and_then(|name| name.rsplit('.').next()) {
+        Some("txt") => "text/plain".to_string(),
+        Some("pdf") => "application/pdf".to_string(),
+        _ => "application/octet-stream".to_string(),
+    }
+}
+
+fn openai_file_payload_from_data(
+    data: serde_json::Value,
+    media_type: &str,
+) -> Result<OpenAIFilePayload, ConvertError> {
+    let data = match data {
+        serde_json::Value::String(value) => value,
+        other => {
+            return Err(ConvertError::UnsupportedInputType {
+                type_info: format!(
+                    "File data must be string-backed for OpenAI, got: {:?}",
+                    other
+                ),
+            })
+        }
+    };
+
+    if let Some(block) = parse_base64_data_url(&data) {
+        return Ok(OpenAIFilePayload::FileData(format!(
+            "data:{};base64,{}",
+            block.media_type, block.data
+        )));
+    }
+
+    if data.starts_with("http://") || data.starts_with("https://") {
+        return Ok(OpenAIFilePayload::FileUrl(data));
+    }
+
+    Ok(OpenAIFilePayload::FileData(format!(
+        "data:{};base64,{}",
+        media_type,
+        base64::engine::general_purpose::STANDARD.encode(data.as_bytes())
+    )))
+}
+
+fn universal_file_payload_from_openai(
+    file_data: Option<String>,
+    file_url: Option<String>,
+    file_id: Option<String>,
+    filename: Option<String>,
+) -> Result<(UniversalFilePayload, Option<String>), ConvertError> {
+    if let Some(file_id) = file_id {
+        return Err(ConvertError::UnsupportedInputType {
+            type_info: format!("OpenAI file_id inputs are not supported: {}", file_id),
+        });
+    }
+
+    let media_type = openai_media_type_from_filename(filename.as_deref());
+
+    if let Some(file_url) = file_url {
+        return Ok((
+            UniversalFilePayload {
+                data: serde_json::Value::String(file_url),
+                media_type,
+            },
+            filename,
+        ));
+    }
+
+    if let Some(file_data) = file_data {
+        if let Some(block) = parse_base64_data_url(&file_data) {
+            let decoded_text = base64::engine::general_purpose::STANDARD
+                .decode(&block.data)
+                .ok()
+                .and_then(|bytes| String::from_utf8(bytes).ok());
+            let has_known_extension = filename
+                .as_deref()
+                .and_then(|name| name.rsplit('.').next())
+                .map(|ext| matches!(ext, "txt" | "pdf"))
+                .unwrap_or(false);
+            let filename = if decoded_text.is_some() && !has_known_extension {
+                None
+            } else {
+                filename
+            };
+            let media_type = if decoded_text.is_some() {
+                "text/plain".to_string()
+            } else {
+                block.media_type
+            };
+            let data = decoded_text
+                .map(serde_json::Value::String)
+                .unwrap_or_else(|| serde_json::Value::String(block.data));
+
+            return Ok((UniversalFilePayload { data, media_type }, filename));
+        }
+
+        let decoded_text = base64::engine::general_purpose::STANDARD
+            .decode(&file_data)
+            .ok()
+            .and_then(|bytes| String::from_utf8(bytes).ok());
+        let has_known_extension = filename
+            .as_deref()
+            .and_then(|name| name.rsplit('.').next())
+            .map(|ext| matches!(ext, "txt" | "pdf"))
+            .unwrap_or(false);
+        let filename = if decoded_text.is_some() && !has_known_extension {
+            None
+        } else {
+            filename
+        };
+        let media_type = if decoded_text.is_some() {
+            "text/plain".to_string()
+        } else {
+            media_type
+        };
+        let data = decoded_text
+            .map(serde_json::Value::String)
+            .unwrap_or_else(|| serde_json::Value::String(file_data));
+
+        return Ok((UniversalFilePayload { data, media_type }, filename));
+    }
+
+    Err(ConvertError::MissingRequiredField {
+        field: "file_data|file_url|file_id".to_string(),
+    })
 }
 
 fn is_reasoning_only_assistant_message(message: &Message) -> bool {
@@ -733,10 +908,18 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 });
             }
             openai::InputItemContentListType::InputFile => {
-                // Handle file input if needed in the future
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: "InputFile content type".to_string(),
-                });
+                let (payload, filename) = universal_file_payload_from_openai(
+                    value.file_data,
+                    value.file_url,
+                    value.file_id,
+                    value.filename,
+                )?;
+                UserContentPart::File {
+                    data: payload.data,
+                    filename,
+                    media_type: payload.media_type,
+                    provider_options: None,
+                }
             }
             openai::InputItemContentListType::ReasoningText => {
                 // Handle reasoning text - treat as regular text for now
@@ -841,13 +1024,28 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                     ..Default::default()
                 }
             }
-            UserContentPart::File { media_type, .. } => {
-                return Err(ConvertError::UnsupportedInputType {
-                    type_info: format!(
-                        "UserContentPart::File (media_type: {}) is not supported by OpenAI",
-                        media_type
-                    ),
-                })
+            UserContentPart::File {
+                data,
+                filename,
+                media_type,
+                provider_options,
+            } => {
+                let filename = openai_filename_for_file(filename, &media_type, &provider_options);
+
+                match openai_file_payload_from_data(data, &media_type)? {
+                    OpenAIFilePayload::FileData(file_data) => openai::InputContent {
+                        input_content_type: openai::InputItemContentListType::InputFile,
+                        file_data: Some(file_data),
+                        filename,
+                        ..Default::default()
+                    },
+                    OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
+                        input_content_type: openai::InputItemContentListType::InputFile,
+                        file_url: Some(file_url),
+                        filename,
+                        ..Default::default()
+                    },
+                }
             }
         })
     }
@@ -2952,6 +3150,26 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                     })
                 }
             }
+            openai::PurpleType::File => {
+                let file = part
+                    .file
+                    .ok_or_else(|| ConvertError::MissingRequiredField {
+                        field: "file".to_string(),
+                    })?;
+                let (payload, filename) = universal_file_payload_from_openai(
+                    file.file_data,
+                    None,
+                    file.file_id,
+                    file.filename,
+                )?;
+
+                Ok(UserContentPart::File {
+                    data: payload.data,
+                    filename,
+                    media_type: payload.media_type,
+                    provider_options: None,
+                })
+            }
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
@@ -3166,12 +3384,19 @@ fn convert_user_content_part_to_chat_completion_part(
                 refusal: None,
             })
         }
-        _ => Err(ConvertError::UnsupportedInputType {
-            type_info: format!(
-                "UserContentPart variant in ChatCompletion conversion: {:?}",
-                part
-            ),
-        }),
+        UserContentPart::File {
+            media_type,
+            ..
+        } => {
+            Err(ConvertError::UnsupportedInputType {
+                type_info: format!(
+                    "UserContentPart::File (media_type: {}) is not supported by OpenAI ChatCompletions. \
+OpenAI ChatCompletions file inputs require provider-specific file payloads (for example PDF data URLs), \
+and Anthropic document blocks do not map safely.",
+                    media_type
+                ),
+            })
+        }
     }
 }
 
@@ -3473,6 +3698,164 @@ mod tests {
                 assert!(has_reasoning, "request reasoning should be preserved");
             }
             _ => panic!("expected assistant message"),
+        }
+    }
+
+    #[test]
+    fn user_file_converts_to_responses_input_file() {
+        let mut options = serde_json::Map::new();
+        options.insert("title".into(), serde_json::Value::String("Doc".to_string()));
+
+        let input = UserContentPart::File {
+            data: serde_json::Value::String("Sample text.".to_string()),
+            filename: None,
+            media_type: "text/plain".to_string(),
+            provider_options: Some(ProviderOptions { options }),
+        };
+
+        let converted = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(input)
+            .expect("file should convert");
+
+        assert_eq!(
+            converted.input_content_type,
+            openai::InputItemContentListType::InputFile
+        );
+        assert_eq!(converted.filename.as_deref(), Some("Doc"));
+        assert_eq!(
+            converted.file_data.as_deref(),
+            Some("data:text/plain;base64,U2FtcGxlIHRleHQu")
+        );
+        assert!(converted.file_url.is_none());
+    }
+
+    #[test]
+    fn user_file_is_not_supported_for_chat_completions() {
+        let input = UserContentPart::File {
+            data: serde_json::Value::String("Sample text.".to_string()),
+            filename: None,
+            media_type: "text/plain".to_string(),
+            provider_options: None,
+        };
+
+        let error = convert_user_content_part_to_chat_completion_part(input)
+            .expect_err("file should be rejected");
+
+        assert!(matches!(error, ConvertError::UnsupportedInputType { .. }));
+        assert!(error
+            .to_string()
+            .contains("is not supported by OpenAI ChatCompletions"));
+    }
+
+    #[test]
+    fn user_file_uses_filename_when_present() {
+        let input = UserContentPart::File {
+            data: serde_json::Value::String("Sample text.".to_string()),
+            filename: Some("explicit-name.txt".to_string()),
+            media_type: "text/plain".to_string(),
+            provider_options: None,
+        };
+
+        let converted = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(input)
+            .expect("file should convert");
+
+        assert_eq!(converted.filename.as_deref(), Some("explicit-name.txt"));
+    }
+
+    #[test]
+    fn user_file_errors_for_non_string_data() {
+        let input = UserContentPart::File {
+            data: json!({ "not": "supported" }),
+            filename: None,
+            media_type: "application/pdf".to_string(),
+            provider_options: None,
+        };
+
+        let error = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(input)
+            .expect_err("object payload should fail");
+
+        assert!(matches!(error, ConvertError::UnsupportedInputType { .. }));
+        assert!(error
+            .to_string()
+            .contains("File data must be string-backed for OpenAI"));
+    }
+
+    #[test]
+    fn chat_completions_user_file_errors_for_url_backed_file() {
+        let input = UserContentPart::File {
+            data: serde_json::Value::String("https://example.com/doc.txt".to_string()),
+            filename: None,
+            media_type: "text/plain".to_string(),
+            provider_options: None,
+        };
+
+        let error = convert_user_content_part_to_chat_completion_part(input)
+            .expect_err("url-backed file should fail");
+
+        assert!(matches!(error, ConvertError::UnsupportedInputType { .. }));
+        assert!(error
+            .to_string()
+            .contains("is not supported by OpenAI ChatCompletions"));
+    }
+
+    #[test]
+    fn responses_input_file_imports_back_to_text_file() {
+        let input = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputFile,
+            file_data: Some("data:text/plain;base64,U2FtcGxlIHRleHQu".to_string()),
+            filename: Some("Doc.txt".to_string()),
+            ..Default::default()
+        };
+
+        let converted = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(input)
+            .expect("file should import");
+
+        match converted {
+            UserContentPart::File {
+                data,
+                filename,
+                media_type,
+                ..
+            } => {
+                assert_eq!(data, serde_json::Value::String("Sample text.".to_string()));
+                assert_eq!(filename.as_deref(), Some("Doc.txt"));
+                assert_eq!(media_type, "text/plain");
+            }
+            other => panic!("expected file content, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn chat_completions_file_imports_back_to_text_file() {
+        let input = openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            chat_completion_request_message_content_part_type: openai::PurpleType::File,
+            image_url: None,
+            input_audio: None,
+            file: Some(openai::File {
+                file_data: Some("U2FtcGxlIHRleHQu".to_string()),
+                file_id: None,
+                filename: Some("Doc.txt".to_string()),
+            }),
+            refusal: None,
+        };
+
+        let converted = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(input)
+        .expect("file should import");
+
+        match converted {
+            UserContentPart::File {
+                data,
+                filename,
+                media_type,
+                ..
+            } => {
+                assert_eq!(data, serde_json::Value::String("Sample text.".to_string()));
+                assert_eq!(filename.as_deref(), Some("Doc.txt"));
+                assert_eq!(media_type, "text/plain");
+            }
+            other => panic!("expected file content, got {:?}", other),
         }
     }
 }

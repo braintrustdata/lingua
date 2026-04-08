@@ -4284,6 +4284,62 @@ Rarest digits: 6, 7, 8, and 9, each 264 times, which is 264/5760 = 11/240 ≈ 4.
 }
 `;
 
+exports[`anthropic → responses > documentContentParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "file_data": "data:text/plain;base64,U2FtcGxlIHRleHQu",
+          "filename": "Doc",
+          "type": "input_file",
+        },
+        {
+          "text": "Summarize.",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > documentContentParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "I don’t see any text to summarize—just the phrase “Sample text.” Please paste the actual text you want summarized.
+
+If you’d like, I can provide:
+- 1-sentence summary
+- 3–5 bullet-point summary of key ideas
+- short executive summary (a paragraph)
+- longer, detailed summary
+
+Tell me the desired length and audience (e.g., plain language for a general audience, or professional for colleagues). Also note if you want a neutral, critical, or persuasive tone.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_09779c10f3acf5c00069d67cca07f88196a5888a78debbf996",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 17,
+    "output_tokens": 584,
+  },
+}
+`;
+
 exports[`anthropic → responses > imageContentParam > request 1`] = `
 {
   "input": [

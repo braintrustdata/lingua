@@ -1,3 +1,77 @@
 {
-  "error": "Conversion from universal format failed: Unsupported input type: UserContentPart::File (media_type: text/plain) is not supported by OpenAI"
+  "id": "resp_09779c10f3acf5c00069d67cca07f88196a5888a78debbf996",
+  "object": "response",
+  "created_at": 1775664330,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775664334,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_09779c10f3acf5c00069d67cca521081969b063b09e8fdccd6",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_09779c10f3acf5c00069d67cce044c8196a299fd539307233a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t see any text to summarize—just the phrase “Sample text.” Please paste the actual text you want summarized.\n\nIf you’d like, I can provide:\n- 1-sentence summary\n- 3–5 bullet-point summary of key ideas\n- short executive summary (a paragraph)\n- longer, detailed summary\n\nTell me the desired length and audience (e.g., plain language for a general audience, or professional for colleagues). Also note if you want a neutral, critical, or persuasive tone."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 17,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 584,
+    "output_tokens_details": {
+      "reasoning_tokens": 448
+    },
+    "total_tokens": 601
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I don’t see any text to summarize—just the phrase “Sample text.” Please paste the actual text you want summarized.\n\nIf you’d like, I can provide:\n- 1-sentence summary\n- 3–5 bullet-point summary of key ideas\n- short executive summary (a paragraph)\n- longer, detailed summary\n\nTell me the desired length and audience (e.g., plain language for a general audience, or professional for colleagues). Also note if you want a neutral, critical, or persuasive tone."
 }

@@ -304,7 +304,7 @@
       "source": "Anthropic",
       "target": "ChatCompletions",
       "skip": true,
-      "reason": "Anthropic document blocks not supported in OpenAI ChatCompletions"
+      "reason": "OpenAI ChatCompletions file inputs require provider-specific payloads such as PDF data URLs, so Anthropic document blocks map lossily from universal File content"
     },
     {
       "testCase": "reasoningEffortLowParam",
