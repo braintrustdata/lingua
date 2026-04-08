@@ -1,4 +1,96 @@
 {
-  "error": "400 Invalid schema for response_format 'response': In context=(), 'additionalProperties' is required to be supplied and to be false.",
-  "name": "Error"
+  "id": "resp_0a7ba4b1733f528a0069d5631c4db08192be69b7665f19cb73",
+  "object": "response",
+  "created_at": 1775592220,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775592224,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0a7ba4b1733f528a0069d5631cce148192a31bac2edc03750b",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0a7ba4b1733f528a0069d563208cf48192b78dbf9922526913",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"age\":25,\"name\":\"John\"}"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "age"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 407,
+    "output_tokens_details": {
+      "reasoning_tokens": 384
+    },
+    "total_tokens": 448
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "{\"age\":25,\"name\":\"John\"}"
 }

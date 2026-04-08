@@ -38,6 +38,7 @@ use ts_rs::TS;
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
+use crate::processing::transform::TransformError;
 use crate::serde_json::{Map, Value};
 use crate::universal::message::Message;
 use crate::universal::tools::UniversalTool;
@@ -247,10 +248,17 @@ impl UniversalParams {
     ///     .flatten()
     /// ```
     pub fn response_format_for(&self, provider: ProviderFormat) -> Option<Value> {
+        self.try_response_format_for(provider).ok().flatten()
+    }
+
+    /// Get response_format for a provider and preserve conversion failures.
+    pub fn try_response_format_for(
+        &self,
+        provider: ProviderFormat,
+    ) -> Result<Option<Value>, TransformError> {
         self.response_format
             .as_ref()
-            .and_then(|rf| rf.to_provider(provider).ok())
-            .flatten()
+            .map_or(Ok(None), |rf| rf.to_provider(provider))
     }
 }
 

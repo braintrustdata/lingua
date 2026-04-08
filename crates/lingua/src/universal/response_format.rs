@@ -75,15 +75,88 @@ impl ResponseFormatConfig {
     /// `Err(_)` if conversion failed
     pub fn to_provider(&self, provider: ProviderFormat) -> Result<Option<Value>, TransformError> {
         match provider {
-            ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)),
-            ProviderFormat::Responses => Ok(to_openai_responses_text(self)),
-            ProviderFormat::Anthropic => Ok(JsonOutputFormat::try_from(self)
-                .ok()
-                .and_then(|f| serde_json::to_value(&f).ok())),
+            ProviderFormat::ChatCompletions => Ok(to_openai_chat(self)?),
+            ProviderFormat::Responses => Ok(to_openai_responses_text(self)?),
+            ProviderFormat::Anthropic => {
+                let format = JsonOutputFormat::try_from(self).map_err(TransformError::from)?;
+                Ok(Some(serde_json::to_value(&format).map_err(|e| {
+                    TransformError::SerializationFailed(e.to_string())
+                })?))
+            }
             ProviderFormat::Google => to_google(self),
             _ => Ok(None),
         }
     }
+}
+
+pub(crate) fn normalize_response_schema_for_strict_target(
+    schema: &Value,
+    target_provider: ProviderFormat,
+) -> Result<Value, ConvertError> {
+    fn normalize_node(
+        value: &mut Value,
+        target_provider: ProviderFormat,
+    ) -> Result<(), ConvertError> {
+        match value {
+            Value::Object(map) => {
+                let is_object_schema = matches!(
+                    map.get_mut("type"),
+                    Some(Value::String(schema_type)) if schema_type == "object"
+                );
+
+                if is_object_schema {
+                    match map.get_mut("additionalProperties") {
+                        None => {
+                            map.insert("additionalProperties".into(), Value::Bool(false));
+                        }
+                        Some(Value::Bool(true)) => {
+                            return Err(ConvertError::InvalidResponseSchema {
+                                target_provider,
+                                reason:
+                                    "object schema explicitly sets 'additionalProperties: true'"
+                                        .to_string(),
+                            });
+                        }
+                        Some(Value::Bool(false)) => {}
+                        Some(_) => {
+                            return Err(ConvertError::InvalidResponseSchema {
+                                target_provider,
+                                reason: "object schema uses unsupported non-boolean 'additionalProperties'".to_string(),
+                            });
+                        }
+                    }
+                }
+
+                if let Some(Value::Object(properties)) = map.get_mut("properties") {
+                    for prop_schema in properties.values_mut() {
+                        normalize_node(prop_schema, target_provider)?;
+                    }
+                }
+                if let Some(items) = map.get_mut("items") {
+                    normalize_node(items, target_provider)?;
+                }
+                for key in ["anyOf", "oneOf", "allOf", "prefixItems"] {
+                    if let Some(Value::Array(items)) = map.get_mut(key) {
+                        for item in items {
+                            normalize_node(item, target_provider)?;
+                        }
+                    }
+                }
+            }
+            Value::Array(items) => {
+                for item in items {
+                    normalize_node(item, target_provider)?;
+                }
+            }
+            _ => {}
+        }
+
+        Ok(())
+    }
+
+    let mut normalized = schema.clone();
+    normalize_node(&mut normalized, target_provider)?;
+    Ok(normalized)
 }
 
 // =============================================================================
@@ -190,17 +263,31 @@ fn from_openai_responses(value: &Value) -> Result<ResponseFormatConfig, ConvertE
 /// - `{ type: "text" }`
 /// - `{ type: "json_object" }`
 /// - `{ type: "json_schema", json_schema: { name, schema, strict?, description? } }`
-fn to_openai_chat(config: &ResponseFormatConfig) -> Option<Value> {
-    let format_type = config.format_type?;
+fn to_openai_chat(config: &ResponseFormatConfig) -> Result<Option<Value>, ConvertError> {
+    let Some(format_type) = config.format_type else {
+        return Ok(None);
+    };
 
-    match format_type {
+    Ok(match format_type {
         ResponseFormatType::Text => Some(json!({ "type": "text" })),
         ResponseFormatType::JsonObject => Some(json!({ "type": "json_object" })),
         ResponseFormatType::JsonSchema => {
-            let js = config.json_schema.as_ref()?;
+            let js =
+                config
+                    .json_schema
+                    .as_ref()
+                    .ok_or_else(|| ConvertError::MissingRequiredField {
+                        field: "json_schema".to_string(),
+                    })?;
             let mut json_schema = Map::new();
             json_schema.insert("name".into(), Value::String(js.name.clone()));
-            json_schema.insert("schema".into(), js.schema.clone());
+            json_schema.insert(
+                "schema".into(),
+                normalize_response_schema_for_strict_target(
+                    &js.schema,
+                    ProviderFormat::ChatCompletions,
+                )?,
+            );
             if let Some(strict) = js.strict {
                 json_schema.insert("strict".into(), Value::Bool(strict));
             }
@@ -212,7 +299,7 @@ fn to_openai_chat(config: &ResponseFormatConfig) -> Option<Value> {
                 "json_schema": json_schema
             }))
         }
-    }
+    })
 }
 
 /// Convert ResponseFormatConfig to OpenAI Responses API `text` object.
@@ -222,18 +309,29 @@ fn to_openai_chat(config: &ResponseFormatConfig) -> Option<Value> {
 /// - `{ format: { type: "json_schema", name, schema, strict?, description? } }`
 ///
 /// Returns the full `text` object, not just the format.
-fn to_openai_responses_text(config: &ResponseFormatConfig) -> Option<Value> {
-    let format_type = config.format_type?;
+fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Value>, ConvertError> {
+    let Some(format_type) = config.format_type else {
+        return Ok(None);
+    };
 
     let format_obj = match format_type {
         ResponseFormatType::Text => json!({ "type": "text" }),
         ResponseFormatType::JsonObject => json!({ "type": "json_object" }),
         ResponseFormatType::JsonSchema => {
-            let js = config.json_schema.as_ref()?;
+            let js =
+                config
+                    .json_schema
+                    .as_ref()
+                    .ok_or_else(|| ConvertError::MissingRequiredField {
+                        field: "json_schema".to_string(),
+                    })?;
             let mut obj = Map::new();
             obj.insert("type".into(), Value::String("json_schema".into()));
             obj.insert("name".into(), Value::String(js.name.clone()));
-            obj.insert("schema".into(), js.schema.clone());
+            obj.insert(
+                "schema".into(),
+                normalize_response_schema_for_strict_target(&js.schema, ProviderFormat::Responses)?,
+            );
             if let Some(strict) = js.strict {
                 obj.insert("strict".into(), Value::Bool(strict));
             }
@@ -244,7 +342,7 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Option<Value> {
         }
     };
 
-    Some(json!({ "format": format_obj }))
+    Ok(Some(json!({ "format": format_obj })))
 }
 
 /// Convert ResponseFormatConfig to Google generationConfig fields.
@@ -282,6 +380,53 @@ mod tests {
         description: Option<String>,
         #[serde(rename = "additionalProperties", default)]
         additional_properties: Option<bool>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct OpenAiChatResponseFormatView {
+        #[serde(rename = "type")]
+        format_type: String,
+        json_schema: OpenAiChatJsonSchemaView,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct OpenAiChatJsonSchemaView {
+        name: String,
+        schema: JsonSchemaMetadataView,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct OpenAiResponsesTextView {
+        format: OpenAiResponsesFormatView,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct OpenAiResponsesFormatView {
+        #[serde(rename = "type")]
+        format_type: String,
+        name: String,
+        schema: Value,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct AnthropicJsonSchemaFormatView {
+        #[serde(rename = "type")]
+        format_type: String,
+        #[serde(default)]
+        name: Option<String>,
+        #[serde(default)]
+        strict: Option<bool>,
+        schema: JsonSchemaMetadataView,
+        #[serde(default)]
+        json_schema: Option<Value>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct NestedSchemaMetadataView {
+        #[serde(rename = "additionalProperties", default)]
+        additional_properties: Option<bool>,
+        #[serde(default)]
+        properties: std::collections::HashMap<String, NestedSchemaMetadataView>,
     }
 
     #[test]
@@ -333,22 +478,15 @@ mod tests {
             .to_provider(ProviderFormat::ChatCompletions)
             .unwrap()
             .unwrap();
-        assert_eq!(value.get("type").unwrap(), "json_schema");
-        assert!(value.get("json_schema").is_some());
-        assert_eq!(
-            value
-                .get("json_schema")
-                .unwrap()
-                .get("name")
-                .unwrap()
-                .as_str()
-                .unwrap(),
-            "test_schema"
-        );
+        let format: OpenAiChatResponseFormatView =
+            serde_json::from_value(value).expect("chat response_format should deserialize");
+        assert_eq!(format.format_type, "json_schema");
+        assert_eq!(format.json_schema.name, "test_schema");
+        assert_eq!(format.json_schema.schema.additional_properties, Some(false));
     }
 
     #[test]
-    fn test_roundtrip_openai_chat() {
+    fn test_roundtrip_openai_chat_normalizes_missing_additional_properties() {
         let original = json!({
             "type": "json_schema",
             "json_schema": {
@@ -364,7 +502,20 @@ mod tests {
             .to_provider(ProviderFormat::ChatCompletions)
             .unwrap()
             .unwrap();
-        assert_eq!(original, back);
+        assert_eq!(
+            back,
+            json!({
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "test",
+                    "schema": {
+                        "type": "object",
+                        "additionalProperties": false
+                    },
+                    "strict": true
+                }
+            })
+        );
     }
 
     #[test]
@@ -382,9 +533,13 @@ mod tests {
             .to_provider(ProviderFormat::Responses)
             .unwrap()
             .unwrap();
-        let format = value.get("format").unwrap();
-        assert_eq!(format.get("type").unwrap(), "json_schema");
-        assert_eq!(format.get("name").unwrap(), "test");
+        let text: OpenAiResponsesTextView =
+            serde_json::from_value(value).expect("responses text config should deserialize");
+        assert_eq!(text.format.format_type, "json_schema");
+        assert_eq!(text.format.name, "test");
+        let schema: JsonSchemaMetadataView =
+            serde_json::from_value(text.format.schema).expect("schema should deserialize");
+        assert_eq!(schema.additional_properties, Some(false));
     }
 
     #[test]
@@ -413,14 +568,95 @@ mod tests {
             .unwrap()
             .unwrap();
 
-        // Verify Anthropic format structure
-        assert_eq!(anthropic_format.get("type").unwrap(), "json_schema");
-        // Name and strict are NOT included because Anthropic doesn't support them
-        assert!(anthropic_format.get("name").is_none());
-        assert!(anthropic_format.get("strict").is_none());
-        assert!(anthropic_format.get("schema").is_some());
-        // Anthropic format doesn't have nested json_schema wrapper
-        assert!(anthropic_format.get("json_schema").is_none());
+        let format: AnthropicJsonSchemaFormatView =
+            serde_json::from_value(anthropic_format).expect("anthropic format should deserialize");
+        assert_eq!(format.format_type, "json_schema");
+        assert!(format.name.is_none());
+        assert!(format.strict.is_none());
+        assert_eq!(format.schema.additional_properties, Some(false));
+        assert!(format.json_schema.is_none());
+    }
+
+    #[test]
+    fn test_strict_target_normalizes_nested_object_schemas() {
+        let config = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonSchema),
+            json_schema: Some(JsonSchemaConfig {
+                name: "nested".into(),
+                schema: json!({
+                    "type": "object",
+                    "properties": {
+                        "outer": {
+                            "type": "object",
+                            "properties": {
+                                "inner": { "type": "string" }
+                            }
+                        }
+                    }
+                }),
+                strict: None,
+                description: None,
+            }),
+        };
+
+        let value = config
+            .to_provider(ProviderFormat::Responses)
+            .unwrap()
+            .unwrap();
+        let text: OpenAiResponsesTextView =
+            serde_json::from_value(value).expect("responses text config should deserialize");
+        let mut schema: NestedSchemaMetadataView =
+            serde_json::from_value(text.format.schema).expect("schema should deserialize");
+        assert_eq!(schema.additional_properties, Some(false));
+        assert_eq!(
+            schema
+                .properties
+                .remove("outer")
+                .and_then(|outer| outer.additional_properties),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn test_strict_target_rejects_explicit_additional_properties_true() {
+        let config = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonSchema),
+            json_schema: Some(JsonSchemaConfig {
+                name: "open_object".into(),
+                schema: json!({
+                    "type": "object",
+                    "additionalProperties": true
+                }),
+                strict: None,
+                description: None,
+            }),
+        };
+
+        for provider in [
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Responses,
+            ProviderFormat::Anthropic,
+        ] {
+            let err = config.to_provider(provider).unwrap_err();
+            assert!(
+                err.to_string().contains("additionalProperties: true"),
+                "unexpected error for {provider:?}: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_google_json_object_conversion_is_unchanged() {
+        let config = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonObject),
+            json_schema: None,
+        };
+
+        let value = config
+            .to_provider(ProviderFormat::ChatCompletions)
+            .unwrap()
+            .unwrap();
+        assert_eq!(value, json!({ "type": "json_object" }));
     }
 
     #[test]

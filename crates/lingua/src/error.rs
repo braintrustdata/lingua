@@ -19,6 +19,12 @@ pub enum ConvertError {
     #[error("Invalid tool schema for '{tool_name}': {reason}")]
     InvalidToolSchema { tool_name: String, reason: String },
 
+    #[error("Invalid response schema for {target_provider}: {reason}")]
+    InvalidResponseSchema {
+        target_provider: ProviderFormat,
+        reason: String,
+    },
+
     #[error("Invalid {type_name} value: '{value}'")]
     InvalidEnumValue {
         type_name: &'static str,

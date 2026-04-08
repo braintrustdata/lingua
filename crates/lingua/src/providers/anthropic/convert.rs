@@ -16,6 +16,7 @@ use crate::serde_json::{json, Value};
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
+use crate::universal::response_format::normalize_response_schema_for_strict_target;
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart, Message,
@@ -1339,22 +1340,43 @@ impl From<&JsonOutputFormat> for ResponseFormatConfig {
 }
 
 impl TryFrom<&ResponseFormatConfig> for JsonOutputFormat {
-    type Error = ();
+    type Error = ConvertError;
 
     fn try_from(config: &ResponseFormatConfig) -> Result<Self, Self::Error> {
-        match config.format_type.ok_or(())? {
-            ResponseFormatType::Text => Err(()),
+        match config
+            .format_type
+            .ok_or_else(|| ConvertError::MissingRequiredField {
+                field: "format_type".to_string(),
+            })? {
+            ResponseFormatType::Text => Err(ConvertError::InvalidResponseSchema {
+                target_provider: ProviderFormat::Anthropic,
+                reason: "text response format is not supported by Anthropic output_config.format"
+                    .to_string(),
+            }),
             // Anthropic json_object compatibility is handled in adapter.rs via synthetic json tool shim.
             // Do not emit output_config.format for json_object here.
-            ResponseFormatType::JsonObject => Err(()),
+            ResponseFormatType::JsonObject => Err(ConvertError::InvalidResponseSchema {
+                target_provider: ProviderFormat::Anthropic,
+                reason: "json_object response format uses the Anthropic JSON tool shim".to_string(),
+            }),
             ResponseFormatType::JsonSchema => {
-                let js = config.json_schema.as_ref().ok_or(())?;
-                match &js.schema {
+                let js = config.json_schema.as_ref().ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
+                        field: "json_schema".to_string(),
+                    }
+                })?;
+                match normalize_response_schema_for_strict_target(
+                    &js.schema,
+                    ProviderFormat::Anthropic,
+                )? {
                     Value::Object(m) => Ok(JsonOutputFormat {
-                        schema: m.clone(),
+                        schema: m,
                         json_output_format_type: JsonOutputFormatType::JsonSchema,
                     }),
-                    _ => Err(()),
+                    _ => Err(ConvertError::InvalidResponseSchema {
+                        target_provider: ProviderFormat::Anthropic,
+                        reason: "response schema root must be a JSON object".to_string(),
+                    }),
                 }
             }
         }
