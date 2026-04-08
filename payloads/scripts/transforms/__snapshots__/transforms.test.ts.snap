@@ -932,7 +932,7 @@ exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
 
 exports[`anthropic → chat-completions > simpleRequestTruncated > request 1`] = `
 {
-  "max_completion_tokens": 1,
+  "max_completion_tokens": 16,
   "messages": [
     {
       "content": "Write a very long essay about the ocean.",
@@ -940,6 +940,27 @@ exports[`anthropic → chat-completions > simpleRequestTruncated > request 1`] =
     },
   ],
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > simpleRequestTruncated > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DSQdv9o90cKC8F0EwCLt96fhviayl",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 15,
+    "output_tokens": 16,
+  },
 }
 `;
 
@@ -5209,8 +5230,29 @@ exports[`anthropic → responses > simpleRequestTruncated > request 1`] = `
       "role": "user",
     },
   ],
-  "max_output_tokens": 1,
+  "max_output_tokens": 16,
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > simpleRequestTruncated > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+  ],
+  "id": "msg_0ec4c4372f23a75e0069d67d8b1590819d8b15e6bcf2b81b4f",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 15,
+    "output_tokens": 0,
+  },
 }
 `;
 
@@ -7387,7 +7429,7 @@ exports[`chat-completions → anthropic > simpleRequestTruncated > response 1`] 
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01RPssM6iLPaEsv3XtZE3Uuu",
+  "id": "chatcmpl-01Y8VgL6Sj6k1xcQC2ZTW4bn",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -13024,7 +13066,7 @@ exports[`google → chat-completions > simpleRequest > response 1`] = `
 
 exports[`google → chat-completions > simpleRequestTruncated > request 1`] = `
 {
-  "max_completion_tokens": 1,
+  "max_completion_tokens": 16,
   "messages": [
     {
       "content": "Write a very long essay about the ocean.",
@@ -13032,6 +13074,33 @@ exports[`google → chat-completions > simpleRequestTruncated > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > simpleRequestTruncated > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 15,
+    "thoughtsTokenCount": 16,
+    "totalTokenCount": 31,
+  },
 }
 `;
 
@@ -14945,8 +15014,35 @@ exports[`google → responses > simpleRequestTruncated > request 1`] = `
       "role": "user",
     },
   ],
-  "max_output_tokens": 1,
+  "max_output_tokens": 16,
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > simpleRequestTruncated > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 15,
+    "totalTokenCount": 15,
+  },
 }
 `;
 
@@ -17944,7 +18040,7 @@ exports[`responses → anthropic > simpleRequestTruncated > request 1`] = `
 exports[`responses → anthropic > simpleRequestTruncated > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01REYmqzNs2TtvsJhjED1FZD",
+  "id": "resp_01BRJ6TP5EhJNK8kghTbqmZc",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",

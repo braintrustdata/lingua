@@ -32,6 +32,8 @@ use crate::universal::{
 use serde::Deserialize;
 use std::convert::TryInto;
 
+const OPENAI_RESPONSES_MIN_MAX_OUTPUT_TOKENS: i64 = 16;
+
 fn system_text(message: &Message) -> Option<&str> {
     match message {
         Message::System { content } => match content {
@@ -204,6 +206,10 @@ impl ProviderAdapter for ResponsesAdapter {
             extras_map.insert("prompt_cache_key".into(), Value::String(prompt_cache_key));
         }
 
+        if let Some(v) = typed_params.max_output_tokens {
+            extras_map.insert("max_output_tokens".into(), Value::Number(v.into()));
+        }
+
         if !extras_map.is_empty() {
             params.extras.insert(ProviderFormat::Responses, extras_map);
         }
@@ -264,7 +270,9 @@ impl ProviderAdapter for ResponsesAdapter {
             insert_opt_i64(
                 &mut obj,
                 "max_output_tokens",
-                req.params.output_token_budget(),
+                req.params
+                    .output_token_budget()
+                    .map(|tokens| tokens.max(OPENAI_RESPONSES_MIN_MAX_OUTPUT_TOKENS)),
             );
         }
         if let Some(raw) = responses_extras_view.top_logprobs.as_ref() {
@@ -1298,6 +1306,83 @@ mod tests {
             }
             other => panic!("expected web_search tool, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn test_responses_clamps_synthesized_max_output_tokens_to_provider_minimum() {
+        use crate::providers::openai::generated::CreateResponseClass;
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String(
+                    "Write a very long essay about the ocean.".to_string(),
+                ),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(1)),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert_eq!(typed.max_output_tokens, Some(16));
+    }
+
+    #[test]
+    fn test_responses_preserves_synthesized_max_output_tokens_at_or_above_minimum() {
+        use crate::providers::openai::generated::CreateResponseClass;
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String(
+                    "Write a very long essay about the ocean.".to_string(),
+                ),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(100)),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert_eq!(typed.max_output_tokens, Some(100));
+    }
+
+    #[test]
+    fn test_responses_preserves_raw_max_output_tokens_from_same_provider_extras() {
+        use crate::providers::openai::generated::CreateResponseClass;
+        use std::collections::HashMap;
+
+        let mut extras = HashMap::new();
+        extras.insert(
+            ProviderFormat::Responses,
+            Map::from_iter([("max_output_tokens".to_string(), Value::Number(1.into()))]),
+        );
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String(
+                    "Write a very long essay about the ocean.".to_string(),
+                ),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(100)),
+                extras,
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert_eq!(typed.max_output_tokens, Some(1));
     }
 
     #[test]

@@ -14,8 +14,7 @@
     "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
     "metadataParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
     "safetyIdentifierParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
-    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response",
-    "simpleRequestTruncated": "Deserialization failed: missing field `choices`"
+    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response"
   },
   "anthropic_to_responses": {
     "codeInterpreterToolParam": "Tool 'bash' of type 'bash_20250124' is not supported by responses",
@@ -25,8 +24,7 @@
     "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI responses",
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
     "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
-    "streamParam": "Streaming response cannot be deserialized as a responses API response",
-    "simpleRequestTruncated": "OpenAI rejected: Invalid 'max_output_tokens': integer below minimum value. Expected a value >= 16, but got 1 instead."
+    "streamParam": "Streaming response cannot be deserialized as a responses API response"
   },
   "google_to_anthropic": {
     "codeInterpreterToolParam": "Tool 'code_execution' of type 'code_execution' is not supported by anthropic",
@@ -36,8 +34,7 @@
   },
   "google_to_chat-completions": {
     "codeInterpreterToolParam": "Tool 'code_execution' of type 'code_execution' is not supported by openai",
-    "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by openai",
-    "simpleRequestTruncated": "Deserialization failed: missing field `choices`"
+    "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by openai"
   },
   "google_to_responses": {
     "codeInterpreterToolParam": "Tool 'code_execution' of type 'code_execution' is not supported by responses",
