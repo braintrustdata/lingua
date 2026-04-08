@@ -1,0 +1,36 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "In this image, I see a beautiful **"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 267,
+      "candidatesTokenCount": 9,
+      "totalTokenCount": 563,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        },
+        {
+          "modality": "IMAGE",
+          "tokenCount": 258
+        }
+      ],
+      "thoughtsTokenCount": 287
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iW_VaZ3aDdSa_uMPpsqI4Qw"
+  }
+]

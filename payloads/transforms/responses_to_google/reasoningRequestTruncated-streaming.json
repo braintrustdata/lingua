@@ -1,0 +1,90 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Calculating Average Speed**\n\nOkay, I'm working on calculating the average speed. I've broken down the problem to use the average speed formula: (Total Distance) / (Total Time). My next step is figuring out how to determine the total distance and total time, given the information in the problem. I need to make sure I don't miss any steps!\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "totalTokenCount": 105,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 68
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iG_VabCjI7rv_uMPnN-N6Q8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Defining Problem Stages**\n\nI'm now focusing on how the train's journey can be broken into stages. I've realized the travel is in at least two parts. I'm recalling the formula for average speed: (Total Distance) / (Total Time). I believe this is critical to tackling the problem methodically.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "totalTokenCount": 129,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 92
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iG_VabCjI7rv_uMPnN-N6Q8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Let's break"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 131,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 92
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iG_VabCjI7rv_uMPnN-N6Q8"
+  }
+]

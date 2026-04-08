@@ -1,0 +1,89 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Answering the Query**\n\nOkay, I'm focusing on providing a direct and accurate response to the user's question. My primary concern is delivering the correct information clearly. I'm aiming for a concise and factual answer that meets the user's needs.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "totalTokenCount": 25,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 17
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iG_VacqLI7aX_uMP96rw0Q8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "The"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "totalTokenCount": 25,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 17
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iG_VacqLI7aX_uMP96rw0Q8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " capital of France is **Paris**."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "candidatesTokenCount": 7,
+      "totalTokenCount": 32,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 17
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iG_VacqLI7aX_uMP96rw0Q8"
+  }
+]

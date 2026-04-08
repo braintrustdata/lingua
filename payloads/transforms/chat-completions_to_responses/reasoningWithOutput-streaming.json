@@ -1,0 +1,1169 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_01bd37790ed3afa40069d566deddf48193807ae2329297f028",
+      "object": "response",
+      "created_at": 1775593182,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_01bd37790ed3afa40069d566deddf48193807ae2329297f028",
+      "object": "response",
+      "created_at": 1775593182,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_01bd37790ed3afa40069d566df335c819394ff42f957aa8bcc",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_01bd37790ed3afa40069d566df335c819394ff42f957aa8bcc",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Typically",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "g9bA17W",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " blue",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "R7ijIAiJfZt",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " during",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "UdMbI9Ccu",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " a",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "q3AXgzeJsAKeGy",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " clear",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "0TYxn8j2ae",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " day",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "j9MXDZb4Gxj2",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".\n\n",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "b7EEgGGMnx9xq",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Colors",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "oPfT5kmMxC",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " change",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "4C6P2uFsc",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " with",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "9YFS9FrpnsD",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " time",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "8uOopiVOUxZ",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "pB3Mxnu1rtUC",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " conditions",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "i4vYG",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":\n",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "nXY1ZwtKHevbtg",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "YfbzIBe9HVc6Cn6",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Day",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "QEbLyyAFBzqB",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "time",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "KSA3wChdS3kz",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "JUMEArSaHnCFdwP",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " clear",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "jlgfkbPS5m",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "aKSE4lXumoPBsjx",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " blue",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "vPwxE8Kn9Df",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\n",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "zp5wIQNdgn2o5r2",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "6gUqeQQhEhnCoWy",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Sunrise",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "tDUVUqJU",
+    "output_index": 1,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "/S",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "G2ZM7loDYHDXhH",
+    "output_index": 1,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "unset",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "skWi8zSWUNJ",
+    "output_index": 1,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "VXpqt8guDfnMqbm",
+    "output_index": 1,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " red",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "AneZsi4I5gfc",
+    "output_index": 1,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "c1gzPRVMuARJe5C",
+    "output_index": 1,
+    "sequence_number": 34
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " orange",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "lyIkhn1Cp",
+    "output_index": 1,
+    "sequence_number": 35
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "t7hzrwSqk1TjJPR",
+    "output_index": 1,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "GNdNnEacpcA7s",
+    "output_index": 1,
+    "sequence_number": 37
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " pink",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "I8JaNscbaog",
+    "output_index": 1,
+    "sequence_number": 38
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\n",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "yha0mEMIMiihF4R",
+    "output_index": 1,
+    "sequence_number": 39
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "fSMutyh5hoKlMcX",
+    "output_index": 1,
+    "sequence_number": 40
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Cloud",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "M73VbhoEP0",
+    "output_index": 1,
+    "sequence_number": 41
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "y",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "TTtSQmCL44Vede3",
+    "output_index": 1,
+    "sequence_number": 42
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "/",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "aMfzV788WQtdJM0",
+    "output_index": 1,
+    "sequence_number": 43
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "over",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "RFZDr9jHBCGX",
+    "output_index": 1,
+    "sequence_number": 44
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "cast",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "mMQ82Qhdm6O8",
+    "output_index": 1,
+    "sequence_number": 45
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "IO8dMlQfn9ipsmu",
+    "output_index": 1,
+    "sequence_number": 46
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " gray",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "M0LjYMrfEmC",
+    "output_index": 1,
+    "sequence_number": 47
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\n",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "LINCcnJFlw7eDo4",
+    "output_index": 1,
+    "sequence_number": 48
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "BG6BduifOa65j9A",
+    "output_index": 1,
+    "sequence_number": 49
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Night",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "66F2UXFVAe",
+    "output_index": 1,
+    "sequence_number": 50
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "xP9tqusERVZqZQq",
+    "output_index": 1,
+    "sequence_number": 51
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " dark",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "rwHwaUltxRJ",
+    "output_index": 1,
+    "sequence_number": 52
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "/",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "kI4J6gPPprUj3p4",
+    "output_index": 1,
+    "sequence_number": 53
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "black",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "XipiTrtRY6z",
+    "output_index": 1,
+    "sequence_number": 54
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\n",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "QXoQP9CtM8i1w4e",
+    "output_index": 1,
+    "sequence_number": 55
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "Kr7vk6gA3WwEXOH",
+    "output_index": 1,
+    "sequence_number": 56
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Storm",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "shTpHy8yYJ",
+    "output_index": 1,
+    "sequence_number": 57
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "y",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "MLxv2wpOv8NIrac",
+    "output_index": 1,
+    "sequence_number": 58
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " skies",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "ycajUbiPiz",
+    "output_index": 1,
+    "sequence_number": 59
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "M3Hy44hR2MrSOwO",
+    "output_index": 1,
+    "sequence_number": 60
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " gray",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "MskURAZ134A",
+    "output_index": 1,
+    "sequence_number": 61
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-blue",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "7Y8zOMZTAcb",
+    "output_index": 1,
+    "sequence_number": 62
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "lAUx88Ynj0lOB",
+    "output_index": 1,
+    "sequence_number": 63
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " gray",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "HKgkH7z3d2S",
+    "output_index": 1,
+    "sequence_number": 64
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-green",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "z9AwcdG10w",
+    "output_index": 1,
+    "sequence_number": 65
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "ish",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "sH5kTJW5S98Xb",
+    "output_index": 1,
+    "sequence_number": 66
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\n",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "x4h58z5SSX01pe3",
+    "output_index": 1,
+    "sequence_number": 67
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "gtNG3q3DkYrfjdQ",
+    "output_index": 1,
+    "sequence_number": 68
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " In",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "A5yhXnuWhlDzJ",
+    "output_index": 1,
+    "sequence_number": 69
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " space",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "vONUxf20cQ",
+    "output_index": 1,
+    "sequence_number": 70
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " (",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "mE9uSS0PmBxhvT",
+    "output_index": 1,
+    "sequence_number": 71
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "no",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "ALlXpOoOIjdklY",
+    "output_index": 1,
+    "sequence_number": 72
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " atmosphere",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "wYSnR",
+    "output_index": 1,
+    "sequence_number": 73
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "):",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "5cx0o1Q05i9hRQ",
+    "output_index": 1,
+    "sequence_number": 74
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " black",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "AGhoOyqRfF",
+    "output_index": 1,
+    "sequence_number": 75
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\n\n",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "zajDmglrU1B4Cy",
+    "output_index": 1,
+    "sequence_number": 76
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "If",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "5INhU18XA9g9CJ",
+    "output_index": 1,
+    "sequence_number": 77
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "zRXPAthwdNRL",
+    "output_index": 1,
+    "sequence_number": 78
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " tell",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "IgQ6v2Yp27B",
+    "output_index": 1,
+    "sequence_number": 79
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " me",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "wylWhl4p3mJiv",
+    "output_index": 1,
+    "sequence_number": 80
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "VssTr1yd63JO",
+    "output_index": 1,
+    "sequence_number": 81
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " time",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "H2VPLnEM3wN",
+    "output_index": 1,
+    "sequence_number": 82
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "InJOUHSAqoJZ",
+    "output_index": 1,
+    "sequence_number": 83
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " location",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "VVZMiqR",
+    "output_index": 1,
+    "sequence_number": 84
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "RF3zGwlKqDSejkJ",
+    "output_index": 1,
+    "sequence_number": 85
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " I",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "GbVrwjXMgGfQFp",
+    "output_index": 1,
+    "sequence_number": 86
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " can",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "tYgr5UiacP68",
+    "output_index": 1,
+    "sequence_number": 87
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " give",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "tzUs2G1pJ74",
+    "output_index": 1,
+    "sequence_number": 88
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " a",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "C89vnFrOJOCIgk",
+    "output_index": 1,
+    "sequence_number": 89
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " more",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "ls00szZwp7V",
+    "output_index": 1,
+    "sequence_number": 90
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " specific",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "w4pjwDN",
+    "output_index": 1,
+    "sequence_number": 91
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " color",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "XuiiFfSxNB",
+    "output_index": 1,
+    "sequence_number": 92
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " for",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "ltPnRAXNgMc1",
+    "output_index": 1,
+    "sequence_number": 93
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " that",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "XtrXr0jxKxN",
+    "output_index": 1,
+    "sequence_number": 94
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " moment",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "q4ChAK1ci",
+    "output_index": 1,
+    "sequence_number": 95
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "obfuscation": "4Q639LZBPLcEAJo",
+    "output_index": 1,
+    "sequence_number": 96
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 97,
+    "text": "Typically blue during a clear day.\n\nColors change with time and conditions:\n- Daytime, clear: blue\n- Sunrise/Sunset: red, orange, or pink\n- Cloudy/overcast: gray\n- Night: dark/black\n- Stormy skies: gray-blue or gray-greenish\n- In space (no atmosphere): black\n\nIf you tell me the time and location, I can give a more specific color for that moment."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Typically blue during a clear day.\n\nColors change with time and conditions:\n- Daytime, clear: blue\n- Sunrise/Sunset: red, orange, or pink\n- Cloudy/overcast: gray\n- Night: dark/black\n- Stormy skies: gray-blue or gray-greenish\n- In space (no atmosphere): black\n\nIf you tell me the time and location, I can give a more specific color for that moment."
+    },
+    "sequence_number": 98
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Typically blue during a clear day.\n\nColors change with time and conditions:\n- Daytime, clear: blue\n- Sunrise/Sunset: red, orange, or pink\n- Cloudy/overcast: gray\n- Night: dark/black\n- Stormy skies: gray-blue or gray-greenish\n- In space (no atmosphere): black\n\nIf you tell me the time and location, I can give a more specific color for that moment."
+        }
+      ],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 99
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_01bd37790ed3afa40069d566deddf48193807ae2329297f028",
+      "object": "response",
+      "created_at": 1775593182,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1775593196,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [
+        {
+          "id": "rs_01bd37790ed3afa40069d566df335c819394ff42f957aa8bcc",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "msg_01bd37790ed3afa40069d566eaa6408193a4146101c352c2e5",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Typically blue during a clear day.\n\nColors change with time and conditions:\n- Daytime, clear: blue\n- Sunrise/Sunset: red, orange, or pink\n- Cloudy/overcast: gray\n- Night: dark/black\n- Stormy skies: gray-blue or gray-greenish\n- In space (no atmosphere): black\n\nIf you tell me the time and location, I can give a more specific color for that moment."
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 12,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 915,
+        "output_tokens_details": {
+          "reasoning_tokens": 768
+        },
+        "total_tokens": 927
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 100
+  }
+]

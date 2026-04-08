@@ -1,0 +1,189 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_01XrumAP48awLewmcSBbzCPg",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 74,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "thinking",
+      "thinking": "",
+      "signature": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "To"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " find the average speed, I need to calculate the total distance traveled and divide it by the total time.\n\nStep 1: Calculate distance for the first part\n-"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " Speed = 60 mph\n- Time = 2 hours\n- Distance = Speed × Time = 60 × 2 = 120 miles\n\nStep 2: Calculate distance for the second part\n- Speed = 80 mph\n- Time ="
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " 1 hour\n- Distance = Speed × Time = 80 × 1 = 80 miles\n\nStep 3: Calculate total distance\n- Total distance = 120 + 80 = 200 miles\n\nStep 4: Calculate total time\n- Total time = "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "2 + 1 = 3 hours\n\nStep 5: Calculate average speed\n- Average speed = Total distance ÷ Total time\n- Average speed = 200 ÷ 3 = 66.67 mph ("
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "rounded to 2 decimal places)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "signature_delta",
+      "signature": "EtEGCmQIDBgCKkDfsAXBcCBXqZnZEXuseinRwV5IYWgNFN5IcPu5OFpVh6rEDkfGzXttG4rceQqIh7C2qSsqS6aht6AzjZxPgyQkMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgy79TyS1pV9VHKDFJQaDCfj4LwPpEEib6qo5SIwy4S5aLkGhrVzGMIvcM6ZkZXVo+F2AMbF9wj/D7L65b9XeEdcIKfJD92lzpknH+hMKpoF4dNgR+c3zqpF5vx385p/Ax/VqK43Gfk86FAthosX+ES1XM71jhTG8InTLnFOfYafr6npD+1JMtKdZzpAFqCgoDVwAwtbqAjWbfdXLEjZAXiPFbFbHEWWxUb3YS3UcJ6mZBXjinuy5HqAFGTuKB+AmBiOkMrUJB8V48CvUQP2K4zjkRpdhn/MNA9O4rdCxqtJjHvGfc3rKHVXCL2yKovlfROP4ISpZnaLiKAqj5PS3SHi/jeJrcptWRgd9K342Xo9oEzSmVSa/Ajzldva+xybRxX5syRDRjwxIGK3WQVRrXkhat54R2h3FnYIPLKyPrwTeAoinIIHKfqvaBhehFJAEpYM7c3b1ZDof6noregMm2/dR1zMJ/vQasX7FMUO0PgTl5UPVBwGavzFIYYVgG5PlFzmUcVjCaDfl59tH088lzR4GyzXAt+q2OUzUW1hhOF7GjciMRoD37s9lGCTYp/Z/v9M2OqySziJVERGg8VQ2fLEIDLGrK11N+AqSUTbY1dm4psC4Wn+4fYNWWe/ElOa8gbLQvXm8T7Yj6L+l+qrFRFUEa6kD4RLS70xPDJNlmMFnAJQPkk8PNONBRDdeL3jAOc1CLQFAagyluOL/e8gVx3fVxHpGMlYQ0khiXmtjbQrBJTaD/oKiHVnKZ26xRlsp8BNDQWzNK1+4TuG/vjMUBVKCfqU3PybC5x7TOpeSoN6ApRt92zhNfPXrs+xv8z3mbYRFlc+pSoIIHco0jL830c2oPBnI2SnKHSrCYi20j4/3z/GK4Y2TYPAaSCqdCVv88pHPSs0PMsozjxSDdemgbIXjmkC392TuyCIApMrkWLexOyxLSO83B24Lp44k3/RJxdMbWzRd3O7UB7o+b41KfD3PWvyFA9XKQMjGAE="
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "# Solving for Average Speed\n\n## Step 1: Calculate distance for first segment"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- Speed: 60 mph\n- Time: 2 hours\n- **Distance = 60 × 2 = 120 miles**\n\n## Step 2: Calculate distance for second segment\n- Speed: 80 mph"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n- Time: 1 hour\n- **Distance = 80 × 1 = 80 miles**\n\n## Step 3: Find total distance\n**Total distance = 120 + 80 = 200 miles**\n\n## Step 4: Find"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " total time\n**Total time = 2 + 1 = 3 hours**\n\n## Step 5: Calculate average speed\n**Average speed = Total distance ÷ Total time**\n\n**Average speed = 200 ÷ 3 = "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "66.67 mph**\n\n### Answer: The average speed is **66.67 mph** (or 66⅔ mph)"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n---\n\n**Note:** Average speed is based on total distance and total time, not the average of the two speeds"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " (which would be 70 mph). This is why we must calculate the actual distances"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " traveled."
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null
+    },
+    "usage": {
+      "input_tokens": 74,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 494
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

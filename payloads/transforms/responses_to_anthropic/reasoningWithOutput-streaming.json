@@ -1,0 +1,181 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_01FfNLZRubc8dQWzS5ErsqzT",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 42,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "thinking",
+      "thinking": "",
+      "signature": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "This"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " is a straightforward question about the color of the sky. The sky appears blue during the day under normal conditions. This is due"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " to a phenomenon called Rayleigh scattering, where molecules in Earth's atmosphere scatter blue light from the sun more than other colors.\n\nHowever, I should note that the sky"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " can appear different colors at different times:\n- Blue during a clear"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " day\n- Red, orange, pink during sunrise/sunset\n- Gray or white when clou"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": "dy\n- Dark/black at night\n- Other variations depending on conditions\n\nI'll"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "thinking_delta",
+      "thinking": " give a simple, accurate answer that addresses the most common scenario."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "signature_delta",
+      "signature": "EpwGCmQIDBgCKkD8nJUc56qO1HscOMWkC7h7SRkQQbg1CeTX8BUUV+IpQuSx5dllkUJ8fs+I1UX9uVkErZdiDlMKW7GKe3jZACBTMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgyZDOyk49FZshHS15AaDEX2KgipyU/jDR2kFSIwIVEhTl5ewi9cgFwwOzt/gd7qT82StuzlvowmuvXoh1seOc6hTZ6t9UhZZj+4aGCNKuUEt5GM1Me/Hcx0e18iR69BIHALlAmoWtX4hMLcuw95nX1TzD5MfSefHPxnIRkAjQovn2AwXkExu0ltP9gzKNFM6Jad9cSdEMLs0FKYjCzeHFzbcpeDR0gIVV4hWBtD8UkYnnTSw20GyIxCt/rHn6Oa/wdSoh8FUqFGfSD6O74ZLLUYlNY0SvzaQDQSo9Iv9Xp4wx4+Xn7Zc58jdLbS6PI6Yckbn9sdatgSUD8J9W3FZMPLZANFYar96IE22vQO1hBvqNLB818wiLccexPfIgPowX1CpNRJXDdsvfTbG1waIKcNNR6opAyNp9t9HGd3nUOirO7Cgd1uMrEggI0XMj746BZBvjNpmqi0MQQ1L22a7TsD+a5MZGti+q1yx/4xhmjLYKCu0MsV46f/WWCwpZH3oYtetghdwhjVMTOIeTzpCWkodzScCbBtjp1r+DJdjyOLTk00kLpWxjqDEn2bn45fIRTLrmxMyvvsmgqMSQvWVzMEYBiOxHlBkP1bX7WSnHD+5jXeHQ+t3722EbKOSdI8/kO3MOe/oxssKaQ7IDkfuLGeLFEqdUOCs9SXEE7K9EMml/Rvsf8HuTvSKnoUZESRtBpnmtO6KB5AOSnnUNJeNezKq1uUjoVZn6BB9MU2M8sTp/LT4006Qx+ErEwLX0kLpE6p4iF4U5Y1qg93LkxiSu4ESdNqXTQBcUfTdjoSWWZsUJdEr5U3JqbApmOYZ0rN/ZuZuT3JwxFF+AWad0QC9gJNESw2CdihmqlkP0Yj9locrhl5v2P5KXwtuoyyT8vbcg7pt7yeoG1vHyqCZizIyGU78KwTORgB"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "The sky is"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " typically **blue** during the day when the weather is clear. \n\nThis happens because of how"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " sunlight interacts with Earth's atmosphere - blue light is scattered more than other colors. However, the sky can appear different colors at different times:\n\n- **Red"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": ", orange, or pink** during sunrise and sunset\n- **Gray or white** when cloudy\n- **Dark blue to black** at night\n- **Yellow"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " or orange** in areas with pollution or dust\n\nSo while we generally think of the sky as blue, its"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " color actually varies quite a bit!"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null
+    },
+    "usage": {
+      "input_tokens": 42,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 260
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

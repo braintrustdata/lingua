@@ -1,0 +1,25 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 10,
+      "totalTokenCount": 10,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 10
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iG_VaZqcI_GW_uMPtubRiQE"
+  }
+]
