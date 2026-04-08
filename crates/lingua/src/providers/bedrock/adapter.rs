@@ -80,7 +80,7 @@ impl ProviderAdapter for BedrockAdapter {
             .as_ref()
             .and_then(|fields| fields.get("thinking"))
             .and_then(|v| serde_json::from_value::<Thinking>(v.clone()).ok())
-            .map(|t| ReasoningConfig::from(&t));
+            .map(|t| ReasoningConfig::from((&t, max_tokens)));
 
         let mut params = UniversalParams {
             temperature,

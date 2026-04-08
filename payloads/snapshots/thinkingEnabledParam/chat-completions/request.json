@@ -1,0 +1,10 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Think hard about 2+2"
+    }
+  ],
+  "reasoning_effort": "high"
+}
