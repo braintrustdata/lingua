@@ -88,6 +88,7 @@ criterion = { workspace = true }
 pretty_assertions = { workspace = true }
 tempfile = { workspace = true }
 tokio-stream = { workspace = true }
+serial_test = "3"
 
 # Example/test utilities
 dotenv = { workspace = true }
