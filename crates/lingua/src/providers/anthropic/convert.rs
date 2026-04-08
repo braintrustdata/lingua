@@ -24,6 +24,25 @@ use crate::universal::{
 };
 use crate::util::media::parse_base64_data_url;
 
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+#[serde(default)]
+struct AnthropicFileProviderOptionsView {
+    anthropic_type: Option<String>,
+    title: Option<String>,
+    context: Option<String>,
+}
+
+fn anthropic_file_provider_options_view(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<AnthropicFileProviderOptionsView> {
+    provider_options.as_ref().and_then(|opts| {
+        serde_json::from_value::<AnthropicFileProviderOptionsView>(Value::Object(
+            opts.options.clone(),
+        ))
+        .ok()
+    })
+}
+
 fn normalize_anthropic_tool_schema_value(value: &mut Value) {
     match value {
         Value::Object(map) => {
@@ -646,26 +665,23 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     provider_options,
                                     ..
                                 } => {
+                                    let file_provider_options =
+                                        anthropic_file_provider_options_view(&provider_options);
                                     // Check if this was originally a Document block
-                                    let is_document = provider_options
+                                    let is_document = file_provider_options
                                         .as_ref()
-                                        .and_then(|opts| opts.options.get("anthropic_type"))
-                                        .and_then(|v| v.as_str())
+                                        .and_then(|opts| opts.anthropic_type.as_deref())
                                         == Some("document");
 
                                     if is_document {
                                         // Restore as Document block
-                                        let title = provider_options
+                                        let title = file_provider_options
                                             .as_ref()
-                                            .and_then(|opts| opts.options.get("title"))
-                                            .and_then(|v| v.as_str())
-                                            .map(|s| s.to_string());
+                                            .and_then(|opts| opts.title.clone());
 
-                                        let context = provider_options
+                                        let context = file_provider_options
                                             .as_ref()
-                                            .and_then(|opts| opts.options.get("context"))
-                                            .and_then(|v| v.as_str())
-                                            .map(|s| s.to_string());
+                                            .and_then(|opts| opts.context.clone());
 
                                         let anthropic_media_type = match media_type.as_str() {
                                             "image/jpeg" => Some(generated::FluffyMediaType::ImageJpeg),

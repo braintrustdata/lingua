@@ -1,3 +1,26 @@
 {
-  "error": "Conversion from universal format failed: Unsupported input type: UserContentPart variant in ChatCompletion conversion: File { data: String(\"Sample text.\"), filename: None, media_type: \"text/plain\", provider_options: Some(ProviderOptions { options: {\"anthropic_type\": String(\"document\"), \"title\": String(\"Doc\")} }) }"
+  "request": {
+    "max_completion_tokens": 1024,
+    "messages": [
+      {
+        "content": [
+          {
+            "file": {
+              "file_data": "U2FtcGxlIHRleHQu",
+              "filename": "Doc"
+            },
+            "type": "file"
+          },
+          {
+            "text": "Summarize.",
+            "type": "text"
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "model": "gpt-5-nano"
+  },
+  "error": "400 Invalid file data: 'messages[0].content[0].file.file_data'. Expected a base64-encoded data URL with an application/pdf MIME type (e.g. 'data:application/pdf;base64,SGVsbG8sIFdvcmxkIQ=='), but got a value without the 'data:' prefix.",
+  "name": "Error"
 }
