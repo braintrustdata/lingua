@@ -23,7 +23,6 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
     "seed",
     "presence_penalty",
     "frequency_penalty",
-    "service_tier",
     "store",
     "parallel_tool_calls",
     // OpenAI uses `stop`, Anthropic uses `stop_sequences`
@@ -258,5 +257,19 @@ mod tests {
             "logprobs": true
         });
         assert!(try_parse_anthropic(&payload_with_logprobs).is_err());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_with_service_tier() {
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "service_tier": "auto",
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(try_parse_anthropic(&payload).is_ok());
     }
 }

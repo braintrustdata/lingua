@@ -149,6 +149,13 @@ impl ProviderAdapter for ResponsesAdapter {
             .as_ref()
             .map(|r| (r, max_tokens).into());
 
+        let canonical_metadata = typed_params.metadata.clone().or_else(|| {
+            typed_params
+                .safety_identifier
+                .as_ref()
+                .map(|s| serde_json::json!({ "user_id": s }))
+        });
+
         let mut params = UniversalParams {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
@@ -171,7 +178,7 @@ impl ProviderAdapter for ResponsesAdapter {
             // New canonical fields
             parallel_tool_calls: typed_params.parallel_tool_calls,
             reasoning,
-            metadata: typed_params.metadata,
+            metadata: canonical_metadata,
             store: typed_params.store,
             service_tier: typed_params.service_tier,
             logprobs: None, // Responses API doesn't support logprobs boolean
@@ -1298,6 +1305,63 @@ mod tests {
             }
             other => panic!("expected web_search tool, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn test_responses_parses_safety_identifier_as_anthropic_user_id_metadata() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5-nano",
+            "input": [{ "role": "user", "content": "Hello" }],
+            "safety_identifier": "user-123"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let safety_identifier = universal
+            .params
+            .extras
+            .get(&ProviderFormat::Responses)
+            .and_then(|extras| {
+                extras
+                    .iter()
+                    .find(|(key, _)| *key == "safety_identifier")
+                    .map(|(_, value)| value)
+            });
+
+        assert_eq!(
+            universal.params.metadata,
+            Some(json!({ "user_id": "user-123" }))
+        );
+        assert_eq!(safety_identifier, Some(&json!("user-123")));
+    }
+
+    #[test]
+    fn test_responses_prefers_explicit_metadata_over_safety_identifier() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5-nano",
+            "input": [{ "role": "user", "content": "Hello" }],
+            "metadata": { "request_id": "req-123" },
+            "safety_identifier": "user-123"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let safety_identifier = universal
+            .params
+            .extras
+            .get(&ProviderFormat::Responses)
+            .and_then(|extras| {
+                extras
+                    .iter()
+                    .find(|(key, _)| *key == "safety_identifier")
+                    .map(|(_, value)| value)
+            });
+
+        assert_eq!(
+            universal.params.metadata,
+            Some(json!({ "request_id": "req-123" }))
+        );
+        assert_eq!(safety_identifier, Some(&json!("user-123")));
     }
 
     #[test]

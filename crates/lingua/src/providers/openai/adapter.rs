@@ -32,10 +32,16 @@ use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
 };
+use serde::Deserialize;
 use std::convert::TryInto;
 
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
+
+#[derive(Debug, Default, Deserialize)]
+struct AnthropicMetadataView {
+    user_id: Option<String>,
+}
 
 fn parse_openai_chat_extras(
     extras: Option<&Map<String, Value>>,
@@ -108,6 +114,13 @@ impl ProviderAdapter for OpenAIAdapter {
         );
 
         // Build canonical params from typed fields
+        let canonical_metadata = typed_params.metadata.clone().or_else(|| {
+            typed_params
+                .safety_identifier
+                .as_ref()
+                .map(|s| serde_json::json!({ "user_id": s }))
+        });
+
         let mut params = UniversalParams {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
@@ -133,7 +146,7 @@ impl ProviderAdapter for OpenAIAdapter {
             // New canonical fields
             parallel_tool_calls: typed_params.parallel_tool_calls,
             reasoning,
-            metadata: typed_params.metadata,
+            metadata: canonical_metadata,
             store: typed_params.store,
             service_tier: typed_params.service_tier,
             logprobs: typed_params.logprobs,
@@ -326,9 +339,15 @@ impl ProviderAdapter for OpenAIAdapter {
             obj.insert("reasoning_effort".into(), effort_value);
         }
 
-        // Add metadata from canonical params
+        // Preserve Anthropic-style user identity without inventing OpenAI store semantics.
         if let Some(metadata) = req.params.metadata.as_ref() {
-            obj.insert("metadata".into(), metadata.clone());
+            let metadata_view: AnthropicMetadataView =
+                serde_json::from_value(metadata.clone()).unwrap_or_default();
+            if let Some(user_id) = metadata_view.user_id {
+                obj.insert("safety_identifier".into(), Value::String(user_id));
+            } else {
+                obj.insert("metadata".into(), metadata.clone());
+            }
         }
 
         // Add store from canonical params
@@ -1120,6 +1139,140 @@ mod tests {
             0.7,
             "Temperature should be preserved for non-reasoning models"
         );
+    }
+
+    #[test]
+    fn test_openai_chat_maps_anthropic_user_id_to_safety_identifier() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                metadata: Some(json!({ "user_id": "user-123" })),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(result.safety_identifier.as_deref(), Some("user-123"));
+        assert!(result.metadata.is_none());
+        assert!(result.store.is_none());
+    }
+
+    #[test]
+    fn test_openai_chat_parses_safety_identifier_as_anthropic_user_id_metadata() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "model": "gpt-5-nano",
+            "messages": [{ "role": "user", "content": "Hello" }],
+            "safety_identifier": "user-123"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let safety_identifier = universal
+            .params
+            .extras
+            .get(&ProviderFormat::ChatCompletions)
+            .and_then(|extras| {
+                extras
+                    .iter()
+                    .find(|(key, _)| *key == "safety_identifier")
+                    .map(|(_, value)| value)
+            });
+
+        assert_eq!(
+            universal.params.metadata,
+            Some(json!({ "user_id": "user-123" }))
+        );
+        assert_eq!(safety_identifier, Some(&json!("user-123")));
+    }
+
+    #[test]
+    fn test_openai_chat_prefers_explicit_metadata_over_safety_identifier() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "model": "gpt-5-nano",
+            "messages": [{ "role": "user", "content": "Hello" }],
+            "metadata": { "request_id": "req-123" },
+            "safety_identifier": "user-123"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let safety_identifier = universal
+            .params
+            .extras
+            .get(&ProviderFormat::ChatCompletions)
+            .and_then(|extras| {
+                extras
+                    .iter()
+                    .find(|(key, _)| *key == "safety_identifier")
+                    .map(|(_, value)| value)
+            });
+
+        assert_eq!(
+            universal.params.metadata,
+            Some(json!({ "request_id": "req-123" }))
+        );
+        assert_eq!(safety_identifier, Some(&json!("user-123")));
+    }
+
+    #[test]
+    fn test_openai_chat_preserves_openai_metadata_when_store_enabled() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+        use std::collections::HashMap;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-4o-mini".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                metadata: Some(json!({ "request_id": "req-123" })),
+                store: Some(true),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        let expected_metadata = HashMap::from([("request_id".to_string(), "req-123".to_string())]);
+        assert_eq!(result.metadata, Some(expected_metadata));
+        assert_eq!(result.store, Some(true));
+        assert!(result.safety_identifier.is_none());
+    }
+
+    #[test]
+    fn test_openai_chat_uses_max_completion_tokens_for_gpt5_models() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(result.max_completion_tokens, Some(1024));
+        assert!(result.max_tokens.is_none());
     }
 
     #[test]

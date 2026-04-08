@@ -1,4 +1,35 @@
 {
-  "error": "400 The 'metadata' parameter is only allowed when 'store' is enabled.",
-  "name": "Error"
+  "id": "chatcmpl-DSSFOruFlMk9a0jJQ8Wn6NREln8fN",
+  "object": "chat.completion",
+  "created": 1775674138,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Ok. What would you like to do next?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 9,
+    "completion_tokens": 275,
+    "total_tokens": 284,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
 }

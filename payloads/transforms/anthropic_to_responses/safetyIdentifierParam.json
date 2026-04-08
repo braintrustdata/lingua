@@ -1,13 +1,13 @@
 {
-  "id": "resp_054aa70856b954a40069cbea8dbf5c8195b2a08fd9abe45803",
+  "id": "resp_0de1a66190aa425a0069d6a31ef3c0819c82eacc5140800582",
   "object": "response",
-  "created_at": 1774971533,
+  "created_at": 1775674142,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1774971536,
+  "completed_at": 1775674145,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -17,12 +17,12 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_054aa70856b954a40069cbea8dfa088195bd2a5c4e2c9a95f6",
+      "id": "rs_0de1a66190aa425a0069d6a31f306c819c9a4b5282bee46c03",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "msg_054aa70856b954a40069cbea8fedbc81958d6336dc60fe1bc3",
+      "id": "msg_0de1a66190aa425a0069d6a3211438819cbbf355a940c4a28d",
       "type": "message",
       "status": "completed",
       "content": [
@@ -30,7 +30,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Ok."
+          "text": "ok."
         }
       ],
       "role": "assistant"
@@ -65,15 +65,15 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 232,
+    "output_tokens": 171,
     "output_tokens_details": {
-      "reasoning_tokens": 192
+      "reasoning_tokens": 128
     },
-    "total_tokens": 241
+    "total_tokens": 180
   },
   "user": null,
   "metadata": {
     "user_id": "hashed-user-id-abc123"
   },
-  "output_text": "Ok."
+  "output_text": "ok."
 }

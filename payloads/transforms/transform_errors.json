@@ -11,9 +11,6 @@
     "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by openai",
     "webSearchToolAdvancedParam": "Tool 'web_search' of type 'allowed_domains' is not supported by openai",
     "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI chat completions",
-    "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
-    "metadataParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
-    "safetyIdentifierParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
     "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response",
     "simpleRequestTruncated": "Deserialization failed: missing field `choices`"
   },
