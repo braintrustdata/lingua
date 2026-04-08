@@ -1,4 +1,93 @@
 {
-  "error": "400 Invalid schema for function 'get_weather': None is not of type 'object', 'boolean'.",
-  "name": "Error"
+  "id": "resp_0255e9e17ec4376f0069d512de57c48190b549937034b57bdf",
+  "object": "response",
+  "created_at": 1775571678,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775571682,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0255e9e17ec4376f0069d512dee47c81908e195cfc95bd4d41",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_0255e9e17ec4376f0069d512e1e7448190aae5d240b9bbd6d3",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"Tokyo\"}",
+      "call_id": "call_YaTclb57aLbTQ5V7wjAmWRf8",
+      "name": "get_weather"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": {
+    "type": "function",
+    "name": "get_weather"
+  },
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 313,
+    "output_tokens_details": {
+      "reasoning_tokens": 256
+    },
+    "total_tokens": 354
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
 }

@@ -16,6 +16,9 @@ pub enum ConvertError {
     #[error("JSON serialization failed for field '{field}': {error}")]
     JsonSerializationFailed { field: String, error: String },
 
+    #[error("Invalid tool schema for '{tool_name}': {reason}")]
+    InvalidToolSchema { tool_name: String, reason: String },
+
     #[error("Invalid {type_name} value: '{value}'")]
     InvalidEnumValue {
         type_name: &'static str,

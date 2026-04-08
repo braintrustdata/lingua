@@ -42,6 +42,8 @@ use crate::serde_json::{self, json, Map, Value};
 
 #[cfg(test)]
 use crate::providers::anthropic::generated::Tool;
+#[cfg(test)]
+use crate::providers::google::generated::FunctionDeclaration;
 
 // =============================================================================
 // Universal Tool Types
@@ -851,9 +853,18 @@ mod tests {
 
     #[test]
     fn test_batch_conversion_to_anthropic() {
+        let object_schema = Some(json!({
+            "type": "object",
+            "properties": {}
+        }));
         let tools = [
-            UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
-            UniversalTool::function("tool2", Some("desc2".to_string()), None, None),
+            UniversalTool::function(
+                "tool1",
+                Some("desc1".to_string()),
+                object_schema.clone(),
+                None,
+            ),
+            UniversalTool::function("tool2", Some("desc2".to_string()), object_schema, None),
         ];
 
         let anthropic_tools: Vec<Tool> = tools.iter().map(|t| Tool::try_from(t).unwrap()).collect();
@@ -867,8 +878,12 @@ mod tests {
 
     #[test]
     fn test_batch_conversion_to_anthropic_fails_on_wrong_provider() {
+        let object_schema = Some(json!({
+            "type": "object",
+            "properties": {}
+        }));
         let tools = [
-            UniversalTool::function("tool1", Some("desc1".to_string()), None, None),
+            UniversalTool::function("tool1", Some("desc1".to_string()), object_schema, None),
             UniversalTool::builtin(
                 "code_interpreter",
                 BuiltinToolProvider::Responses,
@@ -1081,5 +1096,29 @@ mod tests {
             }
             other => panic!("expected web_search tool, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn test_google_function_declaration_to_openai_tool_parameters_are_object() {
+        let decl: FunctionDeclaration = serde_json::from_value(json!({
+            "name": "get_weather",
+            "description": "Get weather",
+            "parametersJsonSchema": {
+                "type": "object",
+                "properties": {
+                    "location": { "type": "string" }
+                },
+                "required": ["location"]
+            }
+        }))
+        .unwrap();
+
+        let tool = UniversalTool::from(&decl);
+
+        let chat_value = tool.to_openai_chat_value().unwrap();
+        assert_eq!(chat_value["function"]["parameters"]["type"], "object");
+
+        let responses_value = tool.to_responses_value().unwrap();
+        assert_eq!(responses_value["parameters"]["type"], "object");
     }
 }

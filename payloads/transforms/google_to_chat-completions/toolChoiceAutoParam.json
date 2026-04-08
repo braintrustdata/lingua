@@ -1,4 +1,35 @@
 {
-  "error": "400 Invalid schema for function 'get_weather': None is not of type 'object', 'boolean'.",
-  "name": "Error"
+  "id": "chatcmpl-DS1aJHmMry7z1G0awAN9nNRxeKeT6",
+  "object": "chat.completion",
+  "created": 1775571647,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure—which location would you like the weather for? Please provide a city and country (or ZIP/postal code). Also tell me:\n\n- Do you want current conditions or a forecast (e.g., 7-day)?\n- Preferred units: Celsius or Fahrenheit?\n\nIf you want, you can say \"use my location\" and I’ll fetch the weather for that area.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 123,
+    "completion_tokens": 660,
+    "total_tokens": 783,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 576,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
 }

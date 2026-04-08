@@ -11500,6 +11500,38 @@ exports[`google → anthropic > toolCallRequest > request 1`] = `
 }
 `;
 
+exports[`google → anthropic > toolCallRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "San Francisco, CA",
+              },
+              "id": "toolu_01PsvZ9JYeK6v7nnDfuUHkKU",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 56,
+    "promptTokenCount": 585,
+    "totalTokenCount": 641,
+  },
+}
+`;
+
 exports[`google → anthropic > toolChoiceAnyParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -11530,6 +11562,38 @@ exports[`google → anthropic > toolChoiceAnyParam > request 1`] = `
       "name": "get_weather",
     },
   ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceAnyParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "<UNKNOWN>",
+              },
+              "id": "toolu_015vDFjg5cUqZL5N2FdcZcNS",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 39,
+    "promptTokenCount": 647,
+    "totalTokenCount": 686,
+  },
 }
 `;
 
@@ -11566,6 +11630,32 @@ exports[`google → anthropic > toolChoiceAutoParam > request 1`] = `
 }
 `;
 
+exports[`google → anthropic > toolChoiceAutoParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'd be happy to help you check the weather! However, I need to know which location you're interested in. Could you please tell me what city or area you'd like the weather forecast for?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 44,
+    "promptTokenCount": 555,
+    "totalTokenCount": 599,
+  },
+}
+`;
+
 exports[`google → anthropic > toolChoiceNoneParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -11596,6 +11686,32 @@ exports[`google → anthropic > toolChoiceNoneParam > request 1`] = `
       "name": "get_weather",
     },
   ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceNoneParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'd be happy to help you with the weather! However, I need to know which location you're interested in. Could you please tell me the city or area you'd like to know the weather for?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 45,
+    "promptTokenCount": 555,
+    "totalTokenCount": 600,
+  },
 }
 `;
 
@@ -11630,6 +11746,38 @@ exports[`google → anthropic > toolChoiceRequiredParam > request 1`] = `
       "name": "get_weather",
     },
   ],
+}
+`;
+
+exports[`google → anthropic > toolChoiceRequiredParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "id": "toolu_01ATJyNSZPLcr5NCkkqVJirT",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 33,
+    "promptTokenCount": 652,
+    "totalTokenCount": 685,
+  },
 }
 `;
 
@@ -11729,6 +11877,38 @@ exports[`google → anthropic > toolModeValidatedParam > request 1`] = `
       "name": "get_weather",
     },
   ],
+}
+`;
+
+exports[`google → anthropic > toolModeValidatedParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "id": "toolu_01MTTbBHCviE43DF1La5ANYt",
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 53,
+    "promptTokenCount": 557,
+    "totalTokenCount": 610,
+  },
 }
 `;
 
@@ -13217,6 +13397,38 @@ exports[`google → chat-completions > toolCallRequest > request 1`] = `
 }
 `;
 
+exports[`google → chat-completions > toolCallRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "San Francisco, CA",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 26,
+    "promptTokenCount": 148,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 302,
+  },
+}
+`;
+
 exports[`google → chat-completions > toolChoiceAnyParam > request 1`] = `
 {
   "messages": [
@@ -13247,6 +13459,38 @@ exports[`google → chat-completions > toolChoiceAnyParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceAnyParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "current location",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 24,
+    "promptTokenCount": 123,
+    "thoughtsTokenCount": 640,
+    "totalTokenCount": 787,
+  },
 }
 `;
 
@@ -13283,6 +13527,38 @@ exports[`google → chat-completions > toolChoiceAutoParam > request 1`] = `
 }
 `;
 
+exports[`google → chat-completions > toolChoiceAutoParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Sure—which location would you like the weather for? Please provide a city and country (or ZIP/postal code). Also tell me:
+
+- Do you want current conditions or a forecast (e.g., 7-day)?
+- Preferred units: Celsius or Fahrenheit?
+
+If you want, you can say "use my location" and I’ll fetch the weather for that area.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 84,
+    "promptTokenCount": 123,
+    "thoughtsTokenCount": 576,
+    "totalTokenCount": 783,
+  },
+}
+`;
+
 exports[`google → chat-completions > toolChoiceNoneParam > request 1`] = `
 {
   "messages": [
@@ -13313,6 +13589,37 @@ exports[`google → chat-completions > toolChoiceNoneParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceNoneParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can help, but I don’t have live weather data right now. Please tell me:
+- Your location (city or ZIP code)
+- What you want (current conditions, hourly forecast for today, 7-day outlook, or weather alerts)
+
+If you’d prefer, I can also describe typical weather for your area for this time of year once you provide the location. You can also check via your phone’s weather app or a web weather service.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 102,
+    "promptTokenCount": 123,
+    "thoughtsTokenCount": 832,
+    "totalTokenCount": 1057,
+  },
 }
 `;
 
@@ -13351,6 +13658,38 @@ exports[`google → chat-completions > toolChoiceRequiredParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → chat-completions > toolChoiceRequiredParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 23,
+    "promptTokenCount": 123,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 402,
+  },
 }
 `;
 
@@ -13455,6 +13794,38 @@ exports[`google → chat-completions > toolModeValidatedParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → chat-completions > toolModeValidatedParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 23,
+    "promptTokenCount": 125,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 340,
+  },
 }
 `;
 
@@ -14945,6 +15316,51 @@ exports[`google → responses > toolCallRequest > request 1`] = `
 }
 `;
 
+exports[`google → responses > toolCallRequest > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "San Francisco, CA",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 75,
+    "promptTokenCount": 66,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 269,
+  },
+}
+`;
+
 exports[`google → responses > toolChoiceAnyParam > request 1`] = `
 {
   "input": [
@@ -14973,6 +15389,51 @@ exports[`google → responses > toolChoiceAnyParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → responses > toolChoiceAnyParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "current location",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 65,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 320,
+    "totalTokenCount": 426,
+  },
 }
 `;
 
@@ -15007,6 +15468,52 @@ exports[`google → responses > toolChoiceAutoParam > request 1`] = `
 }
 `;
 
+exports[`google → responses > toolChoiceAutoParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Sure—what location would you like the weather for? Please specify a city (and country if needed) or a ZIP/postal code.
+
+Also let me know:
+- Current conditions only, hourly forecast, or 7-day forecast
+- Preferred units: Celsius or Fahrenheit
+
+If you just want the current weather for your area, share your location and I’ll fetch it.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 110,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 512,
+    "totalTokenCount": 663,
+  },
+}
+`;
+
 exports[`google → responses > toolChoiceNoneParam > request 1`] = `
 {
   "input": [
@@ -15035,6 +15542,52 @@ exports[`google → responses > toolChoiceNoneParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → responses > toolChoiceNoneParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can’t access live weather data right now. Tell me:
+
+- Location (city/region or ZIP code)
+- Which forecast you want (current conditions, hourly, or 7-day)
+- Your preferred unit (Celsius or Fahrenheit)
+
+If you’d like, I can guide you to check it quickly on your phone or computer using your favorite weather service.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 91,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 448,
+    "totalTokenCount": 580,
+  },
 }
 `;
 
@@ -15069,6 +15622,51 @@ exports[`google → responses > toolChoiceRequiredParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → responses > toolChoiceRequiredParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 57,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 354,
+  },
 }
 `;
 
@@ -15182,6 +15780,51 @@ exports[`google → responses > toolModeValidatedParam > request 1`] = `
       "type": "function",
     },
   ],
+}
+`;
+
+exports[`google → responses > toolModeValidatedParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "location": "Tokyo",
+              },
+              "name": "get_weather",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 63,
+    "promptTokenCount": 43,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 362,
+  },
 }
 `;
 
