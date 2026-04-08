@@ -623,6 +623,22 @@
     },
     {
       "testCase": "simpleRequestTruncated",
+      "source": "*",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.token_budget", "reason": "Responses clamps very small output token budgets to the provider minimum of 16" }
+      ]
+    },
+    {
+      "testCase": "simpleRequestTruncated",
+      "source": "*",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.token_budget", "reason": "Chat Completions clamps very small output token budgets to the provider minimum of 16" }
+      ]
+    },
+    {
+      "testCase": "simpleRequestTruncated",
       "source": "Google",
       "target": "*",
       "fields": [
