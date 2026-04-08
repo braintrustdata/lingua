@@ -217,8 +217,10 @@ fn cached_client_count() -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     #[test]
+    #[serial]
     fn build_middleware_client_with_no_override() {
         clear_override_client();
         clear_cached_clients();
@@ -227,6 +229,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn build_middleware_client_reuses_cached_client_for_same_settings() {
         clear_override_client();
         clear_cached_clients();
@@ -240,6 +243,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn build_middleware_client_creates_distinct_cached_clients_for_distinct_settings() {
         clear_override_client();
         clear_cached_clients();
