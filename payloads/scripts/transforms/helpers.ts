@@ -252,6 +252,42 @@ export function getGenAiStreamGenerateContentPath(model: string): string {
   return `/v1beta/models/${model}:streamGenerateContent?alt=sse`;
 }
 
+/**
+ * Parse Google `alt=sse` transport into provider event objects.
+ *
+ * This lives in payload-layer helpers rather than Rust/WASM because the payload
+ * capture scripts are making raw HTTP requests and need to peel provider
+ * transport framing before they can store fixtures as JSON event objects.
+ * Lingua's Rust stream code transforms provider event objects; it does not own
+ * raw provider HTTP response parsing in these scripts.
+ */
+export async function parseGoogleSseStream<T = unknown>(
+  response: Response
+): Promise<T[]> {
+  const chunks: T[] = [];
+  const text = await response.text();
+
+  for (const line of text.split("\n")) {
+    if (!line.startsWith("data: ")) {
+      continue;
+    }
+
+    const json = line.slice(6).trim();
+    if (!json) {
+      continue;
+    }
+
+    try {
+      const parsed: T = JSON.parse(json);
+      chunks.push(parsed);
+    } catch {
+      // Ignore malformed SSE lines and keep capturing valid chunks.
+    }
+  }
+
+  return chunks;
+}
+
 export function getTransformableCases(
   pair: TransformPair,
   filter?: string
@@ -269,6 +305,24 @@ export const STREAMING_PAIRS: TransformPair[] = [
     source: "chat-completions",
     target: "anthropic",
     wasmSource: "OpenAI",
+    wasmTarget: "Anthropic",
+  },
+  {
+    source: "chat-completions",
+    target: "responses",
+    wasmSource: "OpenAI",
+    wasmTarget: "Responses",
+  },
+  {
+    source: "responses",
+    target: "google",
+    wasmSource: "Responses",
+    wasmTarget: "Google",
+  },
+  {
+    source: "responses",
+    target: "anthropic",
+    wasmSource: "Responses",
     wasmTarget: "Anthropic",
   },
   {

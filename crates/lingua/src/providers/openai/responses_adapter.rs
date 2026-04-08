@@ -493,10 +493,11 @@ impl ProviderAdapter for ResponsesAdapter {
         // Responses API streaming has two formats:
         // 1. type field starting with "response." at top level
         // 2. object="response.delta" at top level with delta.type nested
+        // 3. explicit keepalive events
         payload
             .get("type")
             .and_then(Value::as_str)
-            .is_some_and(|t| t.starts_with("response."))
+            .is_some_and(|t| t.starts_with("response.") || t == "keepalive")
             || payload
                 .get("object")
                 .and_then(Value::as_str)
@@ -542,6 +543,8 @@ impl ProviderAdapter for ResponsesAdapter {
         let delta_obj = payload.get("delta");
 
         match event_type.as_str() {
+            "keepalive" => Ok(Some(UniversalStreamChunk::keep_alive())),
+
             "response.output_text.delta" => {
                 // Text delta - extract from delta field
                 // Standard format: payload.delta is the text string
@@ -1292,5 +1295,32 @@ mod tests {
             }
             other => panic!("expected web_search tool, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn test_responses_detect_stream_response_keepalive() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "type": "keepalive",
+            "sequence_number": 3
+        });
+
+        assert!(adapter.detect_stream_response(&payload));
+    }
+
+    #[test]
+    fn test_responses_stream_to_universal_keepalive() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "type": "keepalive",
+            "sequence_number": 3
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .expect("stream_to_universal should succeed")
+            .expect("keepalive should emit a chunk");
+
+        assert!(chunk.is_keep_alive());
     }
 }

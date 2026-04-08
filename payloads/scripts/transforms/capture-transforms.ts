@@ -9,6 +9,7 @@ import {
   TRANSFORM_PAIRS,
   STREAMING_PAIRS,
   TRANSFORMS_DIR,
+  parseGoogleSseStream,
   RESPONSE_VALIDATORS,
   TARGET_MODELS,
   transformAndValidateRequest,
@@ -51,7 +52,8 @@ function getOpenAI(): OpenAI {
 }
 
 async function callGoogleProvider(
-  request: Record<string, unknown>
+  request: Record<string, unknown>,
+  options?: CallProviderOptions
 ): Promise<unknown> {
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) {
@@ -61,8 +63,11 @@ async function callGoogleProvider(
   const rawModel = request.model ?? GOOGLE_MODEL;
   const model = typeof rawModel === "string" ? rawModel : String(rawModel);
   const { model: _model, ...body } = request;
+  const stream = options?.stream === true;
 
-  const endpoint = `${GOOGLE_API_BASE}/models/${model}:generateContent`;
+  const endpoint = stream
+    ? `${GOOGLE_API_BASE}/models/${model}:streamGenerateContent?alt=sse`
+    : `${GOOGLE_API_BASE}/models/${model}:generateContent`;
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -77,7 +82,7 @@ async function callGoogleProvider(
     throw new Error(`Google API error (${response.status}): ${text}`);
   }
 
-  return response.json();
+  return stream ? parseGoogleSseStream(response) : response.json();
 }
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- SDK methods require specific param types, validation done by transformAndValidateRequest */
@@ -123,12 +128,7 @@ async function callProvider(
         request as unknown as OpenAI.Responses.ResponseCreateParams
       );
     case "google":
-      if (stream) {
-        throw new Error(
-          "Streaming capture is not implemented for google target in capture-transforms.ts"
-        );
-      }
-      return callGoogleProvider(request);
+      return callGoogleProvider(request, { stream });
   }
 }
 /* eslint-enable @typescript-eslint/consistent-type-assertions */
@@ -145,6 +145,10 @@ function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
 async function collectStreamChunks(
   streamResponse: unknown
 ): Promise<unknown[]> {
+  if (Array.isArray(streamResponse)) {
+    return streamResponse;
+  }
+
   if (!isAsyncIterable(streamResponse)) {
     throw new Error(
       "Expected streaming provider response to be async iterable"
@@ -313,6 +317,13 @@ export async function captureTransforms(
           );
           captured++;
         } catch (e) {
+          const errorObj = e && typeof e === "object" ? e : {};
+          const errorData = {
+            error: e instanceof Error ? e.message : String(e),
+            name: e instanceof Error ? e.name : undefined,
+            ...("response" in errorObj ? { response: errorObj.response } : {}),
+          };
+          writeFileSync(streamingPath, JSON.stringify(errorData, null, 2));
           console.error(
             `❌ ${streamingPair.source} → ${streamingPair.target} / ${caseName} (streaming): ${e}`
           );

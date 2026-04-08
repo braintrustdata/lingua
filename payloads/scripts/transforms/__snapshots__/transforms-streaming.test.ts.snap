@@ -4161,6 +4161,1324 @@ data: [DONE]
 "
 `;
 
+exports[`streaming: chat-completions → responses > complexReasoningRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_09ccd2057d336dbd0069d566de9e3081a29d361d98ee906f25","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_09ccd2057d336dbd0069d566de9e3081a29d361d98ee906f25","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Ass","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"uming","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" we","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" count","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" only","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" the","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digits","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" (","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"HH","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"MM","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":")","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" shown","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" by","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" the","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" clock","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" there","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" are","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"144","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" times","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digits","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" per","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" time","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" so","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"576","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digits","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" in","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" total","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Counts","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" by","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digit","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" (","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"sum","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" over","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" all","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" four","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" positions","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"):\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"116","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"116","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"2","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"804","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"3","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"804","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"504","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"5","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"504","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"6","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"264","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"7","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"264","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"8","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"264","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"9","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"264","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Most","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" common","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digits","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" each","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" appearing","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"116","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" times","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"R","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"arest","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digits","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"6","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"7","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"8","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"9","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" each","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" appearing","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"264","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" times","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Percent","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"ages","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" (","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"of","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" all","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"576","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digits","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"):\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" or","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"116","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" /","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"576","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"97","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" /","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"480","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ≈","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"20","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"208","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"%\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"6","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" (","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"7","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"8","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"9","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"):","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"264","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" /","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"576","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"11","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" /","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"240","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ≈","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"583","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"%\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"So","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" the","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" most","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" common","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digits","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" are","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"0","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" (","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"about","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"20","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"21","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"%","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" each","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"),","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" the","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" rare","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"st","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" digits","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" are","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"6","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"7","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"8","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"9","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" (","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"about","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"58","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"%","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" each","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":").","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_09ccd2057d336dbd0069d566de9e3081a29d361d98ee906f25","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":4320,"completion_tokens_details":{"reasoning_tokens":4032},"prompt_tokens":74,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":4394}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > multimodalRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_01f1c52b139784210069d566de1a0481a08504bf94b7c8eae0","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_01f1c52b139784210069d566de1a0481a08504bf94b7c8eae0","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"length","index":0}],"object":"chat.completion.chunk","usage":{"completion_tokens":256,"completion_tokens_details":{"reasoning_tokens":256},"prompt_tokens":320,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":576}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > parallelToolCallsRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0802787b0a058aef0069d566e10da881a191433a79187738c9","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0802787b0a058aef0069d566e10da881a191433a79187738c9","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" San","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Francisco","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" CA","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"45","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"°F","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" cloudy","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" New","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" York","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" NY","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"65","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"°F","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" sunny","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_0802787b0a058aef0069d566e10da881a191433a79187738c9","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":924,"completion_tokens_details":{"reasoning_tokens":832},"prompt_tokens":136,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":1060}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > reasoningRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0d756503a3bee7100069d566dd3a588192b3e6f8187073c206","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0d756503a3bee7100069d566dd3a588192b3e6f8187073c206","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Step","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-by","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-step","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Step","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Distance","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" of","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" each","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" part","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" -","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Part","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"60","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" mph","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" for","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"2","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" hours","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" →","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" distance","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"60","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ×","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"2","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"120","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" miles","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" -","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Part","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"2","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"80","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" mph","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" for","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" hour","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" →","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" distance","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"80","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ×","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"80","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" miles","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Step","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"2","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Total","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" distance","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" traveled","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" -","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"120","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" +","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"80","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"200","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" miles","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Step","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"3","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Total","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" time","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" -","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"2","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" +","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"1","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"3","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" hours","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Step","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"4","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Average","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" speed","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" -","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Total","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" distance","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ÷","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" total","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" time","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"200","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" miles","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ÷","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"3","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" hours","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" =","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"200","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"/","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"3","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" mph","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ≈","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"66","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"67","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" mph","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Answer","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"200","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"/","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"3","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" mph","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" about","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"66","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"7","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" mph","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_0d756503a3bee7100069d566dd3a588192b3e6f8187073c206","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":726,"completion_tokens_details":{"reasoning_tokens":512},"prompt_tokens":38,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":764}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > reasoningRequestTruncated > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0ae3361fb64549470069d566dcb39081949e6958375e058733","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0ae3361fb64549470069d566dcb39081949e6958375e058733","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"length","index":0}],"object":"chat.completion.chunk","usage":{"completion_tokens":64,"completion_tokens_details":{"reasoning_tokens":64},"prompt_tokens":38,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":102}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > reasoningWithOutput > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_01bd37790ed3afa40069d566deddf48193807ae2329297f028","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_01bd37790ed3afa40069d566deddf48193807ae2329297f028","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Typically","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" blue","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" during","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" a","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" clear","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" day","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Colors","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" change","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" with","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" time","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" conditions","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Day","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"time","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" clear","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" blue","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Sunrise","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"/S","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"unset","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" red","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" orange","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" or","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" pink","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Cloud","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"y","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"/","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"over","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"cast","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" gray","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Night","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" dark","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"/","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"black","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Storm","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"y","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" skies","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" gray","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-blue","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" or","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" gray","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-green","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"ish","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" In","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" space","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" (","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"no","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" atmosphere","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"):","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" black","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"If","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" you","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" tell","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" me","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" the","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" time","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" location","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" I","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" can","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" give","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" a","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" more","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" specific","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" color","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" for","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" that","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" moment","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_01bd37790ed3afa40069d566deddf48193807ae2329297f028","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":915,"completion_tokens_details":{"reasoning_tokens":768},"prompt_tokens":12,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":927}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > simpleRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_038da14d0ce323800069d566dd28dc819693ea859222de1a9e","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_038da14d0ce323800069d566dd28dc819693ea859222de1a9e","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Paris","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_038da14d0ce323800069d566dd28dc819693ea859222de1a9e","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":34,"prompt_tokens":13,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":47}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > systemMessageArrayContent > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0fbf2c3f81fbacbc0069d566e443348197a752ed8f9a145dac","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0fbf2c3f81fbacbc0069d566e443348197a752ed8f9a145dac","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"length","index":0}],"object":"chat.completion.chunk","usage":{"completion_tokens":256,"completion_tokens_details":{"reasoning_tokens":256},"prompt_tokens":35,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":291}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > toolCallRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":null,"role":"assistant","tool_calls":[{"function":{"arguments":"","name":"get_weather"},"id":"call_sY5juZQePKYz47v0S7fqWad5","index":1,"type":"function"}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":"{\\""},"index":1}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":"location"},"index":1}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":"\\":\\""},"index":1}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":"San"},"index":1}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":" Francisco"},"index":1}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":","},"index":1}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":" CA"},"index":1}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":"\\"}"},"index":1}]},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":240,"completion_tokens_details":{"reasoning_tokens":192},"prompt_tokens":66,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":306}}
+
+data: [DONE]
+
+"
+`;
+
 exports[`streaming: google → chat-completions > complexReasoningRequest > streaming 1`] = `
 "data: {"candidates":[{"content":{"parts":[{"text":""}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi706kb2JWpOZWiGTFmtj9yjVTJF"}
 
@@ -5325,6 +6643,892 @@ data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"
 data: {"candidates":[{"content":{"parts":[{"functionCall":{}}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
 
 data: {"candidates":[{"content":{"parts":[{"text":""}],"role":"model"},"finishReason":"STOP","index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DS1aBy6hXFpkWGI2j5gfOmeYP3r9o"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > complexReasoningRequest > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_01E9HYVD5q13m6p2wwxQYUAX","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":109,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":110}},"type":"response.created"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"# Digital Clock Digit Frequency Analysis\\n\\nLooking at all times from **","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"00:00 to 23:59** (1,440 different times), let me count each digit's","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" appearances:\\n\\n## Breakdown by Position\\n\\n**Position 1 (tens of hours):**\\n- 0: 600","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" times (hours 00-09)\\n- 1: 600 times (hours 10-19)\\n- 2: 240 times (hours 20-23)\\n\\n**Position 2 (units of hours):**\\n- 0-","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"3: 180 times each (appear in 3 hours)\\n- 4-9: 120 times each (appear in","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" 2 hours)\\n\\n**Position 3 (tens of minutes):**\\n- 0-5: 240 times each (10 minutes × 24 hours)\\n\\n**Position 4 (units of","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" minutes):**\\n- 0-9: 144 times each (6 times per hour × 24 hours)\\n\\n## Total Count\\n\\n- **0: 1,164 times**","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"\\n- **1: 1,164 times**\\n- 2: 804 times\\n- 3: 564 times\\n- 4: 504 times\\n- 5: 504 times\\n- 6: 264 times\\n- 7: ","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"264 times\\n- 8: 264 times\\n- 9: 264 times\\n\\n## Results\\n\\n**Most Common:** **0 and 1** (tied)\\n- 1,164 out","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" of 5,760 total digits\\n- **20.21%** each\\n\\n**Rarest:** **6, 7, 8, and 9** (tied)\\n-","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" 264 out of 5,760 total digits  \\n- **4.58%** each\\n\\nThe digits 0 and 1 dominate because","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" they appear frequently in the hour positions, while 6-9 never appear in the tens","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" places.","output_index":1,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.completed
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"completed","usage":{"input_tokens":109,"input_tokens_details":{"cached_tokens":0},"output_tokens":2786,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":2895}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > multimodalRequest > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_015qJrapjhE1vrnqbNoGsknc","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":278,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":279}},"type":"response.created"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"#","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" Image Description\\n\\nThis is an adorable photograph of","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" a **young tabby kitten** lying on a light","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" wooden floor. Here are the key details:\\n\\n## The","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" Kitten\\n- **Pose**: The kitten is lying on its side with","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" its head tilted, looking directly at the camera with an endearing, curious expression\\n- **Coloring**: Gray","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"/brown tabby pattern with distinctive stripes\\n- **Eyes**: Large, bright yellow","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"-green eyes that are very expressive and prominent\\n- **Features**: Pink nose, white whis","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"kers, and fluffy fur with the characteristic \\"M\\" marking on the","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" forehead typical of tabby cats\\n- **Paws**: One front paw is extended forward on","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" the floor\\n\\n## Background\\n- Clean, minimalist setting with a white wall\\n- Light wooden flo","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"oring (appears to be laminate or hardwood)\\n- Blurred background suggesting an","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" indoor home environment\\n- Some indistinct furniture or objects visible but","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" out of focus\\n\\nThe image captures a sweet, playful moment with excellent focus on the kitten's face","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" and creates a warm, inviting feeling typical of pet photography.","output_index":0,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.completed
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"completed","usage":{"input_tokens":278,"input_tokens_details":{"cached_tokens":0},"output_tokens":245,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":523}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > parallelToolCallsRequest > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_013yAMgJeZPRWy9KKkhPkh43","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":757,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":758}},"type":"response.created"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"The","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" current weather is:\\n\\n**San Francisco, CA**: 65°F and sunny\\n\\n**New York, NY**: 45°F and cloudy","output_index":0,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.completed
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"completed","usage":{"input_tokens":757,"input_tokens_details":{"cached_tokens":0},"output_tokens":35,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":792}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > reasoningRequest > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_01XrumAP48awLewmcSBbzCPg","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":74,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":75}},"type":"response.created"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"# Solving for Average Speed\\n\\n## Step 1: Calculate distance for first segment","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"\\n- Speed: 60 mph\\n- Time: 2 hours\\n- **Distance = 60 × 2 = 120 miles**\\n\\n## Step 2: Calculate distance for second segment\\n- Speed: 80 mph","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"\\n- Time: 1 hour\\n- **Distance = 80 × 1 = 80 miles**\\n\\n## Step 3: Find total distance\\n**Total distance = 120 + 80 = 200 miles**\\n\\n## Step 4: Find","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" total time\\n**Total time = 2 + 1 = 3 hours**\\n\\n## Step 5: Calculate average speed\\n**Average speed = Total distance ÷ Total time**\\n\\n**Average speed = 200 ÷ 3 = ","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"66.67 mph**\\n\\n### Answer: The average speed is **66.67 mph** (or 66⅔ mph)","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"\\n\\n---\\n\\n**Note:** Average speed is based on total distance and total time, not the average of the two speeds","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" (which would be 70 mph). This is why we must calculate the actual distances","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" traveled.","output_index":1,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.completed
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"completed","usage":{"input_tokens":74,"input_tokens_details":{"cached_tokens":0},"output_tokens":494,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":568}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > reasoningWithOutput > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_01FfNLZRubc8dQWzS5ErsqzT","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":42,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":43}},"type":"response.created"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"The sky is","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" typically **blue** during the day when the weather is clear. \\n\\nThis happens because of how","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" sunlight interacts with Earth's atmosphere - blue light is scattered more than other colors. However, the sky can appear different colors at different times:\\n\\n- **Red","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":", orange, or pink** during sunrise and sunset\\n- **Gray or white** when cloudy\\n- **Dark blue to black** at night\\n- **Yellow","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" or orange** in areas with pollution or dust\\n\\nSo while we generally think of the sky as blue, its","output_index":1,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" color actually varies quite a bit!","output_index":1,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.completed
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"completed","usage":{"input_tokens":42,"input_tokens_details":{"cached_tokens":0},"output_tokens":260,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":302}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > simpleRequest > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_01QuhHd1Xv5ZLfCUKDd7HSkL","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":43,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":44}},"type":"response.created"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"","output_index":0,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"The capital of France is Paris.","output_index":1,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.completed
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"completed","usage":{"input_tokens":43,"input_tokens_details":{"cached_tokens":0},"output_tokens":34,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":77}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > simpleRequestTruncated > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_018E3CeuvKq25UkKdqfxRqpR","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":16,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":17}},"type":"response.created"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"#","output_index":0,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.incomplete
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":16,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":17}},"type":"response.incomplete"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > systemMessageArrayContent > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_01XZRZMwbv9rhv1Y9UA33m33","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":33,"input_tokens_details":{"cached_tokens":0},"output_tokens":5,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":38}},"type":"response.created"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"I'll help you find","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" recent errors from the project logs. Let me query the data source for you.\\n\\n\`\`\`sql\\nSELECT ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"\\n  timestamp,\\n  error_message,\\n  error_code,\\n  severity,\\n  source\\nFROM \`abc","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"-123.project_logs.logs\`\\nWHERE \\n  severity = 'ERROR'\\n  AND timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"(), INTERVAL 24 HOUR)\\nORDER BY timestamp DESC\\nLIMIT 100\\n\`\`\`\\n\\nThis query will:\\n- Filter for entries","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" with ERROR severity\\n- Look at the last 24 hours of logs\\n- Show the most recent errors first\\n- Limit to","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" 100 results to keep it manageable\\n\\nCould you let me know if you'd like me to:\\n1.","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" Adjust the time window (e.g., last hour, last week)\\n2. Filter by specific","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" error codes or sources\\n3. Group the errors to see which","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" are most common\\n4. Include additional fields from the logs","output_index":0,"type":"response.output_text.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.completed
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"completed","usage":{"input_tokens":33,"input_tokens_details":{"cached_tokens":0},"output_tokens":224,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":257}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → anthropic > toolCallRequest > streaming 1`] = `
+"event: response.created
+data: {"response":{"id":"msg_01JYJWVXJLqku163TaB9qkkw","model":"claude-sonnet-4-5-20250929","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":585,"input_tokens_details":{"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":586}},"type":"response.created"}
+
+event: response.output_item.added
+data: {"item":{"arguments":"","call_id":"toolu_01HMD7kqukLhRJ71D9vNCQNR","name":"get_weather","status":"in_progress","type":"function_call"},"output_index":0,"type":"response.output_item.added"}
+
+event: response.function_call_arguments.delta
+data: {"delta":"","output_index":0,"type":"response.function_call_arguments.delta"}
+
+event: response.function_call_arguments.delta
+data: {"delta":"{\\"lo","output_index":0,"type":"response.function_call_arguments.delta"}
+
+event: response.function_call_arguments.delta
+data: {"delta":"cation\\": \\"S","output_index":0,"type":"response.function_call_arguments.delta"}
+
+event: response.function_call_arguments.delta
+data: {"delta":"an Francisc","output_index":0,"type":"response.function_call_arguments.delta"}
+
+event: response.function_call_arguments.delta
+data: {"delta":"o, CA","output_index":0,"type":"response.function_call_arguments.delta"}
+
+event: response.function_call_arguments.delta
+data: {"delta":"\\"}","output_index":0,"type":"response.function_call_arguments.delta"}
+
+event: response.in_progress
+data: {"sequence_number":0,"type":"response.in_progress"}
+
+event: response.completed
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[],"status":"completed","usage":{"input_tokens":585,"input_tokens_details":{"cached_tokens":0},"output_tokens":56,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":641}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → google > complexReasoningRequest > streaming 1`] = `
+"event: response.output_text.delta
+data: {"content_index":0,"delta":"**Defining the Objective**\\n\\nOkay, I'm working on the problem of identifying the most and least frequent digits on a digital clock over a 24-hour period. I've begun to analyze the parameters, and I'm focusing on breaking down the time range (00:00 to 23:59) to count the digit appearances methodically. This approach is key to an effective solution.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Analyzing Digit Frequencies**\\n\\nI'm now diving deep into the specifics of digit counting, broken down by position. I'm focusing on the units digit of the minutes (M2). The total number of digits displayed is 5760 (1440 * 4). I've got to determine which numbers appear most and least. I'm breaking down how often each digit (0-9) appears in each position to find the solution. I am trying to determine a method to make this problem more efficient.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Calculating Digit Frequencies**\\n\\nI'm now determining the frequency of each digit in the minutes' tens place (M1). I have calculated that for M2, each digit (0-9) appears 144 times. I'm focusing on the position analysis to determine the occurrences of each digit. M1 cycles from 0-5 for every 10 minutes. I am analyzing the implications across the entire 24-hour period (00:00 to 23:59). My current focus is to efficiently determine the patterns.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Calculating Frequency Analysis**\\n\\nI've completed the initial frequency calculations for each digit position. Specifically, for M2, each digit appears 144 times, and for M1, digits 0-5 each occur 240 times, and 6-9 appear 0 times. My next step is to finalize the H1 and H2 digit occurrences, addressing the complexity of the hour constraints. I'll summarize these totals into the final tally.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Finalizing Calculations**\\n\\nI'm now finalizing the calculations for the tens (H1) and units (H2) of the hours. I've corrected an error in H2 calculations and now have a firm grasp on the frequency distribution. I'm focusing on consolidating all of the totals across the H1, H2, M1, and M2 positions for a complete, accurate count. The final step is determining the most and least frequent digits.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Calculating Total Counts**\\n\\nI'm now consolidating the frequency counts for all digit positions. Specifically, I've totaled each digit's occurrences in H1, H2, M1, and M2, accounting for all time constraints. From this analysis, I will determine the most and least frequent digits displayed over the entire 24-hour cycle. The final step is to verify the results.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Refining Calculation Accuracy**\\n\\nI'm now implementing the calculation refinements based on the detailed analysis. I've re-examined the H2 position, accounting for the varying hour constraints, and updated the frequency totals for digits 0-9. I'm focusing on validating these counts to ensure an accurate base for finding the most and least frequent digits.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Refining Calculation Accuracy**\\n\\nI'm now implementing calculation refinements based on the updated analysis of each digit position. I have re-evaluated the H2 position, accounting for the unique hour constraints, and have updated the frequency totals for digits 0-9. I'm focusing on validation of these counts.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Refining Calculations**\\n\\nI'm now refining the accuracy of the counts, re-evaluating each digit's occurrences in the hours and minutes. I am now double-checking the H1 and H2 hour calculations, particularly the impact of the hour constraints (0-23). I've found a more reliable and efficient approach.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Refining Hour Calculation**\\n\\nI'm now implementing calculation refinements based on the detailed analysis. I've re-evaluated the H2 position, accounting for the unique hour constraints, and have updated the frequency totals for digits 0-9. I'm focusing on validating these counts to ensure an accurate base for finding the most and least frequent digits.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"Let's break down the problem by counting the occurrences of each digit (0-9) across all possible times from 0","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"0:00 to 23:59.\\n\\nFirst, let's determine the total number of digits displayed.\\n*   There are 24 hours (00 to 23).\\n*   There are","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" 60 minutes in each hour (00 to 59).\\n*   Total number of times displayed = 24 hours * 60 minutes = 1440 times.\\n*   Each time (e.","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"g., 01:23) consists of 4 digits.\\n*   Total number of digits displayed = 1440 times * 4 digits/time = 5760 digits.\\n\\nNow, let's","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" count the occurrences of each digit (0-9) by considering their positions:\\n\\n1.  **M2 (Units of Minutes - Rightmost digit):**\\n    *   This digit cycles through 0, 1, 2","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":", ..., 9, 0, 1, ...\\n    *   In a 60-minute cycle (00-59), each digit (0-9) appears 6 times (e.g., ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"0 appears in :00, :10, :20, :30, :40, :50).\\n    *   This pattern repeats for all 24 hours.\\n    *   So, each","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" digit 0-9 appears: 6 occurrences/hour * 24 hours = **144 times** in the M2 position.\\n\\n2.  **M1 (Tens of Minutes - Second digit from right):**\\n    ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"*   This digit cycles through 0, 1, 2, 3, 4, 5.\\n    *   In a 60-minute cycle (00-59):\\n        *   0 appears 1","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"0 times (00-09)\\n        *   1 appears 10 times (10-19)\\n        *   2 appears 10 times (20-29)\\n        *   3","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" appears 10 times (30-39)\\n        *   4 appears 10 times (40-49)\\n        *   5 appears 10 times (50-59)\\n    ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"*   Digits 6, 7, 8, 9 never appear in this position.\\n    *   This pattern repeats for all 24 hours.\\n    *   So, each digit 0-5 appears: 10","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" occurrences/hour * 24 hours = **240 times** in the M1 position.\\n\\n3.  **H2 (Units of Hours - Second digit from left):**\\n    *   This digit's range","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" depends on the H1 digit.\\n    *   For hours 00-19 (H1 is 0 or 1): The H2 digit cycles 0, 1, ..., 9. Each digit appears once for","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" each hour (e.g., in 01:XX, the '1' appears 60 times). There are 20 such hours (00-19).\\n        *   So, for digits 0-9","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":": 1 occurrence/hour * 60 minutes/hour * 20 hours = **1200 times**. *This is incorrect. The 1 occurrence/hour already means it is present in that hour for 60 minutes","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":".*\\n        *   Let's rephrase: In hours 00-09 (10 hours), each digit 0-9 appears in the H2 position for 60 minutes. So, 10 hours * ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"60 minutes = 600 occurrences for H2=0 (e.g. 00:XX), H2=1 (01:XX), ..., H2=9 (09:XX).\\n        *   Similarly","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":", in hours 10-19 (10 hours), each digit 0-9 appears in the H2 position for 60 minutes. So, another 10 hours * 60 minutes = 600 occurrences.","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"\\n        *   No, this counts the hours wrong.\\n        *   Let's think of it as: How many times does the number 'X' appear in H2 *for each minute*?\\n        *   H2","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" takes values from 0-9 in the hours 00-09 (e.g., for 01:MM, H2 is 1). So, for each of these 10 hours (00,","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" 01, ..., 09), the H2 digit is constant for 60 minutes. So, digits 0-9 each appear 60 times. (e.g., '0' is H2 in ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"00:XX - 60 times; '1' is H2 in 01:XX - 60 times).\\n        *   Similarly, for hours 10-19 (e.g., for","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" 11:MM, H2 is 1). Each digit 0-9 appears 60 times. (e.g., '0' is H2 in 10:XX - 60 times; '","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"1' is H2 in 11:XX - 60 times).\\n        *   So, for digits 0-9 from hours 00-19: 60 (from 0X:MM","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":") + 60 (from 1X:MM) = **120 times each**.\\n    *   For hours 20-23 (H1 is 2): The H2 digit cycles 0,","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" 1, 2, 3. Each digit appears once for each hour for 60 minutes.\\n        *   0 appears in 20:XX (60 times).\\n        *   1 appears in 21:XX","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" (60 times).\\n        *   2 appears in 22:XX (60 times).\\n        *   3 appears in 23:XX (60 times).\\n        *   Digits 4-9","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" never appear in this range.\\n    *   Total for H2:\\n        *   Digits 0-3: 120 (from 00-19) + 60 (from 20-23)","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" = **180 times each**.\\n        *   Digits 4-9: 120 (from 00-19) + 0 (from 20-23) = **120","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" times each**.\\n\\n4.  **H1 (Tens of Hours - Leftmost digit):**\\n    *   This digit can be 0, 1, or 2.\\n    *   Digit 0 appears for hours 00","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"-09 (10 hours). For each hour, it's displayed for 60 minutes.\\n        *   10 hours * 60 minutes/hour = **600 times**.\\n    *   Digit 1 appears","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" for hours 10-19 (10 hours). For each hour, it's displayed for 60 minutes.\\n        *   10 hours * 60 minutes/hour = **600 times**.","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"\\n    *   Digit 2 appears for hours 20-23 (4 hours). For each hour, it's displayed for 60 minutes.\\n        *   4 hours * 60 minutes/hour =","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" **240 times**.\\n    *   Digits 3-9 never appear in this position.\\n\\n**Summary of Counts for Each Digit:**\\n\\n| Digit | M2 (Units of Min) | M1 (Tens of Min) | H","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"2 (Units of Hr) | H1 (Tens of Hr) | Total Count |\\n| :---- | :---------------- | :--------------- | :--------------- | :-------------- | :---------- |\\n| **0** | 144","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"               | 240              | 180              | 600             | **1164**    |\\n| **1** | 144               | 240              | 180              ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"| 600             | **1164**    |\\n| **2** | 144               | 240              | 180              | 240             | **80","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"4**     |\\n| **3** | 144               | 240              | 180              | 0               | **564**     |\\n| **4** | 14","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"4               | 240              | 120              | 0               | **504**     |\\n| **5** | 144               | 240              | 120","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"              | 0               | **504**     |\\n| **6** | 144               | 0                | 120              | 0               | **264**     |\\n|","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" **7** | 144               | 0                | 120              | 0               | **264**     |\\n| **8** | 144               | 0                | ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"120              | 0               | **264**     |\\n| **9** | 144               | 0                | 120              | 0               | **264**     ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"|\\n| **Total** | | | | | **5760** |\\n\\nThe sum of the counts (5760) matches our total number of digits.\\n\\n**Most Common Digit(s):**\\nDigits","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" **0** and **1** are the most common, both appearing **1164** times.\\nPercentage: (1164 / 5760) * 100% $\\\\approx$ **20.2","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"1%**\\n\\n**Rarest Digit(s):**\\nDigits **6, 7, 8,** and **9** are the rarest, all appearing **264** times.\\nPercentage: (264","output_index":0,"type":"response.output_text.delta"}
+
+event: response.completed
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":5889,"output_tokens_details":{"reasoning_tokens":3662},"total_tokens":5964}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → google > multimodalRequest > streaming 1`] = `
+"event: response.incomplete
+data: {"response":{"id":"iW_VaZ3aDdSa_uMPpsqI4Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":267,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":287},"total_tokens":563}},"type":"response.incomplete"}
+
+"
+`;
+
+exports[`streaming: responses → google > parallelToolCallsRequest > streaming 1`] = `
+"event: response.output_text.delta
+data: {"content_index":0,"delta":"The weather in San","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" Francisco, CA is 65°F and sunny. In New York, NY","output_index":0,"type":"response.output_text.delta"}
+
+event: response.completed
+data: {"response":{"id":"im_VaZyKKI3m_uMPnpjMmQY","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":140,"input_tokens_details":{"cached_tokens":0},"output_tokens":33,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":173}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → google > reasoningRequest > streaming 1`] = `
+"event: response.output_text.delta
+data: {"content_index":0,"delta":"**Defining the Goal**\\n\\nI've zeroed in on the core of the problem: determining the train's average speed. The formula is key: Total Distance divided by Total Time. I'm building my approach around this foundational understanding.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Calculating the Distance**\\n\\nI'm now calculating the distances for each leg of the journey. I'm using the Distance = Speed x Time formula, breaking down the trip into stage one and stage two. I've worked out the distance for each stage and summed those up, and the total distance traveled is 200 miles! Next, I am calculating the total time of the journey.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Finalizing the Calculation**\\n\\nI've completed all calculations. The process went smoothly, step-by-step. I've calculated the total distance at 200 miles and the total time at 3 hours. Dividing to get the average speed, I get 66.67 mph (or exactly 66 and 2/3 mph). Now I'm structuring the answer for presentation, following all of the steps I used.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"Here's how to calculate the average speed step-by-step","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":":\\n\\n**1. Understand the Formula for Average Speed:**\\nAverage Speed = Total Distance / Total Time\\n\\n**2. Calculate the Distance for the First Part of the Journey:**\\n*   Speed = 60 mph\\n*   ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"Time = 2 hours\\n*   Distance₁ = Speed × Time = 60 mph × 2 hours = 120 miles\\n\\n**3. Calculate the Distance for the Second Part of the Journey:**\\n*   Speed = ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"80 mph\\n*   Time = 1 hour\\n*   Distance₂ = Speed × Time = 80 mph × 1 hour = 80 miles\\n\\n**4. Calculate the Total Distance Traveled:**\\n*   ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"Total Distance = Distance₁ + Distance₂ = 120 miles + 80 miles = 200 miles\\n\\n**5. Calculate the Total Time Taken:**\\n*   Total Time = Time₁ + Time₂ = ","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"2 hours + 1 hour = 3 hours\\n\\n**6. Calculate the Average Speed:**\\n*   Average Speed = Total Distance / Total Time\\n*   Average Speed = 200 miles / 3 hours\\n*   Average Speed =","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" 66.666... mph\\n\\n**7. Round to a practical number:**\\n*   Average Speed ≈ 66.67 mph\\n\\n**Answer:** The average speed of the train is approximately **66.","output_index":0,"type":"response.output_text.delta"}
+
+event: response.completed
+data: {"response":{"id":"iG_VaeWWI6uM_PUPpP7C2Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":895,"output_tokens_details":{"reasoning_tokens":592},"total_tokens":932}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → google > reasoningRequestTruncated > streaming 1`] = `
+"event: response.output_text.delta
+data: {"content_index":0,"delta":"**Calculating Average Speed**\\n\\nOkay, I'm working on calculating the average speed. I've broken down the problem to use the average speed formula: (Total Distance) / (Total Time). My next step is figuring out how to determine the total distance and total time, given the information in the problem. I need to make sure I don't miss any steps!\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Defining Problem Stages**\\n\\nI'm now focusing on how the train's journey can be broken into stages. I've realized the travel is in at least two parts. I'm recalling the formula for average speed: (Total Distance) / (Total Time). I believe this is critical to tackling the problem methodically.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.incomplete
+data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":94,"output_tokens_details":{"reasoning_tokens":92},"total_tokens":131}},"type":"response.incomplete"}
+
+"
+`;
+
+exports[`streaming: responses → google > reasoningWithOutput > streaming 1`] = `
+"event: response.output_text.delta
+data: {"content_index":0,"delta":"**Reviewing Basic Principles**\\n\\nI've started by breaking down the user's question. Now I'm recalling relevant background knowledge, specifically focusing on how light scattering affects sky color. I'm focusing on the contrast between daytime and sunrise/sunset.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Defining the Standard Answer**\\n\\nNow I'm focusing on the core answer: \\"The sky is blue.\\" I'm also ensuring that I can explain *why* it's blue, using Rayleigh scattering as the key. I'm building out a list of other possible sky colors, so I can add them for completeness. I'm focusing on the importance of clarity.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Refining My Explanation**\\n\\nI'm now zeroing in on a polished response. I'm focusing on crafting a succinct explanation that balances clarity with completeness, accounting for Rayleigh scattering as the key. I'm prioritizing the inclusion of varied sky colors in different situations to provide a more nuanced answer.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"**Crafting the Final Response**\\n\\nI'm now satisfied with the explanation and focusing on polishing the response. I've re-read it, to clarify that the user receives an easy to understand answer, which is also correct. I'm prioritizing accuracy and conciseness, ready to finalize the statement.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"The sky is most commonly **blue** during the day.\\n\\nThis is due to a phenomenon called **Rayleigh scattering**. Shorter wavelengths of light (like blue and violet) are scattered","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" more efficiently by the tiny nitrogen and oxygen molecules in Earth's atmosphere than longer wavelengths (like red and yellow). Because blue light is scattered in all directions, it appears to come from all parts of the sky, making it look blue.\\n\\nHowever,","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" the color of the sky can change dramatically depending on various factors:\\n\\n*   **Sunrise and Sunset:** It often appears **red, orange, pink, or purple**. At these times, the sunlight travels through much more atmosphere, scattering away most of the","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" blue light and leaving the longer-wavelength reds and oranges to reach our eyes directly.\\n*   **Overcast or Stormy Weather:** It can appear **grey or white** due to thick clouds reflecting and absorbing light.\\n*   **Night:**","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" It appears **black** (with stars), as that side of Earth is facing away from the sun, and there's no sunlight to scatter in the atmosphere.\\n*   **Pollution or Dust:** Can give it a hazy,","output_index":0,"type":"response.output_text.delta"}
+
+event: response.completed
+data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":7,"input_tokens_details":{"cached_tokens":0},"output_tokens":983,"output_tokens_details":{"reasoning_tokens":714},"total_tokens":990}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → google > simpleRequest > streaming 1`] = `
+"event: response.output_text.delta
+data: {"content_index":0,"delta":"**Answering the Query**\\n\\nOkay, I'm focusing on providing a direct and accurate response to the user's question. My primary concern is delivering the correct information clearly. I'm aiming for a concise and factual answer that meets the user's needs.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"The","output_index":0,"type":"response.output_text.delta"}
+
+event: response.completed
+data: {"response":{"id":"iG_VacqLI7aX_uMP96rw0Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":8,"input_tokens_details":{"cached_tokens":0},"output_tokens":24,"output_tokens_details":{"reasoning_tokens":17},"total_tokens":32}},"type":"response.completed"}
+
+"
+`;
+
+exports[`streaming: responses → google > simpleRequestTruncated > streaming 1`] = `
+"event: response.incomplete
+data: {"response":{"id":"iG_VaZqcI_GW_uMPtubRiQE","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":10,"input_tokens_details":{"cached_tokens":0},"output_tokens":0,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":10}},"type":"response.incomplete"}
+
+"
+`;
+
+exports[`streaming: responses → google > systemMessageArrayContent > streaming 1`] = `
+"event: response.incomplete
+data: {"response":{"id":"i2_VafqnDsbu_uMPxqqZkQ0","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":29,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":284},"total_tokens":325}},"type":"response.incomplete"}
+
+"
+`;
+
+exports[`streaming: responses → google > toolCallRequest > streaming 1`] = `
+"event: response.completed
+data: {"response":{"id":"iG_VaZCDPb2p_uMPutzj2Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":62,"input_tokens_details":{"cached_tokens":0},"output_tokens":79,"output_tokens_details":{"reasoning_tokens":61},"total_tokens":141}},"type":"response.completed"}
 
 "
 `;

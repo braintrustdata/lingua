@@ -7,6 +7,7 @@ import {
   GoogleGenerateContentRequest,
   GOOGLE_MODEL,
 } from "../../cases";
+import { parseGoogleSseStream } from "../transforms/helpers";
 
 const GOOGLE_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
@@ -99,33 +100,6 @@ async function googleRequest(
   return response;
 }
 
-/**
- * Parse SSE stream into array of response chunks
- */
-async function parseSSEStream(
-  response: Response
-): Promise<GenerateContentResponse[]> {
-  const chunks: GenerateContentResponse[] = [];
-  const text = await response.text();
-
-  // SSE format: "data: {...}\n\n"
-  const lines = text.split("\n");
-  for (const line of lines) {
-    if (line.startsWith("data: ")) {
-      const jsonStr = line.slice(6); // Remove "data: " prefix
-      if (jsonStr.trim()) {
-        try {
-          chunks.push(JSON.parse(jsonStr));
-        } catch {
-          // Skip malformed JSON
-        }
-      }
-    }
-  }
-
-  return chunks;
-}
-
 type ParallelGoogleResult =
   | {
       type: "response";
@@ -189,7 +163,8 @@ export async function executeGoogle(
             const text = await response.text();
             throw new Error(`ApiError: ${text}`);
           }
-          const chunks = await parseSSEStream(response);
+          const chunks =
+            await parseGoogleSseStream<GenerateContentResponse>(response);
           return { type: "streamingResponse" as const, data: chunks };
         })()
       );
@@ -300,7 +275,8 @@ export async function executeGoogle(
                 const text = await response.text();
                 throw new Error(`ApiError: ${text}`);
               }
-              const chunks = await parseSSEStream(response);
+              const chunks =
+                await parseGoogleSseStream<GenerateContentResponse>(response);
               return {
                 type: "followupStreamingResponse" as const,
                 data: chunks,

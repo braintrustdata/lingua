@@ -1,0 +1,39 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_weather",
+                "args": {
+                  "location": "San Francisco, CA"
+                }
+              },
+              "thoughtSignature": "CiQBvj72+3fcrJnVDyGYXTZY8Qd65DkF/+3nqaBqroDtgZG9l+MKYwG+Pvb7y2OK0Sv4WzZQKIf+eXkWIOw5i2Isqd5bI2m4JoWniDlX0cnenRm7KKqBrfDaYvGVjnHYM7G0z4gJijkZQNA8MGb6IJV1IwWavl4Vqcu2CpICjEHPv98xO9eoSTHQewrdAQG+Pvb7GJuP9u7eR5KDEUcHU9NkgmeQpTIroajDMCroNfVChbUTzZIdGC9rf1NTsHKuQp72Y+BO1SuwQzNOXQOnFFJq0eRIac7+wJoW8BclX7GJOYGXG7Hne9lP9/p1JErW5TCxHBONjfyQTUPlbBtHvFCiirKtR+XZYzCl51mKL8LC79jnFVdUp2K8Mc9wRWzMXg2dMfC4JMdxIg6Q/3mBOg38Vr9h3ZkHPrjJ+WLXtlfnp3f1FoW/01tgHdE/CIy0cfeAQFbUc6E4GK2v1h5teF5+pMo6wrUqWSZO"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "finishMessage": "Model generated function call(s)."
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 62,
+      "candidatesTokenCount": 18,
+      "totalTokenCount": 141,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 62
+        }
+      ],
+      "thoughtsTokenCount": 61
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "iG_VaZCDPb2p_uMPutzj2Aw"
+  }
+]

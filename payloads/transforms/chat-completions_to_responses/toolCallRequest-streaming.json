@@ -1,0 +1,344 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9",
+      "object": "response",
+      "created_at": 1775593181,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9",
+      "object": "response",
+      "created_at": 1775593181,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_0a28ead037714a620069d566ddacb881919e549fe45813c71a",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_0a28ead037714a620069d566ddacb881919e549fe45813c71a",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "",
+      "call_id": "call_sY5juZQePKYz47v0S7fqWad5",
+      "name": "get_weather"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "{\"",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "obfuscation": "zJde0CUBwvmpuI",
+    "output_index": 1,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "location",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "obfuscation": "8wnPt5CW",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "\":\"",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "obfuscation": "LonFxzNDTQ7Al",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "San",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "obfuscation": "qM4d5hkISPJtW",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " Francisco",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "obfuscation": "GCWNcq",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": ",",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "obfuscation": "deYs9UVLGw7kyHM",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " CA",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "obfuscation": "QcZkFADaTsV5U",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "\"}",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "obfuscation": "H0IJiVbVIOvB6V",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.function_call_arguments.done",
+    "arguments": "{\"location\":\"San Francisco, CA\"}",
+    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"San Francisco, CA\"}",
+      "call_id": "call_sY5juZQePKYz47v0S7fqWad5",
+      "name": "get_weather"
+    },
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9",
+      "object": "response",
+      "created_at": 1775593181,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1775593184,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [
+        {
+          "id": "rs_0a28ead037714a620069d566ddacb881919e549fe45813c71a",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+          "type": "function_call",
+          "status": "completed",
+          "arguments": "{\"location\":\"San Francisco, CA\"}",
+          "call_id": "call_sY5juZQePKYz47v0S7fqWad5",
+          "name": "get_weather"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 66,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 240,
+        "output_tokens_details": {
+          "reasoning_tokens": 192
+        },
+        "total_tokens": 306
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 15
+  }
+]

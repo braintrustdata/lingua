@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "To find recent errors in the `project_logs` ("
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 29,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 325,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 29
+        }
+      ],
+      "thoughtsTokenCount": 284
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "i2_VafqnDsbu_uMPxqqZkQ0"
+  }
+]

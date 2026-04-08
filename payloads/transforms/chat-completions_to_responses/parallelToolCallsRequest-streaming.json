@@ -1,0 +1,559 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0802787b0a058aef0069d566e10da881a191433a79187738c9",
+      "object": "response",
+      "created_at": 1775593185,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0802787b0a058aef0069d566e10da881a191433a79187738c9",
+      "object": "response",
+      "created_at": 1775593185,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_0802787b0a058aef0069d566e1a6f481a1812954f847eb5f70",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_0802787b0a058aef0069d566e1a6f481a1812954f847eb5f70",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "fJ49yxGfFX63CPT",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " San",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "gwVtLEgIxVup",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Francisco",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "cnrxhX",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "E6NST3pSfRVhxsN",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " CA",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "7NZBXvejOqx6C",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "xLCTT1PerFGmoUx",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " ",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "zdZ7z4kC48tKrZc",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "45",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "vKLQVxvHUxjBCQ",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "°F",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "FBwSCoGli3sv2i",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "X8bPDyaNsXVN",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " cloudy",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "svIFB9imJ",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".\n",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "f1CgoUNTQJEjBb",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "FQBYlxavQ57A20q",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " New",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "ibL7Dwnw0clI",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " York",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "rjdBsnbaZJo",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "XI7SKO6ll9HVIxF",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " NY",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "XFqODN3YLYlpG",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "OYinYTSnAcCBzI5",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " ",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "CXZHi6YXTbC3yuW",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "65",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "NPfDozvbUbrYOW",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "°F",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "EPG97ePGm2uwAa",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "tonmtG7SBaBz",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " sunny",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "80C6JFxPD4",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "obfuscation": "caQRsgrRJdavDFt",
+    "output_index": 1,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 30,
+    "text": "- San Francisco, CA: 45°F and cloudy.\n- New York, NY: 65°F and sunny."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "- San Francisco, CA: 45°F and cloudy.\n- New York, NY: 65°F and sunny."
+    },
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "- San Francisco, CA: 45°F and cloudy.\n- New York, NY: 65°F and sunny."
+        }
+      ],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0802787b0a058aef0069d566e10da881a191433a79187738c9",
+      "object": "response",
+      "created_at": 1775593185,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1775593200,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [
+        {
+          "id": "rs_0802787b0a058aef0069d566e1a6f481a1812954f847eb5f70",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "msg_0802787b0a058aef0069d566f06c1881a1a6613af6791ffa6a",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "- San Francisco, CA: 45°F and cloudy.\n- New York, NY: 65°F and sunny."
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 136,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 924,
+        "output_tokens_details": {
+          "reasoning_tokens": 832
+        },
+        "total_tokens": 1060
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 33
+  }
+]
