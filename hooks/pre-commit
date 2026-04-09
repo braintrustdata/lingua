@@ -7,6 +7,32 @@ set -e
 
 echo "🔍 Running pre-commit checks..."
 
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+declare -a STAGED_FILES=()
+while IFS= read -r -d '' file; do
+    STAGED_FILES+=("$file")
+done < <(git diff --cached --name-only -z --diff-filter=ACMR)
+
+restage_staged_files() {
+    if [ ${#STAGED_FILES[@]} -eq 0 ]; then
+        return
+    fi
+
+    local existing_files=()
+    local file
+    for file in "${STAGED_FILES[@]}"; do
+        if [ -e "$file" ]; then
+            existing_files+=("$file")
+        fi
+    done
+
+    if [ ${#existing_files[@]} -gt 0 ]; then
+        git add -- "${existing_files[@]}"
+    fi
+}
+
 # Check if we're in a Rust project
 if [ ! -f "Cargo.toml" ]; then
     echo "❌ No Cargo.toml found, skipping Rust checks"
@@ -16,13 +42,14 @@ fi
 # Run cargo fmt to format all files
 echo "📝 Running cargo fmt..."
 cargo fmt --all
+restage_staged_files
 
 # Check for TypeScript files and run linting/formatting
 if [ -f "payloads/package.json" ]; then
     echo "📝 Running TypeScript checks..."
 
     # Change to payloads directory
-    cd payloads
+    pushd payloads > /dev/null
 
     # Check if dependencies are installed
     if [ ! -d "node_modules" ]; then
@@ -48,29 +75,22 @@ if [ -f "payloads/package.json" ]; then
         echo "❌ Code formatting issues found."
         echo "💡 Running Prettier to fix formatting..."
         pnpm run format
-        cd ..
-        echo "❌ Files were formatted by Prettier."
-        echo "💡 Please re-add the formatted files and commit again:"
-        echo "   git add -A && git commit"
-        exit 1
+        popd > /dev/null
+        restage_staged_files
+        echo "✅ Formatted files with Prettier and re-staged staged paths."
+    else
+        popd > /dev/null
     fi
 
     # Run TypeScript type checking
     echo "🔍 Running TypeScript type check..."
+    pushd payloads > /dev/null
     if ! pnpm run typecheck; then
+        popd > /dev/null
         echo "❌ TypeScript type errors found. Please fix before committing."
         exit 1
     fi
-
-    cd ..
-fi
-
-# Check if any files were changed by formatting
-if ! git diff --quiet; then
-    echo "❌ Files were formatted."
-    echo "💡 Please re-add the formatted files and commit again:"
-    echo "   git add -A && git commit"
-    exit 1
+    popd > /dev/null
 fi
 
 echo "✅ All checks passed!"
