@@ -735,10 +735,8 @@ mod tests {
             .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
-        let expected_stream_options: Value =
-            lingua::serde_json::from_str(r#"{"include_usage":true}"#).expect("valid json");
         assert_eq!(parsed.get("stream"), Some(&Value::Bool(true)));
-        assert_eq!(parsed.get("stream_options"), Some(&expected_stream_options));
+        assert_eq!(parsed.get("stream_options"), None);
     }
 
     #[tokio::test]

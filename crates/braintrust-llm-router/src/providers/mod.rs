@@ -151,9 +151,6 @@ pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -
     match format {
         ProviderFormat::ChatCompletions => {
             object.insert("stream".into(), Value::Bool(true));
-            object
-                .entry("stream_options")
-                .or_insert_with(|| serde_json::json!({ "include_usage": true }));
         }
         ProviderFormat::Responses | ProviderFormat::Anthropic => {
             object.insert("stream".into(), Value::Bool(true));
@@ -299,10 +296,7 @@ mod tests {
         let value: Value = serde_json::from_slice(&updated).unwrap();
 
         assert_eq!(value.get("stream"), Some(&Value::Bool(true)));
-        assert_eq!(
-            value.get("stream_options"),
-            Some(&lingua::serde_json::json!({"include_usage": true}))
-        );
+        assert_eq!(value.get("stream_options"), None);
     }
 
     #[test]
