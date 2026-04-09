@@ -128,6 +128,8 @@ async fn prepare_provider_request(
     };
 
     if stream {
+        // TODO: Fold streaming intent into `lingua::transform_request` once we
+        // are ready to update its Rust/WASM/Python/TS call sites together.
         Ok(enable_streaming_payload(transformed, format))
     } else {
         Ok(transformed)

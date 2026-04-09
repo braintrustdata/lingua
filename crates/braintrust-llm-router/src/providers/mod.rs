@@ -148,11 +148,17 @@ pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -
         return payload;
     };
 
+    // Only formats that opt into streaming via a request-body field should be
+    // modified here. Endpoint-selected streaming (for example Google's
+    // :streamGenerateContent path) is handled by the provider transport layer.
     match format {
         ProviderFormat::ChatCompletions => {
             object.insert("stream".into(), Value::Bool(true));
         }
         ProviderFormat::Responses | ProviderFormat::Anthropic => {
+            // These formats use a body-level `stream` flag. Providers like
+            // Google intentionally no-op here because their streaming mode is
+            // selected by the request path rather than the JSON payload.
             object.insert("stream".into(), Value::Bool(true));
         }
         ProviderFormat::Google
@@ -338,13 +344,16 @@ mod tests {
     }
 
     #[test]
-    fn enable_streaming_payload_is_noop_for_google() {
+    fn enable_streaming_payload_leaves_google_payload_unchanged_for_path_based_streaming() {
         let payload = Bytes::from_static(
             br#"{"contents":[{"role":"user","parts":[{"text":"hello"}]}],"generationConfig":{"temperature":0}}"#,
         );
 
         let updated = enable_streaming_payload(payload.clone(), ProviderFormat::Google);
 
-        assert_eq!(updated, payload);
+        assert_eq!(
+            updated, payload,
+            "google streaming is selected by the provider path, not the payload body"
+        );
     }
 }
