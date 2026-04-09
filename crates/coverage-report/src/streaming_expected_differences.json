@@ -96,6 +96,20 @@
       "fields": [
         { "pattern": "choices[*].delta.tool_calls", "reason": "Streaming tool_call deltas lose argument increments and index through Google functionCall conversion" }
       ]
+    },
+    {
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "choices.length", "reason": "Google genai SDK expects streamed responses to include at least one candidate; empty-choice metadata events are normalized to a placeholder candidate" }
+      ]
+    },
+    {
+      "source": "Vertex Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "choices.length", "reason": "Google genai SDK expects streamed responses to include at least one candidate; empty-choice metadata events are normalized to a placeholder candidate" }
+      ]
     }
   ],
   "perTestCase": [

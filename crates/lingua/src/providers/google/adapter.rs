@@ -578,14 +578,7 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
-        if chunk.is_keep_alive() {
-            // Google doesn't have a keep-alive event, return empty candidates
-            return Ok(serde_json::json!({
-                "candidates": []
-            }));
-        }
-
-        let candidates: Vec<Value> = chunk
+        let mut candidates: Vec<Value> = chunk
             .choices
             .iter()
             .map(|c| {
@@ -653,6 +646,16 @@ impl ProviderAdapter for GoogleAdapter {
                 Value::Object(candidate_map)
             })
             .collect();
+
+        if chunk.is_keep_alive() || candidates.is_empty() {
+            candidates.push(serde_json::json!({
+                "index": 0,
+                "content": {
+                    "parts": [{"text": ""}],
+                    "role": "model"
+                }
+            }));
+        }
 
         let mut map = serde_json::Map::new();
         map.insert("candidates".into(), Value::Array(candidates));
@@ -849,5 +852,58 @@ mod tests {
         let back_typed: GenerateContentResponse =
             serde_json::from_value(back).expect("response should deserialize");
         assert_eq!(back_typed.model_version.as_deref(), Some("gemini-1.5"));
+    }
+
+    #[test]
+    fn test_google_stream_from_universal_keep_alive_emits_placeholder_candidate() {
+        let adapter = GoogleAdapter;
+        let chunk = UniversalStreamChunk::keep_alive();
+
+        let payload = adapter.stream_from_universal(&chunk).unwrap();
+        let typed: GenerateContentResponse =
+            serde_json::from_value(payload).expect("stream chunk should deserialize");
+
+        let candidates = typed
+            .candidates
+            .expect("placeholder candidate should be present");
+        assert_eq!(candidates.len(), 1);
+        let content = candidates[0]
+            .content
+            .as_ref()
+            .expect("placeholder candidate should have content");
+        assert_eq!(content.role.as_deref(), Some("model"));
+        let parts = content
+            .parts
+            .as_ref()
+            .expect("placeholder candidate should have parts");
+        assert_eq!(parts.len(), 1);
+    }
+
+    #[test]
+    fn test_google_stream_from_universal_usage_only_emits_placeholder_candidate() {
+        let adapter = GoogleAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![],
+            None,
+            Some(UniversalUsage {
+                prompt_tokens: Some(1),
+                completion_tokens: Some(2),
+                prompt_cached_tokens: None,
+                prompt_cache_creation_tokens: None,
+                completion_reasoning_tokens: None,
+            }),
+        );
+
+        let payload = adapter.stream_from_universal(&chunk).unwrap();
+        let typed: GenerateContentResponse =
+            serde_json::from_value(payload).expect("stream chunk should deserialize");
+
+        let candidates = typed
+            .candidates
+            .expect("placeholder candidate should be present");
+        assert_eq!(candidates.len(), 1);
+        assert!(typed.usage_metadata.is_some());
     }
 }
