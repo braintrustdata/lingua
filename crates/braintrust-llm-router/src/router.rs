@@ -12,7 +12,8 @@ use crate::auth::AuthConfig;
 use crate::catalog::{load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec};
 use crate::error::{Error, Result};
 use crate::providers::{
-    prepare_bedrock_request, requires_bedrock_request_preparation, ClientHeaders, Provider,
+    enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
+    ClientHeaders, Provider,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_stream, ResponseStream};
@@ -113,16 +114,23 @@ async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
+    stream: bool,
 ) -> Result<Bytes> {
     if requires_bedrock_request_preparation(format) {
         return prepare_bedrock_request(body, spec, format).await;
     }
 
-    match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-        Ok(TransformResult::PassThrough(bytes)) => Ok(bytes),
-        Ok(TransformResult::Transformed { bytes, .. }) => Ok(bytes),
-        Err(TransformError::UnsupportedTargetFormat(_)) => Ok(body),
-        Err(err) => Err(err.into()),
+    let transformed = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
+        Ok(TransformResult::PassThrough(bytes)) => bytes,
+        Ok(TransformResult::Transformed { bytes, .. }) => bytes,
+        Err(TransformError::UnsupportedTargetFormat(_)) => body,
+        Err(err) => return Err(err.into()),
+    };
+
+    if stream {
+        Ok(enable_streaming_payload(transformed, format))
+    } else {
+        Ok(transformed)
     }
 }
 
@@ -176,7 +184,7 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, strategy) = route;
-        let payload = prepare_provider_request(body, spec.as_ref(), *format).await?;
+        let payload = prepare_provider_request(body, spec.as_ref(), *format, false).await?;
 
         let response_bytes = self
             .execute_with_retry(
@@ -231,7 +239,7 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, _) = route;
-        let payload = prepare_provider_request(body, spec.as_ref(), *format).await?;
+        let payload = prepare_provider_request(body, spec.as_ref(), *format, true).await?;
 
         let raw_stream = provider
             .clone()
@@ -713,6 +721,41 @@ mod tests {
         let mut spec = openai_spec(model, flavor);
         spec.available_providers = vec!["openai".into(), "azure".into(), "cerebras".into()];
         spec
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_enables_stream_for_google_to_chat_completions() {
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-5-mini","contents":[{"role":"user","parts":[{"text":"hello"}]}]}"#,
+        );
+        let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
+
+        let payload = prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
+            .await
+            .expect("request prepares");
+
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+        let expected_stream_options: Value =
+            lingua::serde_json::from_str(r#"{"include_usage":true}"#).expect("valid json");
+        assert_eq!(parsed.get("stream"), Some(&Value::Bool(true)));
+        assert_eq!(parsed.get("stream_options"), Some(&expected_stream_options));
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_leaves_non_streaming_google_to_chat_completions_without_stream_flag(
+    ) {
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-5-mini","contents":[{"role":"user","parts":[{"text":"hello"}]}]}"#,
+        );
+        let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
+
+        let payload = prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
+            .await
+            .expect("request prepares");
+
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+        assert_eq!(parsed.get("stream"), None);
+        assert_eq!(parsed.get("stream_options"), None);
     }
 
     fn dummy_auth() -> AuthConfig {
