@@ -696,6 +696,7 @@ mod tests {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            supported_regions: Default::default(),
         }
     }
 
@@ -716,6 +717,7 @@ mod tests {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            supported_regions: Default::default(),
         }
     }
 

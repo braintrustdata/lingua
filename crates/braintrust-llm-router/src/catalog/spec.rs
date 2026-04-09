@@ -46,6 +46,8 @@ pub struct ModelSpec {
     pub extra: serde_json::Map<String, serde_json::Value>,
     #[serde(default)]
     pub available_providers: Vec<String>,
+    #[serde(default)]
+    pub supported_regions: Vec<String>,
 }
 
 fn default_true() -> bool {
@@ -142,6 +144,7 @@ mod tests {
             supports_streaming: true,
             extra: serde_json::Map::new(),
             available_providers: vec![],
+            supported_regions: vec![],
         };
         assert!(spec.requires_responses_api());
     }
