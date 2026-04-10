@@ -645,6 +645,11 @@ pub fn parse_stop_sequences(value: &Value) -> Option<Vec<String>> {
     }
 }
 
+#[derive(Debug, Default, Deserialize)]
+pub(crate) struct UniversalMetadataUserView {
+    pub user_id: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

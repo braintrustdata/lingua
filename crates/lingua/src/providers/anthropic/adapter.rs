@@ -27,6 +27,7 @@ use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent, UserContentPart};
 use crate::universal::request::{
     ReasoningCanonical, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
+    UniversalMetadataUserView,
 };
 use crate::universal::tools::UniversalTool;
 use crate::universal::transform::extract_system_messages;
@@ -42,11 +43,6 @@ use serde::Deserialize;
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 const JSON_OBJECT_SHIM_TOOL_NAME: &str = "json";
 const JSON_OBJECT_SHIM_TOOL_DESCRIPTION: &str = "Output the result in JSON format";
-
-#[derive(Debug, Default, Deserialize)]
-struct AnthropicMetadataView {
-    user_id: Option<String>,
-}
 
 fn parse_anthropic_extras(
     extras: Option<&Map<String, Value>>,
@@ -464,7 +460,7 @@ impl ProviderAdapter for AnthropicAdapter {
             obj.insert("metadata".into(), raw_metadata.clone());
         } else if let Some(metadata) = req.params.metadata.as_ref() {
             // Anthropic metadata only supports `user_id`.
-            let metadata_view: AnthropicMetadataView =
+            let metadata_view: UniversalMetadataUserView =
                 serde_json::from_value(metadata.clone()).unwrap_or_default();
             if let Some(user_id) = metadata_view.user_id {
                 let mut anthropic_metadata = Map::new();

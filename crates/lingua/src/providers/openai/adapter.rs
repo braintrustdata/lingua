@@ -26,24 +26,20 @@ use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::Message;
 use crate::universal::reasoning::effort_to_budget;
-use crate::universal::request::{ReasoningConfig, ReasoningEffort, TokenBudget};
+use crate::universal::request::{
+    ReasoningConfig, ReasoningEffort, TokenBudget, UniversalMetadataUserView,
+};
 use crate::universal::tools::{tools_to_openai_chat_value, BuiltinToolProvider, UniversalTool};
 use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
 };
-use serde::Deserialize;
 use std::convert::TryInto;
 
 const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
 
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
-
-#[derive(Debug, Default, Deserialize)]
-struct AnthropicMetadataView {
-    user_id: Option<String>,
-}
 
 fn parse_openai_chat_extras(
     extras: Option<&Map<String, Value>>,
@@ -360,7 +356,7 @@ impl ProviderAdapter for OpenAIAdapter {
 
         // Preserve Anthropic-style user identity without inventing OpenAI store semantics.
         if let Some(metadata) = req.params.metadata.as_ref() {
-            let metadata_view: AnthropicMetadataView =
+            let metadata_view: UniversalMetadataUserView =
                 serde_json::from_value(metadata.clone()).unwrap_or_default();
             if let Some(user_id) = metadata_view.user_id {
                 obj.insert("safety_identifier".into(), Value::String(user_id));
