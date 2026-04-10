@@ -1088,6 +1088,20 @@ mod tests {
         description: Option<String>,
     }
 
+    #[derive(Debug, Deserialize)]
+    struct JsonSchemaPropertyView {
+        #[serde(rename = "type", default)]
+        schema_type: Option<String>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct JsonSchemaOrderingView {
+        #[serde(rename = "propertyOrdering", default)]
+        property_ordering: Option<Vec<String>>,
+        #[serde(default)]
+        properties: std::collections::HashMap<String, JsonSchemaPropertyView>,
+    }
+
     #[test]
     fn test_google_content_to_message_user() {
         let content = GoogleContent {
@@ -1624,5 +1638,38 @@ mod tests {
         let format = ResponseFormatConfig::from(&config);
         let json_schema = format.json_schema.expect("json schema should exist");
         assert_eq!(json_schema.name, "from_json_schema");
+    }
+
+    #[test]
+    fn test_response_format_preserves_property_ordering_from_typed_response_schema() {
+        let config = GenerationConfig {
+            response_mime_type: Some("application/json".to_string()),
+            response_schema: Box::new(Some(
+                serde_json::from_value(json!({
+                    "type": "OBJECT",
+                    "properties": {
+                        "gateway": { "type": "STRING" },
+                        "score": { "type": "INTEGER" }
+                    },
+                    "required": ["gateway", "score"],
+                    "propertyOrdering": ["gateway", "score"]
+                }))
+                .expect("schema literal should deserialize"),
+            )),
+            ..Default::default()
+        };
+
+        let format = ResponseFormatConfig::from(&config);
+        let json_schema = format.json_schema.expect("json schema should exist");
+        let schema: JsonSchemaOrderingView = serde_json::from_value(json_schema.schema)
+            .expect("json schema should deserialize into property ordering view");
+        assert_eq!(
+            schema.property_ordering,
+            Some(vec!["gateway".to_string(), "score".to_string()])
+        );
+        let gateway_type = &schema.properties["gateway"].schema_type;
+        let score_type = &schema.properties["score"].schema_type;
+        assert_eq!(gateway_type.as_deref(), Some("string"));
+        assert_eq!(score_type.as_deref(), Some("integer"));
     }
 }

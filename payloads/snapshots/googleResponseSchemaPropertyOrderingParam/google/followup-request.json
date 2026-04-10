@@ -1,0 +1,52 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Return JSON with keys gateway and score."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"gateway\": \"example_gateway\", \"score\": 100}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0,
+    "maxOutputTokens": 128,
+    "responseMimeType": "application/json",
+    "responseSchema": {
+      "type": "OBJECT",
+      "properties": {
+        "gateway": {
+          "type": "STRING"
+        },
+        "score": {
+          "type": "INTEGER"
+        }
+      },
+      "required": [
+        "gateway",
+        "score"
+      ],
+      "propertyOrdering": [
+        "gateway",
+        "score"
+      ]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here is the"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 33,
+    "candidatesTokenCount": 3,
+    "totalTokenCount": 157,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 33
+      }
+    ],
+    "thoughtsTokenCount": 121
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "0RXYafuWOpmV_uMPyO7DEQ"
+}
