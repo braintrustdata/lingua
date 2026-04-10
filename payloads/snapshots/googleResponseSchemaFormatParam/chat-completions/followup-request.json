@@ -1,0 +1,39 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Return JSON with an ISO 8601 timestamp in created_at."
+    },
+    {
+      "role": "assistant",
+      "content": "{\"created_at\":\"2026-04-10T12:34:56Z\"}",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "timestamp_response",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  }
+}

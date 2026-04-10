@@ -1,0 +1,55 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Return {\"tuple\": [\"gateway\", 7]} as JSON."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "Here is"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0,
+    "maxOutputTokens": 128,
+    "responseMimeType": "application/json",
+    "responseJsonSchema": {
+      "type": "object",
+      "properties": {
+        "tuple": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "items": {},
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "tuple"
+      ]
+    }
+  }
+}

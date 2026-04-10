@@ -1,0 +1,71 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Return {\"tuple\": [\"gateway\", 7]} as JSON."
+    },
+    {
+      "id": "rs_04766daf2ca9de4f0069d958929334819c8b2941a9e459d31b",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_04766daf2ca9de4f0069d95896c9d0819cbb8972cba1af2be1",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"tuple\": [\"gateway\", 7]}"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "tuple_response",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tuple": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "tuple"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  }
+}

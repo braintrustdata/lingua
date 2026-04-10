@@ -1,0 +1,112 @@
+{
+  "id": "resp_04766daf2ca9de4f0069d9589a0774819cb399a2c0a145ee97",
+  "object": "response",
+  "created_at": 1775851674,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775851682,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_04766daf2ca9de4f0069d9589aa884819c875d59cad7686e76",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_04766daf2ca9de4f0069d958a293c0819c943b677ac80e0cd0",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"tuple\":[\"gateway\",7]}"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "tuple_response",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tuple": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "tuple"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 96,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1176,
+    "output_tokens_details": {
+      "reasoning_tokens": 1152
+    },
+    "total_tokens": 1272
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "{\"tuple\":[\"gateway\",7]}"
+}

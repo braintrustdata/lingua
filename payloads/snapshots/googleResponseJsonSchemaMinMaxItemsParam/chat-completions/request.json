@@ -1,0 +1,33 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Return JSON with tags as an array of 2 to 3 strings."
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "tag_list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "tags"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  }
+}

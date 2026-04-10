@@ -1,0 +1,97 @@
+{
+  "id": "resp_0bebdbba8003c4d50069d916fd3490819fa45faeb714a43ff5",
+  "object": "response",
+  "created_at": 1775834877,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775834886,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0bebdbba8003c4d50069d916fd9694819fbe9a3e4b8b0d96a5",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0bebdbba8003c4d50069d917066fe4819f99f48d71677bd6ef",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"tags\":[\"climate-change\",\"coastal-areas\",\"sea-level-rise\"]}"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "tag_list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "tags"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 81,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1118,
+    "output_tokens_details": {
+      "reasoning_tokens": 1088
+    },
+    "total_tokens": 1199
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "{\"tags\":[\"climate-change\",\"coastal-areas\",\"sea-level-rise\"]}"
+}
