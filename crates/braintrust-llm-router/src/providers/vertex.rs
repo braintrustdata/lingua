@@ -16,6 +16,7 @@ use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
 
+// TODO: consider updating this to "global", where new gemini models seem to be deployed?
 const DEFAULT_LOCATION: &str = "us-central1";
 const ANTHROPIC_DEFAULT_LOCATION: &str = "us-east5";
 
@@ -112,7 +113,18 @@ impl VertexProvider {
     }
 
     fn resolve_location(&self, spec: &ModelSpec, default_location: &str) -> String {
-        // Precedence: model spec locations > secret metadata location > default.
+        // Precedence:
+        // 1. config.location if it appears in supported_regions (caller preference, valid region)
+        // 2. supported_regions[0] (first supported region when caller location isn't listed)
+        // 3. extra.locations random pick (legacy path, no supported_regions set)
+        // 4. config.location (caller preference, no model constraints)
+        // 5. hardcoded default
+        if !spec.supported_regions.is_empty() {
+            if spec.supported_regions.contains(&self.config.location) {
+                return self.config.location.clone();
+            }
+            return spec.supported_regions[0].clone();
+        }
         if let Ok(extra) = ::serde_json::from_value::<VertexModelExtra>(
             ::serde_json::Value::Object(spec.extra.clone()),
         ) {
@@ -556,7 +568,63 @@ mod tests {
     }
 
     #[test]
-    fn resolve_location_uses_spec_locations() {
+    fn resolve_location_uses_supported_regions_first() {
+        let provider = provider(); // config.location = "us-central1"
+        let spec = ModelSpec {
+            model: "publishers/google/models/gemini-3.1-pro-preview".to_string(),
+            format: ProviderFormat::Google,
+            flavor: crate::catalog::ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: ::serde_json::Map::new(),
+            available_providers: vec![],
+            supported_regions: vec!["europe-west4".to_string(), "us-central1".to_string()],
+        };
+        // config.location ("us-central1") is in supported_regions — use it.
+        assert_eq!(
+            provider.resolve_location(&spec, DEFAULT_LOCATION),
+            "us-central1"
+        );
+    }
+
+    #[test]
+    fn resolve_location_falls_back_to_first_supported_region_when_config_not_listed() {
+        let provider = provider(); // config.location = "us-central1"
+        let spec = ModelSpec {
+            model: "publishers/google/models/gemini-3.1-pro-preview".to_string(),
+            format: ProviderFormat::Google,
+            flavor: crate::catalog::ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: ::serde_json::Map::new(),
+            available_providers: vec![],
+            supported_regions: vec!["europe-west4".to_string(), "asia-east1".to_string()],
+        };
+        // config.location ("us-central1") is not in supported_regions — use first.
+        assert_eq!(
+            provider.resolve_location(&spec, DEFAULT_LOCATION),
+            "europe-west4"
+        );
+    }
+
+    #[test]
+    fn resolve_location_uses_extra_locations_when_no_supported_regions() {
         let provider = provider();
         let spec = ModelSpec {
             model: "publishers/google/models/gemini-3.1-pro-preview".to_string(),
@@ -583,6 +651,7 @@ mod tests {
                 map
             },
             available_providers: vec![],
+            supported_regions: vec![],
         };
         assert_eq!(
             provider.resolve_location(&spec, DEFAULT_LOCATION),
@@ -609,6 +678,7 @@ mod tests {
             supports_streaming: true,
             extra: ::serde_json::Map::new(),
             available_providers: vec![],
+            supported_regions: vec![],
         };
         assert_eq!(
             provider.resolve_location(&spec, DEFAULT_LOCATION),

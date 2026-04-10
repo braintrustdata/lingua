@@ -105,6 +105,7 @@ async fn router_routes_to_stub_provider() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            supported_regions: Default::default(),
         },
     );
     let catalog = Arc::new(catalog);
@@ -174,6 +175,7 @@ async fn router_requires_auth_for_provider() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            supported_regions: Default::default(),
         },
     );
     let catalog = Arc::new(catalog);
@@ -237,6 +239,7 @@ async fn router_reports_missing_provider() {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            supported_regions: Default::default(),
         },
     );
 
@@ -455,6 +458,7 @@ fn retry_model_catalog() -> Arc<ModelCatalog> {
             supports_streaming: true,
             extra: Default::default(),
             available_providers: Default::default(),
+            supported_regions: Default::default(),
         },
     );
     Arc::new(catalog)
