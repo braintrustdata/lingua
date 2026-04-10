@@ -35,6 +35,8 @@ use crate::universal::{
 use serde::Deserialize;
 use std::convert::TryInto;
 
+const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
+
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
 
@@ -263,11 +265,28 @@ impl ProviderAdapter for OpenAIAdapter {
 
         insert_opt_f64(&mut obj, "temperature", req.params.temperature);
         insert_opt_f64(&mut obj, "top_p", req.params.top_p);
-        let had_max_tokens = openai_extras_view.max_tokens.is_some();
-        let had_max_completion_tokens = openai_extras_view.max_completion_tokens.is_some();
-        let output_budget = req.params.output_token_budget();
-        if had_max_tokens && !had_max_completion_tokens {
-            insert_opt_i64(&mut obj, "max_tokens", output_budget);
+        let output_budget = req
+            .params
+            .output_token_budget()
+            .map(|tokens| tokens.max(OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS));
+        if let Some(raw_max_tokens) = openai_extras_view.max_tokens.as_ref() {
+            if openai_extras_view.max_completion_tokens.is_none() {
+                obj.insert("max_tokens".into(), raw_max_tokens.clone());
+            } else if let Some(raw_max_completion_tokens) =
+                openai_extras_view.max_completion_tokens.as_ref()
+            {
+                obj.insert(
+                    "max_completion_tokens".into(),
+                    raw_max_completion_tokens.clone(),
+                );
+            }
+        } else if let Some(raw_max_completion_tokens) =
+            openai_extras_view.max_completion_tokens.as_ref()
+        {
+            obj.insert(
+                "max_completion_tokens".into(),
+                raw_max_completion_tokens.clone(),
+            );
         } else {
             insert_opt_i64(&mut obj, "max_completion_tokens", output_budget);
         }
@@ -1375,5 +1394,85 @@ mod tests {
         assert!(error
             .to_string()
             .contains("Tool 'web_search' of type 'allowed_domains' is not supported by openai"));
+    }
+
+    #[test]
+    fn test_openai_chat_clamps_synthesized_max_completion_tokens_to_provider_minimum() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String(
+                    "Write a very long essay about the ocean.".to_string(),
+                ),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(1)),
+                ..Default::default()
+            },
+        };
+
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert_eq!(typed.max_completion_tokens, Some(16));
+    }
+
+    #[test]
+    fn test_openai_chat_preserves_synthesized_max_completion_tokens_at_or_above_minimum() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String(
+                    "Write a very long essay about the ocean.".to_string(),
+                ),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(100)),
+                ..Default::default()
+            },
+        };
+
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert_eq!(typed.max_completion_tokens, Some(100));
+    }
+
+    #[test]
+    fn test_openai_chat_preserves_raw_max_completion_tokens_from_same_provider_extras() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+        use std::collections::HashMap;
+
+        let mut extras = HashMap::new();
+        extras.insert(
+            ProviderFormat::ChatCompletions,
+            Map::from_iter([("max_completion_tokens".to_string(), Value::Number(1.into()))]),
+        );
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String(
+                    "Write a very long essay about the ocean.".to_string(),
+                ),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(100)),
+                extras,
+                ..Default::default()
+            },
+        };
+
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert_eq!(typed.max_completion_tokens, Some(1));
     }
 }

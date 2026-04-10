@@ -304,7 +304,7 @@
       "source": "Anthropic",
       "target": "ChatCompletions",
       "skip": true,
-      "reason": "Anthropic document blocks not supported in OpenAI ChatCompletions"
+      "reason": "OpenAI ChatCompletions file inputs require provider-specific payloads such as PDF data URLs, so Anthropic document blocks map lossily from universal File content"
     },
     {
       "testCase": "reasoningEffortLowParam",
@@ -619,6 +619,22 @@
       "target": "Vertex Anthropic",
       "fields": [
         { "pattern": "params.tools", "reason": "Anthropic json_object compatibility uses a synthetic json tool shim" }
+      ]
+    },
+    {
+      "testCase": "simpleRequestTruncated",
+      "source": "*",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.token_budget", "reason": "Responses clamps very small output token budgets to the provider minimum of 16" }
+      ]
+    },
+    {
+      "testCase": "simpleRequestTruncated",
+      "source": "*",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.token_budget", "reason": "Chat Completions clamps very small output token budgets to the provider minimum of 16" }
       ]
     },
     {

@@ -10,20 +10,20 @@
     "textEditorToolV2Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250429' is not supported by openai",
     "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by openai",
     "webSearchToolAdvancedParam": "Tool 'web_search' of type 'allowed_domains' is not supported by openai",
-    "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI chat completions",
-    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response",
-    "simpleRequestTruncated": "Deserialization failed: missing field `choices`"
+    "documentContentParam": "Anthropic document content is still unsupported in OpenAI Chat Completions because the provider expects provider-specific file payloads such as PDF data URLs, which universal File content cannot represent non-lossily",
+    "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
+    "metadataParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
+    "safetyIdentifierParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
+    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response"
   },
   "anthropic_to_responses": {
     "codeInterpreterToolParam": "Tool 'bash' of type 'bash_20250124' is not supported by responses",
     "textEditorToolParam": "Tool 'str_replace_editor' of type 'text_editor_20250124' is not supported by responses",
     "textEditorToolV2Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250429' is not supported by responses",
     "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by responses",
-    "documentContentParam": "Anthropic document content (File type) is not supported by OpenAI responses",
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
     "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
-    "streamParam": "Streaming response cannot be deserialized as a responses API response",
-    "simpleRequestTruncated": "OpenAI rejected: Invalid 'max_output_tokens': integer below minimum value. Expected a value >= 16, but got 1 instead."
+    "streamParam": "Streaming response cannot be deserialized as a responses API response"
   },
   "google_to_anthropic": {
     "codeInterpreterToolParam": "Tool 'code_execution' of type 'code_execution' is not supported by anthropic",
@@ -33,13 +33,11 @@
   },
   "google_to_chat-completions": {
     "codeInterpreterToolParam": "Tool 'code_execution' of type 'code_execution' is not supported by openai",
-    "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by openai",
-    "simpleRequestTruncated": "Deserialization failed: missing field `choices`"
+    "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by openai"
   },
   "google_to_responses": {
     "codeInterpreterToolParam": "Tool 'code_execution' of type 'code_execution' is not supported by responses",
     "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by responses",
-    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
-    "simpleRequestTruncated": "OpenAI rejected: Invalid 'max_output_tokens': integer below minimum value. Expected a value >= 16, but got 1 instead."
+    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model"
   }
 }

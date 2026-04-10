@@ -1,4 +1,35 @@
 {
-  "error": "400 Could not finish the message because max_tokens or model output limit was reached. Please try again with higher max_tokens.",
-  "name": "Error"
+  "id": "chatcmpl-DSQdv9o90cKC8F0EwCLt96fhviayl",
+  "object": "chat.completion",
+  "created": 1775667971,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 15,
+    "completion_tokens": 16,
+    "total_tokens": 31,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 16,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
 }

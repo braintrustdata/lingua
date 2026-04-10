@@ -140,6 +140,41 @@ pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
     }
 }
 
+pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -> Bytes {
+    let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
+        return payload;
+    };
+    let Some(object) = value.as_object_mut() else {
+        return payload;
+    };
+
+    // Only formats that opt into streaming via a request-body field should be
+    // modified here. Endpoint-selected streaming (for example Google's
+    // :streamGenerateContent path) is handled by the provider transport layer.
+    match format {
+        ProviderFormat::ChatCompletions => {
+            object.insert("stream".into(), Value::Bool(true));
+        }
+        ProviderFormat::Responses | ProviderFormat::Anthropic => {
+            // These formats use a body-level `stream` flag. Providers like
+            // Google intentionally no-op here because their streaming mode is
+            // selected by the request path rather than the JSON payload.
+            object.insert("stream".into(), Value::Bool(true));
+        }
+        ProviderFormat::Google
+        | ProviderFormat::Mistral
+        | ProviderFormat::Converse
+        | ProviderFormat::BedrockAnthropic
+        | ProviderFormat::VertexAnthropic
+        | ProviderFormat::Unknown => return payload,
+    }
+
+    match serde_json::to_vec(&value) {
+        Ok(serialized) => Bytes::from(serialized),
+        Err(_) => payload,
+    }
+}
+
 /// Provider trait for LLM API backends.
 ///
 /// Implementations should be `Send + Sync` to allow concurrent access.
@@ -257,5 +292,68 @@ mod tests {
         let sanitized = disable_streaming_payload(payload.clone());
 
         assert_eq!(sanitized, payload);
+    }
+
+    #[test]
+    fn enable_streaming_payload_sets_chat_completions_stream_fields() {
+        let payload = Bytes::from_static(br#"{"model":"gpt-5-mini","messages":[]}"#);
+
+        let updated = enable_streaming_payload(payload, ProviderFormat::ChatCompletions);
+        let value: Value = serde_json::from_slice(&updated).unwrap();
+
+        assert_eq!(value.get("stream"), Some(&Value::Bool(true)));
+        assert_eq!(value.get("stream_options"), None);
+    }
+
+    #[test]
+    fn enable_streaming_payload_preserves_existing_stream_options() {
+        let payload = Bytes::from_static(
+            br#"{"model":"gpt-5-mini","messages":[],"stream":false,"stream_options":{"include_usage":false,"foo":"bar"}}"#,
+        );
+
+        let updated = enable_streaming_payload(payload, ProviderFormat::ChatCompletions);
+        let value: Value = serde_json::from_slice(&updated).unwrap();
+
+        assert_eq!(value.get("stream"), Some(&Value::Bool(true)));
+        assert_eq!(
+            value.get("stream_options"),
+            Some(&lingua::serde_json::json!({"include_usage": false, "foo": "bar"}))
+        );
+    }
+
+    #[test]
+    fn enable_streaming_payload_sets_responses_stream_flag() {
+        let payload = Bytes::from_static(br#"{"model":"gpt-5","input":"hello"}"#);
+
+        let updated = enable_streaming_payload(payload, ProviderFormat::Responses);
+        let value: Value = serde_json::from_slice(&updated).unwrap();
+
+        assert_eq!(value.get("stream"), Some(&Value::Bool(true)));
+    }
+
+    #[test]
+    fn enable_streaming_payload_sets_anthropic_stream_flag() {
+        let payload = Bytes::from_static(
+            br#"{"model":"claude-haiku-4-5","messages":[{"role":"user","content":"hi"}]}"#,
+        );
+
+        let updated = enable_streaming_payload(payload, ProviderFormat::Anthropic);
+        let value: Value = serde_json::from_slice(&updated).unwrap();
+
+        assert_eq!(value.get("stream"), Some(&Value::Bool(true)));
+    }
+
+    #[test]
+    fn enable_streaming_payload_leaves_google_payload_unchanged_for_path_based_streaming() {
+        let payload = Bytes::from_static(
+            br#"{"contents":[{"role":"user","parts":[{"text":"hello"}]}],"generationConfig":{"temperature":0}}"#,
+        );
+
+        let updated = enable_streaming_payload(payload.clone(), ProviderFormat::Google);
+
+        assert_eq!(
+            updated, payload,
+            "google streaming is selected by the provider path, not the payload body"
+        );
     }
 }

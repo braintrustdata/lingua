@@ -991,7 +991,7 @@ exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
 
 exports[`anthropic → chat-completions > simpleRequestTruncated > request 1`] = `
 {
-  "max_completion_tokens": 1,
+  "max_completion_tokens": 16,
   "messages": [
     {
       "content": "Write a very long essay about the ocean.",
@@ -999,6 +999,27 @@ exports[`anthropic → chat-completions > simpleRequestTruncated > request 1`] =
     },
   ],
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > simpleRequestTruncated > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DSQdv9o90cKC8F0EwCLt96fhviayl",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 15,
+    "output_tokens": 16,
+  },
 }
 `;
 
@@ -4343,6 +4364,62 @@ Rarest digits: 6, 7, 8, and 9, each 264 times, which is 264/5760 = 11/240 ≈ 4.
 }
 `;
 
+exports[`anthropic → responses > documentContentParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "file_data": "data:text/plain;base64,U2FtcGxlIHRleHQu",
+          "filename": "Doc",
+          "type": "input_file",
+        },
+        {
+          "text": "Summarize.",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > documentContentParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "I don’t see any text to summarize—just the phrase “Sample text.” Please paste the actual text you want summarized.
+
+If you’d like, I can provide:
+- 1-sentence summary
+- 3–5 bullet-point summary of key ideas
+- short executive summary (a paragraph)
+- longer, detailed summary
+
+Tell me the desired length and audience (e.g., plain language for a general audience, or professional for colleagues). Also note if you want a neutral, critical, or persuasive tone.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_09779c10f3acf5c00069d67cca07f88196a5888a78debbf996",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 17,
+    "output_tokens": 584,
+  },
+}
+`;
+
 exports[`anthropic → responses > imageContentParam > request 1`] = `
 {
   "input": [
@@ -5268,8 +5345,29 @@ exports[`anthropic → responses > simpleRequestTruncated > request 1`] = `
       "role": "user",
     },
   ],
-  "max_output_tokens": 1,
+  "max_output_tokens": 16,
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > simpleRequestTruncated > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+  ],
+  "id": "msg_0ec4c4372f23a75e0069d67d8b1590819d8b15e6bcf2b81b4f",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 15,
+    "output_tokens": 0,
+  },
 }
 `;
 
@@ -7449,7 +7547,7 @@ exports[`chat-completions → anthropic > simpleRequestTruncated > response 1`] 
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01RPssM6iLPaEsv3XtZE3Uuu",
+  "id": "chatcmpl-01Y8VgL6Sj6k1xcQC2ZTW4bn",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -13086,7 +13184,7 @@ exports[`google → chat-completions > simpleRequest > response 1`] = `
 
 exports[`google → chat-completions > simpleRequestTruncated > request 1`] = `
 {
-  "max_completion_tokens": 1,
+  "max_completion_tokens": 16,
   "messages": [
     {
       "content": "Write a very long essay about the ocean.",
@@ -13094,6 +13192,33 @@ exports[`google → chat-completions > simpleRequestTruncated > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > simpleRequestTruncated > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 15,
+    "thoughtsTokenCount": 16,
+    "totalTokenCount": 31,
+  },
 }
 `;
 
@@ -15007,8 +15132,35 @@ exports[`google → responses > simpleRequestTruncated > request 1`] = `
       "role": "user",
     },
   ],
-  "max_output_tokens": 1,
+  "max_output_tokens": 16,
   "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > simpleRequestTruncated > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 15,
+    "totalTokenCount": 15,
+  },
 }
 `;
 
@@ -18009,7 +18161,7 @@ exports[`responses → anthropic > simpleRequestTruncated > request 1`] = `
 exports[`responses → anthropic > simpleRequestTruncated > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01REYmqzNs2TtvsJhjED1FZD",
+  "id": "resp_01BRJ6TP5EhJNK8kghTbqmZc",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
