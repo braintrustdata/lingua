@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01SZWBqWjgaARJtgBPVwAnmT",
+      "id": "msg_014qV2eT8ezpqCZde67Uft1G",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -11,7 +11,7 @@
       "stop_sequence": null,
       "stop_details": null,
       "usage": {
-        "input_tokens": 10,
+        "input_tokens": 23,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
@@ -37,7 +37,39 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "ok"
+      "text": "That"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " depends on what you're trying to accomplish! Since you just asked me to say"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " \"ok\" without much context, I don't know what your goal"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " is.\n\nCould you tell me:\n- What are you working on?\n- What do you need help with?\n- What would you like to do or"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " learn about?\n\nThen I can give you more specific guidance on what to do next."
     }
   },
   {
@@ -52,10 +84,10 @@
       "stop_details": null
     },
     "usage": {
-      "input_tokens": 10,
+      "input_tokens": 23,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 4
+      "output_tokens": 86
     }
   },
   {

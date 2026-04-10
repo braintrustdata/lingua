@@ -272,10 +272,29 @@ exports[`anthropic → chat-completions > metadataParam > request 1`] = `
       "role": "user",
     },
   ],
-  "metadata": {
-    "user_id": "user-12345",
-  },
   "model": "gpt-5-nano",
+  "safety_identifier": "user-12345",
+}
+`;
+
+exports[`anthropic → chat-completions > metadataParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "ok",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DSRIPMXrPIE4MaiNHElyAgGmtlUzU",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 330,
+  },
 }
 `;
 
@@ -875,16 +894,35 @@ exports[`anthropic → chat-completions > safetyIdentifierParam > request 1`] = 
       "role": "user",
     },
   ],
-  "metadata": {
-    "user_id": "hashed-user-id-abc123",
-  },
   "model": "gpt-5-nano",
+  "safety_identifier": "hashed-user-id-abc123",
+}
+`;
+
+exports[`anthropic → chat-completions > safetyIdentifierParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Ok. What would you like to do next?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DSSFOruFlMk9a0jJQ8Wn6NREln8fN",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 275,
+  },
 }
 `;
 
 exports[`anthropic → chat-completions > serviceTierParam > request 1`] = `
 {
-  "max_tokens": 1024,
+  "max_completion_tokens": 1024,
   "messages": [
     {
       "content": "Say ok.",
@@ -893,6 +931,27 @@ exports[`anthropic → chat-completions > serviceTierParam > request 1`] = `
   ],
   "model": "gpt-5-nano",
   "service_tier": "auto",
+}
+`;
+
+exports[`anthropic → chat-completions > serviceTierParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Ok.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DSRIL8NyQN0ykoMYBi1zJk2XOHMbK",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 139,
+  },
 }
 `;
 
@@ -2945,7 +3004,7 @@ exports[`anthropic → google > safetyIdentifierParam > response 1`] = `
 {
   "content": [
     {
-      "text": "ok.",
+      "text": "Ok.",
       "type": "text",
     },
   ],
@@ -2956,7 +3015,7 @@ exports[`anthropic → google > safetyIdentifierParam > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 4,
-    "output_tokens": 19,
+    "output_tokens": 35,
   },
 }
 `;
@@ -5184,11 +5243,11 @@ exports[`anthropic → responses > safetyIdentifierParam > response 1`] = `
       "type": "thinking",
     },
     {
-      "text": "Ok.",
+      "text": "ok.",
       "type": "text",
     },
   ],
-  "id": "msg_054aa70856b954a40069cbea8dbf5c8195b2a08fd9abe45803",
+  "id": "msg_0de1a66190aa425a0069d6a31ef3c0819c82eacc5140800582",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -5196,7 +5255,7 @@ exports[`anthropic → responses > safetyIdentifierParam > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
-    "output_tokens": 232,
+    "output_tokens": 171,
   },
 }
 `;
@@ -7294,6 +7353,9 @@ exports[`chat-completions → anthropic > safetyIdentifierParam > request 1`] = 
       "role": "user",
     },
   ],
+  "metadata": {
+    "user_id": "hashed-user-id-abc123",
+  },
   "model": "claude-sonnet-4-5-20250929",
 }
 `;
@@ -7306,22 +7368,22 @@ exports[`chat-completions → anthropic > safetyIdentifierParam > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "ok.",
+        "content": "ok",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01HHBdiCDMUqRmMNQSnYjFd4",
-  "model": "claude-sonnet-4-20250514",
+  "id": "chatcmpl-014A5z9eokdm1MdPPQUpB1ME",
+  "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 5,
+    "completion_tokens": 4,
     "prompt_tokens": 10,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 15,
+    "total_tokens": 14,
   },
 }
 `;
@@ -18097,6 +18159,9 @@ exports[`responses → anthropic > safetyIdentifierParam > request 1`] = `
       "role": "user",
     },
   ],
+  "metadata": {
+    "user_id": "test-user",
+  },
   "model": "claude-sonnet-4-5-20250929",
 }
 `;
@@ -18104,7 +18169,7 @@ exports[`responses → anthropic > safetyIdentifierParam > request 1`] = `
 exports[`responses → anthropic > safetyIdentifierParam > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01HcfFr8DmkYdkqztHNUnXS2",
+  "id": "resp_01Eazdt3HG6Du4B86PHF272g",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
@@ -20629,11 +20694,11 @@ exports[`responses → google > safetyIdentifierParam > response 1`] = `
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 32,
+    "output_tokens": 348,
     "output_tokens_details": {
-      "reasoning_tokens": 22,
+      "reasoning_tokens": 338,
     },
-    "total_tokens": 34,
+    "total_tokens": 350,
   },
 }
 `;

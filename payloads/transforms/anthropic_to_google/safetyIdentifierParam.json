@@ -4,7 +4,7 @@
       "content": {
         "parts": [
           {
-            "text": "ok."
+            "text": "Ok."
           }
         ],
         "role": "model"
@@ -16,15 +16,15 @@
   "usageMetadata": {
     "promptTokenCount": 4,
     "candidatesTokenCount": 2,
-    "totalTokenCount": 23,
+    "totalTokenCount": 39,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 4
       }
     ],
-    "thoughtsTokenCount": 17
+    "thoughtsTokenCount": 33
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "CO3Labq4HaGV_uMPtKnXqQc"
+  "responseId": "IqPWafLtD7aX_uMP96rw0Q8"
 }
