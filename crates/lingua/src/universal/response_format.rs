@@ -38,6 +38,7 @@ use crate::providers::anthropic::generated::JsonOutputFormat;
 use crate::providers::google::generated::GenerationConfig;
 use crate::serde_json::{self, json, Map, Value};
 use crate::universal::request::{JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType};
+use serde::{Deserialize, Serialize};
 
 // =============================================================================
 // TryFrom Implementation for FROM Conversions
@@ -89,6 +90,31 @@ impl ResponseFormatConfig {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+enum AdditionalPropertiesNormalizationView {
+    Bool(bool),
+    Other(Value),
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+struct StrictTargetSchemaNodeView {
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    schema_type: Option<String>,
+    #[serde(
+        rename = "additionalProperties",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    additional_properties: Option<AdditionalPropertiesNormalizationView>,
+    #[serde(
+        rename = "propertyOrdering",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    property_ordering: Option<Vec<String>>,
+}
+
 pub(crate) fn normalize_response_schema_for_strict_target(
     schema: &Value,
     target_provider: ProviderFormat,
@@ -97,58 +123,60 @@ pub(crate) fn normalize_response_schema_for_strict_target(
         value: &mut Value,
         target_provider: ProviderFormat,
     ) -> Result<(), ConvertError> {
-        match value {
-            Value::Object(map) => {
-                let is_object_schema = matches!(
-                    map.get_mut("type"),
-                    Some(Value::String(schema_type)) if schema_type == "object"
-                );
+        let node: StrictTargetSchemaNodeView =
+            serde_json::from_value(value.clone()).map_err(|e| {
+                ConvertError::InvalidResponseSchema {
+                    target_provider,
+                    reason: format!(
+                        "response schema could not be deserialized for normalization: {e}"
+                    ),
+                }
+            })?;
 
-                if is_object_schema {
-                    match map.get_mut("additionalProperties") {
-                        None => {
-                            map.insert("additionalProperties".into(), Value::Bool(false));
-                        }
-                        Some(Value::Bool(true)) => {
-                            return Err(ConvertError::InvalidResponseSchema {
-                                target_provider,
-                                reason:
-                                    "object schema explicitly sets 'additionalProperties: true'"
-                                        .to_string(),
-                            });
-                        }
-                        Some(Value::Bool(false)) => {}
-                        Some(_) => {
-                            return Err(ConvertError::InvalidResponseSchema {
-                                target_provider,
-                                reason: "object schema uses unsupported non-boolean 'additionalProperties'".to_string(),
-                            });
-                        }
-                    }
+        if let Value::Object(map) = value {
+            if node.schema_type.as_deref() == Some("object") {
+                if target_provider != ProviderFormat::Google {
+                    map.remove("propertyOrdering");
                 }
 
-                if let Some(Value::Object(properties)) = map.get_mut("properties") {
-                    for prop_schema in properties.values_mut() {
-                        normalize_node(prop_schema, target_provider)?;
+                match node.additional_properties {
+                    None => {
+                        map.insert("additionalProperties".into(), Value::Bool(false));
                     }
-                }
-                if let Some(items) = map.get_mut("items") {
-                    normalize_node(items, target_provider)?;
-                }
-                for key in ["anyOf", "oneOf", "allOf", "prefixItems"] {
-                    if let Some(Value::Array(items)) = map.get_mut(key) {
-                        for item in items {
-                            normalize_node(item, target_provider)?;
-                        }
+                    Some(AdditionalPropertiesNormalizationView::Bool(true)) => {
+                        return Err(ConvertError::InvalidResponseSchema {
+                            target_provider,
+                            reason: "object schema explicitly sets 'additionalProperties: true'"
+                                .to_string(),
+                        });
+                    }
+                    Some(AdditionalPropertiesNormalizationView::Bool(false)) => {}
+                    Some(AdditionalPropertiesNormalizationView::Other(_)) => {
+                        return Err(ConvertError::InvalidResponseSchema {
+                            target_provider,
+                            reason:
+                                "object schema uses unsupported non-boolean 'additionalProperties'"
+                                    .to_string(),
+                        });
                     }
                 }
             }
-            Value::Array(items) => {
-                for item in items {
-                    normalize_node(item, target_provider)?;
+
+            if let Some(Value::Object(properties)) = map.get_mut("properties") {
+                for prop_schema in properties.values_mut() {
+                    normalize_node(prop_schema, target_provider)?;
                 }
             }
-            _ => {}
+            if let Some(items) = map.get_mut("items") {
+                normalize_node(items, target_provider)?;
+            }
+            for key in ["anyOf", "oneOf", "allOf", "prefixItems"] {
+                if let Some(Value::Array(items)) = map.get_mut(key) {
+                    for item in items {
+                        normalize_node(item, target_provider)?;
+                    }
+                }
+            }
         }
 
         Ok(())
@@ -614,6 +642,89 @@ mod tests {
                 .remove("outer")
                 .and_then(|outer| outer.additional_properties),
             Some(false)
+        );
+    }
+
+    #[test]
+    fn test_strict_target_strips_google_property_ordering_recursively() {
+        let schema = json!({
+            "type": "object",
+            "propertyOrdering": ["outer"],
+            "properties": {
+                "outer": {
+                    "type": "object",
+                    "propertyOrdering": ["inner"],
+                    "properties": {
+                        "inner": { "type": "string" }
+                    }
+                }
+            }
+        });
+
+        for provider in [
+            ProviderFormat::Anthropic,
+            ProviderFormat::ChatCompletions,
+            ProviderFormat::Responses,
+        ] {
+            let normalized =
+                normalize_response_schema_for_strict_target(&schema, provider).unwrap();
+            assert_eq!(
+                normalized.pointer("/propertyOrdering"),
+                None,
+                "root propertyOrdering should be stripped for {provider:?}"
+            );
+            assert_eq!(
+                normalized.pointer("/properties/outer/propertyOrdering"),
+                None,
+                "nested propertyOrdering should be stripped for {provider:?}"
+            );
+            assert_eq!(
+                normalized.pointer("/additionalProperties"),
+                Some(&Value::Bool(false)),
+                "root additionalProperties should be normalized for {provider:?}"
+            );
+            assert_eq!(
+                normalized.pointer("/properties/outer/additionalProperties"),
+                Some(&Value::Bool(false)),
+                "nested additionalProperties should be normalized for {provider:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_google_strict_target_preserves_property_ordering() {
+        let schema = json!({
+            "type": "object",
+            "propertyOrdering": ["outer"],
+            "properties": {
+                "outer": {
+                    "type": "object",
+                    "propertyOrdering": ["inner"],
+                    "properties": {
+                        "inner": { "type": "string" }
+                    }
+                }
+            }
+        });
+
+        let normalized =
+            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Google).unwrap();
+
+        assert_eq!(
+            normalized.pointer("/propertyOrdering"),
+            Some(&json!(["outer"]))
+        );
+        assert_eq!(
+            normalized.pointer("/properties/outer/propertyOrdering"),
+            Some(&json!(["inner"]))
+        );
+        assert_eq!(
+            normalized.pointer("/additionalProperties"),
+            Some(&Value::Bool(false))
+        );
+        assert_eq!(
+            normalized.pointer("/properties/outer/additionalProperties"),
+            Some(&Value::Bool(false))
         );
     }
 

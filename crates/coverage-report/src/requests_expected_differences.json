@@ -371,6 +371,24 @@
       ]
     },
     {
+      "testCase": "googleResponseSchemaPropertyOrderingParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" },
+        { "pattern": "params.response_format.json_schema.schema.propertyOrdering", "reason": "Google propertyOrdering is a Google-only schema hint and is stripped for non-Google strict-schema targets" }
+      ]
+    },
+    {
+      "testCase": "googleResponseSchemaPropertyOrderingParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" },
+        { "pattern": "params.response_format.json_schema.schema.propertyOrdering", "reason": "Google propertyOrdering is a Google-only schema hint and is stripped for non-Google strict-schema targets" }
+      ]
+    },
+    {
       "testCase": "thinkingLevelParam",
       "source": "Google",
       "target": "ChatCompletions",

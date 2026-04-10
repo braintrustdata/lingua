@@ -10539,6 +10539,67 @@ Each digit 0-9 appears 6 times per hour (once in each group of 10 minutes)
 }
 `;
 
+exports[`google → anthropic > googleResponseSchemaPropertyOrderingParam > request 1`] = `
+{
+  "max_tokens": 128,
+  "messages": [
+    {
+      "content": "Return JSON with keys gateway and score.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "gateway": {
+            "type": "string",
+          },
+          "score": {
+            "type": "integer",
+          },
+        },
+        "required": [
+          "gateway",
+          "score",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+  "temperature": 0,
+}
+`;
+
+exports[`google → anthropic > googleResponseSchemaPropertyOrderingParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"gateway": "example", "score": 0}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 15,
+    "promptTokenCount": 178,
+    "totalTokenCount": 193,
+  },
+}
+`;
+
 exports[`google → anthropic > imageConfigParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -12475,6 +12536,68 @@ Summary:
 }
 `;
 
+exports[`google → chat-completions > googleResponseSchemaPropertyOrderingParam > request 1`] = `
+{
+  "max_completion_tokens": 128,
+  "messages": [
+    {
+      "content": "Return JSON with keys gateway and score.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "gateway": {
+            "type": "string",
+          },
+          "score": {
+            "type": "integer",
+          },
+        },
+        "required": [
+          "gateway",
+          "score",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`google → chat-completions > googleResponseSchemaPropertyOrderingParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 46,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 174,
+  },
+}
+`;
+
 exports[`google → chat-completions > imageConfigParam > request 1`] = `
 {
   "messages": [
@@ -14264,6 +14387,69 @@ So:
     "promptTokenCount": 74,
     "thoughtsTokenCount": 3392,
     "totalTokenCount": 4075,
+  },
+}
+`;
+
+exports[`google → responses > googleResponseSchemaPropertyOrderingParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with keys gateway and score.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 128,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "gateway": {
+            "type": "string",
+          },
+          "score": {
+            "type": "integer",
+          },
+        },
+        "required": [
+          "gateway",
+          "score",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → responses > googleResponseSchemaPropertyOrderingParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 42,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 170,
   },
 }
 `;

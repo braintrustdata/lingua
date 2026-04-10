@@ -278,6 +278,35 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  googleResponseSchemaPropertyOrderingParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Return JSON with keys gateway and score." }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 128,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            gateway: { type: Type.STRING },
+            score: { type: Type.INTEGER },
+          },
+          required: ["gateway", "score"],
+          propertyOrdering: ["gateway", "score"],
+        },
+      },
+    },
+    bedrock: null,
+  },
+
   textFormatTextParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
