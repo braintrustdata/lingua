@@ -16,8 +16,8 @@ use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
 
-const DEFAULT_LOCATION: &str = "us-central1";
-const ANTHROPIC_DEFAULT_LOCATION: &str = "us-east5";
+// Newer models all support global location, so we default to that.
+const DEFAULT_LOCATION: &str = "global";
 
 #[derive(Debug, Clone)]
 pub struct VertexConfig {
@@ -64,7 +64,7 @@ impl VertexProvider {
     ///
     /// Extracts Vertex-specific options from metadata:
     /// - `project`: GCP project ID (required)
-    /// - `location`: GCP region (defaults to us-central1)
+    /// - `location`: GCP region (defaults to global; empty or whitespace-only values are ignored)
     /// - `api_base`: Custom API base URL (optional)
     pub fn from_config(
         endpoint: Option<&Url>,
@@ -111,7 +111,7 @@ impl VertexProvider {
         Self::new(config)
     }
 
-    fn resolve_location(&self, spec: &ModelSpec, default_location: &str) -> String {
+    fn resolve_location(&self, spec: &ModelSpec) -> String {
         // Precedence: model spec locations > secret metadata location > default.
         if let Ok(extra) = ::serde_json::from_value::<VertexModelExtra>(
             ::serde_json::Value::Object(spec.extra.clone()),
@@ -124,7 +124,7 @@ impl VertexProvider {
         if !self.config.location.is_empty() {
             return self.config.location.clone();
         }
-        default_location.to_string()
+        DEFAULT_LOCATION.to_string()
     }
 
     fn base_url(&self, location: &str) -> Result<Url> {
@@ -139,13 +139,6 @@ impl VertexProvider {
         };
         Url::parse(&url_str)
             .map_err(|e| Error::InvalidRequest(format!("Invalid Vertex endpoint URL: {e}")))
-    }
-
-    fn default_location_for_mode(mode: &VertexMode) -> &'static str {
-        match mode {
-            VertexMode::Anthropic { .. } => ANTHROPIC_DEFAULT_LOCATION,
-            _ => DEFAULT_LOCATION,
-        }
     }
 
     fn determine_mode(&self, model: &str) -> VertexMode {
@@ -241,7 +234,7 @@ impl crate::providers::Provider for VertexProvider {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let mode = self.determine_mode(&spec.model);
-        let location = self.resolve_location(spec, Self::default_location_for_mode(&mode));
+        let location = self.resolve_location(spec);
         let base_url = self.base_url(&location)?;
         let url = self.endpoint_for_mode(&mode, &base_url, &location, false)?;
 
@@ -297,7 +290,7 @@ impl crate::providers::Provider for VertexProvider {
         }
 
         let mode = self.determine_mode(&spec.model);
-        let location = self.resolve_location(spec, Self::default_location_for_mode(&mode));
+        let location = self.resolve_location(spec);
         let base_url = self.base_url(&location)?;
         let url = self.endpoint_for_mode(&mode, &base_url, &location, true)?;
 
@@ -584,10 +577,7 @@ mod tests {
             },
             available_providers: vec![],
         };
-        assert_eq!(
-            provider.resolve_location(&spec, DEFAULT_LOCATION),
-            "europe-west4"
-        );
+        assert_eq!(provider.resolve_location(&spec), "europe-west4");
     }
 
     #[test]
@@ -610,10 +600,7 @@ mod tests {
             extra: ::serde_json::Map::new(),
             available_providers: vec![],
         };
-        assert_eq!(
-            provider.resolve_location(&spec, DEFAULT_LOCATION),
-            "us-central1"
-        );
+        assert_eq!(provider.resolve_location(&spec), "us-central1");
     }
 
     #[test]
@@ -677,6 +664,6 @@ mod tests {
         metadata.insert("location".into(), Value::String("  ".into()));
 
         let provider = VertexProvider::from_config(None, None, &metadata).unwrap();
-        assert_eq!(provider.config.location, "us-central1");
+        assert_eq!(provider.config.location, "global");
     }
 }
