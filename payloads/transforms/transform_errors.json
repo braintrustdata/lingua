@@ -12,8 +12,6 @@
     "webSearchToolAdvancedParam": "Tool 'web_search' of type 'allowed_domains' is not supported by openai",
     "documentContentParam": "Anthropic document content is still unsupported in OpenAI Chat Completions because the provider expects provider-specific file payloads such as PDF data URLs, which universal File content cannot represent non-lossily",
     "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
-    "metadataParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
-    "safetyIdentifierParam": "OpenAI rejected: 'metadata' parameter is only allowed when 'store' is enabled",
     "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response"
   },
   "anthropic_to_responses": {
