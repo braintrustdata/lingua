@@ -1,0 +1,97 @@
+{
+  "id": "resp_0bebdbba8003c4d50069d916f83170819f92476bc41ff66dbf",
+  "object": "response",
+  "created_at": 1775834872,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1775834876,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0bebdbba8003c4d50069d916f89188819fb1e4d7644a0feaba",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0bebdbba8003c4d50069d916fc9c9c819fb021dbe947af3079",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"tags\":[\"tag1\",\"tag2\",\"tag3\"]}"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "tag_list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "tags"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 49,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 556,
+    "output_tokens_details": {
+      "reasoning_tokens": 512
+    },
+    "total_tokens": 605
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "{\"tags\":[\"tag1\",\"tag2\",\"tag3\"]}"
+}

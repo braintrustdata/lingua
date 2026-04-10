@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Here is the JSON requested:"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 24,
+      "candidatesTokenCount": 6,
+      "totalTokenCount": 148,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 24
+        }
+      ],
+      "thoughtsTokenCount": 118
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "-RbZadLEAeHVjMcPpundGQ"
+  }
+]

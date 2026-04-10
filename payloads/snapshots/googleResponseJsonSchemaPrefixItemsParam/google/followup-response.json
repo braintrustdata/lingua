@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\"tuple\": [\"gateway\", 7]}"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 24,
+    "candidatesTokenCount": 9,
+    "totalTokenCount": 127,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 24
+      }
+    ],
+    "thoughtsTokenCount": 94
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "-RbZaZ6NAeHVjMcPpundGQ"
+}

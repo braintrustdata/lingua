@@ -1381,6 +1381,11 @@ impl TryFrom<&ResponseFormatConfig> for JsonOutputFormat {
                         field: "json_schema".to_string(),
                     }
                 })?;
+                // Anthropic's structured-output schema subset is narrower than the
+                // cross-provider JSON-schema surface. We intentionally drop
+                // unsupported array/numeric constraints and tuple-position hints
+                // here as a lossy compatibility fallback when targeting
+                // Anthropic output_config.format.
                 match normalize_response_schema_for_strict_target(
                     &js.schema,
                     ProviderFormat::Anthropic,

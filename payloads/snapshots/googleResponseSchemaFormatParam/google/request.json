@@ -1,0 +1,29 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Return JSON with an ISO 8601 timestamp in created_at."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0,
+    "maxOutputTokens": 128,
+    "responseMimeType": "application/json",
+    "responseJsonSchema": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "created_at"
+      ]
+    }
+  }
+}
