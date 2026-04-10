@@ -8,6 +8,12 @@ use crate::providers::google::generated as google;
 use crate::providers::openai::generated as openai;
 use crate::providers::openai::ChatCompletionRequestMessageExt;
 use crate::universal::{convert::TryFromLLM, Message};
+use crate::wasm_serialize;
+
+fn serialize_to_js<T: Serialize + ?Sized>(value: &T, context: &str) -> Result<JsValue, JsValue> {
+    wasm_serialize::to_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to serialize {context}: {e}")))
+}
 
 fn convert_to_lingua<T, U>(value: JsValue) -> Result<JsValue, JsValue>
 where
@@ -24,8 +30,7 @@ where
         .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
 
     // Convert back to JS value
-    serde_wasm_bindgen::to_value(&lingua_msg)
-        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+    serialize_to_js(&lingua_msg, "result")
 }
 
 fn convert_from_lingua<T, U>(value: JsValue) -> Result<JsValue, JsValue>
@@ -43,8 +48,7 @@ where
         .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
 
     // Convert back to JS value
-    serde_wasm_bindgen::to_value(&provider_msg)
-        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+    serialize_to_js(&provider_msg, "result")
 }
 
 fn transform_result_to_js(
@@ -176,8 +180,7 @@ pub fn deduplicate_messages(value: JsValue) -> Result<JsValue, JsValue> {
     let deduplicated = dedup(messages);
 
     // Convert back to JS value
-    serde_wasm_bindgen::to_value(&deduplicated)
-        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+    serialize_to_js(&deduplicated, "result")
 }
 
 /// Import messages from spans
@@ -193,8 +196,7 @@ pub fn import_messages_from_spans(value: JsValue) -> Result<JsValue, JsValue> {
     let messages = import(spans);
 
     // Convert back to JS value
-    serde_wasm_bindgen::to_value(&messages)
-        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+    serialize_to_js(&messages, "messages")
 }
 
 /// Import and deduplicate messages from spans in a single operation
@@ -210,8 +212,7 @@ pub fn import_and_deduplicate_messages(value: JsValue) -> Result<JsValue, JsValu
     let messages = import_dedup(spans);
 
     // Convert back to JS value
-    serde_wasm_bindgen::to_value(&messages)
-        .map_err(|e| JsValue::from_str(&format!("Failed to serialize result: {}", e)))
+    serialize_to_js(&messages, "messages")
 }
 
 // ============================================================================
@@ -223,9 +224,8 @@ pub fn import_and_deduplicate_messages(value: JsValue) -> Result<JsValue, JsValu
 #[cfg(feature = "openai")]
 pub fn validate_chat_completions_request(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::openai::validate_chat_completions_request as validate;
-    validate(json)
-        .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let request = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&request, "validated chat completions request")
 }
 
 /// Validate a JSON string as a Chat Completions response
@@ -233,9 +233,8 @@ pub fn validate_chat_completions_request(json: &str) -> Result<JsValue, JsValue>
 #[cfg(feature = "openai")]
 pub fn validate_chat_completions_response(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::openai::validate_chat_completions_response as validate;
-    validate(json)
-        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let response = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&response, "validated chat completions response")
 }
 
 /// Validate a JSON string as a Chat Completions stream chunk
@@ -243,9 +242,8 @@ pub fn validate_chat_completions_response(json: &str) -> Result<JsValue, JsValue
 #[cfg(feature = "openai")]
 pub fn validate_chat_completions_stream_chunk(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::openai::validate_chat_completions_stream_chunk as validate;
-    validate(json)
-        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let chunk = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&chunk, "validated chat completions stream chunk")
 }
 
 /// Validate a JSON string as a Responses API request
@@ -253,9 +251,8 @@ pub fn validate_chat_completions_stream_chunk(json: &str) -> Result<JsValue, JsV
 #[cfg(feature = "openai")]
 pub fn validate_responses_request(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::openai::validate_responses_request as validate;
-    validate(json)
-        .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let request = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&request, "validated responses request")
 }
 
 /// Validate a JSON string as a Responses API response
@@ -263,9 +260,8 @@ pub fn validate_responses_request(json: &str) -> Result<JsValue, JsValue> {
 #[cfg(feature = "openai")]
 pub fn validate_responses_response(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::openai::validate_responses_response as validate;
-    validate(json)
-        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let response = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&response, "validated responses response")
 }
 
 /// Validate a JSON string as an OpenAI request
@@ -289,9 +285,8 @@ pub fn validate_openai_response(json: &str) -> Result<JsValue, JsValue> {
 #[cfg(feature = "anthropic")]
 pub fn validate_anthropic_request(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::anthropic::validate_anthropic_request as validate;
-    validate(json)
-        .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let request = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&request, "validated anthropic request")
 }
 
 /// Validate a JSON string as an Anthropic response
@@ -299,9 +294,8 @@ pub fn validate_anthropic_request(json: &str) -> Result<JsValue, JsValue> {
 #[cfg(feature = "anthropic")]
 pub fn validate_anthropic_response(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::anthropic::validate_anthropic_response as validate;
-    validate(json)
-        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let response = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&response, "validated anthropic response")
 }
 
 /// Validate a JSON string as a Bedrock request
@@ -309,9 +303,8 @@ pub fn validate_anthropic_response(json: &str) -> Result<JsValue, JsValue> {
 #[cfg(feature = "bedrock")]
 pub fn validate_bedrock_request(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::bedrock::validate_bedrock_request as validate;
-    validate(json)
-        .map(|req| serde_wasm_bindgen::to_value(&req).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let request = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&request, "validated bedrock request")
 }
 
 /// Validate a JSON string as a Bedrock response
@@ -319,9 +312,8 @@ pub fn validate_bedrock_request(json: &str) -> Result<JsValue, JsValue> {
 #[cfg(feature = "bedrock")]
 pub fn validate_bedrock_response(json: &str) -> Result<JsValue, JsValue> {
     use crate::validation::bedrock::validate_bedrock_response as validate;
-    validate(json)
-        .map(|res| serde_wasm_bindgen::to_value(&res).unwrap())
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+    let response = validate(json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serialize_to_js(&response, "validated bedrock response")
 }
 
 /// Validate a JSON string as a Google GenerateContent request

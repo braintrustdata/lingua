@@ -94,6 +94,91 @@ describe("Node.js exports", () => {
     expect(messages.length).toBe(5);
   });
 
+  test("should return plain numeric arrays for imported anthropic tool_use arguments", async () => {
+    const { importMessagesFromSpans } = await import("../src/index");
+
+    const messages = importMessagesFromSpans([
+      {
+        input: [
+          {
+            role: "assistant",
+            content: [
+              {
+                type: "tool_use",
+                id: "toolu_123",
+                name: "subagent--provide_builder_input",
+                input: {
+                  input: [0, 1],
+                  message:
+                    "Please implement both photo uploads for sightings and the interactive map view.",
+                  project_id: "project_123",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    expect(messages).toEqual([
+      {
+        role: "assistant",
+        id: null,
+        content: [
+          {
+            type: "tool_call",
+            tool_call_id: "toolu_123",
+            tool_name: "subagent--provide_builder_input",
+            arguments: {
+              type: "valid",
+              value: {
+                input: [0, 1],
+                message:
+                  "Please implement both photo uploads for sightings and the interactive map view.",
+                project_id: "project_123",
+              },
+            },
+          },
+        ],
+      },
+    ]);
+    expect(JSON.stringify(messages)).not.toContain("$serde_json::private::Number");
+  });
+
+  test("should return bigint values for imported integers outside JS safe range", async () => {
+    const { importMessagesFromSpans } = await import("../src/index");
+
+    const messages = importMessagesFromSpans([
+      {
+        input: [
+          {
+            role: "assistant",
+            content: [
+              {
+                type: "tool_use",
+                id: "toolu_123",
+                name: "subagent--provide_builder_input",
+                input: {
+                  input: [9007199254740993n],
+                  message: "Preserve bigint tool arguments.",
+                  project_id: "project_123",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const value = (
+      messages[0].content[0].arguments.type === "valid" &&
+      messages[0].content[0].arguments.value.input[0]
+    );
+
+    expect(typeof value).toBe("bigint");
+    expect(value).toBe(9007199254740993n);
+  });
+
   test("should NOT export browser-specific init function", async () => {
     const exports = await import("../src/index");
 
