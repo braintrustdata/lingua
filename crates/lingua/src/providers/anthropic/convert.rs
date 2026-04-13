@@ -1381,6 +1381,14 @@ impl TryFrom<&ResponseFormatConfig> for JsonOutputFormat {
                         field: "json_schema".to_string(),
                     }
                 })?;
+                // Anthropic's structured-output schema subset is narrower than
+                // the cross-provider JSON-schema surface. When we emit a typed
+                // `output_config.format` from canonical `response_format`, we
+                // intentionally drop tuple-position hints plus array/numeric
+                // bounds as a lossy compatibility fallback. Callers should not
+                // expect strict schema fidelity for `prefixItems`, `minItems`,
+                // `maxItems`, `minimum`, or `maximum`. Raw Anthropic
+                // `output_config` passthrough remains verbatim in adapter.rs.
                 match normalize_response_schema_for_strict_target(
                     &js.schema,
                     ProviderFormat::Anthropic,
@@ -1565,6 +1573,48 @@ mod tests {
             JsonOutputFormat::try_from(&config).is_err(),
             "json_object should not map to Anthropic output_config.format; adapter shim handles it"
         );
+    }
+
+    #[test]
+    fn test_json_schema_response_format_to_anthropic_is_lossy_for_unsupported_keywords() {
+        let config = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonSchema),
+            json_schema: Some(JsonSchemaConfig {
+                name: "response".to_string(),
+                schema: json!({
+                    "type": "object",
+                    "properties": {
+                        "tuple": {
+                            "type": "array",
+                            "prefixItems": [
+                                { "type": "string" },
+                                { "type": "integer" }
+                            ],
+                            "minItems": 2,
+                            "maxItems": 2
+                        },
+                        "score": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10
+                        }
+                    },
+                    "required": ["tuple", "score"],
+                    "additionalProperties": false
+                }),
+                strict: Some(true),
+                description: None,
+            }),
+        };
+
+        let format = JsonOutputFormat::try_from(&config).unwrap();
+        let schema = Value::Object(format.schema);
+
+        assert_eq!(schema.pointer("/properties/tuple/prefixItems"), None);
+        assert_eq!(schema.pointer("/properties/tuple/minItems"), None);
+        assert_eq!(schema.pointer("/properties/tuple/maxItems"), None);
+        assert_eq!(schema.pointer("/properties/score/minimum"), None);
+        assert_eq!(schema.pointer("/properties/score/maximum"), None);
     }
 
     #[test]

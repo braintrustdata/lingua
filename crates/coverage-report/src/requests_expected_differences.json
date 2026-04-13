@@ -389,6 +389,98 @@
       ]
     },
     {
+      "testCase": "jsonSchemaPrefixItemsParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.properties.tuple.prefixItems", "reason": "Anthropic structured outputs drop tuple-position hints during lossy schema normalization" },
+        { "pattern": "params.response_format.json_schema.schema.properties.tuple.minItems", "reason": "Anthropic structured outputs drop array length bounds during lossy schema normalization" },
+        { "pattern": "params.response_format.json_schema.schema.properties.tuple.maxItems", "reason": "Anthropic structured outputs drop array length bounds during lossy schema normalization" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaPrefixItemsParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaPrefixItemsParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaFormatParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaFormatParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaMinMaxItemsParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.properties.tags.minItems", "reason": "Anthropic structured outputs drop array length bounds during lossy schema normalization" },
+        { "pattern": "params.response_format.json_schema.schema.properties.tags.maxItems", "reason": "Anthropic structured outputs drop array length bounds during lossy schema normalization" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaMinMaxItemsParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaMinMaxItemsParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaMinimumMaximumParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.properties.score.minimum", "reason": "Anthropic structured outputs drop numeric bounds during lossy schema normalization" },
+        { "pattern": "params.response_format.json_schema.schema.properties.score.maximum", "reason": "Anthropic structured outputs drop numeric bounds during lossy schema normalization" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaMinimumMaximumParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "jsonSchemaMinimumMaximumParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
       "testCase": "thinkingLevelParam",
       "source": "Google",
       "target": "ChatCompletions",

@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DUDDBsm3rGuLmdqPxZvTydmampipJ",
+  "object": "chat.completion",
+  "created": 1776092997,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"tags\":[\"guidance\",\"planning\",\"tagging\"]}",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 83,
+    "completion_tokens": 1369,
+    "total_tokens": 1452,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1344,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

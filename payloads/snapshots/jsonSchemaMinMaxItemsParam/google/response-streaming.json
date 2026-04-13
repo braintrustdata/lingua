@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\"tags\":[\"programming\",\"json\",\"schema\"]}"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 16,
+      "candidatesTokenCount": 9,
+      "totalTokenCount": 83,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 16
+        }
+      ],
+      "thoughtsTokenCount": 58
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "Pwfdaee7OM_J-8YPxaD64A0"
+  }
+]

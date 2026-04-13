@@ -307,6 +307,367 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  jsonSchemaPrefixItemsParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        { role: "user", content: 'Return {"tuple": ["gateway", 7]} as JSON.' },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "tuple_response",
+          schema: {
+            type: "object",
+            properties: {
+              tuple: {
+                type: "array",
+                prefixItems: [{ type: "string" }, { type: "integer" }],
+                items: { anyOf: [{ type: "string" }, { type: "integer" }] },
+                minItems: 2,
+                maxItems: 2,
+              },
+            },
+            required: ["tuple"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        { role: "user", content: 'Return {"tuple": ["gateway", 7]} as JSON.' },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "tuple_response",
+          schema: {
+            type: "object",
+            properties: {
+              tuple: {
+                type: "array",
+                prefixItems: [{ type: "string" }, { type: "integer" }],
+                items: { anyOf: [{ type: "string" }, { type: "integer" }] },
+                minItems: 2,
+                maxItems: 2,
+              },
+            },
+            required: ["tuple"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: 'Return {"tuple": ["gateway", 7]} as JSON.' }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 128,
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            tuple: {
+              type: "array",
+              prefixItems: [{ type: "string" }, { type: "integer" }],
+              items: { anyOf: [{ type: "string" }, { type: "integer" }] },
+              minItems: 2,
+              maxItems: 2,
+            },
+          },
+          required: ["tuple"],
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  jsonSchemaFormatParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Return JSON with an ISO 8601 timestamp in created_at.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "timestamp_response",
+          schema: {
+            type: "object",
+            properties: {
+              created_at: { type: "string", format: "date-time" },
+            },
+            required: ["created_at"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "Return JSON with an ISO 8601 timestamp in created_at.",
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "timestamp_response",
+          schema: {
+            type: "object",
+            properties: {
+              created_at: { type: "string", format: "date-time" },
+            },
+            required: ["created_at"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: "Return JSON with an ISO 8601 timestamp in created_at.",
+        },
+      ],
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              created_at: { type: "string", format: "date-time" },
+            },
+            required: ["created_at"],
+            additionalProperties: false,
+          },
+        },
+      },
+    },
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "Return JSON with an ISO 8601 timestamp in created_at.",
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 128,
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            created_at: { type: "string", format: "date-time" },
+          },
+          required: ["created_at"],
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  jsonSchemaMinMaxItemsParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Return JSON with tags as an array of 2 to 3 strings.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "tag_list",
+          schema: {
+            type: "object",
+            properties: {
+              tags: {
+                type: "array",
+                items: { type: "string" },
+                minItems: 2,
+                maxItems: 3,
+              },
+            },
+            required: ["tags"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "Return JSON with tags as an array of 2 to 3 strings.",
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "tag_list",
+          schema: {
+            type: "object",
+            properties: {
+              tags: {
+                type: "array",
+                items: { type: "string" },
+                minItems: 2,
+                maxItems: 3,
+              },
+            },
+            required: ["tags"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Return JSON with tags as an array of 2 to 3 strings." },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 128,
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            tags: {
+              type: "array",
+              items: { type: "string" },
+              minItems: 2,
+              maxItems: 3,
+            },
+          },
+          required: ["tags"],
+        },
+      },
+    },
+    bedrock: null,
+  },
+
+  jsonSchemaMinimumMaximumParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Return JSON with score as an integer from 0 to 10.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "bounded_score",
+          schema: {
+            type: "object",
+            properties: {
+              score: {
+                type: "integer",
+                minimum: 0,
+                maximum: 10,
+              },
+            },
+            required: ["score"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "Return JSON with score as an integer from 0 to 10.",
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "bounded_score",
+          schema: {
+            type: "object",
+            properties: {
+              score: {
+                type: "integer",
+                minimum: 0,
+                maximum: 10,
+              },
+            },
+            required: ["score"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Return JSON with score as an integer from 0 to 10." },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 128,
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            score: {
+              type: "integer",
+              minimum: 0,
+              maximum: 10,
+            },
+          },
+          required: ["score"],
+        },
+      },
+    },
+    bedrock: null,
+  },
+
   textFormatTextParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

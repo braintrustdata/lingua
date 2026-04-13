@@ -1,0 +1,444 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0a057b06ff59a2d30069dd0746632881a18147d7ef956a08e8",
+      "object": "response",
+      "created_at": 1776092998,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": null,
+          "name": "tuple_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "tuple": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "tuple"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0a057b06ff59a2d30069dd0746632881a18147d7ef956a08e8",
+      "object": "response",
+      "created_at": 1776092998,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": null,
+          "name": "tuple_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "tuple": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "tuple"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_0a057b06ff59a2d30069dd0746aecc81a187afc8469d66dd65",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_0a057b06ff59a2d30069dd0746aecc81a187afc8469d66dd65",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "{\"",
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "obfuscation": "dsx9ylWTkhrpkv",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "tuple",
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "obfuscation": "oCUm3Llc1My",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\":[\"",
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "obfuscation": "YYycDNrJ1eQA",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "next",
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "obfuscation": "ob2LThhrSiXZ",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-step",
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "obfuscation": "RP6Cll8Ajh2",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "\",",
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "obfuscation": "I63rr82UqzBm4x",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "1",
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "obfuscation": "xIkhZtxJTbBr4kr",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "]}",
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "obfuscation": "ElcWfPlR0MsVtj",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 14,
+    "text": "{\"tuple\":[\"next-step\",1]}"
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "{\"tuple\":[\"next-step\",1]}"
+    },
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"tuple\":[\"next-step\",1]}"
+        }
+      ],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0a057b06ff59a2d30069dd0746632881a18147d7ef956a08e8",
+      "object": "response",
+      "created_at": 1776092998,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1776093024,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "output": [
+        {
+          "id": "rs_0a057b06ff59a2d30069dd0746aecc81a187afc8469d66dd65",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "msg_0a057b06ff59a2d30069dd0760016081a189ece7a40dc80c10",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "{\"tuple\":[\"next-step\",1]}"
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": null,
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "description": null,
+          "name": "tuple_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "tuple": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "tuple"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 96,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 2850,
+        "output_tokens_details": {
+          "reasoning_tokens": 2816
+        },
+        "total_tokens": 2946
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 17
+  }
+]
