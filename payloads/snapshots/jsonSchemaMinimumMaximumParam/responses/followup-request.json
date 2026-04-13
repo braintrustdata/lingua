@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Return JSON with score as an integer from 0 to 10."
+    },
+    {
+      "id": "rs_0265a7071494f88f0069dd0740c68c81a3ace8d010af4669fb",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0265a7071494f88f0069dd07469c2481a3806376ea96812734",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"score\":7}"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "bounded_score",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          }
+        },
+        "required": [
+          "score"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  }
+}

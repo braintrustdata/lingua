@@ -36,7 +36,7 @@ use crate::error::ConvertError;
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::generated::JsonOutputFormat;
 use crate::providers::google::generated::GenerationConfig;
-use crate::serde_json::{self, json, Map, Value};
+use crate::serde_json::{self, json, Map, Number, Value};
 use crate::universal::request::{JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType};
 use serde::{Deserialize, Serialize};
 
@@ -97,6 +97,13 @@ enum AdditionalPropertiesNormalizationView {
     Other(Value),
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+enum SchemaScalarConstraintView {
+    Number(Number),
+    String(String),
+    Other(Value),
+}
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 struct StrictTargetSchemaNodeView {
     #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
@@ -113,6 +120,35 @@ struct StrictTargetSchemaNodeView {
         skip_serializing_if = "Option::is_none"
     )]
     property_ordering: Option<Vec<String>>,
+    #[serde(rename = "minItems", default, skip_serializing_if = "Option::is_none")]
+    min_items: Option<SchemaScalarConstraintView>,
+    #[serde(rename = "maxItems", default, skip_serializing_if = "Option::is_none")]
+    max_items: Option<SchemaScalarConstraintView>,
+    #[serde(rename = "minimum", default, skip_serializing_if = "Option::is_none")]
+    minimum: Option<SchemaScalarConstraintView>,
+    #[serde(rename = "maximum", default, skip_serializing_if = "Option::is_none")]
+    maximum: Option<SchemaScalarConstraintView>,
+}
+
+/// Anthropic structured outputs accept a narrower JSON Schema subset than the
+/// cross-provider canonical format. When targeting Anthropic we intentionally
+/// widen schemas by dropping unsupported tuple hints and array/numeric bounds.
+fn strip_anthropic_unsupported_schema_keywords(
+    map: &mut Map<String, Value>,
+    node: &StrictTargetSchemaNodeView,
+) {
+    match node.schema_type.as_deref() {
+        Some("array") => {
+            map.remove("prefixItems");
+            map.remove("minItems");
+            map.remove("maxItems");
+        }
+        Some("integer") | Some("number") => {
+            map.remove("minimum");
+            map.remove("maximum");
+        }
+        _ => {}
+    }
 }
 
 pub(crate) fn normalize_response_schema_for_strict_target(
@@ -134,6 +170,10 @@ pub(crate) fn normalize_response_schema_for_strict_target(
             })?;
 
         if let Value::Object(map) = value {
+            if target_provider == ProviderFormat::Anthropic {
+                strip_anthropic_unsupported_schema_keywords(map, &node);
+            }
+
             if node.schema_type.as_deref() == Some("object") {
                 if target_provider != ProviderFormat::Google {
                     map.remove("propertyOrdering");
@@ -726,6 +766,51 @@ mod tests {
             normalized.pointer("/properties/outer/additionalProperties"),
             Some(&Value::Bool(false))
         );
+    }
+
+    #[test]
+    fn test_anthropic_lossy_normalization_strips_array_and_numeric_bounds() {
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "tuple": {
+                    "type": "array",
+                    "prefixItems": [
+                        { "type": "string" },
+                        { "type": "integer" }
+                    ],
+                    "minItems": 2,
+                    "maxItems": 3,
+                    "items": { "type": "string" }
+                },
+                "score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10
+                }
+            }
+        });
+
+        let anthropic =
+            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Anthropic)
+                .unwrap();
+        assert_eq!(anthropic.pointer("/properties/tuple/prefixItems"), None);
+        assert_eq!(anthropic.pointer("/properties/tuple/minItems"), None);
+        assert_eq!(anthropic.pointer("/properties/tuple/maxItems"), None);
+        assert_eq!(anthropic.pointer("/properties/score/minimum"), None);
+        assert_eq!(anthropic.pointer("/properties/score/maximum"), None);
+
+        let chat =
+            normalize_response_schema_for_strict_target(&schema, ProviderFormat::ChatCompletions)
+                .unwrap();
+        assert_eq!(
+            chat.pointer("/properties/tuple/prefixItems/0/type"),
+            Some(&Value::String("string".to_string()))
+        );
+        assert_eq!(chat.pointer("/properties/tuple/minItems"), Some(&json!(2)));
+        assert_eq!(chat.pointer("/properties/tuple/maxItems"), Some(&json!(3)));
+        assert_eq!(chat.pointer("/properties/score/minimum"), Some(&json!(0)));
+        assert_eq!(chat.pointer("/properties/score/maximum"), Some(&json!(10)));
     }
 
     #[test]

@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\"tags\":[\"tagA\",\"tagB\",\"tagC\"]}"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 16,
+    "candidatesTokenCount": 12,
+    "totalTokenCount": 91,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 16
+      }
+    ],
+    "thoughtsTokenCount": 63
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "bQfdae_WM5Kt1MkP7Y2CsQ8"
+}

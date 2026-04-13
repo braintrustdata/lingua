@@ -229,6 +229,59 @@ exports[`anthropic → chat-completions > instructionsParam > response 1`] = `
 }
 `;
 
+exports[`anthropic → chat-completions > jsonSchemaFormatParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Return JSON with an ISO 8601 timestamp in created_at.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+          },
+        },
+        "required": [
+          "created_at",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > jsonSchemaFormatParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "{"created_at":"2026-04-13T12:34:56Z"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DUDDlkiKpbFe9UnxfmgPQXlZOxEyj",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 45,
+    "output_tokens": 798,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > maxCompletionTokensParam > request 1`] = `
 {
   "max_completion_tokens": 500,
@@ -2142,6 +2195,61 @@ exports[`anthropic → google > instructionsParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 1,
+  },
+}
+`;
+
+exports[`anthropic → google > jsonSchemaFormatParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return JSON with an ISO 8601 timestamp in created_at.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string",
+        },
+      },
+      "required": [
+        "created_at",
+      ],
+      "title": "response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`anthropic → google > jsonSchemaFormatParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "{"created_at":"2024-07-30T12:00:00Z"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 17,
+    "output_tokens": 118,
   },
 }
 `;
@@ -4509,6 +4617,63 @@ exports[`anthropic → responses > instructionsParam > response 1`] = `
 }
 `;
 
+exports[`anthropic → responses > jsonSchemaFormatParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with an ISO 8601 timestamp in created_at.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+          },
+        },
+        "required": [
+          "created_at",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`anthropic → responses > jsonSchemaFormatParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "{"created_at":"2026-04-13T00:00:00Z"}",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0a55ce7dbe5f688b0069dd0769267c8191a0d51a085a384a29",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 41,
+    "output_tokens": 855,
+  },
+}
+`;
+
 exports[`anthropic → responses > maxCompletionTokensParam > request 1`] = `
 {
   "input": [
@@ -6460,6 +6625,252 @@ exports[`chat-completions → anthropic > instructionsParam > response 1`] = `
       "cached_tokens": 0,
     },
     "total_tokens": 27,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > jsonSchemaFormatParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return JSON with an ISO 8601 timestamp in created_at.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+          },
+        },
+        "required": [
+          "created_at",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > jsonSchemaFormatParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"created_at":"2025-01-10T18:45:23Z"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01JMxs4w8LNSXuGKiJGFNj1o",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 22,
+    "prompt_tokens": 177,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 199,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return JSON with tags as an array of 2 to 3 strings.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+        },
+        "required": [
+          "tags",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"tags": ["helpful", "concise", "efficient"]}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01FqjFB9ktVGdfKbuVYUsXtN",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 17,
+    "prompt_tokens": 182,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 199,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return JSON with score as an integer from 0 to 10.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "type": "integer",
+          },
+        },
+        "required": [
+          "score",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"score": 7}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01DLi5g6xPG8qGx2eYQfz4tw",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 9,
+    "prompt_tokens": 163,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 172,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return {"tuple": ["gateway", 7]} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tuple": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                },
+                {
+                  "type": "integer",
+                },
+              ],
+            },
+            "type": "array",
+          },
+        },
+        "required": [
+          "tuple",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"tuple": ["gateway", 7]}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011kFepgYzgwZpDZFf7ef5SE",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 12,
+    "prompt_tokens": 208,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 220,
   },
 }
 `;
@@ -8446,6 +8857,278 @@ exports[`chat-completions → google > instructionsParam > response 1`] = `
     "completion_tokens": 4,
     "prompt_tokens": 6,
     "total_tokens": 10,
+  },
+}
+`;
+
+exports[`chat-completions → google > jsonSchemaFormatParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return JSON with an ISO 8601 timestamp in created_at.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string",
+        },
+      },
+      "required": [
+        "created_at",
+      ],
+      "title": "timestamp_response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > jsonSchemaFormatParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"created_at":"2023-10-27T10:30:00Z"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 188,
+    "completion_tokens_details": {
+      "reasoning_tokens": 162,
+    },
+    "prompt_tokens": 17,
+    "total_tokens": 205,
+  },
+}
+`;
+
+exports[`chat-completions → google > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return JSON with tags as an array of 2 to 3 strings.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "tags": {
+          "items": {
+            "type": "string",
+          },
+          "maxItems": 3,
+          "minItems": 2,
+          "type": "array",
+        },
+      },
+      "required": [
+        "tags",
+      ],
+      "title": "tag_list",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"tags": ["tag1", "tag2", "tag3"]}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 87,
+    "completion_tokens_details": {
+      "reasoning_tokens": 72,
+    },
+    "prompt_tokens": 16,
+    "total_tokens": 103,
+  },
+}
+`;
+
+exports[`chat-completions → google > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return JSON with score as an integer from 0 to 10.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "score": {
+          "maximum": 10,
+          "minimum": 0,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "score",
+      ],
+      "title": "bounded_score",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"score":7}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 61,
+    "completion_tokens_details": {
+      "reasoning_tokens": 56,
+    },
+    "prompt_tokens": 16,
+    "total_tokens": 77,
+  },
+}
+`;
+
+exports[`chat-completions → google > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return {"tuple": ["gateway", 7]} as JSON.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "tuple": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+              },
+              {
+                "type": "integer",
+              },
+            ],
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "string",
+            },
+            {
+              "type": "integer",
+            },
+          ],
+          "type": "array",
+        },
+      },
+      "required": [
+        "tuple",
+      ],
+      "title": "tuple_response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"tuple":["gateway",7]}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 183,
+    "completion_tokens_details": {
+      "reasoning_tokens": 176,
+    },
+    "prompt_tokens": 14,
+    "total_tokens": 197,
   },
 }
 `;
@@ -10740,6 +11423,248 @@ exports[`google → anthropic > instructionsParam > response 1`] = `
 }
 `;
 
+exports[`google → anthropic > jsonSchemaFormatParam > request 1`] = `
+{
+  "max_tokens": 128,
+  "messages": [
+    {
+      "content": "Return JSON with an ISO 8601 timestamp in created_at.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+          },
+        },
+        "required": [
+          "created_at",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+  "temperature": 0,
+}
+`;
+
+exports[`google → anthropic > jsonSchemaFormatParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"created_at":"2025-01-10T19:42:23Z"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 22,
+    "promptTokenCount": 177,
+    "totalTokenCount": 199,
+  },
+}
+`;
+
+exports[`google → anthropic > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "max_tokens": 128,
+  "messages": [
+    {
+      "content": "Return JSON with tags as an array of 2 to 3 strings.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+        },
+        "required": [
+          "tags",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+  "temperature": 0,
+}
+`;
+
+exports[`google → anthropic > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"tags":["example","sample","demonstration"]}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 14,
+    "promptTokenCount": 182,
+    "totalTokenCount": 196,
+  },
+}
+`;
+
+exports[`google → anthropic > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "max_tokens": 128,
+  "messages": [
+    {
+      "content": "Return JSON with score as an integer from 0 to 10.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "type": "integer",
+          },
+        },
+        "required": [
+          "score",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+  "temperature": 0,
+}
+`;
+
+exports[`google → anthropic > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"score": 7}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 9,
+    "promptTokenCount": 163,
+    "totalTokenCount": 172,
+  },
+}
+`;
+
+exports[`google → anthropic > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "max_tokens": 128,
+  "messages": [
+    {
+      "content": "Return {"tuple": ["gateway", 7]} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tuple": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                },
+                {
+                  "type": "integer",
+                },
+              ],
+            },
+            "type": "array",
+          },
+        },
+        "required": [
+          "tuple",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+  "temperature": 0,
+}
+`;
+
+exports[`google → anthropic > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"tuple": ["gateway", 7]}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 12,
+    "promptTokenCount": 208,
+    "totalTokenCount": 220,
+  },
+}
+`;
+
 exports[`google → anthropic > maxCompletionTokensParam > request 1`] = `
 {
   "max_tokens": 500,
@@ -12744,6 +13669,266 @@ exports[`google → chat-completions > instructionsParam > response 1`] = `
 }
 `;
 
+exports[`google → chat-completions > jsonSchemaFormatParam > request 1`] = `
+{
+  "max_completion_tokens": 128,
+  "messages": [
+    {
+      "content": "Return JSON with an ISO 8601 timestamp in created_at.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+          },
+        },
+        "required": [
+          "created_at",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`google → chat-completions > jsonSchemaFormatParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 45,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 173,
+  },
+}
+`;
+
+exports[`google → chat-completions > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "max_completion_tokens": 128,
+  "messages": [
+    {
+      "content": "Return JSON with tags as an array of 2 to 3 strings.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string",
+            },
+            "maxItems": 3,
+            "minItems": 2,
+            "type": "array",
+          },
+        },
+        "required": [
+          "tags",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`google → chat-completions > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 53,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 181,
+  },
+}
+`;
+
+exports[`google → chat-completions > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "max_completion_tokens": 128,
+  "messages": [
+    {
+      "content": "Return JSON with score as an integer from 0 to 10.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "maximum": 10,
+            "minimum": 0,
+            "type": "integer",
+          },
+        },
+        "required": [
+          "score",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`google → chat-completions > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 45,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 173,
+  },
+}
+`;
+
+exports[`google → chat-completions > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "max_completion_tokens": 128,
+  "messages": [
+    {
+      "content": "Return {"tuple": ["gateway", 7]} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tuple": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                },
+                {
+                  "type": "integer",
+                },
+              ],
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string",
+              },
+              {
+                "type": "integer",
+              },
+            ],
+            "type": "array",
+          },
+        },
+        "required": [
+          "tuple",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`google → chat-completions > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 73,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 201,
+  },
+}
+`;
+
 exports[`google → chat-completions > maxCompletionTokensParam > request 1`] = `
 {
   "max_completion_tokens": 500,
@@ -14624,6 +15809,270 @@ exports[`google → responses > instructionsParam > response 1`] = `
     "promptTokenCount": 7,
     "thoughtsTokenCount": 192,
     "totalTokenCount": 292,
+  },
+}
+`;
+
+exports[`google → responses > jsonSchemaFormatParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with an ISO 8601 timestamp in created_at.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 128,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+          },
+        },
+        "required": [
+          "created_at",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → responses > jsonSchemaFormatParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 169,
+  },
+}
+`;
+
+exports[`google → responses > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with tags as an array of 2 to 3 strings.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 128,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string",
+            },
+            "maxItems": 3,
+            "minItems": 2,
+            "type": "array",
+          },
+        },
+        "required": [
+          "tags",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → responses > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 49,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 177,
+  },
+}
+`;
+
+exports[`google → responses > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with score as an integer from 0 to 10.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 128,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "maximum": 10,
+            "minimum": 0,
+            "type": "integer",
+          },
+        },
+        "required": [
+          "score",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → responses > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 41,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 169,
+  },
+}
+`;
+
+exports[`google → responses > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return {"tuple": ["gateway", 7]} as JSON.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 128,
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tuple": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                },
+                {
+                  "type": "integer",
+                },
+              ],
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string",
+              },
+              {
+                "type": "integer",
+              },
+            ],
+            "type": "array",
+          },
+        },
+        "required": [
+          "tuple",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → responses > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 0,
+    "promptTokenCount": 69,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 197,
   },
 }
 `;
@@ -17382,6 +18831,304 @@ exports[`responses → anthropic > instructionsParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > jsonSchemaFormatParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return JSON with an ISO 8601 timestamp in created_at.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+          },
+        },
+        "required": [
+          "created_at",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > jsonSchemaFormatParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01Ct1eys6jQqxKBMJJStkGF5",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"created_at":"2025-01-10T19:42:23Z"}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"created_at":"2025-01-10T19:42:23Z"}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 177,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 22,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 199,
+  },
+}
+`;
+
+exports[`responses → anthropic > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return JSON with tags as an array of 2 to 3 strings.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+        },
+        "required": [
+          "tags",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01Ey4gQ4ft3oqFXg8SNw7prK",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"tags": ["example", "sample", "demonstration"]}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"tags": ["example", "sample", "demonstration"]}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 182,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 16,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 198,
+  },
+}
+`;
+
+exports[`responses → anthropic > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return JSON with score as an integer from 0 to 10.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "type": "integer",
+          },
+        },
+        "required": [
+          "score",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01WCTUvagb1bVKFYhr3Tsm9d",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"score": 7}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"score": 7}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 163,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 9,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 172,
+  },
+}
+`;
+
+exports[`responses → anthropic > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return {"tuple": ["gateway", 7]} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tuple": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                },
+                {
+                  "type": "integer",
+                },
+              ],
+            },
+            "type": "array",
+          },
+        },
+        "required": [
+          "tuple",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01BgAaizGtPHUesADJdJWcP3",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"tuple": ["gateway", 7]}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"tuple": ["gateway", 7]}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 208,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 220,
+  },
+}
+`;
+
 exports[`responses → anthropic > metadataParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -19701,6 +21448,330 @@ exports[`responses → google > instructionsParam > response 1`] = `
       "reasoning_tokens": 15,
     },
     "total_tokens": 21,
+  },
+}
+`;
+
+exports[`responses → google > jsonSchemaFormatParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return JSON with an ISO 8601 timestamp in created_at.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string",
+        },
+      },
+      "required": [
+        "created_at",
+      ],
+      "title": "timestamp_response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > jsonSchemaFormatParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"created_at":"2024-07-29T12:34:56Z"}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"created_at":"2024-07-29T12:34:56Z"}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 17,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 85,
+    "output_tokens_details": {
+      "reasoning_tokens": 59,
+    },
+    "total_tokens": 102,
+  },
+}
+`;
+
+exports[`responses → google > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return JSON with tags as an array of 2 to 3 strings.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "tags": {
+          "items": {
+            "type": "string",
+          },
+          "maxItems": 3,
+          "minItems": 2,
+          "type": "array",
+        },
+      },
+      "required": [
+        "tags",
+      ],
+      "title": "tag_list",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"tags":["tagA","tagB","tagC"]}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"tags":["tagA","tagB","tagC"]}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 16,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 75,
+    "output_tokens_details": {
+      "reasoning_tokens": 63,
+    },
+    "total_tokens": 91,
+  },
+}
+`;
+
+exports[`responses → google > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return JSON with score as an integer from 0 to 10.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "score": {
+          "maximum": 10,
+          "minimum": 0,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "score",
+      ],
+      "title": "bounded_score",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"score":7}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"score":7}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 16,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 63,
+    "output_tokens_details": {
+      "reasoning_tokens": 58,
+    },
+    "total_tokens": 79,
+  },
+}
+`;
+
+exports[`responses → google > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return {"tuple": ["gateway", 7]} as JSON.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "tuple": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+              },
+              {
+                "type": "integer",
+              },
+            ],
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "string",
+            },
+            {
+              "type": "integer",
+            },
+          ],
+          "type": "array",
+        },
+      },
+      "required": [
+        "tuple",
+      ],
+      "title": "tuple_response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"tuple": ["gateway", 7]}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"tuple": ["gateway", 7]}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 14,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 105,
+    "output_tokens_details": {
+      "reasoning_tokens": 96,
+    },
+    "total_tokens": 119,
   },
 }
 `;
