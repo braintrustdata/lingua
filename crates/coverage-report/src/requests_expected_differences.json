@@ -389,7 +389,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaPrefixItemsParam",
+      "testCase": "jsonSchemaPrefixItemsParam",
       "source": "*",
       "target": "Anthropic",
       "fields": [
@@ -399,7 +399,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaPrefixItemsParam",
+      "testCase": "jsonSchemaPrefixItemsParam",
       "source": "Google",
       "target": "ChatCompletions",
       "fields": [
@@ -407,7 +407,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaPrefixItemsParam",
+      "testCase": "jsonSchemaPrefixItemsParam",
       "source": "Google",
       "target": "Responses",
       "fields": [
@@ -415,7 +415,7 @@
       ]
     },
     {
-      "testCase": "googleResponseSchemaFormatParam",
+      "testCase": "jsonSchemaFormatParam",
       "source": "Google",
       "target": "ChatCompletions",
       "fields": [
@@ -423,7 +423,7 @@
       ]
     },
     {
-      "testCase": "googleResponseSchemaFormatParam",
+      "testCase": "jsonSchemaFormatParam",
       "source": "Google",
       "target": "Responses",
       "fields": [
@@ -431,7 +431,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaMinMaxItemsParam",
+      "testCase": "jsonSchemaMinMaxItemsParam",
       "source": "*",
       "target": "Anthropic",
       "fields": [
@@ -440,7 +440,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaMinMaxItemsParam",
+      "testCase": "jsonSchemaMinMaxItemsParam",
       "source": "Google",
       "target": "ChatCompletions",
       "fields": [
@@ -448,7 +448,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaMinMaxItemsParam",
+      "testCase": "jsonSchemaMinMaxItemsParam",
       "source": "Google",
       "target": "Responses",
       "fields": [
@@ -456,7 +456,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaMinimumMaximumParam",
+      "testCase": "jsonSchemaMinimumMaximumParam",
       "source": "*",
       "target": "Anthropic",
       "fields": [
@@ -465,7 +465,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaMinimumMaximumParam",
+      "testCase": "jsonSchemaMinimumMaximumParam",
       "source": "Google",
       "target": "ChatCompletions",
       "fields": [
@@ -473,7 +473,7 @@
       ]
     },
     {
-      "testCase": "googleResponseJsonSchemaMinimumMaximumParam",
+      "testCase": "jsonSchemaMinimumMaximumParam",
       "source": "Google",
       "target": "Responses",
       "fields": [
