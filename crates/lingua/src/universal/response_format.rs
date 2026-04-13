@@ -132,7 +132,7 @@ struct StrictTargetSchemaNodeView {
 
 /// Anthropic structured outputs accept a narrower JSON Schema subset than the
 /// cross-provider canonical format. When targeting Anthropic we intentionally
-/// widen schemas by dropping unsupported tuple hints and array/numeric bounds.
+/// narrow the schemas by dropping unsupported tuple hints and array/numeric bounds.
 fn strip_anthropic_unsupported_schema_keywords(
     map: &mut Map<String, Value>,
     node: &StrictTargetSchemaNodeView,
