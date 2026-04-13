@@ -350,6 +350,9 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  // Provider-hosted code execution tools are not lossless analogues:
+  // Responses code_interpreter is Python/container based, Anthropic bash is a
+  // shell tool, and Google codeExecution is a Google-specific execution tool.
   codeInterpreterToolParam: {
     "chat-completions": null,
     responses: {

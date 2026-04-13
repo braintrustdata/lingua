@@ -86,7 +86,7 @@
       "target": "Responses",
       "fields": [
         { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, budget_tokens gets quantized" },
-        { "pattern": "params.tools", "reason": "Anthropic built-in tools not supported in OpenAI" },
+        { "pattern": "params.tools", "reason": "Anthropic built-in tools are provider-specific; bash is not a lossless equivalent of OpenAI Responses code_interpreter" },
         { "pattern": "messages.length", "reason": "Responses API expands tool messages to separate function_call_output items" },
         { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic per-block cache_control metadata has no OpenAI request equivalent" }
       ]
@@ -96,7 +96,7 @@
       "target": "ChatCompletions",
       "fields": [
         { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, budget_tokens gets quantized" },
-        { "pattern": "params.tools", "reason": "Anthropic built-in tools not supported in OpenAI" },
+        { "pattern": "params.tools", "reason": "Anthropic built-in tools are provider-specific; bash is not supported by OpenAI Chat Completions" },
         { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic per-block cache_control metadata has no OpenAI request equivalent" }
       ]
     },
@@ -220,7 +220,7 @@
       "source": "Responses",
       "target": "Anthropic",
       "skip": true,
-      "reason": "OpenAI code_interpreter tool has no Anthropic equivalent"
+      "reason": "OpenAI Responses code_interpreter is provider-specific and is not a lossless equivalent of Anthropic bash"
     },
     {
       "testCase": "webSearchToolParam",
@@ -536,7 +536,7 @@
       "source": "Google",
       "target": "Anthropic",
       "skip": true,
-      "reason": "Google code_execution tool has no Anthropic equivalent"
+      "reason": "Google code_execution is provider-specific and is not a lossless equivalent of Anthropic bash"
     },
     {
       "testCase": "toolChoiceRequiredWithReasoningParam",
