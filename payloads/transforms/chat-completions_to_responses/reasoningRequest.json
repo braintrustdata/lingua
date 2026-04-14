@@ -1,0 +1,77 @@
+{
+  "id": "resp_016a96f2cfd55d630069de77bc379481979d3b1067f1975bc5",
+  "object": "response",
+  "created_at": 1776187324,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1776187330,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_016a96f2cfd55d630069de77bc8dac8197b5bd1db936d013ff",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_016a96f2cfd55d630069de77c0ee1081979644ebc586428d59",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Step 1: Distance of each part\n- First part: 60 mph × 2 h = 120 miles\n- Second part: 80 mph × 1 h = 80 miles\n\nStep 2: Total distance and total time\n- Total distance = 120 + 80 = 200 miles\n- Total time = 2 h + 1 h = 3 h\n\nStep 3: Average speed\n- Average speed = total distance / total time = 200 miles / 3 hours = 66 2/3 mph ≈ 66.67 mph\n\nAnswer: 66 2/3 mph."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 38,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 633,
+    "output_tokens_details": {
+      "reasoning_tokens": 448
+    },
+    "total_tokens": 671
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Step 1: Distance of each part\n- First part: 60 mph × 2 h = 120 miles\n- Second part: 80 mph × 1 h = 80 miles\n\nStep 2: Total distance and total time\n- Total distance = 120 + 80 = 200 miles\n- Total time = 2 h + 1 h = 3 h\n\nStep 3: Average speed\n- Average speed = total distance / total time = 200 miles / 3 hours = 66 2/3 mph ≈ 66.67 mph\n\nAnswer: 66 2/3 mph."
+}

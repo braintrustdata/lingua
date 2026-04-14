@@ -8225,6 +8225,63 @@ exports[`chat-completions → anthropic > textFormatJsonObjectParam > response 1
 }
 `;
 
+exports[`chat-completions → anthropic > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Classify the query and return JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'd be happy to help classify a query, but I don't see a query in your message. Could you please provide the query you'd like me to classify?
+
+Once you provide it, I'll return a JSON classification with relevant categories such as:
+
+\`\`\`json
+{
+  "query": "your query here",
+  "classification": {
+    "type": "question/command/statement",
+    "category": "relevant category",
+    "intent": "user intent",
+    "complexity": "simple/moderate/complex"
+  }
+}
+\`\`\`
+
+Please share the query you'd like classified!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01BqUhfLgj6y6wQJeMJhHc57",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 135,
+    "prompt_tokens": 15,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 150,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > textFormatJsonSchemaParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -10735,6 +10792,82 @@ exports[`chat-completions → google > textFormatJsonObjectParam > response 1`] 
 }
 `;
 
+exports[`chat-completions → google > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Classify the query and return JSON.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "explanation": {
+          "type": "string",
+        },
+        "filter": {
+          "type": [
+            "string",
+            "null",
+          ],
+        },
+        "match": {
+          "type": "boolean",
+        },
+      },
+      "required": [
+        "explanation",
+        "filter",
+        "match",
+      ],
+      "title": "query_result",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{
+  "explanation": "No specific query was provided for classification.",
+  "filter": null,
+  "match": false
+}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 133,
+    "completion_tokens_details": {
+      "reasoning_tokens": 103,
+    },
+    "prompt_tokens": 9,
+    "total_tokens": 142,
+  },
+}
+`;
+
 exports[`chat-completions → google > textFormatJsonSchemaParam > request 1`] = `
 {
   "contents": [
@@ -11267,6 +11400,2378 @@ exports[`chat-completions → google > topPReasoningModelParam > response 1`] = 
     "prompt_tokens": 4,
     "total_tokens": 28,
   },
+}
+`;
+
+exports[`chat-completions → responses > complexReasoningRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 20000,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > complexReasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Answer (no colon counted, only digits in HHMM):
+
+- Total times: 24 hours × 60 minutes = 1440, so total digits = 1440 × 4 = 5760.
+
+Digit frequencies (across all four positions):
+- 0: 1164
+- 1: 1164
+- 2: 804
+- 3: 564
+- 4: 504
+- 5: 504
+- 6: 264
+- 7: 264
+- 8: 264
+- 9: 264
+
+Most common digits: 0 and 1 (tie), each appearing 1164 times ≈ 20.21% of all digits.
+
+Rarest digits: 6, 7, 8, and 9 (tie), each appearing 264 times ≈ 4.58% of all digits.
+
+Brief note on method: counted digit occurrences separately for hour tens (H1), hour units (H2), minute tens (M1), and minute units (M2), then summed.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-04b60d584009ea580069de77bd84e48194a2f9ac6eeb5de8d6",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 5648,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5376,
+    },
+    "prompt_tokens": 74,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 5722,
+  },
+}
+`;
+
+exports[`chat-completions → responses > frequencyPenaltyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > frequencyPenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-06e0381ec483a6f30069de77d488bc8190a5cda587306ce902",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 297,
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 306,
+  },
+}
+`;
+
+exports[`chat-completions → responses > instructionsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Always say ok.",
+      "role": "system",
+    },
+    {
+      "content": "Hi",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > instructionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-095c8a54ae22a6970069de77d002588193b68457476b875cc1",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 152,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 15,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 167,
+  },
+}
+`;
+
+exports[`chat-completions → responses > jsonSchemaFormatParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with an ISO 8601 timestamp in created_at.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "timestamp_response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+          },
+        },
+        "required": [
+          "created_at",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > jsonSchemaFormatParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "{"created_at":"2026-04-14T00:00:00Z"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0c9355af589798e00069de77c6f91c819cb55d38911ab98c2f",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1076,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1024,
+    },
+    "prompt_tokens": 42,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1118,
+  },
+}
+`;
+
+exports[`chat-completions → responses > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with tags as an array of 2 to 3 strings.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "tag_list",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string",
+            },
+            "maxItems": 3,
+            "minItems": 2,
+            "type": "array",
+          },
+        },
+        "required": [
+          "tags",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "{"tags":["json","api","tags"]}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01e282344d60e4a90069de77c8658c819da459f27b571a09e0",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 514,
+    "completion_tokens_details": {
+      "reasoning_tokens": 448,
+    },
+    "prompt_tokens": 50,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 564,
+  },
+}
+`;
+
+exports[`chat-completions → responses > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return JSON with score as an integer from 0 to 10.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "bounded_score",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "maximum": 10,
+            "minimum": 0,
+            "type": "integer",
+          },
+        },
+        "required": [
+          "score",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "{"score":0}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0f8173028dacc0220069de77caacb081979dc59652c778748c",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 442,
+    "completion_tokens_details": {
+      "reasoning_tokens": 384,
+    },
+    "prompt_tokens": 42,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 484,
+  },
+}
+`;
+
+exports[`chat-completions → responses > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return {"tuple": ["gateway", 7]} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "tuple_response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "tuple": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                },
+                {
+                  "type": "integer",
+                },
+              ],
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string",
+              },
+              {
+                "type": "integer",
+              },
+            ],
+            "type": "array",
+          },
+        },
+        "required": [
+          "tuple",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "{"tuple": ["gateway", 7]}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-065da34a90e48e570069de77c6f7c481a0855f02ab6707fb19",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 358,
+    "completion_tokens_details": {
+      "reasoning_tokens": 320,
+    },
+    "prompt_tokens": 70,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 428,
+  },
+}
+`;
+
+exports[`chat-completions → responses > logitBiasParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hello.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > logitBiasParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Hello! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-07120462c5f72b130069de77dbe05c8194996efe7c17466bf5",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 153,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 162,
+  },
+}
+`;
+
+exports[`chat-completions → responses > logprobsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2 + 2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "top_logprobs": 2,
+}
+`;
+
+exports[`chat-completions → responses > maxCompletionTokensParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 500,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > maxCompletionTokensParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-024dec6805efbfa60069de77d75324819cb4f1ff38b2e4fb76",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 194,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 203,
+  },
+}
+`;
+
+exports[`chat-completions → responses > metadataParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "metadata": {
+    "experiment": "control",
+    "request_id": "req-12345",
+    "user_tier": "premium",
+  },
+  "model": "gpt-5-nano",
+  "store": true,
+}
+`;
+
+exports[`chat-completions → responses > metadataParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0e0d391f15f5d8c20069de77d2414c819f93f24f79591b57f7",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 199,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 208,
+  },
+}
+`;
+
+exports[`chat-completions → responses > multimodalRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "input_text",
+        },
+        {
+          "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          "type": "input_image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 300,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > multimodalRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0086eb9ffe0a766d0069de77bda510819db0c43e2717be6a27",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 256,
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+    },
+    "prompt_tokens": 320,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 576,
+  },
+}
+`;
+
+exports[`chat-completions → responses > nMultipleCompletionsParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say a word.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > nMultipleCompletionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Hello.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-019dd9c549130f600069de77d521ac819da519dd202e5d58dd",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 344,
+    "completion_tokens_details": {
+      "reasoning_tokens": 320,
+    },
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 354,
+  },
+}
+`;
+
+exports[`chat-completions → responses > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Weather in NYC and LA?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "parallel_tool_calls": false,
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "tool_calls",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"New York City"}",
+              "name": "get_weather",
+            },
+            "id": "call_8nVswMO2xCqWDPah48ycHEEW",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0ad8e9a5d7556d3f0069de77cec5cc81939e2d941c298a41f3",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 219,
+    "completion_tokens_details": {
+      "reasoning_tokens": 192,
+    },
+    "prompt_tokens": 123,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 342,
+  },
+}
+`;
+
+exports[`chat-completions → responses > parallelToolCallsRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What's the weather in San Francisco and New York?",
+      "role": "user",
+    },
+    {
+      "arguments": "{"location":"San Francisco, CA"}",
+      "call_id": "call_sf",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "arguments": "{"location":"New York, NY"}",
+      "call_id": "call_nyc",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "call_sf",
+      "output": "65°F and sunny.",
+      "type": "function_call_output",
+    },
+    {
+      "call_id": "call_nyc",
+      "output": "45°F and cloudy.",
+      "type": "function_call_output",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > parallelToolCallsRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Here’s the current weather:
+
+- San Francisco, CA: 65°F and sunny
+- New York, NY: 45°F and cloudy
+
+Want an hourly forecast or precipitation chance for either city?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-02878e18227afc110069de77be8f2081a1969ebfad0b5f86d5",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1025,
+    "completion_tokens_details": {
+      "reasoning_tokens": 960,
+    },
+    "prompt_tokens": 136,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1161,
+  },
+}
+`;
+
+exports[`chat-completions → responses > predictionParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Update this function to add error handling:
+
+function divide(a, b) {
+  return a / b;
+}",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > predictionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Here’s an updated version that adds basic error handling by validating inputs and guarding against division by zero. It throws descriptive errors so callers can handle them with try/catch.
+
+Code:
+function divide(a, b) {
+  // Ensure both inputs are numbers
+  if (typeof a !== 'number' || typeof b !== 'number' || Number.isNaN(a) || Number.isNaN(b)) {
+    throw new TypeError('divide: both arguments must be valid numbers');
+  }
+
+  // Guard against division by zero
+  if (b === 0) {
+    throw new RangeError('divide: cannot divide by zero');
+  }
+
+  const result = a / b;
+
+  // Guard against non-finite results (optional extra safety)
+  if (!Number.isFinite(result)) {
+    throw new Error('divide: result is not finite');
+  }
+
+  return result;
+}
+
+Usage:
+try {
+  console.log(divide(10, 2)); // 5
+  console.log(divide(10, 0)); // throws
+} catch (e) {
+  console.error(e.name + ': ' + e.message);
+}
+
+If you prefer a non-throwing variant that returns an error object instead of throwing, tell me and I’ll adapt it.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0f6744861744c5bd0069de77d7b2608197a7e0ef103aca47c5",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1559,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1280,
+    },
+    "prompt_tokens": 28,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1587,
+  },
+}
+`;
+
+exports[`chat-completions → responses > presencePenaltyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > presencePenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-08934d2b6a2678890069de77d49ecc819eb7946e0a45c9b3e0",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 192,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 201,
+  },
+}
+`;
+
+exports[`chat-completions → responses > promptCacheKeyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > promptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0cf927c0890ff1570069de77d0f8388191a02ddf97e056e1df",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 196,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 205,
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningEffortLowParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "low",
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningEffortLowParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-044db013f076382b0069de77c38648819f96262af1bc419c72",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 47,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 60,
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > reasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Step 1: Distance of each part
+- First part: 60 mph × 2 h = 120 miles
+- Second part: 80 mph × 1 h = 80 miles
+
+Step 2: Total distance and total time
+- Total distance = 120 + 80 = 200 miles
+- Total time = 2 h + 1 h = 3 h
+
+Step 3: Average speed
+- Average speed = total distance / total time = 200 miles / 3 hours = 66 2/3 mph ≈ 66.67 mph
+
+Answer: 66 2/3 mph.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-016a96f2cfd55d630069de77bc379481979d3b1067f1975bc5",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 633,
+    "completion_tokens_details": {
+      "reasoning_tokens": 448,
+    },
+    "prompt_tokens": 38,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 671,
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningRequestTruncated > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 100,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > reasoningRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0e466b8230ae67700069de77bc4b688190b8c958fc2a1f9ebe",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 64,
+    "completion_tokens_details": {
+      "reasoning_tokens": 64,
+    },
+    "prompt_tokens": 38,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 102,
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningSummaryParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningSummaryParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01b7262a370485190069de77c26d3881968d4e4596a3938d31",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 123,
+    "completion_tokens_details": {
+      "reasoning_tokens": 64,
+    },
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 136,
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningWithOutput > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What color is the sky?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > reasoningWithOutput > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Typically blue during a clear day. It can be red/orange/pink at sunrise or sunset, gray when it’s cloudy, and black at night. The blue color comes from the way sunlight scatters in the Earth's atmosphere. Want to know the current sky color for your location and time?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0e61724c90af491c0069de77bdc448819cb32cebfd3e071c4f",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 629,
+    "completion_tokens_details": {
+      "reasoning_tokens": 512,
+    },
+    "prompt_tokens": 12,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 641,
+  },
+}
+`;
+
+exports[`chat-completions → responses > safetyIdentifierParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "metadata": {
+    "user_id": "hashed-user-id-abc123",
+  },
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > safetyIdentifierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0be631c1ba357eac0069de77d2961c8196aeb8e132d4a15de4",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 281,
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 290,
+  },
+}
+`;
+
+exports[`chat-completions → responses > seedParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Pick a number.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > seedParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "7
+
+Want a different range or another number?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0fb355d3096e414c0069de77d9087c819480dc43355b663203",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 770,
+    "completion_tokens_details": {
+      "reasoning_tokens": 704,
+    },
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 780,
+  },
+}
+`;
+
+exports[`chat-completions → responses > serviceTierParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "service_tier": "default",
+}
+`;
+
+exports[`chat-completions → responses > serviceTierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0ce5ff7272e0e8520069de77d0f62881a191754ad8ea7509b1",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 269,
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 278,
+  },
+}
+`;
+
+exports[`chat-completions → responses > simpleRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is the capital of France?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "low",
+  },
+}
+`;
+
+exports[`chat-completions → responses > simpleRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Paris",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0f2698b7e29f2a6b0069de77bc289c8193a8b487f3ad667e17",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 36,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 49,
+  },
+}
+`;
+
+exports[`chat-completions → responses > simpleRequestTruncated > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Write a very long essay about the ocean.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 16,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > simpleRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-03bcf07c10b4dcde0069de77bc4f7c8194a03ca3c986b9f6bd",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 15,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 15,
+  },
+}
+`;
+
+exports[`chat-completions → responses > stopSequencesParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Count from 1 to 20.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > stopSequencesParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0c3cb6816eb4da2b0069de77d61bd481958ead372aab26bf71",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 366,
+    "completion_tokens_details": {
+      "reasoning_tokens": 320,
+    },
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 380,
+  },
+}
+`;
+
+exports[`chat-completions → responses > storeDisabledParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say ok.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "store": false,
+}
+`;
+
+exports[`chat-completions → responses > storeDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Okay.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-03a614b11f2ac8350169de77d05620819d984802d81c4a50c4",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 141,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 150,
+  },
+}
+`;
+
+exports[`chat-completions → responses > systemMessageArrayContent > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": "What errors occurred recently?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 300,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > systemMessageArrayContent > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0adacc1fb45f65950069de77c21f848190b3c58e95303e969f",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 256,
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+    },
+    "prompt_tokens": 35,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 291,
+  },
+}
+`;
+
+exports[`chat-completions → responses > temperatureParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "temperature": 0.7,
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonObjectParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return {"status": "ok"} as JSON.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "type": "json_object",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonObjectParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "{"status": "ok"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0babbd35216461bd0069de77c46738819295d6c00c268ba7af",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 244,
+    "completion_tokens_details": {
+      "reasoning_tokens": 192,
+    },
+    "prompt_tokens": 16,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 260,
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonSchemaParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "name": "person_info",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonSchemaParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "{"age":25,"name":"John"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0b4bbc9b26da07460069de77c4ade481968c71ee975b0902e3",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 340,
+    "completion_tokens_details": {
+      "reasoning_tokens": 320,
+    },
+    "prompt_tokens": 42,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 382,
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Extract: John is 25.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "description": "Extract person information from text",
+      "name": "person_info",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "type": "number",
+          },
+          "name": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+          "age",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "{"age":25,"name":"John"}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-05787beef665d3610069de77c4f7f481a1ad59a17795fb6d1c",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 778,
+    "completion_tokens_details": {
+      "reasoning_tokens": 704,
+    },
+    "prompt_tokens": 49,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 827,
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatTextParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hello.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "text": {
+    "format": {
+      "type": "text",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatTextParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Hello! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0cb1e837069522dc0069de77cb802481969c84d0029ab0ae13",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 152,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 161,
+  },
+}
+`;
+
+exports[`chat-completions → responses > toolCallRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > toolCallRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "tool_calls",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"San Francisco, CA"}",
+              "name": "get_weather",
+            },
+            "id": "call_eXlb7mSLRkQfULZzonEUGczg",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-099e399a0be6ee4f0069de77bc274081948becc9a886befbb4",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 191,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 66,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 257,
+  },
+}
+`;
+
+exports[`chat-completions → responses > toolChoiceRequiredParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "function",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > toolChoiceRequiredParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "tool_calls",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "call_i2UajFy6T0XqnJb7kDZVA6ql",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0865a12cae8eba020069de77ccb77881a1bb84f8993a4b8e83",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 421,
+    "completion_tokens_details": {
+      "reasoning_tokens": 384,
+    },
+    "prompt_tokens": 41,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 462,
+  },
+}
+`;
+
+exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+  },
+  "tool_choice": {
+    "name": "get_weather",
+    "type": "function",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "tool_calls",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "call_Tbvjv0BwAk3IpKnCwMUziU7t",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0662c2f00f598b160069de77cd75d4819391a65765b52fa6fb",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 423,
+    "completion_tokens_details": {
+      "reasoning_tokens": 384,
+    },
+    "prompt_tokens": 41,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 464,
+  },
+}
+`;
+
+exports[`chat-completions → responses > topPParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "top_p": 0.9,
 }
 `;
 

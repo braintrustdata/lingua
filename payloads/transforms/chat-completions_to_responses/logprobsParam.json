@@ -1,0 +1,14 @@
+{
+  "request": {
+    "input": [
+      {
+        "content": "What is 2 + 2?",
+        "role": "user"
+      }
+    ],
+    "model": "gpt-5-nano",
+    "top_logprobs": 2
+  },
+  "error": "400 logprobs are not supported with reasoning models.",
+  "name": "Error"
+}

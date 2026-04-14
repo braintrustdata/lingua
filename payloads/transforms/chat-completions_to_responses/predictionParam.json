@@ -1,0 +1,77 @@
+{
+  "id": "resp_0f6744861744c5bd0069de77d7b2608197a7e0ef103aca47c5",
+  "object": "response",
+  "created_at": 1776187351,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1776187364,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0f6744861744c5bd0069de77d890c881979a9d23d61f72c1ed",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0f6744861744c5bd0069de77e23d88819795357c4b8e8be4a4",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here’s an updated version that adds basic error handling by validating inputs and guarding against division by zero. It throws descriptive errors so callers can handle them with try/catch.\n\nCode:\nfunction divide(a, b) {\n  // Ensure both inputs are numbers\n  if (typeof a !== 'number' || typeof b !== 'number' || Number.isNaN(a) || Number.isNaN(b)) {\n    throw new TypeError('divide: both arguments must be valid numbers');\n  }\n\n  // Guard against division by zero\n  if (b === 0) {\n    throw new RangeError('divide: cannot divide by zero');\n  }\n\n  const result = a / b;\n\n  // Guard against non-finite results (optional extra safety)\n  if (!Number.isFinite(result)) {\n    throw new Error('divide: result is not finite');\n  }\n\n  return result;\n}\n\nUsage:\ntry {\n  console.log(divide(10, 2)); // 5\n  console.log(divide(10, 0)); // throws\n} catch (e) {\n  console.error(e.name + ': ' + e.message);\n}\n\nIf you prefer a non-throwing variant that returns an error object instead of throwing, tell me and I’ll adapt it."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 28,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1559,
+    "output_tokens_details": {
+      "reasoning_tokens": 1280
+    },
+    "total_tokens": 1587
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here’s an updated version that adds basic error handling by validating inputs and guarding against division by zero. It throws descriptive errors so callers can handle them with try/catch.\n\nCode:\nfunction divide(a, b) {\n  // Ensure both inputs are numbers\n  if (typeof a !== 'number' || typeof b !== 'number' || Number.isNaN(a) || Number.isNaN(b)) {\n    throw new TypeError('divide: both arguments must be valid numbers');\n  }\n\n  // Guard against division by zero\n  if (b === 0) {\n    throw new RangeError('divide: cannot divide by zero');\n  }\n\n  const result = a / b;\n\n  // Guard against non-finite results (optional extra safety)\n  if (!Number.isFinite(result)) {\n    throw new Error('divide: result is not finite');\n  }\n\n  return result;\n}\n\nUsage:\ntry {\n  console.log(divide(10, 2)); // 5\n  console.log(divide(10, 0)); // throws\n} catch (e) {\n  console.error(e.name + ': ' + e.message);\n}\n\nIf you prefer a non-throwing variant that returns an error object instead of throwing, tell me and I’ll adapt it."
+}

@@ -1,0 +1,27 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01BqUhfLgj6y6wQJeMJhHc57",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'd be happy to help classify a query, but I don't see a query in your message. Could you please provide the query you'd like me to classify?\n\nOnce you provide it, I'll return a JSON classification with relevant categories such as:\n\n```json\n{\n  \"query\": \"your query here\",\n  \"classification\": {\n    \"type\": \"question/command/statement\",\n    \"category\": \"relevant category\",\n    \"intent\": \"user intent\",\n    \"complexity\": \"simple/moderate/complex\"\n  }\n}\n```\n\nPlease share the query you'd like classified!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 15,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 135,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

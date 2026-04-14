@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DUazjvDdSiLbhPnY4wOBPIamWxFnz",
+  "object": "chat.completion",
+  "created": 1776184419,
+  "model": "gpt-5.4-nano-2026-03-17",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"explanation\":\"No query provided. Please send the text you want classified (and the allowed labels, if any).\",\"filter\":null,\"match\":false}",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 57,
+    "completion_tokens": 40,
+    "total_tokens": 97,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

@@ -1,4 +1,10 @@
 {
+  "chat-completions_to_responses": {
+    "textFormatJsonSchemaNullableUnionTypeGpt54NanoParam": "Conversion from universal format failed: Invalid response schema for responses: response schema could not be deserialized for normalization: invalid type: sequence, expected a string",
+    "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
+    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
+    "logprobsParam": "OpenAI rejected: logprobs are not supported with reasoning models"
+  },
   "responses_to_anthropic": {
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
     "webSearchToolParam": "Tool 'web_search_preview' of type 'web_search_preview' is not supported by anthropic",

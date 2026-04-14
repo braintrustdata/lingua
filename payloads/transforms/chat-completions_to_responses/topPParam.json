@@ -1,0 +1,14 @@
+{
+  "request": {
+    "input": [
+      {
+        "content": "Say hi.",
+        "role": "user"
+      }
+    ],
+    "model": "gpt-5-nano",
+    "top_p": 0.9
+  },
+  "error": "400 Unsupported parameter: 'top_p' is not supported with this model.",
+  "name": "Error"
+}
