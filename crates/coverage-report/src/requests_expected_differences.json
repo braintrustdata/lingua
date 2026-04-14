@@ -259,6 +259,42 @@
       ]
     },
     {
+      "testCase": "topPReasoningModelParam",
+      "source": "*",
+      "target": "ChatCompletions",
+      "fields": [
+        {
+          "pattern": "params.top_p",
+          "reason": "OpenAI reasoning models don't support top_p, so ChatCompletions strips it"
+        }
+      ]
+    },
+    {
+      "testCase": "topPReasoningModelParam",
+      "source": "*",
+      "target": "Responses",
+      "fields": [
+        {
+          "pattern": "params.top_p",
+          "reason": "OpenAI reasoning models don't support top_p, so Responses strips it"
+        }
+      ]
+    },
+    {
+      "testCase": "topPReasoningModelParam",
+      "source": "ChatCompletions",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "OpenAI reasoning models reject top_p; same-format normalization strips it before sending"
+    },
+    {
+      "testCase": "topPReasoningModelParam",
+      "source": "Responses",
+      "target": "Responses",
+      "skip": true,
+      "reason": "OpenAI reasoning models reject top_p; same-format normalization strips it before sending"
+    },
+    {
       "testCase": "instructionsParam",
       "source": "ChatCompletions",
       "target": "Anthropic",

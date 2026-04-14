@@ -749,16 +749,20 @@ impl<'a> CompareContext<'a> {
         target_adapter: &'a dyn ProviderAdapter,
         test_case: &'a str,
     ) -> Option<Self> {
-        if source_adapter.format() == target_adapter.format() {
-            None
-        } else {
-            Some(Self::new(
-                category,
-                source_adapter.display_name(),
-                target_adapter.display_name(),
-                test_case,
-            ))
+        let context = Self::new(
+            category,
+            source_adapter.display_name(),
+            target_adapter.display_name(),
+            test_case,
+        );
+
+        if source_adapter.format() != target_adapter.format()
+            || context.is_test_case_limitation().is_some()
+        {
+            return Some(context);
         }
+
+        None
     }
 
     /// Check if this entire test case is an expected limitation.
