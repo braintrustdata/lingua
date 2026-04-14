@@ -2,7 +2,8 @@
   "chat-completions_to_responses": {
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
     "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
-    "logprobsParam": "OpenAI rejected: logprobs are not supported with reasoning models"
+    "logprobsParam": "OpenAI rejected: logprobs are not supported with reasoning models",
+    "textFormatJsonSchemaNullableUnionTypeGpt54NanoParam": "Invalid response schema for responses: response schema could not be deserialized for normalization: invalid type: sequence, expected a string"
   },
   "responses_to_anthropic": {
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",

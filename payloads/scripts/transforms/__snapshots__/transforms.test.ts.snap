@@ -8235,34 +8235,6 @@ exports[`chat-completions → anthropic > textFormatJsonSchemaNullableUnionTypeG
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
-  "output_config": {
-    "format": {
-      "schema": {
-        "additionalProperties": false,
-        "properties": {
-          "explanation": {
-            "type": "string",
-          },
-          "filter": {
-            "type": [
-              "string",
-              "null",
-            ],
-          },
-          "match": {
-            "type": "boolean",
-          },
-        },
-        "required": [
-          "explanation",
-          "filter",
-          "match",
-        ],
-        "type": "object",
-      },
-      "type": "json_schema",
-    },
-  },
 }
 `;
 
@@ -13312,88 +13284,6 @@ exports[`chat-completions → responses > textFormatJsonObjectParam > response 1
 }
 `;
 
-exports[`chat-completions → responses > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Classify the query and return JSON.",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-  "text": {
-    "format": {
-      "name": "query_result",
-      "schema": {
-        "additionalProperties": false,
-        "properties": {
-          "explanation": {
-            "type": "string",
-          },
-          "filter": {
-            "type": [
-              "string",
-              "null",
-            ],
-          },
-          "match": {
-            "type": "boolean",
-          },
-        },
-        "required": [
-          "explanation",
-          "filter",
-          "match",
-        ],
-        "type": "object",
-      },
-      "strict": true,
-      "type": "json_schema",
-    },
-  },
-}
-`;
-
-exports[`chat-completions → responses > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > response 1`] = `
-{
-  "choices": [
-    {
-      "finish_reason": "stop",
-      "index": 0,
-      "message": {
-        "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
-        "content": "{"explanation":"This is a meta-request: the user asks the assistant to classify the current query and respond with JSON. It falls under meta/annotation and instruction-type content.","filter":null,"match":true}",
-        "role": "assistant",
-      },
-    },
-  ],
-  "created": 0,
-  "id": "chatcmpl-020bd5fdbbf1a5b20069de8a20952c8196a0279dd728c70ce7",
-  "model": "gpt-5-nano-2025-08-07",
-  "object": "chat.completion",
-  "usage": {
-    "completion_tokens": 810,
-    "completion_tokens_details": {
-      "reasoning_tokens": 704,
-    },
-    "prompt_tokens": 53,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-    },
-    "total_tokens": 863,
-  },
-}
-`;
-
 exports[`chat-completions → responses > textFormatJsonSchemaParam > request 1`] = `
 {
   "input": [
@@ -13866,6 +13756,58 @@ exports[`chat-completions → responses > topPParam > request 1`] = `
   ],
   "model": "gpt-5-nano",
   "top_p": 0.9,
+}
+`;
+
+exports[`chat-completions → responses > topPReasoningModelParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > topPReasoningModelParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-031a4d1f0e194aca0069dea7360f48819cae730888cf583b07",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 136,
+    "completion_tokens_details": {
+      "reasoning_tokens": 64,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 145,
+  },
 }
 `;
 
