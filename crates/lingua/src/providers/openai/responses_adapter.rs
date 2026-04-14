@@ -1373,6 +1373,51 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_omits_top_p_for_reasoning_models() {
+        let req = UniversalRequest {
+            model: Some("gpt-5-mini".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                top_p: Some(0.9),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert!(
+            result.get("top_p").is_none(),
+            "top_p should be omitted for reasoning models (gpt-5-mini)"
+        );
+    }
+
+    #[test]
+    fn test_responses_preserves_top_p_for_non_reasoning_models() {
+        let req = UniversalRequest {
+            model: Some("gpt-4.1".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                top_p: Some(0.9),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let result = adapter.request_from_universal(&req).unwrap();
+
+        assert_eq!(
+            result.get("top_p").unwrap().as_f64().unwrap(),
+            0.9,
+            "top_p should be preserved for non-reasoning models"
+        );
+    }
+
+    #[test]
     fn test_responses_clamps_synthesized_max_output_tokens_to_provider_minimum() {
         use crate::providers::openai::generated::CreateResponseClass;
 

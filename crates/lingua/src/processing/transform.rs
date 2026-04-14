@@ -440,13 +440,16 @@ fn detect_adapter(
 
 /// Check if a request needs forced translation even when source == target format.
 fn needs_forced_translation(payload: &Value, model: Option<&str>, target: ProviderFormat) -> bool {
-    if target != ProviderFormat::ChatCompletions {
+    if !matches!(
+        target,
+        ProviderFormat::ChatCompletions | ProviderFormat::Responses
+    ) {
         return false;
     }
 
     #[cfg(feature = "openai")]
     {
-        // Force translation if model needs any transforms (temperature stripping, max_tokens conversion, etc.)
+        // Force translation if model needs any transforms (temperature/top_p stripping, max_tokens conversion, etc.)
         let request_model = payload.get("model").and_then(Value::as_str).or(model);
         request_model.map(model_needs_transforms).unwrap_or(false)
     }
@@ -676,6 +679,27 @@ mod tests {
             output.get("max_tokens").is_none(),
             "Should not have max_tokens"
         );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_reasoning_responses_model_forces_translation() {
+        let payload = json!({
+            "model": "gpt-5.1-mini",
+            "input": [{"role": "user", "content": "Hello"}],
+            "top_p": 0.9
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Responses, None).unwrap();
+
+        assert!(
+            !result.is_passthrough(),
+            "Reasoning Responses models should force translation"
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("top_p").is_none(), "Should not have top_p");
     }
 
     #[test]

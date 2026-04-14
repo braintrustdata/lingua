@@ -1168,6 +1168,22 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  topPReasoningModelParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Say hi." }],
+      top_p: 0.9,
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Say hi." }],
+      top_p: 0.9,
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   frequencyPenaltyParam: {
     "chat-completions": {
       model: OPENAI_NON_REASONING_MODEL,

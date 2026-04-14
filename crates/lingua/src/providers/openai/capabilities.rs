@@ -8,6 +8,8 @@ use crate::serde_json::{Map, Value};
 pub enum ModelTransform {
     /// Strip temperature parameter (reasoning models don't support it)
     StripTemperature,
+    /// Strip top_p parameter (reasoning models don't support it)
+    StripTopP,
     /// Convert max_tokens to max_completion_tokens
     ForceMaxCompletionTokens,
     /// Convert max_completion_tokens to max_tokens
@@ -21,10 +23,22 @@ use ModelTransform::*;
 /// Model prefixes and their required transforms.
 /// Order matters - more specific prefixes must come first.
 const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
-    ("o1", &[StripTemperature, ForceMaxCompletionTokens]),
-    ("o3", &[StripTemperature, ForceMaxCompletionTokens]),
-    ("o4", &[StripTemperature, ForceMaxCompletionTokens]),
-    ("gpt-5", &[StripTemperature, ForceMaxCompletionTokens]),
+    (
+        "o1",
+        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+    ),
+    (
+        "o3",
+        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+    ),
+    (
+        "o4",
+        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+    ),
+    (
+        "gpt-5",
+        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+    ),
     // TODO: would be nice if we could apply these rules by provider instead of model name, and
     // apply these to all Mistral models
     ("mistral", &[ForceMaxTokens]),
@@ -60,6 +74,9 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
             StripTemperature => {
                 obj.remove("temperature");
             }
+            StripTopP => {
+                obj.remove("top_p");
+            }
             ForceMaxCompletionTokens => {
                 // (Responses API) max_output_tokens is valid.
                 if obj.contains_key("max_output_tokens") {
@@ -92,16 +109,25 @@ mod tests {
     #[test]
     fn test_get_model_transforms() {
         let cases = [
-            ("o1", &[StripTemperature, ForceMaxCompletionTokens][..]),
-            ("o1-mini", &[StripTemperature, ForceMaxCompletionTokens][..]),
-            ("o3", &[StripTemperature, ForceMaxCompletionTokens][..]),
+            (
+                "o1",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "o1-mini",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
+            (
+                "o3",
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+            ),
             (
                 "o4-preview",
-                &[StripTemperature, ForceMaxCompletionTokens][..],
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
             ),
             (
                 "gpt-5-mini",
-                &[StripTemperature, ForceMaxCompletionTokens][..],
+                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
             ),
             ("gpt-4", &[][..]),
             ("gpt-4o", &[][..]),
@@ -163,6 +189,38 @@ mod tests {
                 "{} should preserve temperature",
                 model
             );
+        }
+    }
+
+    #[test]
+    fn test_strip_top_p() {
+        let reasoning_models = ["o1", "o1-mini", "o3", "gpt-5-mini"];
+        let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
+
+        for model in reasoning_models {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "top_p": 0.9
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(!obj.contains_key("top_p"), "{} should strip top_p", model);
+        }
+
+        for model in non_reasoning_models {
+            let mut obj = json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "top_p": 0.9
+            })
+            .as_object()
+            .unwrap()
+            .clone();
+            apply_model_transforms(model, &mut obj);
+            assert!(obj.contains_key("top_p"), "{} should preserve top_p", model);
         }
     }
 
