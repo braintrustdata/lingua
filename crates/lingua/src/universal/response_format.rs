@@ -104,10 +104,27 @@ enum SchemaScalarConstraintView {
     String(String),
     Other(Value),
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+enum SchemaTypeView {
+    String(String),
+    Array(Vec<String>),
+}
+
+impl SchemaTypeView {
+    fn contains(&self, expected: &str) -> bool {
+        match self {
+            Self::String(value) => value == expected,
+            Self::Array(values) => values.iter().any(|value| value == expected),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 struct StrictTargetSchemaNodeView {
     #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
-    schema_type: Option<String>,
+    schema_type: Option<SchemaTypeView>,
     #[serde(
         rename = "additionalProperties",
         default,
@@ -137,17 +154,21 @@ fn strip_anthropic_unsupported_schema_keywords(
     map: &mut Map<String, Value>,
     node: &StrictTargetSchemaNodeView,
 ) {
-    match node.schema_type.as_deref() {
-        Some("array") => {
-            map.remove("prefixItems");
-            map.remove("minItems");
-            map.remove("maxItems");
-        }
-        Some("integer") | Some("number") => {
-            map.remove("minimum");
-            map.remove("maximum");
-        }
-        _ => {}
+    if node
+        .schema_type
+        .as_ref()
+        .is_some_and(|schema_type| schema_type.contains("array"))
+    {
+        map.remove("prefixItems");
+        map.remove("minItems");
+        map.remove("maxItems");
+    }
+
+    if node.schema_type.as_ref().is_some_and(|schema_type| {
+        schema_type.contains("integer") || schema_type.contains("number")
+    }) {
+        map.remove("minimum");
+        map.remove("maximum");
     }
 }
 
@@ -174,7 +195,11 @@ pub(crate) fn normalize_response_schema_for_strict_target(
                 strip_anthropic_unsupported_schema_keywords(map, &node);
             }
 
-            if node.schema_type.as_deref() == Some("object") {
+            if node
+                .schema_type
+                .as_ref()
+                .is_some_and(|schema_type| schema_type.contains("object"))
+            {
                 if target_provider != ProviderFormat::Google {
                     map.remove("propertyOrdering");
                 }
@@ -688,11 +713,11 @@ mod tests {
     #[test]
     fn test_strict_target_strips_google_property_ordering_recursively() {
         let schema = json!({
-            "type": "object",
+            "type": ["object", "null"],
             "propertyOrdering": ["outer"],
             "properties": {
                 "outer": {
-                    "type": "object",
+                    "type": ["object", "null"],
                     "propertyOrdering": ["inner"],
                     "properties": {
                         "inner": { "type": "string" }
@@ -734,11 +759,11 @@ mod tests {
     #[test]
     fn test_google_strict_target_preserves_property_ordering() {
         let schema = json!({
-            "type": "object",
+            "type": ["object", "null"],
             "propertyOrdering": ["outer"],
             "properties": {
                 "outer": {
-                    "type": "object",
+                    "type": ["object", "null"],
                     "propertyOrdering": ["inner"],
                     "properties": {
                         "inner": { "type": "string" }
@@ -774,7 +799,7 @@ mod tests {
             "type": "object",
             "properties": {
                 "tuple": {
-                    "type": "array",
+                    "type": ["array", "null"],
                     "prefixItems": [
                         { "type": "string" },
                         { "type": "integer" }
@@ -784,9 +809,14 @@ mod tests {
                     "items": { "type": "string" }
                 },
                 "score": {
-                    "type": "integer",
+                    "type": ["integer", "null"],
                     "minimum": 0,
                     "maximum": 10
+                },
+                "ratio": {
+                    "type": ["number", "null"],
+                    "minimum": 0.1,
+                    "maximum": 0.9
                 }
             }
         });
@@ -799,6 +829,8 @@ mod tests {
         assert_eq!(anthropic.pointer("/properties/tuple/maxItems"), None);
         assert_eq!(anthropic.pointer("/properties/score/minimum"), None);
         assert_eq!(anthropic.pointer("/properties/score/maximum"), None);
+        assert_eq!(anthropic.pointer("/properties/ratio/minimum"), None);
+        assert_eq!(anthropic.pointer("/properties/ratio/maximum"), None);
 
         let chat =
             normalize_response_schema_for_strict_target(&schema, ProviderFormat::ChatCompletions)
@@ -811,6 +843,44 @@ mod tests {
         assert_eq!(chat.pointer("/properties/tuple/maxItems"), Some(&json!(3)));
         assert_eq!(chat.pointer("/properties/score/minimum"), Some(&json!(0)));
         assert_eq!(chat.pointer("/properties/score/maximum"), Some(&json!(10)));
+        assert_eq!(chat.pointer("/properties/ratio/minimum"), Some(&json!(0.1)));
+        assert_eq!(chat.pointer("/properties/ratio/maximum"), Some(&json!(0.9)));
+    }
+
+    #[test]
+    fn test_strict_target_accepts_nullable_union_leaf_types() {
+        let config = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonSchema),
+            json_schema: Some(JsonSchemaConfig {
+                name: "query_result".into(),
+                schema: json!({
+                    "type": "object",
+                    "properties": {
+                        "filter": {
+                            "type": ["string", "null"]
+                        }
+                    },
+                    "required": ["filter"]
+                }),
+                strict: Some(true),
+                description: None,
+            }),
+        };
+
+        let value = config
+            .to_provider(ProviderFormat::Responses)
+            .unwrap()
+            .unwrap();
+        let text: OpenAiResponsesTextView =
+            serde_json::from_value(value).expect("responses text config should deserialize");
+        assert_eq!(
+            text.format.schema.pointer("/properties/filter/type"),
+            Some(&json!(["string", "null"]))
+        );
+        assert_eq!(
+            text.format.schema.pointer("/additionalProperties"),
+            Some(&Value::Bool(false))
+        );
     }
 
     #[test]
