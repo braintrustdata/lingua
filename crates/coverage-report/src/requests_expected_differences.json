@@ -237,28 +237,6 @@
       "reason": "Image media_type normalization artifact"
     },
     {
-      "testCase": "textFormatJsonSchemaNullableUnionTypeGpt54NanoParam",
-      "source": "ChatCompletions",
-      "target": "Responses",
-      "errors": [
-        {
-          "pattern": "Invalid response schema for responses: response schema could not be deserialized for normalization: invalid type: sequence, expected a string",
-          "reason": "Known regression: strict response schema normalization rejects array-valued JSON Schema type during ChatCompletions -> Responses conversion"
-        }
-      ]
-    },
-    {
-      "testCase": "textFormatJsonSchemaNullableUnionTypeGpt54NanoParam",
-      "source": "ChatCompletions",
-      "target": "ChatCompletions",
-      "errors": [
-        {
-          "pattern": "Invalid response schema for openai: response schema could not be deserialized for normalization: invalid type: sequence, expected a string",
-          "reason": "Known regression: strict response schema normalization rejects array-valued JSON Schema type during ChatCompletions self-roundtrip normalization"
-        }
-      ]
-    },
-    {
       "testCase": "instructionsParam",
       "source": "ChatCompletions",
       "target": "Anthropic",

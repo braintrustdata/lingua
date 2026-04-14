@@ -122,20 +122,22 @@ pub fn test_request_transformation(
         Ok(v) => v,
         Err(e) => {
             let error_msg = format!("Conversion from universal failed: {}", e);
-            let context = CompareContext::new(
+            let context = CompareContext::for_cross_provider(
                 TestCategory::Requests,
-                source_adapter.display_name(),
-                target_adapter.display_name(),
+                source_adapter,
+                target_adapter,
                 test_case,
             );
-            let reason = context.is_test_case_limitation().or_else(|| {
-                is_expected_error(
-                    context.category,
-                    context.source,
-                    context.target,
-                    Some(context.test_case),
-                    &error_msg,
-                )
+            let reason = context.as_ref().and_then(|ctx| {
+                ctx.is_test_case_limitation().or_else(|| {
+                    is_expected_error(
+                        ctx.category,
+                        ctx.source,
+                        ctx.target,
+                        Some(ctx.test_case),
+                        &error_msg,
+                    )
+                })
             });
 
             let level = if reason.is_some() {
