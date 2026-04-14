@@ -11,7 +11,7 @@ import {
   TRANSFORMS_DIR,
   parseGoogleSseStream,
   RESPONSE_VALIDATORS,
-  TARGET_MODELS,
+  getTargetModelForCase,
   transformAndValidateRequest,
   getTransformableCases,
   getStreamingTransformableCases,
@@ -198,24 +198,14 @@ export async function captureTransforms(
       nonStreamingTasks.push(async () => {
         let request: Record<string, unknown> | undefined;
         try {
+          const targetModel = getTargetModelForCase(p.target, caseName);
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
           request = transformAndValidateRequest(
             input,
             p.wasmTarget,
-            p.target
+            p.target,
+            targetModel
           ) as Record<string, unknown>;
-
-          const targetCase = getCaseForProvider(
-            allTestCases,
-            caseName,
-            p.target
-          );
-          request.model =
-            targetCase &&
-            typeof targetCase === "object" &&
-            "model" in targetCase
-              ? targetCase.model
-              : TARGET_MODELS[p.target];
 
           const response = await callProvider(p.target, request);
 
@@ -285,24 +275,17 @@ export async function captureTransforms(
             input && typeof input === "object" && !Array.isArray(input)
               ? { ...input, stream: true }
               : input;
+          const targetModel = getTargetModelForCase(
+            streamingPair.target,
+            caseName
+          );
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
           const streamRequest = transformAndValidateRequest(
             streamInput,
             streamingPair.wasmTarget,
-            streamingPair.target
+            streamingPair.target,
+            targetModel
           ) as Record<string, unknown>;
-
-          const targetCase = getCaseForProvider(
-            allTestCases,
-            caseName,
-            streamingPair.target
-          );
-          streamRequest.model =
-            targetCase &&
-            typeof targetCase === "object" &&
-            "model" in targetCase
-              ? targetCase.model
-              : TARGET_MODELS[streamingPair.target];
 
           const streamResponse = await callProvider(
             streamingPair.target,

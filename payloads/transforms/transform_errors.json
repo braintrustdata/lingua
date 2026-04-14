@@ -1,7 +1,6 @@
 {
   "chat-completions_to_responses": {
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
-    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
     "logprobsParam": "OpenAI rejected: logprobs are not supported with reasoning models"
   },
   "responses_to_anthropic": {

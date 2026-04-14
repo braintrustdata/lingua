@@ -202,7 +202,7 @@ pub fn extract_model(input: &[u8]) -> Option<String> {
 ///
 /// * `input` - The incoming request as bytes
 /// * `target_format` - The target provider format
-/// * `model` - Optional model name to inject if source doesn't have one (for Google/Bedrock)
+/// * `model` - Optional model name to use for the transformed target request
 ///
 /// # Returns
 ///
@@ -245,9 +245,8 @@ pub fn transform_request(
 
     let mut universal = source_adapter.request_to_universal(payload)?;
 
-    // Inject model from parameter if not present
-    if model.is_some() && universal.model.is_none() {
-        universal.model = model.map(String::from);
+    if let Some(model) = model {
+        universal.model = Some(model.to_string());
     }
 
     // Apply target provider defaults (e.g., Anthropic's required max_tokens)
@@ -450,7 +449,7 @@ fn needs_forced_translation(payload: &Value, model: Option<&str>, target: Provid
     #[cfg(feature = "openai")]
     {
         // Force translation if model needs any transforms (temperature/top_p stripping, max_tokens conversion, etc.)
-        let request_model = payload.get("model").and_then(Value::as_str).or(model);
+        let request_model = model.or_else(|| payload.get("model").and_then(Value::as_str));
         request_model.map(model_needs_transforms).unwrap_or(false)
     }
 
@@ -699,6 +698,24 @@ mod tests {
         );
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("top_p").is_none(), "Should not have top_p");
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_overrides_model_before_capability_transforms() {
+        let payload = json!({
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "top_p": 0.9
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::Responses, Some("gpt-5-nano")).unwrap();
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("model").unwrap().as_str().unwrap(), "gpt-5-nano");
         assert!(output.get("top_p").is_none(), "Should not have top_p");
     }
 

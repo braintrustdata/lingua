@@ -16,15 +16,15 @@
   "usageMetadata": {
     "promptTokenCount": 4,
     "candidatesTokenCount": 2,
-    "totalTokenCount": 33,
+    "totalTokenCount": 24,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 4
       }
     ],
-    "thoughtsTokenCount": 27
+    "thoughtsTokenCount": 18
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "PvCPabGoFfDRjMcPlfKNmQw"
+  "responseId": "Rr3eadzlB4S9qtsPm9vH-Qc"
 }

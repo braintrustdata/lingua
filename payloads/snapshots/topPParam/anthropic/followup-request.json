@@ -1,5 +1,5 @@
 {
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "max_tokens": 1024,
   "messages": [
     {
@@ -11,7 +11,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Hi! How are you doing today?"
+          "text": "Hi! 👋 How can I help you today?"
         }
       ]
     },

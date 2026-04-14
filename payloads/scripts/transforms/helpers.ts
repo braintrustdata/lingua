@@ -158,12 +158,13 @@ function isTransformResultData(value: unknown): value is TransformResultData {
 export function transformAndValidateRequest(
   input: unknown,
   wasmTarget: WasmFormat,
-  targetFormat: SourceFormat
+  targetFormat: SourceFormat,
+  targetModel?: string
 ): unknown {
   const result = transform_request(
     JSON.stringify(input),
     wasmTarget,
-    TARGET_MODELS[targetFormat]
+    targetModel ?? TARGET_MODELS[targetFormat]
   );
   if (!isTransformResultData(result)) {
     throw new Error("Invalid transform result");
@@ -249,6 +250,23 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   responses: OPENAI_RESPONSES_MODEL,
   google: GOOGLE_MODEL,
 };
+
+export function getTargetModelForCase(
+  targetFormat: SourceFormat,
+  caseName: string
+): string {
+  const targetCase = getCaseForProvider(allTestCases, caseName, targetFormat);
+  if (
+    targetCase &&
+    typeof targetCase === "object" &&
+    "model" in targetCase &&
+    typeof targetCase.model === "string"
+  ) {
+    return targetCase.model;
+  }
+
+  return TARGET_MODELS[targetFormat];
+}
 
 export function getGenAiGenerateContentPath(model: string): string {
   return `/v1beta/models/${model}:generateContent`;
