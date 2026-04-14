@@ -1158,6 +1158,7 @@ mod tests {
 
     #[test]
     fn test_openai_omits_top_p_for_reasoning_models() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
         use crate::universal::message::UserContent;
 
         let adapter = OpenAIAdapter;
@@ -1173,16 +1174,15 @@ mod tests {
             },
         };
 
-        let result = adapter.request_from_universal(&req).unwrap();
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
-        assert!(
-            result.get("top_p").is_none(),
-            "top_p should be omitted for reasoning models (gpt-5-mini)"
-        );
+        assert_eq!(typed.top_p, None);
     }
 
     #[test]
     fn test_openai_preserves_top_p_for_non_reasoning_models() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
         use crate::universal::message::UserContent;
 
         let adapter = OpenAIAdapter;
@@ -1198,13 +1198,10 @@ mod tests {
             },
         };
 
-        let result = adapter.request_from_universal(&req).unwrap();
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
-        assert_eq!(
-            result.get("top_p").unwrap().as_f64().unwrap(),
-            0.9,
-            "top_p should be preserved for non-reasoning models"
-        );
+        assert_eq!(typed.top_p, Some(0.9));
     }
 
     #[test]

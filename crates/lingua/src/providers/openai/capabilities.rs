@@ -157,14 +157,12 @@ mod tests {
 
         // Reasoning models: temperature should be stripped
         for model in reasoning_models {
-            let mut obj = json!({
+            let mut obj: Map<String, Value> = serde_json::from_value(json!({
                 "model": model,
                 "messages": [{"role": "user", "content": "Hello"}],
                 "temperature": 0.7
-            })
-            .as_object()
-            .unwrap()
-            .clone();
+            }))
+            .unwrap();
             apply_model_transforms(model, &mut obj);
             assert!(
                 !obj.contains_key("temperature"),
@@ -175,14 +173,12 @@ mod tests {
 
         // Non-reasoning models: temperature should be preserved
         for model in non_reasoning_models {
-            let mut obj = json!({
+            let mut obj: Map<String, Value> = serde_json::from_value(json!({
                 "model": model,
                 "messages": [{"role": "user", "content": "Hello"}],
                 "temperature": 0.7
-            })
-            .as_object()
-            .unwrap()
-            .clone();
+            }))
+            .unwrap();
             apply_model_transforms(model, &mut obj);
             assert!(
                 obj.contains_key("temperature"),
@@ -198,27 +194,23 @@ mod tests {
         let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
 
         for model in reasoning_models {
-            let mut obj = json!({
+            let mut obj: Map<String, Value> = serde_json::from_value(json!({
                 "model": model,
                 "messages": [{"role": "user", "content": "Hello"}],
                 "top_p": 0.9
-            })
-            .as_object()
-            .unwrap()
-            .clone();
+            }))
+            .unwrap();
             apply_model_transforms(model, &mut obj);
             assert!(!obj.contains_key("top_p"), "{} should strip top_p", model);
         }
 
         for model in non_reasoning_models {
-            let mut obj = json!({
+            let mut obj: Map<String, Value> = serde_json::from_value(json!({
                 "model": model,
                 "messages": [{"role": "user", "content": "Hello"}],
                 "top_p": 0.9
-            })
-            .as_object()
-            .unwrap()
-            .clone();
+            }))
+            .unwrap();
             apply_model_transforms(model, &mut obj);
             assert!(obj.contains_key("top_p"), "{} should preserve top_p", model);
         }
