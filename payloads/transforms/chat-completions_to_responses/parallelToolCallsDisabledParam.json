@@ -1,0 +1,90 @@
+{
+  "id": "resp_0ad8e9a5d7556d3f0069de77cec5cc81939e2d941c298a41f3",
+  "object": "response",
+  "created_at": 1776187342,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1776187344,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_0ad8e9a5d7556d3f0069de77cf3918819389d97da5abaa31cf",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_0ad8e9a5d7556d3f0069de77d080e4819388b1a0a2fc537efb",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"New York City\"}",
+      "call_id": "call_8nVswMO2xCqWDPah48ycHEEW",
+      "name": "get_weather"
+    }
+  ],
+  "parallel_tool_calls": false,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 123,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 219,
+    "output_tokens_details": {
+      "reasoning_tokens": 192
+    },
+    "total_tokens": 342
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}

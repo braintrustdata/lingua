@@ -1,0 +1,14 @@
+{
+  "request": {
+    "input": [
+      {
+        "content": "Say hi.",
+        "role": "user"
+      }
+    ],
+    "model": "gpt-5-nano",
+    "temperature": 0.7
+  },
+  "error": "400 Unsupported parameter: 'temperature' is not supported with this model.",
+  "name": "Error"
+}

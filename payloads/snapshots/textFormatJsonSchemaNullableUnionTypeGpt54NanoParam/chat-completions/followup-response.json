@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DUazkIFG4FHwgq172q5z87kE4nvwl",
+  "object": "chat.completion",
+  "created": 1776184420,
+  "model": "gpt-5.4-nano-2026-03-17",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"explanation\":\"The user is asking for advice on what to do next, but no classification labels or criteria were provided. Cannot determine match or filter without the labeling task context.\",\"filter\":null,\"match\":false}",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 110,
+    "completion_tokens": 51,
+    "total_tokens": 161,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
