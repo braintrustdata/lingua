@@ -181,16 +181,11 @@ pub fn test_request_transformation(
                 target_universal.model = model.map(String::from);
             }
             let target_universal_value = universal_request_to_value(&target_universal);
-            let context = CompareContext::for_cross_provider(
-                TestCategory::Requests,
-                source_adapter,
-                target_adapter,
-                test_case,
-            );
+            let context = CompareContext::for_request(source_adapter, target_adapter, test_case);
             let roundtrip_result = compare_values(
                 &expected_universal_value,
                 &target_universal_value,
-                context.as_ref(),
+                Some(&context),
             );
             diff_to_transform_result(roundtrip_result)
         }
@@ -703,7 +698,7 @@ pub fn run_all_tests(adapters: &[Box<dyn ProviderAdapter>], filter: &TestFilter)
 // Roundtrip testing (Provider → Universal → Provider)
 // ============================================================================
 
-use crate::expected::{is_expected_error, is_expected_field, is_expected_test_case};
+use crate::expected::{is_expected_error, is_expected_field_with_scope, is_expected_test_case};
 use crate::types::{RoundtripDiff, RoundtripResult};
 use lingua::util::testutil::truncate_large_values;
 
@@ -730,16 +725,43 @@ struct CompareContext<'a> {
     source: &'a str,
     target: &'a str,
     test_case: &'a str,
+    include_global_expected_differences: bool,
 }
 
 impl<'a> CompareContext<'a> {
-    fn new(category: TestCategory, source: &'a str, target: &'a str, test_case: &'a str) -> Self {
+    fn new(
+        category: TestCategory,
+        source: &'a str,
+        target: &'a str,
+        test_case: &'a str,
+        include_global_expected_differences: bool,
+    ) -> Self {
         Self {
             category,
             source,
             target,
             test_case,
+            include_global_expected_differences,
         }
+    }
+
+    /// Create context for request comparison. Same-provider request transforms
+    /// can still intentionally sanitize model-incompatible fields, but only
+    /// narrow per-test-case rules should apply to those roundtrips.
+    fn for_request(
+        source_adapter: &'a dyn ProviderAdapter,
+        target_adapter: &'a dyn ProviderAdapter,
+        test_case: &'a str,
+    ) -> Self {
+        let include_global_expected_differences =
+            source_adapter.format() != target_adapter.format();
+        Self::new(
+            TestCategory::Requests,
+            source_adapter.display_name(),
+            target_adapter.display_name(),
+            test_case,
+            include_global_expected_differences,
+        )
     }
 
     /// Create context for cross-provider comparison, or None for roundtrip tests.
@@ -759,6 +781,7 @@ impl<'a> CompareContext<'a> {
                 source_adapter.display_name(),
                 target_adapter.display_name(),
                 test_case,
+                true,
             ))
         }
     }
@@ -771,12 +794,13 @@ impl<'a> CompareContext<'a> {
     /// Check if a field difference is expected for this source→target translation.
     /// Returns the reason if expected, None otherwise.
     fn is_expected(&self, field: &str) -> Option<String> {
-        is_expected_field(
+        is_expected_field_with_scope(
             self.category,
             self.source,
             self.target,
             Some(self.test_case),
             field,
+            self.include_global_expected_differences,
         )
     }
 }
