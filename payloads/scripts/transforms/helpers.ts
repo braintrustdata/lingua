@@ -67,6 +67,12 @@ export const TRANSFORM_PAIRS: TransformPair[] = [
     wasmTarget: "Anthropic",
   },
   {
+    source: "chat-completions",
+    target: "responses",
+    wasmSource: "OpenAI",
+    wasmTarget: "Responses",
+  },
+  {
     source: "responses",
     target: "anthropic",
     wasmSource: "Responses",

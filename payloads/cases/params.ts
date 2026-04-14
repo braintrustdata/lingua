@@ -278,6 +278,45 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  textFormatJsonSchemaNullableUnionTypeGpt54NanoParam: {
+    "chat-completions": {
+      model: "gpt-5.4-nano",
+      messages: [
+        {
+          role: "user",
+          content: "Classify the query and return JSON.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "query_result",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              explanation: {
+                type: "string",
+              },
+              filter: {
+                type: ["string", "null"],
+              },
+              match: {
+                type: "boolean",
+              },
+            },
+            required: ["explanation", "filter", "match"],
+            additionalProperties: false,
+          },
+        },
+      },
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   googleResponseSchemaPropertyOrderingParam: {
     "chat-completions": null,
     responses: null,
