@@ -1,3 +1,103 @@
 {
-  "error": "Conversion from universal format failed: Invalid response schema for responses: response schema could not be deserialized for normalization: invalid type: sequence, expected a string"
+  "id": "resp_020bd5fdbbf1a5b20069de8a20952c8196a0279dd728c70ce7",
+  "object": "response",
+  "created_at": 1776192032,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1776192039,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "output": [
+    {
+      "id": "rs_020bd5fdbbf1a5b20069de8a2104e08196b3eec8c43130d65c",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_020bd5fdbbf1a5b20069de8a24d71481969a7ce5c50c5d8ced",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"explanation\":\"This is a meta-request: the user asks the assistant to classify the current query and respond with JSON. It falls under meta/annotation and instruction-type content.\",\"filter\":null,\"match\":true}"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "query_result",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "filter": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "match": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "explanation",
+          "filter",
+          "match"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 53,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 810,
+    "output_tokens_details": {
+      "reasoning_tokens": 704
+    },
+    "total_tokens": 863
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "{\"explanation\":\"This is a meta-request: the user asks the assistant to classify the current query and respond with JSON. It falls under meta/annotation and instruction-type content.\",\"filter\":null,\"match\":true}"
 }
