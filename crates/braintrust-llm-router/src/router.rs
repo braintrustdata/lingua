@@ -266,9 +266,13 @@ impl Router {
         &self,
         model: &str,
         output_format: ProviderFormat,
-    ) -> Result<Vec<String>> {
-        self.resolve_providers(model, output_format)
-            .map(|routes| routes.into_iter().map(|(alias, ..)| alias).collect())
+    ) -> Result<Vec<(String, ProviderFormat)>> {
+        self.resolve_providers(model, output_format).map(|routes| {
+            routes
+                .into_iter()
+                .map(|(alias, _, _, _, format, _)| (alias, format))
+                .collect()
+        })
     }
 
     /// Resolve all providers for a given model and output format.
@@ -802,13 +806,13 @@ mod tests {
             router
                 .provider_aliases(vertex_model, ProviderFormat::Google)
                 .unwrap(),
-            vec!["vertex".to_string()]
+            vec![("vertex".to_string(), ProviderFormat::Google)]
         );
         assert_eq!(
             router
                 .provider_aliases(google_model, ProviderFormat::Google)
                 .unwrap(),
-            vec!["google".to_string()]
+            vec![("google".to_string(), ProviderFormat::Google)]
         );
     }
 
@@ -837,7 +841,7 @@ mod tests {
             router
                 .provider_aliases(vertex_model, ProviderFormat::Google)
                 .unwrap(),
-            vec!["google".to_string()]
+            vec![("google".to_string(), ProviderFormat::Google)]
         );
     }
 
@@ -1108,7 +1112,13 @@ mod tests {
         let aliases = router
             .provider_aliases(model, ProviderFormat::ChatCompletions)
             .expect("provider_aliases");
-        assert_eq!(aliases, vec!["openai".to_string(), "azure".to_string()]);
+        assert_eq!(
+            aliases,
+            vec![
+                ("openai".to_string(), ProviderFormat::ChatCompletions),
+                ("azure".to_string(), ProviderFormat::ChatCompletions),
+            ]
+        );
     }
 
     #[test]
@@ -1144,7 +1154,7 @@ mod tests {
             router
                 .provider_aliases(model, ProviderFormat::ChatCompletions)
                 .unwrap(),
-            vec!["other_gpt".to_string()],
+            vec![("other_gpt".to_string(), ProviderFormat::ChatCompletions)],
             "provider_aliases returns only registered providers from available_providers"
         );
     }
