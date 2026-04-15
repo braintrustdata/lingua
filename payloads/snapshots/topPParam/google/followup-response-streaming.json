@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "That depends entirely on what you're looking for! To give you the best suggestion, could you tell"
+              "text": "That depends entirely on"
             }
           ],
           "role": "model"
@@ -15,18 +15,18 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 14,
-      "candidatesTokenCount": 21,
-      "totalTokenCount": 1257,
+      "candidatesTokenCount": 4,
+      "totalTokenCount": 768,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 14
         }
       ],
-      "thoughtsTokenCount": 1222
+      "thoughtsTokenCount": 750
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "Pr3eaa_EHqGzmtkPyOzMoAQ"
+    "responseId": "27vfafKFELKS1MkPg5mnuAw"
   },
   {
     "candidates": [
@@ -34,7 +34,7 @@
         "content": {
           "parts": [
             {
-              "text": " me a little more about what you're in the mood for?\n\nFor example, are you looking for something:\n*   **Productive?** (Like planning your day, writing an email, brainstorming a project)\n*"
+              "text": " what you're looking for! To give you the best suggestion, could you tell me a little more about what's on your mind?\n\nAre you looking for:\n\n*   **Something fun to do?** (A hobby"
             }
           ],
           "role": "model"
@@ -44,18 +44,18 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 14,
-      "candidatesTokenCount": 69,
-      "totalTokenCount": 1305,
+      "candidatesTokenCount": 52,
+      "totalTokenCount": 816,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 14
         }
       ],
-      "thoughtsTokenCount": 1222
+      "thoughtsTokenCount": 750
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "Pr3eaa_EHqGzmtkPyOzMoAQ"
+    "responseId": "27vfafKFELKS1MkPg5mnuAw"
   },
   {
     "candidates": [
@@ -63,7 +63,7 @@
         "content": {
           "parts": [
             {
-              "text": "   **Relaxing?** (Like listening to music, reading, meditating)\n*   **Creative?** (Like writing a story, drawing, coming up with new ideas)\n*   **Entertaining?** (Like a"
+              "text": ", entertainment, a game)\n*   **Something productive?** (Work, learning, planning, organizing)\n*   **Something to discuss with me?** (A topic, a question, a problem you're trying to"
             }
           ],
           "role": "model"
@@ -73,18 +73,18 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 14,
-      "candidatesTokenCount": 116,
-      "totalTokenCount": 1352,
+      "candidatesTokenCount": 100,
+      "totalTokenCount": 864,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 14
         }
       ],
-      "thoughtsTokenCount": 1222
+      "thoughtsTokenCount": 750
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "Pr3eaa_EHqGzmtkPyOzMoAQ"
+    "responseId": "27vfafKFELKS1MkPg5mnuAw"
   },
   {
     "candidates": [
@@ -92,36 +92,7 @@
         "content": {
           "parts": [
             {
-              "text": " game, a joke, a fun fact)\n*   **To learn something new?** (Like asking about a topic, a skill, a historical event)\n*   **Just to chat?**\n\nOnce I know a bit"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 14,
-      "candidatesTokenCount": 164,
-      "totalTokenCount": 1400,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 14
-        }
-      ],
-      "thoughtsTokenCount": 1222
-    },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "Pr3eaa_EHqGzmtkPyOzMoAQ"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " more, I can give you a more tailored idea!"
+              "text": " solve)\n*   **Just to chat?** (General conversation)\n*   **Feeling bored and need inspiration?**\n\nLet me know, and I'll do my best to help you figure out what's next!"
             }
           ],
           "role": "model"
@@ -132,17 +103,17 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 14,
-      "candidatesTokenCount": 175,
-      "totalTokenCount": 1411,
+      "candidatesTokenCount": 148,
+      "totalTokenCount": 912,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 14
         }
       ],
-      "thoughtsTokenCount": 1222
+      "thoughtsTokenCount": 750
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "Pr3eaa_EHqGzmtkPyOzMoAQ"
+    "responseId": "27vfafKFELKS1MkPg5mnuAw"
   }
 ]

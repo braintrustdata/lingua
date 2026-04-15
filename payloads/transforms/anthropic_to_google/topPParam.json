@@ -4,7 +4,7 @@
       "content": {
         "parts": [
           {
-            "text": "Hi!"
+            "text": "Hi there!"
           }
         ],
         "role": "model"
@@ -15,16 +15,16 @@
   ],
   "usageMetadata": {
     "promptTokenCount": 4,
-    "candidatesTokenCount": 2,
-    "totalTokenCount": 32,
+    "candidatesTokenCount": 3,
+    "totalTokenCount": 27,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 4
       }
     ],
-    "thoughtsTokenCount": 26
+    "thoughtsTokenCount": 20
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "Rr3eaYqkJZb7qtsPvKWd6Qg"
+  "responseId": "4bvfaZLEJLqi1MkPu4OcqQk"
 }

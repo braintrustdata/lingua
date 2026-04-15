@@ -24,7 +24,6 @@
     "textEditorToolV2Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250429' is not supported by responses",
     "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by responses",
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
-    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model",
     "streamParam": "Streaming response cannot be deserialized as a responses API response"
   },
   "google_to_anthropic": {
@@ -39,7 +38,6 @@
   },
   "google_to_responses": {
     "codeInterpreterToolParam": "Expected: Google code_execution is provider-specific and is not a lossless equivalent of OpenAI Responses code_interpreter",
-    "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by responses",
-    "topPParam": "OpenAI rejected: 'top_p' is not supported with this model"
+    "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by responses"
   }
 }

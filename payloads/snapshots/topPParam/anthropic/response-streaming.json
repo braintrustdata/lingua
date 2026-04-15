@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01EGt2SZLFnZCZdRkMuYVd7C",
+      "id": "msg_0125FyPQP4VVwBqg3NddAHV4",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -18,7 +18,7 @@
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 2,
+        "output_tokens": 3,
         "service_tier": "standard",
         "inference_geo": "not_available"
       }
@@ -37,7 +37,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "Hi!"
+      "text": "Hi! "
     }
   },
   {
@@ -45,7 +45,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " 👋 How can I help you today?"
+      "text": "👋 How can I help you today?"
     }
   },
   {

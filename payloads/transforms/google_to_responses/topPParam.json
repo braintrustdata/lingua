@@ -1,13 +1,13 @@
 {
-  "id": "resp_01cfd7d7fff320980069debd47843881908d6a7ae0c10cc57e",
+  "id": "resp_0787b85d51fb4a780069dfbbe2ba6c8191ad396f559a7c212a",
   "object": "response",
-  "created_at": 1776205127,
+  "created_at": 1776270306,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1776205130,
+  "completed_at": 1776270308,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -17,12 +17,12 @@
   "model": "gpt-5-nano-2025-08-07",
   "output": [
     {
-      "id": "rs_01cfd7d7fff320980069debd47e0d881908185f5a6ef5ffb88",
+      "id": "rs_0787b85d51fb4a780069dfbbe2f2b48191861d0ef650c3e43f",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "msg_01cfd7d7fff320980069debd49dc088190aa70e5701abda0ed",
+      "id": "msg_0787b85d51fb4a780069dfbbe43f3c81919d2e94c09085acd4",
       "type": "message",
       "status": "completed",
       "content": [
@@ -30,7 +30,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Hi there! How can I help you today?"
+          "text": "Hi there! 👋 How can I help you today?"
         }
       ],
       "role": "assistant"
@@ -65,13 +65,13 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 289,
+    "output_tokens": 153,
     "output_tokens_details": {
-      "reasoning_tokens": 256
+      "reasoning_tokens": 128
     },
-    "total_tokens": 298
+    "total_tokens": 162
   },
   "user": null,
   "metadata": {},
-  "output_text": "Hi there! How can I help you today?"
+  "output_text": "Hi there! 👋 How can I help you today?"
 }
