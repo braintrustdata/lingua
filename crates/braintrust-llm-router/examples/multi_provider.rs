@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
             )
             .await
         {
-            Ok(bytes) => {
+            Ok((bytes, _)) => {
                 if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
                     if let Some(text) = extract_assistant_text(&response) {
                         println!("   Response: {}\n", text.trim());
@@ -122,7 +122,7 @@ async fn main() -> Result<()> {
             )
             .await
         {
-            Ok(bytes) => {
+            Ok((bytes, _)) => {
                 if let Ok(response) = serde_json::from_slice::<Value>(&bytes) {
                     if let Some(text) = extract_assistant_text(&response) {
                         println!("   Response: {}\n", text.trim());

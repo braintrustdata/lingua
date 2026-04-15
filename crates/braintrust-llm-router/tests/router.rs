@@ -134,7 +134,7 @@ async fn router_routes_to_stub_provider() {
         ]
     }));
 
-    let bytes: Bytes = router
+    let (bytes, _): (Bytes, _) = router
         .complete(
             body,
             model,
@@ -249,7 +249,7 @@ async fn router_requires_auth_for_provider() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let bytes: Bytes = router
+    let (bytes, _): (Bytes, _) = router
         .complete(
             body,
             model,
@@ -338,7 +338,7 @@ async fn router_propagates_validation_errors() {
         "model": "",
         "messages": []
     }));
-    let err: braintrust_llm_router::Result<Bytes> = router
+    let err: braintrust_llm_router::Result<(Bytes, _)> = router
         .complete(
             body,
             "",
@@ -545,7 +545,7 @@ async fn router_retries_and_propagates_terminal_error() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let err: braintrust_llm_router::Result<Bytes> = router
+    let err: braintrust_llm_router::Result<(Bytes, _)> = router
         .complete(
             body,
             model,

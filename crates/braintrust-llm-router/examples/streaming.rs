@@ -60,7 +60,7 @@ async fn main() -> Result<()> {
     });
 
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let mut stream: ResponseStream = router
+    let (mut stream, _) = router
         .complete_stream(
             body,
             model,
@@ -139,7 +139,7 @@ async fn main() -> Result<()> {
             "stream": true
         });
         let body = Bytes::from(serde_json::to_vec(&payload)?);
-        let stream = router
+        let (stream, _) = router
             .complete_stream(
                 body,
                 model,

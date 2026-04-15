@@ -110,29 +110,48 @@ type ResolvedRoute<'a> = (
     RetryStrategy,
 );
 
+/// Metadata about how an incoming request was interpreted.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RouterMetadata {
+    /// The detected format of the incoming request payload.
+    ///
+    /// When the request was already in the target provider's format, this reflects
+    /// that format. When the payload was transformed, this is the source format
+    /// that was detected.
+    pub detected_input_format: ProviderFormat,
+}
+
 async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
     stream: bool,
-) -> Result<Bytes> {
+) -> Result<(Bytes, Option<ProviderFormat>)> {
     if requires_bedrock_request_preparation(format) {
-        return prepare_bedrock_request(body, spec, format).await;
+        let bytes = prepare_bedrock_request(body, spec, format).await?;
+        return Ok((bytes, Some(format)));
     }
 
-    let transformed = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-        Ok(TransformResult::PassThrough(bytes)) => bytes,
-        Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-        Err(TransformError::UnsupportedTargetFormat(_)) => body,
-        Err(err) => return Err(err.into()),
-    };
+    let (transformed, detected_format) =
+        match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
+            Ok(TransformResult::PassThrough(bytes)) => (bytes, None),
+            Ok(TransformResult::Transformed {
+                bytes,
+                source_format,
+            }) => (bytes, Some(source_format)),
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None),
+            Err(err) => return Err(err.into()),
+        };
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we
         // are ready to update its Rust/WASM/Python/TS call sites together.
-        Ok(enable_streaming_payload(transformed, format))
+        Ok((
+            enable_streaming_payload(transformed, format),
+            detected_format,
+        ))
     } else {
-        Ok(transformed)
+        Ok((transformed, detected_format))
     }
 }
 
@@ -179,14 +198,16 @@ impl Router {
         model: &str,
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
+    ) -> Result<(Bytes, RouterMetadata)> {
         let routes = self.resolve_providers(model, output_format)?;
         // Choose the first provider
         let route = routes
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, strategy) = route;
-        let payload = prepare_provider_request(body, spec.as_ref(), *format, false).await?;
+        let (payload, detected_format) =
+            prepare_provider_request(body, spec.as_ref(), *format, false).await?;
+        let input_format = detected_format.unwrap_or(*format);
 
         let response_bytes = self
             .execute_with_retry(
@@ -207,7 +228,12 @@ impl Router {
             TransformResult::Transformed { bytes, .. } => bytes,
         };
 
-        Ok(response)
+        Ok((
+            response,
+            RouterMetadata {
+                detected_input_format: input_format,
+            },
+        ))
     }
 
     /// Execute a streaming completion request with the given body bytes.
@@ -235,20 +261,27 @@ impl Router {
         model: &str,
         output_format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ResponseStream> {
+    ) -> Result<(ResponseStream, RouterMetadata)> {
         let routes = self.resolve_providers(model, output_format)?;
         let route = routes
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (_, provider, auth, spec, format, _) = route;
-        let payload = prepare_provider_request(body, spec.as_ref(), *format, true).await?;
+        let (payload, detected_format) =
+            prepare_provider_request(body, spec.as_ref(), *format, true).await?;
+        let input_format = detected_format.unwrap_or(*format);
 
         let raw_stream = provider
             .clone()
             .complete_stream(payload, auth, spec.as_ref(), *format, client_headers)
             .await?;
 
-        Ok(transform_stream(raw_stream, output_format))
+        Ok((
+            transform_stream(raw_stream, output_format),
+            RouterMetadata {
+                detected_input_format: input_format,
+            },
+        ))
     }
 
     /// Get the aliases of the providers that can handle the given model and output format.
@@ -736,9 +769,10 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let payload = prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
-            .await
-            .expect("request prepares");
+        let (payload, _) =
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
+                .await
+                .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), Some(&Value::Bool(true)));
@@ -753,9 +787,10 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let payload = prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
-            .await
-            .expect("request prepares");
+        let (payload, _) =
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
+                .await
+                .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), None);

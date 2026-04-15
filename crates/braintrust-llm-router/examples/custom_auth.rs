@@ -136,7 +136,7 @@ async fn main() -> Result<()> {
 
     println!("   Sending authenticated request to GPT-4...");
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let bytes: Bytes = router
+    let (bytes, _) = router
         .complete(
             body,
             model,
