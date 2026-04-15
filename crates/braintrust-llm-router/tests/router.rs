@@ -134,13 +134,12 @@ async fn router_routes_to_stub_provider() {
         ]
     }));
 
-    let (bytes, _): (Bytes, _) = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+    let (request, _metadata) = router
+        .create_request(body, model, ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
+    let bytes: Bytes = router
+        .complete(request, &ClientHeaders::default())
         .await
         .expect("complete");
     // Parse bytes to Value using braintrust_llm_router's serde_json
@@ -154,7 +153,7 @@ async fn router_routes_to_stub_provider() {
 }
 
 #[tokio::test]
-async fn router_reports_provider_aliases_with_formats() {
+async fn router_resolves_provider_alias_in_metadata() {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
         "stub-model".into(),
@@ -193,14 +192,16 @@ async fn router_reports_provider_aliases_with_formats() {
         .build()
         .expect("router builds");
 
-    let routes = router
-        .provider_aliases("stub-model", ProviderFormat::ChatCompletions)
-        .expect("provider aliases lookup");
+    let body = to_body(json!({
+        "model": "stub-model",
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+    let (_request, metadata) = router
+        .create_request(body, "stub-model", ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
 
-    assert_eq!(
-        routes,
-        vec![("stub".to_string(), ProviderFormat::ChatCompletions)]
-    );
+    assert_eq!(metadata.provider_alias, "stub");
 }
 
 #[tokio::test]
@@ -249,13 +250,12 @@ async fn router_requires_auth_for_provider() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let (bytes, _): (Bytes, _) = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+    let (request, _metadata) = router
+        .create_request(body, model, ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
+    let bytes: Bytes = router
+        .complete(request, &ClientHeaders::default())
         .await
         .expect("complete succeeds when auth is configured");
     let response: Value =
@@ -301,15 +301,13 @@ async fn router_reports_missing_provider() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let err = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+    let err = match router
+        .create_request(body, model, ProviderFormat::ChatCompletions)
         .await
-        .expect_err("missing provider");
+    {
+        Ok(_) => panic!("missing provider"),
+        Err(err) => err,
+    };
     assert!(matches!(
         err,
         Error::NoProvider(ProviderFormat::ChatCompletions)
@@ -338,15 +336,13 @@ async fn router_propagates_validation_errors() {
         "model": "",
         "messages": []
     }));
-    let err: braintrust_llm_router::Result<(Bytes, _)> = router
-        .complete(
-            body,
-            "",
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+    let err: braintrust_llm_router::Result<_> = router
+        .create_request(body, "", ProviderFormat::ChatCompletions)
         .await;
-    let err = err.expect_err("validation");
+    let err = match err {
+        Ok(_) => panic!("validation"),
+        Err(err) => err,
+    };
     // Empty model is treated as unknown model, not invalid request
     assert!(matches!(err, Error::UnknownModel(_)));
 }
@@ -545,14 +541,12 @@ async fn router_retries_and_propagates_terminal_error() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let err: braintrust_llm_router::Result<(Bytes, _)> = router
-        .complete(
-            body,
-            model,
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
-        .await;
+    let (request, _metadata) = router
+        .create_request(body, model, ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
+    let err: braintrust_llm_router::Result<Bytes> =
+        router.complete(request, &ClientHeaders::default()).await;
     let err = err.expect_err("terminal error");
     assert!(matches!(err, Error::Timeout));
     assert_eq!(attempts.load(Ordering::SeqCst), 3);
@@ -589,13 +583,12 @@ async fn router_maps_terminal_http_errors_to_upstream_unavailable() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
+    let (request, _metadata) = router
+        .create_request(body, "retry-model", ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
     let err = router
-        .complete(
-            body,
-            "retry-model",
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+        .complete(request, &ClientHeaders::default())
         .await
         .expect_err("terminal error");
 
@@ -638,13 +631,12 @@ async fn router_maps_terminal_middleware_errors_to_upstream_unavailable() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
+    let (request, _metadata) = router
+        .create_request(body, "retry-model", ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
     let err = router
-        .complete(
-            body,
-            "retry-model",
-            ProviderFormat::ChatCompletions,
-            &ClientHeaders::default(),
-        )
+        .complete(request, &ClientHeaders::default())
         .await
         .expect_err("terminal error");
 
