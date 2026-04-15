@@ -1157,6 +1157,54 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_omits_top_p_for_reasoning_models() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-mini".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                top_p: Some(0.9),
+                ..Default::default()
+            },
+        };
+
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(typed.top_p, None);
+    }
+
+    #[test]
+    fn test_openai_preserves_top_p_for_non_reasoning_models() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+
+        let req = UniversalRequest {
+            model: Some("gpt-4".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                top_p: Some(0.9),
+                ..Default::default()
+            },
+        };
+
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(typed.top_p, Some(0.9));
+    }
+
+    #[test]
     fn test_openai_chat_maps_anthropic_user_id_to_safety_identifier() {
         use crate::providers::openai::generated::CreateChatCompletionRequestClass;
         use crate::universal::message::UserContent;

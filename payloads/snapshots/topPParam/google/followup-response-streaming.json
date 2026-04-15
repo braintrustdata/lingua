@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "That's a very open-ended question! To give you the best suggestion, I need a little more context. Tell me:\n\n*   **What did you just finish doing"
+              "text": "That depends entirely on"
             }
           ],
           "role": "model"
@@ -15,18 +15,18 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 14,
-      "candidatesTokenCount": 37,
-      "totalTokenCount": 1021,
+      "candidatesTokenCount": 4,
+      "totalTokenCount": 768,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 14
         }
       ],
-      "thoughtsTokenCount": 970
+      "thoughtsTokenCount": 750
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
+    "responseId": "27vfafKFELKS1MkPg5mnuAw"
   },
   {
     "candidates": [
@@ -34,7 +34,7 @@
         "content": {
           "parts": [
             {
-              "text": "?** (This helps set the stage.)\n*   **What kind of mood are you in?** (Productive, relaxed, creative, bored, social?)\n*   **How much time do you have?** (5"
+              "text": " what you're looking for! To give you the best suggestion, could you tell me a little more about what's on your mind?\n\nAre you looking for:\n\n*   **Something fun to do?** (A hobby"
             }
           ],
           "role": "model"
@@ -44,18 +44,18 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 14,
-      "candidatesTokenCount": 85,
-      "totalTokenCount": 1069,
+      "candidatesTokenCount": 52,
+      "totalTokenCount": 816,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 14
         }
       ],
-      "thoughtsTokenCount": 970
+      "thoughtsTokenCount": 750
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
+    "responseId": "27vfafKFELKS1MkPg5mnuAw"
   },
   {
     "candidates": [
@@ -63,7 +63,7 @@
         "content": {
           "parts": [
             {
-              "text": " minutes, an hour, all day?)\n*   **Are you looking for something:**\n    *   **Productive/Practical?** (Work, chores, learning)\n    *   **Relaxing/Self-Care?"
+              "text": ", entertainment, a game)\n*   **Something productive?** (Work, learning, planning, organizing)\n*   **Something to discuss with me?** (A topic, a question, a problem you're trying to"
             }
           ],
           "role": "model"
@@ -73,18 +73,18 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 14,
-      "candidatesTokenCount": 133,
-      "totalTokenCount": 1117,
+      "candidatesTokenCount": 100,
+      "totalTokenCount": 864,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 14
         }
       ],
-      "thoughtsTokenCount": 970
+      "thoughtsTokenCount": 750
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
+    "responseId": "27vfafKFELKS1MkPg5mnuAw"
   },
   {
     "candidates": [
@@ -92,210 +92,7 @@
         "content": {
           "parts": [
             {
-              "text": "** (Reading, meditating, napping)\n    *   **Entertaining?** (Watching something, playing a game)\n    *   **Creative?** (Writing, drawing, cooking)\n    *   **Social?**"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 14,
-      "candidatesTokenCount": 182,
-      "totalTokenCount": 1166,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 14
-        }
-      ],
-      "thoughtsTokenCount": 970
-    },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " (Connecting with others)\n    *   **Physical?** (Exercising, going for a walk)\n*   **What are your general interests?**\n\nIn the meantime, here are some super general ideas across different categories:\n\n"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 14,
-      "candidatesTokenCount": 230,
-      "totalTokenCount": 1214,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 14
-        }
-      ],
-      "thoughtsTokenCount": 970
-    },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": "**If you're looking for something productive:**\n*   Make a to-do list for the rest of your day/week.\n*   Organize a small area (your desk, a drawer, your digital files).\n*"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 14,
-      "candidatesTokenCount": 279,
-      "totalTokenCount": 1263,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 14
-        }
-      ],
-      "thoughtsTokenCount": 970
-    },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": "   Learn something new online (a new word, a historical fact, a simple recipe).\n*   Respond to any pending emails or messages.\n\n**If you're looking to relax:**\n*   Listen to your favorite music or a calming"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 14,
-      "candidatesTokenCount": 328,
-      "totalTokenCount": 1312,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 14
-        }
-      ],
-      "thoughtsTokenCount": 970
-    },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " playlist.\n*   Read a few pages of a book or an interesting article.\n*   Do some gentle stretches or a short meditation.\n*   Make yourself a cup of tea or coffee.\n\n**If you're looking for entertainment"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 14,
-      "candidatesTokenCount": 378,
-      "totalTokenCount": 1362,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 14
-        }
-      ],
-      "thoughtsTokenCount": 970
-    },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": ":**\n*   Watch a short video or a clip from a show/movie.\n*   Play a quick game on your phone or computer.\n*   Browse an interesting subreddit or social media feed.\n\n**If you're looking to be"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 14,
-      "candidatesTokenCount": 429,
-      "totalTokenCount": 1413,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 14
-        }
-      ],
-      "thoughtsTokenCount": 970
-    },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " creative:**\n*   Jot down some ideas in a notebook.\n*   Doodle or sketch something.\n*   Think of a new meal you could try cooking.\n\n**If you're looking to connect:**\n*   Send a"
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 14,
-      "candidatesTokenCount": 480,
-      "totalTokenCount": 1464,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 14
-        }
-      ],
-      "thoughtsTokenCount": 970
-    },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " quick message to a friend or family member.\n*   Check in on someone you haven't spoken to in a while.\n\nOnce I have a better idea of what you're looking for, I can give you more tailored advice!"
+              "text": " solve)\n*   **Just to chat?** (General conversation)\n*   **Feeling bored and need inspiration?**\n\nLet me know, and I'll do my best to help you figure out what's next!"
             }
           ],
           "role": "model"
@@ -306,17 +103,17 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 14,
-      "candidatesTokenCount": 529,
-      "totalTokenCount": 1513,
+      "candidatesTokenCount": 148,
+      "totalTokenCount": 912,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 14
         }
       ],
-      "thoughtsTokenCount": 970
+      "thoughtsTokenCount": 750
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "lEyWaZ3nCMq-_uMP553SmQo"
+    "responseId": "27vfafKFELKS1MkPg5mnuAw"
   }
 ]

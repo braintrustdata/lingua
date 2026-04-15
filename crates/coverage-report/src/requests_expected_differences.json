@@ -293,6 +293,22 @@
       "reason": "Anthropic web_search encrypted results cannot be transformed to OpenAI"
     },
     {
+      "testCase": "topPReasoningModelParam",
+      "source": "*",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.top_p", "reason": "OpenAI reasoning models do not support top_p, so it is stripped for request compatibility" }
+      ]
+    },
+    {
+      "testCase": "topPReasoningModelParam",
+      "source": "*",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.top_p", "reason": "OpenAI reasoning models do not support top_p, so it is stripped for request compatibility" }
+      ]
+    },
+    {
       "testCase": "webSearchToolParam",
       "source": "Anthropic",
       "target": "ChatCompletions",

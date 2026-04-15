@@ -5,7 +5,7 @@ import { allTestCases, getCaseForProvider } from "../../cases";
 import {
   TRANSFORM_PAIRS,
   TRANSFORMS_DIR,
-  TARGET_MODELS,
+  getTargetModelForCase,
   transformAndValidateRequest,
   transformResponseData,
   loadAndValidateResponse,
@@ -46,30 +46,14 @@ for (const pair of TRANSFORM_PAIRS) {
               caseName,
               pair.source
             );
+            const targetModel = getTargetModelForCase(pair.target, caseName);
 
             const request = transformAndValidateRequest(
               input,
               pair.wasmTarget,
-              pair.target
+              pair.target,
+              targetModel
             );
-
-            if (
-              typeof request === "object" &&
-              request !== null &&
-              "model" in request
-            ) {
-              const targetCase = getCaseForProvider(
-                allTestCases,
-                caseName,
-                pair.target
-              );
-              request.model =
-                targetCase &&
-                typeof targetCase === "object" &&
-                "model" in targetCase
-                  ? targetCase.model
-                  : TARGET_MODELS[pair.target];
-            }
 
             expect(request).toMatchSnapshot("request");
 

@@ -161,6 +161,18 @@ pub fn is_expected_field(
     test_case: Option<&str>,
     field: &str,
 ) -> Option<String> {
+    is_expected_field_with_scope(category, source, target, test_case, field, true)
+}
+
+/// Check if a field difference is expected, optionally excluding global rules.
+pub fn is_expected_field_with_scope(
+    category: TestCategory,
+    source: &str,
+    target: &str,
+    test_case: Option<&str>,
+    field: &str,
+    include_global: bool,
+) -> Option<String> {
     let diffs = get_expected_differences(category);
 
     // Helper to check if a pattern matches (prefix matching with [*] wildcard)
@@ -193,11 +205,12 @@ pub fn is_expected_field(
         }
     }
 
-    // Check global rules
-    for rule in &diffs.global {
-        if matches_source_target(&rule.source, &rule.target, source, target) {
-            if let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern)) {
-                return Some(entry.reason.clone());
+    if include_global {
+        for rule in &diffs.global {
+            if matches_source_target(&rule.source, &rule.target, source, target) {
+                if let Some(entry) = rule.fields.iter().find(|e| pattern_matches(&e.pattern)) {
+                    return Some(entry.reason.clone());
+                }
             }
         }
     }

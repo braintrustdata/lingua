@@ -1,7 +1,6 @@
 {
-  "model": "claude-sonnet-4-5-20250929",
-  "max_tokens": 1024,
-  "messages": [
+  "model": "gpt-5-nano",
+  "input": [
     {
       "role": "user",
       "content": "Say hi."

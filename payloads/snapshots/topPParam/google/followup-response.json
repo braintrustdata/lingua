@@ -4,7 +4,7 @@
       "content": {
         "parts": [
           {
-            "text": "To give you the best suggestion, I need a little more information! What kind of mood are you in, what are you trying to achieve, or what are your current circumstances?\n\nFor example, are you looking to:\n\n*   **Relax and unwind?** (Read a book, listen to music, watch a movie, meditate)\n*   **Be productive?** (Tackle a chore, work on a personal project, plan your week)\n*   **Learn something new?** (Watch a documentary, read an article, try a new skill)\n*   **Be creative?** (Draw, write, play an instrument, cook something new)\n*   **Get active?** (Go for a walk, exercise, stretch)\n*   **Connect with others?** (Call a friend, spend time with family)\n*   **Explore?** (Look up a new place to visit, browse interesting topics online)\n\nTell me a bit more about what you're looking for!"
+            "text": "That's a fun, open-ended question! It totally depends on what you're in the mood for.\n\nHere are a few ideas:\n\n*   **Ask me anything!** Curious about a topic? Want to learn something new? Just ask.\n*   **Let's get creative.** We could brainstorm ideas, write a short story, a poem, or even a song lyric. Give me a prompt!\n*   **Play a game.** We could do a word association game, guess the word, or I could give you a riddle.\n*   **Plan something.** Need help outlining a project, organizing thoughts, or even planning a fictional adventure?\n*   **Just chat.** Tell me what's on your mind, what you're working on, or something interesting you've been thinking about.\n*   **Explore my capabilities.** Give me a challenge! See what else I can do.\n\nWhat sounds most interesting to you right now?"
           }
         ],
         "role": "model"
@@ -15,16 +15,16 @@
   ],
   "usageMetadata": {
     "promptTokenCount": 14,
-    "candidatesTokenCount": 209,
-    "totalTokenCount": 1096,
+    "candidatesTokenCount": 202,
+    "totalTokenCount": 947,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 14
       }
     ],
-    "thoughtsTokenCount": 873
+    "thoughtsTokenCount": 731
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "lEyWaeizCf7e_uMPxtLXuAs"
+  "responseId": "27vfae28D6-d1MkPgpvYmAg"
 }

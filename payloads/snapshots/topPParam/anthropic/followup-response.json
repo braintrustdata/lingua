@@ -1,25 +1,27 @@
 {
-  "model": "claude-sonnet-4-20250514",
-  "id": "msg_017VFaJeGyC7cAP8iP5GXxGe",
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01NvtqfoBSjdhkFw4pFpS7tu",
   "type": "message",
   "role": "assistant",
   "content": [
     {
       "type": "text",
-      "text": "That depends on what you're looking to accomplish! Here are a few questions that might help me give you a better suggestion:\n\n- Are you looking for something productive to do, or more for relaxation/fun?\n- Do you have any specific goals or tasks you've been putting off?\n- What's your current situation - are you at home, work, have free time, etc.?\n- What kinds of activities do you usually enjoy?\n\nOr if you just want a general suggestion: taking a short walk, reading something interesting, or reaching out to someone you care about are usually good \"next steps\" that tend to improve most people's day!\n\nWhat sounds appealing to you?"
+      "text": "That depends on what you're looking for! Here are some ideas:\n\n- **Ask me a question** - I can help with information, explanations, advice, or research\n- **Get help with a task** - writing, editing, brainstorming, coding, math, analysis, etc.\n- **Have a conversation** - discuss topics you're interested in\n- **Create something** - stories, ideas, plans, lists\n- **Solve a problem** - work through something you're stuck on\n\nWhat's on your mind, or what would be most useful to you right now?"
     }
   ],
   "stop_reason": "end_turn",
   "stop_sequence": null,
+  "stop_details": null,
   "usage": {
-    "input_tokens": 30,
+    "input_tokens": 35,
     "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
     "cache_creation": {
       "ephemeral_5m_input_tokens": 0,
       "ephemeral_1h_input_tokens": 0
     },
-    "output_tokens": 147,
-    "service_tier": "standard"
+    "output_tokens": 128,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
   }
 }

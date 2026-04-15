@@ -1373,6 +1373,50 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_omits_top_p_for_reasoning_models() {
+        use crate::providers::openai::generated::CreateResponseClass;
+
+        let req = UniversalRequest {
+            model: Some("gpt-5-mini".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                top_p: Some(0.9),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(typed.top_p, None);
+    }
+
+    #[test]
+    fn test_responses_preserves_top_p_for_non_reasoning_models() {
+        use crate::providers::openai::generated::CreateResponseClass;
+
+        let req = UniversalRequest {
+            model: Some("gpt-4.1".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                top_p: Some(0.9),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: CreateResponseClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(typed.top_p, Some(0.9));
+    }
+
+    #[test]
     fn test_responses_clamps_synthesized_max_output_tokens_to_provider_minimum() {
         use crate::providers::openai::generated::CreateResponseClass;
 

@@ -1712,7 +1712,7 @@ exports[`anthropic → chat-completions > topPParam > response 1`] = `
       "type": "text",
     },
   ],
-  "id": "msg_DPVSkAGWRMEoSU6O9q9DUBJtONdLx",
+  "id": "msg_DUxKzPePFZxnPOGkactCnMEKi8zab",
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -4177,7 +4177,7 @@ exports[`anthropic → google > topPParam > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 4,
-    "output_tokens": 24,
+    "output_tokens": 23,
   },
 }
 `;
@@ -5660,7 +5660,6 @@ exports[`anthropic → responses > temperatureParam > request 1`] = `
   ],
   "max_output_tokens": 1024,
   "model": "gpt-5-nano",
-  "temperature": 0.7,
 }
 `;
 
@@ -6176,7 +6175,31 @@ exports[`anthropic → responses > topPParam > request 1`] = `
   ],
   "max_output_tokens": 1024,
   "model": "gpt-5-nano",
-  "top_p": 0.9,
+}
+`;
+
+exports[`anthropic → responses > topPParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Hi there! How can I help today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_083d7212f1ae77cd0069dfbbe183c081919a837b70cc22bee8",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 183,
+  },
 }
 `;
 
@@ -7516,9 +7539,8 @@ exports[`chat-completions → anthropic > reasoningEffortLowParam > request 1`] 
     },
   ],
   "model": "claude-opus-4-6",
-  "thinking": {
-    "budget_tokens": 1024,
-    "type": "enabled",
+  "output_config": {
+    "effort": "low",
   },
 }
 `;
@@ -7675,9 +7697,8 @@ exports[`chat-completions → anthropic > reasoningSummaryParam > request 1`] = 
     },
   ],
   "model": "claude-opus-4-6",
-  "thinking": {
-    "budget_tokens": 2048,
-    "type": "enabled",
+  "output_config": {
+    "effort": "medium",
   },
 }
 `;
@@ -8699,22 +8720,64 @@ exports[`chat-completions → anthropic > topPParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "Hi! How are you doing today?",
+        "content": "Hi! 👋 How can I help you today?",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
-  "id": "chatcmpl-011fFxkkz1DRMcUR3KrCKpkj",
-  "model": "claude-sonnet-4-20250514",
+  "id": "chatcmpl-01WWW39SiuAUvyHMRH7soPXP",
+  "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 11,
+    "completion_tokens": 16,
     "prompt_tokens": 10,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 21,
+    "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > topPReasoningModelParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "top_p": 0.9,
+}
+`;
+
+exports[`chat-completions → anthropic > topPReasoningModelParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01ChQ2zVsrgneGgMncDdhRAY",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
   },
 }
 `;
@@ -11197,7 +11260,7 @@ exports[`chat-completions → google > toolChoiceRequiredWithReasoningParam > re
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 2048,
+      "thinkingLevel": "MEDIUM",
     },
   },
   "model": "gemini-3-flash-preview",
@@ -11315,12 +11378,60 @@ exports[`chat-completions → google > topPParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 29,
+    "completion_tokens": 21,
     "completion_tokens_details": {
-      "reasoning_tokens": 27,
+      "reasoning_tokens": 19,
     },
     "prompt_tokens": 4,
-    "total_tokens": 33,
+    "total_tokens": 25,
+  },
+}
+`;
+
+exports[`chat-completions → google > topPReasoningModelParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "topP": 0.9,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > topPReasoningModelParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 24,
+    "completion_tokens_details": {
+      "reasoning_tokens": 21,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 28,
   },
 }
 `;
@@ -13161,7 +13272,6 @@ exports[`chat-completions → responses > temperatureParam > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
-  "temperature": 0.7,
 }
 `;
 
@@ -13775,7 +13885,98 @@ exports[`chat-completions → responses > topPParam > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
-  "top_p": 0.9,
+}
+`;
+
+exports[`chat-completions → responses > topPParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-047b4f23007a07b70069dfbbe36840819db09dcb15f5b688da",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 193,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 202,
+  },
+}
+`;
+
+exports[`chat-completions → responses > topPReasoningModelParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > topPReasoningModelParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-031a4d1f0e194aca0069dea7360f48819cae730888cf583b07",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 136,
+    "completion_tokens_details": {
+      "reasoning_tokens": 64,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 145,
+  },
 }
 `;
 
@@ -17261,6 +17462,7 @@ exports[`google → chat-completions > temperatureParam > request 1`] = `
     },
   ],
   "model": "gpt-4o-mini",
+  "temperature": 0.7,
 }
 `;
 
@@ -20475,7 +20677,46 @@ exports[`google → responses > topPParam > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
-  "top_p": 0.9,
+}
+`;
+
+exports[`google → responses > topPParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! 👋 How can I help you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 25,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 162,
+  },
 }
 `;
 
@@ -22122,9 +22363,8 @@ exports[`responses → anthropic > reasoningEffortLowParam > request 1`] = `
     },
   ],
   "model": "claude-opus-4-6",
-  "thinking": {
-    "budget_tokens": 1024,
-    "type": "enabled",
+  "output_config": {
+    "effort": "low",
   },
 }
 `;
@@ -22348,9 +22588,8 @@ exports[`responses → anthropic > reasoningSummaryParam > request 1`] = `
     },
   ],
   "model": "claude-opus-4-6",
-  "thinking": {
-    "budget_tokens": 2048,
-    "type": "enabled",
+  "output_config": {
+    "effort": "medium",
   },
 }
 `;
@@ -23319,6 +23558,61 @@ exports[`responses → anthropic > toolChoiceRequiredParam > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 692,
+  },
+}
+`;
+
+exports[`responses → anthropic > topPReasoningModelParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "top_p": 0.9,
+}
+`;
+
+exports[`responses → anthropic > topPReasoningModelParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_0187xNeHoXaprZGFt5eegGU7",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hi! 👋 How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hi! 👋 How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 10,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 16,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 26,
   },
 }
 `;
@@ -26157,6 +26451,67 @@ exports[`responses → google > toolChoiceRequiredParam > response 1`] = `
       "reasoning_tokens": 47,
     },
     "total_tokens": 99,
+  },
+}
+`;
+
+exports[`responses → google > topPReasoningModelParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "topP": 0.9,
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > topPReasoningModelParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hi there!",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hi there!",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 4,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 18,
+    "output_tokens_details": {
+      "reasoning_tokens": 15,
+    },
+    "total_tokens": 22,
   },
 }
 `;
