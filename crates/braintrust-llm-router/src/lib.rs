@@ -31,7 +31,10 @@ pub use providers::{
     OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, Provider, VertexConfig, VertexProvider,
 };
 pub use retry::{RetryPolicy, RetryStrategy};
-pub use router::{create_provider, extract_request_hints, RequestHints, Router, RouterBuilder};
+pub use router::{
+    create_provider, extract_request_hints, PreparedRequest, PreparedStreamRequest, RequestHints,
+    Router, RouterBuilder, RouterMetadata,
+};
 pub use streaming::{RawResponseStream, ResponseStream, StreamChunk};
 
 // Provider trait requirement (for custom provider implementations)

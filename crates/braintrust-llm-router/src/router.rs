@@ -102,7 +102,7 @@ pub fn create_provider(
 
 /// Resolved route information from model resolution.
 type ResolvedRoute<'a> = (
-    String,
+    String, // alias
     Arc<dyn Provider>,
     &'a AuthConfig,
     Arc<ModelSpec>,
@@ -110,29 +110,76 @@ type ResolvedRoute<'a> = (
     RetryStrategy,
 );
 
+/// Metadata about how an incoming request was interpreted, mainly to be used
+/// for observability.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RouterMetadata {
+    /// The detected format of the incoming request payload.
+    ///
+    /// When the request was already in the target provider's format, this reflects
+    /// that format. When the payload was transformed, this is the source format
+    /// that was detected.
+    pub detected_input_format: ProviderFormat,
+
+    /// The alias of the provider that was used to execute the request.
+    pub provider_alias: String,
+
+    /// The output format of the provider response, which may not always match
+    /// the requested output format.
+    pub provider_format: ProviderFormat,
+}
+
+/// Request prepared by the router and ready for execution.
+pub struct PreparedRequest<'a> {
+    inner: PreparedRequestInner<'a>,
+}
+
+/// Streaming request prepared by the router and ready for execution.
+pub struct PreparedStreamRequest<'a> {
+    inner: PreparedRequestInner<'a>,
+}
+
+struct PreparedRequestInner<'a> {
+    provider: Arc<dyn Provider>,
+    auth: &'a AuthConfig,
+    spec: Arc<ModelSpec>,
+    format: ProviderFormat,
+    payload: Bytes,
+    output_format: ProviderFormat,
+    strategy: RetryStrategy,
+}
+
 async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
     stream: bool,
-) -> Result<Bytes> {
+) -> Result<(Bytes, Option<ProviderFormat>)> {
     if requires_bedrock_request_preparation(format) {
-        return prepare_bedrock_request(body, spec, format).await;
+        let bytes = prepare_bedrock_request(body, spec, format).await?;
+        return Ok((bytes, Some(format)));
     }
 
-    let transformed = match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-        Ok(TransformResult::PassThrough(bytes)) => bytes,
-        Ok(TransformResult::Transformed { bytes, .. }) => bytes,
-        Err(TransformError::UnsupportedTargetFormat(_)) => body,
-        Err(err) => return Err(err.into()),
-    };
+    let (transformed, detected_format) =
+        match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
+            Ok(TransformResult::PassThrough(bytes)) => (bytes, None),
+            Ok(TransformResult::Transformed {
+                bytes,
+                source_format,
+            }) => (bytes, Some(source_format)),
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None),
+            Err(err) => return Err(err.into()),
+        };
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we
         // are ready to update its Rust/WASM/Python/TS call sites together.
-        Ok(enable_streaming_payload(transformed, format))
+        Ok((
+            enable_streaming_payload(transformed, format),
+            detected_format,
+        ))
     } else {
-        Ok(transformed)
+        Ok((transformed, detected_format))
     }
 }
 
@@ -154,121 +201,167 @@ impl Router {
         Arc::clone(&self.catalog)
     }
 
-    /// Execute a completion request with the given body bytes.
+    // Internal method to create a prepared request, handles streaming and non-streaming requests.
+    async fn create_prepared_request_internal(
+        &self,
+        body: Bytes,
+        model: &str,
+        output_format: ProviderFormat,
+        stream: bool,
+    ) -> Result<(PreparedRequestInner<'_>, RouterMetadata)> {
+        let routes = self.resolve_providers(model, output_format)?;
+        let route = routes
+            .first()
+            .ok_or_else(|| Error::NoProvider(output_format))?;
+        let (provider_alias, provider, auth, spec, format, strategy) = route;
+        let (payload, detected_format) =
+            prepare_provider_request(body, spec.as_ref(), *format, stream).await?;
+        Ok((
+            PreparedRequestInner {
+                provider: provider.clone(),
+                auth,
+                spec: spec.clone(),
+                format: *format,
+                payload,
+                output_format,
+                strategy: strategy.clone(),
+            },
+            RouterMetadata {
+                detected_input_format: detected_format.unwrap_or(*format),
+                provider_alias: provider_alias.clone(),
+                provider_format: *format,
+            },
+        ))
+    }
+
+    /// Create a prepared request from raw body bytes.
     ///
     /// # Arguments
     ///
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
     /// * `output_format` - The output format, or None to auto-detect from body
-    /// * `client_headers` - Client headers to forward to the upstream provider
     ///
-    /// The body will be automatically transformed to the target provider's format if needed.
-    /// The response will be converted to the requested output format.
+    /// The body will be automatically transformed to the selected provider format if needed.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.create_request",
+            skip(self, body),
+            fields(llm.model = %model)
+        )
+    )]
+    pub async fn create_request(
+        &self,
+        body: Bytes,
+        model: &str,
+        output_format: ProviderFormat,
+    ) -> Result<(PreparedRequest<'_>, RouterMetadata)> {
+        let (inner, metadata) = self
+            .create_prepared_request_internal(body, model, output_format, false)
+            .await?;
+        Ok((PreparedRequest { inner }, metadata))
+    }
+
+    /// Execute a prepared request and return transformed response bytes.
     #[cfg_attr(
         feature = "tracing",
         tracing::instrument(
             name = "bt.router.complete",
-            skip(self, body, client_headers),
-            fields(llm.model = %model)
+            skip(self, request, client_headers),
+            fields(llm.model = %request.inner.spec.model)
         )
     )]
     pub async fn complete(
         &self,
-        body: Bytes,
-        model: &str,
-        output_format: ProviderFormat,
+        request: PreparedRequest<'_>,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let routes = self.resolve_providers(model, output_format)?;
-        // Choose the first provider
-        let route = routes
-            .first()
-            .ok_or_else(|| Error::NoProvider(output_format))?;
-        let (_, provider, auth, spec, format, strategy) = route;
-        let payload = prepare_provider_request(body, spec.as_ref(), *format, false).await?;
-
+        let PreparedRequestInner {
+            provider,
+            auth,
+            spec,
+            format,
+            payload,
+            output_format,
+            strategy,
+        } = request.inner;
         let response_bytes = self
             .execute_with_retry(
-                provider.clone(),
+                provider,
                 auth,
-                spec.clone(),
-                *format,
+                spec,
+                format,
                 payload,
-                strategy.clone(),
+                strategy,
                 client_headers,
             )
             .await?;
-
         let result = lingua::transform_response(response_bytes.clone(), output_format)?;
-
         let response = match result {
             TransformResult::PassThrough(bytes) => bytes,
             TransformResult::Transformed { bytes, .. } => bytes,
         };
-
         Ok(response)
     }
 
-    /// Execute a streaming completion request with the given body bytes.
+    /// Create a prepared streaming request from raw body bytes.
     ///
     /// # Arguments
     ///
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
     /// * `output_format` - The output format, or None to auto-detect from body
-    /// * `client_headers` - Client headers to forward to the upstream provider
     ///
-    /// The body will be automatically transformed to the target provider's format if needed.
-    /// Stream chunks will be transformed to the requested output format.
+    /// The body will be automatically transformed to the selected provider format if needed.
     #[cfg_attr(
         feature = "tracing",
         tracing::instrument(
-            name = "bt.router.complete_stream",
-            skip(self, body, client_headers),
-            fields(llm.model = %model, http.url = tracing::field::Empty, http.status_code = tracing::field::Empty)
+            name = "bt.router.create_stream_request",
+            skip(self, body),
+            fields(llm.model = %model)
         )
     )]
-    pub async fn complete_stream(
+    pub async fn create_stream_request(
         &self,
         body: Bytes,
         model: &str,
         output_format: ProviderFormat,
-        client_headers: &ClientHeaders,
-    ) -> Result<ResponseStream> {
-        let routes = self.resolve_providers(model, output_format)?;
-        let route = routes
-            .first()
-            .ok_or_else(|| Error::NoProvider(output_format))?;
-        let (_, provider, auth, spec, format, _) = route;
-        let payload = prepare_provider_request(body, spec.as_ref(), *format, true).await?;
-
-        let raw_stream = provider
-            .clone()
-            .complete_stream(payload, auth, spec.as_ref(), *format, client_headers)
+    ) -> Result<(PreparedStreamRequest<'_>, RouterMetadata)> {
+        let (inner, metadata) = self
+            .create_prepared_request_internal(body, model, output_format, true)
             .await?;
-
-        Ok(transform_stream(raw_stream, output_format))
+        Ok((PreparedStreamRequest { inner }, metadata))
     }
 
-    /// Get the aliases of the providers that can handle the given model and output format.
-    ///
-    /// # Arguments
-    ///
-    /// * `model` - The model name for routing (e.g., "gpt-4", "claude-3-opus")
-    /// * `output_format` - The output format, or None to auto-detect from body
-    ///
-    /// # Returns
-    /// A vector of provider aliases that can handle the given model and output
-    /// format. The aliases are in priority order. Follows the same order as the
-    /// complete and complete_stream methods.
-    pub fn provider_aliases(
+    /// Execute a prepared streaming request.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete_stream",
+            skip(self, request, client_headers),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
+    pub async fn complete_stream(
         &self,
-        model: &str,
-        output_format: ProviderFormat,
-    ) -> Result<Vec<String>> {
-        self.resolve_providers(model, output_format)
-            .map(|routes| routes.into_iter().map(|(alias, ..)| alias).collect())
+        request: PreparedStreamRequest<'_>,
+        client_headers: &ClientHeaders,
+    ) -> Result<ResponseStream> {
+        let PreparedRequestInner {
+            provider,
+            auth,
+            spec,
+            format,
+            payload,
+            output_format,
+            strategy: _,
+        } = request.inner;
+        let raw_stream = provider
+            .clone()
+            .complete_stream(payload, auth, spec.as_ref(), format, client_headers)
+            .await?;
+        Ok(transform_stream(raw_stream, output_format))
     }
 
     /// Resolve all providers for a given model and output format.
@@ -725,6 +818,21 @@ mod tests {
         spec
     }
 
+    fn resolved_aliases(
+        router: &Router,
+        model: &str,
+        output_format: ProviderFormat,
+    ) -> Result<Vec<String>> {
+        router
+            .resolve_providers(model, output_format)
+            .map(|routes| {
+                routes
+                    .into_iter()
+                    .map(|(alias, _, _, _, _, _)| alias)
+                    .collect()
+            })
+    }
+
     #[tokio::test]
     async fn prepare_provider_request_enables_stream_for_google_to_chat_completions() {
         let body = Bytes::from_static(
@@ -732,9 +840,10 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let payload = prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
-            .await
-            .expect("request prepares");
+        let (payload, _) =
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
+                .await
+                .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), Some(&Value::Bool(true)));
@@ -749,9 +858,10 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let payload = prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
-            .await
-            .expect("request prepares");
+        let (payload, _) =
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
+                .await
+                .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), None);
@@ -799,15 +909,11 @@ mod tests {
             .expect("router builds");
 
         assert_eq!(
-            router
-                .provider_aliases(vertex_model, ProviderFormat::Google)
-                .unwrap(),
+            resolved_aliases(&router, vertex_model, ProviderFormat::Google).unwrap(),
             vec!["vertex".to_string()]
         );
         assert_eq!(
-            router
-                .provider_aliases(google_model, ProviderFormat::Google)
-                .unwrap(),
+            resolved_aliases(&router, google_model, ProviderFormat::Google).unwrap(),
             vec!["google".to_string()]
         );
     }
@@ -834,9 +940,7 @@ mod tests {
             .expect("router builds");
 
         assert_eq!(
-            router
-                .provider_aliases(vertex_model, ProviderFormat::Google)
-                .unwrap(),
+            resolved_aliases(&router, vertex_model, ProviderFormat::Google).unwrap(),
             vec!["google".to_string()]
         );
     }
@@ -1075,7 +1179,7 @@ mod tests {
     }
 
     #[test]
-    fn provider_aliases_returns_only_registered_available_providers() {
+    fn resolved_aliases_returns_only_registered_available_providers() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(
@@ -1105,9 +1209,8 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let aliases = router
-            .provider_aliases(model, ProviderFormat::ChatCompletions)
-            .expect("provider_aliases");
+        let aliases = resolved_aliases(&router, model, ProviderFormat::ChatCompletions)
+            .expect("resolved aliases");
         assert_eq!(aliases, vec!["openai".to_string(), "azure".to_string()]);
     }
 
@@ -1141,11 +1244,9 @@ mod tests {
             "at least one route (unregistered openai falls back to format slot azure)"
         );
         assert_eq!(
-            router
-                .provider_aliases(model, ProviderFormat::ChatCompletions)
-                .unwrap(),
+            resolved_aliases(&router, model, ProviderFormat::ChatCompletions).unwrap(),
             vec!["other_gpt".to_string()],
-            "provider_aliases returns only registered providers from available_providers"
+            "resolving providers returns only registered aliases from available_providers"
         );
     }
 }
