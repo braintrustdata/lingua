@@ -2,6 +2,7 @@
 Report generation for coverage-report.
 */
 
+use std::cmp::Reverse;
 use std::collections::HashMap;
 
 use lingua::processing::adapters::ProviderAdapter;
@@ -434,7 +435,7 @@ fn generate_markdown_report(
         }
 
         let mut sources: Vec<_> = all_sources.into_iter().collect();
-        sources.sort_by(|a, b| b.1.cmp(&a.1));
+        sources.sort_by_key(|source| Reverse(source.1));
 
         for (source, total_count) in sources {
             report.push_str("<details>\n");
@@ -468,7 +469,7 @@ fn generate_markdown_report(
                 }
 
                 let mut targets: Vec<_> = by_target.into_iter().collect();
-                targets.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+                targets.sort_by_key(|target| Reverse(target.1.len()));
 
                 for (target, target_failures) in targets {
                     report.push_str("<details>\n");
@@ -518,7 +519,7 @@ fn generate_markdown_report(
                 }
 
                 let mut targets: Vec<_> = by_target.into_iter().collect();
-                targets.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+                targets.sort_by_key(|target| Reverse(target.1.len()));
 
                 for (target, target_failures) in targets {
                     report.push_str("<details>\n");
@@ -568,7 +569,7 @@ fn generate_markdown_report(
                 }
 
                 let mut targets: Vec<_> = by_target.into_iter().collect();
-                targets.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+                targets.sort_by_key(|target| Reverse(target.1.len()));
 
                 for (target, target_failures) in targets {
                     report.push_str("<details>\n");

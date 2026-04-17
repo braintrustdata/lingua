@@ -8,6 +8,7 @@ This module generates a condensed report format that minimizes token usage by:
 - Using flat structure instead of nested sections
 */
 
+use std::cmp::Reverse;
 use std::collections::HashMap;
 
 use lingua::processing::adapters::ProviderAdapter;
@@ -186,7 +187,7 @@ pub fn group_failures(failures: &[FailureWithDiff]) -> Vec<PatternGroup> {
 
     // Sort by count descending
     let mut groups: Vec<_> = groups.into_values().collect();
-    groups.sort_by(|a, b| b.total_count.cmp(&a.total_count));
+    groups.sort_by_key(|group| Reverse(group.total_count));
     groups
 }
 
@@ -277,7 +278,7 @@ pub fn generate_compact_failures(failures: &[FailureWithDiff]) -> String {
 
         // Sort directions by count descending
         let mut directions: Vec<_> = group.by_direction.iter().collect();
-        directions.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+        directions.sort_by_key(|direction| Reverse(direction.1.len()));
 
         for (direction, test_cases) in directions {
             // Abbreviate direction
@@ -316,7 +317,7 @@ pub fn generate_compact_limitations(limitations: &[(String, String, String)]) ->
     output.push_str(&format!("\n## Limitations ({})\n", limitations.len()));
 
     let mut directions: Vec<_> = by_direction.into_iter().collect();
-    directions.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+    directions.sort_by_key(|direction| Reverse(direction.1.len()));
 
     for (direction, items) in directions {
         let parts: Vec<_> = direction.split(" → ").collect();
