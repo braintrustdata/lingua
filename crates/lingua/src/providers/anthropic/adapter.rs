@@ -1416,14 +1416,15 @@ mod tests {
             },
         };
 
-        let result = adapter.request_from_universal(&req).unwrap();
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
-            result.get("temperature").is_none(),
+            result.temperature.is_none(),
             "Temperature should be stripped for claude-opus-4-7"
         );
-        assert_eq!(result.get("model").unwrap(), "claude-opus-4-7");
-        assert_eq!(result.get("max_tokens").unwrap(), 1024);
+        assert_eq!(result.model, Some("claude-opus-4-7".to_string()));
+        assert_eq!(result.max_tokens, Some(1024));
     }
 
     #[test]
@@ -1444,10 +1445,11 @@ mod tests {
             },
         };
 
-        let result = adapter.request_from_universal(&req).unwrap();
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
-            result.get("temperature").is_none(),
+            result.temperature.is_none(),
             "Temperature should be stripped for Bedrock-style Opus 4.7 model id"
         );
     }
@@ -1478,10 +1480,11 @@ mod tests {
             },
         };
 
-        let result = adapter.request_from_universal(&req).unwrap();
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
-            result.get("temperature").is_none(),
+            result.temperature.is_none(),
             "Temperature should be stripped even when sourced from extras for Opus 4.7"
         );
     }
@@ -1510,10 +1513,11 @@ mod tests {
                 },
             };
 
-            let result = adapter.request_from_universal(&req).unwrap();
+            let result: AnthropicParams =
+                serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
             assert_eq!(
-                result.get("temperature").and_then(Value::as_f64),
+                result.temperature,
                 Some(0.7),
                 "{} should preserve temperature",
                 model

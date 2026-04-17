@@ -35,7 +35,8 @@ use ModelTransform::*;
 
 /// Model prefixes and their required transforms.
 /// Order matters - more specific prefixes must come first.
-const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[("claude-opus-4-7", &[StripTemperature])];
+const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] =
+    &[("claude-opus-4-7", &[StripTemperature])];
 
 fn part_transforms(model_part: &str) -> Option<&'static [ModelTransform]> {
     for (prefix, transforms) in MODEL_TRANSFORM_RULES {
@@ -77,7 +78,12 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serde_json::json;
+
+    fn object_with_temperature() -> Map<String, Value> {
+        let mut obj = Map::new();
+        obj.insert("temperature".to_string(), Value::from(0.7));
+        obj
+    }
 
     #[test]
     fn test_supports_output_config_effort() {
@@ -169,15 +175,7 @@ mod tests {
         ];
 
         for model in strip_models {
-            let mut obj = json!({
-                "model": model,
-                "max_tokens": 1024,
-                "messages": [{"role": "user", "content": "Hello"}],
-                "temperature": 0.7
-            })
-            .as_object()
-            .unwrap()
-            .clone();
+            let mut obj = object_with_temperature();
             apply_model_transforms(model, &mut obj);
             assert!(
                 !obj.contains_key("temperature"),
@@ -187,15 +185,7 @@ mod tests {
         }
 
         for model in preserve_models {
-            let mut obj = json!({
-                "model": model,
-                "max_tokens": 1024,
-                "messages": [{"role": "user", "content": "Hello"}],
-                "temperature": 0.7
-            })
-            .as_object()
-            .unwrap()
-            .clone();
+            let mut obj = object_with_temperature();
             apply_model_transforms(model, &mut obj);
             assert!(
                 obj.contains_key("temperature"),
