@@ -27,8 +27,8 @@ fn part_supports_output_config_effort(model_part: &str) -> bool {
 /// Transforms required for specific Anthropic model families.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelTransform {
-    /// Strip temperature parameter (Opus 4.7+ doesn't support it)
-    StripTemperature,
+    /// Strip deprecated sampling parameters (Opus 4.7+ doesn't support them)
+    StripSamplingParams,
 }
 
 use ModelTransform::*;
@@ -36,7 +36,7 @@ use ModelTransform::*;
 /// Model prefixes and their required transforms.
 /// Order matters - more specific prefixes must come first.
 const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] =
-    &[("claude-opus-4-7", &[StripTemperature])];
+    &[("claude-opus-4-7", &[StripSamplingParams])];
 
 fn part_transforms(model_part: &str) -> Option<&'static [ModelTransform]> {
     for (prefix, transforms) in MODEL_TRANSFORM_RULES {
@@ -68,8 +68,10 @@ pub fn model_needs_transforms(model: &str) -> bool {
 pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
     for transform in get_model_transforms(model) {
         match transform {
-            StripTemperature => {
+            StripSamplingParams => {
                 obj.remove("temperature");
+                obj.remove("top_p");
+                obj.remove("top_k");
             }
         }
     }
@@ -79,9 +81,11 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
 mod tests {
     use super::*;
 
-    fn object_with_temperature() -> Map<String, Value> {
+    fn object_with_sampling_params() -> Map<String, Value> {
         let mut obj = Map::new();
         obj.insert("temperature".to_string(), Value::from(0.7));
+        obj.insert("top_p".to_string(), Value::from(0.9));
+        obj.insert("top_k".to_string(), Value::from(40));
         obj
     }
 
@@ -120,13 +124,16 @@ mod tests {
     #[test]
     fn test_get_model_transforms() {
         let cases = [
-            ("claude-opus-4-7", &[StripTemperature][..]),
-            ("claude-opus-4-7-20260401", &[StripTemperature][..]),
-            ("CLAUDE-OPUS-4-7", &[StripTemperature][..]),
-            ("us.anthropic.claude-opus-4-7-v1:0", &[StripTemperature][..]),
+            ("claude-opus-4-7", &[StripSamplingParams][..]),
+            ("claude-opus-4-7-20260401", &[StripSamplingParams][..]),
+            ("CLAUDE-OPUS-4-7", &[StripSamplingParams][..]),
+            (
+                "us.anthropic.claude-opus-4-7-v1:0",
+                &[StripSamplingParams][..],
+            ),
             (
                 "anthropic/claude-opus-4-7@20260401",
-                &[StripTemperature][..],
+                &[StripSamplingParams][..],
             ),
             ("claude-opus-4-6", &[][..]),
             ("claude-opus-4-5-20250514", &[][..]),
@@ -160,7 +167,7 @@ mod tests {
     }
 
     #[test]
-    fn test_strip_temperature() {
+    fn test_strip_sampling_params() {
         let strip_models = [
             "claude-opus-4-7",
             "claude-opus-4-7-20260401",
@@ -175,23 +182,27 @@ mod tests {
         ];
 
         for model in strip_models {
-            let mut obj = object_with_temperature();
+            let mut obj = object_with_sampling_params();
             apply_model_transforms(model, &mut obj);
             assert!(
                 !obj.contains_key("temperature"),
                 "{} should strip temperature",
                 model
             );
+            assert!(!obj.contains_key("top_p"), "{} should strip top_p", model);
+            assert!(!obj.contains_key("top_k"), "{} should strip top_k", model);
         }
 
         for model in preserve_models {
-            let mut obj = object_with_temperature();
+            let mut obj = object_with_sampling_params();
             apply_model_transforms(model, &mut obj);
             assert!(
                 obj.contains_key("temperature"),
                 "{} should preserve temperature",
                 model
             );
+            assert!(obj.contains_key("top_p"), "{} should preserve top_p", model);
+            assert!(obj.contains_key("top_k"), "{} should preserve top_k", model);
         }
     }
 }
