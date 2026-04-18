@@ -136,7 +136,7 @@ install-wasm-tools: ## Install WASM build tools (wasm32-unknown-unknown target, 
 	@echo "Installing WASM build tools..."
 	@rustup target add wasm32-unknown-unknown
 	@if ! command -v wasm-pack >/dev/null 2>&1; then \
-		cargo install wasm-pack; \
+		cargo install wasm-pack --version 0.14.0 --locked; \
 	else \
 		echo "✅ wasm-pack already installed"; \
 	fi

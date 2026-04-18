@@ -2945,15 +2945,14 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
 
                 // Add text content if present
                 match msg.base.content {
-                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
-                        if !text.is_empty() {
-                            content_parts.push(AssistantContentPart::Text(TextContentPart {
-                                text,
-                                encrypted_content: None,
-                                provider_options: None,
-                            }));
-                        }
+                    Some(openai::ChatCompletionRequestMessageContent::String(text)) if !text.is_empty() => {
+                        content_parts.push(AssistantContentPart::Text(TextContentPart {
+                            text,
+                            encrypted_content: None,
+                            provider_options: None,
+                        }));
                     }
+                    Some(openai::ChatCompletionRequestMessageContent::String(_)) => {}
                     Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
                         let assistant_parts: Result<Vec<_>, _> = parts
                             .into_iter()
