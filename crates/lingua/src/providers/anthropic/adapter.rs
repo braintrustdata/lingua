@@ -495,6 +495,9 @@ impl ProviderAdapter for AnthropicAdapter {
             }
         }
 
+        // Enforce model-specific transforms (e.g. strip sampling params for Opus 4.7).
+        capabilities::apply_model_transforms(model, &mut obj);
+
         Ok(Value::Object(obj))
     }
 
@@ -1543,6 +1546,167 @@ mod tests {
             Some(ThinkingType::Disabled),
             "Disabled thinking should be preserved with forced tool_choice"
         );
+    }
+
+    #[test]
+    fn test_anthropic_strips_sampling_params_for_opus_4_7() {
+        use crate::universal::message::UserContent;
+
+        let adapter = AnthropicAdapter;
+
+        let req = UniversalRequest {
+            model: Some("claude-opus-4-7".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                temperature: Some(0.7),
+                top_p: Some(0.9),
+                top_k: Some(40),
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                ..Default::default()
+            },
+        };
+
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert!(
+            result.temperature.is_none(),
+            "Temperature should be stripped for claude-opus-4-7"
+        );
+        assert!(
+            result.top_p.is_none(),
+            "top_p should be stripped for claude-opus-4-7"
+        );
+        assert!(
+            result.top_k.is_none(),
+            "top_k should be stripped for claude-opus-4-7"
+        );
+        assert_eq!(result.model, Some("claude-opus-4-7".to_string()));
+        assert_eq!(result.max_tokens, Some(1024));
+    }
+
+    #[test]
+    fn test_anthropic_strips_sampling_params_for_opus_4_7_bedrock() {
+        use crate::universal::message::UserContent;
+
+        let adapter = AnthropicAdapter;
+
+        let req = UniversalRequest {
+            model: Some("us.anthropic.claude-opus-4-7-v1:0".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                temperature: Some(0.5),
+                top_p: Some(0.8),
+                top_k: Some(32),
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                ..Default::default()
+            },
+        };
+
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert!(
+            result.temperature.is_none(),
+            "Temperature should be stripped for Bedrock-style Opus 4.7 model id"
+        );
+        assert!(
+            result.top_p.is_none(),
+            "top_p should be stripped for Bedrock-style Opus 4.7 model id"
+        );
+        assert!(
+            result.top_k.is_none(),
+            "top_k should be stripped for Bedrock-style Opus 4.7 model id"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_strips_sampling_params_from_extras_for_opus_4_7() {
+        use crate::capabilities::ProviderFormat;
+        use crate::universal::message::UserContent;
+        use std::collections::HashMap;
+
+        let adapter = AnthropicAdapter;
+
+        // Put sampling params in the Anthropic extras map (e.g. from passthrough path)
+        let mut extras_map: HashMap<ProviderFormat, Map<String, Value>> = HashMap::new();
+        let mut anthropic_extras = Map::new();
+        anthropic_extras.insert("temperature".into(), json!(0.3));
+        anthropic_extras.insert("top_p".into(), json!(0.8));
+        anthropic_extras.insert("top_k".into(), json!(32));
+        extras_map.insert(ProviderFormat::Anthropic, anthropic_extras);
+
+        let req = UniversalRequest {
+            model: Some("claude-opus-4-7".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                extras: extras_map,
+                ..Default::default()
+            },
+        };
+
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert!(
+            result.temperature.is_none(),
+            "Temperature should be stripped even when sourced from extras for Opus 4.7"
+        );
+        assert!(
+            result.top_p.is_none(),
+            "top_p should be stripped even when sourced from extras for Opus 4.7"
+        );
+        assert!(
+            result.top_k.is_none(),
+            "top_k should be stripped even when sourced from extras for Opus 4.7"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_preserves_sampling_params_for_non_opus_4_7() {
+        use crate::universal::message::UserContent;
+
+        let adapter = AnthropicAdapter;
+
+        for model in [
+            "claude-opus-4-6",
+            "claude-opus-4-5-20250514",
+            "claude-sonnet-4-5-20250929",
+            "claude-3-5-sonnet-20241022",
+        ] {
+            let req = UniversalRequest {
+                model: Some(model.to_string()),
+                messages: vec![Message::User {
+                    content: UserContent::String("Hello".to_string()),
+                }],
+                params: UniversalParams {
+                    temperature: Some(0.7),
+                    top_p: Some(0.9),
+                    top_k: Some(40),
+                    token_budget: Some(TokenBudget::OutputTokens(1024)),
+                    ..Default::default()
+                },
+            };
+
+            let result: AnthropicParams =
+                serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+            assert_eq!(
+                result.temperature,
+                Some(0.7),
+                "{} should preserve temperature",
+                model
+            );
+            assert_eq!(result.top_p, Some(0.9), "{} should preserve top_p", model);
+            assert_eq!(result.top_k, Some(40), "{} should preserve top_k", model);
+        }
     }
 
     #[test]
