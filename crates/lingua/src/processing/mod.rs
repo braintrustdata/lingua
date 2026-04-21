@@ -1,6 +1,7 @@
 pub mod adapters;
 pub mod dedup;
 pub mod import;
+pub mod json_shape;
 pub mod stream;
 pub mod transform;
 
@@ -10,10 +11,11 @@ pub use adapters::{
 };
 pub use dedup::deduplicate_messages;
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
+pub use json_shape::{json_value_kind, probe_shape, JsonValueKind};
 pub use stream::{
     parse_stream_event, ParsedStreamEvent, StreamOutputChunk, StreamTransformSession,
 };
 pub use transform::{
     extract_model, response_to_universal, sanitize_payload, transform_request, transform_response,
-    transform_stream_chunk, TransformError, TransformResult,
+    transform_stream_chunk, RequestFormatDiagnostic, TransformError, TransformResult,
 };

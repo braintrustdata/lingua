@@ -6,15 +6,156 @@ OpenAI chat completion format by attempting to deserialize into
 the OpenAI struct types.
 */
 
+use crate::processing::{json_value_kind, probe_shape, JsonValueKind};
 use crate::providers::openai::generated::{CreateChatCompletionRequestClass, CreateResponseClass};
 use crate::serde_json::{self, Value};
+use serde::Deserialize;
+use std::fmt;
 use thiserror::Error;
 
 /// Error type for OpenAI payload detection
 #[derive(Debug, Error)]
 pub enum DetectionError {
-    #[error("Deserialization failed: {0}")]
-    DeserializationFailed(String),
+    #[error("typed deserialization failed")]
+    DeserializationFailed,
+
+    #[error("invalid OpenAI Responses request shape: {0}")]
+    ResponsesRequestDiagnostic(ResponsesRequestDiagnosticView),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ResponsesRequestDiagnosticKind {
+    TopLevelNotObject,
+    MissingInput,
+    InputAndMessagesBothPresent,
+    InputWrongTopLevelType,
+    ToolsWrongTopLevelType,
+    TypedRequestShapeMismatch,
+}
+
+impl ResponsesRequestDiagnosticKind {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::TopLevelNotObject => "top_level_not_object",
+            Self::MissingInput => "missing_input",
+            Self::InputAndMessagesBothPresent => "input_and_messages_both_present",
+            Self::InputWrongTopLevelType => "input_wrong_top_level_type",
+            Self::ToolsWrongTopLevelType => "tools_wrong_top_level_type",
+            Self::TypedRequestShapeMismatch => "typed_request_shape_mismatch",
+        }
+    }
+}
+
+impl fmt::Display for ResponsesRequestDiagnosticKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ResponsesRequestDiagnosticView {
+    pub kind: ResponsesRequestDiagnosticKind,
+    pub top_level_type: JsonValueKind,
+    pub input_type: Option<JsonValueKind>,
+    pub tools_type: Option<JsonValueKind>,
+    pub messages_present: bool,
+}
+
+impl fmt::Display for ResponsesRequestDiagnosticView {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.kind)?;
+        write!(f, " (top_level_type={}", self.top_level_type)?;
+        if let Some(input_type) = self.input_type {
+            write!(f, ", input_type={input_type}")?;
+        }
+        if let Some(tools_type) = self.tools_type {
+            write!(f, ", tools_type={tools_type}")?;
+        }
+        write!(f, ", messages_present={})", self.messages_present)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct ResponsesRequestDiagnosticProbe {
+    #[serde(default)]
+    input: Option<JsonValueKind>,
+    #[serde(default)]
+    messages: Option<JsonValueKind>,
+    #[serde(default)]
+    tools: Option<JsonValueKind>,
+}
+
+pub fn responses_request_diagnostic(payload: &Value) -> ResponsesRequestDiagnosticView {
+    let top_level_type = json_value_kind(payload);
+    if top_level_type != JsonValueKind::Object {
+        return ResponsesRequestDiagnosticView {
+            kind: ResponsesRequestDiagnosticKind::TopLevelNotObject,
+            top_level_type,
+            input_type: None,
+            tools_type: None,
+            messages_present: false,
+        };
+    }
+
+    let probe = probe_shape::<ResponsesRequestDiagnosticProbe>(payload).unwrap_or(
+        ResponsesRequestDiagnosticProbe {
+            input: None,
+            messages: None,
+            tools: None,
+        },
+    );
+    let messages_present = probe.messages.is_some();
+
+    if probe.input.is_none() {
+        return ResponsesRequestDiagnosticView {
+            kind: ResponsesRequestDiagnosticKind::MissingInput,
+            top_level_type,
+            input_type: None,
+            tools_type: probe.tools,
+            messages_present,
+        };
+    }
+
+    if messages_present {
+        return ResponsesRequestDiagnosticView {
+            kind: ResponsesRequestDiagnosticKind::InputAndMessagesBothPresent,
+            top_level_type,
+            input_type: probe.input,
+            tools_type: probe.tools,
+            messages_present,
+        };
+    }
+
+    if !matches!(
+        probe.input,
+        Some(JsonValueKind::String) | Some(JsonValueKind::Array)
+    ) {
+        return ResponsesRequestDiagnosticView {
+            kind: ResponsesRequestDiagnosticKind::InputWrongTopLevelType,
+            top_level_type,
+            input_type: probe.input,
+            tools_type: probe.tools,
+            messages_present,
+        };
+    }
+
+    if !matches!(probe.tools, None | Some(JsonValueKind::Array)) {
+        return ResponsesRequestDiagnosticView {
+            kind: ResponsesRequestDiagnosticKind::ToolsWrongTopLevelType,
+            top_level_type,
+            input_type: probe.input,
+            tools_type: probe.tools,
+            messages_present,
+        };
+    }
+
+    ResponsesRequestDiagnosticView {
+        kind: ResponsesRequestDiagnosticKind::TypedRequestShapeMismatch,
+        top_level_type,
+        input_type: probe.input,
+        tools_type: probe.tools,
+        messages_present,
+    }
 }
 
 /// Attempt to parse a JSON Value as OpenAI CreateChatCompletionRequestClass.
@@ -38,8 +179,7 @@ pub enum DetectionError {
 pub fn try_parse_openai(
     payload: &Value,
 ) -> Result<CreateChatCompletionRequestClass, DetectionError> {
-    serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
+    serde_json::from_value(payload.clone()).map_err(|_e| DetectionError::DeserializationFailed)
 }
 
 /// Attempt to parse a JSON Value as OpenAI Responses API CreateResponseClass.
@@ -50,22 +190,17 @@ pub fn try_parse_openai(
 /// The key distinguishing feature is the `input` field (array of InputItem or string)
 /// instead of the `messages` field used by Chat Completions.
 pub fn try_parse_responses(payload: &Value) -> Result<CreateResponseClass, DetectionError> {
-    // First check for Responses-specific indicators
-    // Responses API uses "input" field (not "messages" like Chat Completions)
-    let has_input = payload.get("input").is_some();
-
-    // Also check it doesn't have Chat Completions indicators
-    let has_messages = payload.get("messages").is_some();
-
-    if !has_input || has_messages {
-        return Err(DetectionError::DeserializationFailed(
-            "Not a Responses API payload: missing 'input' field or has 'messages' field"
-                .to_string(),
-        ));
+    let diagnostic = responses_request_diagnostic(payload);
+    if diagnostic.kind != ResponsesRequestDiagnosticKind::TypedRequestShapeMismatch {
+        return Err(DetectionError::ResponsesRequestDiagnostic(diagnostic));
     }
 
-    serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
+    serde_json::from_value(payload.clone()).map_err(|_err| {
+        DetectionError::ResponsesRequestDiagnostic(ResponsesRequestDiagnosticView {
+            kind: ResponsesRequestDiagnosticKind::TypedRequestShapeMismatch,
+            ..diagnostic
+        })
+    })
 }
 
 #[cfg(test)]
@@ -319,5 +454,90 @@ mod tests {
         let result = try_parse_openai(&payload);
         // Note: Due to OpenAI's permissive schema, this may pass
         let _ = result;
+    }
+
+    #[test]
+    fn test_responses_request_diagnostic_missing_input() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "tools": []
+        });
+
+        let diagnostic = responses_request_diagnostic(&payload);
+        assert_eq!(
+            diagnostic.kind,
+            ResponsesRequestDiagnosticKind::MissingInput
+        );
+        assert_eq!(diagnostic.top_level_type, JsonValueKind::Object);
+        assert_eq!(diagnostic.input_type, None);
+        assert_eq!(diagnostic.tools_type, Some(JsonValueKind::Array));
+        assert!(!diagnostic.messages_present);
+    }
+
+    #[test]
+    fn test_responses_request_diagnostic_input_and_messages_both_present() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": [],
+            "messages": []
+        });
+
+        let diagnostic = responses_request_diagnostic(&payload);
+        assert_eq!(
+            diagnostic.kind,
+            ResponsesRequestDiagnosticKind::InputAndMessagesBothPresent
+        );
+        assert_eq!(diagnostic.input_type, Some(JsonValueKind::Array));
+        assert!(diagnostic.messages_present);
+    }
+
+    #[test]
+    fn test_responses_request_diagnostic_input_wrong_top_level_type() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": {"role": "user"}
+        });
+
+        let diagnostic = responses_request_diagnostic(&payload);
+        assert_eq!(
+            diagnostic.kind,
+            ResponsesRequestDiagnosticKind::InputWrongTopLevelType
+        );
+        assert_eq!(diagnostic.input_type, Some(JsonValueKind::Object));
+    }
+
+    #[test]
+    fn test_responses_request_diagnostic_tools_wrong_top_level_type() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": [],
+            "tools": {"type": "function"}
+        });
+
+        let diagnostic = responses_request_diagnostic(&payload);
+        assert_eq!(
+            diagnostic.kind,
+            ResponsesRequestDiagnosticKind::ToolsWrongTopLevelType
+        );
+        assert_eq!(diagnostic.input_type, Some(JsonValueKind::Array));
+        assert_eq!(diagnostic.tools_type, Some(JsonValueKind::Object));
+    }
+
+    #[test]
+    fn test_try_parse_responses_returns_safe_diagnostic() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": [],
+            "tools": {"type": "function"}
+        });
+
+        let err = try_parse_responses(&payload).unwrap_err();
+        assert!(matches!(
+            err,
+            DetectionError::ResponsesRequestDiagnostic(ResponsesRequestDiagnosticView {
+                kind: ResponsesRequestDiagnosticKind::ToolsWrongTopLevelType,
+                ..
+            })
+        ));
     }
 }

@@ -9,7 +9,7 @@ use crate::capabilities::ProviderFormat;
 
 use crate::error::ConvertError;
 use crate::processing::adapters::{
-    insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
+    insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter, RequestDetectionResult,
 };
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::apply_model_transforms;
@@ -95,8 +95,18 @@ impl ProviderAdapter for ResponsesAdapter {
         "Responses"
     }
 
-    fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_responses(payload).is_ok()
+    fn detect_request(&self, payload: &Value) -> RequestDetectionResult {
+        match try_parse_responses(payload) {
+            Ok(_) => RequestDetectionResult::Matched,
+            Err(crate::providers::openai::DetectionError::ResponsesRequestDiagnostic(view)) => {
+                RequestDetectionResult::Diagnostic(
+                    crate::processing::transform::RequestFormatDiagnostic::OpenAIResponses(view),
+                )
+            }
+            Err(crate::providers::openai::DetectionError::DeserializationFailed) => {
+                RequestDetectionResult::NotMatched
+            }
+        }
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -956,7 +966,7 @@ mod tests {
             "model": "o1",
             "input": [{"role": "user", "content": "Hello"}]
         });
-        assert!(adapter.detect_request(&payload));
+        assert!(adapter.detect_request(&payload).is_matched());
     }
 
     /// When transforming an Anthropic response to the Responses API format, every output
