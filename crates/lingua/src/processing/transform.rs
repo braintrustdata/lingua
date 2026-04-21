@@ -15,7 +15,9 @@ use bytes::Bytes;
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
-use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
+use crate::processing::adapters::{
+    adapter_for_format, adapters, ProviderAdapter, RequestDetectionResult,
+};
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
 use crate::serde_json::Value;
@@ -30,7 +32,9 @@ static EMPTY_JSON: Bytes = Bytes::from_static(b"{}");
 #[derive(Debug, Error)]
 pub enum TransformError {
     #[error("Unable to detect source format")]
-    UnableToDetectFormat,
+    UnableToDetectFormat {
+        request_diagnostic: Option<RequestFormatDiagnostic>,
+    },
 
     #[error("Validation failed for target format {target:?}: {reason}")]
     ValidationFailed {
@@ -61,6 +65,15 @@ pub enum TransformError {
 }
 
 impl TransformError {
+    pub fn request_format_diagnostic(&self) -> Option<&RequestFormatDiagnostic> {
+        match self {
+            TransformError::UnableToDetectFormat { request_diagnostic } => {
+                request_diagnostic.as_ref()
+            }
+            _ => None,
+        }
+    }
+
     /// Returns true if this is a client-side error (user's fault).
     ///
     /// Client errors indicate invalid input or unsupported configurations
@@ -70,7 +83,7 @@ impl TransformError {
     pub fn is_client_error(&self) -> bool {
         matches!(
             self,
-            TransformError::UnableToDetectFormat
+            TransformError::UnableToDetectFormat { .. }
                 | TransformError::ValidationFailed { .. }
                 | TransformError::DeserializationFailed(_)
                 | TransformError::UnsupportedTargetFormat(_)
@@ -84,6 +97,21 @@ impl TransformError {
 impl From<ConvertError> for TransformError {
     fn from(err: ConvertError) -> Self {
         TransformError::FromUniversalFailed(err.to_string())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RequestFormatDiagnostic {
+    #[cfg(feature = "openai")]
+    OpenAIResponses(crate::providers::openai::ResponsesRequestDiagnosticView),
+}
+
+impl RequestFormatDiagnostic {
+    pub const fn candidate_format(&self) -> ProviderFormat {
+        match self {
+            #[cfg(feature = "openai")]
+            Self::OpenAIResponses(_) => ProviderFormat::Responses,
+        }
     }
 }
 
@@ -426,15 +454,28 @@ fn detect_adapter(
     payload: &Value,
     kind: DetectKind,
 ) -> Result<&'static dyn ProviderAdapter, TransformError> {
-    adapters()
-        .iter()
-        .find(|a| match kind {
-            DetectKind::Request => a.detect_request(payload),
-            DetectKind::Response => a.detect_response(payload),
-            DetectKind::Stream => a.detect_stream_response(payload),
-        })
-        .map(|a| a.as_ref())
-        .ok_or(TransformError::UnableToDetectFormat)
+    let mut request_diagnostic = None;
+
+    for adapter in adapters().iter() {
+        match kind {
+            DetectKind::Request => match adapter.detect_request(payload) {
+                RequestDetectionResult::Matched => return Ok(adapter.as_ref()),
+                RequestDetectionResult::Diagnostic(diagnostic) => {
+                    if request_diagnostic.is_none() {
+                        request_diagnostic = Some(diagnostic);
+                    }
+                }
+                RequestDetectionResult::NotMatched => {}
+            },
+            DetectKind::Response if adapter.detect_response(payload) => return Ok(adapter.as_ref()),
+            DetectKind::Stream if adapter.detect_stream_response(payload) => {
+                return Ok(adapter.as_ref())
+            }
+            _ => {}
+        }
+    }
+
+    Err(TransformError::UnableToDetectFormat { request_diagnostic })
 }
 
 /// Check if a request needs forced translation even when source == target format.
@@ -590,6 +631,28 @@ mod tests {
         assert!(matches!(
             result.unwrap_err(),
             TransformError::DeserializationFailed(_)
+        ));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_reports_responses_request_diagnostic_on_detection_failure() {
+        let input = to_bytes(&json!({
+            "model": "gpt-5-mini",
+            "input": [],
+            "tools": {"type": "function"}
+        }));
+
+        let err = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap_err();
+        let diagnostic = err.request_format_diagnostic();
+        assert!(matches!(
+            diagnostic,
+            Some(RequestFormatDiagnostic::OpenAIResponses(
+                crate::providers::openai::ResponsesRequestDiagnosticView {
+                    kind: crate::providers::openai::ResponsesRequestDiagnosticKind::ToolsWrongTopLevelType,
+                    ..
+                }
+            ))
         ));
     }
 

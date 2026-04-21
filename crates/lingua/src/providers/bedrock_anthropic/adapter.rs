@@ -1,5 +1,5 @@
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::ProviderAdapter;
+use crate::processing::adapters::{ProviderAdapter, RequestDetectionResult};
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::AnthropicAdapter;
 use crate::serde_json::{self, Value};
@@ -75,11 +75,11 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
         "Bedrock Anthropic"
     }
 
-    fn detect_request(&self, payload: &Value) -> bool {
+    fn detect_request(&self, payload: &Value) -> RequestDetectionResult {
         if !Self::is_raw_invoke_body(payload) {
-            return false;
+            return RequestDetectionResult::NotMatched;
         }
-        self.inner.request_to_universal(payload.clone()).is_ok()
+        RequestDetectionResult::from_match(self.inner.request_to_universal(payload.clone()).is_ok())
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -209,17 +209,17 @@ mod tests {
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(adapter.detect_request(&valid));
+        assert!(adapter.detect_request(&valid).is_matched());
 
         let with_model = json!({
             "model": "claude-3-sonnet",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(!adapter.detect_request(&with_model));
+        assert!(!adapter.detect_request(&with_model).is_matched());
 
         let envelope = json!({"modelId": "m", "body": {}});
-        assert!(!adapter.detect_request(&envelope));
+        assert!(!adapter.detect_request(&envelope).is_matched());
     }
 
     #[test]

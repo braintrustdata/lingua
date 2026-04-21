@@ -11,7 +11,7 @@ use std::convert::TryFrom;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{
-    insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
+    insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter, RequestDetectionResult,
 };
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
@@ -131,8 +131,8 @@ impl ProviderAdapter for AnthropicAdapter {
         "Anthropic"
     }
 
-    fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_anthropic(payload).is_ok()
+    fn detect_request(&self, payload: &Value) -> RequestDetectionResult {
+        RequestDetectionResult::from_match(try_parse_anthropic(payload).is_ok())
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -1302,7 +1302,7 @@ mod tests {
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(adapter.detect_request(&payload));
+        assert!(adapter.detect_request(&payload).is_matched());
     }
 
     #[test]

@@ -87,10 +87,15 @@ where
     let source_adapter = match adapters()
         .iter()
         .map(|adapter| adapter.as_ref())
-        .find(|adapter| adapter.detect_request(&payload))
+        .find(|adapter| adapter.detect_request(&payload).is_matched())
     {
         Some(adapter) => adapter,
-        None => return Err(TransformError::UnableToDetectFormat.into()),
+        None => {
+            return Err(TransformError::UnableToDetectFormat {
+                request_diagnostic: None,
+            }
+            .into())
+        }
     };
 
     if source_adapter.format() == format {
