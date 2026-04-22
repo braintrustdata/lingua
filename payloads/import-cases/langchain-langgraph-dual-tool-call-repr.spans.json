@@ -1,0 +1,40 @@
+[
+  {
+    "input": {
+      "messages": [
+        {
+          "content": "What's the weather in Paris for the next 5 days?",
+          "type": "human"
+        }
+      ]
+    },
+    "output": {
+      "messages": [
+        {
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "tooluse_abc123",
+              "name": "get_weather",
+              "input": {"city": "Paris", "days": 5}
+            }
+          ],
+          "tool_calls": [
+            {
+              "id": "tooluse_abc123",
+              "name": "get_weather",
+              "args": {
+                "city": "Paris",
+                "days": 5
+              },
+              "type": "tool_call"
+            }
+          ],
+          "type": "ai"
+        }
+      ]
+    },
+    "metadata": {"braintrust": {"integration_name": "langchain-py"}}
+  }
+]
+
