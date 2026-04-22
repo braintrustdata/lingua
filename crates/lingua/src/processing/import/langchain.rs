@@ -576,8 +576,12 @@ mod tests {
             tool_call_parts
         );
 
-        let AssistantContentPart::ToolCall { tool_call_id, tool_name, arguments, .. } =
-            tool_call_parts[0]
+        let AssistantContentPart::ToolCall {
+            tool_call_id,
+            tool_name,
+            arguments,
+            ..
+        } = tool_call_parts[0]
         else {
             unreachable!()
         };
