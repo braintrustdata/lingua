@@ -668,70 +668,77 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 } => {
                                     let file_provider_options =
                                         anthropic_file_provider_options_view(&provider_options);
-                                    // Check if this was originally a Document block
-                                    let is_document = file_provider_options
+                                    let title = file_provider_options
                                         .as_ref()
-                                        .and_then(|opts| opts.anthropic_type.as_deref())
-                                        == Some("document");
+                                        .and_then(|opts| opts.title.clone());
 
-                                    if is_document {
-                                        // Restore as Document block
-                                        let title = file_provider_options
-                                            .as_ref()
-                                            .and_then(|opts| opts.title.clone());
+                                    let context = file_provider_options
+                                        .as_ref()
+                                        .and_then(|opts| opts.context.clone());
 
-                                        let context = file_provider_options
-                                            .as_ref()
-                                            .and_then(|opts| opts.context.clone());
+                                    let anthropic_media_type = match media_type.as_str() {
+                                        "image/jpeg" => {
+                                            Some(generated::FluffyMediaType::ImageJpeg)
+                                        }
+                                        "image/png" => Some(generated::FluffyMediaType::ImagePng),
+                                        "image/gif" => Some(generated::FluffyMediaType::ImageGif),
+                                        "image/webp" => {
+                                            Some(generated::FluffyMediaType::ImageWebp)
+                                        }
+                                        "application/pdf" => {
+                                            Some(generated::FluffyMediaType::ApplicationPdf)
+                                        }
+                                        "text/plain" => Some(generated::FluffyMediaType::TextPlain),
+                                        _ => Some(generated::FluffyMediaType::TextPlain),
+                                    };
 
-                                        let anthropic_media_type = match media_type.as_str() {
-                                            "image/jpeg" => Some(generated::FluffyMediaType::ImageJpeg),
-                                            "image/png" => Some(generated::FluffyMediaType::ImagePng),
-                                            "image/gif" => Some(generated::FluffyMediaType::ImageGif),
-                                            "image/webp" => Some(generated::FluffyMediaType::ImageWebp),
-                                            "application/pdf" => {
-                                                Some(generated::FluffyMediaType::ApplicationPdf)
-                                            }
-                                            "text/plain" => Some(generated::FluffyMediaType::TextPlain),
-                                            _ => Some(generated::FluffyMediaType::TextPlain),
-                                        };
+                                    let data_str = match data {
+                                        serde_json::Value::String(s) => Some(s),
+                                        _ => None,
+                                    }?;
 
-                                        let data_str = match data {
-                                            serde_json::Value::String(s) => Some(s),
-                                            _ => None,
-                                        };
+                                    let is_url = data_str.starts_with("http://")
+                                        || data_str.starts_with("https://");
 
-                                        Some(generated::InputContentBlock {
-                                            cache_control: None,
-                                            citations: None,
-                                            text: None,
-                                            input_content_block_type:
-                                                generated::InputContentBlockType::Document,
-                                            source: Some(generated::Source::SourceSource(
-                                                generated::SourceSource {
-                                                    data: data_str,
-                                                    media_type: anthropic_media_type,
-                                                    source_type: generated::FluffyType::Text,
-                                                    url: None,
-                                                    content: None,
+                                    Some(generated::InputContentBlock {
+                                        cache_control: None,
+                                        citations: None,
+                                        text: None,
+                                        input_content_block_type:
+                                            generated::InputContentBlockType::Document,
+                                        source: Some(generated::Source::SourceSource(
+                                            generated::SourceSource {
+                                                data: if is_url {
+                                                    None
+                                                } else {
+                                                    Some(data_str.clone())
                                                 },
-                                            )),
-                                            context,
-                                            title,
-                                            content: None,
-                                            signature: None,
-                                            thinking: None,
-                                            data: None,
-                                            id: None,
-                                            input: None,
-                                            name: None,
-                                            is_error: None,
-                                            tool_use_id: None,
-                                        })
-                                    } else {
-                                        // Regular file - skip for now
-                                        None
-                                    }
+                                                media_type: if is_url {
+                                                    None
+                                                } else {
+                                                    anthropic_media_type
+                                                },
+                                                source_type: if is_url {
+                                                    generated::FluffyType::Url
+                                                } else {
+                                                    generated::FluffyType::Text
+                                                },
+                                                url: if is_url { Some(data_str) } else { None },
+                                                content: None,
+                                            },
+                                        )),
+                                        context,
+                                        title,
+                                        content: None,
+                                        signature: None,
+                                        thinking: None,
+                                        data: None,
+                                        id: None,
+                                        input: None,
+                                        name: None,
+                                        is_error: None,
+                                        tool_use_id: None,
+                                    })
                                 }
                             })
                             .collect();
@@ -1695,7 +1702,7 @@ mod tests {
     }
 
     #[test]
-    fn test_regular_file_without_anthropic_marker_is_skipped() {
+    fn test_regular_file_without_anthropic_marker_converts_to_document() {
         // Create a regular File content part (no anthropic_type marker)
         let file_part = UserContentPart::File {
             data: serde_json::Value::String("base64encodeddata".to_string()),
@@ -1714,13 +1721,59 @@ mod tests {
         assert!(result.is_ok());
         let input_msg = result.unwrap();
 
-        // Regular files without anthropic_type marker are currently skipped
         if let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content {
-            // The file was skipped, so blocks should be empty
-            assert!(
-                blocks.is_empty(),
-                "Regular files without anthropic_type should be skipped (current behavior)"
-            );
+            assert_eq!(blocks.len(), 1, "regular file should be preserved");
+            let block = &blocks[0];
+            assert!(matches!(
+                block.input_content_block_type,
+                generated::InputContentBlockType::Document
+            ));
+            if let Some(generated::Source::SourceSource(source)) = &block.source {
+                assert!(matches!(source.source_type, generated::FluffyType::Text));
+                assert_eq!(source.data.as_deref(), Some("base64encodeddata"));
+                assert!(source.url.is_none());
+            } else {
+                panic!("Expected SourceSource");
+            }
+        }
+    }
+
+    #[test]
+    fn test_regular_url_file_converts_to_anthropic_document() {
+        let file_part = UserContentPart::File {
+            data: serde_json::Value::String("https://example.com/report.pdf".to_string()),
+            filename: None,
+            media_type: "application/pdf".to_string(),
+            provider_options: None,
+        };
+
+        let message = Message::User {
+            content: UserContent::Array(vec![file_part]),
+        };
+
+        let result: Result<generated::InputMessage, _> =
+            <generated::InputMessage as TryFromLLM<Message>>::try_from(message);
+
+        assert!(result.is_ok());
+        let input_msg = result.unwrap();
+
+        if let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content {
+            assert_eq!(blocks.len(), 1, "url-backed file should be preserved");
+            let block = &blocks[0];
+            assert!(matches!(
+                block.input_content_block_type,
+                generated::InputContentBlockType::Document
+            ));
+            if let Some(generated::Source::SourceSource(source)) = &block.source {
+                assert!(matches!(source.source_type, generated::FluffyType::Url));
+                assert_eq!(
+                    source.url.as_deref(),
+                    Some("https://example.com/report.pdf")
+                );
+                assert!(source.data.is_none());
+            } else {
+                panic!("Expected SourceSource");
+            }
         }
     }
 

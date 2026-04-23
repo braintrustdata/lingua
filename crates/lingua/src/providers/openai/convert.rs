@@ -237,8 +237,18 @@ fn openai_filename_for_file(
     })
 }
 
-fn openai_media_type_from_filename(filename: Option<&str>) -> String {
-    match filename.and_then(|name| name.rsplit('.').next()) {
+fn openai_media_type_from_reference(filename: Option<&str>, file_url: Option<&str>) -> String {
+    let extension = filename
+        .and_then(|name| name.rsplit('.').next().map(str::to_string))
+        .or_else(|| {
+            file_url
+                .and_then(|url| url.rsplit('/').next())
+                .and_then(|segment| segment.split('?').next())
+                .and_then(|name| name.rsplit('.').next())
+                .map(str::to_string)
+        });
+
+    match extension.as_deref() {
         Some("txt") => "text/plain".to_string(),
         Some("pdf") => "application/pdf".to_string(),
         _ => "application/octet-stream".to_string(),
@@ -291,7 +301,7 @@ fn universal_file_payload_from_openai(
         });
     }
 
-    let media_type = openai_media_type_from_filename(filename.as_deref());
+    let media_type = openai_media_type_from_reference(filename.as_deref(), file_url.as_deref());
 
     if let Some(file_url) = file_url {
         return Ok((
@@ -3845,6 +3855,36 @@ mod tests {
                 assert_eq!(data, serde_json::Value::String("Sample text.".to_string()));
                 assert_eq!(filename.as_deref(), Some("Doc.txt"));
                 assert_eq!(media_type, "text/plain");
+            }
+            other => panic!("expected file content, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn responses_input_file_url_infers_media_type_from_url() {
+        let input = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputFile,
+            file_url: Some("https://example.com/report.pdf".to_string()),
+            filename: None,
+            ..Default::default()
+        };
+
+        let converted = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(input)
+            .expect("file should import");
+
+        match converted {
+            UserContentPart::File {
+                data,
+                filename,
+                media_type,
+                ..
+            } => {
+                assert_eq!(
+                    data,
+                    serde_json::Value::String("https://example.com/report.pdf".to_string())
+                );
+                assert!(filename.is_none());
+                assert_eq!(media_type, "application/pdf");
             }
             other => panic!("expected file content, got {:?}", other),
         }
