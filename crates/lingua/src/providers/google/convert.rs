@@ -283,11 +283,24 @@ impl TryFromLLM<GoogleContent> for Message {
                         }));
                     } else if let Some(blob) = &part.inline_data {
                         if let Some(data) = &blob.data {
-                            user_parts.push(UserContentPart::Image {
-                                image: Value::String(data.clone()),
-                                media_type: blob.mime_type.clone(),
-                                provider_options: None,
-                            });
+                            let mime_type = blob
+                                .mime_type
+                                .clone()
+                                .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
+                            if mime_type.starts_with("image/") {
+                                user_parts.push(UserContentPart::Image {
+                                    image: Value::String(data.clone()),
+                                    media_type: Some(mime_type),
+                                    provider_options: None,
+                                });
+                            } else {
+                                user_parts.push(UserContentPart::File {
+                                    data: Value::String(data.clone()),
+                                    filename: None,
+                                    media_type: mime_type,
+                                    provider_options: None,
+                                });
+                            }
                         }
                     } else if let Some(fd) = &part.file_data {
                         if let Some(uri) = &fd.file_uri {
@@ -1237,6 +1250,40 @@ mod tests {
         let parts = content.parts.unwrap();
         assert_eq!(parts.len(), 1);
         assert_eq!(parts[0].text.as_deref(), Some("Hello"));
+    }
+
+    #[test]
+    fn test_google_inline_text_blob_imports_back_to_file() {
+        let content = GoogleContent {
+            role: Some("user".to_string()),
+            parts: Some(vec![GooglePart {
+                inline_data: Some(GoogleBlob {
+                    mime_type: Some("text/plain".to_string()),
+                    data: Some("Sample text.".to_string()),
+                }),
+                ..Default::default()
+            }]),
+        };
+
+        let message = <Message as TryFromLLM<GoogleContent>>::try_from(content).unwrap();
+        match message {
+            Message::User {
+                content: UserContent::Array(parts),
+            } => match &parts[0] {
+                UserContentPart::File {
+                    data,
+                    filename,
+                    media_type,
+                    ..
+                } => {
+                    assert_eq!(data, &Value::String("Sample text.".to_string()));
+                    assert!(filename.is_none());
+                    assert_eq!(media_type, "text/plain");
+                }
+                other => panic!("expected file content, got {:?}", other),
+            },
+            other => panic!("expected user message, got {:?}", other),
+        }
     }
 
     #[test]

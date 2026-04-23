@@ -44,6 +44,24 @@ fn anthropic_file_provider_options_view(
     })
 }
 
+fn infer_media_type_from_reference(reference: &str) -> Option<String> {
+    let extension = reference
+        .rsplit('/')
+        .next()
+        .and_then(|segment| segment.split('?').next())
+        .and_then(|name| name.rsplit('.').next());
+
+    match extension {
+        Some("txt") => Some("text/plain".to_string()),
+        Some("pdf") => Some("application/pdf".to_string()),
+        Some("png") => Some("image/png".to_string()),
+        Some("jpg") | Some("jpeg") => Some("image/jpeg".to_string()),
+        Some("gif") => Some("image/gif".to_string()),
+        Some("webp") => Some("image/webp".to_string()),
+        _ => None,
+    }
+}
+
 fn normalize_anthropic_tool_schema_value(value: &mut Value) {
     match value {
         Value::Object(map) => {
@@ -303,8 +321,11 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         // Extract data and media_type from source
                                         match source {
                                             generated::Source::SourceSource(s) => {
-                                                let media_type = s.media_type.as_ref().map(|mt| {
-                                                    match mt {
+                                                let data = s.data.clone().or_else(|| s.url.clone());
+                                                let media_type = s
+                                                    .media_type
+                                                    .as_ref()
+                                                    .map(|mt| match mt {
                                                         generated::FluffyMediaType::ImageJpeg => {
                                                             "image/jpeg".to_string()
                                                         }
@@ -323,12 +344,13 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                         generated::FluffyMediaType::TextPlain => {
                                                             "text/plain".to_string()
                                                         }
-                                                    }
-                                                });
+                                                    })
+                                                    .or_else(|| {
+                                                        data.as_deref()
+                                                            .and_then(infer_media_type_from_reference)
+                                                    });
                                                 content_parts.push(UserContentPart::File {
-                                                    data: s
-                                                        .data
-                                                        .clone()
+                                                    data: data
                                                         .map(serde_json::Value::String)
                                                         .unwrap_or(serde_json::Value::Null),
                                                     filename: None,
@@ -1774,6 +1796,65 @@ mod tests {
             } else {
                 panic!("Expected SourceSource");
             }
+        }
+    }
+
+    #[test]
+    fn test_anthropic_document_url_imports_back_to_file_url() {
+        let message = generated::InputMessage {
+            role: generated::MessageRole::User,
+            content: generated::MessageContent::InputContentBlockArray(vec![
+                generated::InputContentBlock {
+                    cache_control: None,
+                    citations: None,
+                    text: None,
+                    input_content_block_type: generated::InputContentBlockType::Document,
+                    source: Some(generated::Source::SourceSource(generated::SourceSource {
+                        data: None,
+                        media_type: None,
+                        source_type: generated::FluffyType::Url,
+                        url: Some("https://example.com/report.pdf".to_string()),
+                        content: None,
+                    })),
+                    context: None,
+                    title: Some("Doc".to_string()),
+                    content: None,
+                    signature: None,
+                    thinking: None,
+                    data: None,
+                    id: None,
+                    input: None,
+                    name: None,
+                    is_error: None,
+                    tool_use_id: None,
+                },
+            ]),
+        };
+
+        let converted = <Message as TryFromLLM<generated::InputMessage>>::try_from(message)
+            .expect("document message should import");
+
+        match converted {
+            Message::User {
+                content: UserContent::Array(parts),
+            } => match &parts[0] {
+                UserContentPart::File {
+                    data,
+                    filename,
+                    media_type,
+                    provider_options,
+                } => {
+                    assert_eq!(
+                        data,
+                        &serde_json::Value::String("https://example.com/report.pdf".to_string())
+                    );
+                    assert!(filename.is_none());
+                    assert_eq!(media_type, "application/pdf");
+                    assert!(provider_options.is_some());
+                }
+                other => panic!("expected file content, got {:?}", other),
+            },
+            other => panic!("expected user message, got {:?}", other),
         }
     }
 
