@@ -698,7 +698,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         .as_ref()
                                         .and_then(|opts| opts.context.clone());
 
-                                    let anthropic_media_type = match media_type.as_str() {
+                                    let anthropic_media_type = match media_type.as_ref() {
                                         "image/jpeg" => {
                                             Some(generated::FluffyMediaType::ImageJpeg)
                                         }
