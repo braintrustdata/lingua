@@ -1029,24 +1029,25 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                 filename,
                 media_type,
                 provider_options,
-            } => {
-                let filename = openai_filename_for_file(filename, &media_type, &provider_options);
+            } => match openai_file_payload_from_data(data, &media_type)? {
+                OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputFile,
+                    file_url: Some(file_url),
+                    filename,
+                    ..Default::default()
+                },
+                OpenAIFilePayload::FileData(file_data) => {
+                    let filename =
+                        openai_filename_for_file(filename, &media_type, &provider_options);
 
-                match openai_file_payload_from_data(data, &media_type)? {
-                    OpenAIFilePayload::FileData(file_data) => openai::InputContent {
+                    openai::InputContent {
                         input_content_type: openai::InputItemContentListType::InputFile,
                         file_data: Some(file_data),
                         filename,
                         ..Default::default()
-                    },
-                    OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
-                        input_content_type: openai::InputItemContentListType::InputFile,
-                        file_url: Some(file_url),
-                        filename,
-                        ..Default::default()
-                    },
+                    }
                 }
-            }
+            },
         })
     }
 }
@@ -3760,6 +3761,30 @@ mod tests {
             .expect("file should convert");
 
         assert_eq!(converted.filename.as_deref(), Some("explicit-name.txt"));
+    }
+
+    #[test]
+    fn user_url_backed_file_does_not_synthesize_filename() {
+        let input = UserContentPart::File {
+            data: serde_json::Value::String("https://example.com/report.pdf".to_string()),
+            filename: None,
+            media_type: "application/pdf".to_string(),
+            provider_options: None,
+        };
+
+        let converted = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(input)
+            .expect("file should convert");
+
+        assert_eq!(
+            converted.input_content_type,
+            openai::InputItemContentListType::InputFile
+        );
+        assert_eq!(
+            converted.file_url.as_deref(),
+            Some("https://example.com/report.pdf")
+        );
+        assert!(converted.filename.is_none());
+        assert!(converted.file_data.is_none());
     }
 
     #[test]

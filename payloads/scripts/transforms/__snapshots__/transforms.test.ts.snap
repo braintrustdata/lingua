@@ -22735,6 +22735,77 @@ However, the sky can appear different colors depending on conditions:
 }
 `;
 
+exports[`responses → anthropic > responsesInputFileUrlParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Analyze the letter and summarize the key points.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01PL1aEcNLBA1UZg7AUdrn6k",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I don't see any letter attached to your message. Could you please share the letter you'd like me to analyze? You can either:
+
+1. Paste the text directly into the chat
+2. Upload an image of the letter
+3. Share the document content
+
+Once you provide the letter, I'll be happy to analyze it and summarize the key points for you.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I don't see any letter attached to your message. Could you please share the letter you'd like me to analyze? You can either:
+
+1. Paste the text directly into the chat
+2. Upload an image of the letter
+3. Share the document content
+
+Once you provide the letter, I'll be happy to analyze it and summarize the key points for you.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 18,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 81,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 99,
+  },
+}
+`;
+
 exports[`responses → anthropic > safetyIdentifierParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -25606,6 +25677,85 @@ So, while we most commonly think of the sky as **blue**, it can be a beautiful s
       "reasoning_tokens": 669,
     },
     "total_tokens": 1078,
+  },
+}
+`;
+
+exports[`responses → google > responsesInputFileUrlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Analyze the letter and summarize the key points.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > responsesInputFileUrlParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Please provide the letter you'd like me to analyze.
+
+Once you provide the text, I will carefully read it and summarize the key points, including:
+
+*   **Sender and Recipient:** Who wrote it and to whom?
+*   **Main Purpose:** What is the letter trying to achieve? (e.g., inform, request, complain, apologize, persuade, etc.)
+*   **Core Message:** The central theme or argument.
+*   **Key Details/Arguments:** Any specific facts, dates, demands, offers, or reasons mentioned.
+*   **Call to Action (if any):** What does the sender want the recipient to do?
+*   **Overall Tone:** (e.g., formal, informal, urgent, polite, aggressive, concerned, appreciative, professional).
+
+Looking forward to helping you with this!",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Please provide the letter you'd like me to analyze.
+
+Once you provide the text, I will carefully read it and summarize the key points, including:
+
+*   **Sender and Recipient:** Who wrote it and to whom?
+*   **Main Purpose:** What is the letter trying to achieve? (e.g., inform, request, complain, apologize, persuade, etc.)
+*   **Core Message:** The central theme or argument.
+*   **Key Details/Arguments:** Any specific facts, dates, demands, offers, or reasons mentioned.
+*   **Call to Action (if any):** What does the sender want the recipient to do?
+*   **Overall Tone:** (e.g., formal, informal, urgent, polite, aggressive, concerned, appreciative, professional).
+
+Looking forward to helping you with this!",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 10,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 975,
+    "output_tokens_details": {
+      "reasoning_tokens": 800,
+    },
+    "total_tokens": 985,
   },
 }
 `;

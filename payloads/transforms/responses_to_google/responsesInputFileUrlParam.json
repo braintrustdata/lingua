@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Please provide the letter you'd like me to analyze.\n\nOnce you provide the text, I will carefully read it and summarize the key points, including:\n\n*   **Sender and Recipient:** Who wrote it and to whom?\n*   **Main Purpose:** What is the letter trying to achieve? (e.g., inform, request, complain, apologize, persuade, etc.)\n*   **Core Message:** The central theme or argument.\n*   **Key Details/Arguments:** Any specific facts, dates, demands, offers, or reasons mentioned.\n*   **Call to Action (if any):** What does the sender want the recipient to do?\n*   **Overall Tone:** (e.g., formal, informal, urgent, polite, aggressive, concerned, appreciative, professional).\n\nLooking forward to helping you with this!"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 10,
+    "candidatesTokenCount": 175,
+    "totalTokenCount": 985,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 10
+      }
+    ],
+    "thoughtsTokenCount": 800
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "jGzqad65J6i8jMcP24X-GA"
+}
