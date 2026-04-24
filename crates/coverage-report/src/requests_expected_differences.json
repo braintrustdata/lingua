@@ -593,6 +593,14 @@
       ]
     },
     {
+      "testCase": "responsesInputFileUrlParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic document blocks require provider_options.anthropic_type=document to preserve document semantics on reparse" }
+      ]
+    },
+    {
       "testCase": "reasoningSummaryParam",
       "source": "Google",
       "target": "Responses",

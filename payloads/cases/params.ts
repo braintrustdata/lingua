@@ -83,6 +83,32 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesInputFileUrlParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "Analyze the letter and summarize the key points.",
+            },
+            {
+              type: "input_file",
+              file_url:
+                "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+            },
+          ],
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   // === Text Response Configuration ===
 
   textFormatJsonObjectParam: {

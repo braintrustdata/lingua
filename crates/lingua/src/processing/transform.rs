@@ -703,6 +703,45 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_reasoning_responses_file_url_preserves_absent_filename() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": [{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": "Summarize the document."
+                    },
+                    {
+                        "type": "input_file",
+                        "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf"
+                    }
+                ]
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Responses, None).unwrap();
+
+        assert!(
+            !result.is_passthrough(),
+            "Reasoning Responses models should force translation"
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        let content = output["input"][0]["content"].as_array().unwrap();
+        let file_part = &content[1];
+
+        assert_eq!(
+            file_part.get("file_url").and_then(Value::as_str),
+            Some("https://www.berkshirehathaway.com/letters/2024ltr.pdf")
+        );
+        assert!(file_part.get("filename").is_none());
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_request_overrides_model_before_capability_transforms() {
         let payload = json!({
             "model": "gpt-4o-mini",

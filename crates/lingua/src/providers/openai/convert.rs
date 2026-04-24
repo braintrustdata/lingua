@@ -237,8 +237,18 @@ fn openai_filename_for_file(
     })
 }
 
-fn openai_media_type_from_filename(filename: Option<&str>) -> String {
-    match filename.and_then(|name| name.rsplit('.').next()) {
+fn openai_media_type_from_reference(filename: Option<&str>, file_url: Option<&str>) -> String {
+    let extension = filename
+        .and_then(|name| name.rsplit('.').next().map(str::to_string))
+        .or_else(|| {
+            file_url
+                .and_then(|url| url.rsplit('/').next())
+                .and_then(|segment| segment.split('?').next())
+                .and_then(|name| name.rsplit('.').next())
+                .map(str::to_string)
+        });
+
+    match extension.as_deref() {
         Some("txt") => "text/plain".to_string(),
         Some("pdf") => "application/pdf".to_string(),
         _ => "application/octet-stream".to_string(),
@@ -291,7 +301,7 @@ fn universal_file_payload_from_openai(
         });
     }
 
-    let media_type = openai_media_type_from_filename(filename.as_deref());
+    let media_type = openai_media_type_from_reference(filename.as_deref(), file_url.as_deref());
 
     if let Some(file_url) = file_url {
         return Ok((
@@ -1029,24 +1039,25 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                 filename,
                 media_type,
                 provider_options,
-            } => {
-                let filename = openai_filename_for_file(filename, &media_type, &provider_options);
+            } => match openai_file_payload_from_data(data, &media_type)? {
+                OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputFile,
+                    file_url: Some(file_url),
+                    filename,
+                    ..Default::default()
+                },
+                OpenAIFilePayload::FileData(file_data) => {
+                    let filename =
+                        openai_filename_for_file(filename, &media_type, &provider_options);
 
-                match openai_file_payload_from_data(data, &media_type)? {
-                    OpenAIFilePayload::FileData(file_data) => openai::InputContent {
+                    openai::InputContent {
                         input_content_type: openai::InputItemContentListType::InputFile,
                         file_data: Some(file_data),
                         filename,
                         ..Default::default()
-                    },
-                    OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
-                        input_content_type: openai::InputItemContentListType::InputFile,
-                        file_url: Some(file_url),
-                        filename,
-                        ..Default::default()
-                    },
+                    }
                 }
-            }
+            },
         })
     }
 }
@@ -3763,6 +3774,30 @@ mod tests {
     }
 
     #[test]
+    fn user_url_backed_file_does_not_synthesize_filename() {
+        let input = UserContentPart::File {
+            data: serde_json::Value::String("https://example.com/report.pdf".to_string()),
+            filename: None,
+            media_type: "application/pdf".to_string(),
+            provider_options: None,
+        };
+
+        let converted = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(input)
+            .expect("file should convert");
+
+        assert_eq!(
+            converted.input_content_type,
+            openai::InputItemContentListType::InputFile
+        );
+        assert_eq!(
+            converted.file_url.as_deref(),
+            Some("https://example.com/report.pdf")
+        );
+        assert!(converted.filename.is_none());
+        assert!(converted.file_data.is_none());
+    }
+
+    #[test]
     fn user_file_errors_for_non_string_data() {
         let input = UserContentPart::File {
             data: json!({ "not": "supported" }),
@@ -3820,6 +3855,36 @@ mod tests {
                 assert_eq!(data, serde_json::Value::String("Sample text.".to_string()));
                 assert_eq!(filename.as_deref(), Some("Doc.txt"));
                 assert_eq!(media_type, "text/plain");
+            }
+            other => panic!("expected file content, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn responses_input_file_url_infers_media_type_from_url() {
+        let input = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputFile,
+            file_url: Some("https://example.com/report.pdf".to_string()),
+            filename: None,
+            ..Default::default()
+        };
+
+        let converted = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(input)
+            .expect("file should import");
+
+        match converted {
+            UserContentPart::File {
+                data,
+                filename,
+                media_type,
+                ..
+            } => {
+                assert_eq!(
+                    data,
+                    serde_json::Value::String("https://example.com/report.pdf".to_string())
+                );
+                assert!(filename.is_none());
+                assert_eq!(media_type, "application/pdf");
             }
             other => panic!("expected file content, got {:?}", other),
         }

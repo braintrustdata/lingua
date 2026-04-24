@@ -44,6 +44,24 @@ fn anthropic_file_provider_options_view(
     })
 }
 
+fn infer_media_type_from_reference(reference: &str) -> Option<String> {
+    let extension = reference
+        .rsplit('/')
+        .next()
+        .and_then(|segment| segment.split('?').next())
+        .and_then(|name| name.rsplit('.').next());
+
+    match extension {
+        Some("txt") => Some("text/plain".to_string()),
+        Some("pdf") => Some("application/pdf".to_string()),
+        Some("png") => Some("image/png".to_string()),
+        Some("jpg") | Some("jpeg") => Some("image/jpeg".to_string()),
+        Some("gif") => Some("image/gif".to_string()),
+        Some("webp") => Some("image/webp".to_string()),
+        _ => None,
+    }
+}
+
 fn normalize_anthropic_tool_schema_value(value: &mut Value) {
     match value {
         Value::Object(map) => {
@@ -303,8 +321,11 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         // Extract data and media_type from source
                                         match source {
                                             generated::Source::SourceSource(s) => {
-                                                let media_type = s.media_type.as_ref().map(|mt| {
-                                                    match mt {
+                                                let data = s.data.clone().or_else(|| s.url.clone());
+                                                let media_type = s
+                                                    .media_type
+                                                    .as_ref()
+                                                    .map(|mt| match mt {
                                                         generated::FluffyMediaType::ImageJpeg => {
                                                             "image/jpeg".to_string()
                                                         }
@@ -323,12 +344,13 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                         generated::FluffyMediaType::TextPlain => {
                                                             "text/plain".to_string()
                                                         }
-                                                    }
-                                                });
+                                                    })
+                                                    .or_else(|| {
+                                                        data.as_deref()
+                                                            .and_then(infer_media_type_from_reference)
+                                                    });
                                                 content_parts.push(UserContentPart::File {
-                                                    data: s
-                                                        .data
-                                                        .clone()
+                                                    data: data
                                                         .map(serde_json::Value::String)
                                                         .unwrap_or(serde_json::Value::Null),
                                                     filename: None,
@@ -668,70 +690,77 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 } => {
                                     let file_provider_options =
                                         anthropic_file_provider_options_view(&provider_options);
-                                    // Check if this was originally a Document block
-                                    let is_document = file_provider_options
+                                    let title = file_provider_options
                                         .as_ref()
-                                        .and_then(|opts| opts.anthropic_type.as_deref())
-                                        == Some("document");
+                                        .and_then(|opts| opts.title.clone());
 
-                                    if is_document {
-                                        // Restore as Document block
-                                        let title = file_provider_options
-                                            .as_ref()
-                                            .and_then(|opts| opts.title.clone());
+                                    let context = file_provider_options
+                                        .as_ref()
+                                        .and_then(|opts| opts.context.clone());
 
-                                        let context = file_provider_options
-                                            .as_ref()
-                                            .and_then(|opts| opts.context.clone());
+                                    let anthropic_media_type = match media_type.as_ref() {
+                                        "image/jpeg" => {
+                                            Some(generated::FluffyMediaType::ImageJpeg)
+                                        }
+                                        "image/png" => Some(generated::FluffyMediaType::ImagePng),
+                                        "image/gif" => Some(generated::FluffyMediaType::ImageGif),
+                                        "image/webp" => {
+                                            Some(generated::FluffyMediaType::ImageWebp)
+                                        }
+                                        "application/pdf" => {
+                                            Some(generated::FluffyMediaType::ApplicationPdf)
+                                        }
+                                        "text/plain" => Some(generated::FluffyMediaType::TextPlain),
+                                        _ => Some(generated::FluffyMediaType::TextPlain),
+                                    };
 
-                                        let anthropic_media_type = match media_type.as_str() {
-                                            "image/jpeg" => Some(generated::FluffyMediaType::ImageJpeg),
-                                            "image/png" => Some(generated::FluffyMediaType::ImagePng),
-                                            "image/gif" => Some(generated::FluffyMediaType::ImageGif),
-                                            "image/webp" => Some(generated::FluffyMediaType::ImageWebp),
-                                            "application/pdf" => {
-                                                Some(generated::FluffyMediaType::ApplicationPdf)
-                                            }
-                                            "text/plain" => Some(generated::FluffyMediaType::TextPlain),
-                                            _ => Some(generated::FluffyMediaType::TextPlain),
-                                        };
+                                    let data_str = match data {
+                                        serde_json::Value::String(s) => Some(s),
+                                        _ => None,
+                                    }?;
 
-                                        let data_str = match data {
-                                            serde_json::Value::String(s) => Some(s),
-                                            _ => None,
-                                        };
+                                    let is_url = data_str.starts_with("http://")
+                                        || data_str.starts_with("https://");
 
-                                        Some(generated::InputContentBlock {
-                                            cache_control: None,
-                                            citations: None,
-                                            text: None,
-                                            input_content_block_type:
-                                                generated::InputContentBlockType::Document,
-                                            source: Some(generated::Source::SourceSource(
-                                                generated::SourceSource {
-                                                    data: data_str,
-                                                    media_type: anthropic_media_type,
-                                                    source_type: generated::FluffyType::Text,
-                                                    url: None,
-                                                    content: None,
+                                    Some(generated::InputContentBlock {
+                                        cache_control: None,
+                                        citations: None,
+                                        text: None,
+                                        input_content_block_type:
+                                            generated::InputContentBlockType::Document,
+                                        source: Some(generated::Source::SourceSource(
+                                            generated::SourceSource {
+                                                data: if is_url {
+                                                    None
+                                                } else {
+                                                    Some(data_str.clone())
                                                 },
-                                            )),
-                                            context,
-                                            title,
-                                            content: None,
-                                            signature: None,
-                                            thinking: None,
-                                            data: None,
-                                            id: None,
-                                            input: None,
-                                            name: None,
-                                            is_error: None,
-                                            tool_use_id: None,
-                                        })
-                                    } else {
-                                        // Regular file - skip for now
-                                        None
-                                    }
+                                                media_type: if is_url {
+                                                    None
+                                                } else {
+                                                    anthropic_media_type
+                                                },
+                                                source_type: if is_url {
+                                                    generated::FluffyType::Url
+                                                } else {
+                                                    generated::FluffyType::Text
+                                                },
+                                                url: if is_url { Some(data_str) } else { None },
+                                                content: None,
+                                            },
+                                        )),
+                                        context,
+                                        title,
+                                        content: None,
+                                        signature: None,
+                                        thinking: None,
+                                        data: None,
+                                        id: None,
+                                        input: None,
+                                        name: None,
+                                        is_error: None,
+                                        tool_use_id: None,
+                                    })
                                 }
                             })
                             .collect();
@@ -1695,7 +1724,7 @@ mod tests {
     }
 
     #[test]
-    fn test_regular_file_without_anthropic_marker_is_skipped() {
+    fn test_regular_file_without_anthropic_marker_converts_to_document() {
         // Create a regular File content part (no anthropic_type marker)
         let file_part = UserContentPart::File {
             data: serde_json::Value::String("base64encodeddata".to_string()),
@@ -1714,13 +1743,118 @@ mod tests {
         assert!(result.is_ok());
         let input_msg = result.unwrap();
 
-        // Regular files without anthropic_type marker are currently skipped
         if let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content {
-            // The file was skipped, so blocks should be empty
-            assert!(
-                blocks.is_empty(),
-                "Regular files without anthropic_type should be skipped (current behavior)"
-            );
+            assert_eq!(blocks.len(), 1, "regular file should be preserved");
+            let block = &blocks[0];
+            assert!(matches!(
+                block.input_content_block_type,
+                generated::InputContentBlockType::Document
+            ));
+            if let Some(generated::Source::SourceSource(source)) = &block.source {
+                assert!(matches!(source.source_type, generated::FluffyType::Text));
+                assert_eq!(source.data.as_deref(), Some("base64encodeddata"));
+                assert!(source.url.is_none());
+            } else {
+                panic!("Expected SourceSource");
+            }
+        }
+    }
+
+    #[test]
+    fn test_regular_url_file_converts_to_anthropic_document() {
+        let file_part = UserContentPart::File {
+            data: serde_json::Value::String("https://example.com/report.pdf".to_string()),
+            filename: None,
+            media_type: "application/pdf".to_string(),
+            provider_options: None,
+        };
+
+        let message = Message::User {
+            content: UserContent::Array(vec![file_part]),
+        };
+
+        let result: Result<generated::InputMessage, _> =
+            <generated::InputMessage as TryFromLLM<Message>>::try_from(message);
+
+        assert!(result.is_ok());
+        let input_msg = result.unwrap();
+
+        if let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content {
+            assert_eq!(blocks.len(), 1, "url-backed file should be preserved");
+            let block = &blocks[0];
+            assert!(matches!(
+                block.input_content_block_type,
+                generated::InputContentBlockType::Document
+            ));
+            if let Some(generated::Source::SourceSource(source)) = &block.source {
+                assert!(matches!(source.source_type, generated::FluffyType::Url));
+                assert_eq!(
+                    source.url.as_deref(),
+                    Some("https://example.com/report.pdf")
+                );
+                assert!(source.data.is_none());
+            } else {
+                panic!("Expected SourceSource");
+            }
+        }
+    }
+
+    #[test]
+    fn test_anthropic_document_url_imports_back_to_file_url() {
+        let message = generated::InputMessage {
+            role: generated::MessageRole::User,
+            content: generated::MessageContent::InputContentBlockArray(vec![
+                generated::InputContentBlock {
+                    cache_control: None,
+                    citations: None,
+                    text: None,
+                    input_content_block_type: generated::InputContentBlockType::Document,
+                    source: Some(generated::Source::SourceSource(generated::SourceSource {
+                        data: None,
+                        media_type: None,
+                        source_type: generated::FluffyType::Url,
+                        url: Some("https://example.com/report.pdf".to_string()),
+                        content: None,
+                    })),
+                    context: None,
+                    title: Some("Doc".to_string()),
+                    content: None,
+                    signature: None,
+                    thinking: None,
+                    data: None,
+                    id: None,
+                    input: None,
+                    name: None,
+                    is_error: None,
+                    tool_use_id: None,
+                },
+            ]),
+        };
+
+        let converted = <Message as TryFromLLM<generated::InputMessage>>::try_from(message)
+            .expect("document message should import");
+
+        match converted {
+            Message::User {
+                content: UserContent::Array(parts),
+            } => match &parts[0] {
+                UserContentPart::File {
+                    data,
+                    filename,
+                    media_type,
+                    provider_options,
+                } => {
+                    assert_eq!(
+                        data,
+                        &serde_json::Value::String("https://example.com/report.pdf".to_string())
+                    );
+                    assert!(filename.is_none());
+                    assert_eq!(media_type, "application/pdf");
+                    assert!(provider_options.is_some());
+                }
+                other => panic!("expected file content, got {:?}", other),
+            },
+            other => panic!("expected user message, got {:?}", other),
         }
     }
 

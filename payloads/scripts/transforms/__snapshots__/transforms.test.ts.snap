@@ -2068,6 +2068,12 @@ exports[`anthropic → google > documentContentParam > request 1`] = `
     {
       "parts": [
         {
+          "inlineData": {
+            "data": "Sample text.",
+            "mimeType": "text/plain",
+          },
+        },
+        {
           "text": "Summarize.",
         },
       ],
@@ -22735,6 +22741,214 @@ However, the sky can appear different colors depending on conditions:
 }
 `;
 
+exports[`responses → anthropic > responsesInputFileUrlParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Analyze the letter and summarize the key points.",
+          "type": "text",
+        },
+        {
+          "source": {
+            "type": "url",
+            "url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+          },
+          "type": "document",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01UwgWMBGyCEAcVcBRFg4fVb",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "# Summary of Warren Buffett's 2024 Berkshire Hathaway Shareholder Letter
+
+## Key Points:
+
+### **1. Communication Philosophy & Transparency**
+- Buffett emphasizes honest communication, admitting mistakes 16 times in recent letters while many companies never use such words
+- Greg Abel will soon replace Buffett as CEO at age 94 and will maintain this transparent approach
+- Follows Tom Murphy's advice: "praise by name, criticize by category"
+
+### **2. Acknowledging Mistakes**
+- Mistakes fall into two categories: misjudging business economics and misjudging manager abilities/fidelity
+- The "cardinal sin" is delaying correction of mistakes (Charlie Munger's "thumb-sucking")
+- Emphasizes that even decent batting average in decisions is acceptable
+
+### **3. Pete Liegl Story - A Management Success**
+- Founder of Forest River (RV manufacturer), acquired in 2005
+- Negotiated entire deal in one meeting, asking for only $100,000 salary (matching Buffett's) plus 10% bonus on earnings growth
+- Delivered exceptional performance for 19 years until his death at age 80
+- Exemplifies that formal education matters less than innate talent
+
+### **4. 2024 Financial Performance**
+- Operating earnings: **$47.4 billion** (vs. $37.4 billion in 2023)
+- Despite 53% of 189 businesses showing earnings decline
+- Major contributors:
+  - **GEICO**: Spectacular improvement under Todd Combs' leadership
+  - Insurance underwriting: $9.0 billion (up from $5.4 billion)
+  - Insurance investment income: $13.7 billion (up from $9.6 billion)
+
+### **5. Record-Breaking Tax Payment**
+- Paid **$26.8 billion** in federal income taxes - more than any U.S. company ever
+- Represents ~5% of all corporate America's taxes
+- Only paid one dividend in 60 years ($101,755 in 1967), enabling continuous reinvestment
+- Total taxes paid to U.S. Treasury now exceed $101 billion
+
+### **6. Investment Strategy & Cash Position**
+- Marketable equities decreased from $354 billion to **$272 billion**
+- Controlled business equities remain far greater than marketable portfolio
+- Will "forever deploy substantial majority" in equities, mostly American
+- Increased Treasury Bill holdings significantly
+- Cash position criticized by some, but majority remains in equities
+
+### **7. Japanese Investments**
+- Investing in five Japanese companies: ITOCHU, Marubeni, Mitsubishi, Mitsui, and Sumitomo
+- Cost basis: $13.8 billion; Market value: **$23.5 billion**
+- Expected 2025 dividend income: ~$812 million
+- Yen-denominated debt interest cost: ~$135 million
+- Long-term holdings with ownership approaching/exceeding 10%
+
+### **8. Property-Casualty Insurance Business**
+- Core business with unique "money-up-front, loss-payments-later" model
+- Float grew from $46 billion to **$171 billion** over two decades
+- Generated $32 billion in after-tax underwriting profits (3.3 cents per dollar)
+- Climate change increasing severity of convective storms
+- Ajit Jain's leadership transformed operation into world leader
+
+### **9. Philosophy on American Capitalism**
+- Strong faith in American businesses and equities
+- "Berkshire would not have achieved its results in any locale except America"
+- Paper money vulnerable to inflation; businesses and talent adapt
+- Thanks "Uncle Sam" while urging wise spending and stable currency maintenance
+
+### **10. Annual Meeting Details**
+- May 3rd, 2025 in Omaha
+- New format: starts 8 a.m., ends 1 p.m.
+- No movie this year
+- Selling new book: "60 Years of Berkshire Hathaway" (5,000 copies)
+- 20 autographed copies to benefit Stephen Center for homeless
+
+### **Performance Metrics:**
+- **60-year compounded annual gain**: 19.9% (vs S&P 500: 10.4%)
+- **Overall gain 1964-2024**: 5,502,284% (vs S&P 500: 39,054%)
+- **2024 gain**: 25.5% (vs S&P 500: 25.0%)",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "# Summary of Warren Buffett's 2024 Berkshire Hathaway Shareholder Letter
+
+## Key Points:
+
+### **1. Communication Philosophy & Transparency**
+- Buffett emphasizes honest communication, admitting mistakes 16 times in recent letters while many companies never use such words
+- Greg Abel will soon replace Buffett as CEO at age 94 and will maintain this transparent approach
+- Follows Tom Murphy's advice: "praise by name, criticize by category"
+
+### **2. Acknowledging Mistakes**
+- Mistakes fall into two categories: misjudging business economics and misjudging manager abilities/fidelity
+- The "cardinal sin" is delaying correction of mistakes (Charlie Munger's "thumb-sucking")
+- Emphasizes that even decent batting average in decisions is acceptable
+
+### **3. Pete Liegl Story - A Management Success**
+- Founder of Forest River (RV manufacturer), acquired in 2005
+- Negotiated entire deal in one meeting, asking for only $100,000 salary (matching Buffett's) plus 10% bonus on earnings growth
+- Delivered exceptional performance for 19 years until his death at age 80
+- Exemplifies that formal education matters less than innate talent
+
+### **4. 2024 Financial Performance**
+- Operating earnings: **$47.4 billion** (vs. $37.4 billion in 2023)
+- Despite 53% of 189 businesses showing earnings decline
+- Major contributors:
+  - **GEICO**: Spectacular improvement under Todd Combs' leadership
+  - Insurance underwriting: $9.0 billion (up from $5.4 billion)
+  - Insurance investment income: $13.7 billion (up from $9.6 billion)
+
+### **5. Record-Breaking Tax Payment**
+- Paid **$26.8 billion** in federal income taxes - more than any U.S. company ever
+- Represents ~5% of all corporate America's taxes
+- Only paid one dividend in 60 years ($101,755 in 1967), enabling continuous reinvestment
+- Total taxes paid to U.S. Treasury now exceed $101 billion
+
+### **6. Investment Strategy & Cash Position**
+- Marketable equities decreased from $354 billion to **$272 billion**
+- Controlled business equities remain far greater than marketable portfolio
+- Will "forever deploy substantial majority" in equities, mostly American
+- Increased Treasury Bill holdings significantly
+- Cash position criticized by some, but majority remains in equities
+
+### **7. Japanese Investments**
+- Investing in five Japanese companies: ITOCHU, Marubeni, Mitsubishi, Mitsui, and Sumitomo
+- Cost basis: $13.8 billion; Market value: **$23.5 billion**
+- Expected 2025 dividend income: ~$812 million
+- Yen-denominated debt interest cost: ~$135 million
+- Long-term holdings with ownership approaching/exceeding 10%
+
+### **8. Property-Casualty Insurance Business**
+- Core business with unique "money-up-front, loss-payments-later" model
+- Float grew from $46 billion to **$171 billion** over two decades
+- Generated $32 billion in after-tax underwriting profits (3.3 cents per dollar)
+- Climate change increasing severity of convective storms
+- Ajit Jain's leadership transformed operation into world leader
+
+### **9. Philosophy on American Capitalism**
+- Strong faith in American businesses and equities
+- "Berkshire would not have achieved its results in any locale except America"
+- Paper money vulnerable to inflation; businesses and talent adapt
+- Thanks "Uncle Sam" while urging wise spending and stable currency maintenance
+
+### **10. Annual Meeting Details**
+- May 3rd, 2025 in Omaha
+- New format: starts 8 a.m., ends 1 p.m.
+- No movie this year
+- Selling new book: "60 Years of Berkshire Hathaway" (5,000 copies)
+- 20 autographed copies to benefit Stephen Center for homeless
+
+### **Performance Metrics:**
+- **60-year compounded annual gain**: 19.9% (vs S&P 500: 10.4%)
+- **Overall gain 1964-2024**: 5,502,284% (vs S&P 500: 39,054%)
+- **2024 gain**: 25.5% (vs S&P 500: 25.0%)",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 32901,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 1050,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 33951,
+  },
+}
+`;
+
 exports[`responses → anthropic > safetyIdentifierParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -25606,6 +25820,147 @@ So, while we most commonly think of the sky as **blue**, it can be a beautiful s
       "reasoning_tokens": 669,
     },
     "total_tokens": 1078,
+  },
+}
+`;
+
+exports[`responses → google > responsesInputFileUrlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Analyze the letter and summarize the key points.",
+        },
+        {
+          "fileData": {
+            "fileUri": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+            "mimeType": "application/pdf",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > responsesInputFileUrlParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "This letter from Warren E. Buffett to the shareholders of Berkshire Hathaway Inc. serves as both an annual report and a broader commentary on the company's philosophy, performance, and future outlook.
+
+Here are the key points:
+
+1.  **Transparency and Philosophy:** Buffett emphasizes that the letter is more than just a factual report; it's a commentary on what shareholders own and how Berkshire thinks. He aims for full transparency, discussing both good and bad developments, and adhering to the principle of "praise by name, criticize by category." He highlights Berkshire's willingness to acknowledge mistakes, contrasting it with the "happy talk" often found in other corporate communications.
+
+2.  **Mistakes and Learning:** Buffett openly admits to making mistakes in assessing business economics for acquisitions (both marketable equities and 100% acquisitions) and in evaluating managerial abilities or fidelity. He stresses the importance of correcting mistakes quickly and not engaging in "thumb-sucking," a term he attributes to Charlie Munger.
+
+3.  **Succession:** Greg Abel is confirmed as Buffett's successor for CEO and will continue the tradition of transparent annual letters.
+
+4.  **Innate Talent in Management (Pete Liegl Story):** Buffett recounts the story of Pete Liegl, founder of Forest River, illustrating his approach to valuing and integrating companies. Liegl's modest compensation request and dedication highlight Buffett's belief that innate business talent and character are more important than formal education or prestigious backgrounds. He explicitly states he doesn't consider a candidate's schooling for CEO selections.
+
+5.  **2024 Performance Overview:**
+    *   Berkshire's 2024 performance exceeded expectations, despite 53% of its 189 operating businesses reporting earning declines.
+    *   This was boosted by a significant gain in investment income due to improved Treasury Bill yields.
+    *   **Insurance Business:** Delivered a major increase in earnings, particularly GEICO, which Todd Combs significantly improved in efficiency and underwriting. P/C insurance pricing strengthened due to increased damage from convective storms, possibly indicating climate change impacts.
+    *   **Operating Earnings:** Recorded $47.4 billion in 2024, up from $37.35 billion in 2023. Buffett re-emphasizes focusing on operating earnings over GAAP earnings (which include volatile capital gains/losses).
+    *   BNSF (railroad) and Berkshire Hathaway Energy (utility) improved aggregate earnings, but "have much left to accomplish." Berkshire increased its ownership of the utility operation to 100% at a cost of $3.9 billion.
+
+6.  **Record Tax Payments:** In a "surprise" achievement, Berkshire Hathaway paid $26.8 billion in corporate income tax to the U.S. Treasury in 2024, a record for any U.S. company ever, representing about 5% of all corporate America's payments. This was primarily enabled by Berkshire shareholders' consistent endorsement of reinvestment over dividends (only one cash dividend was paid in 1967).
+
+7.  **Investment Strategy ("Where Your Money Is"):**
+    *   Berkshire's equity activity is "ambidextrous," involving both 100% ownership of many businesses and partial ownership of large, highly profitable public companies (valued at $272 billion at year-end).
+    *   A substantial majority of shareholder money will always be deployed in equities, primarily American, as Buffett prefers ownership of good businesses over cash-equivalent assets, warning against fiscal folly and currency devaluation risks.
+    *   He reiterates his long-standing faith in American businesses and capitalism, despite its faults.
+
+8.  **Property-Casualty (P/C) Insurance Details:**
+    *   P/C insurance remains Berkshire's core business, offering a unique "money-up-front, loss-payments-later" financial model that generates significant "float" for investment. This float grew from $46 billion to $171 billion over two decades.
+    *   Buffett acknowledges the inherent risks of this model (costs are known much later) and the increasing challenges from events like wildfires.
+    *   He praises Ajit Jain for leading the insurance operation to global leadership and financial strength.
+    *   He stresses the importance of disciplined underwriting, avoiding "corporate suicide" by not writing inadequately priced policies. Berkshire's management compensation structure (significant personal investment, no options) aligns their interests with shareholders.
+
+9.  **Japanese Investments:**
+    *   Berkshire has significantly increased its long-term investment in five Japanese trading companies (ITOCHU, Marubeni, Mitsubishi, Mitsui, Sumitomo), admiring their capital deployment, management, and investor relations.
+    *   They aim to maintain holdings below 10% but may moderately increase ownership.
+    *   Berkshire also increases yen-denominated borrowings to achieve currency neutrality, benefiting from dollar strength (resulting in $2.3 billion after-tax gains, $850 million in 2024).
+
+10. **Annual Shareholder Meeting:** Details for the May 3rd, 2025 meeting in Omaha are provided, including product sales, a new book ("60 Years of Berkshire Hathaway" featuring Charlie Munger) with a charitable initiative, and a revised Q&A format featuring Greg Abel and Ajit Jain. Buffett also includes a personal, humorous anecdote about his 91-year-old sister, Bertie.
+
+11. **Historical Performance:** The letter includes tables demonstrating Berkshire's compounded annual gain (19.9%) and overall gain (5,502,284%) from 1965-2024, significantly outperforming the S&P 500 (10.4% compounded, 39,054% overall).",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "This letter from Warren E. Buffett to the shareholders of Berkshire Hathaway Inc. serves as both an annual report and a broader commentary on the company's philosophy, performance, and future outlook.
+
+Here are the key points:
+
+1.  **Transparency and Philosophy:** Buffett emphasizes that the letter is more than just a factual report; it's a commentary on what shareholders own and how Berkshire thinks. He aims for full transparency, discussing both good and bad developments, and adhering to the principle of "praise by name, criticize by category." He highlights Berkshire's willingness to acknowledge mistakes, contrasting it with the "happy talk" often found in other corporate communications.
+
+2.  **Mistakes and Learning:** Buffett openly admits to making mistakes in assessing business economics for acquisitions (both marketable equities and 100% acquisitions) and in evaluating managerial abilities or fidelity. He stresses the importance of correcting mistakes quickly and not engaging in "thumb-sucking," a term he attributes to Charlie Munger.
+
+3.  **Succession:** Greg Abel is confirmed as Buffett's successor for CEO and will continue the tradition of transparent annual letters.
+
+4.  **Innate Talent in Management (Pete Liegl Story):** Buffett recounts the story of Pete Liegl, founder of Forest River, illustrating his approach to valuing and integrating companies. Liegl's modest compensation request and dedication highlight Buffett's belief that innate business talent and character are more important than formal education or prestigious backgrounds. He explicitly states he doesn't consider a candidate's schooling for CEO selections.
+
+5.  **2024 Performance Overview:**
+    *   Berkshire's 2024 performance exceeded expectations, despite 53% of its 189 operating businesses reporting earning declines.
+    *   This was boosted by a significant gain in investment income due to improved Treasury Bill yields.
+    *   **Insurance Business:** Delivered a major increase in earnings, particularly GEICO, which Todd Combs significantly improved in efficiency and underwriting. P/C insurance pricing strengthened due to increased damage from convective storms, possibly indicating climate change impacts.
+    *   **Operating Earnings:** Recorded $47.4 billion in 2024, up from $37.35 billion in 2023. Buffett re-emphasizes focusing on operating earnings over GAAP earnings (which include volatile capital gains/losses).
+    *   BNSF (railroad) and Berkshire Hathaway Energy (utility) improved aggregate earnings, but "have much left to accomplish." Berkshire increased its ownership of the utility operation to 100% at a cost of $3.9 billion.
+
+6.  **Record Tax Payments:** In a "surprise" achievement, Berkshire Hathaway paid $26.8 billion in corporate income tax to the U.S. Treasury in 2024, a record for any U.S. company ever, representing about 5% of all corporate America's payments. This was primarily enabled by Berkshire shareholders' consistent endorsement of reinvestment over dividends (only one cash dividend was paid in 1967).
+
+7.  **Investment Strategy ("Where Your Money Is"):**
+    *   Berkshire's equity activity is "ambidextrous," involving both 100% ownership of many businesses and partial ownership of large, highly profitable public companies (valued at $272 billion at year-end).
+    *   A substantial majority of shareholder money will always be deployed in equities, primarily American, as Buffett prefers ownership of good businesses over cash-equivalent assets, warning against fiscal folly and currency devaluation risks.
+    *   He reiterates his long-standing faith in American businesses and capitalism, despite its faults.
+
+8.  **Property-Casualty (P/C) Insurance Details:**
+    *   P/C insurance remains Berkshire's core business, offering a unique "money-up-front, loss-payments-later" financial model that generates significant "float" for investment. This float grew from $46 billion to $171 billion over two decades.
+    *   Buffett acknowledges the inherent risks of this model (costs are known much later) and the increasing challenges from events like wildfires.
+    *   He praises Ajit Jain for leading the insurance operation to global leadership and financial strength.
+    *   He stresses the importance of disciplined underwriting, avoiding "corporate suicide" by not writing inadequately priced policies. Berkshire's management compensation structure (significant personal investment, no options) aligns their interests with shareholders.
+
+9.  **Japanese Investments:**
+    *   Berkshire has significantly increased its long-term investment in five Japanese trading companies (ITOCHU, Marubeni, Mitsubishi, Mitsui, Sumitomo), admiring their capital deployment, management, and investor relations.
+    *   They aim to maintain holdings below 10% but may moderately increase ownership.
+    *   Berkshire also increases yen-denominated borrowings to achieve currency neutrality, benefiting from dollar strength (resulting in $2.3 billion after-tax gains, $850 million in 2024).
+
+10. **Annual Shareholder Meeting:** Details for the May 3rd, 2025 meeting in Omaha are provided, including product sales, a new book ("60 Years of Berkshire Hathaway" featuring Charlie Munger) with a charitable initiative, and a revised Q&A format featuring Greg Abel and Ajit Jain. Buffett also includes a personal, humorous anecdote about his 91-year-old sister, Bertie.
+
+11. **Historical Performance:** The letter includes tables demonstrating Berkshire's compounded annual gain (19.9%) and overall gain (5,502,284%) from 1965-2024, significantly outperforming the S&P 500 (10.4% compounded, 39,054% overall).",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 0,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 3973,
+    "output_tokens_details": {
+      "reasoning_tokens": 2733,
+    },
+    "total_tokens": 3973,
   },
 }
 `;
