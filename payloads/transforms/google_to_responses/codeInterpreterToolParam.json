@@ -1,3 +1,98 @@
 {
-  "error": "Conversion from universal format failed: Tool 'code_execution' of type 'code_execution' is not supported by responses"
+  "id": "resp_0fca1b80d60caed70069ec305f0fa081a0b26a1853dfc2c87e",
+  "object": "response",
+  "created_at": 1777086559,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1777086566,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0fca1b80d60caed70069ec305f8c9081a08fbdf9be184e603f",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "ci_0fca1b80d60caed70069ec3061d91081a09de5a32586f89505",
+      "type": "code_interpreter_call",
+      "status": "completed",
+      "code": "import random\nprint(random.random())",
+      "container_id": "cntr_69ec305f24d0819196b7d99df176545b02fe14b6d68cfbb3",
+      "outputs": null
+    },
+    {
+      "id": "rs_0fca1b80d60caed70069ec3063970c81a083cacaa0bffc1b02",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0fca1b80d60caed70069ec3065b84081a08b260442fcaa732f",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here is a random number between 0 and 1: 0.27269563460293\n\nWant a number in a different range (e.g., 1-100) or an integer?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "code_interpreter",
+      "container": {
+        "type": "auto"
+      }
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 992,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 609,
+    "output_tokens_details": {
+      "reasoning_tokens": 512
+    },
+    "total_tokens": 1601
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here is a random number between 0 and 1: 0.27269563460293\n\nWant a number in a different range (e.g., 1-100) or an integer?"
 }

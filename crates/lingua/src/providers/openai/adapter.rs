@@ -1410,6 +1410,35 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_drops_google_code_execution_for_chat() {
+        use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-4o".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String(
+                    "Execute Python code to generate a random number".to_string(),
+                ),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![UniversalTool::builtin(
+                    "code_execution",
+                    BuiltinToolProvider::Google,
+                    "code_execution",
+                    Some(crate::serde_json::json!({})),
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let typed: CreateChatCompletionRequestClass =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert!(typed.tools.is_none());
+    }
+
+    #[test]
     fn test_openai_chat_errors_on_anthropic_web_search_allowed_domains() {
         use crate::universal::message::UserContent;
 
