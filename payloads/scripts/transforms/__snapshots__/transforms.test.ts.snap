@@ -16258,6 +16258,49 @@ exports[`google → anthropic > webSearchToolParam > response 1`] = `
 }
 `;
 
+exports[`google → chat-completions > codeInterpreterToolParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Execute Python code to generate a random number",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > codeInterpreterToolParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can suggest Python code for generating a random number, but I cannot execute it in this chat response.
+
+\`\`\`python
+import random
+print(random.random())
+\`\`\`",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 61,
+    "promptTokenCount": 14,
+    "totalTokenCount": 75,
+  },
+}
+`;
+
 exports[`google → chat-completions > complexReasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -18362,6 +18405,108 @@ If you want, I can also prepare a short, current-news brief for you once you pas
     "promptTokenCount": 10,
     "thoughtsTokenCount": 1344,
     "totalTokenCount": 1612,
+  },
+}
+`;
+
+exports[`google → responses > codeInterpreterToolParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Execute Python code to generate a random number",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "container": {
+        "type": "auto",
+      },
+      "type": "code_interpreter",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > codeInterpreterToolParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "code": "import random
+val = random.random()
+val
+",
+                "container_id": "cntr_69ec2ada23d08190aa60e3af906fa1110e79a52f36f0f4bb",
+                "outputs": null,
+                "status": "completed",
+              },
+              "id": "ci_02faa4f1e3de41e60069ec2add8fc081959827ab14d0d248dc",
+              "name": "code_interpreter",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 2,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here’s a randomly generated number (between 0 and 1): 0.5171688153286212
+
+Would you like:
+- a random integer in a specific range (e.g., 1 to 100), or
+- a random float in another range (e.g., 5.0 to 10.0), or
+- something else?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 3,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 165,
+    "promptTokenCount": 996,
+    "thoughtsTokenCount": 384,
+    "totalTokenCount": 1545,
   },
 }
 `;

@@ -759,6 +759,70 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_google_code_execution_maps_to_responses_code_interpreter() {
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Execute Python code to generate a random number"}]
+            }],
+            "tools": [{
+                "codeExecution": {}
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::Responses, Some("gpt-5-nano")).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Google));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("model").unwrap().as_str().unwrap(), "gpt-5-nano");
+        assert_eq!(
+            output.get("tools"),
+            Some(&json!([
+                {
+                    "type": "code_interpreter",
+                    "container": {
+                        "type": "auto"
+                    }
+                }
+            ])),
+            "Google codeExecution should map to Responses code_interpreter"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_google_code_execution_is_stripped_for_chat_requests() {
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Execute Python code to generate a random number"}]
+            }],
+            "tools": [{
+                "codeExecution": {}
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("gpt-5-nano")).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Google));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("model").unwrap().as_str().unwrap(), "gpt-5-nano");
+        assert!(
+            output.get("tools").is_none(),
+            "Google codeExecution should be stripped for Chat Completions"
+        );
+    }
+
+    #[test]
     #[cfg(feature = "openai")]
     fn test_non_reasoning_model_still_passthroughs() {
         // Non-reasoning models should still passthrough for efficiency
