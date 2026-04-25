@@ -113,10 +113,25 @@ impl VertexProvider {
 
     fn resolve_location(&self, spec: &ModelSpec) -> String {
         // Precedence: model spec locations > secret metadata location > default.
+        if !spec.locations.is_empty() {
+            if !self.config.location.is_empty() && spec.locations.contains(&self.config.location) {
+                // If the config location is in the model spec locations, use it.
+                return self.config.location.clone();
+            }
+            // Otherwise, use the first location.
+            return spec.locations[0].clone();
+        }
+
+        // TODO: is this used?
         if let Ok(extra) = ::serde_json::from_value::<VertexModelExtra>(
             ::serde_json::Value::Object(spec.extra.clone()),
         ) {
             if !extra.locations.is_empty() {
+                log::info!(
+                    "Using model spec locations for model {}: {:?}",
+                    spec.model,
+                    extra.locations
+                );
                 let idx = rand::thread_rng().gen_range(0..extra.locations.len());
                 return extra.locations[idx].clone();
             }
@@ -549,6 +564,32 @@ mod tests {
     }
 
     #[test]
+    fn resolve_location_prefers_config_location_when_in_spec_locations() {
+        // provider config is "us-central1"; spec lists both locations.
+        // The config location should be preferred over the first entry.
+        let provider = provider();
+        let spec = ModelSpec {
+            model: "publishers/google/models/gemini-pro".to_string(),
+            format: ProviderFormat::Google,
+            flavor: crate::catalog::ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: ::serde_json::Map::new(),
+            available_providers: vec![],
+            locations: vec!["europe-west4".to_string(), "us-central1".to_string()],
+        };
+        assert_eq!(provider.resolve_location(&spec), "us-central1");
+    }
+
+    #[test]
     fn resolve_location_uses_spec_locations() {
         let provider = provider();
         let spec = ModelSpec {
@@ -565,17 +606,9 @@ mod tests {
             max_input_tokens: None,
             max_output_tokens: None,
             supports_streaming: true,
-            extra: {
-                let mut map = ::serde_json::Map::new();
-                map.insert(
-                    "locations".into(),
-                    ::serde_json::Value::Array(vec![::serde_json::Value::String(
-                        "europe-west4".into(),
-                    )]),
-                );
-                map
-            },
+            extra: ::serde_json::Map::new(),
             available_providers: vec![],
+            locations: vec!["europe-west4".to_string()],
         };
         assert_eq!(provider.resolve_location(&spec), "europe-west4");
     }
@@ -599,6 +632,7 @@ mod tests {
             supports_streaming: true,
             extra: ::serde_json::Map::new(),
             available_providers: vec![],
+            locations: vec![],
         };
         assert_eq!(provider.resolve_location(&spec), "us-central1");
     }
