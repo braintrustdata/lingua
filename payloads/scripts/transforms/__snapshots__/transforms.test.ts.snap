@@ -16277,12 +16277,32 @@ exports[`google → chat-completions > codeInterpreterToolParam > response 1`] =
       "content": {
         "parts": [
           {
-            "text": "I can suggest Python code for generating a random number, but I cannot execute it in this chat response.
+            "text": "I can’t run Python code directly in this chat, but I can give you ready-to-run snippets and help you generate a number.
 
-\`\`\`python
-import random
-print(random.random())
-\`\`\`",
+What range and type do you want?
+- Integer between a and b (inclusive)
+- Float between a and b (inclusive of endpoints or exclusive, typically inclusive)
+
+Examples you can run:
+
+- Random integer between 1 and 100 (inclusive):
+  import random
+  print(random.randint(1, 100))
+
+- One-liner you can run in a shell:
+  python -c "import random; print(random.randint(1, 100))"
+
+- Random float in [0.0, 1.0):
+  import random
+  print(random.random())
+
+- Random float in [a, b):
+  import random
+  a = 5.0
+  b = 10.0
+  print(random.uniform(a, b))
+
+If you tell me the exact range and integer vs float, I’ll tailor a snippet for you. I can also provide a single sample number here if you just want a quick value (without executing code).",
           },
         ],
         "role": "model",
@@ -16294,9 +16314,10 @@ print(random.random())
   "modelVersion": "gpt-5-nano-2025-08-07",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 61,
+    "candidatesTokenCount": 231,
     "promptTokenCount": 14,
-    "totalTokenCount": 75,
+    "thoughtsTokenCount": 1408,
+    "totalTokenCount": 1653,
   },
 }
 `;
@@ -18452,14 +18473,12 @@ exports[`google → responses > codeInterpreterToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "code": "import random
-val = random.random()
-val
-",
-                "container_id": "cntr_69ec2ada23d08190aa60e3af906fa1110e79a52f36f0f4bb",
+random.randint(1,100)",
+                "container_id": "cntr_69efdd6ed1c48193898cda163efe14440982887c1fad39fd",
                 "outputs": null,
                 "status": "completed",
               },
-              "id": "ci_02faa4f1e3de41e60069ec2add8fc081959827ab14d0d248dc",
+              "id": "ci_04778756f10776c40069efdd72ec0c8197b3e93a0f6c322ff5",
               "name": "code_interpreter",
             },
           },
@@ -18486,12 +18505,9 @@ val
       "content": {
         "parts": [
           {
-            "text": "Here’s a randomly generated number (between 0 and 1): 0.5171688153286212
+            "text": "Here’s a random number (1–100): 73
 
-Would you like:
-- a random integer in a specific range (e.g., 1 to 100), or
-- a random float in another range (e.g., 5.0 to 10.0), or
-- something else?",
+If you want a different range or a float, tell me the specifics.",
           },
         ],
         "role": "model",
@@ -18503,10 +18519,10 @@ Would you like:
   "modelVersion": "gpt-5-nano-2025-08-07",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 165,
-    "promptTokenCount": 996,
-    "thoughtsTokenCount": 384,
-    "totalTokenCount": 1545,
+    "candidatesTokenCount": 118,
+    "promptTokenCount": 1108,
+    "thoughtsTokenCount": 448,
+    "totalTokenCount": 1674,
   },
 }
 `;
