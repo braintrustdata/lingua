@@ -15,9 +15,37 @@ provider-specific logic into a single interface.
 use std::sync::LazyLock;
 
 use crate::capabilities::ProviderFormat;
-use crate::processing::transform::TransformError;
+use crate::processing::transform::{RequestFormatDiagnostic, TransformError};
 use crate::serde_json::{Map, Number, Value};
 use crate::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RequestDetectionResult {
+    Matched,
+    NotMatched,
+    Diagnostic(RequestFormatDiagnostic),
+}
+
+impl RequestDetectionResult {
+    pub const fn from_match(is_match: bool) -> Self {
+        if is_match {
+            Self::Matched
+        } else {
+            Self::NotMatched
+        }
+    }
+
+    pub const fn is_matched(&self) -> bool {
+        matches!(self, Self::Matched)
+    }
+
+    pub const fn request_diagnostic(&self) -> Option<&RequestFormatDiagnostic> {
+        match self {
+            Self::Diagnostic(diagnostic) => Some(diagnostic),
+            _ => None,
+        }
+    }
+}
 
 /// Trait for provider-specific request and response handling.
 ///
@@ -47,7 +75,7 @@ pub trait ProviderAdapter: Send + Sync {
     /// Checks if a payload matches this provider's request format.
     ///
     /// This should delegate to existing detection logic (e.g., `try_parse_*` functions).
-    fn detect_request(&self, payload: &Value) -> bool;
+    fn detect_request(&self, payload: &Value) -> RequestDetectionResult;
 
     /// Convert a provider-specific payload to universal request format.
     ///

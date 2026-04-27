@@ -11,6 +11,7 @@ use crate::error::ConvertError;
 
 use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value, ProviderAdapter,
+    RequestDetectionResult,
 };
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::{apply_model_transforms, model_needs_transforms};
@@ -66,8 +67,8 @@ impl ProviderAdapter for OpenAIAdapter {
         "ChatCompletions"
     }
 
-    fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_openai(payload).is_ok()
+    fn detect_request(&self, payload: &Value) -> RequestDetectionResult {
+        RequestDetectionResult::from_match(try_parse_openai(payload).is_ok())
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -709,7 +710,7 @@ mod tests {
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(adapter.detect_request(&payload));
+        assert!(adapter.detect_request(&payload).is_matched());
     }
 
     #[test]

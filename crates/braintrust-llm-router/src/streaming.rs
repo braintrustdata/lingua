@@ -106,7 +106,7 @@ impl Stream for SessionTransformStream {
                             }
                             continue;
                         }
-                        Err(lingua::TransformError::UnableToDetectFormat) => {
+                        Err(lingua::TransformError::UnableToDetectFormat { .. }) => {
                             return Poll::Ready(Some(Ok(chunk)));
                         }
                         Err(e) => {

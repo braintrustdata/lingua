@@ -10,7 +10,7 @@ Bedrock's Converse API has some unique characteristics:
 
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
-use crate::processing::adapters::ProviderAdapter;
+use crate::processing::adapters::{ProviderAdapter, RequestDetectionResult};
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::generated::Thinking;
 use crate::providers::bedrock::params::BedrockParams;
@@ -42,8 +42,8 @@ impl ProviderAdapter for BedrockAdapter {
         "Bedrock"
     }
 
-    fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_bedrock(payload).is_ok()
+    fn detect_request(&self, payload: &Value) -> RequestDetectionResult {
+        RequestDetectionResult::from_match(try_parse_bedrock(payload).is_ok())
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -558,7 +558,7 @@ mod tests {
                 "content": [{"text": "Hello"}]
             }]
         });
-        assert!(adapter.detect_request(&payload));
+        assert!(adapter.detect_request(&payload).is_matched());
     }
 
     #[test]

@@ -9,7 +9,7 @@ Google's API has some unique characteristics:
 */
 
 use crate::capabilities::ProviderFormat;
-use crate::processing::adapters::ProviderAdapter;
+use crate::processing::adapters::{ProviderAdapter, RequestDetectionResult};
 use crate::processing::transform::TransformError;
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
@@ -46,8 +46,8 @@ impl ProviderAdapter for GoogleAdapter {
         "Google"
     }
 
-    fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_google(payload).is_ok()
+    fn detect_request(&self, payload: &Value) -> RequestDetectionResult {
+        RequestDetectionResult::from_match(try_parse_google(payload).is_ok())
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -732,7 +732,7 @@ mod tests {
                 "parts": [{"text": "Hello"}]
             }]
         });
-        assert!(adapter.detect_request(&payload));
+        assert!(adapter.detect_request(&payload).is_matched());
     }
 
     #[test]
