@@ -427,13 +427,7 @@ fn response_to_stream_chunk(response: UniversalResponse) -> UniversalStreamChunk
         })
         .collect();
 
-    UniversalStreamChunk::new(
-        response.id,
-        response.model,
-        choices,
-        None,
-        response.usage,
-    )
+    UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
 }
 
 pub(crate) fn transform_stream_chunk_step(
@@ -453,9 +447,8 @@ pub(crate) fn transform_stream_chunk_step(
             let universal_chunk = response_to_stream_chunk(response);
             let target_adapter = adapter_for_format(target_format)
                 .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
-            let bytes = serialize_stream_value(&target_adapter.stream_from_universal(
-                &universal_chunk,
-            )?)?;
+            let bytes =
+                serialize_stream_value(&target_adapter.stream_from_universal(&universal_chunk)?)?;
 
             return Ok(StreamTransformStep {
                 result: TransformResult::Transformed {
