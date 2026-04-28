@@ -66,6 +66,10 @@ impl StreamTransformSession {
         }
     }
 
+    pub fn target_format(&self) -> ProviderFormat {
+        self.target_format
+    }
+
     pub fn push(&mut self, input: Bytes) -> Result<Vec<StreamOutputChunk>, TransformError> {
         let step = transform_stream_chunk_step(input, self.target_format)?;
 

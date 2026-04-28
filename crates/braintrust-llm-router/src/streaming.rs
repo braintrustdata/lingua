@@ -10,6 +10,34 @@ use reqwest::Response;
 use crate::error::{Error, Result};
 use lingua::ProviderFormat;
 
+#[cfg(feature = "tracing")]
+fn log_stream_transform_detection_failure(data: &Bytes, output_format: ProviderFormat) {
+    let (payload_type, payload_keys) =
+        lingua::serde_json::from_slice::<lingua::serde_json::Value>(data)
+            .ok()
+            .map(|value| {
+                let payload_type = value
+                    .get("type")
+                    .and_then(lingua::serde_json::Value::as_str)
+                    .unwrap_or("")
+                    .to_string();
+                let payload_keys = value
+                    .as_object()
+                    .map(|obj| obj.keys().cloned().collect::<Vec<_>>().join(","))
+                    .unwrap_or_default();
+                (payload_type, payload_keys)
+            })
+            .unwrap_or_default();
+
+    tracing::info!(
+        router.stream.input_bytes = data.len(),
+        router.stream.output_format = %output_format,
+        router.stream.payload_type = payload_type,
+        router.stream.payload_keys = payload_keys,
+        "router stream transform unable to detect format"
+    );
+}
+
 /// A single chunk in a streaming response, carrying the JSON data and
 /// an optional SSE event type (e.g. `"message_start"` for Anthropic).
 #[derive(Debug, Clone)]
@@ -93,7 +121,7 @@ impl Stream for SessionTransformStream {
                         continue;
                     }
 
-                    match this.session.push(data) {
+                    match this.session.push(data.clone()) {
                         Ok(chunks) => {
                             this.pending.extend(chunks.into_iter().map(|chunk| {
                                 Ok(StreamChunk {
@@ -107,6 +135,12 @@ impl Stream for SessionTransformStream {
                             continue;
                         }
                         Err(lingua::TransformError::UnableToDetectFormat) => {
+                            #[cfg(feature = "tracing")]
+                            log_stream_transform_detection_failure(
+                                &data,
+                                this.session.target_format(),
+                            );
+
                             return Poll::Ready(Some(Ok(chunk)));
                         }
                         Err(e) => {

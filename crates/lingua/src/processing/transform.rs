@@ -19,7 +19,10 @@ use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter}
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
 use crate::serde_json::Value;
-use crate::universal::{UniversalResponse, UniversalStreamChunk};
+use crate::universal::{
+    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+};
 use thiserror::Error;
 
 /// Static empty JSON object bytes for terminal/keep-alive events.
@@ -369,6 +372,70 @@ pub(crate) fn serialize_stream_value(value: &Value) -> Result<Bytes, TransformEr
     )?))
 }
 
+fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStreamDelta {
+    match content {
+        AssistantContent::String(text) => UniversalStreamDelta {
+            role: Some("assistant".to_string()),
+            content: Some(text.clone()),
+            ..Default::default()
+        },
+        AssistantContent::Array(parts) => {
+            let mut text = String::new();
+            let mut reasoning = Vec::new();
+
+            for part in parts {
+                match part {
+                    AssistantContentPart::Text(text_part) => {
+                        text.push_str(&text_part.text);
+                    }
+                    AssistantContentPart::Reasoning { text, .. } => {
+                        reasoning.push(UniversalReasoningDelta {
+                            content: Some(text.clone()),
+                        });
+                    }
+                    AssistantContentPart::File { .. }
+                    | AssistantContentPart::ToolCall { .. }
+                    | AssistantContentPart::ToolResult { .. } => {}
+                }
+            }
+
+            UniversalStreamDelta {
+                role: Some("assistant".to_string()),
+                content: (!text.is_empty()).then_some(text),
+                reasoning,
+                ..Default::default()
+            }
+        }
+    }
+}
+
+fn response_to_stream_chunk(response: UniversalResponse) -> UniversalStreamChunk {
+    let choices = response
+        .messages
+        .iter()
+        .enumerate()
+        .filter_map(|(index, message)| match message {
+            Message::Assistant { content, .. } => Some(UniversalStreamChoice {
+                index: index as u32,
+                delta: Some(Value::from(assistant_content_to_stream_delta(content))),
+                finish_reason: response.finish_reason.as_ref().map(ToString::to_string),
+            }),
+            Message::System { .. }
+            | Message::Developer { .. }
+            | Message::User { .. }
+            | Message::Tool { .. } => None,
+        })
+        .collect();
+
+    UniversalStreamChunk::new(
+        response.id,
+        response.model,
+        choices,
+        None,
+        response.usage,
+    )
+}
+
 pub(crate) fn transform_stream_chunk_step(
     input: Bytes,
     target_format: ProviderFormat,
@@ -377,7 +444,32 @@ pub(crate) fn transform_stream_chunk_step(
         .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
     let event_type = extract_event_type(&chunk);
 
-    let source_adapter = detect_adapter(&chunk, DetectKind::Stream)?;
+    let source_adapter = match detect_adapter(&chunk, DetectKind::Stream) {
+        Ok(adapter) => adapter,
+        Err(TransformError::UnableToDetectFormat) => {
+            let response_adapter = detect_adapter(&chunk, DetectKind::Response)?;
+            let source_format = response_adapter.format();
+            let response = response_adapter.response_to_universal(chunk)?;
+            let universal_chunk = response_to_stream_chunk(response);
+            let target_adapter = adapter_for_format(target_format)
+                .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+            let bytes = serialize_stream_value(&target_adapter.stream_from_universal(
+                &universal_chunk,
+            )?)?;
+
+            return Ok(StreamTransformStep {
+                result: TransformResult::Transformed {
+                    bytes,
+                    source_format,
+                },
+                source_format,
+                universal: Some(universal_chunk),
+                event_type: None,
+                is_passthrough: false,
+            });
+        }
+        Err(e) => return Err(e),
+    };
     let source_format = source_adapter.format();
     let universal = source_adapter.stream_to_universal(chunk)?;
 
@@ -622,6 +714,43 @@ mod tests {
         let output_bytes = result.into_bytes();
         let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
         assert!(output.get("content").is_some() || output.get("choices").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_stream_chunk_accepts_full_anthropic_message() {
+        let payload = json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{
+                "type": "text",
+                "text": "Hello from Vertex"
+            }],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 8,
+                "output_tokens": 4
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_stream_chunk(input, ProviderFormat::ChatCompletions).unwrap();
+        let output_bytes = result.into_bytes();
+        let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
+
+        assert_eq!(
+            output
+                .get("choices")
+                .and_then(Value::as_array)
+                .and_then(|choices| choices.first())
+                .and_then(|choice| choice.get("delta"))
+                .and_then(|delta| delta.get("content"))
+                .and_then(Value::as_str),
+            Some("Hello from Vertex")
+        );
     }
 
     #[test]
