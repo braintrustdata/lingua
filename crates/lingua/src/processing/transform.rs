@@ -438,35 +438,21 @@ pub(crate) fn transform_stream_chunk_step(
         .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
     let event_type = extract_event_type(&chunk);
 
-    let source_adapter = match detect_adapter(&chunk, DetectKind::Stream) {
-        Ok(adapter) => adapter,
-        Err(TransformError::UnableToDetectFormat) => {
-            let response_adapter = detect_adapter(&chunk, DetectKind::Response)?;
-            let source_format = response_adapter.format();
-            let response = response_adapter.response_to_universal(chunk)?;
-            let universal_chunk = response_to_stream_chunk(response);
-            let target_adapter = adapter_for_format(target_format)
-                .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
-            let bytes =
-                serialize_stream_value(&target_adapter.stream_from_universal(&universal_chunk)?)?;
-
-            return Ok(StreamTransformStep {
-                result: TransformResult::Transformed {
-                    bytes,
-                    source_format,
-                },
-                source_format,
-                universal: Some(universal_chunk),
-                event_type: None,
-                is_passthrough: false,
-            });
-        }
-        Err(e) => return Err(e),
-    };
+    let detection = detect_adapter_with_kind(&chunk, DetectKind::Stream)?;
+    let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
-    let universal = source_adapter.stream_to_universal(chunk)?;
+    let universal = match detection.kind {
+        DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
+        DetectKind::Response => {
+            let response = source_adapter.response_to_universal(chunk)?;
+            Some(response_to_stream_chunk(response))
+        }
+        DetectKind::Request => {
+            unreachable!("stream detection never falls back to request payloads")
+        }
+    };
 
-    if source_format == target_format {
+    if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
         return Ok(StreamTransformStep {
             result: TransformResult::PassThrough(input),
             source_format,
@@ -507,10 +493,41 @@ enum DetectKind {
     Stream,
 }
 
+struct AdapterDetection {
+    adapter: &'static dyn ProviderAdapter,
+    kind: DetectKind,
+}
+
 fn detect_adapter(
     payload: &Value,
     kind: DetectKind,
 ) -> Result<&'static dyn ProviderAdapter, TransformError> {
+    detect_adapter_with_kind(payload, kind).map(|detection| detection.adapter)
+}
+
+fn detect_adapter_with_kind(
+    payload: &Value,
+    kind: DetectKind,
+) -> Result<AdapterDetection, TransformError> {
+    let adapter = detect_adapter_exact(payload, kind);
+    if let Some(adapter) = adapter {
+        return Ok(AdapterDetection { adapter, kind });
+    }
+
+    // Vertex will possibly respond with a response payload for streaming requests, so we need to detect that.
+    if matches!(kind, DetectKind::Stream) {
+        if let Some(adapter) = detect_adapter_exact(payload, DetectKind::Response) {
+            return Ok(AdapterDetection {
+                adapter,
+                kind: DetectKind::Response,
+            });
+        }
+    }
+
+    Err(TransformError::UnableToDetectFormat)
+}
+
+fn detect_adapter_exact(payload: &Value, kind: DetectKind) -> Option<&'static dyn ProviderAdapter> {
     adapters()
         .iter()
         .find(|a| match kind {
@@ -519,7 +536,6 @@ fn detect_adapter(
             DetectKind::Stream => a.detect_stream_response(payload),
         })
         .map(|a| a.as_ref())
-        .ok_or(TransformError::UnableToDetectFormat)
 }
 
 /// Check if a request needs forced translation even when source == target format.
@@ -707,6 +723,34 @@ mod tests {
         let output_bytes = result.into_bytes();
         let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
         assert!(output.get("content").is_some() || output.get("choices").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_detection_falls_back_to_full_response() {
+        let payload = json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{
+                "type": "text",
+                "text": "Hello from Vertex"
+            }],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 8,
+                "output_tokens": 4
+            }
+        });
+
+        assert!(detect_adapter_exact(&payload, DetectKind::Stream).is_none());
+
+        let detection = detect_adapter_with_kind(&payload, DetectKind::Stream).unwrap();
+
+        assert_eq!(detection.adapter.format(), ProviderFormat::Anthropic);
+        assert!(matches!(detection.kind, DetectKind::Response));
     }
 
     #[test]
