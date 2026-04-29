@@ -6,7 +6,7 @@ use crate::processing::transform::{
     serialize_stream_value, transform_stream_chunk_step, TransformError,
 };
 use crate::serde_json::Value;
-use crate::universal::UniversalStreamChunk;
+use crate::universal::{UniversalStreamChunk, UniversalStreamDelta};
 
 static EMPTY_JSON: Bytes = Bytes::from_static(b"{}");
 static SSE_DATA_PREFIX: &[u8] = b"data: ";
@@ -82,7 +82,6 @@ impl StreamTransformSession {
 
         let chunks = build_session_chunks(
             step.result,
-            step.source_format,
             self.target_format,
             step.universal.as_ref(),
             self.anthropic_message_started,
@@ -289,35 +288,24 @@ fn extract_event_type(value: &Value) -> Option<String> {
 
 fn build_session_chunks(
     result: crate::processing::transform::TransformResult,
-    source_format: ProviderFormat,
     target_format: ProviderFormat,
     universal: Option<&UniversalStreamChunk>,
     anthropic_message_started: bool,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let mut chunks = expand_transform_result(result)?;
     if target_format == ProviderFormat::Anthropic {
-        return Ok(expand_anthropic_session_chunks(
-            chunks,
-            source_format,
-            universal,
-            anthropic_message_started,
-        ));
+        return expand_anthropic_session_chunks(chunks, universal, anthropic_message_started);
     }
     Ok(std::mem::take(&mut chunks))
 }
 
 fn expand_anthropic_session_chunks(
     mut chunks: Vec<StreamOutputChunk>,
-    source_format: ProviderFormat,
     universal: Option<&UniversalStreamChunk>,
     anthropic_message_started: bool,
-) -> Vec<StreamOutputChunk> {
-    if source_format == ProviderFormat::Anthropic {
-        return chunks;
-    }
-
+) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let Some(universal) = universal else {
-        return chunks;
+        return Ok(chunks);
     };
 
     let has_finish = universal
@@ -381,11 +369,10 @@ fn expand_anthropic_session_chunks(
                                     "type": "thinking_delta",
                                     "thinking": thinking
                                 }
-                            }))
-                            .unwrap_or_else(|_| Bytes::new()),
+                            }))?,
                             "content_block_delta".to_string(),
                         ));
-                        return out;
+                        return Ok(out);
                     }
                 }
             }
@@ -397,49 +384,171 @@ fn expand_anthropic_session_chunks(
             ),
             "content_block_start".to_string(),
         ));
-        return out;
+        return Ok(out);
     }
 
     if has_finish {
-        if let Some(content) = delta_view
-            .as_ref()
-            .and_then(|d| d.content.as_deref())
-            .filter(|s| !s.is_empty())
-        {
+        let has_full_content = delta_view.as_ref().is_some_and(has_anthropic_content);
+        if has_full_content && !anthropic_message_started {
             out.push(StreamOutputChunk::with_event(
-                serialize_stream_value(&crate::serde_json::json!({
-                    "type": "content_block_delta",
-                    "index": choice.map(|c| c.index).unwrap_or(0),
-                    "delta": {
-                        "type": "text_delta",
-                        "text": content
-                    }
-                }))
-                .unwrap_or_else(|_| Bytes::new()),
-                "content_block_delta".to_string(),
+                anthropic_message_start_bytes(universal)?,
+                "message_start".to_string(),
             ));
         }
+
+        if has_full_content {
+            if let Some(choice) = choice {
+                if let Some(delta_view) = delta_view.as_ref() {
+                    push_full_anthropic_content_events(&mut out, choice.index, delta_view)?;
+                }
+            }
+        }
+
         out.append(&mut chunks);
         out.push(StreamOutputChunk::with_event(
             Bytes::from_static(br#"{"type":"message_stop"}"#),
             "message_stop".to_string(),
         ));
-        return out;
+        return Ok(out);
     }
 
     if has_metadata && has_tool_calls && is_initial_tool_call && !anthropic_message_started {
         out.push(StreamOutputChunk::with_event(
-            anthropic_message_start_bytes(universal),
+            anthropic_message_start_bytes(universal)?,
             "message_start".to_string(),
         ));
         out.append(&mut chunks);
-        return out;
+        return Ok(out);
     }
 
-    chunks
+    Ok(chunks)
 }
 
-fn anthropic_message_start_bytes(chunk: &UniversalStreamChunk) -> Bytes {
+fn has_anthropic_content(delta: &UniversalStreamDelta) -> bool {
+    delta.content.as_deref().is_some_and(|s| !s.is_empty())
+        || !delta.reasoning.is_empty()
+        || delta
+            .reasoning_signature
+            .as_deref()
+            .is_some_and(|s| !s.is_empty())
+        || !delta.tool_calls.is_empty()
+}
+
+fn push_full_anthropic_content_events(
+    out: &mut Vec<StreamOutputChunk>,
+    choice_index: u32,
+    delta: &UniversalStreamDelta,
+) -> Result<(), TransformError> {
+    let has_reasoning = !delta.reasoning.is_empty() || delta.reasoning_signature.is_some();
+    if has_reasoning {
+        out.push(StreamOutputChunk::with_event(
+            serialize_stream_value(&crate::serde_json::json!({
+                "type": "content_block_start",
+                "index": choice_index,
+                "content_block": {
+                    "type": "thinking",
+                    "thinking": ""
+                }
+            }))?,
+            "content_block_start".to_string(),
+        ));
+
+        let thinking = delta
+            .reasoning
+            .iter()
+            .filter_map(|r| r.content.as_deref())
+            .collect::<String>();
+        if !thinking.is_empty() {
+            out.push(StreamOutputChunk::with_event(
+                serialize_stream_value(&crate::serde_json::json!({
+                    "type": "content_block_delta",
+                    "index": choice_index,
+                    "delta": {
+                        "type": "thinking_delta",
+                        "thinking": thinking
+                    }
+                }))?,
+                "content_block_delta".to_string(),
+            ));
+        }
+
+        if let Some(signature) = delta
+            .reasoning_signature
+            .as_deref()
+            .filter(|s| !s.is_empty())
+        {
+            out.push(StreamOutputChunk::with_event(
+                serialize_stream_value(&crate::serde_json::json!({
+                    "type": "content_block_delta",
+                    "index": choice_index,
+                    "delta": {
+                        "type": "signature_delta",
+                        "signature": signature
+                    }
+                }))?,
+                "content_block_delta".to_string(),
+            ));
+        }
+    }
+
+    for tool_call in &delta.tool_calls {
+        let tool_index = tool_call.index.unwrap_or(choice_index);
+        let function = tool_call.function.as_ref();
+        let tool_name = function.and_then(|f| f.name.as_deref()).unwrap_or_default();
+        let tool_id = tool_call.id.as_deref().unwrap_or_default();
+        let arguments = function
+            .and_then(|f| f.arguments.as_deref())
+            .unwrap_or_default();
+
+        let input = crate::serde_json::from_str::<Value>(arguments)
+            .ok()
+            .filter(Value::is_object)
+            .unwrap_or_else(|| crate::serde_json::json!({}));
+
+        out.push(StreamOutputChunk::with_event(
+            serialize_stream_value(&crate::serde_json::json!({
+                "type": "content_block_start",
+                "index": tool_index,
+                "content_block": {
+                    "type": "tool_use",
+                    "id": tool_id,
+                    "name": tool_name,
+                    "input": input
+                }
+            }))?,
+            "content_block_start".to_string(),
+        ));
+    }
+
+    if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
+        out.push(StreamOutputChunk::with_event(
+            serialize_stream_value(&crate::serde_json::json!({
+                "type": "content_block_start",
+                "index": choice_index,
+                "content_block": {
+                    "type": "text",
+                    "text": ""
+                }
+            }))?,
+            "content_block_start".to_string(),
+        ));
+        out.push(StreamOutputChunk::with_event(
+            serialize_stream_value(&crate::serde_json::json!({
+                "type": "content_block_delta",
+                "index": choice_index,
+                "delta": {
+                    "type": "text_delta",
+                    "text": content
+                }
+            }))?,
+            "content_block_delta".to_string(),
+        ));
+    }
+
+    Ok(())
+}
+
+fn anthropic_message_start_bytes(chunk: &UniversalStreamChunk) -> Result<Bytes, TransformError> {
     serialize_stream_value(&crate::serde_json::json!({
         "type": "message_start",
         "message": {
@@ -462,7 +571,6 @@ fn anthropic_message_start_bytes(chunk: &UniversalStreamChunk) -> Bytes {
             }
         }
     }))
-    .unwrap_or_else(|_| Bytes::new())
 }
 
 fn merge_delta_usage(

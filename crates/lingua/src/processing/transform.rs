@@ -148,7 +148,6 @@ impl TransformResult {
 
 pub(crate) struct StreamTransformStep {
     pub(crate) result: TransformResult,
-    pub(crate) source_format: ProviderFormat,
     pub(crate) universal: Option<UniversalStreamChunk>,
     pub(crate) event_type: Option<String>,
     pub(crate) is_passthrough: bool,
@@ -384,16 +383,23 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
             let mut text = String::new();
             let mut reasoning = Vec::new();
             let mut tool_calls = Vec::new();
+            let mut reasoning_signature = None;
 
             for part in parts {
                 match part {
                     AssistantContentPart::Text(text_part) => {
                         text.push_str(&text_part.text);
                     }
-                    AssistantContentPart::Reasoning { text, .. } => {
+                    AssistantContentPart::Reasoning {
+                        text,
+                        encrypted_content,
+                    } => {
                         reasoning.push(UniversalReasoningDelta {
                             content: Some(text.clone()),
                         });
+                        if reasoning_signature.is_none() {
+                            reasoning_signature = encrypted_content.clone();
+                        }
                     }
                     AssistantContentPart::ToolCall {
                         tool_call_id,
@@ -422,6 +428,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                 content: (!text.is_empty()).then_some(text),
                 tool_calls,
                 reasoning,
+                reasoning_signature,
                 ..Default::default()
             }
         }
@@ -474,7 +481,6 @@ pub(crate) fn transform_stream_chunk_step(
     if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
         return Ok(StreamTransformStep {
             result: TransformResult::PassThrough(input),
-            source_format,
             universal,
             event_type,
             is_passthrough: true,
@@ -495,7 +501,6 @@ pub(crate) fn transform_stream_chunk_step(
             bytes,
             source_format,
         },
-        source_format,
         universal,
         event_type: None,
         is_passthrough: false,
