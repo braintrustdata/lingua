@@ -68,20 +68,48 @@ fn mime_type_from_url(url: &str) -> String {
                 Some("image/jpeg")
             } else if extension.eq_ignore_ascii_case("png") {
                 Some("image/png")
-            } else if extension.eq_ignore_ascii_case("gif") {
-                Some("image/gif")
             } else if extension.eq_ignore_ascii_case("webp") {
                 Some("image/webp")
-            } else if extension.eq_ignore_ascii_case("bmp") {
-                Some("image/bmp")
-            } else if extension.eq_ignore_ascii_case("svg") {
-                Some("image/svg+xml")
+            } else if extension.eq_ignore_ascii_case("heic") {
+                Some("image/heic")
+            } else if extension.eq_ignore_ascii_case("heif") {
+                Some("image/heif")
             } else if extension.eq_ignore_ascii_case("pdf") {
                 Some("application/pdf")
             } else if extension.eq_ignore_ascii_case("txt") {
                 Some("text/plain")
-            } else if extension.eq_ignore_ascii_case("json") {
-                Some("application/json")
+            } else if extension.eq_ignore_ascii_case("flv") {
+                Some("video/x-flv")
+            } else if extension.eq_ignore_ascii_case("mov") {
+                Some("video/quicktime")
+            } else if extension.eq_ignore_ascii_case("mpeg") {
+                Some("video/mpeg")
+            } else if extension.eq_ignore_ascii_case("mpegs") {
+                Some("video/mpegs")
+            } else if extension.eq_ignore_ascii_case("mpg") {
+                Some("video/mpg")
+            } else if extension.eq_ignore_ascii_case("wmv") {
+                Some("video/wmv")
+            } else if extension.eq_ignore_ascii_case("3gp")
+                || extension.eq_ignore_ascii_case("3gpp")
+            {
+                Some("video/3gpp")
+            } else if extension.eq_ignore_ascii_case("aac") {
+                Some("audio/x-aac")
+            } else if extension.eq_ignore_ascii_case("flac") {
+                Some("audio/flac")
+            } else if extension.eq_ignore_ascii_case("mp3") {
+                Some("audio/mp3")
+            } else if extension.eq_ignore_ascii_case("m4a") {
+                Some("audio/m4a")
+            } else if extension.eq_ignore_ascii_case("mpga") {
+                Some("audio/mpga")
+            } else if extension.eq_ignore_ascii_case("ogg") {
+                Some("audio/ogg")
+            } else if extension.eq_ignore_ascii_case("pcm") {
+                Some("audio/pcm")
+            } else if extension.eq_ignore_ascii_case("wav") {
+                Some("audio/wav")
             } else {
                 None
             };
