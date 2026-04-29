@@ -1,0 +1,27 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01Y5kpsbWFEKAmqXM1jdpiLG",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "This image shows an adorable tabby kitten lying on a light wooden floor with its head tilted to the side in an endearing pose. The kitten has distinctive striped markings in shades of gray and brown, characteristic of a tabby pattern. Its large, expressive yellow-green eyes are gazing directly at the camera, creating an engaging and curious expression.\n\nThe kitten appears to be quite young, with soft fluffy fur, prominent whiskers, and pink-lined ears that are perked up attentively. It's positioned in a relaxed, playful manner with its front paws stretched out in front of it. The background is softly blurred, showing hints of furniture or household items, which helps keep the focus on the kitten.\n\nThe lighting in the photo is bright and natural, highlighting the kitten's fur texture and facial features beautifully. This is a classic, heartwarming pet portrait that captures the playful and charming nature of a young cat."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 275,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 213,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

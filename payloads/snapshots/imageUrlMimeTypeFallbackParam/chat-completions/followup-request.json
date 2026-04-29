@@ -1,0 +1,30 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Describe this image."
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "A tabby cat is lounging on a smooth wooden table, with its front paws stretched forward. It has striped brown/gray fur, long white whiskers, and large amber eyes that are looking toward the camera with a curious, tilted head. The background is softly blurred, suggesting an indoor, home setting.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

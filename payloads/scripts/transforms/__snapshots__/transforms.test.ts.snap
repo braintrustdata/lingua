@@ -6616,6 +6616,63 @@ exports[`chat-completions → anthropic > frequencyPenaltyParam > response 1`] =
 }
 `;
 
+exports[`chat-completions → anthropic > imageUrlMimeTypeFallbackParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Describe this image.",
+          "type": "text",
+        },
+        {
+          "source": {
+            "type": "url",
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+          "type": "image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > imageUrlMimeTypeFallbackParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "This image shows an adorable tabby kitten lying on a light wooden floor with its head tilted to the side in an endearing pose. The kitten has distinctive striped markings in shades of gray and brown, characteristic of a tabby pattern. Its large, expressive yellow-green eyes are gazing directly at the camera, creating an engaging and curious expression.
+
+The kitten appears to be quite young, with soft fluffy fur, prominent whiskers, and pink-lined ears that are perked up attentively. It's positioned in a relaxed, playful manner with its front paws stretched out in front of it. The background is softly blurred, showing hints of furniture or household items, which helps keep the focus on the kitten.
+
+The lighting in the photo is bright and natural, highlighting the kitten's fur texture and facial features beautifully. This is a classic, heartwarming pet portrait that captures the playful and charming nature of a young cat.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01Y5kpsbWFEKAmqXM1jdpiLG",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 213,
+    "prompt_tokens": 275,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 488,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > instructionsParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -8951,6 +9008,70 @@ exports[`chat-completions → google > frequencyPenaltyParam > response 1`] = `
 }
 `;
 
+exports[`chat-completions → google > imageUrlMimeTypeFallbackParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Describe this image.",
+        },
+        {
+          "fileData": {
+            "fileUri": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            "mimeType": "image/jpeg",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > imageUrlMimeTypeFallbackParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "This is a charming and close-up portrait of a domestic tabby cat, captured with a shallow depth of field that puts the cat in sharp focus against a soft, blurred background.
+
+The cat is lying down on a light-colored wooden surface, likely a floor or tabletop. Its head is prominently featured, tilted significantly to its left (the viewer's right), which gives it a highly curious and engaging expression.
+
+Key features of the cat include:
+*   **Fur:** It has soft, medium-length fur with classic brown and dark grey tabby stripes and swirls, particularly noticeable on its head, ears, and visible paw.
+*   **Eyes:** Its most striking features are its large, round, and luminous amber-yellow eyes. The pupils are widely dilated, reflecting bright light sources (possibly windows), which gives it an alert, wide-eyed, and almost surprised or intensely focused look.
+*   **Nose:** A small, delicate pinkish-brown nose is visible at the center of its face.
+*   **Whiskers:** Long, prominent white whiskers fan out from its muzzle, adding to its expressiveness.
+*   **Ears:** Its pointed ears are perked up, further conveying alertness and attention.
+*   **Paws:** One striped paw is visible in the foreground, resting gently on the wooden surface.
+
+The background on the left side is a soft, blurry expanse of light blue-grey, suggesting a plain wall. The background on the right is a blur of darker, indistinct shapes and colors, hinting at furniture or shelves in an indoor environment.
+
+The overall impression is one of adorable curiosity and direct engagement, with the cat's tilted head and wide eyes making it appear deeply interested in something, likely the camera or the viewer.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1475,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1109,
+    },
+    "prompt_tokens": 0,
+    "total_tokens": 1475,
+  },
+}
+`;
+
 exports[`chat-completions → google > instructionsParam > request 1`] = `
 {
   "contents": [
@@ -9462,6 +9583,7 @@ exports[`chat-completions → google > multimodalRequest > request 1`] = `
         {
           "fileData": {
             "fileUri": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            "mimeType": "image/jpeg",
           },
         },
       ],
@@ -11563,6 +11685,67 @@ exports[`chat-completions → responses > frequencyPenaltyParam > response 1`] =
       "cached_tokens": 0,
     },
     "total_tokens": 306,
+  },
+}
+`;
+
+exports[`chat-completions → responses > imageUrlMimeTypeFallbackParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Describe this image.",
+          "type": "input_text",
+        },
+        {
+          "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          "type": "input_image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > imageUrlMimeTypeFallbackParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "A cute tabby cat with striped fur is lying on a warm wooden surface, front paws crossed and head tilted, looking directly at the camera with big amber eyes. Its ears are perked and whiskers are prominent, giving a curious, relaxed expression. The background is softly blurred, suggesting an indoor setting with furniture.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-037275c675122e4e0069f24f93c408819f808282ec47178efe",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 511,
+    "completion_tokens_details": {
+      "reasoning_tokens": 384,
+    },
+    "prompt_tokens": 316,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 827,
   },
 }
 `;
@@ -14190,6 +14373,65 @@ exports[`google → anthropic > imageConfigParam > response 1`] = `
 }
 `;
 
+exports[`google → anthropic > imageUrlMimeTypeFallbackParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Describe this image.",
+          "type": "text",
+        },
+        {
+          "source": {
+            "type": "url",
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+          "type": "image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > imageUrlMimeTypeFallbackParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "This image shows an adorable tabby kitten lying on its side on a light wooden floor. The kitten has distinctive features including:
+
+- **Striking blue-green or golden eyes** that are looking directly at the camera with an endearing, wide-eyed expression
+- **Gray and brown tabby striped fur** with classic markby markings
+- **Pink inner ears** that are clearly visible as the kitten's head is tilted
+- **White whiskers** extending from its face
+- **Small paws** stretched out in front
+
+The kitten appears to be in a playful, relaxed pose, lying on its side with its head tilted at a charming angle. The background is softly blurred but shows what appears to be an indoor home setting with some furniture visible in the background. The shallow depth of field keeps the focus entirely on the kitten's sweet face and expressive eyes, creating an irresistibly cute portrait that captures the playful innocence of a young cat.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 217,
+    "promptTokenCount": 275,
+    "totalTokenCount": 492,
+  },
+}
+`;
+
 exports[`google → anthropic > instructionsParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -16436,6 +16678,56 @@ If you’d like a PNG or a different size, let me know the dimensions and format
 }
 `;
 
+exports[`google → chat-completions > imageUrlMimeTypeFallbackParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Describe this image.",
+          "type": "text",
+        },
+        {
+          "image_url": {
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+          "type": "image_url",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > imageUrlMimeTypeFallbackParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "A domestic short-haired tabby cat lies on a polished wooden surface, resting its front paws and tilting its head. It has gray-brown striped fur, big amber eyes, a pink nose, and long white whiskers. The background is softly blurred, suggesting an indoor room, giving a cozy, candid moment.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 74,
+    "promptTokenCount": 317,
+    "thoughtsTokenCount": 384,
+    "totalTokenCount": 775,
+  },
+}
+`;
+
 exports[`google → chat-completions > instructionsParam > request 1`] = `
 {
   "messages": [
@@ -18564,6 +18856,67 @@ If you had a different size or format in mind (PNG, data URL, etc.), tell me and
     "promptTokenCount": 12,
     "thoughtsTokenCount": 4096,
     "totalTokenCount": 4290,
+  },
+}
+`;
+
+exports[`google → responses > imageUrlMimeTypeFallbackParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Describe this image.",
+          "type": "input_text",
+        },
+        {
+          "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          "type": "input_image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > imageUrlMimeTypeFallbackParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "A cute tabby cat lies stretched out on a wooden surface, facing the camera. It has striped brown-gray fur, large amber eyes, and long white whiskers. Its front paws are extended forward, and its head is slightly tilted to the side, with a soft, indoor background blurred behind it.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 76,
+    "promptTokenCount": 316,
+    "thoughtsTokenCount": 384,
+    "totalTokenCount": 776,
   },
 }
 `;

@@ -237,6 +237,54 @@
       "reason": "Image media_type normalization artifact"
     },
     {
+      "testCase": "imageUrlMimeTypeFallbackParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[*].content[*].media_type", "reason": "Google-backed image URL MIME inference normalizes null media_type to image/jpeg" }
+      ]
+    },
+    {
+      "testCase": "imageUrlMimeTypeFallbackParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].media_type", "reason": "OpenAI ChatCompletions image URLs do not preserve inferred MIME type on plain HTTPS URLs" }
+      ]
+    },
+    {
+      "testCase": "imageUrlMimeTypeFallbackParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Anthropic request path drops the image URL block for this case, leaving only the text part" }
+      ]
+    },
+    {
+      "testCase": "imageUrlMimeTypeFallbackParam",
+      "source": "*",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Bedrock Anthropic-compatible request path drops the image URL block for this case, leaving only the text part" }
+      ]
+    },
+    {
+      "testCase": "imageUrlMimeTypeFallbackParam",
+      "source": "*",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Bedrock Anthropic-compatible request path drops the image URL block for this case, leaving only the text part" }
+      ]
+    },
+    {
+      "testCase": "imageUrlMimeTypeFallbackParam",
+      "source": "*",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content.length", "reason": "Vertex Anthropic-compatible request path drops the image URL block for this case, leaving only the text part" }
+      ]
+    },
+    {
       "testCase": "instructionsParam",
       "source": "ChatCompletions",
       "target": "Anthropic",

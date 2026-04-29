@@ -30,7 +30,7 @@ use crate::universal::request::{
 };
 use crate::universal::response::{FinishReason, UniversalUsage};
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
-use crate::util::media::parse_base64_data_url;
+use crate::util::media::{parse_base64_data_url, parse_file_metadata_from_url};
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
@@ -53,6 +53,74 @@ fn text_part(text: String) -> GooglePart {
         text: Some(text),
         ..Default::default()
     }
+}
+
+fn mime_type_from_url(url: &str) -> String {
+    if let Some(metadata) = parse_file_metadata_from_url(url) {
+        if let Some(content_type) = metadata.content_type {
+            return content_type;
+        }
+
+        if let Some((_, extension)) = metadata.filename.rsplit_once('.') {
+            let mime_type = if extension.eq_ignore_ascii_case("jpg")
+                || extension.eq_ignore_ascii_case("jpeg")
+            {
+                Some("image/jpeg")
+            } else if extension.eq_ignore_ascii_case("png") {
+                Some("image/png")
+            } else if extension.eq_ignore_ascii_case("webp") {
+                Some("image/webp")
+            } else if extension.eq_ignore_ascii_case("heic") {
+                Some("image/heic")
+            } else if extension.eq_ignore_ascii_case("heif") {
+                Some("image/heif")
+            } else if extension.eq_ignore_ascii_case("pdf") {
+                Some("application/pdf")
+            } else if extension.eq_ignore_ascii_case("txt") {
+                Some("text/plain")
+            } else if extension.eq_ignore_ascii_case("flv") {
+                Some("video/x-flv")
+            } else if extension.eq_ignore_ascii_case("mov") {
+                Some("video/quicktime")
+            } else if extension.eq_ignore_ascii_case("mpeg") {
+                Some("video/mpeg")
+            } else if extension.eq_ignore_ascii_case("mpegs") {
+                Some("video/mpegs")
+            } else if extension.eq_ignore_ascii_case("mpg") {
+                Some("video/mpg")
+            } else if extension.eq_ignore_ascii_case("wmv") {
+                Some("video/wmv")
+            } else if extension.eq_ignore_ascii_case("3gp")
+                || extension.eq_ignore_ascii_case("3gpp")
+            {
+                Some("video/3gpp")
+            } else if extension.eq_ignore_ascii_case("aac") {
+                Some("audio/x-aac")
+            } else if extension.eq_ignore_ascii_case("flac") {
+                Some("audio/flac")
+            } else if extension.eq_ignore_ascii_case("mp3") {
+                Some("audio/mp3")
+            } else if extension.eq_ignore_ascii_case("m4a") {
+                Some("audio/m4a")
+            } else if extension.eq_ignore_ascii_case("mpga") {
+                Some("audio/mpga")
+            } else if extension.eq_ignore_ascii_case("ogg") {
+                Some("audio/ogg")
+            } else if extension.eq_ignore_ascii_case("pcm") {
+                Some("audio/pcm")
+            } else if extension.eq_ignore_ascii_case("wav") {
+                Some("audio/wav")
+            } else {
+                None
+            };
+
+            if let Some(mime_type) = mime_type {
+                return mime_type.to_string();
+            }
+        }
+    }
+
+    DEFAULT_MIME_TYPE.to_string()
 }
 
 fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
@@ -419,10 +487,12 @@ impl TryFromLLM<Message> for GoogleContent {
                                     } else if data.starts_with("http://")
                                         || data.starts_with("https://")
                                     {
+                                        let mime_type =
+                                            media_type.unwrap_or_else(|| mime_type_from_url(&data));
                                         converted.push(GooglePart {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
-                                                mime_type: media_type,
+                                                mime_type: Some(mime_type),
                                             }),
                                             ..Default::default()
                                         });
@@ -1308,6 +1378,45 @@ mod tests {
         );
         assert_eq!(file_data.mime_type.as_deref(), Some("application/pdf"));
         assert!(parts[0].inline_data.is_none());
+    }
+
+    #[test]
+    fn test_image_url_to_google_file_data_infers_mime_type_from_extension() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::Image {
+                image: Value::String("https://example.com/image.jpg".to_string()),
+                media_type: None,
+                provider_options: None,
+            }]),
+        };
+
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        assert_eq!(content.role.as_deref(), Some("user"));
+        let parts = content.parts.unwrap();
+        assert_eq!(parts.len(), 1);
+        let file_data = parts[0].file_data.as_ref().expect("file_data should exist");
+        assert_eq!(
+            file_data.file_uri.as_deref(),
+            Some("https://example.com/image.jpg")
+        );
+        assert_eq!(file_data.mime_type.as_deref(), Some("image/jpeg"));
+        assert!(parts[0].inline_data.is_none());
+    }
+
+    #[test]
+    fn test_image_url_to_google_file_data_falls_back_to_default_mime_type() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::Image {
+                image: Value::String("https://example.com/image".to_string()),
+                media_type: None,
+                provider_options: None,
+            }]),
+        };
+
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let parts = content.parts.unwrap();
+        let file_data = parts[0].file_data.as_ref().expect("file_data should exist");
+        assert_eq!(file_data.mime_type.as_deref(), Some(DEFAULT_MIME_TYPE));
     }
 
     #[test]
