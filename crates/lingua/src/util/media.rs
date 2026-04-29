@@ -420,6 +420,54 @@ pub fn is_localhost_url(url: &str) -> bool {
     url.starts_with("http://127.0.0.1") || url.starts_with("http://localhost")
 }
 
+/// Best-effort MIME type lookup for a URL, without making any network calls.
+///
+/// Resolution order:
+/// 1. `response-content-type` query parameter on S3 presigned URLs.
+/// 2. Filename extension lookup against the Vertex/Gemini-supported types.
+///
+/// Returns `None` when neither source produces a value. Callers should apply
+/// their own default (e.g. [`crate::universal::defaults::DEFAULT_MIME_TYPE`]).
+pub fn mime_type_from_url(url: &str) -> Option<String> {
+    let metadata = parse_file_metadata_from_url(url)?;
+    if let Some(content_type) = metadata.content_type {
+        return Some(content_type);
+    }
+    let extension = metadata.filename.rsplit_once('.')?.1.to_ascii_lowercase();
+    mime_type_from_extension(&extension).map(str::to_string)
+}
+
+fn mime_type_from_extension(extension: &str) -> Option<&'static str> {
+    Some(match extension {
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "webp" => "image/webp",
+        "heic" => "image/heic",
+        "heif" => "image/heif",
+        "pdf" => "application/pdf",
+        "mp3" => "audio/mpeg",
+        "wav" => "audio/wav",
+        "ogg" => "audio/ogg",
+        "flac" => "audio/flac",
+        "aac" => "audio/aac",
+        "m4a" => "audio/mp4",
+        "mp4" => "video/mp4",
+        "mov" => "video/quicktime",
+        "avi" => "video/x-msvideo",
+        "webm" => "video/webm",
+        "mpeg" | "mpg" => "video/mpeg",
+        "txt" => "text/plain",
+        "html" | "htm" => "text/html",
+        "css" => "text/css",
+        "csv" => "text/csv",
+        "md" => "text/markdown",
+        "json" => "application/json",
+        "xml" => "application/xml",
+        _ => return None,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -489,5 +537,63 @@ mod tests {
         assert!(parse_file_metadata_from_url("not a url").is_none());
         assert!(parse_file_metadata_from_url("ftp://example.com/file").is_none());
         assert!(parse_file_metadata_from_url("https://example.com/").is_none());
+    }
+
+    #[test]
+    fn mime_type_from_url_extension_jpg() {
+        assert_eq!(
+            mime_type_from_url("https://example.com/photo.jpg").as_deref(),
+            Some("image/jpeg"),
+        );
+        assert_eq!(
+            mime_type_from_url("https://example.com/photo.jpeg").as_deref(),
+            Some("image/jpeg"),
+        );
+    }
+
+    #[test]
+    fn mime_type_from_url_extension_uppercase() {
+        assert_eq!(
+            mime_type_from_url("https://example.com/PHOTO.JPG").as_deref(),
+            Some("image/jpeg"),
+        );
+    }
+
+    #[test]
+    fn mime_type_from_url_extension_pdf() {
+        assert_eq!(
+            mime_type_from_url("https://example.com/doc.pdf").as_deref(),
+            Some("application/pdf"),
+        );
+    }
+
+    #[test]
+    fn mime_type_from_url_s3_presigned_overrides_extension() {
+        // Path says .jpg but the presigned response-content-type says image/png — presigned wins.
+        let url = "https://bucket.s3.amazonaws.com/file.jpg?X-Amz-Expires=60&response-content-type=image%2Fpng";
+        assert_eq!(mime_type_from_url(url).as_deref(), Some("image/png"));
+    }
+
+    #[test]
+    fn mime_type_from_url_no_extension() {
+        assert_eq!(mime_type_from_url("https://example.com/file"), None);
+    }
+
+    #[test]
+    fn mime_type_from_url_unknown_extension() {
+        assert_eq!(mime_type_from_url("https://example.com/file.xyz"), None);
+    }
+
+    #[test]
+    fn mime_type_from_url_data_url_returns_none() {
+        // Data URLs aren't fetched filenames; callers should use parse_base64_data_url.
+        assert_eq!(mime_type_from_url("data:image/png;base64,iVBORw=="), None);
+    }
+
+    #[test]
+    fn mime_type_from_url_invalid() {
+        assert_eq!(mime_type_from_url(""), None);
+        assert_eq!(mime_type_from_url("not a url"), None);
+        assert_eq!(mime_type_from_url("ftp://example.com/file.jpg"), None);
     }
 }
