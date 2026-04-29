@@ -16,8 +16,10 @@ use bytes::Bytes;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
+use crate::processing::repair_json_unicode_escapes;
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
+use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{UniversalResponse, UniversalStreamChunk};
 use thiserror::Error;
@@ -177,7 +179,7 @@ pub(crate) struct StreamTransformStep {
 /// assert_eq!(extract_model(&bedrock), Some("anthropic.claude-3".to_string()));
 /// ```
 pub fn extract_model(input: &[u8]) -> Option<String> {
-    let payload: Value = crate::serde_json::from_slice(input).ok()?;
+    let payload = parse_json_value(input).ok()?;
 
     // Try common model field names across providers
     payload
@@ -228,8 +230,7 @@ pub fn transform_request(
     target_format: ProviderFormat,
     model: Option<&str>,
 ) -> Result<TransformResult, TransformError> {
-    let payload: Value = crate::serde_json::from_slice(&input)
-        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
+    let payload = parse_json_value(&input)?;
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
@@ -284,8 +285,7 @@ pub fn transform_response(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<TransformResult, TransformError> {
-    let response: Value = crate::serde_json::from_slice(&input)
-        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
+    let response = parse_json_value(&input)?;
 
     let source_adapter = detect_adapter(&response, DetectKind::Response)?;
 
@@ -323,8 +323,7 @@ pub fn transform_response(
 /// * `Ok(UniversalResponse)` - The parsed universal response
 /// * `Err(TransformError)` - If parsing fails
 pub fn response_to_universal(input: Bytes) -> Result<UniversalResponse, TransformError> {
-    let response: Value = crate::serde_json::from_slice(&input)
-        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
+    let response = parse_json_value(&input)?;
 
     let source_adapter = detect_adapter(&response, DetectKind::Response)?;
     source_adapter.response_to_universal(response)
@@ -373,8 +372,7 @@ pub(crate) fn transform_stream_chunk_step(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<StreamTransformStep, TransformError> {
-    let chunk: Value = crate::serde_json::from_slice(&input)
-        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
+    let chunk = parse_json_value(&input)?;
     let event_type = extract_event_type(&chunk);
 
     let source_adapter = detect_adapter(&chunk, DetectKind::Stream)?;
@@ -463,8 +461,7 @@ fn needs_forced_translation(payload: &Value, model: Option<&str>, target: Provid
 pub fn sanitize_payload(input: Bytes, format: ProviderFormat) -> Result<Bytes, TransformError> {
     use crate::providers::anthropic::try_parse_anthropic;
 
-    let payload: Value = crate::serde_json::from_slice(&input)
-        .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
+    let payload = parse_json_value(&input)?;
 
     let sanitized = match format {
         ProviderFormat::Anthropic => {
@@ -480,6 +477,20 @@ pub fn sanitize_payload(input: Bytes, format: ProviderFormat) -> Result<Bytes, T
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
     Ok(Bytes::from(bytes))
+}
+
+pub fn parse_json_value(input: &[u8]) -> Result<Value, TransformError> {
+    match serde_json::from_slice(input) {
+        Ok(value) => Ok(value),
+        Err(original) => {
+            let Some(repaired) = repair_json_unicode_escapes(input) else {
+                return Err(TransformError::DeserializationFailed(original.to_string()));
+            };
+
+            serde_json::from_slice(&repaired)
+                .map_err(|err| TransformError::DeserializationFailed(err.to_string()))
+        }
+    }
 }
 
 #[cfg(test)]
