@@ -148,6 +148,7 @@ impl TransformResult {
 
 pub(crate) struct StreamTransformStep {
     pub(crate) result: TransformResult,
+    pub(crate) source_format: ProviderFormat,
     pub(crate) universal: Option<UniversalStreamChunk>,
     pub(crate) event_type: Option<String>,
     pub(crate) is_passthrough: bool,
@@ -481,6 +482,7 @@ pub(crate) fn transform_stream_chunk_step(
     if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
         return Ok(StreamTransformStep {
             result: TransformResult::PassThrough(input),
+            source_format,
             universal,
             event_type,
             is_passthrough: true,
@@ -501,6 +503,7 @@ pub(crate) fn transform_stream_chunk_step(
             bytes,
             source_format,
         },
+        source_format,
         universal,
         event_type: None,
         is_passthrough: false,
